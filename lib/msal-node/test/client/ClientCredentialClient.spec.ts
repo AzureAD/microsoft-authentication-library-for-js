@@ -20,6 +20,7 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
     CacheHelpers,
+    GrantType,
 } from "@azure/msal-common";
 import { ClientCredentialClient, UsernamePasswordClient } from "../../src";
 import {
@@ -36,6 +37,7 @@ import {
 import {
     checkMockedNetworkRequest,
     ClientTestUtils,
+    getClientAssertionCallback,
     mockCrypto,
 } from "./ClientTestUtils";
 import { mockNetworkClient } from "../utils/MockNetworkClient";
@@ -98,12 +100,12 @@ describe("ClientCredentialClient unit tests", () => {
             clientCredentialRequest
         );
 
-        const returnVal: string =
-            createTokenRequestBodySpy.mock.results[0].value;
+        const returnVal: string = await createTokenRequestBodySpy.mock
+            .results[0].value;
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: true,
+            grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -281,12 +283,12 @@ describe("ClientCredentialClient unit tests", () => {
             clientCredentialRequest
         );
 
-        const returnVal: string =
-            createTokenRequestBodySpy.mock.results[0].value;
+        const returnVal: string = await createTokenRequestBodySpy.mock
+            .results[0].value;
         const checks = {
             dstsScope: true,
             clientId: true,
-            grantType: true,
+            grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -363,12 +365,12 @@ describe("ClientCredentialClient unit tests", () => {
             clientCredentialRequest
         );
 
-        const returnVal: string =
-            createTokenRequestBodySpy.mock.results[0].value;
+        const returnVal: string = await createTokenRequestBodySpy.mock
+            .results[0].value;
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: true,
+            grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -431,8 +433,8 @@ describe("ClientCredentialClient unit tests", () => {
                 expect(authResult.fromCache).toBe(false);
 
                 // verify that the client capabilities have been merged with the (empty) claims
-                const returnVal: string = createTokenRequestBodySpy.mock
-                    .results[0].value as string;
+                const returnVal: string = await createTokenRequestBodySpy.mock
+                    .results[0].value;
                 expect(
                     decodeURIComponent(
                         returnVal
@@ -464,8 +466,8 @@ describe("ClientCredentialClient unit tests", () => {
                 expect(authResult2.fromCache).toBe(false);
 
                 // verify that the client capabilities have been merged with the claims
-                const returnVal2: string = createTokenRequestBodySpy.mock
-                    .results[1].value as string;
+                const returnVal2: string = await createTokenRequestBodySpy.mock
+                    .results[1].value;
                 expect(
                     decodeURIComponent(
                         returnVal2
@@ -526,12 +528,12 @@ describe("ClientCredentialClient unit tests", () => {
             clientCredentialRequest
         );
 
-        const returnVal: string = createTokenRequestBodySpy.mock.results[0]
-            .value as string;
+        const returnVal: string = await createTokenRequestBodySpy.mock
+            .results[0].value;
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: true,
+            grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -545,118 +547,127 @@ describe("ClientCredentialClient unit tests", () => {
         checkMockedNetworkRequest(returnVal, checks);
     });
 
-    it("Uses clientAssertion from ClientConfiguration when no client assertion is added to request", async () => {
-        config.clientCredentials = {
-            ...config.clientCredentials,
-            clientAssertion: {
-                assertion: TEST_CONFIG.TEST_CONFIG_ASSERTION,
-                assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE,
-            },
-        };
-        const client: ClientCredentialClient = new ClientCredentialClient(
-            config
-        );
+    it.each([
+        TEST_CONFIG.TEST_CONFIG_ASSERTION,
+        getClientAssertionCallback(TEST_CONFIG.TEST_CONFIG_ASSERTION),
+    ])(
+        "Uses clientAssertion from ClientConfiguration when no client assertion is added to request",
+        async (clientAssertion) => {
+            config.clientCredentials = {
+                ...config.clientCredentials,
+                clientAssertion: {
+                    assertion: clientAssertion,
+                    assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE,
+                },
+            };
+            const client: ClientCredentialClient = new ClientCredentialClient(
+                config
+            );
 
-        const clientCredentialRequest: CommonClientCredentialRequest = {
-            authority: TEST_CONFIG.validAuthority,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            claims: "{}",
-        };
+            const clientCredentialRequest: CommonClientCredentialRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            };
 
-        const authResult = (await client.acquireToken(
-            clientCredentialRequest
-        )) as AuthenticationResult;
-        const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
-        expect(authResult.scopes).toEqual(expectedScopes);
-        expect(authResult.accessToken).toEqual(
-            CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
-        );
-        expect(authResult.state).toBe("");
+            const authResult = (await client.acquireToken(
+                clientCredentialRequest
+            )) as AuthenticationResult;
+            const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
+            expect(authResult.scopes).toEqual(expectedScopes);
+            expect(authResult.accessToken).toEqual(
+                CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+            );
+            expect(authResult.state).toBe("");
 
-        expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
-            clientCredentialRequest
-        );
+            expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+                clientCredentialRequest
+            );
 
-        const returnVal: string = createTokenRequestBodySpy.mock.results[0]
-            .value as string;
-        const checks = {
-            graphScope: true,
-            clientId: true,
-            grantType: true,
-            clientSecret: true,
-            clientSku: true,
-            clientVersion: true,
-            clientOs: true,
-            clientCpu: true,
-            appName: true,
-            appVersion: true,
-            msLibraryCapability: true,
-            claims: false,
-            testConfigAssertion: true,
-            testAssertionType: true,
-        };
-        checkMockedNetworkRequest(returnVal, checks);
-    });
+            const returnVal: string = await createTokenRequestBodySpy.mock
+                .results[0].value;
+            const checks = {
+                graphScope: true,
+                clientId: true,
+                grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
+                clientSecret: true,
+                clientSku: true,
+                clientVersion: true,
+                clientOs: true,
+                clientCpu: true,
+                appName: true,
+                appVersion: true,
+                msLibraryCapability: true,
+                testConfigAssertion: true,
+                testAssertionType: true,
+            };
+            checkMockedNetworkRequest(returnVal, checks);
+        }
+    );
 
-    it("Uses the clientAssertion included in the request instead of the one in ClientConfiguration", async () => {
-        config.clientCredentials = {
-            ...config.clientCredentials,
-            clientAssertion: {
-                assertion: TEST_CONFIG.TEST_CONFIG_ASSERTION,
-                assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE,
-            },
-        };
-        const client: ClientCredentialClient = new ClientCredentialClient(
-            config
-        );
+    it.each([
+        TEST_CONFIG.TEST_REQUEST_ASSERTION,
+        getClientAssertionCallback(TEST_CONFIG.TEST_REQUEST_ASSERTION),
+    ])(
+        "Uses the clientAssertion included in the request instead of the one in ClientConfiguration",
+        async (clientAssertion) => {
+            config.clientCredentials = {
+                ...config.clientCredentials,
+                clientAssertion: {
+                    assertion:
+                        "config-assertion that will be overridden by request-assertion",
+                    assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE,
+                },
+            };
+            const client: ClientCredentialClient = new ClientCredentialClient(
+                config
+            );
 
-        const clientCredentialRequest: CommonClientCredentialRequest = {
-            authority: TEST_CONFIG.validAuthority,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            claims: "{}",
-            clientAssertion: {
-                assertion: TEST_CONFIG.TEST_REQUEST_ASSERTION,
-                assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE,
-            },
-        };
+            const clientCredentialRequest: CommonClientCredentialRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                clientAssertion: {
+                    assertion: clientAssertion,
+                    assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE,
+                },
+            };
 
-        const authResult = (await client.acquireToken(
-            clientCredentialRequest
-        )) as AuthenticationResult;
-        const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
-        expect(authResult.scopes).toEqual(expectedScopes);
-        expect(authResult.accessToken).toEqual(
-            CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
-        );
-        expect(authResult.state).toBe("");
+            const authResult = (await client.acquireToken(
+                clientCredentialRequest
+            )) as AuthenticationResult;
+            const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
+            expect(authResult.scopes).toEqual(expectedScopes);
+            expect(authResult.accessToken).toEqual(
+                CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+            );
+            expect(authResult.state).toBe("");
 
-        expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
-            clientCredentialRequest
-        );
+            expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+                clientCredentialRequest
+            );
 
-        const returnVal: string = createTokenRequestBodySpy.mock.results[0]
-            .value as string;
-        const checks = {
-            graphScope: true,
-            clientId: true,
-            grantType: true,
-            clientSecret: true,
-            clientSku: true,
-            clientVersion: true,
-            clientOs: true,
-            clientCpu: true,
-            appName: true,
-            appVersion: true,
-            msLibraryCapability: true,
-            claims: false,
-            testConfigAssertion: false,
-            testRequestAssertion: true,
-            testAssertionType: true,
-        };
-        checkMockedNetworkRequest(returnVal, checks);
-    });
+            const returnVal: string = await createTokenRequestBodySpy.mock
+                .results[0].value;
+            const checks = {
+                graphScope: true,
+                clientId: true,
+                grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
+                clientSecret: true,
+                clientSku: true,
+                clientVersion: true,
+                clientOs: true,
+                clientCpu: true,
+                appName: true,
+                appVersion: true,
+                msLibraryCapability: true,
+                testConfigAssertion: false,
+                testRequestAssertion: true,
+                testAssertionType: true,
+            };
+            checkMockedNetworkRequest(returnVal, checks);
+        }
+    );
 
     // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
     it("Does not add headers that do not qualify for a simple request", async () => {
@@ -840,12 +851,12 @@ describe("ClientCredentialClient unit tests", () => {
             clientCredentialRequest
         );
 
-        const returnVal: string = createTokenRequestBodySpy.mock.results[0]
-            .value as string;
+        const returnVal: string = await createTokenRequestBodySpy.mock
+            .results[0].value;
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: true,
+            grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
             clientSecret: true,
         };
         checkMockedNetworkRequest(returnVal, checks);
@@ -877,12 +888,12 @@ describe("ClientCredentialClient unit tests", () => {
             clientCredentialRequest
         );
 
-        const returnVal: string = createTokenRequestBodySpy.mock.results[0]
-            .value as string;
+        const returnVal: string = await createTokenRequestBodySpy.mock
+            .results[0].value;
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: true,
+            grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
             clientSecret: true,
         };
         checkMockedNetworkRequest(returnVal, checks);

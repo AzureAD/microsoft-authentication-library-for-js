@@ -5,7 +5,6 @@
 
 import {
     AADServerParamKeys,
-    GrantType,
     ThrottlingConstants,
     ServerTelemetryEntity,
     CacheManager,
@@ -30,6 +29,9 @@ import {
     CacheHelpers,
     Authority,
     INetworkModule,
+    ClientAssertionCallback,
+    ClientAssertionConfig,
+    PasswordGrantConstants,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -361,7 +363,7 @@ interface checks {
     dstsScope?: boolean | undefined;
     graphScope?: boolean | undefined;
     clientId?: boolean | undefined;
-    grantType?: boolean | undefined;
+    grantType?: string | undefined;
     clientSecret?: boolean | undefined;
     clientSku?: boolean | undefined;
     clientVersion?: boolean | undefined;
@@ -374,6 +376,9 @@ interface checks {
     testConfigAssertion?: boolean | undefined;
     testRequestAssertion?: boolean | undefined;
     testAssertionType?: boolean | undefined;
+    responseType?: boolean | undefined;
+    username?: string | undefined;
+    password?: string | undefined;
 }
 
 export const checkMockedNetworkRequest = (
@@ -405,9 +410,9 @@ export const checkMockedNetworkRequest = (
     if (checks.grantType !== undefined) {
         expect(
             returnVal.includes(
-                `${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`
+                `${AADServerParamKeys.GRANT_TYPE}=${checks.grantType}`
             )
-        ).toBe(checks.grantType);
+        ).toBe(true);
     }
 
     if (checks.clientSecret !== undefined) {
@@ -513,4 +518,40 @@ export const checkMockedNetworkRequest = (
             )
         ).toBe(checks.testAssertionType);
     }
+
+    if (checks.responseType !== undefined) {
+        expect(
+            returnVal.includes(
+                `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.TOKEN_RESPONSE_TYPE}%20${Constants.ID_TOKEN_RESPONSE_TYPE}`
+            )
+        ).toBe(checks.responseType);
+    }
+
+    if (checks.username !== undefined) {
+        expect(
+            returnVal.includes(
+                `${PasswordGrantConstants.username}=${checks.username}`
+            )
+        ).toBe(true);
+    }
+
+    if (checks.password !== undefined) {
+        expect(
+            returnVal.includes(
+                `${PasswordGrantConstants.password}=${checks.password}`
+            )
+        ).toBe(true);
+    }
+};
+
+export const getClientAssertionCallback = (
+    clientAssertion: string
+): ClientAssertionCallback => {
+    const clientAssertionCallback: ClientAssertionCallback = async (
+        _config: ClientAssertionConfig
+    ): Promise<string> => {
+        return await Promise.resolve(clientAssertion);
+    };
+
+    return clientAssertionCallback;
 };
