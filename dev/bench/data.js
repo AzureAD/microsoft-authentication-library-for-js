@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714508768433,
+  "lastUpdate": 1714511450764,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8040,6 +8040,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.26%",
             "unit": "ops/sec",
             "extra": "225 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e6d18c5140359145e0142d4ee4854367fd5da078",
+          "message": "Client Assertion implementation now accepts an async callback as well as a string argument (#7014)\n\nClient assertion can currently be provided by a developer as a string.\r\nThis PR allows a developer to provide an async callback (which will\r\nresolve to a string) as the client assertion.\r\n\r\nThe client assertion initialization has been removed from\r\nConfidentialClient's constructor and is now initialized inside of\r\nbuildOauthClientConfiguration, called during every acquireToken call.\r\n\r\nNote: Applied Boy-Scout-Rule on UsernamePasswordClient.spec.ts. Only the\r\nlast test in the file is relevant for this review. Now this test file is\r\nup-to-date and mirrors ClientCredentialsClient.spec.ts and\r\nOnBehalfOfClient.spec.ts.",
+          "timestamp": "2024-04-30T17:05:14-04:00",
+          "tree_id": "97434a933467d5d4cb32aa09d613b028833805c4",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e6d18c5140359145e0142d4ee4854367fd5da078"
+        },
+        "date": 1714511448824,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 193199,
+            "range": "±2.10%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 192937,
+            "range": "±2.15%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
