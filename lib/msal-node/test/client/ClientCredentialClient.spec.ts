@@ -20,8 +20,6 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
     CacheHelpers,
-    createClientConfigurationError,
-    ClientConfigurationErrorCodes,
 } from "@azure/msal-common";
 import { ClientCredentialClient, UsernamePasswordClient } from "../../src";
 import {
@@ -499,20 +497,6 @@ describe("ClientCredentialClient unit tests", () => {
                 );
                 expect(authResult4.fromCache).toBe(false);
             }
-        );
-    });
-
-    it("An error is thrown when claims based caching is enabled", async () => {
-        expect(() => {
-            // will use msal-common's buildAppConfiguration
-            new ClientCredentialClient({
-                ...config,
-                cacheOptions: { claimsBasedCachingEnabled: true },
-            });
-        }).toThrow(
-            createClientConfigurationError(
-                ClientConfigurationErrorCodes.claimsBasedCachingEnabled
-            )
         );
     });
 

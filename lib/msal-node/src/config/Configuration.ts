@@ -14,8 +14,6 @@ import {
     AzureCloudOptions,
     ApplicationTelemetry,
     INativeBrokerPlugin,
-    createClientConfigurationError,
-    ClientConfigurationErrorCodes,
 } from "@azure/msal-common";
 import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
@@ -67,6 +65,9 @@ export type NodeAuthOptions = {
  */
 export type CacheOptions = {
     cachePlugin?: ICachePlugin;
+    /**
+     * @deprecated claims-based-caching functionality will be removed in the next version of MSALJS
+     */
     claimsBasedCachingEnabled?: boolean;
 };
 
@@ -205,12 +206,6 @@ export function buildAppConfiguration({
     system,
     telemetry,
 }: Configuration): NodeConfiguration {
-    if (cache?.claimsBasedCachingEnabled) {
-        throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.claimsBasedCachingEnabled
-        );
-    }
-
     const systemOptions: Required<NodeSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
         networkClient: new HttpClient(

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Removed claimsBasedCaching from msal-browser",
-  "packageName": "@azure/msal-browser",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}

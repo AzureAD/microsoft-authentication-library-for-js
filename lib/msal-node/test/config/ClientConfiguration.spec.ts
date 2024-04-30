@@ -12,8 +12,6 @@ import {
     LogLevel,
     NetworkRequestOptions,
     AzureCloudInstance,
-    createClientConfigurationError,
-    ClientConfigurationErrorCodes,
 } from "@azure/msal-common";
 import {
     ClientCredentialRequest,
@@ -264,21 +262,6 @@ describe("ClientConfiguration tests", () => {
             expect.objectContaining({
                 body: expect.stringContaining("TEST-CAPABILITY"),
             })
-        );
-    });
-
-    test("throws an error when claimsBasedCaching is enabled", async () => {
-        expect(() => {
-            buildAppConfiguration({
-                auth: {
-                    clientId: TEST_CONSTANTS.CLIENT_ID,
-                },
-                cache: { claimsBasedCachingEnabled: true },
-            });
-        }).toThrow(
-            createClientConfigurationError(
-                ClientConfigurationErrorCodes.claimsBasedCachingEnabled
-            )
         );
     });
 });

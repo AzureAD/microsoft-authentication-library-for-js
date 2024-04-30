@@ -252,12 +252,6 @@ export function buildConfiguration(
     }: Configuration,
     isBrowserEnvironment: boolean
 ): BrowserConfiguration {
-    if (userInputCache?.claimsBasedCachingEnabled) {
-        throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.claimsBasedCachingEnabled
-        );
-    }
-
     // Default auth options for browser
     const DEFAULT_AUTH_OPTIONS: InternalAuthOptions = {
         clientId: Constants.EMPTY_STRING,

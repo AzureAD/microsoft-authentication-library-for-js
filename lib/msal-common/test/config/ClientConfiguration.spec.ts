@@ -14,12 +14,7 @@ import {
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
 import { MockCache } from "../cache/entities/cacheConstants";
 import { Constants } from "../../src/utils/Constants";
-import {
-    ClientAuthErrorCodes,
-    ClientConfigurationErrorCodes,
-    createClientAuthError,
-    createClientConfigurationError,
-} from "../../src";
+import { ClientAuthErrorCodes, createClientAuthError } from "../../src";
 
 describe("ClientConfiguration.ts Class Unit Tests", () => {
     it("buildConfiguration assigns default functions", async () => {
@@ -36,21 +31,21 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(emptyConfig.cryptoInterface.base64Decode).not.toBeNull();
         expect(() =>
             emptyConfig.cryptoInterface.base64Decode("test input")
-        ).toThrow(
+        ).toThrowError(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
             emptyConfig.cryptoInterface.base64Decode("test input")
-        ).toThrow(AuthError);
+        ).toThrowError(AuthError);
         expect(emptyConfig.cryptoInterface.base64Encode).not.toBeNull();
         expect(() =>
             emptyConfig.cryptoInterface.base64Encode("test input")
-        ).toThrow(
+        ).toThrowError(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
             emptyConfig.cryptoInterface.base64Encode("test input")
-        ).toThrow(AuthError);
+        ).toThrowError(AuthError);
         // Storage interface checks
         expect(emptyConfig.storageInterface).not.toBeNull();
         expect(emptyConfig.storageInterface.clear).not.toBeNull();
@@ -62,35 +57,37 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(emptyConfig.storageInterface.getAccount).not.toBeNull();
         expect(() =>
             emptyConfig.storageInterface.getAccount("testKey")
-        ).toThrow(
+        ).toThrowError(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
             emptyConfig.storageInterface.getAccount("testKey")
-        ).toThrow(AuthError);
+        ).toThrowError(AuthError);
         expect(emptyConfig.storageInterface.getKeys).not.toBeNull();
-        expect(() => emptyConfig.storageInterface.getKeys()).toThrow(
+        expect(() => emptyConfig.storageInterface.getKeys()).toThrowError(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
-        expect(() => emptyConfig.storageInterface.getKeys()).toThrow(AuthError);
+        expect(() => emptyConfig.storageInterface.getKeys()).toThrowError(
+            AuthError
+        );
         expect(emptyConfig.storageInterface.removeItem).not.toBeNull();
         expect(() =>
             emptyConfig.storageInterface.removeItem("testKey")
-        ).toThrow(
+        ).toThrowError(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
             emptyConfig.storageInterface.removeItem("testKey")
-        ).toThrow(AuthError);
+        ).toThrowError(AuthError);
         expect(emptyConfig.storageInterface.setAccount).not.toBeNull();
         expect(() =>
             emptyConfig.storageInterface.setAccount(MockCache.acc)
-        ).toThrow(
+        ).toThrowError(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
             emptyConfig.storageInterface.setAccount(MockCache.acc)
-        ).toThrow(AuthError);
+        ).toThrowError(AuthError);
         // Network interface checks
         expect(emptyConfig.networkInterface).not.toBeNull();
         expect(emptyConfig.networkInterface.sendGetRequestAsync).not.toBeNull();
@@ -194,6 +191,9 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 ): void => {},
                 piiLoggingEnabled: true,
             },
+            cacheOptions: {
+                claimsBasedCachingEnabled: true,
+            },
             libraryInfo: {
                 sku: TEST_CONFIG.TEST_SKU,
                 version: TEST_CONFIG.TEST_VERSION,
@@ -265,7 +265,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.loggerOptions.piiLoggingEnabled).toBe(true);
         // Cache options tests
         expect(newConfig.cacheOptions).not.toBeNull();
-        expect(newConfig.cacheOptions.claimsBasedCachingEnabled).toBe(false);
+        expect(newConfig.cacheOptions.claimsBasedCachingEnabled).toBe(true);
         // Client info tests
         expect(newConfig.libraryInfo.sku).toBe(TEST_CONFIG.TEST_SKU);
         expect(newConfig.libraryInfo.version).toBe(TEST_CONFIG.TEST_VERSION);
@@ -277,22 +277,6 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         );
         expect(newConfig.telemetry.application.appVersion).toBe(
             TEST_CONFIG.TEST_APP_VER
-        );
-    });
-
-    test("throws an error when claimsBasedCaching is enabled", async () => {
-        expect(() => {
-            buildClientConfiguration({
-                //@ts-ignore
-                authOptions: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-                cacheOptions: { claimsBasedCachingEnabled: true },
-            });
-        }).toThrow(
-            createClientConfigurationError(
-                ClientConfigurationErrorCodes.claimsBasedCachingEnabled
-            )
         );
     });
 });

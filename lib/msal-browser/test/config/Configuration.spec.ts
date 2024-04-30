@@ -12,8 +12,6 @@ import {
     ProtocolMode,
     ServerResponseType,
     Logger,
-    createClientConfigurationError,
-    ClientConfigurationErrorCodes,
 } from "@azure/msal-common";
 import sinon from "sinon";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
@@ -249,7 +247,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
                     storeAuthStateInCookie: true,
                     secureCookies: true,
-                    claimsBasedCachingEnabled: false,
+                    claimsBasedCachingEnabled: true,
                 },
                 system: {
                     windowHashTimeout: TEST_POPUP_TIMEOUT_MS,
@@ -281,7 +279,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.cache?.storeAuthStateInCookie).not.toBeNull();
         expect(newConfig.cache?.storeAuthStateInCookie).toBe(true);
         expect(newConfig.cache?.secureCookies).toBe(true);
-        expect(newConfig.cache?.claimsBasedCachingEnabled).toBe(false);
+        expect(newConfig.cache?.claimsBasedCachingEnabled).toBe(true);
         // System config checks
         expect(newConfig.system).not.toBeNull();
         expect(newConfig.system?.windowHashTimeout).not.toBeNull();
@@ -312,22 +310,5 @@ describe("Configuration.ts Class Unit Tests", () => {
             true
         );
         expect(loggerSpy).toBeCalled();
-    });
-
-    it("throws an error when claimsBasedCaching is enabled", () => {
-        expect(() => {
-            buildConfiguration(
-                {
-                    // @ts-ignore
-                    auth: null,
-                    cache: { claimsBasedCachingEnabled: true },
-                },
-                true
-            );
-        }).toThrow(
-            createClientConfigurationError(
-                ClientConfigurationErrorCodes.claimsBasedCachingEnabled
-            )
-        );
     });
 });
