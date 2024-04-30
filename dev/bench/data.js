@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714499978318,
+  "lastUpdate": 1714504368723,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -7964,6 +7964,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.13%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1c72e3fcc14341d79d817f349c3e8b1ffa893095",
+          "message": "Removed Managed Identity Resource URI Validation (#7059)\n\nRemoved Managed Identity Resource URI Validation. URI's can start with\r\nstrings other than \"https\". \"api://\", for example.\r\n\r\nAfter a discussion with Bogdan, we decided it would be best to remove\r\nthis validation entirely.",
+          "timestamp": "2024-04-30T15:07:10-04:00",
+          "tree_id": "20cd2e634dd33c00be2e601bcc91f1a853177d3d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/1c72e3fcc14341d79d817f349c3e8b1ffa893095"
+        },
+        "date": 1714504367598,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 204336,
+            "range": "±2.11%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 202335,
+            "range": "±2.06%",
+            "unit": "ops/sec",
+            "extra": "227 samples"
           }
         ]
       }
