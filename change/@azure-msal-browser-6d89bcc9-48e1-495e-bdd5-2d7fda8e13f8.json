@@ -1,6 +1,6 @@
 {
     "type": "minor",
-    "comment": "Add support for apps to set their own `reqCnf` and correct native flows cnf format #6357",
+    "comment": "Add support for apps to set their own `reqCnf` and correct native flows cnf format",
     "packageName": "@azure/msal-browser",
     "email": "sameera.gajjarapu@microsoft.com",
     "dependentChangeType": "patch"
