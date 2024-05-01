@@ -420,7 +420,8 @@ export class NestedAppAuthController implements IController {
         const currentAccount = request.account || cachedAccount;
 
         if (!currentAccount) {
-            throw NestedAppAuthError.createNoAccountContextError();
+            this.logger.verbose("No active account found, falling back to the host");
+            return null;
         }
 
         this.logger.verbose(
