@@ -81,27 +81,30 @@ export abstract class BaseManagedIdentitySource {
     public getServerTokenResponse(
         response: NetworkResponse<ManagedIdentityTokenResponse>
     ): ServerAuthorizationTokenResponse {
+        let refreshIn, expiresIn: number | undefined;
+        if (response.body.expires_on) {
+            expiresIn = response.body.expires_on - TimeUtils.nowSeconds();
+
+            // compute refresh_in as 1/2 of expires_in, but only if expires_in > 2h
+            if (expiresIn > 2 * 3600) {
+                refreshIn = expiresIn / 2;
+            }
+        }
+
         const serverTokenResponse: ServerAuthorizationTokenResponse = {
             status: response.status,
 
             // success
             access_token: response.body.access_token,
-            expires_in: response.body.expires_on,
+            expires_in: expiresIn,
             scope: response.body.resource,
             token_type: response.body.token_type,
+            refresh_in: refreshIn,
 
             // error
             error: response.body.message,
             correlation_id: response.body.correlationId,
         };
-
-        // compute refresh_in as 1/2 of expires_in, but only if expires_in > 2h
-        if (
-            serverTokenResponse.expires_in &&
-            serverTokenResponse.expires_in > 2 * 3600
-        ) {
-            serverTokenResponse.refresh_in = serverTokenResponse.expires_in / 2;
-        }
 
         return serverTokenResponse;
     }
