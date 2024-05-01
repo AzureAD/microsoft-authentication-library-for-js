@@ -33,6 +33,9 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
     buildStaticAuthorityOptions,
+    ClientAssertion as ClientAssertionType,
+    getClientAssertion,
+    ClientAssertionCallback,
 } from "@azure/msal-common";
 import {
     Configuration,
@@ -77,6 +80,9 @@ export abstract class ClientApplication {
      * Client assertion passed by the user for confidential client flows
      */
     protected clientAssertion: ClientAssertion;
+    protected developerProvidedClientAssertion:
+        | string
+        | ClientAssertionCallback;
     /**
      * Client secret passed by the user for confidential client flows
      */
@@ -451,8 +457,8 @@ export abstract class ClientApplication {
             serverTelemetryManager: serverTelemetryManager,
             clientCredentials: {
                 clientSecret: this.clientSecret,
-                clientAssertion: this.clientAssertion
-                    ? this.getClientAssertion(discoveredAuthority)
+                clientAssertion: this.developerProvidedClientAssertion
+                    ? await this.getClientAssertion(discoveredAuthority)
                     : undefined,
             },
             libraryInfo: {
@@ -469,10 +475,17 @@ export abstract class ClientApplication {
         return clientConfiguration;
     }
 
-    private getClientAssertion(authority: Authority): {
-        assertion: string;
-        assertionType: string;
-    } {
+    private async getClientAssertion(
+        authority: Authority
+    ): Promise<ClientAssertionType> {
+        this.clientAssertion = ClientAssertion.fromAssertion(
+            await getClientAssertion(
+                this.developerProvidedClientAssertion,
+                this.config.auth.clientId,
+                authority.tokenEndpoint
+            )
+        );
+
         return {
             assertion: this.clientAssertion.getJwt(
                 this.cryptoProvider,

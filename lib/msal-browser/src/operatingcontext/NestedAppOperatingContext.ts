@@ -57,24 +57,30 @@ export class NestedAppOperatingContext extends BaseOperatingContext {
          * TODO: Add implementation to check for presence of inject Nested App Auth Bridge JavaScript interface
          *
          */
+
+        if (!this.getConfig().auth.supportsNestedAppAuth) {
+            return false;
+        }
+
         try {
             if (typeof window !== "undefined") {
                 const bridgeProxy: IBridgeProxy = await BridgeProxy.create();
                 /*
                  * Because we want single sign on we expect the host app to provide the account context
                  * with a min set of params that can be used to identify the account
-                 * this.account = nestedApp.getAccountByFilter(bridgeProxy.getHostCapabilities()?.accountContext);
+                 * this.account = nestedApp.getAccountByFilter(bridgeProxy.getAccountContext());
                  */
                 this.accountContext = bridgeProxy.getAccountContext();
                 this.bridgeProxy = bridgeProxy;
                 this.available = bridgeProxy !== undefined;
-            } else {
-                this.available = false;
             }
-        } catch (e) {
-            this.available = false;
-        } finally {
-            return this.available;
+        } catch (ex) {
+            this.logger.infoPii(
+                `Could not initialize Nested App Auth bridge (${ex})`
+            );
         }
+
+        this.logger.info(`Nested App Auth Bridge available: ${this.available}`);
+        return this.available;
     }
 }

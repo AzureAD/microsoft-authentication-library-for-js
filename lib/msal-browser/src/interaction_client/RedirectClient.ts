@@ -21,6 +21,7 @@ import {
     invokeAsync,
     ServerResponseType,
     UrlUtils,
+    InProgressPerformanceEvent,
 } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import {
@@ -190,14 +191,12 @@ export class RedirectClient extends StandardInteractionClient {
      * Checks if navigateToLoginRequestUrl is set, and:
      * - if true, performs logic to cache and navigate
      * - if false, handles hash string and parses response
-     * @param hash {string?} url hash
-     * @param performanceClient {IPerformanceClient?}
-     * @param correlationId {string?} correlation identifier
+     * @param hash {string} url hash
+     * @param parentMeasurement {InProgressPerformanceEvent} parent measurement
      */
     async handleRedirectPromise(
-        hash?: string,
-        performanceClient?: IPerformanceClient,
-        correlationId?: string
+        hash: string = "",
+        parentMeasurement: InProgressPerformanceEvent
     ): Promise<AuthenticationResult | null> {
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.handleRedirectPromise
@@ -220,12 +219,7 @@ export class RedirectClient extends StandardInteractionClient {
                 this.browserStorage.cleanRequestByInteractionType(
                     InteractionType.Redirect
                 );
-                if (performanceClient && correlationId) {
-                    performanceClient?.addFields(
-                        { errorCode: "no_server_response" },
-                        correlationId
-                    );
-                }
+                parentMeasurement.event.errorCode = "no_server_response";
                 return null;
             }
 
