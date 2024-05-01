@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714511450764,
+  "lastUpdate": 1714577669895,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8078,6 +8078,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.15%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d6a9dfed07f436831ea370dc1120d7ca090481a6",
+          "message": "Managed Identity: ManagedIdentityTokenResponse's expires_in is now calculated correctly (#7070)\n\nManagedIdentityTokenResponse's expires_in is now calculated correctly,\r\nand matches the .net implementation",
+          "timestamp": "2024-05-01T11:29:11-04:00",
+          "tree_id": "34028c0c2cdba18c1b1fa2c7db113850123388c8",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/d6a9dfed07f436831ea370dc1120d7ca090481a6"
+        },
+        "date": 1714577668806,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 210992,
+            "range": "±1.82%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 218518,
+            "range": "±1.62%",
+            "unit": "ops/sec",
+            "extra": "216 samples"
           }
         ]
       }
