@@ -101,6 +101,22 @@ describe("PerformanceClient.spec.ts", () => {
         expect(result).toBe(true);
     });
 
+    it("Does not register duplicate callbacks", () => {
+        const mockPerfClient = new MockPerformanceClient();
+
+        const callbackId = mockPerfClient.addPerformanceCallback((events) => {
+            console.log(events);
+        });
+
+        const callbackId2 = mockPerfClient.addPerformanceCallback((events) => {
+            console.log(events);
+        });
+
+        expect(callbackId).toEqual(callbackId2);
+        // @ts-ignore
+        expect(mockPerfClient.callbacks.size).toBe(1);
+    });
+
     it("starts, ends, and emits an event", (done) => {
         const mockPerfClient = new MockPerformanceClient();
 

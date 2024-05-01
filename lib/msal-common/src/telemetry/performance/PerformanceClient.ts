@@ -818,6 +818,15 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @returns {string}
      */
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
+        for (const [id, cb] of this.callbacks) {
+            if (cb.toString() === callback.toString()) {
+                this.logger.warning(
+                    `PerformanceClient: Performance callback is already registered with id: ${id}`
+                );
+                return id;
+            }
+        }
+
         const callbackId = this.generateId();
         this.callbacks.set(callbackId, callback);
         this.logger.verbose(

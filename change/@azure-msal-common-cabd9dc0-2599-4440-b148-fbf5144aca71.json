@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Do not register duplicate performance callbacks #7069",
+  "packageName": "@azure/msal-common",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
