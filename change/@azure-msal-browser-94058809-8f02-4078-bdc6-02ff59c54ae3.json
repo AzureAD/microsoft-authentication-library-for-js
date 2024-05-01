@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fix uncaught exceptions in acquireTokenSilent",
+  "comment": "Fix uncaught exceptions in acquireTokenSilent #7073",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
