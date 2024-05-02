@@ -9,6 +9,7 @@ import {
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
+    TimeUtils,
 } from "@azure/msal-common";
 import {
     MANAGED_IDENTITY_RESOURCE,
@@ -100,7 +101,9 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
                 body: {
                     access_token: TEST_TOKENS.ACCESS_TOKEN,
                     client_id: this.clientId,
-                    expires_on: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 3, // 3 hours
+                    expires_on:
+                        TimeUtils.nowSeconds() +
+                        TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 3, // 3 hours in the future
                     resource: MANAGED_IDENTITY_RESOURCE.replace(
                         "/.default",
                         ""
@@ -122,7 +125,9 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
                 body: {
                     access_token: TEST_TOKENS.ACCESS_TOKEN,
                     client_id: this.clientId,
-                    expires_on: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 3, // 3 hours
+                    expires_on:
+                        TimeUtils.nowSeconds() +
+                        TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 3, // 3 hours in the future
                     resource: (
                         this.resource || MANAGED_IDENTITY_RESOURCE
                     ).replace("/.default", ""),
