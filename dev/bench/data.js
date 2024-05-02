@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714602427290,
+  "lastUpdate": 1714672686069,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8154,6 +8154,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.93%",
             "unit": "ops/sec",
             "extra": "228 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d556aed39a401d45e45c17cd80f545f7cdc5f115",
+          "message": "Bump ejs from 3.1.9 to 3.1.10 (#7074)\n\nBumps [ejs](https://github.com/mde/ejs) from 3.1.9 to 3.1.10.\r\n<details>\r\n<summary>Release notes</summary>\r\n<p><em>Sourced from <a href=\"https://github.com/mde/ejs/releases\">ejs's\r\nreleases</a>.</em></p>\r\n<blockquote>\r\n<h2>v3.1.10</h2>\r\n<p>Version 3.1.10</p>\r\n</blockquote>\r\n</details>\r\n<details>\r\n<summary>Commits</summary>\r\n<ul>\r\n<li><a\r\nhref=\"https://github.com/mde/ejs/commit/d3f807dea9ce904e20a47a661f2310ce9134dc2a\"><code>d3f807d</code></a>\r\nVersion 3.1.10</li>\r\n<li><a\r\nhref=\"https://github.com/mde/ejs/commit/9ee26dde5d7015d9c0e2ff87314cabeac5247c02\"><code>9ee26dd</code></a>\r\nMocha TDD</li>\r\n<li><a\r\nhref=\"https://github.com/mde/ejs/commit/e469741dca7df2eb400199e1cdb74621e3f89aa5\"><code>e469741</code></a>\r\nBasic pollution protection</li>\r\n<li><a\r\nhref=\"https://github.com/mde/ejs/commit/715e9507fa3e6122dc6430fe0f25a6e6ded300c1\"><code>715e950</code></a>\r\nMerge pull request <a\r\nhref=\"https://redirect.github.com/mde/ejs/issues/756\">#756</a> from\r\nJeffrey-mu/main</li>\r\n<li><a\r\nhref=\"https://github.com/mde/ejs/commit/cabe3146ad964a1e98db7742abf435906ca79406\"><code>cabe314</code></a>\r\nInclude advanced usage examples</li>\r\n<li><a\r\nhref=\"https://github.com/mde/ejs/commit/29b076cdbbf3eb1b4323b33299ab6d79391b2c33\"><code>29b076c</code></a>\r\nAdded header</li>\r\n<li><a\r\nhref=\"https://github.com/mde/ejs/commit/11503c79af882e3635b513d57c7f1813792eb127\"><code>11503c7</code></a>\r\nMerge branch 'main' of github.com:mde/ejs into main</li>\r\n<li><a\r\nhref=\"https://github.com/mde/ejs/commit/7690404e2fc1688756938e4d2fc19e0fac77d736\"><code>7690404</code></a>\r\nAdded security banner to README</li>\r\n<li><a\r\nhref=\"https://github.com/mde/ejs/commit/f47d7aedd51a983e4f73045f962b1209096b5800\"><code>f47d7ae</code></a>\r\nUpdate SECURITY.md</li>\r\n<li><a\r\nhref=\"https://github.com/mde/ejs/commit/828cea1687e3db459ab09d2f405d2444c7580b90\"><code>828cea1</code></a>\r\nUpdate SECURITY.md</li>\r\n<li>Additional commits viewable in <a\r\nhref=\"https://github.com/mde/ejs/compare/v3.1.9...v3.1.10\">compare\r\nview</a></li>\r\n</ul>\r\n</details>\r\n<br />\r\n\r\n\r\n[![Dependabot compatibility\r\nscore](https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=ejs&package-manager=npm_and_yarn&previous-version=3.1.9&new-version=3.1.10)](https://docs.github.com/en/github/managing-security-vulnerabilities/about-dependabot-security-updates#about-compatibility-scores)\r\n\r\nDependabot will resolve any conflicts with this PR as long as you don't\r\nalter it yourself. You can also trigger a rebase manually by commenting\r\n`@dependabot rebase`.\r\n\r\n[//]: # (dependabot-automerge-start)\r\n[//]: # (dependabot-automerge-end)\r\n\r\n---\r\n\r\n<details>\r\n<summary>Dependabot commands and options</summary>\r\n<br />\r\n\r\nYou can trigger Dependabot actions by commenting on this PR:\r\n- `@dependabot rebase` will rebase this PR\r\n- `@dependabot recreate` will recreate this PR, overwriting any edits\r\nthat have been made to it\r\n- `@dependabot merge` will merge this PR after your CI passes on it\r\n- `@dependabot squash and merge` will squash and merge this PR after\r\nyour CI passes on it\r\n- `@dependabot cancel merge` will cancel a previously requested merge\r\nand block automerging\r\n- `@dependabot reopen` will reopen this PR if it is closed\r\n- `@dependabot close` will close this PR and stop Dependabot recreating\r\nit. You can achieve the same result by closing it manually\r\n- `@dependabot show <dependency name> ignore conditions` will show all\r\nof the ignore conditions of the specified dependency\r\n- `@dependabot ignore this major version` will close this PR and stop\r\nDependabot creating any more for this major version (unless you reopen\r\nthe PR or upgrade to it yourself)\r\n- `@dependabot ignore this minor version` will close this PR and stop\r\nDependabot creating any more for this minor version (unless you reopen\r\nthe PR or upgrade to it yourself)\r\n- `@dependabot ignore this dependency` will close this PR and stop\r\nDependabot creating any more for this dependency (unless you reopen the\r\nPR or upgrade to it yourself)\r\nYou can disable automated security fix PRs for this repo from the\r\n[Security Alerts\r\npage](https://github.com/AzureAD/microsoft-authentication-library-for-js/network/alerts).\r\n\r\n</details>\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2024-05-02T10:52:27-07:00",
+          "tree_id": "acef9bbec8ccadfda896cff27f60c6cdd4c3fe2a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/d556aed39a401d45e45c17cd80f545f7cdc5f115"
+        },
+        "date": 1714672683982,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 189651,
+            "range": "±1.89%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 208064,
+            "range": "±2.03%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
