@@ -10,7 +10,7 @@ import { AccountContext } from "../naa/BridgeAccountContext";
 
 export class NestedAppOperatingContext extends BaseOperatingContext {
     protected bridgeProxy: IBridgeProxy | undefined = undefined;
-    protected accountContext: AccountContext | undefined = undefined;
+    protected accountContext: AccountContext | null = null;
 
     /*
      * TODO: Once we have determine the bundling code return here to specify the name of the bundle
