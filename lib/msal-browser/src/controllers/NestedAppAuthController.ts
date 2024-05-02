@@ -412,15 +412,21 @@ export class NestedAppAuthController implements IController {
     private async acquireTokenFromCacheInternal(
         request: SilentRequest
     ): Promise<AuthenticationResult | null> {
-        const cachedAccount = AccountManager.getAccountByHomeId(
-            this.bridgeProxy.getAccountContext().homeAccountId,
-            this.logger,
-            this.browserStorage
-        );
-        const currentAccount = request.account || cachedAccount;
+        const accountContext = this.bridgeProxy.getAccountContext();
+        let currentAccount = null;
+        if (accountContext) {
+            const cachedAccount = AccountManager.getAccount(
+                accountContext,
+                this.logger,
+                this.browserStorage
+            );
+            currentAccount = request.account || cachedAccount;
+        }
 
         if (!currentAccount) {
-            this.logger.verbose("No active account found, falling back to the host");
+            this.logger.verbose(
+                "No active account found, falling back to the host"
+            );
             return null;
         }
 
