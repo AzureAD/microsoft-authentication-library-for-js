@@ -113,6 +113,7 @@ export class NestedAppAuthAdapter {
         );
         const account = this.fromNaaAccountInfo(
             response.account,
+            response.token.id_token,
             idTokenClaims
         );
         const scopes = response.token.scope || request.scope;
@@ -162,6 +163,7 @@ export class NestedAppAuthAdapter {
      */
     public fromNaaAccountInfo(
         fromAccount: NaaAccountInfo,
+        idToken?: string,
         idTokenClaims?: TokenClaims
     ): MsalAccountInfo {
         const effectiveIdTokenClaims =
@@ -193,7 +195,7 @@ export class NestedAppAuthAdapter {
             username,
             localAccountId,
             name,
-            idToken: fromAccount.idToken,
+            idToken: idToken,
             idTokenClaims: effectiveIdTokenClaims,
         };
 

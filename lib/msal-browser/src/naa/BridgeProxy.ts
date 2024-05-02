@@ -33,11 +33,7 @@ export class BridgeProxy implements IBridgeProxy {
     sdkName: string;
     sdkVersion: string;
     capabilities?: BridgeCapabilities;
-    accountContext: {
-        homeAccountId: string;
-        environment: string;
-        tenantId: string;
-    };
+    accountContext?: AccountContext;
 
     /**
      * initializeNestedAppAuthBridge - Initializes the bridge to the host app
@@ -143,12 +139,8 @@ export class BridgeProxy implements IBridgeProxy {
         return this.capabilities ?? null;
     }
 
-    public getAccountContext(): AccountContext {
-        return {
-            homeAccountId: this.accountContext.homeAccountId,
-            environment: this.accountContext.environment,
-            tenantId: this.accountContext.tenantId,
-        };
+    public getAccountContext(): AccountContext | null {
+        return this.accountContext ? this.accountContext : null;
     }
 
     /**

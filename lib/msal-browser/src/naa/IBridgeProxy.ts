@@ -12,5 +12,5 @@ export interface IBridgeProxy {
     getTokenInteractive(request: TokenRequest): Promise<AuthResult>;
     getTokenSilent(request: TokenRequest): Promise<AuthResult>;
     getHostCapabilities(): BridgeCapabilities | null;
-    getAccountContext(): AccountContext;
+    getAccountContext(): AccountContext | null;
 }
