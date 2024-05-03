@@ -225,7 +225,7 @@ export class NestedAppAuthController implements IController {
             // cache the tokens in the response
             await this.hydrateCache(result, request);
 
-            this.browserStorage.setActiveAccount(result.account);
+            // this.browserStorage.setActiveAccount(result.account);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
                 InteractionType.Popup,
@@ -822,8 +822,9 @@ export class NestedAppAuthController implements IController {
         this.logger.verbose("hydrateCache called");
 
         // Account gets saved to browser storage regardless of native or not
+        const account = { idToken: result.idToken, ...result.account };
         const accountEntity = AccountEntity.createFromAccountInfo(
-            result.account,
+            account,
             result.cloudGraphHostName,
             result.msGraphHost
         );
