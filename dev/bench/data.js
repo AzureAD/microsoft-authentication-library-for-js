@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1714672686069,
+  "lastUpdate": 1714770175087,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8192,6 +8192,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.03%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e5fa16efec03ddf9ee66ebac83b8a958e5b4a384",
+          "message": "Fix uncaught exceptions in acquireTokenSilent (#7073)\n\nA recent change to optimize parallel iframed calls resulted in a\r\nregression that logged an uncaught exception to the console in the event\r\nthat a single iframed call was made and failed. This happened because\r\nthe stored promise rejected and didn't have a catch handler registered\r\nbecause there is not a parallel call dependent on this promise.\r\n\r\nThis PR resolves this issue by ensuring that the stored promise never\r\nrejects but rather resolves with a true/false indicating whether the\r\ncall succeeded or failed.\r\n\r\nFixes #7052",
+          "timestamp": "2024-05-03T13:57:41-07:00",
+          "tree_id": "0b6e8b3f1ca09be1f8d3f4c729ab369b63bd85ac",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e5fa16efec03ddf9ee66ebac83b8a958e5b4a384"
+        },
+        "date": 1714770173809,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 194639,
+            "range": "±2.27%",
+            "unit": "ops/sec",
+            "extra": "208 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 197948,
+            "range": "±2.15%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
