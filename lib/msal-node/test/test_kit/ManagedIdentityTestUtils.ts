@@ -9,6 +9,7 @@ import {
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
+    TimeUtils,
 } from "@azure/msal-common";
 import {
     MANAGED_IDENTITY_RESOURCE,
@@ -92,7 +93,7 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
     sendGetRequestAsync<T>(
         _url: string,
         _options?: NetworkRequestOptions,
-        _cancellationToken?: number
+        _timeout?: number
     ): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve({
@@ -100,7 +101,9 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
                 body: {
                     access_token: TEST_TOKENS.ACCESS_TOKEN,
                     client_id: this.clientId,
-                    expires_on: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 3, // 3 hours
+                    expires_on:
+                        TimeUtils.nowSeconds() +
+                        TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 3, // 3 hours in the future
                     resource: MANAGED_IDENTITY_RESOURCE.replace(
                         "/.default",
                         ""
@@ -122,7 +125,9 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
                 body: {
                     access_token: TEST_TOKENS.ACCESS_TOKEN,
                     client_id: this.clientId,
-                    expires_on: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 3, // 3 hours
+                    expires_on:
+                        TimeUtils.nowSeconds() +
+                        TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 3, // 3 hours in the future
                     resource: (
                         this.resource || MANAGED_IDENTITY_RESOURCE
                     ).replace("/.default", ""),
@@ -169,7 +174,7 @@ export class ManagedIdentityNetworkErrorClient implements INetworkModule {
     sendGetRequestAsync<T>(
         _url: string,
         _options?: NetworkRequestOptions,
-        _cancellationToken?: number
+        _timeout?: number
     ): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve(
@@ -188,7 +193,7 @@ export class ManagedIdentityNetworkErrorClient implements INetworkModule {
     ): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve({
-                status: httpStatusCode || HttpStatus.INTERNAL_SERVER_ERROR,
+                status: httpStatusCode || HttpStatus.SERVER_ERROR,
                 body: {
                     message: MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
                     correlationId: mockAuthenticationResult.correlationId,

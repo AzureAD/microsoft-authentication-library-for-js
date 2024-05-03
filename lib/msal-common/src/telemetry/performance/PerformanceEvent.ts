@@ -817,6 +817,8 @@ export type PerformanceEvent = {
 
     // Scenario id to track custom user prompts
     scenarioId?: string;
+
+    accountType?: "AAD" | "MSA" | "B2C";
 };
 
 export type PerformanceEventContext = {

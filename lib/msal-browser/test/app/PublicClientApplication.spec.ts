@@ -45,6 +45,7 @@ import {
     InteractionRequiredAuthErrorCodes,
     Logger,
     LogLevel,
+    PerformanceClient,
     PerformanceEvent,
     PerformanceEvents,
     PersistentCacheKeys,
@@ -590,6 +591,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 ).toBeGreaterThanOrEqual(0);
                 expect(event["handleRedirectPromiseCallCount"]).toEqual(1);
                 expect(event.success).toBeTruthy();
+                expect(event.accountType).toEqual(undefined);
                 pca.removePerformanceCallback(callbackId);
                 done();
             });
@@ -713,6 +715,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         event["handleNativeRedirectPromiseCallCount"]
                     ).toEqual(1);
                     expect(event.success).toBeTruthy();
+                    expect(event.accountType).toEqual("MSA");
                     pca.removePerformanceCallback(callbackId);
                     done();
                 });
@@ -724,14 +727,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                     localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                     environment: "login.windows.net",
-                    tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    tenantId: "9188040d-6c67-4c5b-b112-36a304b66dad",
                     username: "AbeLi@microsoft.com",
                     nativeAccountId: "test-nativeAccountId",
+                    idTokenClaims: {
+                        tid: "9188040d-6c67-4c5b-b112-36a304b66dad",
+                    },
                 };
                 const testTokenResponse: AuthenticationResult = {
                     authority: TEST_CONFIG.validAuthority,
                     uniqueId: testAccount.localAccountId,
-                    tenantId: testAccount.tenantId,
+                    tenantId: "9188040d-6c67-4c5b-b112-36a304b66dad",
                     scopes: TEST_CONFIG.DEFAULT_SCOPES,
                     idToken: "test-idToken",
                     idTokenClaims: {},
@@ -1014,6 +1020,66 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             expect(tokenResponse1).toEqual(tokenResponse2);
             expect(tokenResponse4).toEqual(tokenResponse1);
+        });
+
+        it("Emits performance event with error code if no response is provided", (done) => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+            };
+            sinon
+                .stub(StandardController.prototype, "getAllAccounts")
+                .returns([testAccount]);
+            sinon
+                // @ts-ignore
+                .stub(RedirectClient.prototype, "getRedirectResponse")
+                // @ts-ignore
+                .returns([null, ""]);
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events.length).toEqual(1);
+                expect(events[0].success).toBe(false);
+                expect(events[0].errorCode).toBe("no_server_response");
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.CORRELATION_ID}`,
+                RANDOM_TEST_GUID
+            );
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                TEST_CONFIG.MSAL_CLIENT_ID
+            );
+            pca.handleRedirectPromise();
+        });
+
+        it("Discards performance event if handleRedirectPromise returns null and no error code is set", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+            };
+            sinon
+                .stub(StandardController.prototype, "getAllAccounts")
+                .returns([testAccount]);
+            sinon
+                .stub(RedirectClient.prototype, "handleRedirectPromise")
+                .resolves(null);
+
+            const emitSpy = jest.spyOn(
+                PerformanceClient.prototype,
+                "emitEvents"
+            );
+
+            await pca.handleRedirectPromise();
+            expect(emitSpy).toHaveBeenCalledTimes(0);
         });
     });
     describe("OIDC Protocol Mode tests", () => {
@@ -2432,6 +2498,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                idTokenClaims: {
+                    tfp: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                },
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -2455,6 +2524,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
                 expect(events[0].success).toBe(true);
                 expect(events[0].scenarioId).toBe("test-scenario-id");
+                expect(events[0].accountType).toBe("B2C");
                 pca.removePerformanceCallback(callbackId);
                 done();
             });
@@ -2769,6 +2839,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].idTokenSize).toBe(12);
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].visibilityChangeCount).toBe(0);
+                expect(events[0].accountType).toBeUndefined();
                 pca.removePerformanceCallback(callbackId);
                 done();
             });
@@ -2829,22 +2900,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                idTokenClaims: {
+                    tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                },
             };
-            const testTokenResponse: AuthenticationResult = {
-                authority: TEST_CONFIG.validAuthority,
-                uniqueId: testAccount.localAccountId,
-                tenantId: testAccount.tenantId,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                idToken: "test-idToken",
-                idTokenClaims: {},
-                accessToken: "test-accessToken",
-                fromCache: false,
-                correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(Date.now() + 3600000),
-                account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
-            };
-            const silentClientSpy = sinon
+            sinon
                 .stub(SilentIframeClient.prototype, "acquireToken")
                 .rejects(new AuthError("abc", "error message", "defg"));
             const callbackId = pca.addPerformanceCallback((events) => {
@@ -2853,6 +2913,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].errorCode).toBe("abc");
                 expect(events[0].subErrorCode).toBe("defg");
                 expect(events[0].scenarioId).toBe("test-scenario-id");
+                expect(events[0].accountType).toBe("AAD");
                 pca.removePerformanceCallback(callbackId);
                 done();
             });
@@ -2860,6 +2921,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["openid"],
                 correlationId: RANDOM_TEST_GUID,
                 scenarioId: "test-scenario-id",
+                account: testAccount,
             }).catch(() => {});
         });
     });
@@ -3193,6 +3255,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                idTokenClaims: {
+                    tid: "9188040d-6c67-4c5b-b112-36a304b66dad",
+                },
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -3218,6 +3283,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].idTokenSize).toBe(12);
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].visibilityChangeCount).toBe(0);
+                expect(events[0].accountType).toBe("MSA");
                 expect(events[0].scenarioId).toBe("test-scenario-id");
                 pca.removePerformanceCallback(callbackId);
                 done();
@@ -3312,6 +3378,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].success).toBe(false);
                 expect(events[0].errorCode).toBe("abc");
                 expect(events[0].subErrorCode).toBe("defg");
+                expect(events[0].accountType).toBe(undefined);
                 pca.removePerformanceCallback(callbackId);
                 done();
             });
@@ -4874,22 +4941,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
-            };
-            const testTokenResponse: AuthenticationResult = {
-                authority: TEST_CONFIG.validAuthority,
-                uniqueId: testIdTokenClaims.oid || "",
-                tenantId: testIdTokenClaims.tid || "",
-                scopes: [...TEST_CONFIG.DEFAULT_SCOPES, "User.Read"],
-                idToken: testServerTokenResponse.id_token,
-                idTokenClaims: testIdTokenClaims,
-                accessToken: testServerTokenResponse.access_token,
-                fromCache: false,
-                correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
-                account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                idTokenClaims: { ...testIdTokenClaims },
             };
 
             sinon
@@ -4923,6 +4975,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].isNativeBroker).toBe(true);
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].scenarioId).toBe("test-scenario-id");
+                expect(events[0].accountType).toBe("AAD");
 
                 pca.removePerformanceCallback(callbackId);
                 done();
@@ -4938,6 +4991,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
+                idTokenClaims: {
+                    tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                },
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -4977,6 +5033,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].isNativeBroker).toBe(undefined);
                 expect(events[0].requestId).toBe(undefined);
                 expect(events[0].visibilityChangeCount).toBe(0);
+                expect(events[0].accountType).toBe("AAD");
 
                 pca.removePerformanceCallback(callbackId);
                 done();
@@ -5049,16 +5106,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("emits expect performance event when there is an error", (done) => {
-            const testServerTokenResponse = {
-                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
-                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                access_token: TEST_TOKENS.ACCESS_TOKEN,
-                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-                id_token: TEST_TOKENS.IDTOKEN_V2,
-            };
-
             const testIdTokenClaims: TokenClaims = {
                 ver: "2.0",
                 iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
@@ -5075,22 +5122,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
-            };
-            const testTokenResponse: AuthenticationResult = {
-                authority: TEST_CONFIG.validAuthority,
-                uniqueId: testIdTokenClaims.oid || "",
-                tenantId: testIdTokenClaims.tid || "",
-                scopes: [...TEST_CONFIG.DEFAULT_SCOPES, "User.Read"],
-                idToken: testServerTokenResponse.id_token,
-                idTokenClaims: testIdTokenClaims,
-                accessToken: testServerTokenResponse.access_token,
-                fromCache: false,
-                correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
-                account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                idTokenClaims: {
+                    ...testIdTokenClaims,
+                },
             };
 
             sinon
@@ -5114,6 +5148,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].success).toBe(false);
                 expect(events[0].errorCode).toBe("abc");
                 expect(events[0].subErrorCode).toBe("defg");
+                expect(events[0].accountType).toBe("AAD");
 
                 pca.removePerformanceCallback(callbackId);
                 done();

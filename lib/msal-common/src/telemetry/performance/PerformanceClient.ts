@@ -620,7 +620,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         if (isRoot) {
             queueInfo = this.getQueueInfo(event.correlationId);
-            this.discardCache(rootEvent.correlationId);
+            this.discardMeasurements(rootEvent.correlationId);
         } else {
             rootEvent.incompleteSubMeasurements?.delete(event.eventId);
         }
@@ -781,7 +781,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
     }
 
     /**
-     * Removes measurements for a given correlation id.
+     * Removes measurements and aux data for a given correlation id.
      *
      * @param {string} correlationId
      */
@@ -791,15 +791,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
             correlationId
         );
         this.eventsByCorrelationId.delete(correlationId);
-    }
-
-    /**
-     * Removes cache for a given correlation id.
-     *
-     * @param {string} correlationId correlation identifier
-     */
-    private discardCache(correlationId: string): void {
-        this.discardMeasurements(correlationId);
 
         this.logger.trace(
             "PerformanceClient: QueueMeasurements discarded",
@@ -827,6 +818,15 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @returns {string}
      */
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
+        for (const [id, cb] of this.callbacks) {
+            if (cb.toString() === callback.toString()) {
+                this.logger.warning(
+                    `PerformanceClient: Performance callback is already registered with id: ${id}`
+                );
+                return id;
+            }
+        }
+
         const callbackId = this.generateId();
         this.callbacks.set(callbackId, callback);
         this.logger.verbose(

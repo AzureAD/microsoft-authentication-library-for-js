@@ -409,7 +409,7 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 
 ## Other
 
-Errors not thrown by MSAL, such as server errors.
+Errors not thrown by MSAL, such as server or cache errors.
 
 ### Access to fetch at [url] has been blocked by CORS policy
 
@@ -418,3 +418,16 @@ This error occurs with MSAL.js v2.x and is due to improper configuration during 
 > Your Redirect URI is eligible for the Authorization Code Flow with PKCE.
 
 ![image](https://user-images.githubusercontent.com/5307810/110390912-922fa380-801b-11eb-9e2b-d7aa88ca0687.png)
+
+### cache_quota_exceeded
+
+**Error messages**:
+
+- Exceeded cache storage capacity
+
+This error occurs when MSAL.js surpasses the allotted storage limit when attempting to save token information in the [configured cache storage](./caching.md#cache-storage). See [here](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria#web_storage) for web storage limits.
+
+**Mitigation**:
+
+1. Make sure the configured cache storage has enough capacity to allow MSAL.js to persist token payload. The amount of cache storage required depends on the number of [cached artifacts](./caching.md#cached-artifacts).
+2. Disable [claimsBasedCachingEnabled](./configuration.md#cache-config-options) cache config option. When enabled, it caches access tokens under a key containing the hash of the requested claims. Depending on the MSAL.js API usage, it may result in the vast number of access tokens persisted in the cache storage.
