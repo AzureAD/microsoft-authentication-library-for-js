@@ -19,6 +19,8 @@ import {
     OIDC_DEFAULT_SCOPES,
     BaseAuthRequest,
     AccountFilter,
+    buildTenantProfileFromIdTokenClaims,
+    TenantProfile,
 } from "@azure/msal-common";
 import { ITokenCache } from "../cache/ITokenCache";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -821,10 +823,8 @@ export class NestedAppAuthController implements IController {
     ): Promise<void> {
         this.logger.verbose("hydrateCache called");
 
-        // Account gets saved to browser storage regardless of native or not
-        const account = { idToken: result.idToken, ...result.account };
         const accountEntity = AccountEntity.createFromAccountInfo(
-            account,
+            result.account,
             result.cloudGraphHostName,
             result.msGraphHost
         );

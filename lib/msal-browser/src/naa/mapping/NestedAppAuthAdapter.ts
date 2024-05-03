@@ -27,6 +27,8 @@ import {
     AccountInfo,
     IdTokenEntity,
     AccessTokenEntity,
+    TenantProfile,
+    buildTenantProfileFromIdTokenClaims,
 } from "@azure/msal-common";
 import { isBridgeError } from "../BridgeError";
 import { BridgeStatusCode } from "../BridgeStatusCode";
@@ -35,6 +37,7 @@ import {} from "../../error/BrowserAuthErrorCodes";
 import { AuthResult } from "../AuthResult";
 import { SsoSilentRequest } from "../../request/SsoSilentRequest";
 import { SilentRequest } from "../../request/SilentRequest";
+import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 
 export class NestedAppAuthAdapter {
     protected crypto: ICrypto;
@@ -188,6 +191,14 @@ export class NestedAppAuthAdapter {
 
         const name = fromAccount.name || effectiveIdTokenClaims?.name;
 
+        const tenantProfiles = new Map<string, TenantProfile>();
+
+        const tenantProfile = buildTenantProfileFromIdTokenClaims(
+            homeAccountId,
+            effectiveIdTokenClaims
+        );
+        tenantProfiles.set(tenantId, tenantProfile);
+
         const account: MsalAccountInfo = {
             homeAccountId,
             environment: fromAccount.environment,
@@ -197,6 +208,7 @@ export class NestedAppAuthAdapter {
             name,
             idToken: idToken,
             idTokenClaims: effectiveIdTokenClaims,
+            tenantProfiles,
         };
 
         return account;
