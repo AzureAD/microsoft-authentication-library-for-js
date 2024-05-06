@@ -15,9 +15,9 @@ import {
     AzureEnvironments,
     FederationProviders,
     UserTypes,
+    extractTokenClaims
 } from "e2e-test-utils";
-import { PublicClientApplication } from "@azure/msal-node";
-
+import { CryptoProvider, PublicClientApplication } from "@azure/msal-node";
 const TEST_CACHE_LOCATION = `${__dirname}/data/adfs.cache.json`;
 
 const getTokenAuthCode = require("../index");
@@ -28,6 +28,7 @@ const config = require("../config/ADFS.json");
 
 let username: string;
 let accountPwd: string;
+let loginHint: string;
 
 describe("Auth Code ADFS 2019 Tests", () => {
     jest.retryTimes(RETRY_TIMES);
@@ -164,11 +165,18 @@ describe("Auth Code ADFS 2019 Tests", () => {
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
+            const interactiveCachedTokens = await NodeCacheTestUtils.waitForTokens(
+                TEST_CACHE_LOCATION,
+                2000
+            );
+            const idToken = interactiveCachedTokens.idTokens[0];
+            const idTokenClaims = extractTokenClaims(idToken.secret, new CryptoProvider().base64Decode);
+            loginHint = idTokenClaims.login_hint || idTokenClaims.preferred_username;
 
             // Reset the cache
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
 
-            await page.goto(`${homeRoute}/?prompt=none`, {
+            await page.goto(`${homeRoute}/?prompt=none&login_hint=${loginHint}`, {
                 waitUntil: "networkidle0",
             });
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(

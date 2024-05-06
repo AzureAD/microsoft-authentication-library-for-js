@@ -26,6 +26,7 @@ export {
     retrieveAppConfiguration,
     clickLogoutPopup,
     clickLogoutRedirect,
+    extractTokenClaims,
     RETRY_TIMES,
     SAMPLE_HOME_URL,
     ONE_SECOND_IN_MS,

@@ -2,6 +2,7 @@ import * as fs from "fs";
 import { Page, HTTPResponse, Browser, WaitForOptions } from "puppeteer";
 import { LabConfig } from "./LabConfig";
 import { LabClient } from "./LabClient";
+import { TokenClaims } from "@azure/msal-common";
 
 export const ONE_SECOND_IN_MS = 1000;
 export const RETRY_TIMES = 5;
@@ -590,4 +591,33 @@ export async function getBrowser(): Promise<Browser> {
 export function getHomeUrl(): string {
     // @ts-ignore
     return `http://localhost:${global.__PORT__}/`;
+}
+
+export function getJWSPayload(authToken: string): string {
+    if (!authToken) {
+        throw new Error("No auth token was passed");
+    }
+    const tokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
+    const matches = tokenPartsRegex.exec(authToken);
+    if (!matches || matches.length < 4) {
+    }
+
+
+    return matches[2];
+}
+
+export function extractTokenClaims(
+    encodedToken: string,
+    base64Decode: (input: string) => string
+): TokenClaims {
+    const jswPayload = getJWSPayload(encodedToken);
+
+    // token will be decoded to get the username
+    try {
+        // base64Decode() should throw an error if there is an issue
+        const base64Decoded = base64Decode(jswPayload);
+        return JSON.parse(base64Decoded) as TokenClaims;
+    } catch (err) {
+        throw new Error("Error parsing the token");
+    }
 }
