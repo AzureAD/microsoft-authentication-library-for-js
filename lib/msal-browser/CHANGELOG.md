@@ -1,8 +1,28 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Thu, 11 Apr 2024 21:46:57 GMT and should not be manually modified.
+This log was last generated on Mon, 06 May 2024 23:48:17 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.14.0
+
+Mon, 06 May 2024 23:48:17 GMT
+
+### Minor changes
+
+- Instrument scenario id for tracking custom user prompts #7043 (kshabelko@microsoft.com)
+- Discard empty redirect telemetry events with no error codes #7058 (kshabelko@microsoft.com)
+- Export invoke and invokeAsync functions #7065 (kshabelko@microsoft.com)
+- Instrument account type #7049 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.10.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- Add getAccount API to IPublicClientApplication (#7019) (dasau@microsoft.com)
+- Fix uncaught exceptions in acquireTokenSilent #7073 (thomas.norling@microsoft.com)
+- Add additional logging for Nested App Auth initialization errors (#7064) (dasau@microsoft.com)
 
 ## 3.13.0
 

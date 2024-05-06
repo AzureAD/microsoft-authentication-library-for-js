@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Instrument scenario id for tracking custom user prompts #7043",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Client Assertion Implementation now accepts a callback instead of a string argument",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}
