@@ -416,6 +416,9 @@ export async function enterCredentialsADFS(
         throw e;
     });
     await screenshot.takeScreenshot(page, "loginPageADFS");
+    const input = await page.$("#i0116");
+    await input.click({clickCount: 3});
+    await input.press('Backspace'); 
     await page.type("#i0116", username);
     await screenshot.takeScreenshot(page, "usernameEntered");
     await Promise.all([
