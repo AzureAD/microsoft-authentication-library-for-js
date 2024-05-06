@@ -4817,6 +4817,43 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
         });
 
+        it("throws iframe error if iframe renewal throws", (done) => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "testTenantId",
+                username: "username@contoso.com",
+            };
+
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                "acquireTokenByRefreshToken"
+            ).mockRejectedValue(
+                createInteractionRequiredAuthError(
+                    InteractionRequiredAuthErrorCodes.refreshTokenExpired
+                )
+            );
+
+            const testIframeError = new InteractionRequiredAuthError(
+                "interaction_required",
+                "interaction is required"
+            );
+
+            jest.spyOn(
+                SilentIframeClient.prototype,
+                "acquireToken"
+            ).mockRejectedValue(testIframeError);
+
+            pca.acquireTokenSilent({
+                scopes: ["Scope1"],
+                account: testAccount,
+            }).catch((e) => {
+                expect(e).toEqual(testIframeError);
+                done();
+            });
+        });
+
         it("Falls back to silent handler if thrown error is a refresh token expired error", async () => {
             const invalidGrantError: ServerError = new ServerError(
                 "invalid_grant",

@@ -159,7 +159,7 @@ export class StandardController implements IController {
     >;
 
     // Active Iframe request
-    private activeIframeRequest: [Promise<void>, string] | undefined;
+    private activeIframeRequest: [Promise<boolean>, string] | undefined;
 
     private ssoSilentMeasurement?: InProgressPerformanceEvent;
     private acquireTokenByCodeAsyncMeasurement?: InProgressPerformanceEvent;
@@ -1948,13 +1948,11 @@ export class StandardController implements IController {
 
             if (shouldTryToResolveSilently) {
                 if (!this.activeIframeRequest) {
-                    let _resolve: () => void,
-                        _reject: (reason?: AuthError | Error) => void;
+                    let _resolve: (result: boolean) => void;
                     // Always set the active request tracker immediately after checking it to prevent races
                     this.activeIframeRequest = [
-                        new Promise((resolve, reject) => {
+                        new Promise((resolve) => {
                             _resolve = resolve;
-                            _reject = reject;
                         }),
                         silentRequest.correlationId,
                     ];
@@ -1970,11 +1968,11 @@ export class StandardController implements IController {
                         silentRequest.correlationId
                     )(silentRequest)
                         .then((iframeResult) => {
-                            _resolve();
+                            _resolve(true);
                             return iframeResult;
                         })
                         .catch((e) => {
-                            _reject(e);
+                            _resolve(false);
                             throw e;
                         })
                         .finally(() => {
@@ -1996,20 +1994,11 @@ export class StandardController implements IController {
                         awaitIframeCorrelationId: activeCorrelationId,
                     });
 
-                    // Await for errors first so we can distinguish errors thrown by activePromise versus errors thrown by .then below
-                    await activePromise.catch(() => {
-                        awaitConcurrentIframeMeasure.end({
-                            success: false,
-                        });
-                        this.logger.info(
-                            `Iframe request with correlationId: ${activeCorrelationId} failed. Interaction is required.`
-                        );
-                        // If previous iframe request failed, it's unlikely to succeed this time. Throw original error.
-                        throw refreshTokenError;
+                    const activePromiseResult = await activePromise;
+                    awaitConcurrentIframeMeasure.end({
+                        success: activePromiseResult,
                     });
-
-                    return activePromise.then(() => {
-                        awaitConcurrentIframeMeasure.end({ success: true });
+                    if (activePromiseResult) {
                         this.logger.verbose(
                             `Parallel iframe request with correlationId: ${activeCorrelationId} succeeded. Retrying cache and/or RT redemption`,
                             silentRequest.correlationId
@@ -2019,7 +2008,13 @@ export class StandardController implements IController {
                             silentRequest,
                             cacheLookupPolicy
                         );
-                    });
+                    } else {
+                        this.logger.info(
+                            `Iframe request with correlationId: ${activeCorrelationId} failed. Interaction is required.`
+                        );
+                        // If previous iframe request failed, it's unlikely to succeed this time. Throw original error.
+                        throw refreshTokenError;
+                    }
                 } else {
                     // Cache policy set to skip and another iframe request is already in progress
                     this.logger.warning(
