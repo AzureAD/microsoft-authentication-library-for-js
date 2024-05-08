@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Instrument account type #7049",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

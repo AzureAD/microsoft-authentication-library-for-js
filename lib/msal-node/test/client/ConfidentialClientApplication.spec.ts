@@ -5,14 +5,17 @@
 
 import {
     AuthorizationCodeClient,
+    SilentFlowClient,
     RefreshTokenClient,
     AuthenticationResult,
     OIDC_DEFAULT_SCOPES,
     CommonClientCredentialRequest,
     createClientAuthError,
     ClientAuthErrorCodes,
+    AccountEntity,
+    AccountInfo,
 } from "@azure/msal-common";
-import { TEST_CONSTANTS } from "../utils/TestConstants";
+import { ID_TOKEN_CLAIMS, TEST_CONSTANTS } from "../utils/TestConstants";
 import {
     AuthError,
     ConfidentialClientApplication,
@@ -23,6 +26,7 @@ import {
     AuthorizationCodeRequest,
     ClientCredentialClient,
     RefreshTokenRequest,
+    SilentFlowRequest,
 } from "../../src";
 
 import * as msalNode from "../../src";
@@ -30,8 +34,12 @@ import { getMsalCommonAutoMock, MSALCommonModule } from "../utils/MockUtils";
 import {
     CAE_CONSTANTS,
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
+    TEST_CONFIG,
+    TEST_TOKENS,
 } from "../test_kit/StringConstants";
 import { mockNetworkClient } from "../utils/MockNetworkClient";
+import { getClientAssertionCallback } from "./ClientTestUtils";
+import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 
 const msalCommon: MSALCommonModule = jest.requireActual("@azure/msal-common");
 
@@ -80,6 +88,38 @@ describe("ConfidentialClientApplication", () => {
             const authApp = new ConfidentialClientApplication(appConfig);
             await authApp.acquireTokenByCode(request);
             expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
+        });
+
+        test("acquireTokenBySilentFlow", async () => {
+            const testAccountEntity: AccountEntity =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+
+            const testAccount: AccountInfo = {
+                ...testAccountEntity.getAccountInfo(),
+                idTokenClaims: ID_TOKEN_CLAIMS,
+                idToken: TEST_TOKENS.IDTOKEN_V2,
+            };
+
+            const request: SilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            };
+
+            const mockSilentFlowClientInstance = {
+                includeRedirectUri: false,
+                acquireToken: jest.fn(),
+            };
+            jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
+                () =>
+                    mockSilentFlowClientInstance as unknown as SilentFlowClient
+            );
+
+            const authApp = new ConfidentialClientApplication(appConfig);
+            await authApp.acquireTokenSilent(request);
+            expect(SilentFlowClient).toHaveBeenCalledTimes(1);
         });
 
         describe("CAE, claims and client capabilities", () => {
@@ -132,7 +172,8 @@ describe("ConfidentialClientApplication", () => {
             ])(
                 "Validates that claims and client capabilities are correctly merged",
                 async (claims, mergedClaims) => {
-                    authorizationCodeRequest.claims = claims;
+                    // acquire a token with a client that has client capabilities, but no claims in the request
+                    // verify that it comes from the IDP
                     const authResult = (await client.acquireTokenByCode(
                         authorizationCodeRequest
                     )) as AuthenticationResult;
@@ -140,7 +181,9 @@ describe("ConfidentialClientApplication", () => {
                         CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body
                             .access_token
                     );
+                    expect(authResult.fromCache).toBe(false);
 
+                    // verify that the client capabilities have been merged with the (empty) claims
                     const returnVal: string = (await createTokenRequestBodySpy
                         .mock.results[0].value) as string;
                     expect(
@@ -152,9 +195,35 @@ describe("ConfidentialClientApplication", () => {
                                 )[0]
                                 .split("claims=")[1]
                         )
-                    ).toEqual(mergedClaims);
+                    ).toEqual(CAE_CONSTANTS.MERGED_EMPTY_CLAIMS);
 
                     // skip cache lookup verification because acquireTokenByCode does not pull elements from the cache
+
+                    // acquire a token with a client that has client capabilities, and has claims in the request
+                    // verify that it comes from the IDP
+                    authorizationCodeRequest.claims = claims;
+                    const authResult2 = (await client.acquireTokenByCode(
+                        authorizationCodeRequest
+                    )) as AuthenticationResult;
+                    expect(authResult2.accessToken).toEqual(
+                        CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body
+                            .access_token
+                    );
+                    expect(authResult2.fromCache).toBe(false);
+
+                    // verify that the client capabilities have been merged with the claims
+                    const returnVal2: string = (await createTokenRequestBodySpy
+                        .mock.results[1].value) as string;
+                    expect(
+                        decodeURIComponent(
+                            returnVal2
+                                .split("&")
+                                .filter((key: string) =>
+                                    key.includes("claims=")
+                                )[0]
+                                .split("claims=")[1]
+                        )
+                    ).toEqual(mergedClaims);
                 }
             );
         });
@@ -221,29 +290,35 @@ describe("ConfidentialClientApplication", () => {
         expect(ClientCredentialClient).toHaveBeenCalledTimes(1);
     });
 
-    test("acquireTokenByClientCredential with client assertion", async () => {
-        const request: ClientCredentialRequest = {
-            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-            skipCache: false,
-            clientAssertion: "testAssertion",
-        };
+    it.each([
+        TEST_CONFIG.TEST_REQUEST_ASSERTION,
+        getClientAssertionCallback(TEST_CONFIG.TEST_REQUEST_ASSERTION),
+    ])(
+        "acquireTokenByClientCredential with client assertion",
+        async (clientAssertion) => {
+            const request: ClientCredentialRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                skipCache: false,
+                clientAssertion: clientAssertion,
+            };
 
-        ClientCredentialClient.prototype.acquireToken = jest.fn(
-            (request: CommonClientCredentialRequest) => {
-                expect(request.clientAssertion).not.toBe(undefined);
-                expect(request.clientAssertion?.assertion).toBe(
-                    "testAssertion"
-                );
-                expect(request.clientAssertion?.assertionType).toBe(
-                    "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
-                );
-                return Promise.resolve(null);
-            }
-        );
+            ClientCredentialClient.prototype.acquireToken = jest.fn(
+                (request: CommonClientCredentialRequest) => {
+                    expect(request.clientAssertion).not.toBe(undefined);
+                    expect(request.clientAssertion?.assertion).toBe(
+                        TEST_CONFIG.TEST_REQUEST_ASSERTION
+                    );
+                    expect(request.clientAssertion?.assertionType).toBe(
+                        "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                    );
+                    return Promise.resolve(null);
+                }
+            );
 
-        const authApp = new ConfidentialClientApplication(appConfig);
-        await authApp.acquireTokenByClientCredential(request);
-    });
+            const authApp = new ConfidentialClientApplication(appConfig);
+            await authApp.acquireTokenByClientCredential(request);
+        }
+    );
 
     test("acquireTokenOnBehalfOf", async () => {
         const request: OnBehalfOfRequest = {

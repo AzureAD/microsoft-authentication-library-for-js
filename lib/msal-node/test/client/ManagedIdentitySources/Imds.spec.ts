@@ -787,16 +787,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
             await expect(
                 systemAssignedManagedIdentityApplication.acquireToken({
-                    resource: "invalid_resource",
-                })
-            ).rejects.toMatchObject(
-                createManagedIdentityError(
-                    ManagedIdentityErrorCodes.invalidResource
-                )
-            );
-
-            await expect(
-                systemAssignedManagedIdentityApplication.acquireToken({
                     resource: "",
                 })
             ).rejects.toMatchObject(
@@ -822,7 +812,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
             expect(() => {
                 new ManagedIdentityApplication(badUserAssignedClientIdConfig);
-            }).toThrowError(
+            }).toThrow(
                 createManagedIdentityError(
                     ManagedIdentityErrorCodes.invalidManagedIdentityIdType
                 )

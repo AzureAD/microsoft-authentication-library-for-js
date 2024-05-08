@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Thu, 11 Apr 2024 21:46:57 GMT and should not be manually modified.
+This log was last generated on Mon, 06 May 2024 23:48:17 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.16
+
+Mon, 06 May 2024 23:48:17 GMT
+
+### Patches
+
+- Fix useIsAuthenticated returning incorrect value during useEffect update #7057 (kade@hatchedlabs.com)
+- Bump @azure/msal-browser to v3.14.0
+- Bump eslint-config-msal to v0.0.0
 
 ## 2.0.15
 

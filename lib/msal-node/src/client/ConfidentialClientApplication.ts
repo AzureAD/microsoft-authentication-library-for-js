@@ -26,6 +26,8 @@ import {
     AADAuthorityConstants,
     createClientAuthError,
     ClientAuthErrorCodes,
+    ClientAssertion as ClientAssertionType,
+    getClientAssertion,
 } from "@azure/msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication.js";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest.js";
@@ -91,10 +93,14 @@ export class ConfidentialClientApplication
         );
 
         // If there is a client assertion present in the request, it overrides the one present in the client configuration
-        let clientAssertion;
+        let clientAssertion: ClientAssertionType | undefined;
         if (request.clientAssertion) {
             clientAssertion = {
-                assertion: request.clientAssertion,
+                assertion: await getClientAssertion(
+                    request.clientAssertion,
+                    this.config.auth.clientId
+                    // tokenEndpoint will be undefined. resourceRequestUri is omitted in ClientCredentialRequest
+                ),
                 assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE,
             };
         }
@@ -247,9 +253,8 @@ export class ConfidentialClientApplication
         }
 
         if (configuration.auth.clientAssertion) {
-            this.clientAssertion = ClientAssertion.fromAssertion(
-                configuration.auth.clientAssertion
-            );
+            this.developerProvidedClientAssertion =
+                configuration.auth.clientAssertion;
             return;
         }
 
