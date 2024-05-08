@@ -16,7 +16,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: master
+          ref: use-lab-cert
 extends:
     template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
     parameters:
@@ -34,7 +34,7 @@ extends:
                         poolType: "linux"
                         publishFlagName: "publishMsalBrowser"
                         sourceBranchName: ${{ variables.sourceBranchName }}
-                        stage: "Pre-release"
+                        stage: "PR"
                         override: true
                         samples:
                             - "client-capabilities"
@@ -47,7 +47,7 @@ extends:
                         poolType: "windows"
                         publishFlagName: "publishMsalNode"
                         sourceBranchName: ${{ variables.sourceBranchName }}
-                        stage: "Pre-release"
+                        stage: "PR"
                         override: true
                         samples:
                             - "auth-code"
@@ -62,7 +62,7 @@ extends:
                         poolType: "linux"
                         publishFlagName: "publishMsalReact"
                         sourceBranchName: ${{ variables.sourceBranchName }}
-                        stage: "Pre-release"
+                        stage: "PR"
                         override: true
                         samples:
                             - "nextjs-sample"
@@ -76,7 +76,7 @@ extends:
                         poolType: "linux"
                         publishFlagName: "publishMsalAngular"
                         sourceBranchName: ${{ variables.sourceBranchName }}
-                        stage: "Pre-release"
+                        stage: "PR"
                         override: true
                         samples:
                             - "angular15-sample-app"
