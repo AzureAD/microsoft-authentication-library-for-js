@@ -22,11 +22,14 @@ az login --output none
 # Get the lab app id
 $clientIdValue = $(az keyvault secret show --name "LabVaultAppId" --vault-name "msidlabs" --query "value")
 
-$pemPath = "lab-vault-cert.pem";
-Write-Output "Downloading LabVaultAccessCert to $pemPath"
+$pfxPath = "LabCert.pfx";
+$pemPath = "LabCert.pem";
 # get the lab app cert
-az keyvault certificate download --vault-name "msidlabs" -n "LabVaultAccessCert" -f $pemPath
-$fullPemPath = "$(Resolve-Path $pemPath)"
+az keyvault secret download --vault-name "msidlabs" -n "LabVaultAccessCert" --file $pfxPath --encoding base64
+# convert pfx file to pem
+openssl pkcs12 -in $pfxPath -out $pemPath -nodes --passin pass:
+
+$fullPemPath = (Get-Location).Path + "\" + $pemPath
 
 $clientIdNameValue = "$clientIdName$clientIdValue"
 $clientCertPathNameValue = "$clientCertPathName" + '"' + $fullPemPath + '"'
@@ -34,4 +37,7 @@ $clientCertPathNameValue = "$clientCertPathName" + '"' + $fullPemPath + '"'
 
 $clientIdNameValue | Out-File -File $dotEnvFileName -Append
 $clientCertPathNameValue | Out-File -File $dotEnvFileName -Append
+
+# Dotenv will not parse CLRF correctly, so we need to replace it with LF
+(Get-Content $dotEnvFileName -Raw).Replace("`r`n", "`n") | Set-Content $dotEnvFileName -Force
 

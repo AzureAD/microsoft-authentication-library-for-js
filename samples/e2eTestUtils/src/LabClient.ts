@@ -8,16 +8,12 @@ import {
 } from "./Constants";
 import { LabApiQueryParams } from "./LabApiQueryParams";
 import * as dotenv from "dotenv";
-import * as path from "path";
-const fpDotenv = path.join(__dirname, `/../../../../.env`);
-const localDotEnv = path.join(__dirname, `/../../../.env`);
-console.log(fpDotenv);
+
 // Try 1p repo config first
-dotenv.config({ path: fpDotenv });
-console.log(process.env);
+dotenv.config({ path: __dirname + `/../../../../.env` });
 // If CLIENT_ID is not set, try the 3p repo for test env config
 if (!process.env[ENV_VARIABLES.CLIENT_ID]) {
-    dotenv.config({ path: localDotEnv });
+    dotenv.config({ path: __dirname + `/../../../.env` });
 }
 
 export class LabClient {
