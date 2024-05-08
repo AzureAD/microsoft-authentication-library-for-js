@@ -28,7 +28,7 @@ extends:
             - stage: e2e_test
               displayName: "3P E2E Tests"
               jobs:
-                  - template: .pipelines/templates/msal-browser-e2e.yml@self
+                  - template: .pipelines/templates/msal-browser-e2e.yml@1P
                     parameters:
                         jobName: "validate_msal_browser"
                         poolType: "linux"
@@ -41,7 +41,7 @@ extends:
                             - "onPageLoad"
                             - "pop"
                             - "customizable-e2e-test"
-                  - template: .pipelines/templates/msal-node-e2e.yml@self
+                  - template: .pipelines/templates/msal-node-e2e.yml@1P
                     parameters:
                         jobName: "validate_msal_node"
                         poolType: "windows"
@@ -56,7 +56,7 @@ extends:
                             - "device-code"
                             - "silent-flow"
                             - "b2c-user-flows"
-                  - template: .pipelines/templates/msal-react-e2e.yml@self
+                  - template: .pipelines/templates/msal-react-e2e.yml@1P
                     parameters:
                         jobName: "validate_msal_react"
                         poolType: "linux"
@@ -70,7 +70,7 @@ extends:
                             - "gatsby-sample"
                             - "typescript-sample"
                             - "b2c-sample"
-                  - template: .pipelines/templates/msal-angular-e2e.yml@self
+                  - template: .pipelines/templates/msal-angular-e2e.yml@1P
                     parameters:
                         jobName: "validate_msal_angular"
                         poolType: "linux"
