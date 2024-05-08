@@ -35,7 +35,7 @@ extends:
                         publishFlagName: "publishMsalBrowser"
                         sourceBranchName: ${{ variables.sourceBranchName }}
                         stage: "Pre-release"
-                        override: ${{ in(parameters.publishModeMsalBrowser, 'Publish' )}}
+                        override: true
                         samples:
                             - "client-capabilities"
                             - "onPageLoad"
@@ -48,7 +48,7 @@ extends:
                         publishFlagName: "publishMsalNode"
                         sourceBranchName: ${{ variables.sourceBranchName }}
                         stage: "Pre-release"
-                        override: ${{ in(parameters.publishModeMsalNode, 'Publish' )}}
+                        override: true
                         samples:
                             - "auth-code"
                             - "auth-code-cli-app"
@@ -63,7 +63,7 @@ extends:
                         publishFlagName: "publishMsalReact"
                         sourceBranchName: ${{ variables.sourceBranchName }}
                         stage: "Pre-release"
-                        override: ${{ in(parameters.publishModeMsalReact, 'Publish' )}}
+                        override: true
                         samples:
                             - "nextjs-sample"
                             - "react-router-sample"
@@ -77,7 +77,7 @@ extends:
                         publishFlagName: "publishMsalAngular"
                         sourceBranchName: ${{ variables.sourceBranchName }}
                         stage: "Pre-release"
-                        override: ${{ in(parameters.publishModeMsalAngular, 'Publish' )}}
+                        override: true
                         samples:
                             - "angular15-sample-app"
                             - "angular16-sample-app"
