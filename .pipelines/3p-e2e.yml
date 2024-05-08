@@ -49,6 +49,7 @@ extends:
                         sourceBranchName: ${{ variables.sourceBranchName }}
                         stage: "PR"
                         override: true
+                        node: [16, 18, 20, 22]
                         samples:
                             - "auth-code"
                             - "auth-code-cli-app"
