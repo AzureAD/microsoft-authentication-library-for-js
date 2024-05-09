@@ -2,10 +2,10 @@ variables:
     CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
     LinuxContainerImage: "mcr.microsoft.com/onebranch/cbl-mariner/build:2.0" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
     DEBIAN_FRONTEND: noninteractive
-    ${{ if startsWith(variables['Build.SourceBranchName'], 'refs/heads/') }}:
-        sourceBranchName: ${{ replace(variables['Build.SourceBrancName'], 'refs/heads/', '') }}
-    ${{ if startsWith(variables['Build.SourceBranchName'], 'refs/pull/') }}:
-        sourceBranchName: ${{ replace(variables['System.PullRequest.SourceBranchName'], 'refs/heads/', '') }}
+    ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}:
+        sourceBranchName: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
+    ${{ if startsWith(variables['Build.SourceBranch'], 'refs/pull/') }}:
+        sourceBranchName: variables['System.PullRequest.SourceBranch']
 
 resources:
     repositories:
