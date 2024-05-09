@@ -4,7 +4,7 @@ variables:
     DEBIAN_FRONTEND: noninteractive
     ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}:
         sourceBranchName: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
-    ${{ if startsWith(variables['Build.SourceBranch'], 'refs/pull/') }}:
+    ${{ if startsWith(variables['System.PullRequest.SourceBranch'], 'refs/pull/') }}:
         sourceBranchName: ${{ replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', '') }}
 
 resources:
@@ -57,6 +57,7 @@ extends:
                             - "device-code"
                             - "silent-flow"
                             - "b2c-user-flows"
+                            # - "on-behalf-of"
                   - template: .pipelines/templates/msal-react-e2e.yml@1P
                     parameters:
                         jobName: "validate_msal_react"

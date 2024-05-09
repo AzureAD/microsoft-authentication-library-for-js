@@ -4,8 +4,8 @@ variables:
     DEBIAN_FRONTEND: noninteractive
     ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}:
         sourceBranchName: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
-    ${{ if startsWith(variables['Build.SourceBranch'], 'refs/pull/') }}:
-        sourceBranchName: ${{ variables['System.PullRequest.SourceBranch'] }}
+    ${{ if startsWith(variables['System.PullRequest.SourceBranch'], 'refs/pull/') }}:
+        sourceBranchName: ${{ replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', '') }}
 
 resources:
     repositories:
