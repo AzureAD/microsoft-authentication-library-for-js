@@ -457,9 +457,7 @@ export abstract class ClientApplication {
             serverTelemetryManager: serverTelemetryManager,
             clientCredentials: {
                 clientSecret: this.clientSecret,
-                clientAssertion: this.developerProvidedClientAssertion || this.clientAssertion
-                    ? await this.getClientAssertion(discoveredAuthority)
-                    : undefined,
+                clientAssertion: await this.getClientAssertion(discoveredAuthority),
             },
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
@@ -487,7 +485,7 @@ export abstract class ClientApplication {
                 )
             );
         }
-        return {
+        return this.clientAssertion && {
             assertion: this.clientAssertion.getJwt(
                 this.cryptoProvider,
                 this.config.auth.clientId,
