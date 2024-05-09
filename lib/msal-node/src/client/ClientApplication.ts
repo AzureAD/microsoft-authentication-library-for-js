@@ -457,7 +457,7 @@ export abstract class ClientApplication {
             serverTelemetryManager: serverTelemetryManager,
             clientCredentials: {
                 clientSecret: this.clientSecret,
-                clientAssertion: this.developerProvidedClientAssertion
+                clientAssertion: this.developerProvidedClientAssertion || this.clientAssertion
                     ? await this.getClientAssertion(discoveredAuthority)
                     : undefined,
             },
@@ -478,14 +478,15 @@ export abstract class ClientApplication {
     private async getClientAssertion(
         authority: Authority
     ): Promise<ClientAssertionType> {
-        this.clientAssertion = ClientAssertion.fromAssertion(
-            await getClientAssertion(
-                this.developerProvidedClientAssertion,
-                this.config.auth.clientId,
-                authority.tokenEndpoint
-            )
-        );
-
+        if (this.developerProvidedClientAssertion) {
+            this.clientAssertion = ClientAssertion.fromAssertion(
+                await getClientAssertion(
+                    this.developerProvidedClientAssertion,
+                    this.config.auth.clientId,
+                    authority.tokenEndpoint
+                )
+            );
+        }
         return {
             assertion: this.clientAssertion.getJwt(
                 this.cryptoProvider,
