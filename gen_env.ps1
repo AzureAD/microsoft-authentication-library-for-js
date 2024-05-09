@@ -3,6 +3,7 @@ $dotEnvFileName = ".env"
 $tenantIdInfo = 'AZURE_TENANT_ID="72f988bf-86f1-41af-91ab-2d7cd011db47"'
 $clientIdName = "AZURE_CLIENT_ID="
 $clientCertPathName = "AZURE_CLIENT_CERT_PATH="
+$sessionSecretName = "SESSION_SECRET="
 
 # Create file if it doesn't exist
 if (-Not (Test-Path $dotEnvFileName)) {
@@ -31,12 +32,17 @@ openssl pkcs12 -in $pfxPath -out $pemPath -nodes --passin pass:
 
 $fullPemPath = (Get-Location).Path + "\" + $pemPath
 
+# Used to secure sessions for samples that use express-session
+$sessionSecret = New-Guid
+$sessionSecretNameValue = "$sessionSecretName" + '"' + $sessionSecret + '"'    
+
 $clientIdNameValue = "$clientIdName$clientIdValue"
 $clientCertPathNameValue = "$clientCertPathName" + '"' + $fullPemPath + '"'
 
 
 $clientIdNameValue | Out-File -File $dotEnvFileName -Append
 $clientCertPathNameValue | Out-File -File $dotEnvFileName -Append
+$sessionSecretNameValue | Out-File -File $dotEnvFileName -Append
 
 # Dotenv will not parse CLRF correctly, so we need to replace it with LF
 (Get-Content $dotEnvFileName -Raw).Replace("`r`n", "`n") | Set-Content $dotEnvFileName -Force

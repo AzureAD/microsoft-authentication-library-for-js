@@ -46,7 +46,7 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
      * and set them as desired. Visit: https://www.npmjs.com/package/express-session
      */
     const sessionConfig = {
-        secret: crypto.randomUUID(),
+        secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
         cookie: {
