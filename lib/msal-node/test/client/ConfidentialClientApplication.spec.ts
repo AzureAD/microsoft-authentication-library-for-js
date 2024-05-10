@@ -43,7 +43,6 @@ import { mockNetworkClient } from "../utils/MockNetworkClient";
 import { ClientTestUtils, getClientAssertionCallback } from "./ClientTestUtils";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { Constants } from "../../src/utils/Constants";
-import { CryptoKeys } from "../utils/CryptoKeys";
 
 describe("ConfidentialClientApplication", () => {
     let config: Configuration;
@@ -361,12 +360,6 @@ describe("ConfidentialClientApplication", () => {
                 <any>"getClientAssertion"
             );
 
-            const cryptoKeys: CryptoKeys = new CryptoKeys();
-            config.auth.clientCertificate = {
-                thumbprint: cryptoKeys.thumbprint,
-                privateKey: cryptoKeys.privateKey,
-            };
-            delete config.auth.clientSecret;
             const client: ConfidentialClientApplication =
                 new ConfidentialClientApplication(config);
 

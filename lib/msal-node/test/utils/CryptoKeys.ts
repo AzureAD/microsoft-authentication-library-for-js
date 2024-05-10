@@ -10,16 +10,10 @@ export class CryptoKeys {
     public get thumbprint(): string {
         return this._thumbprint;
     }
-    private set thumbprint(value: string) {
-        this._thumbprint = value;
-    }
 
     private _privateKey: string;
     public get privateKey(): string {
         return this._privateKey;
-    }
-    private set privateKey(value: string) {
-        this._privateKey = value;
     }
 
     constructor() {
@@ -29,9 +23,9 @@ export class CryptoKeys {
             privateKeyEncoding: { type: "pkcs8", format: "pem" },
         });
 
-        this.privateKey = privateKey;
+        this._privateKey = privateKey;
 
-        this.thumbprint = crypto
+        this._thumbprint = crypto
             .createHash("sha512")
             .update(publicKey)
             .digest("hex");

@@ -45,6 +45,7 @@ import {
 } from "../test_kit/StringConstants";
 import { Configuration } from "../../src/config/Configuration";
 import { TEST_CONSTANTS } from "../utils/TestConstants";
+import { CryptoKeys } from "../utils/CryptoKeys";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
@@ -379,12 +380,17 @@ export class ClientTestUtils {
             logLevel: LogLevel.Verbose,
         };
 
+        const cryptoKeys: CryptoKeys = new CryptoKeys();
+
         const confidentialClientConfig: Configuration = {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
                 authority: TEST_CONSTANTS.AUTHORITY,
-                clientSecret: TEST_CONSTANTS.CLIENT_SECRET,
-                // clientAssertion, clientCertificate
+                // clientSecret, clientAssertion
+                clientCertificate: {
+                    thumbprint: cryptoKeys.thumbprint,
+                    privateKey: cryptoKeys.privateKey,
+                },
                 knownAuthorities: [TEST_CONSTANTS.AUTHORITY],
                 cloudDiscoveryMetadata: "",
                 authorityMetadata: "",
