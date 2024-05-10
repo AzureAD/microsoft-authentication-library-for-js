@@ -1,6 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { MSAL_GUARD_CONFIG, MSAL_INSTANCE, MsalBroadcastService, MsalGuard, MsalService } from '@azure/msal-angular';
+import {
+  MSAL_GUARD_CONFIG,
+  MSAL_INSTANCE,
+  MsalBroadcastService,
+  MsalGuard,
+  MsalService,
+} from '@azure/msal-angular';
 import { AppComponent } from './app.component';
 import { MSALInstanceFactory, MSALGuardConfigFactory } from './app.config';
 import { routes } from './app.routes';
@@ -8,9 +14,7 @@ import { routes } from './app.routes';
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        AppComponent
-      ],
+      imports: [AppComponent],
       providers: [
         provideRouter(routes),
         MsalService,
@@ -18,13 +22,13 @@ describe('AppComponent', () => {
         MsalBroadcastService,
         {
           provide: MSAL_INSTANCE,
-          useFactory: MSALInstanceFactory
+          useFactory: MSALInstanceFactory,
         },
         {
           provide: MSAL_GUARD_CONFIG,
-          useFactory: MSALGuardConfigFactory
-        }
-      ]
+          useFactory: MSALGuardConfigFactory,
+        },
+      ],
     }).compileComponents();
   });
 
