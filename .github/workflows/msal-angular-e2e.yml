@@ -40,6 +40,7 @@ jobs:
         - 'angular-b2c-sample-app'
         - 'angular-standalone-sample'
         - 'angular17-standalone-sample'
+        - 'angular18-standalone-sample'
 
     name: ${{ matrix.sample }}
 
