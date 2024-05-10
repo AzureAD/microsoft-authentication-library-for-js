@@ -27,7 +27,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ## Local development
 
-If you are trying to run this sample locally in the MSAL.js repo, run `npm run build` before `npm run start` to install a tarball file of MSAL Angular.
+If you are trying to run this sample locally in the MSAL.js repo, run `npm run build` before `npm run start` to install a tarball file of MSAL Angular. You may also need to remove `"e2e-test-utils": "^0.0.1",` from the package.json for this to work.
 
 ## Additional notes
 
