@@ -23,6 +23,7 @@ import { ManagedIdentityRequest } from "../request/ManagedIdentityRequest";
 import { ManagedIdentityId } from "../config/ManagedIdentityId";
 import { NodeStorage } from "../cache/NodeStorage";
 import { BaseManagedIdentitySource } from "./ManagedIdentitySources/BaseManagedIdentitySource";
+import { AzureIdentitySdkManagedIdentitySourceNames } from "../utils/Constants";
 
 /*
  * Class to initialize a managed identity and identify the service.
@@ -71,6 +72,40 @@ export class ManagedIdentityClient {
             fakeAuthority,
             refreshAccessToken
         );
+    }
+
+    private allEnvironmentVariablesAreDefined(
+        environmentVariables: Array<string | undefined>
+    ): boolean {
+        return Object.values(environmentVariables).every(
+            (environmentVariable) => {
+                return environmentVariable !== undefined;
+            }
+        );
+    }
+
+    /**
+     * Determine the Managed Identity Source based on available environment variables. This API is consumed by Azure Identity SDK.
+     * @returns AzureIdentitySdkManagedIdentitySourceNames - Azure Identity SDK defined identifiers for the Managed Identity Sources
+     */
+    public getManagedIdentitySource(): AzureIdentitySdkManagedIdentitySourceNames {
+        return this.allEnvironmentVariablesAreDefined(
+            ServiceFabric.getEnvironmentVariables()
+        )
+            ? AzureIdentitySdkManagedIdentitySourceNames.SERVICE_FABRIC
+            : this.allEnvironmentVariablesAreDefined(
+                  AppService.getEnvironmentVariables()
+              )
+            ? AzureIdentitySdkManagedIdentitySourceNames.APP_SERVICE
+            : this.allEnvironmentVariablesAreDefined(
+                  CloudShell.getEnvironmentVariables()
+              )
+            ? AzureIdentitySdkManagedIdentitySourceNames.CLOUD_SHELL
+            : this.allEnvironmentVariablesAreDefined(
+                  AzureArc.getEnvironmentVariables()
+              )
+            ? AzureIdentitySdkManagedIdentitySourceNames.AZURE_ARC
+            : AzureIdentitySdkManagedIdentitySourceNames.IMDS;
     }
 
     /**

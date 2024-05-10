@@ -18,7 +18,10 @@ import {
 } from "../../test_kit/ManagedIdentityTestUtils";
 import { AuthenticationResult } from "@azure/msal-common";
 import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient";
-import { ManagedIdentityEnvironmentVariableNames } from "../../../src/utils/Constants";
+import {
+    AzureIdentitySdkManagedIdentitySourceNames,
+    ManagedIdentityEnvironmentVariableNames,
+} from "../../../src/utils/Constants";
 
 describe("Acquires a token successfully via an App Service Managed Identity", () => {
     beforeAll(() => {
@@ -54,6 +57,9 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
 
         const managedIdentityApplication: ManagedIdentityApplication =
             new ManagedIdentityApplication(userAssignedClientIdConfig);
+        expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+            AzureIdentitySdkManagedIdentitySourceNames.SERVICE_FABRIC
+        );
 
         const networkManagedIdentityResult: AuthenticationResult =
             await managedIdentityApplication.acquireToken(
@@ -70,6 +76,9 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
         beforeEach(() => {
             managedIdentityApplication = new ManagedIdentityApplication(
                 systemAssignedConfig
+            );
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                AzureIdentitySdkManagedIdentitySourceNames.SERVICE_FABRIC
             );
         });
 

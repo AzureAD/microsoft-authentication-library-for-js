@@ -44,6 +44,19 @@ export type ManagedIdentitySourceNames =
     (typeof ManagedIdentitySourceNames)[keyof typeof ManagedIdentitySourceNames];
 
 /**
+ * Azure Identity SDK defined identifiers for the Managed Identity Sources
+ */
+export const AzureIdentitySdkManagedIdentitySourceNames = {
+    APP_SERVICE: "APP_SERVICE",
+    AZURE_ARC: "ARC",
+    CLOUD_SHELL: "CLOUD_SHELL",
+    IMDS: "DEFAULT_TO_VM",
+    SERVICE_FABRIC: "SERVICE_FABRIC",
+} as const;
+export type AzureIdentitySdkManagedIdentitySourceNames =
+    (typeof AzureIdentitySdkManagedIdentitySourceNames)[keyof typeof AzureIdentitySdkManagedIdentitySourceNames];
+
+/**
  * Managed Identity Ids
  */
 export const ManagedIdentityIdType = {

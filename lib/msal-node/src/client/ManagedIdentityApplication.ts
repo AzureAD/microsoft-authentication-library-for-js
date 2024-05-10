@@ -31,7 +31,10 @@ import { ClientCredentialClient } from "./ClientCredentialClient";
 import { ManagedIdentityClient } from "./ManagedIdentityClient";
 import { ManagedIdentityRequestParams } from "../request/ManagedIdentityRequestParams";
 import { NodeStorage } from "../cache/NodeStorage";
-import { DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY } from "../utils/Constants";
+import {
+    AzureIdentitySdkManagedIdentitySourceNames,
+    DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
+} from "../utils/Constants";
 
 /**
  * Class to initialize a managed identity and identify the service
@@ -182,5 +185,9 @@ export class ManagedIdentityApplication {
                 this.fakeAuthority
             );
         }
+    }
+
+    public getManagedIdentitySource(): AzureIdentitySdkManagedIdentitySourceNames {
+        return this.managedIdentityClient.getManagedIdentitySource();
     }
 }

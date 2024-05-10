@@ -30,7 +30,10 @@ import {
 } from "../../../src/error/ManagedIdentityError";
 import { ARC_API_VERSION } from "../../../src/client/ManagedIdentitySources/AzureArc";
 import * as fs from "fs";
-import { ManagedIdentityEnvironmentVariableNames } from "../../../src/utils/Constants";
+import {
+    AzureIdentitySdkManagedIdentitySourceNames,
+    ManagedIdentityEnvironmentVariableNames,
+} from "../../../src/utils/Constants";
 
 jest.mock("fs");
 
@@ -63,6 +66,9 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
         beforeEach(() => {
             managedIdentityApplication = new ManagedIdentityApplication(
                 systemAssignedConfig
+            );
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                AzureIdentitySdkManagedIdentitySourceNames.AZURE_ARC
             );
         });
 
@@ -116,6 +122,9 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                         // managedIdentityIdParams will be omitted for system assigned
                     },
                 });
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                AzureIdentitySdkManagedIdentitySourceNames.AZURE_ARC
+            );
 
             const networkErrorClient: ManagedIdentityNetworkErrorClient =
                 new ManagedIdentityNetworkErrorClient();
@@ -174,6 +183,9 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
 
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedClientIdConfig);
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                AzureIdentitySdkManagedIdentitySourceNames.AZURE_ARC
+            );
 
             await expect(
                 managedIdentityApplication.acquireToken(
@@ -199,6 +211,9 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                         // managedIdentityIdParams will be omitted for system assigned
                     },
                 });
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                AzureIdentitySdkManagedIdentitySourceNames.AZURE_ARC
+            );
 
             await expect(
                 managedIdentityApplication.acquireToken(
@@ -223,6 +238,9 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                         // managedIdentityIdParams will be omitted for system assigned
                     },
                 });
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                AzureIdentitySdkManagedIdentitySourceNames.AZURE_ARC
+            );
 
             await expect(
                 managedIdentityApplication.acquireToken(
@@ -247,6 +265,9 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                         // managedIdentityIdParams will be omitted for system assigned
                     },
                 });
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                AzureIdentitySdkManagedIdentitySourceNames.AZURE_ARC
+            );
 
             jest.spyOn(fs, "readFileSync").mockImplementationOnce(() => {
                 throw new Error();
