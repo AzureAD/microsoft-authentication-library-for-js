@@ -1,8 +1,27 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Thu, 11 Apr 2024 21:46:57 GMT and should not be manually modified.
+This log was last generated on Mon, 06 May 2024 23:48:17 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.10.0
+
+Mon, 06 May 2024 23:48:17 GMT
+
+### Minor changes
+
+- Instrument scenario id for tracking custom user prompts #7043 (kshabelko@microsoft.com)
+- Instrument account type #7049 (kshabelko@microsoft.com)
+- Instrument server error number #7036 (kshabelko@microsoft.com)
+- Do not register duplicate performance callbacks #7069 (kshabelko@microsoft.com)
+- Client Assertion Implementation now accepts a callback instead of a string argument (rginsburg@microsoft.com)
+- Make performanceClient.discardMeasurements() flush aux cache data in addition to measurements #7061 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+-  Fixed inconsistencies with cancellationToken (timeout) (rginsburg@microsoft.com)
 
 ## 14.9.0
 

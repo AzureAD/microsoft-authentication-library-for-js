@@ -14,8 +14,6 @@ export { ManagedIdentityErrorCodes };
 export const ManagedIdentityErrorMessages = {
     [ManagedIdentityErrorCodes.invalidManagedIdentityIdType]:
         "More than one ManagedIdentityIdType was provided.",
-    [ManagedIdentityErrorCodes.invalidResource]:
-        "The supplied resource is an invalid URL.",
     [ManagedIdentityErrorCodes.missingId]:
         "A ManagedIdentityId id was not provided.",
     [ManagedIdentityErrorCodes.MsiEnvironmentVariableUrlMalformedErrorCodes

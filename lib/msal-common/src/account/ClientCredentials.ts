@@ -3,11 +3,20 @@
  * Licensed under the MIT License.
  */
 
+export type ClientAssertionConfig = {
+    clientId: string;
+    tokenEndpoint?: string;
+};
+
+export type ClientAssertionCallback = (
+    config: ClientAssertionConfig
+) => Promise<string>;
+
 /**
  * Client Assertion credential for Confidential Clients
  */
 export type ClientAssertion = {
-    assertion: string;
+    assertion: string | ClientAssertionCallback;
     assertionType: string;
 };
 
