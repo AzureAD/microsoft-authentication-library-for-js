@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Make performanceClient.discardMeasurements() flush aux cache data in addition to measurements #7061",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

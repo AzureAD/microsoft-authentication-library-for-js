@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult } from "@azure/msal-common";
+import {
+    AuthenticationResult,
+    PasswordGrantConstants,
+} from "@azure/msal-common";
 import {
     AuthenticationScheme,
     Constants,
@@ -514,3 +517,6 @@ export const CORS_SIMPLE_REQUEST_HEADERS = [
 ];
 
 export const THREE_SECONDS_IN_MILLI = 3000;
+
+export const MOCK_USERNAME = `mock_${PasswordGrantConstants.username}`;
+export const MOCK_PASSWORD = `mock_${PasswordGrantConstants.password}`;

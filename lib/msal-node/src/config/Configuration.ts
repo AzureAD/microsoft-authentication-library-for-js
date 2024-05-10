@@ -14,6 +14,7 @@ import {
     AzureCloudOptions,
     ApplicationTelemetry,
     INativeBrokerPlugin,
+    ClientAssertionCallback,
 } from "@azure/msal-common";
 import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
@@ -32,7 +33,7 @@ import { HttpClientWithRetries } from "../network/HttpClientWithRetries.js";
  * - authority              - Url of the authority. If no value is set, defaults to https://login.microsoftonline.com/common.
  * - knownAuthorities       - Needed for Azure B2C and ADFS. All authorities that will be used in the client application. Only the host of the authority should be passed in.
  * - clientSecret           - Secret string that the application uses when requesting a token. Only used in confidential client applications. Can be created in the Azure app registration portal.
- * - clientAssertion        - Assertion string that the application uses when requesting a token. Only used in confidential client applications. Assertion should be of type urn:ietf:params:oauth:client-assertion-type:jwt-bearer.
+ * - clientAssertion        - A ClientAssertion object containing an assertion string or a callback function that returns an assertion string that the application uses when requesting a token, as well as the assertion's type (urn:ietf:params:oauth:client-assertion-type:jwt-bearer). Only used in confidential client applications.
  * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 thumbprint of the certificiate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
  * - protocolMode           - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  * - skipAuthorityMetadataCache - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
@@ -42,7 +43,7 @@ export type NodeAuthOptions = {
     clientId: string;
     authority?: string;
     clientSecret?: string;
-    clientAssertion?: string;
+    clientAssertion?: string | ClientAssertionCallback;
     clientCertificate?: {
         thumbprint: string;
         privateKey: string;
@@ -65,6 +66,9 @@ export type NodeAuthOptions = {
  */
 export type CacheOptions = {
     cachePlugin?: ICachePlugin;
+    /**
+     * @deprecated claims-based-caching functionality will be removed in the next version of MSALJS
+     */
     claimsBasedCachingEnabled?: boolean;
 };
 

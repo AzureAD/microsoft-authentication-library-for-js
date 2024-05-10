@@ -36,7 +36,8 @@ export class HttpClient implements INetworkModule {
      */
     async sendGetRequestAsync<T>(
         url: string,
-        options?: NetworkRequestOptions
+        options?: NetworkRequestOptions,
+        timeout?: number
     ): Promise<NetworkResponse<T>> {
         if (this.proxyUrl) {
             return networkRequestViaProxy(
@@ -44,7 +45,8 @@ export class HttpClient implements INetworkModule {
                 this.proxyUrl,
                 HttpMethod.GET,
                 options,
-                this.customAgentOptions as http.AgentOptions
+                this.customAgentOptions as http.AgentOptions,
+                timeout
             );
         } else {
             return networkRequestViaHttps(
@@ -52,7 +54,7 @@ export class HttpClient implements INetworkModule {
                 HttpMethod.GET,
                 options,
                 this.customAgentOptions as https.AgentOptions,
-                undefined
+                timeout
             );
         }
     }
@@ -64,8 +66,7 @@ export class HttpClient implements INetworkModule {
      */
     async sendPostRequestAsync<T>(
         url: string,
-        options?: NetworkRequestOptions,
-        cancellationToken?: number
+        options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
         if (this.proxyUrl) {
             return networkRequestViaProxy(
@@ -73,16 +74,14 @@ export class HttpClient implements INetworkModule {
                 this.proxyUrl,
                 HttpMethod.POST,
                 options,
-                this.customAgentOptions as http.AgentOptions,
-                cancellationToken
+                this.customAgentOptions as http.AgentOptions
             );
         } else {
             return networkRequestViaHttps(
                 url,
                 HttpMethod.POST,
                 options,
-                this.customAgentOptions as https.AgentOptions,
-                cancellationToken
+                this.customAgentOptions as https.AgentOptions
             );
         }
     }
@@ -109,10 +108,6 @@ const networkRequestViaProxy = <T>(
         headers: headers,
     };
 
-    if (timeout) {
-        tunnelRequestOptions.timeout = timeout;
-    }
-
     if (agentOptions && Object.keys(agentOptions).length) {
         tunnelRequestOptions.agent = new http.Agent(agentOptions);
     }
@@ -125,6 +120,11 @@ const networkRequestViaProxy = <T>(
             "Content-Type: application/x-www-form-urlencoded\r\n" +
             `Content-Length: ${body.length}\r\n` +
             `\r\n${body}`;
+    } else {
+        // optional timeout is only for get requests (regionDiscovery, for example)
+        if (timeout) {
+            tunnelRequestOptions.timeout = timeout;
+        }
     }
     const outgoingRequestString =
         `${httpMethod.toUpperCase()} ${destinationUrl.href} HTTP/1.1\r\n` +
@@ -136,7 +136,7 @@ const networkRequestViaProxy = <T>(
     return new Promise<NetworkResponse<T>>((resolve, reject) => {
         const request = http.request(tunnelRequestOptions);
 
-        if (tunnelRequestOptions.timeout) {
+        if (timeout) {
             request.on("timeout", () => {
                 request.destroy();
                 reject(new Error("Request time out"));
@@ -164,14 +164,6 @@ const networkRequestViaProxy = <T>(
                         }`
                     )
                 );
-            }
-            if (tunnelRequestOptions.timeout) {
-                socket.setTimeout(tunnelRequestOptions.timeout);
-                socket.on("timeout", () => {
-                    request.destroy();
-                    socket.destroy();
-                    reject(new Error("Request time out"));
-                });
             }
 
             // make a request over an HTTP tunnel
@@ -291,10 +283,6 @@ const networkRequestViaHttps = <T>(
         ...NetworkUtils.urlToHttpOptions(url),
     };
 
-    if (timeout) {
-        customOptions.timeout = timeout;
-    }
-
     if (agentOptions && Object.keys(agentOptions).length) {
         customOptions.agent = new https.Agent(agentOptions);
     }
@@ -305,6 +293,11 @@ const networkRequestViaHttps = <T>(
             ...customOptions.headers,
             "Content-Length": body.length,
         };
+    } else {
+        // optional timeout is only for get requests (regionDiscovery, for example)
+        if (timeout) {
+            customOptions.timeout = timeout;
+        }
     }
 
     return new Promise<NetworkResponse<T>>((resolve, reject) => {
@@ -316,15 +309,15 @@ const networkRequestViaHttps = <T>(
             request = https.request(customOptions);
         }
 
+        if (isPostRequest) {
+            request.write(body);
+        }
+
         if (timeout) {
             request.on("timeout", () => {
                 request.destroy();
                 reject(new Error("Request time out"));
             });
-        }
-
-        if (isPostRequest) {
-            request.write(body);
         }
 
         request.end();

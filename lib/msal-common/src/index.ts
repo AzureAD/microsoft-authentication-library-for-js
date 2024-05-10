@@ -133,7 +133,11 @@ export { NativeRequest } from "./request/NativeRequest";
 export { NativeSignOutRequest } from "./request/NativeSignOutRequest";
 export { RequestParameterBuilder } from "./request/RequestParameterBuilder";
 export { StoreInCache } from "./request/StoreInCache";
-export { ClientAssertion } from "./account/ClientCredentials";
+export {
+    ClientAssertion,
+    ClientAssertionConfig,
+    ClientAssertionCallback,
+} from "./account/ClientCredentials";
 // Response
 export { AzureRegion } from "./authority/AzureRegion";
 export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration";
@@ -182,6 +186,7 @@ export {
     createClientConfigurationError,
 } from "./error/ClientConfigurationError";
 // Constants and Utils
+export { getClientAssertion } from "./utils/ClientAssertionUtils";
 export {
     Constants,
     OIDC_DEFAULT_SCOPES,
@@ -218,6 +223,7 @@ export {
 } from "./utils/ProtocolUtils";
 export * as TimeUtils from "./utils/TimeUtils";
 export * as UrlUtils from "./utils/UrlUtils";
+export * as ClientAssertionUtils from "./utils/ClientAssertionUtils";
 export * from "./utils/FunctionWrappers";
 // Server Telemetry
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
