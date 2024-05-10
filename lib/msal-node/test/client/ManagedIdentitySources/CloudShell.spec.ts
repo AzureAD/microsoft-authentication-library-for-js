@@ -10,7 +10,6 @@ import {
 } from "../../test_kit/StringConstants";
 
 import {
-    ManagedIdentityTestUtils,
     userAssignedClientIdConfig,
     managedIdentityRequestParams,
     systemAssignedConfig,
@@ -56,8 +55,6 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
         });
 
         test("acquires a token", async () => {
-            expect(ManagedIdentityTestUtils.isCloudShell()).toBe(true);
-
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams
@@ -70,8 +67,6 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
         });
 
         test("returns an already acquired token from the cache", async () => {
-            expect(ManagedIdentityTestUtils.isCloudShell()).toBe(true);
-
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken({
                     resource: MANAGED_IDENTITY_RESOURCE,
@@ -95,8 +90,6 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
 
     describe("Errors", () => {
         test("throws an error when a user assigned managed identity is used", async () => {
-            expect(ManagedIdentityTestUtils.isCloudShell()).toBe(true);
-
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedClientIdConfig);
             expect(managedIdentityApplication.getManagedIdentitySource()).toBe(

@@ -18,7 +18,6 @@ import {
 } from "../../test_kit/StringConstants";
 
 import {
-    ManagedIdentityTestUtils,
     ManagedIdentityNetworkClient,
     ManagedIdentityNetworkErrorClient,
     networkClient,
@@ -86,8 +85,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
     describe("User Assigned", () => {
         test("acquires a User Assigned Client Id token", async () => {
-            expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedClientIdConfig);
             expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
@@ -105,8 +102,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         });
 
         test("acquires a User Assigned Object Id token", async () => {
-            expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedObjectIdConfig);
             expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
@@ -124,8 +119,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         });
 
         test("acquires a User Assigned Resource Id token", async () => {
-            expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedResourceIdConfig);
             expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
@@ -155,8 +148,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         });
 
         test("acquires a token", async () => {
-            expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams
@@ -169,8 +160,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         });
 
         test("returns an already acquired token from the cache", async () => {
-            expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken({
                     resource: MANAGED_IDENTITY_RESOURCE,
@@ -205,8 +194,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             });
 
             test("returns a 500 error response from the network request, just the first time", async () => {
-                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
                     .spyOn(networkClient, <any>"sendGetRequestAsync")
                     // override the networkClient's sendGetRequestAsync method to return a 500.
@@ -230,8 +217,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             });
 
             test("returns a 500 error response from the network request permanently", async () => {
-                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
                     .spyOn(networkClient, <any>"sendGetRequestAsync")
                     // permanently override the networkClient's sendGetRequestAsync method to return a 500
@@ -269,8 +254,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             });
 
             test("returns a 500 error response from the network request, just the first time, with no retry-after header", async () => {
-                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
                     .spyOn(networkClient, <any>"sendGetRequestAsync")
                     // override the networkClient's sendGetRequestAsync method to return a 500.
@@ -304,8 +287,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             });
 
             test("returns a 500 error response from the network request, just the first time, with a retry-after header of 3 seconds", async () => {
-                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
                 const headers: Record<string, string> = {
                     "Retry-After": "3", // 3 seconds
                 };
@@ -344,8 +325,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             });
 
             test("returns a 500 error response from the network request, just the first time, with a retry-after header of 3 seconds (extrapolated from an http-date)", async () => {
-                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
                 var retryAfterHttpDate = new Date();
                 retryAfterHttpDate.setSeconds(
                     retryAfterHttpDate.getSeconds() + 4 // 4 seconds. An extra second has been added to account for this date operation
@@ -388,8 +367,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             });
 
             test("returns a 500 error response from the network request permanently", async () => {
-                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
                     .spyOn(networkClient, <any>"sendGetRequestAsync")
                     // permanently override the networkClient's sendGetRequestAsync method to return a 500
@@ -415,8 +392,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             });
 
             test("makes three acquireToken calls on the same managed identity application (which returns a 500 error response from the network request permanently) to ensure that retry policy lifetime is per request", async () => {
-                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
                 const sendGetRequestAsyncSpyApp: jest.SpyInstance = jest
                     .spyOn(networkClient, <any>"sendGetRequestAsync")
                     // permanently override the networkClient's sendGetRequestAsync method to return a 500
@@ -452,8 +427,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             }, 15000); // triple the timeout value for this test because there are 3 acquireToken calls (3 x 1 second in between retries)
 
             test("ensures that a retry does not happen when the http status code from a failed network response is not included in the retry policy", async () => {
-                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
                 const sendGetRequestAsyncSpyApp: jest.SpyInstance = jest
                     .spyOn(networkClient, <any>"sendGetRequestAsync")
                     // permanently override the networkClient's sendGetRequestAsync method to return a 400
@@ -476,8 +449,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             });
 
             test("ensures that a retry does not happen when the http status code from a failed network response is included in the retry policy, but the retry policy has been disabled", async () => {
-                expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
                 const managedIdentityApplicationNoRetry: ManagedIdentityApplication =
                     new ManagedIdentityApplication({
                         system: {
@@ -526,8 +497,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         });
 
         test("acquires a token from the network and then the same token from the cache, then acquires a different token for another scope", async () => {
-            expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
             let networkManagedIdentityResult: AuthenticationResult =
                 await systemAssignedManagedIdentityApplication.acquireToken({
                     resource: MANAGED_IDENTITY_RESOURCE,
@@ -560,8 +529,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         });
 
         test("ignores a cached token when forceRefresh is set to true", async () => {
-            expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
             let networkManagedIdentityResult: AuthenticationResult =
                 await systemAssignedManagedIdentityApplication.acquireToken({
                     resource: MANAGED_IDENTITY_RESOURCE,
@@ -594,8 +561,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         });
 
         test("proactively refreshes a token in the background when its refresh_in value is expired.", async () => {
-            expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
             let networkManagedIdentityResult: AuthenticationResult =
                 await systemAssignedManagedIdentityApplication.acquireToken({
                     resource: MANAGED_IDENTITY_RESOURCE,
@@ -672,8 +637,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         }, 10000); // double the timeout value for this test because it waits two seconds in between the acquireToken call and the cache lookup
 
         test("requests three tokens with two different resources while switching between user and system assigned, then requests them again to verify they are retrieved from the cache, then verifies that their cache keys are correct", async () => {
-            expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
             // the imported systemAssignedManagedIdentityApplication is the default System Assigned Managed Identity Application.
             // for reference, in this case it is equivalent to systemAssignedManagedIdentityApplicationResource1
 
@@ -822,8 +785,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
     describe("Errors", () => {
         test("throws an error when an invalid resource is provided", async () => {
-            expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
             const systemAssignedManagedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(systemAssignedConfig);
             expect(
@@ -842,8 +803,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         });
 
         test("throws an error when more than one managed identity type is provided", () => {
-            expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
             const badUserAssignedClientIdConfig: ManagedIdentityConfiguration =
                 {
                     system: {
@@ -865,8 +824,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         });
 
         test("managed identity token response contains an error message and correlation id when an error is returned from the managed identity", async () => {
-            expect(ManagedIdentityTestUtils.isIMDS()).toBe(true);
-
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication({
                     system: {
