@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-failed',
+  selector: 'login-failed',
   template: `<p>Login failed. Please try again.</p>`,
   styleUrls: [],
   standalone: true,
