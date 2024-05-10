@@ -1,27 +1,35 @@
-# Angular18StandaloneSample
+# Angular 18 Standalone MSAL Angular v3 Sample
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.0.0-next.5.
+This developer sample is used to demonstrate how to use `@azure/msal-angular` with Angular standalone components, and **does not** use the `MsalModule` or `NgModule`. Please see [Angular's docs on standalone](https://angular.io/guide/standalone-components) for more information.
 
-## Development server
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.0.0-next.5, and uses Angular 18's application builder, but **does not** demonstrate use of server-side and prerendering capabilities. See [Angular's docs](https://angular.io/guide/esbuild) for more details.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+**NOTE:** This sample is currently on the RC version of Angular 18, and will be updated when Angular 18 is released.
 
-## Code scaffolding
+## How to run the sample
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+### Pre-requisites
 
-## Build
+- Ensure [all pre-requisites](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/README.md) have been completed to run msal-angular.
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+### Configure the application
 
-## Running unit tests
+- Open `./src/app/app.config.ts` in an editor.
+- Replace client ID with the Application (client) ID from the portal registration, or use the currently configured lab registration.
+  - Optionally, you may replace any of the other parameters (tenant ID, redirect URI, scopes, etc.), or you can remove them and use the default values.
+- You can also change the client ID, tenant ID, or scopes in the `./src/environments` folder.
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+### Running the sample
 
-## Running end-to-end tests
+- In a command prompt, run `npm run start`.
+- Navigate to [http://localhost:4200](http://localhost:4200)
+- In the web page, click on the "Login" button. The app will automatically reload if you change any of the source files.
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+## Local development
 
-## Further help
+If you are trying to run this sample locally in the MSAL.js repo, run `npm run build` before `npm run start` to install a tarball file of MSAL Angular.
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+## Additional notes
+
+- This sample does not use the `MsalRedirectComponent`, but subscribes to `handleRedirectObservable` in the `app.component.ts` file. See our doc on [redirects](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/redirects.md) for more information.
+- The default interaction type for the sample is redirects. The sample can be configured to use redirects by changing the `interactionType` in `main.ts` to `InteractionType.Popup`.
