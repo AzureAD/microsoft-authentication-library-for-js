@@ -2,12 +2,10 @@ variables:
     CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
     LinuxContainerImage: "mcr.microsoft.com/onebranch/cbl-mariner/build:2.0" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
     DEBIAN_FRONTEND: noninteractive
-    sourceBranch: ${{ variables['Build.SourceBranch'] }}
-    prSourceBranch: ${{ variables['System.PullRequest.SourceBranch'] }}
     ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}:
         sourceBranchName: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
-    ${{ if startsWith(variables['System.PullRequest.SourceBranch'], 'refs/pull/') }}:
-        sourceBranchName: ${{ replace(variables['System.PullRequest.SourceBranch'], 'refs/pull/', '') }}
+    ${{ if startsWith(variables['Build.SourceBranch'], 'refs/pull/') }}:
+        sourceBranchName: ${{ replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', '') }}
 
 resources:
     repositories:
@@ -37,8 +35,6 @@ extends:
                         poolType: "linux"
                         sourceBranchName: ${{ variables.sourceBranchName }}
                         thirdPartyReleaseBranch: ${{ variables.sourceBranchName }}
-                        sourceBranch: ${{ variables.sourceBranch }}
-                        prSourceBranch: ${{ variables.prSourceBranch }}
                         stage: "pr-check"
                         override: true
                         samples:
