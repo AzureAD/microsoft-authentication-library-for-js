@@ -5,7 +5,7 @@ variables:
     ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}:
         sourceBranchName: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
     ${{ if startsWith(variables['System.PullRequest.SourceBranch'], 'refs/pull/') }}:
-        sourceBranchName: ${{ replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', '') }}
+        sourceBranchName: ${{ replace(variables['System.PullRequest.SourceBranch'], 'refs/pull/', '') }}
 
 resources:
     repositories:
