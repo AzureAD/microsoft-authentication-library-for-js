@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715039627472,
+  "lastUpdate": 1715387358112,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8266,6 +8266,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.25%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "63664d968fa7204a1ce60b85f50d2f25eee7cc08",
+          "message": "Migrate to Lab Vault Cert for E2E Tests (#7085)\n\nThis PR:\r\n- Adds `3p-e2e.yml` which defines a OneBranch pipeline to run 3P MSAL JS\r\nE2E tests to replace existing GitHub workflows\r\n- Updates `gen_env.sh` to use a new PowerShell script called\r\n`gen_env.ps1` that creates and populates a .env file with E2E Test\r\nenvironment variables (Express session secret, ClientID, TenantID and\r\nthe absolute path of the client certificate used to authenticate with\r\nthe Lab App)\r\n- Updates `e2e-test-utils/LabClient` to use a `CertificateCredential`\r\ninstead of `ClientSecretCredential`\r\n- Updates the `b2c-user-flows` Node sample to use a SESSION_SECRET env\r\nvariable instead of the AZURE_CLIENT_SECRET",
+          "timestamp": "2024-05-10T17:24:09-07:00",
+          "tree_id": "65422d95031960c20f7d07fe7d403a142d2cf1ac",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/63664d968fa7204a1ce60b85f50d2f25eee7cc08"
+        },
+        "date": 1715387356816,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 193099,
+            "range": "±1.92%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 189620,
+            "range": "±2.18%",
+            "unit": "ops/sec",
+            "extra": "187 samples"
           }
         ]
       }
