@@ -2,6 +2,27 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 13 May 2024 18:03:26 GMT",
+      "version": "2.8.1",
+      "tag": "@azure/msal-node_v2.8.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "cacfcbaeae54707565be5e9d6530b3982a7080f8",
+            "comment": "Fixed bug where dev-provided certificate was not being attached to client assertion #7088"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 06 May 2024 23:48:17 GMT",
       "version": "2.8.0",
       "tag": "@azure/msal-node_v2.8.0",
