@@ -1,4 +1,4 @@
-import { ClientSecretCredential, AccessToken } from "@azure/identity";
+import { AccessToken, ClientCertificateCredential } from "@azure/identity";
 import axios from "axios";
 import {
     ENV_VARIABLES,
@@ -17,20 +17,20 @@ if (!process.env[ENV_VARIABLES.CLIENT_ID]) {
 }
 
 export class LabClient {
-    private credentials: ClientSecretCredential;
+    private credentials: ClientCertificateCredential;
     private currentToken: AccessToken | null;
     constructor() {
         const tenant = process.env[ENV_VARIABLES.TENANT];
         const clientId = process.env[ENV_VARIABLES.CLIENT_ID];
-        const client_secret = process.env[ENV_VARIABLES.SECRET];
+        const client_cert_path = process.env[ENV_VARIABLES.CERT_PATH];
         this.currentToken = null;
-        if (!tenant || !clientId || !client_secret) {
+        if (!tenant || !clientId || !client_cert_path) {
             throw "Environment variables not set!";
         }
-        this.credentials = new ClientSecretCredential(
+        this.credentials = new ClientCertificateCredential(
             tenant,
             clientId,
-            client_secret
+            client_cert_path
         );
     }
 
