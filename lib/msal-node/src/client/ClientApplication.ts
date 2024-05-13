@@ -457,9 +457,9 @@ export abstract class ClientApplication {
             serverTelemetryManager: serverTelemetryManager,
             clientCredentials: {
                 clientSecret: this.clientSecret,
-                clientAssertion: this.developerProvidedClientAssertion
-                    ? await this.getClientAssertion(discoveredAuthority)
-                    : undefined,
+                clientAssertion: await this.getClientAssertion(
+                    discoveredAuthority
+                ),
             },
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
@@ -478,22 +478,26 @@ export abstract class ClientApplication {
     private async getClientAssertion(
         authority: Authority
     ): Promise<ClientAssertionType> {
-        this.clientAssertion = ClientAssertion.fromAssertion(
-            await getClientAssertion(
-                this.developerProvidedClientAssertion,
-                this.config.auth.clientId,
-                authority.tokenEndpoint
-            )
-        );
+        if (this.developerProvidedClientAssertion) {
+            this.clientAssertion = ClientAssertion.fromAssertion(
+                await getClientAssertion(
+                    this.developerProvidedClientAssertion,
+                    this.config.auth.clientId,
+                    authority.tokenEndpoint
+                )
+            );
+        }
 
-        return {
-            assertion: this.clientAssertion.getJwt(
-                this.cryptoProvider,
-                this.config.auth.clientId,
-                authority.tokenEndpoint
-            ),
-            assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE,
-        };
+        return (
+            this.clientAssertion && {
+                assertion: this.clientAssertion.getJwt(
+                    this.cryptoProvider,
+                    this.config.auth.clientId,
+                    authority.tokenEndpoint
+                ),
+                assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE,
+            }
+        );
     }
 
     /**
