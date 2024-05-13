@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fixed bug where dev-provided certificate was not being attached to client assertion #7088",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}

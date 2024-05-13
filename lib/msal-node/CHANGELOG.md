@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 06 May 2024 23:48:17 GMT and should not be manually modified.
+This log was last generated on Mon, 13 May 2024 18:03:26 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.8.1
+
+Mon, 13 May 2024 18:03:26 GMT
+
+### Patches
+
+- Fixed bug where dev-provided certificate was not being attached to client assertion #7088 (rginsburg@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
 
 ## 2.8.0
 
