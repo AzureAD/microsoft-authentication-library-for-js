@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715609769709,
+  "lastUpdate": 1715619297088,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8342,6 +8342,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.84%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "385edb372a14a3691466afbdec036d5b80aa3bed",
+          "message": "Fix MSAL Angular samples failure path (#7092)\n\nFixes msal-angular v3 samples to all use the same failure path.",
+          "timestamp": "2024-05-13T09:49:28-07:00",
+          "tree_id": "9d5a0953c1604b60cb87c631c14aea3d8c47028d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/385edb372a14a3691466afbdec036d5b80aa3bed"
+        },
+        "date": 1715619296010,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 207920,
+            "range": "±1.67%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 213620,
+            "range": "±0.87%",
+            "unit": "ops/sec",
+            "extra": "215 samples"
           }
         ]
       }
