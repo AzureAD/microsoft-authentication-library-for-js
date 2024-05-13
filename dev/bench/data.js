@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715387358112,
+  "lastUpdate": 1715609769709,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8304,6 +8304,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.18%",
             "unit": "ops/sec",
             "extra": "187 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cacfcbaeae54707565be5e9d6530b3982a7080f8",
+          "message": "Fixed bug where dev-provided certificate was not being attached to client assertion (#7088)\n\nFixes [acquireTokenByClientCredential broken for clientCertificate\r\n#7082](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/7082)\r\n\r\nApplied boy-scout-rule to `ConfidentialClientApplication.spec.ts`\r\n(contains unit tests). I've been waiting for a good opportunity to do\r\nthis. The ConfidentialClientApplication tests are now in line with the\r\nother test files: All Managed Identity sources, ClientCredentialClient,\r\nOnBehalfOfClient and UsernamePasswordClient.\r\n\r\nCo-authored-by: @ericcan",
+          "timestamp": "2024-05-13T10:10:37-04:00",
+          "tree_id": "67aa28b6d589b4b07ea807e838d4e5514ffdeec5",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/cacfcbaeae54707565be5e9d6530b3982a7080f8"
+        },
+        "date": 1715609768594,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 198161,
+            "range": "±2.02%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 216220,
+            "range": "±1.84%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
