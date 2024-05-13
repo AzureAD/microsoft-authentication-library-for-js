@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715619297088,
+  "lastUpdate": 1715623404898,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8380,6 +8380,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.87%",
             "unit": "ops/sec",
             "extra": "215 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "20b57f416d3c2f5688e32a867d9c740bd2b8353c",
+          "message": "Bump next from 13.5.6 to 14.1.1 (#7089)\n\nBumps [next](https://github.com/vercel/next.js) from 13.5.6 to 14.1.1.\r\n<details>\r\n<summary>Commits</summary>\r\n<ul>\r\n<li><a\r\nhref=\"https://github.com/vercel/next.js/commit/5f59ee5f197a09275da7a9fa876986f22f4b7711\"><code>5f59ee5</code></a>\r\nv14.1.1</li>\r\n<li><a\r\nhref=\"https://github.com/vercel/next.js/commit/f48b90b162c1a27a1ecaa8ae0a452e0a6605c35f\"><code>f48b90b</code></a>\r\neven more</li>\r\n<li><a\r\nhref=\"https://github.com/vercel/next.js/commit/7f789f4a6f6a4f89495c770bed74d5e5d0e01d44\"><code>7f789f4</code></a>\r\nmore timeout</li>\r\n<li><a\r\nhref=\"https://github.com/vercel/next.js/commit/ab71c4cf782e13d564f48fe15732b9c42a3f6f36\"><code>ab71c4c</code></a>\r\nupdate timeout</li>\r\n<li><a\r\nhref=\"https://github.com/vercel/next.js/commit/75f60d92c43187aa5786f88f0fe4e2bfc7d44c7b\"><code>75f60d9</code></a>\r\nupdate trigger release workflow</li>\r\n<li><a\r\nhref=\"https://github.com/vercel/next.js/commit/74b3f0f4f3dcc15f35c9b9956755ca7b7b6a6db5\"><code>74b3f0f</code></a>\r\nServer Action tests (<a\r\nhref=\"https://redirect.github.com/vercel/next.js/issues/62655\">#62655</a>)</li>\r\n<li><a\r\nhref=\"https://github.com/vercel/next.js/commit/a6946b69ccb268015887ea6d6ef39f262e5636b1\"><code>a6946b6</code></a>\r\nBackport metadata fixes (<a\r\nhref=\"https://redirect.github.com/vercel/next.js/issues/62663\">#62663</a>)</li>\r\n<li><a\r\nhref=\"https://github.com/vercel/next.js/commit/4002f4b33c5a42166e5ad5f9ff4f879195aeb852\"><code>4002f4b</code></a>\r\nFix draft mode invariant (<a\r\nhref=\"https://redirect.github.com/vercel/next.js/issues/62121\">#62121</a>)</li>\r\n<li><a\r\nhref=\"https://github.com/vercel/next.js/commit/7dbf6f8298daea8e8c5198e9a4e7e758da665a6d\"><code>7dbf6f8</code></a>\r\nfix: babel usage with next/image (<a\r\nhref=\"https://redirect.github.com/vercel/next.js/issues/61835\">#61835</a>)</li>\r\n<li><a\r\nhref=\"https://github.com/vercel/next.js/commit/3efc842a0a30ffd3a991e45736ac615f336d3103\"><code>3efc842</code></a>\r\nFix next/server apit push alias for ESM pkg (<a\r\nhref=\"https://redirect.github.com/vercel/next.js/issues/61721\">#61721</a>)</li>\r\n<li>Additional commits viewable in <a\r\nhref=\"https://github.com/vercel/next.js/compare/v13.5.6...v14.1.1\">compare\r\nview</a></li>\r\n</ul>\r\n</details>\r\n<br />\r\n\r\n\r\n[![Dependabot compatibility\r\nscore](https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=next&package-manager=npm_and_yarn&previous-version=13.5.6&new-version=14.1.1)](https://docs.github.com/en/github/managing-security-vulnerabilities/about-dependabot-security-updates#about-compatibility-scores)\r\n\r\nDependabot will resolve any conflicts with this PR as long as you don't\r\nalter it yourself. You can also trigger a rebase manually by commenting\r\n`@dependabot rebase`.\r\n\r\n[//]: # (dependabot-automerge-start)\r\n[//]: # (dependabot-automerge-end)\r\n\r\n---\r\n\r\n<details>\r\n<summary>Dependabot commands and options</summary>\r\n<br />\r\n\r\nYou can trigger Dependabot actions by commenting on this PR:\r\n- `@dependabot rebase` will rebase this PR\r\n- `@dependabot recreate` will recreate this PR, overwriting any edits\r\nthat have been made to it\r\n- `@dependabot merge` will merge this PR after your CI passes on it\r\n- `@dependabot squash and merge` will squash and merge this PR after\r\nyour CI passes on it\r\n- `@dependabot cancel merge` will cancel a previously requested merge\r\nand block automerging\r\n- `@dependabot reopen` will reopen this PR if it is closed\r\n- `@dependabot close` will close this PR and stop Dependabot recreating\r\nit. You can achieve the same result by closing it manually\r\n- `@dependabot show <dependency name> ignore conditions` will show all\r\nof the ignore conditions of the specified dependency\r\n- `@dependabot ignore this major version` will close this PR and stop\r\nDependabot creating any more for this major version (unless you reopen\r\nthe PR or upgrade to it yourself)\r\n- `@dependabot ignore this minor version` will close this PR and stop\r\nDependabot creating any more for this minor version (unless you reopen\r\nthe PR or upgrade to it yourself)\r\n- `@dependabot ignore this dependency` will close this PR and stop\r\nDependabot creating any more for this dependency (unless you reopen the\r\nPR or upgrade to it yourself)\r\nYou can disable automated security fix PRs for this repo from the\r\n[Security Alerts\r\npage](https://github.com/AzureAD/microsoft-authentication-library-for-js/network/alerts).\r\n\r\n</details>\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\r\nCo-authored-by: Hector Morales <hemoral@microsoft.com>",
+          "timestamp": "2024-05-13T10:58:01-07:00",
+          "tree_id": "4cbde102376da0bb3f2f92f054a839a15fd87a64",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/20b57f416d3c2f5688e32a867d9c740bd2b8353c"
+        },
+        "date": 1715623403839,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 191791,
+            "range": "±2.03%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 189660,
+            "range": "±1.94%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
