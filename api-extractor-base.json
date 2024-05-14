@@ -1,161 +1,25 @@
-/**
- * Config file for API Extractor.  For more info, please visit: https://api-extractor.com
- */
 {
   "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
   "mainEntryPointFilePath": "<projectFolder>/dist/index.d.ts",
   "newlineKind": "lf",
-
-  /**
-   * Configures how the API report file (*.api.md) will be generated.
-   */
   "apiReport": {
-    /**
-     * (REQUIRED) Whether to generate an API report.
-     */
     "enabled": true,
     "reportFolder": "<projectFolder>/apiReview/",
     "reportTempFolder": "<projectFolder>/temp/"
   },
-
-  /**
-   * Configures how the doc model file (*.api.json) will be generated.
-   */
   "docModel": {
-    /**
-     * (REQUIRED) Whether to generate a doc model file.
-     */
     "enabled": false
   },
-
-  /**
-   * Configures how the .d.ts rollup file will be generated.
-   */
   "dtsRollup": {
-    /**
-     * (REQUIRED) Whether to generate the .d.ts rollup file.
-     */
     "enabled": false
-
-    /**
-     * Specifies the output path for a .d.ts rollup file to be generated without any trimming.
-     * This file will include all declarations that are exported by the main entry point.
-     *
-     * If the path is an empty string, then this file will not be written.
-     *
-     * The path is resolved relative to the folder of the config file that contains the setting; to change this,
-     * prepend a folder token such as "<projectFolder>".
-     *
-     * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
-     * DEFAULT VALUE: "<projectFolder>/dist/<unscopedPackageName>.d.ts"
-     */
-    // "untrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>.d.ts",
-
-    /**
-     * Specifies the output path for a .d.ts rollup file to be generated with trimming for an "alpha" release.
-     * This file will include only declarations that are marked as "@public", "@beta", or "@alpha".
-     *
-     * The path is resolved relative to the folder of the config file that contains the setting; to change this,
-     * prepend a folder token such as "<projectFolder>".
-     *
-     * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
-     * DEFAULT VALUE: ""
-     */
-    // "alphaTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-alpha.d.ts",
-
-    /**
-     * Specifies the output path for a .d.ts rollup file to be generated with trimming for a "beta" release.
-     * This file will include only declarations that are marked as "@public" or "@beta".
-     *
-     * The path is resolved relative to the folder of the config file that contains the setting; to change this,
-     * prepend a folder token such as "<projectFolder>".
-     *
-     * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
-     * DEFAULT VALUE: ""
-     */
-    // "betaTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-beta.d.ts",
-
-    /**
-     * Specifies the output path for a .d.ts rollup file to be generated with trimming for a "public" release.
-     * This file will include only declarations that are marked as "@public".
-     *
-     * If the path is an empty string, then this file will not be written.
-     *
-     * The path is resolved relative to the folder of the config file that contains the setting; to change this,
-     * prepend a folder token such as "<projectFolder>".
-     *
-     * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
-     * DEFAULT VALUE: ""
-     */
-    // "publicTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-public.d.ts",
-
-    /**
-     * When a declaration is trimmed, by default it will be replaced by a code comment such as
-     * "Excluded from this release type: exampleMember".  Set "omitTrimmingComments" to true to remove the
-     * declaration completely.
-     *
-     * DEFAULT VALUE: false
-     */
-    // "omitTrimmingComments": true
   },
-
-  /**
-   * Configures how the tsdoc-metadata.json file will be generated.
-   */
-  "tsdocMetadata": {
-    /**
-     * Whether to generate the tsdoc-metadata.json file.
-     *
-     * DEFAULT VALUE: true
-     */
-    // "enabled": true,
-    /**
-     * Specifies where the TSDoc metadata file should be written.
-     *
-     * The path is resolved relative to the folder of the config file that contains the setting; to change this,
-     * prepend a folder token such as "<projectFolder>".
-     *
-     * The default value is "<lookup>", which causes the path to be automatically inferred from the "tsdocMetadata",
-     * "typings" or "main" fields of the project's package.json.  If none of these fields are set, the lookup
-     * falls back to "tsdoc-metadata.json" in the package folder.
-     *
-     * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
-     * DEFAULT VALUE: "<lookup>"
-     */
-    // "tsdocMetadataFilePath": "<projectFolder>/dist/tsdoc-metadata.json"
-  },
-
-  /**
-   * Configures how API Extractor reports error and warning messages produced during analysis.
-   *
-   * There are three sources of messages:  compiler messages, API Extractor messages, and TSDoc messages.
-   */
   "messages": {
-    /**
-     * Configures handling of diagnostic messages reported by the TypeScript compiler engine while analyzing
-     * the input .d.ts files.
-     *
-     * TypeScript message identifiers start with "TS" followed by an integer.  For example: "TS2551"
-     *
-     * DEFAULT VALUE:  A single "default" entry with logLevel=warning.
-     */
     "compilerMessageReporting": {
-      /**
-       * Configures the default routing for messages that don't match an explicit rule in this table.
-       */
       "default": {
        "logLevel": "warning",
        "addToApiReportFile": true
       }
     },
-
-    /**
-     * Configures handling of messages reported by API Extractor during its analysis.
-     *
-     * API Extractor message identifiers start with "ae-".  For example: "ae-extra-release-tag"
-     *
-     * DEFAULT VALUE: See api-extractor-defaults.json for the complete table of extractorMessageReporting mappings
-     */
     "extractorMessageReporting": {
       "default": {
         "logLevel": "warning"
@@ -173,14 +37,6 @@
         "addToApiReportFile": true
       }
     },
-
-    /**
-     * Configures handling of messages reported by the TSDoc parser when analyzing code comments.
-     *
-     * TSDoc message identifiers start with "tsdoc-".  For example: "tsdoc-link-tag-unescaped-text"
-     *
-     * DEFAULT VALUE:  A single "default" entry with logLevel=warning.
-     */
     "tsdocMessageReporting": {
       "default": {
         "logLevel": "warning",
