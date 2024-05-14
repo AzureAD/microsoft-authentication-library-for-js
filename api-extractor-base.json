@@ -144,36 +144,9 @@
        * Configures the default routing for messages that don't match an explicit rule in this table.
        */
       "default": {
-        /**
-         * Specifies whether the message should be written to the the tool's output log.  Note that
-         * the "addToApiReportFile" property may supersede this option.
-         *
-         * Possible values: "error", "warning", "none"
-         *
-         * Errors cause the build to fail and return a nonzero exit code.  Warnings cause a production build fail
-         * and return a nonzero exit code.  For a non-production build (e.g. when "api-extractor run" includes
-         * the "--local" option), the warning is displayed but the build will not fail.
-         *
-         * DEFAULT VALUE: "warning"
-         */
-        "logLevel": "warning"
-
-        /**
-         * When addToApiReportFile is true:  If API Extractor is configured to write an API report file (.api.md),
-         * then the message will be written inside that file; otherwise, the message is instead logged according to
-         * the "logLevel" option.
-         *
-         * DEFAULT VALUE: false
-         */
-        // "addToApiReportFile": false
+       "logLevel": "warning",
+       "addToApiReportFile": true
       }
-
-      // "TS2551": {
-      //   "logLevel": "warning",
-      //   "addToApiReportFile": true
-      // },
-      //
-      // . . .
     },
 
     /**

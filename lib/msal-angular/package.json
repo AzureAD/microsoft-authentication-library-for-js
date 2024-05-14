@@ -30,7 +30,8 @@
     "prepack": "npm run build:all",
     "prepublishOnly": "echo Use npm run deploy && exit 1",
     "format:check": "prettier --ignore-path .gitignore --check src",
-    "format:fix": "prettier --ignore-path .gitignore --write src"
+    "format:fix": "prettier --ignore-path .gitignore --write src",
+    "apiExtractor": "api-extractor run"
   },
   "typings": "./dist/azure-msal-angular.d.ts",
   "beachball": {
@@ -51,6 +52,7 @@
     "@angular/platform-browser-dynamic": "^15.1.4",
     "@angular/router": "^15.1.4",
     "@azure/msal-browser": "^3.14.0",
+    "@microsoft/api-extractor": "^7.43.4",
     "@types/jasmine": "~3.6.0",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^12.11.1",

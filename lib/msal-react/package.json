@@ -44,7 +44,8 @@
     "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=@azure/msal-react",
     "prepack": "npm run build:all",
     "format:check": "prettier --ignore-path .gitignore --check src test",
-    "format:fix": "prettier --ignore-path .gitignore --write src test"
+    "format:fix": "prettier --ignore-path .gitignore --write src test",
+    "apiExtractor": "api-extractor run"
   },
   "peerDependencies": {
     "@azure/msal-browser": "^3.14.0",
@@ -52,6 +53,7 @@
   },
   "devDependencies": {
     "@azure/msal-browser": "^3.14.0",
+    "@microsoft/api-extractor": "^7.43.4",
     "@rollup/plugin-typescript": "^11.1.5",
     "@testing-library/jest-dom": "^5.11.5",
     "@testing-library/react": "^13.4.0",
