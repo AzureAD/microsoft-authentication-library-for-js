@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715624886394,
+  "lastUpdate": 1715729440240,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8456,6 +8456,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.89%",
             "unit": "ops/sec",
             "extra": "238 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ff3615717427433809408444693335b69623f71a",
+          "message": "Use Windows for nightly CodeQL build (#7101)\n\nNode-extensions only builds binaries on Windows. Since the CodeQL\r\npipeline is running on ubuntu it is not reporting coverage for the C++\r\nfiles, this PR changes the pipeline to use Windows instead.",
+          "timestamp": "2024-05-14T16:24:32-07:00",
+          "tree_id": "495b6f95a9e2a86b43598628e7fe11740ef3737c",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/ff3615717427433809408444693335b69623f71a"
+        },
+        "date": 1715729439186,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 195761,
+            "range": "±1.27%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 189067,
+            "range": "±1.16%",
+            "unit": "ops/sec",
+            "extra": "226 samples"
           }
         ]
       }
