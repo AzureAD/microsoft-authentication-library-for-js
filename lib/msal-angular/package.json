@@ -31,7 +31,8 @@
     "prepublishOnly": "echo Use npm run deploy && exit 1",
     "format:check": "prettier --ignore-path .gitignore --check src",
     "format:fix": "prettier --ignore-path .gitignore --write src",
-    "apiExtractor": "api-extractor run"
+    "apiExtractor": "api-extractor run",
+    "apiExtractor:local": "api-extractor run --local && prettier --write apiReview"
   },
   "typings": "./dist/azure-msal-angular.d.ts",
   "beachball": {
