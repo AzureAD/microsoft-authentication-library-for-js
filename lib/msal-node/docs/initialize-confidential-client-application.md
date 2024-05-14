@@ -51,7 +51,7 @@ const clientConfig = {
         clientAssertion: clientAssertionCallback, // or a predetermined clientAssertion string
     },
 };
-const pca = new msal.ConfidentialClientApplication(clientConfig);
+const cca = new msal.ConfidentialClientApplication(clientConfig);
 ```
 
 ## Configuration Basics
