@@ -186,15 +186,19 @@
     "extractorMessageReporting": {
       "default": {
         "logLevel": "warning"
-        // "addToApiReportFile": false
+      },
+      "ae-missing-release-tag": {
+        "logLevel": "warning",
+        "addToApiReportFile": true
+      },
+      "ae-setter-with-docs": {
+        "logLevel": "warning",
+        "addToApiReportFile": true
+      },
+      "ae-unresolved-link": {
+        "logLevel": "warning",
+        "addToApiReportFile": true
       }
-
-      // "ae-extra-release-tag": {
-      //   "logLevel": "warning",
-      //   "addToApiReportFile": true
-      // },
-      //
-      // . . .
     },
 
     /**
@@ -206,16 +210,9 @@
      */
     "tsdocMessageReporting": {
       "default": {
-        "logLevel": "warning"
-        // "addToApiReportFile": false
+        "logLevel": "warning",
+        "addToApiReportFile":true
       }
-
-      // "tsdoc-link-tag-unescaped-text": {
-      //   "logLevel": "warning",
-      //   "addToApiReportFile": true
-      // },
-      //
-      // . . .
     }
   }
 }

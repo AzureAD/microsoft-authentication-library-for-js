@@ -284,3 +284,6 @@ temp-cache.json
 
 # Jest JUnit reporter
 junit.xml
+
+# ApiExtractor
+temp/
