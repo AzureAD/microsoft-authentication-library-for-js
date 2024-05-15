@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715729440240,
+  "lastUpdate": 1715795577720,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8492,6 +8492,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 189067,
             "range": "±1.16%",
+            "unit": "ops/sec",
+            "extra": "226 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nonwiz@pm.me",
+            "name": "nonwiz",
+            "username": "nonwiz"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7973bf0708612e20ea9b2cc389a730d3e2bb2ca0",
+          "message": "Update README file to fix inconsistent variable naming (#7095)\n\npca is used for PublicClientApplication, and cca (which the other doc)\r\nused for ConfidentialClientApplication.",
+          "timestamp": "2024-05-15T13:47:21-04:00",
+          "tree_id": "a889b831a0d2f1024064545629e3ba2391db0a2a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/7973bf0708612e20ea9b2cc389a730d3e2bb2ca0"
+        },
+        "date": 1715795575601,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 188170,
+            "range": "±2.06%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 207223,
+            "range": "±1.67%",
             "unit": "ops/sec",
             "extra": "226 samples"
           }
