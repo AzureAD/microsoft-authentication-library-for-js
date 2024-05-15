@@ -36,6 +36,7 @@ export class ManagedIdentityClient {
     private cryptoProvider: CryptoProvider;
 
     private static identitySource?: BaseManagedIdentitySource;
+    public static azureIdentitySdkManagedIdentitySourceNames?: AzureIdentitySdkManagedIdentitySourceNames;
 
     constructor(
         logger: Logger,
@@ -89,23 +90,26 @@ export class ManagedIdentityClient {
      * @returns AzureIdentitySdkManagedIdentitySourceNames - Azure Identity SDK defined identifiers for the Managed Identity Sources
      */
     public getManagedIdentitySource(): AzureIdentitySdkManagedIdentitySourceNames {
-        return this.allEnvironmentVariablesAreDefined(
-            ServiceFabric.getEnvironmentVariables()
-        )
-            ? AzureIdentitySdkManagedIdentitySourceNames.SERVICE_FABRIC
-            : this.allEnvironmentVariablesAreDefined(
-                  AppService.getEnvironmentVariables()
-              )
-            ? AzureIdentitySdkManagedIdentitySourceNames.APP_SERVICE
-            : this.allEnvironmentVariablesAreDefined(
-                  CloudShell.getEnvironmentVariables()
-              )
-            ? AzureIdentitySdkManagedIdentitySourceNames.CLOUD_SHELL
-            : this.allEnvironmentVariablesAreDefined(
-                  AzureArc.getEnvironmentVariables()
-              )
-            ? AzureIdentitySdkManagedIdentitySourceNames.AZURE_ARC
-            : AzureIdentitySdkManagedIdentitySourceNames.IMDS;
+        ManagedIdentityClient.azureIdentitySdkManagedIdentitySourceNames =
+            this.allEnvironmentVariablesAreDefined(
+                ServiceFabric.getEnvironmentVariables()
+            )
+                ? AzureIdentitySdkManagedIdentitySourceNames.SERVICE_FABRIC
+                : this.allEnvironmentVariablesAreDefined(
+                      AppService.getEnvironmentVariables()
+                  )
+                ? AzureIdentitySdkManagedIdentitySourceNames.APP_SERVICE
+                : this.allEnvironmentVariablesAreDefined(
+                      CloudShell.getEnvironmentVariables()
+                  )
+                ? AzureIdentitySdkManagedIdentitySourceNames.CLOUD_SHELL
+                : this.allEnvironmentVariablesAreDefined(
+                      AzureArc.getEnvironmentVariables()
+                  )
+                ? AzureIdentitySdkManagedIdentitySourceNames.AZURE_ARC
+                : AzureIdentitySdkManagedIdentitySourceNames.IMDS;
+
+        return ManagedIdentityClient.azureIdentitySdkManagedIdentitySourceNames;
     }
 
     /**
