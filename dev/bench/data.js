@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715795823059,
+  "lastUpdate": 1715798046038,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8570,6 +8570,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.19%",
             "unit": "ops/sec",
             "extra": "216 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4009352aa234c569e415ab38e43e36c1f05f14b6",
+          "message": "Add API Extractor Build Step (#7097)\n\nThis PR:\r\n- Adds `@microsoft/api-extractor` as a dependency for all packages with\r\nJS public APIs\r\n- Adds `apiExtractor` script to each library's package.json\r\n- Adds API Extractor section to `contributing.md`\r\n- Adds API extractor configuration and initial reports for each library",
+          "timestamp": "2024-05-15T11:28:26-07:00",
+          "tree_id": "9bda82da4cf38681a39d107b2a8935909847519c",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/4009352aa234c569e415ab38e43e36c1f05f14b6"
+        },
+        "date": 1715798044985,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 204090,
+            "range": "±2.17%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 182453,
+            "range": "±2.10%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
