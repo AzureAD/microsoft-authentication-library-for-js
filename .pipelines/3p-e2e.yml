@@ -3,9 +3,10 @@ variables:
     LinuxContainerImage: "mcr.microsoft.com/onebranch/cbl-mariner/build:2.0" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
     DEBIAN_FRONTEND: noninteractive
     ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}:
-        sourceBranchName: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
+        sourceBranch: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
     ${{ if startsWith(variables['System.PullRequest.SourceBranch'], 'refs/pull/') }}:
-        sourceBranchName: ${{ replace(variables['System.PullRequest.SourceBranch'], 'refs/pull/', '') }}
+        sourceBranch: ${{ replace(variables['System.PullRequest.SourceBranch'], 'refs/pull/', '') }}
+    sourceRepo: "microsoft-authentication-library-for-js"
 
 resources:
     repositories:
@@ -16,7 +17,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: master
+          ref: update-validation-templates
 extends:
     template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
     parameters:
@@ -28,61 +29,61 @@ extends:
             - stage: e2e_test
               displayName: "3P E2E Tests"
               jobs:
-                  - template: .pipelines/templates/msal-browser-e2e.yml@1P
+                  - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
                         jobName: "validate_msal_browser"
+                        targetLib: "msal-browser"
                         poolType: "linux"
-                        publishFlagName: "publishMsalBrowser"
-                        sourceBranchName: ${{ variables.sourceBranchName }}
-                        stage: "PR"
-                        override: true
+                        stage: "CI"
+                        sourceRepo: ${{ variables.sourceRepo }}
+                        sourceBranch: ${{ variables.sourceBranch }}
                         samples:
                             - "client-capabilities"
                             - "onPageLoad"
                             - "pop"
                             - "customizable-e2e-test"
-                  - template: .pipelines/templates/msal-node-e2e.yml@1P
-                    parameters:
-                        jobName: "validate_msal_node"
-                        poolType: "windows"
-                        publishFlagName: "publishMsalNode"
-                        sourceBranchName: ${{ variables.sourceBranchName }}
-                        stage: "PR"
-                        override: true
-                        node: [16, 18, 20, 22]
-                        samples:
-                            - "auth-code"
-                            - "auth-code-cli-app"
-                            - "client-credentials"
-                            - "device-code"
-                            - "silent-flow"
-                            - "b2c-user-flows"
-                            # - "on-behalf-of"
-                  - template: .pipelines/templates/msal-react-e2e.yml@1P
-                    parameters:
-                        jobName: "validate_msal_react"
-                        poolType: "linux"
-                        publishFlagName: "publishMsalReact"
-                        sourceBranchName: ${{ variables.sourceBranchName }}
-                        stage: "PR"
-                        override: true
-                        samples:
-                            - "nextjs-sample"
-                            - "react-router-sample"
-                            - "gatsby-sample"
-                            - "typescript-sample"
-                            - "b2c-sample"
-                  - template: .pipelines/templates/msal-angular-e2e.yml@1P
-                    parameters:
-                        jobName: "validate_msal_angular"
-                        poolType: "linux"
-                        publishFlagName: "publishMsalAngular"
-                        sourceBranchName: ${{ variables.sourceBranchName }}
-                        stage: "PR"
-                        override: true
-                        samples:
-                            - "angular15-sample-app"
-                            - "angular16-sample-app"
-                            - "angular-b2c-sample-app"
-                            - "angular-standalone-sample"
-                            - "angular17-standalone-sample"
+                  #   - template: .pipelines/templates/msal-node-e2e.yml@1P
+                  #     parameters:
+                  #         jobName: "validate_msal_node"
+                  #         poolType: "windows"
+                  #         publishFlagName: "publishMsalNode"
+                  #         sourceBranchName: ${{ variables.sourceBranchName }}
+                  #         stage: "PR"
+                  #         override: true
+                  #         node: [16, 18, 20, 22]
+                  #         samples:
+                  #             - "auth-code"
+                  #             - "auth-code-cli-app"
+                  #             - "client-credentials"
+                  #             - "device-code"
+                  #             - "silent-flow"
+                  #             - "b2c-user-flows"
+                  #             # - "on-behalf-of"
+                  #   - template: .pipelines/templates/msal-react-e2e.yml@1P
+                  #     parameters:
+                  #         jobName: "validate_msal_react"
+                  #         poolType: "linux"
+                  #         publishFlagName: "publishMsalReact"
+                  #         sourceBranchName: ${{ variables.sourceBranchName }}
+                  #         stage: "PR"
+                  #         override: true
+                  #         samples:
+                  #             - "nextjs-sample"
+                  #             - "react-router-sample"
+                  #             - "gatsby-sample"
+                  #             - "typescript-sample"
+                  #             - "b2c-sample"
+                  #   - template: .pipelines/templates/msal-angular-e2e.yml@1P
+                  #     parameters:
+                  #         jobName: "validate_msal_angular"
+                  #         poolType: "linux"
+                  #         publishFlagName: "publishMsalAngular"
+                  #         sourceBranchName: ${{ variables.sourceBranchName }}
+                  #         stage: "PR"
+                  #         override: true
+                  #         samples:
+                  #             - "angular15-sample-app"
+                  #             - "angular16-sample-app"
+                  #             - "angular-b2c-sample-app"
+                  #             - "angular-standalone-sample"
+                  #             - "angular17-standalone-sample"
