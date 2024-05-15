@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
 @Component({
-  selector: 'app-orders',
+  selector: 'login-failed',
   templateUrl: './failed.component.html',
   styleUrls: ['./failed.component.css']
 })
