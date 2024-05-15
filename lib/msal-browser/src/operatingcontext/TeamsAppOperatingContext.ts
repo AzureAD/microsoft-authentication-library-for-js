@@ -24,14 +24,6 @@ export class TeamsAppOperatingContext extends BaseOperatingContext {
     static readonly ID: string = "TeamsAppOperatingContext";
 
     /**
-     * Return the module name.  Intended for use with import() to enable dynamic import
-     * of the implementation associated with this operating context
-     * @returns
-     */
-    getModuleName(): string {
-        return TeamsAppOperatingContext.MODULE_NAME;
-    }
-    /**
      * Returns the unique identifier for this operating context
      * @returns string
      */

@@ -36,14 +36,28 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 export class PublicClientApplication implements IPublicClientApplication {
     protected controller: IController;
 
+    // creates StandardController and passes it to the PublicClientApplication
     public static async createPublicClientApplication(
         configuration: Configuration
     ): Promise<IPublicClientApplication> {
         const controller = await ControllerFactory.createV3Controller(
             configuration
         );
-        const pca = new PublicClientApplication(configuration, controller);
 
+        return new PublicClientApplication(configuration, controller);
+    }
+
+    // creates StandardController or NestedAppAuthController and passes it to the PublicClientApplication
+    public static async createNestablePublicClientApplication(
+        configuration: Configuration
+    ): Promise<IPublicClientApplication> {
+        const controller = await ControllerFactory.createController(
+            configuration
+        );
+
+        const pca = controller
+            ? new PublicClientApplication(configuration, controller)
+            : new PublicClientApplication(configuration);
         return pca;
     }
 
@@ -70,14 +84,9 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param IController Optional parameter to explictly set the controller. (Will be removed when we remove public constructor)
      */
     public constructor(configuration: Configuration, controller?: IController) {
-        if (controller) {
-            this.controller = controller;
-        } else {
-            const standardOperatingContext = new StandardOperatingContext(
-                configuration
-            );
-            this.controller = new StandardController(standardOperatingContext);
-        }
+        this.controller =
+            controller ||
+            new StandardController(new StandardOperatingContext(configuration));
     }
 
     /**
