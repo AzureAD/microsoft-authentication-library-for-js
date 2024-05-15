@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715795577720,
+  "lastUpdate": 1715795823059,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8532,6 +8532,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.67%",
             "unit": "ops/sec",
             "extra": "226 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "44923480+AxharKhan@users.noreply.github.com",
+            "name": "Ashar Ali",
+            "username": "AxharKhan"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "92e77fa5f4c845998e4a64cb28985f817d50dd9f",
+          "message": "Fixed Typo in MSAL-React B2C Sample (#7091)\n\nChanged sing-in to sign-in\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-05-15T10:51:44-07:00",
+          "tree_id": "de73268a95fa7c24aa6e48bd144ef6601cd46730",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/92e77fa5f4c845998e4a64cb28985f817d50dd9f"
+        },
+        "date": 1715795822025,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 190628,
+            "range": "±1.97%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 196801,
+            "range": "±2.19%",
+            "unit": "ops/sec",
+            "extra": "216 samples"
           }
         ]
       }
