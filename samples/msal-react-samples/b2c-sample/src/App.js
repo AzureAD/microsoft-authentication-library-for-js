@@ -65,7 +65,7 @@ function Pages() {
              * https://docs.microsoft.com/en-us/azure/active-directory-b2c/tokens-overview
              */
             if (event.payload.idTokenClaims['tfp'] === b2cPolicies.names.editProfile) {
-              // retrieve the account from initial sing-in to the app
+              // retrieve the account from initial sign-in to the app
               const originalSignInAccount = instance.getAllAccounts()
                   .find(account =>
                     account.idTokenClaims.oid === event.payload.idTokenClaims.oid
