@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add API Extractor Build Step #7097",
-  "packageName": "@azure/msal-angular",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
