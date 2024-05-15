@@ -43,6 +43,9 @@ import {
     TEST_POP_VALUES,
     TEST_TOKENS,
 } from "../test_kit/StringConstants";
+import { Configuration } from "../../src/config/Configuration";
+import { TEST_CONSTANTS } from "../utils/TestConstants";
+import { CryptoKeys } from "../utils/CryptoKeys";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
@@ -356,6 +359,58 @@ export class ClientTestUtils {
         }
 
         return clientConfig;
+    }
+
+    static async createTestConfidentialClientConfiguration(
+        clientCapabilities?: Array<string>,
+        mockNetworkClient?: INetworkModule
+    ): Promise<Configuration> {
+        const mockHttpClient = mockNetworkClient || {
+            sendGetRequestAsync<T>(): T {
+                return {} as T;
+            },
+            sendPostRequestAsync<T>(): T {
+                return {} as T;
+            },
+        };
+
+        const loggerOptions = {
+            loggerCallback: (): void => {},
+            piiLoggingEnabled: true,
+            logLevel: LogLevel.Verbose,
+        };
+
+        const cryptoKeys: CryptoKeys = new CryptoKeys();
+
+        const confidentialClientConfig: Configuration = {
+            auth: {
+                clientId: TEST_CONSTANTS.CLIENT_ID,
+                authority: TEST_CONSTANTS.AUTHORITY,
+                // clientSecret, clientAssertion
+                clientCertificate: {
+                    thumbprint: cryptoKeys.thumbprint,
+                    privateKey: cryptoKeys.privateKey,
+                },
+                knownAuthorities: [TEST_CONSTANTS.AUTHORITY],
+                cloudDiscoveryMetadata: "",
+                authorityMetadata: "",
+                clientCapabilities,
+                protocolMode: ProtocolMode.AAD,
+            },
+            // broker, cache
+            system: {
+                loggerOptions,
+                networkClient: mockHttpClient,
+            },
+            telemetry: {
+                application: {
+                    appName: TEST_CONFIG.applicationName,
+                    appVersion: TEST_CONFIG.applicationVersion,
+                },
+            },
+        };
+
+        return confidentialClientConfig;
     }
 }
 
