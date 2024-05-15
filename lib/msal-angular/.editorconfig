@@ -13,7 +13,3 @@ quote_type = double
 
 [*.md]
 max_line_length = off
-trim_trailing_whitespace = true
-quote_type = single
-indent_style = space
-indent_size = 2
