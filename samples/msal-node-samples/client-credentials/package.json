@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "node index.js",
-    "test": "jest",
+    "test:e2e": "jest",
     "test:agc": "jest --testMatch [ '**/test/**/*agc*.spec.ts' ]",
     "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-node",
     "start:build": "npm run build:package && npm start"
