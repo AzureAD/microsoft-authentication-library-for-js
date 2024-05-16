@@ -1837,6 +1837,15 @@ export class BrowserCacheManager extends CacheManager {
         if (request.claims) {
             claimsHash = await this.cryptoImpl.hashString(request.claims);
         }
+
+        /**
+         * meta data for cache stores time in seconds from epoch
+         * AuthenticationResult returns expiresOn and extExpiresOn in milliseconds (as a Date object which is in ms)
+         * We need to map these for the cache when building tokens from AuthenticationResult
+         *
+         * The next MSAL VFuture should map these both to same value if possible
+         */
+
         const accessTokenEntity = CacheHelpers.createAccessTokenEntity(
             result.account?.homeAccountId,
             result.account.environment,
@@ -1844,8 +1853,8 @@ export class BrowserCacheManager extends CacheManager {
             this.clientId,
             result.tenantId,
             result.scopes.join(" "),
-            result.expiresOn?.getTime() || 0,
-            result.extExpiresOn?.getTime() || 0,
+            result.expiresOn ? result.expiresOn.getTime() / 1000 : 0,
+            result.extExpiresOn ? result.extExpiresOn.getTime() / 1000 : 0,
             base64Decode,
             undefined, // refreshOn
             result.tokenType as AuthenticationScheme,
