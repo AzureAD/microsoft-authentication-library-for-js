@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715798046038,
+  "lastUpdate": 1715847246403,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8608,6 +8608,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.10%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sameera.gajjarapu@microsoft.com",
+            "name": "Sameera Gajjarapu",
+            "username": "sameerag"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "613abf4fef58417f7e4c08836383bc75d42ce2ab",
+          "message": "`expiresIn` meta data for AT is miscalculated in hydrateCache() (#7102)\n\nFix a bug in `expiresIn` calculation for AT in hydrateCache() API. The\r\ntoken itself is unaffected.",
+          "timestamp": "2024-05-16T01:08:44-07:00",
+          "tree_id": "791b59d9853dfef9ce8340e5eb8b26f4a761064e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/613abf4fef58417f7e4c08836383bc75d42ce2ab"
+        },
+        "date": 1715847245393,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 200568,
+            "range": "±2.10%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 188589,
+            "range": "±2.02%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
