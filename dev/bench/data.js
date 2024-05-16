@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715847246403,
+  "lastUpdate": 1715883291470,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8646,6 +8646,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.02%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fd256290112488645e0ccd1bf6cf37f267de8e01",
+          "message": "Angular18 standalone sample app (#7063)\n\nAngular sample application using MSAL Angular v3 and Angular\r\n18.0.0-rc.1.\r\n\r\nDocumentation updates confirming MSAL Angular's support of Angular 18\r\nwill come in another PR when Angular 18 is released.",
+          "timestamp": "2024-05-16T11:09:15-07:00",
+          "tree_id": "7abee2d5f5129c7f8cea7335b682a4d00bfb90b2",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/fd256290112488645e0ccd1bf6cf37f267de8e01"
+        },
+        "date": 1715883290354,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 195015,
+            "range": "±1.98%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 187240,
+            "range": "±2.06%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
