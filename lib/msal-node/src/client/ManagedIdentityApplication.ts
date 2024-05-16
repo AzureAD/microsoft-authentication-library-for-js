@@ -38,6 +38,7 @@ import {
 
 /**
  * Class to initialize a managed identity and identify the service
+ * @public
  */
 export class ManagedIdentityApplication {
     private config: ManagedIdentityNodeConfiguration;
@@ -116,7 +117,7 @@ export class ManagedIdentityApplication {
 
     /**
      * Acquire an access token from the cache or the managed identity
-     * @param managedIdentityRequest
+     * @param managedIdentityRequest - the ManagedIdentityRequestParams object passed in by the developer
      * @returns the access token
      */
     public async acquireToken(

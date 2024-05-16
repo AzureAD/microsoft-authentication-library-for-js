@@ -412,13 +412,12 @@ export { Logger }
 
 export { LogLevel }
 
-// Warning: (ae-missing-release-tag) "ManagedIdentityApplication" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export class ManagedIdentityApplication {
     constructor(configuration?: ManagedIdentityConfiguration);
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     acquireToken(managedIdentityRequestParams: ManagedIdentityRequestParams): Promise<AuthenticationResult>;
+    // Warning: (ae-forgotten-export) The symbol "AzureIdentitySdkManagedIdentitySourceNames" needs to be exported by the entry point index.d.ts
+    getManagedIdentitySource(): AzureIdentitySdkManagedIdentitySourceNames;
 }
 
 // Warning: (ae-missing-release-tag) "ManagedIdentityConfiguration" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
