@@ -12,6 +12,7 @@ import * as BrowserUtils from "./utils/BrowserUtils";
 export { BrowserUtils };
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
+export { createNestablePublicClientApplication } from "./app/PublicClientApplication";
 export { PublicClientNext } from "./app/PublicClientNext";
 export { IController } from "./controllers/IController";
 export {

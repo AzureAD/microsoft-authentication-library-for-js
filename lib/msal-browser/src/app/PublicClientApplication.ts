@@ -20,6 +20,7 @@ import {
 } from "@azure/msal-common";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import * as ControllerFactory from "../controllers/ControllerFactory";
 import { StandardController } from "../controllers/StandardController";
 import { BrowserConfiguration, Configuration } from "../config/Configuration";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
@@ -36,6 +37,18 @@ import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatin
  */
 export class PublicClientApplication implements IPublicClientApplication {
     protected controller: IController;
+
+    // creates StandardController and passes it to the PublicClientApplication
+    public static async createPublicClientApplication(
+        configuration: Configuration
+    ): Promise<IPublicClientApplication> {
+        const controller = await ControllerFactory.createV3Controller(
+            configuration
+        );
+        const pca = new PublicClientApplication(configuration, controller);
+
+        return pca;
+    }
 
     /**
      * @constructor
@@ -63,13 +76,6 @@ export class PublicClientApplication implements IPublicClientApplication {
         this.controller =
             controller ||
             new StandardController(new StandardOperatingContext(configuration));
-    }
-
-    // creates StandardController and passes it to the PublicClientApplication
-    public static async createPublicClientApplication(
-        configuration: Configuration
-    ): Promise<IPublicClientApplication> {
-        return new PublicClientApplication(configuration);
     }
 
     /**
