@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { TeamsAppOperatingContext } from "../operatingcontext/TeamsAppOperatingContext";
+import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 import { IController } from "./IController";
 import { Configuration } from "../config/Configuration";
@@ -23,7 +23,7 @@ export async function createController(
     config: Configuration
 ): Promise<IController | null> {
     const standard = new StandardOperatingContext(config);
-    const teamsApp = new TeamsAppOperatingContext(config);
+    const teamsApp = new NestedAppOperatingContext(config);
 
     const operatingContexts = [standard.initialize(), teamsApp.initialize()];
 

@@ -8,7 +8,7 @@ import { IBridgeProxy } from "../naa/IBridgeProxy";
 import { BridgeProxy } from "../naa/BridgeProxy";
 import { AccountInfo } from "../naa/AccountInfo";
 
-export class TeamsAppOperatingContext extends BaseOperatingContext {
+export class NestedAppOperatingContext extends BaseOperatingContext {
     protected bridgeProxy: IBridgeProxy | undefined = undefined;
     protected activeAccount: AccountInfo | undefined = undefined;
 
@@ -21,14 +21,14 @@ export class TeamsAppOperatingContext extends BaseOperatingContext {
     /**
      * Unique identifier for the operating context
      */
-    static readonly ID: string = "TeamsAppOperatingContext";
+    static readonly ID: string = "NestedAppOperatingContext";
 
     /**
      * Returns the unique identifier for this operating context
      * @returns string
      */
     getId(): string {
-        return TeamsAppOperatingContext.ID;
+        return NestedAppOperatingContext.ID;
     }
 
     getBridgeProxy(): IBridgeProxy | undefined {

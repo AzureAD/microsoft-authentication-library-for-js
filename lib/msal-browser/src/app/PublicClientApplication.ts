@@ -20,7 +20,6 @@ import {
 } from "@azure/msal-common";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import * as ControllerFactory from "../controllers/ControllerFactory";
 import { StandardController } from "../controllers/StandardController";
 import { BrowserConfiguration, Configuration } from "../config/Configuration";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
@@ -28,6 +27,8 @@ import { AuthenticationResult } from "../response/AuthenticationResult";
 import { EventCallbackFunction } from "../event/EventMessage";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
+import { NestedAppAuthController } from "../controllers/NestedAppAuthController";
+import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -35,31 +36,6 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
  */
 export class PublicClientApplication implements IPublicClientApplication {
     protected controller: IController;
-
-    // creates StandardController and passes it to the PublicClientApplication
-    public static async createPublicClientApplication(
-        configuration: Configuration
-    ): Promise<IPublicClientApplication> {
-        const controller = await ControllerFactory.createV3Controller(
-            configuration
-        );
-
-        return new PublicClientApplication(configuration, controller);
-    }
-
-    // creates StandardController or NestedAppAuthController and passes it to the PublicClientApplication
-    public static async createNestablePublicClientApplication(
-        configuration: Configuration
-    ): Promise<IPublicClientApplication> {
-        const controller = await ControllerFactory.createController(
-            configuration
-        );
-
-        const pca = controller
-            ? new PublicClientApplication(configuration, controller)
-            : new PublicClientApplication(configuration);
-        return pca;
-    }
 
     /**
      * @constructor
@@ -425,4 +401,28 @@ export class PublicClientApplication implements IPublicClientApplication {
     clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
         return this.controller.clearCache(logoutRequest);
     }
+}
+
+// creates StandardController and passes it to the PublicClientApplication
+export async function createPublicClientApplication(
+    configuration: Configuration
+): Promise<IPublicClientApplication> {
+    return new PublicClientApplication(configuration);
+}
+
+// creates NestedAppAuthController and passes it to the PublicClientApplication
+export async function createNestablePublicClientApplication(
+    configuration: Configuration
+): Promise<IPublicClientApplication> {
+    let pca: IPublicClientApplication;
+    const nestedAppAuth = new NestedAppOperatingContext(configuration);
+    await nestedAppAuth.initialize();
+
+    if (nestedAppAuth.isAvailable()) {
+        const controller = new NestedAppAuthController(nestedAppAuth);
+        pca = new PublicClientApplication(configuration, controller);
+    } else {
+        pca = new PublicClientApplication(configuration);
+    }
+    return pca;
 }
