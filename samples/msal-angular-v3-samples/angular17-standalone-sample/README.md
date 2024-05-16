@@ -10,9 +10,10 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 - Ensure [all pre-requisites](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/README.md) have been completed to run msal-angular.
 
 ### Configure the application
-- Open `./src/main.ts` in an editor.
-- Replace client id with the Application (client) ID from the portal registration, or use the currently configured lab registration. 
-  - Optionally, you may replace any of the other parameters, or you can remove them and use the default values.
+- Open `./src/app/app.config.ts` in an editor.
+- Replace client ID with the Application (client) ID from the portal registration, or use the currently configured lab registration.
+  - Optionally, you may replace any of the other parameters (tenant ID, redirect URI, scopes, etc.), or you can remove them and use the default values.
+- You can also change the client ID, tenant ID, or scopes in the `./src/environments` folder.
 
 ### Running the sample
 - In a command prompt, run `npm run start`.
