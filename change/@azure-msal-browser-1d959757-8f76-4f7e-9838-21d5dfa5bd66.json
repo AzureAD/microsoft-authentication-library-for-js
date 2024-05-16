@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix miscalculation of expiresIn in hydrateCache() API",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
