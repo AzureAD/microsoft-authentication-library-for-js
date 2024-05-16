@@ -65,6 +65,13 @@ export class PublicClientApplication implements IPublicClientApplication {
             new StandardController(new StandardOperatingContext(configuration));
     }
 
+    // creates StandardController and passes it to the PublicClientApplication
+    public static async createPublicClientApplication(
+        configuration: Configuration
+    ): Promise<IPublicClientApplication> {
+        return new PublicClientApplication(configuration);
+    }
+
     /**
      * Initializer function to perform async startup tasks such as connecting to WAM extension
      */
@@ -401,13 +408,6 @@ export class PublicClientApplication implements IPublicClientApplication {
     clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
         return this.controller.clearCache(logoutRequest);
     }
-}
-
-// creates StandardController and passes it to the PublicClientApplication
-export async function createPublicClientApplication(
-    configuration: Configuration
-): Promise<IPublicClientApplication> {
-    return new PublicClientApplication(configuration);
 }
 
 // creates NestedAppAuthController and passes it to the PublicClientApplication
