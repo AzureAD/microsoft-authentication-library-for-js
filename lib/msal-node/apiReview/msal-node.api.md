@@ -118,6 +118,18 @@ export { AzureCloudInstance }
 export { AzureCloudOptions }
 
 // @public
+export const AzureIdentitySdkManagedIdentitySourceNames: {
+    readonly APP_SERVICE: "APP_SERVICE";
+    readonly ARC: "ARC";
+    readonly CLOUD_SHELL: "CLOUD_SHELL";
+    readonly DEFAULT_TO_VM: "DEFAULT_TO_VM";
+    readonly SERVICE_FABRIC: "SERVICE_FABRIC";
+};
+
+// @public
+export type AzureIdentitySdkManagedIdentitySourceNames = (typeof AzureIdentitySdkManagedIdentitySourceNames)[keyof typeof AzureIdentitySdkManagedIdentitySourceNames];
+
+// @public
 export type BrokerOptions = {
     nativeBrokerPlugin?: INativeBrokerPlugin;
 };
@@ -416,7 +428,6 @@ export { LogLevel }
 export class ManagedIdentityApplication {
     constructor(configuration?: ManagedIdentityConfiguration);
     acquireToken(managedIdentityRequestParams: ManagedIdentityRequestParams): Promise<AuthenticationResult>;
-    // Warning: (ae-forgotten-export) The symbol "AzureIdentitySdkManagedIdentitySourceNames" needs to be exported by the entry point index.d.ts
     getManagedIdentitySource(): AzureIdentitySdkManagedIdentitySourceNames;
 }
 

@@ -45,6 +45,7 @@ export type ManagedIdentitySourceNames =
 
 /**
  * Azure Identity SDK defined identifiers for the Managed Identity Sources
+ * @public
  */
 export const AzureIdentitySdkManagedIdentitySourceNames = {
     APP_SERVICE: "APP_SERVICE",
@@ -53,6 +54,10 @@ export const AzureIdentitySdkManagedIdentitySourceNames = {
     DEFAULT_TO_VM: "DEFAULT_TO_VM",
     SERVICE_FABRIC: "SERVICE_FABRIC",
 } as const;
+/**
+ * The AzureIdentitySdkManagedIdentitySourceNames type
+ * @public
+ */
 export type AzureIdentitySdkManagedIdentitySourceNames =
     (typeof AzureIdentitySdkManagedIdentitySourceNames)[keyof typeof AzureIdentitySdkManagedIdentitySourceNames];
 
