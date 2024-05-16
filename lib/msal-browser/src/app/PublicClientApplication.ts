@@ -423,6 +423,7 @@ export async function createNestablePublicClientApplication(
         pca = new PublicClientApplication(configuration, controller);
     } else {
         pca = new PublicClientApplication(configuration);
+        await pca.initialize();
     }
     return pca;
 }
