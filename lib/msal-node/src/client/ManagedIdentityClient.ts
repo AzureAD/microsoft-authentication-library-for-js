@@ -106,8 +106,8 @@ export class ManagedIdentityClient {
                 : this.allEnvironmentVariablesAreDefined(
                       AzureArc.getEnvironmentVariables()
                   )
-                ? AzureIdentitySdkManagedIdentitySourceNames.AZURE_ARC
-                : AzureIdentitySdkManagedIdentitySourceNames.IMDS;
+                ? AzureIdentitySdkManagedIdentitySourceNames.ARC
+                : AzureIdentitySdkManagedIdentitySourceNames.DEFAULT_TO_VM;
 
         return ManagedIdentityClient.azureIdentitySdkManagedIdentitySourceNames;
     }

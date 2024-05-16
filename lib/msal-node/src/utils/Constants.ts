@@ -48,9 +48,9 @@ export type ManagedIdentitySourceNames =
  */
 export const AzureIdentitySdkManagedIdentitySourceNames = {
     APP_SERVICE: "APP_SERVICE",
-    AZURE_ARC: "ARC",
+    ARC: "ARC",
     CLOUD_SHELL: "CLOUD_SHELL",
-    IMDS: "DEFAULT_TO_VM",
+    DEFAULT_TO_VM: "DEFAULT_TO_VM",
     SERVICE_FABRIC: "SERVICE_FABRIC",
 } as const;
 export type AzureIdentitySdkManagedIdentitySourceNames =
