@@ -23,14 +23,14 @@ export async function createController(
     config: Configuration
 ): Promise<IController | null> {
     const standard = new StandardOperatingContext(config);
-    const teamsApp = new NestedAppOperatingContext(config);
+    const nestedApp = new NestedAppOperatingContext(config);
 
-    const operatingContexts = [standard.initialize(), teamsApp.initialize()];
+    const operatingContexts = [standard.initialize(), nestedApp.initialize()];
 
     await Promise.all(operatingContexts);
 
-    if (teamsApp.isAvailable()) {
-        return NestedAppAuthController.createController(teamsApp);
+    if (nestedApp.isAvailable()) {
+        return NestedAppAuthController.createController(nestedApp);
     } else if (standard.isAvailable()) {
         return StandardController.createController(standard);
     } else {
