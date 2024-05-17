@@ -118,18 +118,6 @@ export { AzureCloudInstance }
 export { AzureCloudOptions }
 
 // @public
-export const AzureIdentitySdkManagedIdentitySourceNames: {
-    readonly APP_SERVICE: "APP_SERVICE";
-    readonly ARC: "ARC";
-    readonly CLOUD_SHELL: "CLOUD_SHELL";
-    readonly DEFAULT_TO_VM: "DEFAULT_TO_VM";
-    readonly SERVICE_FABRIC: "SERVICE_FABRIC";
-};
-
-// @public
-export type AzureIdentitySdkManagedIdentitySourceNames = (typeof AzureIdentitySdkManagedIdentitySourceNames)[keyof typeof AzureIdentitySdkManagedIdentitySourceNames];
-
-// @public
 export type BrokerOptions = {
     nativeBrokerPlugin?: INativeBrokerPlugin;
 };
@@ -428,7 +416,7 @@ export { LogLevel }
 export class ManagedIdentityApplication {
     constructor(configuration?: ManagedIdentityConfiguration);
     acquireToken(managedIdentityRequestParams: ManagedIdentityRequestParams): Promise<AuthenticationResult>;
-    getManagedIdentitySource(): AzureIdentitySdkManagedIdentitySourceNames;
+    getManagedIdentitySource(): ManagedIdentitySourceNames;
 }
 
 // Warning: (ae-missing-release-tag) "ManagedIdentityConfiguration" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -459,6 +447,19 @@ export type ManagedIdentityRequestParams = {
     forceRefresh?: boolean;
     resource: string;
 };
+
+// @public
+export const ManagedIdentitySourceNames: {
+    readonly APP_SERVICE: "AppService";
+    readonly AZURE_ARC: "AzureArc";
+    readonly CLOUD_SHELL: "CloudShell";
+    readonly DEFAULT_TO_IMDS: "DefaultToImds";
+    readonly IMDS: "Imds";
+    readonly SERVICE_FABRIC: "ServiceFabric";
+};
+
+// @public
+export type ManagedIdentitySourceNames = (typeof ManagedIdentitySourceNames)[keyof typeof ManagedIdentitySourceNames];
 
 export { NetworkRequestOptions }
 

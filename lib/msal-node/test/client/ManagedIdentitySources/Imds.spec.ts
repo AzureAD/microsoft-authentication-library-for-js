@@ -26,8 +26,8 @@ import {
     systemAssignedConfig,
 } from "../../test_kit/ManagedIdentityTestUtils";
 import {
-    AzureIdentitySdkManagedIdentitySourceNames,
     DEFAULT_MANAGED_IDENTITY_ID,
+    ManagedIdentitySourceNames,
 } from "../../../src/utils/Constants";
 import {
     AccessTokenEntity,
@@ -88,7 +88,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedClientIdConfig);
             expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                AzureIdentitySdkManagedIdentitySourceNames.DEFAULT_TO_VM
+                ManagedIdentitySourceNames.DEFAULT_TO_IMDS
             );
 
             const networkManagedIdentityResult: AuthenticationResult =
@@ -105,7 +105,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedObjectIdConfig);
             expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                AzureIdentitySdkManagedIdentitySourceNames.DEFAULT_TO_VM
+                ManagedIdentitySourceNames.DEFAULT_TO_IMDS
             );
 
             const networkManagedIdentityResult: AuthenticationResult =
@@ -122,7 +122,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedResourceIdConfig);
             expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                AzureIdentitySdkManagedIdentitySourceNames.DEFAULT_TO_VM
+                ManagedIdentitySourceNames.DEFAULT_TO_IMDS
             );
 
             const networkManagedIdentityResult: AuthenticationResult =
@@ -143,7 +143,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 systemAssignedConfig
             );
             expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                AzureIdentitySdkManagedIdentitySourceNames.DEFAULT_TO_VM
+                ManagedIdentitySourceNames.DEFAULT_TO_IMDS
             );
         });
 
@@ -190,9 +190,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 );
                 expect(
                     managedIdentityApplication.getManagedIdentitySource()
-                ).toBe(
-                    AzureIdentitySdkManagedIdentitySourceNames.DEFAULT_TO_VM
-                );
+                ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
             });
 
             test("returns a 500 error response from the network request, just the first time", async () => {
@@ -252,9 +250,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 );
                 expect(
                     managedIdentityApplication.getManagedIdentitySource()
-                ).toBe(
-                    AzureIdentitySdkManagedIdentitySourceNames.DEFAULT_TO_VM
-                );
+                ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
             });
 
             test("returns a 500 error response from the network request, just the first time, with no retry-after header", async () => {
@@ -462,9 +458,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     });
                 expect(
                     managedIdentityApplicationNoRetry.getManagedIdentitySource()
-                ).toBe(
-                    AzureIdentitySdkManagedIdentitySourceNames.DEFAULT_TO_VM
-                );
+                ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
 
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
                     .spyOn(networkClient, <any>"sendGetRequestAsync")
@@ -499,7 +493,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 new ManagedIdentityApplication(systemAssignedConfig);
             expect(
                 systemAssignedManagedIdentityApplication.getManagedIdentitySource()
-            ).toBe(AzureIdentitySdkManagedIdentitySourceNames.DEFAULT_TO_VM);
+            ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
         });
 
         test("acquires a token from the network and then the same token from the cache, then acquires a different token for another scope", async () => {
@@ -657,7 +651,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 });
             expect(
                 userAssignedClientIdManagedIdentityApplicationResource1.getManagedIdentitySource()
-            ).toBe(AzureIdentitySdkManagedIdentitySourceNames.DEFAULT_TO_VM);
+            ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
 
             const userAssignedObjectIdManagedIdentityApplicationResource2: ManagedIdentityApplication =
                 new ManagedIdentityApplication({
@@ -672,7 +666,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 });
             expect(
                 userAssignedObjectIdManagedIdentityApplicationResource2.getManagedIdentitySource()
-            ).toBe(AzureIdentitySdkManagedIdentitySourceNames.DEFAULT_TO_VM);
+            ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
 
             // ********** begin: return access tokens from a network request **********
             // resource R1 for system assigned - returned from a network request
@@ -711,7 +705,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 new ManagedIdentityApplication(systemAssignedConfig);
             expect(
                 systemAssignedManagedIdentityApplicationClone.getManagedIdentitySource()
-            ).toBe(AzureIdentitySdkManagedIdentitySourceNames.DEFAULT_TO_VM);
+            ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
             let cachedManagedIdentityResult: AuthenticationResult =
                 await systemAssignedManagedIdentityApplicationClone.acquireToken(
                     {
@@ -732,7 +726,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 });
             expect(
                 userAssignedClientIdManagedIdentityApplicationResource1Clone.getManagedIdentitySource()
-            ).toBe(AzureIdentitySdkManagedIdentitySourceNames.DEFAULT_TO_VM);
+            ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
             cachedManagedIdentityResult =
                 await userAssignedClientIdManagedIdentityApplicationResource1Clone.acquireToken(
                     {
@@ -755,7 +749,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 });
             expect(
                 userAssignedObjectIdManagedIdentityApplicationResource2Clone.getManagedIdentitySource()
-            ).toBe(AzureIdentitySdkManagedIdentitySourceNames.DEFAULT_TO_VM);
+            ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
             cachedManagedIdentityResult =
                 await userAssignedObjectIdManagedIdentityApplicationResource2Clone.acquireToken(
                     {
@@ -795,7 +789,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 new ManagedIdentityApplication(systemAssignedConfig);
             expect(
                 systemAssignedManagedIdentityApplication.getManagedIdentitySource()
-            ).toBe(AzureIdentitySdkManagedIdentitySourceNames.DEFAULT_TO_VM);
+            ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
 
             await expect(
                 systemAssignedManagedIdentityApplication.acquireToken({
@@ -838,7 +832,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     },
                 });
             expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                AzureIdentitySdkManagedIdentitySourceNames.DEFAULT_TO_VM
+                ManagedIdentitySourceNames.DEFAULT_TO_IMDS
             );
 
             let serverError: ServerError = new ServerError();

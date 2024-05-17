@@ -63,7 +63,7 @@ export {
 export { DistributedCachePlugin } from "./cache/distributed/DistributedCachePlugin.js";
 
 // Constants
-export type { AzureIdentitySdkManagedIdentitySourceNames } from "./utils/Constants.js";
+export { ManagedIdentitySourceNames } from "./utils/Constants.js";
 
 // Crypto
 export { CryptoProvider } from "./crypto/CryptoProvider.js";

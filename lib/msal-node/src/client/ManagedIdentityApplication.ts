@@ -32,8 +32,8 @@ import { ManagedIdentityClient } from "./ManagedIdentityClient";
 import { ManagedIdentityRequestParams } from "../request/ManagedIdentityRequestParams";
 import { NodeStorage } from "../cache/NodeStorage";
 import {
-    AzureIdentitySdkManagedIdentitySourceNames,
     DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
+    ManagedIdentitySourceNames,
 } from "../utils/Constants";
 
 /**
@@ -192,9 +192,9 @@ export class ManagedIdentityApplication {
      * Determine the Managed Identity Source based on available environment variables. This API is consumed by Azure Identity SDK.
      * @returns AzureIdentitySdkManagedIdentitySourceNames - Azure Identity SDK defined identifiers for the Managed Identity Sources
      */
-    public getManagedIdentitySource(): AzureIdentitySdkManagedIdentitySourceNames {
+    public getManagedIdentitySource(): ManagedIdentitySourceNames {
         return (
-            ManagedIdentityClient.azureIdentitySdkManagedIdentitySourceNames ||
+            ManagedIdentityClient.sourceName ||
             this.managedIdentityClient.getManagedIdentitySource()
         );
     }

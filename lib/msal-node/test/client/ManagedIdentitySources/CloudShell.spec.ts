@@ -17,8 +17,8 @@ import {
 import { AuthenticationResult } from "@azure/msal-common";
 import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient";
 import {
-    AzureIdentitySdkManagedIdentitySourceNames,
     ManagedIdentityEnvironmentVariableNames,
+    ManagedIdentitySourceNames,
 } from "../../../src/utils/Constants";
 import {
     ManagedIdentityErrorCodes,
@@ -50,7 +50,7 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
                 systemAssignedConfig
             );
             expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                AzureIdentitySdkManagedIdentitySourceNames.CLOUD_SHELL
+                ManagedIdentitySourceNames.CLOUD_SHELL
             );
         });
 
@@ -93,7 +93,7 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedClientIdConfig);
             expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                AzureIdentitySdkManagedIdentitySourceNames.CLOUD_SHELL
+                ManagedIdentitySourceNames.CLOUD_SHELL
             );
 
             await expect(
