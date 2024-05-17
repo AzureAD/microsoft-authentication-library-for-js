@@ -439,8 +439,7 @@ export async function createNestablePublicClientApplication(
 }
 
 /**
- * creates NestedAppAuthController and passes it to the PublicClientApplication,
- * falls back to StandardController if NestedAppAuthController is not available
+ * creates PublicClientApplication using StandardController
  *
  * @param configuration
  * @returns IPublicClientApplication
