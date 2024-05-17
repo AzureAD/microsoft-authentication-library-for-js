@@ -36,7 +36,7 @@
     "@types/jasminewd2": "^2.0.10",
     "@types/jest": "^29.5.0",
     "@types/node": "^20.2.5",
-    "e2e-test-utils": "^0.0.1",
+    "e2e-test-utils": "file:../../e2eTestUtils",
     "htmlparser2": "^8.0.2",
     "jasmine-core": "~4.0.0",
     "jasmine-spec-reporter": "^7.0.0",
