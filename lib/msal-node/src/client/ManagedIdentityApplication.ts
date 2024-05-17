@@ -31,10 +31,14 @@ import { ClientCredentialClient } from "./ClientCredentialClient";
 import { ManagedIdentityClient } from "./ManagedIdentityClient";
 import { ManagedIdentityRequestParams } from "../request/ManagedIdentityRequestParams";
 import { NodeStorage } from "../cache/NodeStorage";
-import { DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY } from "../utils/Constants";
+import {
+    DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
+    ManagedIdentitySourceNames,
+} from "../utils/Constants";
 
 /**
  * Class to initialize a managed identity and identify the service
+ * @public
  */
 export class ManagedIdentityApplication {
     private config: ManagedIdentityNodeConfiguration;
@@ -113,7 +117,7 @@ export class ManagedIdentityApplication {
 
     /**
      * Acquire an access token from the cache or the managed identity
-     * @param managedIdentityRequest
+     * @param managedIdentityRequest - the ManagedIdentityRequestParams object passed in by the developer
      * @returns the access token
      */
     public async acquireToken(
@@ -182,5 +186,16 @@ export class ManagedIdentityApplication {
                 this.fakeAuthority
             );
         }
+    }
+
+    /**
+     * Determine the Managed Identity Source based on available environment variables. This API is consumed by Azure Identity SDK.
+     * @returns ManagedIdentitySourceNames - The Managed Identity source's name
+     */
+    public getManagedIdentitySource(): ManagedIdentitySourceNames {
+        return (
+            ManagedIdentityClient.sourceName ||
+            this.managedIdentityClient.getManagedIdentitySource()
+        );
     }
 }
