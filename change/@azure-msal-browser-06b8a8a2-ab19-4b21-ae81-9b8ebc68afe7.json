@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Init ssosilent and acquiretokenbycode perf measurements before preflight check #7113",
+  "comment": "Instrument preflight check errors #7113",
   "packageName": "@azure/msal-browser",
   "email": "kshabelko@microsoft.com",
   "dependentChangeType": "patch"

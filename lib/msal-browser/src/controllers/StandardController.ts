@@ -100,6 +100,18 @@ function getAccountType(
     return "AAD";
 }
 
+function preflightCheck(
+    initialized: boolean,
+    performanceEvent: InProgressPerformanceEvent
+) {
+    try {
+        BrowserUtils.preflightCheck(initialized);
+    } catch (e) {
+        performanceEvent.end({ success: false }, e);
+        throw e;
+    }
+}
+
 export class StandardController implements IController {
     // OperatingContext
     protected readonly operatingContext: StandardOperatingContext;
@@ -663,7 +675,7 @@ export class StandardController implements IController {
 
         try {
             this.logger.verbose("acquireTokenPopup called", correlationId);
-            BrowserUtils.preflightCheck(this.initialized);
+            preflightCheck(this.initialized, atPopupMeasurement);
             this.browserStorage.setInteractionInProgress(true);
         } catch (e) {
             // Since this function is syncronous we need to reject
@@ -841,7 +853,7 @@ export class StandardController implements IController {
             scenarioId: request.scenarioId,
             accountType: getAccountType(request.account),
         });
-        BrowserUtils.preflightCheck(this.initialized);
+        preflightCheck(this.initialized, this.ssoSilentMeasurement);
         this.ssoSilentMeasurement?.increment({
             visibilityChangeCount: 0,
         });
@@ -940,7 +952,7 @@ export class StandardController implements IController {
             PerformanceEvents.AcquireTokenByCode,
             correlationId
         );
-        BrowserUtils.preflightCheck(this.initialized);
+        preflightCheck(this.initialized, atbcMeasurement);
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_BY_CODE_START,
             InteractionType.Silent,
@@ -1898,7 +1910,7 @@ export class StandardController implements IController {
             scenarioId: request.scenarioId,
         });
 
-        BrowserUtils.preflightCheck(this.initialized);
+        preflightCheck(this.initialized, atsMeasurement);
         this.logger.verbose("acquireTokenSilent called", correlationId);
 
         const account = request.account || this.getActiveAccount();

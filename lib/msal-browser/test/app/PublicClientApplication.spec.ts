@@ -1910,6 +1910,35 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
         });
 
+        it("instruments initialization error", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(false);
+                expect(events[0].errorCode).toBe(
+                    "uninitialized_public_client_application"
+                );
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            pca.acquireTokenPopup({ scopes: [] })
+                .then(() => {
+                    throw new Error("success path should not be reached");
+                })
+                .catch((e) => {});
+        });
+
         it("goes directly to the native broker if nativeAccountId is present", async () => {
             const config = {
                 auth: {
@@ -2559,6 +2588,35 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     )
                 );
             }
+        });
+
+        it("instruments initialization error", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(false);
+                expect(events[0].errorCode).toBe(
+                    "uninitialized_public_client_application"
+                );
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            pca.ssoSilent({ scopes: [] })
+                .then(() => {
+                    throw new Error("success path should not be reached");
+                })
+                .catch((e) => {});
         });
 
         it("goes directly to the native broker if nativeAccountId is present", async () => {
@@ -3422,6 +3480,35 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     )
                 );
             }
+        });
+
+        it("instruments initialization error", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(false);
+                expect(events[0].errorCode).toBe(
+                    "uninitialized_public_client_application"
+                );
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            pca.acquireTokenSilent({ scopes: [] })
+                .then(() => {
+                    throw new Error("success path should not be reached");
+                })
+                .catch((e) => {});
         });
 
         it("goes directly to the native broker if nativeAccountId is present", async () => {
