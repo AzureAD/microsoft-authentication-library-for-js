@@ -833,17 +833,17 @@ export class StandardController implements IController {
             prompt: request.prompt,
             correlationId: correlationId,
         };
-        BrowserUtils.preflightCheck(this.initialized);
         this.ssoSilentMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.SsoSilent,
             correlationId
         );
-        this.ssoSilentMeasurement?.increment({
-            visibilityChangeCount: 0,
-        });
         this.ssoSilentMeasurement?.add({
             scenarioId: request.scenarioId,
             accountType: getAccountType(request.account),
+        });
+        BrowserUtils.preflightCheck(this.initialized);
+        this.ssoSilentMeasurement?.increment({
+            visibilityChangeCount: 0,
         });
 
         document.addEventListener(
@@ -936,15 +936,15 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.trace("acquireTokenByCode called", correlationId);
+        const atbcMeasurement = this.performanceClient.startMeasurement(
+            PerformanceEvents.AcquireTokenByCode,
+            correlationId
+        );
         BrowserUtils.preflightCheck(this.initialized);
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_BY_CODE_START,
             InteractionType.Silent,
             request
-        );
-        const atbcMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.AcquireTokenByCode,
-            correlationId
         );
         atbcMeasurement.add({ scenarioId: request.scenarioId });
 
