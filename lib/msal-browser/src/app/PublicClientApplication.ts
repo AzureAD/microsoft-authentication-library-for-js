@@ -435,7 +435,7 @@ export async function createNestablePublicClientApplication(
         return new PublicClientApplication(configuration, controller);
     }
 
-    return CreateStandardPublicClientApplication(configuration);
+    return createStandardPublicClientApplication(configuration);
 }
 
 /**
