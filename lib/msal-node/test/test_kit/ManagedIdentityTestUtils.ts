@@ -18,69 +18,12 @@ import {
     TEST_TOKENS,
     TEST_TOKEN_LIFETIMES,
 } from "./StringConstants";
-import { ManagedIdentityEnvironmentVariableNames } from "../../src/utils/Constants";
 import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse";
 import { ManagedIdentityRequestParams } from "../../src";
 import { ManagedIdentityConfiguration } from "../../src/config/Configuration";
 import { mockAuthenticationResult } from "../utils/TestConstants";
 
 const EMPTY_HEADERS: Record<string, string> = {};
-
-export class ManagedIdentityTestUtils {
-    public static isAppService(): boolean {
-        return (
-            // !! converts to boolean
-            !!process.env[
-                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
-            ] &&
-            !!process.env[
-                ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER
-            ]
-        );
-    }
-
-    public static isAzureArc(): boolean {
-        return (
-            // !! converts to boolean
-            !!process.env[
-                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
-            ] &&
-            !!process.env[ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT]
-        );
-    }
-
-    public static isCloudShell(): boolean {
-        return (
-            // !! converts to boolean
-            !!process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT]
-        );
-    }
-
-    public static isIMDS(): boolean {
-        return (
-            !ManagedIdentityTestUtils.isAppService() &&
-            !ManagedIdentityTestUtils.isAzureArc() &&
-            !ManagedIdentityTestUtils.isCloudShell() &&
-            !ManagedIdentityTestUtils.isServiceFabric()
-        );
-    }
-
-    public static isServiceFabric(): boolean {
-        return (
-            // !! converts to boolean
-            !!process.env[
-                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
-            ] &&
-            !!process.env[
-                ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER
-            ] &&
-            !!process.env[
-                ManagedIdentityEnvironmentVariableNames
-                    .IDENTITY_SERVER_THUMBPRINT
-            ]
-        );
-    }
-}
 
 export class ManagedIdentityNetworkClient implements INetworkModule {
     private clientId: string;

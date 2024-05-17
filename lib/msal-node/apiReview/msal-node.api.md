@@ -412,13 +412,11 @@ export { Logger }
 
 export { LogLevel }
 
-// Warning: (ae-missing-release-tag) "ManagedIdentityApplication" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export class ManagedIdentityApplication {
     constructor(configuration?: ManagedIdentityConfiguration);
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     acquireToken(managedIdentityRequestParams: ManagedIdentityRequestParams): Promise<AuthenticationResult>;
+    getManagedIdentitySource(): ManagedIdentitySourceNames;
 }
 
 // Warning: (ae-missing-release-tag) "ManagedIdentityConfiguration" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -449,6 +447,19 @@ export type ManagedIdentityRequestParams = {
     forceRefresh?: boolean;
     resource: string;
 };
+
+// @public
+export const ManagedIdentitySourceNames: {
+    readonly APP_SERVICE: "AppService";
+    readonly AZURE_ARC: "AzureArc";
+    readonly CLOUD_SHELL: "CloudShell";
+    readonly DEFAULT_TO_IMDS: "DefaultToImds";
+    readonly IMDS: "Imds";
+    readonly SERVICE_FABRIC: "ServiceFabric";
+};
+
+// @public
+export type ManagedIdentitySourceNames = (typeof ManagedIdentitySourceNames)[keyof typeof ManagedIdentitySourceNames];
 
 export { NetworkRequestOptions }
 

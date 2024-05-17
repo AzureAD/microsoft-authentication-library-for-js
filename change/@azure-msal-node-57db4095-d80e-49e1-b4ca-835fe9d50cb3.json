@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Added API for Managed Identity to detect the current environment #7093",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}

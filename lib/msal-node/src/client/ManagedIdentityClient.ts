@@ -23,6 +23,7 @@ import { ManagedIdentityRequest } from "../request/ManagedIdentityRequest";
 import { ManagedIdentityId } from "../config/ManagedIdentityId";
 import { NodeStorage } from "../cache/NodeStorage";
 import { BaseManagedIdentitySource } from "./ManagedIdentitySources/BaseManagedIdentitySource";
+import { ManagedIdentitySourceNames } from "../utils/Constants";
 
 /*
  * Class to initialize a managed identity and identify the service.
@@ -35,6 +36,7 @@ export class ManagedIdentityClient {
     private cryptoProvider: CryptoProvider;
 
     private static identitySource?: BaseManagedIdentitySource;
+    public static sourceName?: ManagedIdentitySourceNames;
 
     constructor(
         logger: Logger,
@@ -71,6 +73,43 @@ export class ManagedIdentityClient {
             fakeAuthority,
             refreshAccessToken
         );
+    }
+
+    private allEnvironmentVariablesAreDefined(
+        environmentVariables: Array<string | undefined>
+    ): boolean {
+        return Object.values(environmentVariables).every(
+            (environmentVariable) => {
+                return environmentVariable !== undefined;
+            }
+        );
+    }
+
+    /**
+     * Determine the Managed Identity Source based on available environment variables. This API is consumed by ManagedIdentityApplication's getManagedIdentitySource.
+     * @returns ManagedIdentitySourceNames - The Managed Identity source's name
+     */
+    public getManagedIdentitySource(): ManagedIdentitySourceNames {
+        ManagedIdentityClient.sourceName =
+            this.allEnvironmentVariablesAreDefined(
+                ServiceFabric.getEnvironmentVariables()
+            )
+                ? ManagedIdentitySourceNames.SERVICE_FABRIC
+                : this.allEnvironmentVariablesAreDefined(
+                      AppService.getEnvironmentVariables()
+                  )
+                ? ManagedIdentitySourceNames.APP_SERVICE
+                : this.allEnvironmentVariablesAreDefined(
+                      CloudShell.getEnvironmentVariables()
+                  )
+                ? ManagedIdentitySourceNames.CLOUD_SHELL
+                : this.allEnvironmentVariablesAreDefined(
+                      AzureArc.getEnvironmentVariables()
+                  )
+                ? ManagedIdentitySourceNames.AZURE_ARC
+                : ManagedIdentitySourceNames.DEFAULT_TO_IMDS;
+
+        return ManagedIdentityClient.sourceName;
     }
 
     /**
