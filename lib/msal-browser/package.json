@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "3.13.0",
+  "version": "3.14.0",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -69,7 +69,8 @@
     "build": "npm run clean && npm run build:modules",
     "prepack": "npm run build:all",
     "format:check": "prettier --ignore-path .gitignore --check src test",
-    "format:fix": "prettier --ignore-path .gitignore --write src test"
+    "format:fix": "prettier --ignore-path .gitignore --write src test",
+    "apiExtractor": "api-extractor run"
   },
   "devDependencies": {
     "@azure/storage-blob": "^12.2.1",
@@ -78,6 +79,7 @@
     "@babel/plugin-proposal-object-rest-spread": "^7.6.2",
     "@babel/preset-env": "^7.7.1",
     "@babel/preset-typescript": "^7.7.2",
+    "@microsoft/api-extractor": "^7.43.4",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-terser": "^0.4.0",
     "@rollup/plugin-typescript": "^11.0.0",
@@ -101,6 +103,6 @@
     "typescript": "^4.9.5"
   },
   "dependencies": {
-    "@azure/msal-common": "14.9.0"
+    "@azure/msal-common": "14.10.0"
   }
 }

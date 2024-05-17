@@ -6199,6 +6199,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(result.accessToken).toEqual(
                 testAuthenticationResult.accessToken
             );
+            expect(result.expiresOn).toEqual(
+                testAuthenticationResult.expiresOn
+            );
             expect(result.idToken).toEqual(testAuthenticationResult.idToken);
             expect(result.account).toEqual(testAccount);
             expect(result.fromCache).toEqual(true);
@@ -6251,6 +6254,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const result = await pca.acquireTokenSilent(nativeRequest); // Get tokens from the cache
             // Verify tokens were returned from internal memory
             expect(result.accessToken).toEqual(nativeResult.accessToken);
+            expect(result.expiresOn).toEqual(
+                testAuthenticationResult.expiresOn
+            );
             expect(result.idToken).toEqual(nativeResult.idToken);
             expect(result.account).toEqual(nativeAccount);
             expect(result.fromCache).toEqual(true);

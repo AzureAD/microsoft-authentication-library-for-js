@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Discard empty redirect telemetry events with no error codes #7058",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
