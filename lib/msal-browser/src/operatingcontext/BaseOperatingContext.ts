@@ -99,6 +99,11 @@ export abstract class BaseOperatingContext {
     }
 
     /**
+     * returns the name of the module containing the API controller associated with this operating context
+     */
+    abstract getModuleName(): string;
+
+    /**
      * returns the string identifier of this operating context
      */
     abstract getId(): string;

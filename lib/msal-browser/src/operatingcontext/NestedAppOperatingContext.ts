@@ -24,6 +24,15 @@ export class NestedAppOperatingContext extends BaseOperatingContext {
     static readonly ID: string = "NestedAppOperatingContext";
 
     /**
+     * Return the module name.  Intended for use with import() to enable dynamic import
+     * of the implementation associated with this operating context
+     * @returns
+     */
+    getModuleName(): string {
+        return NestedAppOperatingContext.MODULE_NAME;
+    }
+
+    /**
      * Returns the unique identifier for this operating context
      * @returns string
      */
