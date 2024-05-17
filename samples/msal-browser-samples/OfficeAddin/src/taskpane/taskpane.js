@@ -1,9 +1,9 @@
-/*
+/**
  * Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
  * See LICENSE in the project root for license information.
  */
 
-import { PublicClientApplication } from "@azure/msal-browser";
+import  * as msal from "@azure/msal-browser";
 
 /* global document, Office, Word */
 
@@ -45,7 +45,7 @@ const loginRequest = {
 
 let pca = undefined;
 
-PublicClientApplication.createNestablePublicClientApplication(msalConfig).then((result) => {
+msal.createNestablePublicClientApplication(msalConfig).then((result) => {
   pca = result;
   ssoGetToken();
 });
