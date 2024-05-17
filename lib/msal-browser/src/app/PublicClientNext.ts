@@ -36,7 +36,7 @@ import { UnknownOperatingContext } from "../operatingcontext/UnknownOperatingCon
  * while still providing a consistent API surface for developers.
  *
  * Please use PublicClientApplication for any prod/real-world scenarios.
- * Note: We will use PublicClientNext for any internal exiperiments and testing, and any breaking changes will be made here first.
+ * Note: PublicClientNext is experimental and subject to breaking changes without following semver
  *
  */
 export class PublicClientNext implements IPublicClientApplication {
