@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715964230484,
+  "lastUpdate": 1715978423744,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8760,6 +8760,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.93%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8d191431383be7983bec099e961f5f5ab2e0df5f",
+          "message": "API for Managed Identity to detect the current environment (#7093)\n\nThis feature is requested by Azure Identity SDK. Please see the\r\ndescription in the linked issue for more info.",
+          "timestamp": "2024-05-17T16:34:44-04:00",
+          "tree_id": "da3f62e9041d95d6b045f8993f039c49f88ac13c",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8d191431383be7983bec099e961f5f5ab2e0df5f"
+        },
+        "date": 1715978422681,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 216024,
+            "range": "±1.61%",
+            "unit": "ops/sec",
+            "extra": "238 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 194208,
+            "range": "±2.07%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
