@@ -31,6 +31,7 @@ export class NestedAppOperatingContext extends BaseOperatingContext {
     getModuleName(): string {
         return NestedAppOperatingContext.MODULE_NAME;
     }
+
     /**
      * Returns the unique identifier for this operating context
      * @returns string

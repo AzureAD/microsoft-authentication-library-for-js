@@ -35,6 +35,9 @@ import { UnknownOperatingContext } from "../operatingcontext/UnknownOperatingCon
  * The goals of these changes are to provide a clean separation of behavior between different operating contexts (Nested App Auth, Platform Brokers, Plain old Browser, etc.)
  * while still providing a consistent API surface for developers.
  *
+ * Please use PublicClientApplication for any prod/real-world scenarios.
+ * Note: We will use PublicClientNext for any internal exiperiments and testing, and any breaking changes will be made here first.
+ *
  */
 export class PublicClientNext implements IPublicClientApplication {
     /*

@@ -83,13 +83,6 @@ export class NestedAppAuthController implements IController {
     // NestedAppAuthAdapter
     protected readonly nestedAppAuthAdapter: NestedAppAuthAdapter;
 
-    /**
-     * @constructor
-     * Constructor for the NestedAppAuthController used to intialize the NestedApp Controller context
-     *
-     * @param operatingContext
-     * @param hydrateCache
-     */
     constructor(operatingContext: NestedAppOperatingContext) {
         this.operatingContext = operatingContext;
         const proxy = this.operatingContext.getBridgeProxy();

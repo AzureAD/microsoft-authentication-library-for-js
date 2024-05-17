@@ -7,6 +7,8 @@ import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatin
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 import { IController } from "./IController";
 import { Configuration } from "../config/Configuration";
+import { StandardController } from "./StandardController";
+import { NestedAppAuthController } from "./NestedAppAuthController";
 
 export async function createV3Controller(
     config: Configuration
@@ -14,9 +16,7 @@ export async function createV3Controller(
     const standard = new StandardOperatingContext(config);
 
     await standard.initialize();
-
-    const controller = await import("./StandardController");
-    return controller.StandardController.createController(standard);
+    return StandardController.createController(standard);
 }
 
 export async function createController(
@@ -29,15 +29,10 @@ export async function createController(
 
     await Promise.all(operatingContexts);
 
-    if (
-        nestedApp.isAvailable() &&
-        nestedApp.getConfig().auth.supportsNestedAppAuth
-    ) {
-        const controller = await import("./NestedAppAuthController");
-        return controller.NestedAppAuthController.createController(nestedApp);
+    if (nestedApp.isAvailable()) {
+        return NestedAppAuthController.createController(nestedApp);
     } else if (standard.isAvailable()) {
-        const controller = await import("./StandardController");
-        return controller.StandardController.createController(standard);
+        return StandardController.createController(standard);
     } else {
         // Since neither of the actual operating contexts are available keep the UnknownOperatingContextController
         return null;
