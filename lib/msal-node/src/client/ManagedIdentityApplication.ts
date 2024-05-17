@@ -190,7 +190,7 @@ export class ManagedIdentityApplication {
 
     /**
      * Determine the Managed Identity Source based on available environment variables. This API is consumed by Azure Identity SDK.
-     * @returns AzureIdentitySdkManagedIdentitySourceNames - Azure Identity SDK defined identifiers for the Managed Identity Sources
+     * @returns ManagedIdentitySourceNames - The Managed Identity source's name
      */
     public getManagedIdentitySource(): ManagedIdentitySourceNames {
         return (
