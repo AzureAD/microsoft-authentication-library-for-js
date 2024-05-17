@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1715895614617,
+  "lastUpdate": 1715964230484,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8720,6 +8720,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 198324,
             "range": "±2.11%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e1c27fa09c32c9bddbd7e63730aa7561553e76fc",
+          "message": "MSAL Angular samples e2e-test-utils update (#7109)\n\nUpdates MSAL Angular samples to reference `e2eTestUtils` folder rather\r\nthan version.",
+          "timestamp": "2024-05-17T09:38:22-07:00",
+          "tree_id": "02f4370695d51f7fb8ad2b6ded428a099542148f",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e1c27fa09c32c9bddbd7e63730aa7561553e76fc"
+        },
+        "date": 1715964228567,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 191743,
+            "range": "±2.07%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 188996,
+            "range": "±1.93%",
             "unit": "ops/sec",
             "extra": "223 samples"
           }
