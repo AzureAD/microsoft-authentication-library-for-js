@@ -19,8 +19,6 @@ import {
     OIDC_DEFAULT_SCOPES,
     BaseAuthRequest,
     AccountFilter,
-    buildTenantProfileFromIdTokenClaims,
-    TenantProfile,
 } from "@azure/msal-common";
 import { ITokenCache } from "../cache/ITokenCache";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -128,6 +126,18 @@ export class NestedAppAuthController implements IController {
             this.browserCrypto,
             this.logger
         );
+
+        // Set the active account if available
+        const accountContext = this.bridgeProxy.getAccountContext();
+        if (accountContext) {
+            const cachedAccount = AccountManager.getAccount(
+                accountContext,
+                this.logger,
+                this.browserStorage
+            );
+
+            AccountManager.setActiveAccount(cachedAccount, this.browserStorage);
+        }
     }
 
     /**
@@ -410,19 +420,30 @@ export class NestedAppAuthController implements IController {
         const accountContext = this.bridgeProxy.getAccountContext();
         let currentAccount = null;
         if (accountContext) {
-            const cachedAccount = AccountManager.getAccount(
+            const hubAccount = AccountManager.getAccount(
                 accountContext,
                 this.logger,
                 this.browserStorage
             );
-            currentAccount = request.account || cachedAccount;
+            // precedence to account context set by the hub, fall back to request account
+            currentAccount = hubAccount || request.account;
         }
 
+        // fall back to brokering if no cached account is found
         if (!currentAccount) {
             this.logger.verbose(
                 "No active account found, falling back to the host"
             );
-            return null;
+            return Promise.resolve(null);
+        }
+
+        // check if the account is the same as the active account
+        if (currentAccount !== this.getActiveAccount()) {
+            this.logger.verbose("account mismatch, falling back to the host");
+            const accountEntity =
+                AccountEntity.createFromAccountInfo(currentAccount);
+            await this.browserStorage.removeAccountContext(accountEntity);
+            return Promise.resolve(null);
         }
 
         this.logger.verbose(
