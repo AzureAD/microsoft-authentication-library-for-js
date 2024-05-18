@@ -56,6 +56,17 @@ export class AzureArc extends BaseManagedIdentitySource {
         this.identityEndpoint = identityEndpoint;
     }
 
+    public static getEnvironmentVariables(): Array<string | undefined> {
+        const identityEndpoint: string | undefined =
+            process.env[
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
+            ];
+        const imdsEndpoint: string | undefined =
+            process.env[ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT];
+
+        return [identityEndpoint, imdsEndpoint];
+    }
+
     public static tryCreate(
         logger: Logger,
         nodeStorage: NodeStorage,
@@ -63,12 +74,8 @@ export class AzureArc extends BaseManagedIdentitySource {
         cryptoProvider: CryptoProvider,
         managedIdentityId: ManagedIdentityId
     ): AzureArc | null {
-        const identityEndpoint: string | undefined =
-            process.env[
-                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
-            ];
-        const imdsEndpoint: string | undefined =
-            process.env[ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT];
+        const [identityEndpoint, imdsEndpoint] =
+            AzureArc.getEnvironmentVariables();
 
         // if either of the identity or imds endpoints are undefined, this MSI provider is unavailable.
         if (!identityEndpoint || !imdsEndpoint) {

@@ -59,10 +59,6 @@ export class NestedAppOperatingContext extends BaseOperatingContext {
          *
          */
 
-        if (!this.getConfig().auth.supportsNestedAppAuth) {
-            return false;
-        }
-
         try {
             if (typeof window !== "undefined") {
                 const bridgeProxy: IBridgeProxy = await BridgeProxy.create();
