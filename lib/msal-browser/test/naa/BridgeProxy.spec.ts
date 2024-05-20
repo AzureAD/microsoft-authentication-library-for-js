@@ -217,7 +217,7 @@ describe("BridgeProxy tests", () => {
             ).rejects.toMatchObject(BRIDGE_ERROR_NAA_UNAVAILABLE);
         });
     });
-    describe("get account info tests", () => {
+    describe("get account context tests", () => {
         let bridgeProxy: IBridgeProxy;
         let mockBridge: MockBridge;
 
