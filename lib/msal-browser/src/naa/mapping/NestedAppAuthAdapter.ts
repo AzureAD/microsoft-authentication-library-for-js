@@ -37,7 +37,6 @@ import {} from "../../error/BrowserAuthErrorCodes";
 import { AuthResult } from "../AuthResult";
 import { SsoSilentRequest } from "../../request/SsoSilentRequest";
 import { SilentRequest } from "../../request/SilentRequest";
-import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 
 export class NestedAppAuthAdapter {
     protected crypto: ICrypto;
