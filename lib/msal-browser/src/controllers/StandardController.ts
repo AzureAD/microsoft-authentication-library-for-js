@@ -100,6 +100,18 @@ function getAccountType(
     return "AAD";
 }
 
+function preflightCheck(
+    initialized: boolean,
+    performanceEvent: InProgressPerformanceEvent
+) {
+    try {
+        BrowserUtils.preflightCheck(initialized);
+    } catch (e) {
+        performanceEvent.end({ success: false }, e);
+        throw e;
+    }
+}
+
 export class StandardController implements IController {
     // OperatingContext
     protected readonly operatingContext: StandardOperatingContext;
@@ -663,7 +675,7 @@ export class StandardController implements IController {
 
         try {
             this.logger.verbose("acquireTokenPopup called", correlationId);
-            BrowserUtils.preflightCheck(this.initialized);
+            preflightCheck(this.initialized, atPopupMeasurement);
             this.browserStorage.setInteractionInProgress(true);
         } catch (e) {
             // Since this function is syncronous we need to reject
@@ -833,17 +845,17 @@ export class StandardController implements IController {
             prompt: request.prompt,
             correlationId: correlationId,
         };
-        BrowserUtils.preflightCheck(this.initialized);
         this.ssoSilentMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.SsoSilent,
             correlationId
         );
-        this.ssoSilentMeasurement?.increment({
-            visibilityChangeCount: 0,
-        });
         this.ssoSilentMeasurement?.add({
             scenarioId: request.scenarioId,
             accountType: getAccountType(request.account),
+        });
+        preflightCheck(this.initialized, this.ssoSilentMeasurement);
+        this.ssoSilentMeasurement?.increment({
+            visibilityChangeCount: 0,
         });
 
         document.addEventListener(
@@ -936,15 +948,15 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.trace("acquireTokenByCode called", correlationId);
-        BrowserUtils.preflightCheck(this.initialized);
+        const atbcMeasurement = this.performanceClient.startMeasurement(
+            PerformanceEvents.AcquireTokenByCode,
+            correlationId
+        );
+        preflightCheck(this.initialized, atbcMeasurement);
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_BY_CODE_START,
             InteractionType.Silent,
             request
-        );
-        const atbcMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.AcquireTokenByCode,
-            correlationId
         );
         atbcMeasurement.add({ scenarioId: request.scenarioId });
 
@@ -1898,7 +1910,7 @@ export class StandardController implements IController {
             scenarioId: request.scenarioId,
         });
 
-        BrowserUtils.preflightCheck(this.initialized);
+        preflightCheck(this.initialized, atsMeasurement);
         this.logger.verbose("acquireTokenSilent called", correlationId);
 
         const account = request.account || this.getActiveAccount();
