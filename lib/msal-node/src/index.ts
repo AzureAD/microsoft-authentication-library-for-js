@@ -62,6 +62,9 @@ export {
 } from "./cache/serializer/SerializerTypes.js";
 export { DistributedCachePlugin } from "./cache/distributed/DistributedCachePlugin.js";
 
+// Constants
+export { ManagedIdentitySourceNames } from "./utils/Constants.js";
+
 // Crypto
 export { CryptoProvider } from "./crypto/CryptoProvider.js";
 

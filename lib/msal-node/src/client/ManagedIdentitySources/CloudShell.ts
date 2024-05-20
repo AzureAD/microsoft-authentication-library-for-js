@@ -40,6 +40,13 @@ export class CloudShell extends BaseManagedIdentitySource {
         this.msiEndpoint = msiEndpoint;
     }
 
+    public static getEnvironmentVariables(): Array<string | undefined> {
+        const msiEndpoint: string | undefined =
+            process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT];
+
+        return [msiEndpoint];
+    }
+
     public static tryCreate(
         logger: Logger,
         nodeStorage: NodeStorage,
@@ -47,8 +54,7 @@ export class CloudShell extends BaseManagedIdentitySource {
         cryptoProvider: CryptoProvider,
         managedIdentityId: ManagedIdentityId
     ): CloudShell | null {
-        const msiEndpoint: string | undefined =
-            process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT];
+        const [msiEndpoint] = CloudShell.getEnvironmentVariables();
 
         // if the msi endpoint environment variable is undefined, this MSI provider is unavailable.
         if (!msiEndpoint) {
