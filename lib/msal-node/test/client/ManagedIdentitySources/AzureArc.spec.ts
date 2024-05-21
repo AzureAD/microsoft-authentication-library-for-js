@@ -15,7 +15,6 @@ import {
 } from "../../test_kit/StringConstants";
 
 import {
-    ManagedIdentityTestUtils,
     ManagedIdentityNetworkClient,
     ManagedIdentityNetworkErrorClient,
     systemAssignedConfig,
@@ -30,7 +29,10 @@ import {
 } from "../../../src/error/ManagedIdentityError";
 import { ARC_API_VERSION } from "../../../src/client/ManagedIdentitySources/AzureArc";
 import * as fs from "fs";
-import { ManagedIdentityEnvironmentVariableNames } from "../../../src/utils/Constants";
+import {
+    ManagedIdentityEnvironmentVariableNames,
+    ManagedIdentitySourceNames,
+} from "../../../src/utils/Constants";
 
 jest.mock("fs");
 
@@ -64,11 +66,12 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
             managedIdentityApplication = new ManagedIdentityApplication(
                 systemAssignedConfig
             );
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.AZURE_ARC
+            );
         });
 
         test("acquires a token", async () => {
-            expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
-
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams
@@ -81,8 +84,6 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
         });
 
         test("returns an already acquired token from the cache", async () => {
-            expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
-
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken({
                     resource: MANAGED_IDENTITY_RESOURCE,
@@ -104,8 +105,6 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
         });
 
         test("attempts to acquire a token, a 401 and www-authenticate header are returned form the azure arc managed identity, then retries the network request with the www-authenticate header", async () => {
-            expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
-
             const networkClient: ManagedIdentityNetworkClient =
                 new ManagedIdentityNetworkClient(MANAGED_IDENTITY_RESOURCE_ID);
 
@@ -116,6 +115,9 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                         // managedIdentityIdParams will be omitted for system assigned
                     },
                 });
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.AZURE_ARC
+            );
 
             const networkErrorClient: ManagedIdentityNetworkErrorClient =
                 new ManagedIdentityNetworkErrorClient();
@@ -170,10 +172,11 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
 
     describe("Errors", () => {
         test("throws an error when a user assigned managed identity is used", async () => {
-            expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
-
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedClientIdConfig);
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.AZURE_ARC
+            );
 
             await expect(
                 managedIdentityApplication.acquireToken(
@@ -187,8 +190,6 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
         });
 
         test("throws an error when the www-authenticate header is missing", async () => {
-            expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
-
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication({
                     system: {
@@ -199,6 +200,9 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                         // managedIdentityIdParams will be omitted for system assigned
                     },
                 });
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.AZURE_ARC
+            );
 
             await expect(
                 managedIdentityApplication.acquireToken(
@@ -212,8 +216,6 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
         });
 
         test("throws an error when the www-authenticate header is in an unsupported format", async () => {
-            expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
-
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication({
                     system: {
@@ -223,6 +225,9 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                         // managedIdentityIdParams will be omitted for system assigned
                     },
                 });
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.AZURE_ARC
+            );
 
             await expect(
                 managedIdentityApplication.acquireToken(
@@ -236,8 +241,6 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
         });
 
         test("throws an error when the secret file cannot be found", async () => {
-            expect(ManagedIdentityTestUtils.isAzureArc()).toBe(true);
-
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication({
                     system: {
@@ -247,6 +250,9 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                         // managedIdentityIdParams will be omitted for system assigned
                     },
                 });
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.AZURE_ARC
+            );
 
             jest.spyOn(fs, "readFileSync").mockImplementationOnce(() => {
                 throw new Error();
