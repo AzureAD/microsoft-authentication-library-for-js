@@ -29,7 +29,7 @@ export async function createController(
 
     await Promise.all(operatingContexts);
 
-    if (nestedApp.isAvailable()) {
+    if (nestedApp.isAvailable() && config.auth.supportsNestedAppAuth) {
         return NestedAppAuthController.createController(nestedApp);
     } else if (standard.isAvailable()) {
         return StandardController.createController(standard);
