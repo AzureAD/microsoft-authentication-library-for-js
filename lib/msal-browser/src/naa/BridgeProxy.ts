@@ -81,6 +81,7 @@ export class BridgeProxy implements IBridgeProxy {
                         messageType: "NestedAppAuthRequest",
                         method: "GetInitContext",
                         requestId: BrowserCrypto.createNewGuid(),
+                        sendTime: Date.now(),
                     };
                     const request: BridgeRequest = {
                         requestId: message.requestId,
@@ -156,6 +157,7 @@ export class BridgeProxy implements IBridgeProxy {
             messageType: "NestedAppAuthRequest",
             method: method,
             requestId: BrowserCrypto.createNewGuid(),
+            sendTime: Date.now(),
             ...requestParams,
         };
 
