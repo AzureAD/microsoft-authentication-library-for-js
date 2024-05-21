@@ -691,6 +691,18 @@ export type Configuration = {
 // @public
 function createGuid(): string;
 
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (ae-missing-release-tag) "createNestablePublicClientApplication" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export function createNestablePublicClientApplication(configuration: Configuration): Promise<IPublicClientApplication>;
+
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (ae-missing-release-tag) "createStandardPublicClientApplication" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export function createStandardPublicClientApplication(configuration: Configuration): Promise<IPublicClientApplication>;
+
 // Warning: (ae-missing-release-tag) "cryptoKeyNotFound" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -1656,17 +1668,17 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 
 // Warnings were encountered during analysis:
 //
-// src/app/PublicClientNext.ts:63:8 - (tsdoc-undefined-tag) The TSDoc tag "@constructor" is not defined in this configuration
-// src/app/PublicClientNext.ts:72:87 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/app/PublicClientNext.ts:72:60 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/app/PublicClientNext.ts:78:64 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/app/PublicClientNext.ts:78:77 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/app/PublicClientNext.ts:78:90 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/app/PublicClientNext.ts:78:55 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/app/PublicClientNext.ts:78:70 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/app/PublicClientNext.ts:78:79 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/app/PublicClientNext.ts:81:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/app/PublicClientNext.ts:82:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/app/PublicClientNext.ts:66:8 - (tsdoc-undefined-tag) The TSDoc tag "@constructor" is not defined in this configuration
+// src/app/PublicClientNext.ts:75:87 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/app/PublicClientNext.ts:75:60 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/app/PublicClientNext.ts:81:64 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/app/PublicClientNext.ts:81:77 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/app/PublicClientNext.ts:81:90 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/app/PublicClientNext.ts:81:55 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/app/PublicClientNext.ts:81:70 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/app/PublicClientNext.ts:81:79 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/app/PublicClientNext.ts:84:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/app/PublicClientNext.ts:85:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/config/Configuration.ts:231:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
 // src/index.ts:8:4 - (tsdoc-undefined-tag) The TSDoc tag "@module" is not defined in this configuration
