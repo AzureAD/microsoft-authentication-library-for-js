@@ -33,7 +33,7 @@ import {
     DEFAULT_REQUEST,
 } from "../utils/BrowserConstants";
 import { IController } from "./IController";
-import { TeamsAppOperatingContext } from "../operatingcontext/TeamsAppOperatingContext";
+import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext";
 import { IBridgeProxy } from "../naa/IBridgeProxy";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { NestedAppAuthAdapter } from "../naa/mapping/NestedAppAuthAdapter";
@@ -47,7 +47,7 @@ import { ClearCacheRequest } from "../request/ClearCacheRequest";
 
 export class NestedAppAuthController implements IController {
     // OperatingContext
-    protected readonly operatingContext: TeamsAppOperatingContext;
+    protected readonly operatingContext: NestedAppOperatingContext;
 
     // BridgeProxy
     protected readonly bridgeProxy: IBridgeProxy;
@@ -70,7 +70,7 @@ export class NestedAppAuthController implements IController {
     // NestedAppAuthAdapter
     protected readonly nestedAppAuthAdapter: NestedAppAuthAdapter;
 
-    constructor(operatingContext: TeamsAppOperatingContext) {
+    constructor(operatingContext: NestedAppOperatingContext) {
         this.operatingContext = operatingContext;
         const proxy = this.operatingContext.getBridgeProxy();
         if (proxy !== undefined) {
@@ -110,7 +110,7 @@ export class NestedAppAuthController implements IController {
     }
 
     static async createController(
-        operatingContext: TeamsAppOperatingContext
+        operatingContext: NestedAppOperatingContext
     ): Promise<IController> {
         const controller = new NestedAppAuthController(operatingContext);
         return Promise.resolve(controller);

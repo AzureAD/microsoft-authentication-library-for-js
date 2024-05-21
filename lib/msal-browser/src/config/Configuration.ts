@@ -94,7 +94,9 @@ export type BrowserAuthOptions = {
      */
     skipAuthorityMetadataCache?: boolean;
     /**
-     * App supports nested app auth or not; defaults to false
+     * App supports nested app auth or not; defaults to
+     *
+     * @deprecated This flag is deprecated and will be removed in the next major version. createNestablePublicClientApplication should be used instead.
      */
     supportsNestedAppAuth?: boolean;
 };

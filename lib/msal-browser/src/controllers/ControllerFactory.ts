@@ -3,10 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { TeamsAppOperatingContext } from "../operatingcontext/TeamsAppOperatingContext";
+import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 import { IController } from "./IController";
 import { Configuration } from "../config/Configuration";
+import { StandardController } from "./StandardController";
+import { NestedAppAuthController } from "./NestedAppAuthController";
 
 export async function createV3Controller(
     config: Configuration
@@ -14,27 +16,23 @@ export async function createV3Controller(
     const standard = new StandardOperatingContext(config);
 
     await standard.initialize();
-
-    const controller = await import("./StandardController");
-    return controller.StandardController.createController(standard);
+    return StandardController.createController(standard);
 }
 
 export async function createController(
     config: Configuration
 ): Promise<IController | null> {
     const standard = new StandardOperatingContext(config);
-    const teamsApp = new TeamsAppOperatingContext(config);
+    const nestedApp = new NestedAppOperatingContext(config);
 
-    const operatingContexts = [standard.initialize(), teamsApp.initialize()];
+    const operatingContexts = [standard.initialize(), nestedApp.initialize()];
 
     await Promise.all(operatingContexts);
 
-    if (teamsApp.isAvailable()) {
-        const controller = await import("./NestedAppAuthController");
-        return controller.NestedAppAuthController.createController(teamsApp);
+    if (nestedApp.isAvailable() && config.auth.supportsNestedAppAuth) {
+        return NestedAppAuthController.createController(nestedApp);
     } else if (standard.isAvailable()) {
-        const controller = await import("./StandardController");
-        return controller.StandardController.createController(standard);
+        return StandardController.createController(standard);
     } else {
         // Since neither of the actual operating contexts are available keep the UnknownOperatingContextController
         return null;
