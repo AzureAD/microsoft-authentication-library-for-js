@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1716241522564,
+  "lastUpdate": 1716329383231,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8836,6 +8836,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.07%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sameera.gajjarapu@microsoft.com",
+            "name": "Sameera Gajjarapu",
+            "username": "sameerag"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "adaa895b6959b420f305828c8e7ac716a860e91a",
+          "message": "Support CreatePCA pattern for NAA apps (#7112)\n\nThis PR adds two new public APIs:\r\n\r\n* `createNestablePublicClientApplication` and\r\n`createStandardPublicClientApplication` as exportable functions.\r\n* Moving these functions out of PCA class helps us to eventually clean\r\nup and provide a better size output for NAA only apps.\r\n\r\nThe usage pattern still remains the same:\r\n- Create nestedPCA if the OperatingContext matches\r\n- Fall back to standardPCA as default\r\n\r\n`PublicClientNext` will eventually see removal in any NAA support as we\r\nmake changes. We will add notice that `PCANext` will not be following\r\nsemver in the upcoming releases, so we can experiment with the future\r\nchanges using that class once this pattern is adapted.\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-05-21T15:04:14-07:00",
+          "tree_id": "c97c86b59cc33c6c64cb50f4cb3f98ff72519c82",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/adaa895b6959b420f305828c8e7ac716a860e91a"
+        },
+        "date": 1716329382150,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 193208,
+            "range": "±2.08%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 189191,
+            "range": "±2.21%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
