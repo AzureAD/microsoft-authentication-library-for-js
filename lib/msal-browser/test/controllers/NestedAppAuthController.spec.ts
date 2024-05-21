@@ -28,10 +28,6 @@ import {
     SILENT_TOKEN_RESPONSE,
 } from "../naa/BridgeProxyConstants";
 import BridgeProxy from "../../src/naa/BridgeProxy";
-import { StandardController } from "../../src/controllers/StandardController";
-import { NestedAppAuthAdapter } from "../../src/naa/mapping/NestedAppAuthAdapter";
-import { NestedAppOperatingContext } from "../../src/operatingcontext/NestedAppOperatingContext";
-import exp from "constants";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -121,6 +117,8 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             expect(pca).not.toBe(undefined);
             expect(pca).not.toBeNull();
             expect(pca instanceof PublicClientApplication).toBeTruthy();
+            // @ts-ignore
+            expect(pca.controller).toBeInstanceOf(NestedAppAuthController);
             done();
         });
     });
