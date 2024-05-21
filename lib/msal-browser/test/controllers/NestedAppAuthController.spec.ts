@@ -31,6 +31,7 @@ import BridgeProxy from "../../src/naa/BridgeProxy";
 import { StandardController } from "../../src/controllers/StandardController";
 import { NestedAppAuthAdapter } from "../../src/naa/mapping/NestedAppAuthAdapter";
 import { NestedAppOperatingContext } from "../../src/operatingcontext/NestedAppOperatingContext";
+import exp from "constants";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -70,13 +71,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
         );
         bridgeProxy = await BridgeProxy.create();
 
-        sinon
-            .stub(NestedAppOperatingContext.prototype, "getBridgeProxy")
-            .returns(bridgeProxy);
-
-        sinon
-            .stub(NestedAppOperatingContext.prototype, "isAvailable")
-            .returns(true);
+        sinon.stub(BridgeProxy, "create").resolves(bridgeProxy);
 
         config = {
             auth: {
@@ -129,37 +124,3 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             done();
         });
     });
-
-    // describe("acquireToken Silent", () => {
-    //     it("acquireTokenSilent", async () => {
-    //         let tokenRequest: SilentRequest = {
-    //             scopes: ["User.Read"],
-    //         };
-
-    //         mockBridge.addAuthResultResponse(
-    //             "GetTokenPopup",
-    //             SILENT_TOKEN_RESPONSE
-    //         );
-    //         const response = await bridgeProxy.getTokenInteractive(
-    //             SILENT_TOKEN_REQUEST
-    //         );
-
-    //         expect(response).not.toBeNull();
-    //         expect(response.token.access_token).toBe("this.isan.accesstoken");
-
-    //         const naaAdapater = sinon.createStubInstance(NestedAppAuthAdapter);
-    //         const account: AccountInfo = naaAdapater.fromNaaAccountInfo(
-    //             response.account
-    //         );
-
-    //         const request: SilentRequest = {
-    //             ...tokenRequest,
-    //             account,
-    //         };
-
-    //         const response2 = await pca.acquireTokenSilent(request);
-    //         expect(response2).not.toBeNull();
-    //         expect(response2.accessToken).toBe("this.isan.accesstoken");
-    //     });
-    // });
-});
