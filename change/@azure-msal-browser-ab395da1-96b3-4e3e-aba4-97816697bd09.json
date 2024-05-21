@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add additional logging for Nested App Auth initialization errors (#7064)",
-  "packageName": "@azure/msal-browser",
-  "email": "dasau@microsoft.com",
-  "dependentChangeType": "patch"
-}

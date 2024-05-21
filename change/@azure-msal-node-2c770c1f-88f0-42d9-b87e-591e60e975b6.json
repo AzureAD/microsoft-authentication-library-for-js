@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "ClientCredential and OBO acquireToken requests with claims will now skip the cache",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}

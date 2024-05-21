@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Managed Identity: ManagedIdentityTokenResponse's expires_in is now calculated correctly",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}

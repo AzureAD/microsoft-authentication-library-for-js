@@ -10,14 +10,16 @@ import {
 } from "../../test_kit/StringConstants";
 
 import {
-    ManagedIdentityTestUtils,
     userAssignedClientIdConfig,
     managedIdentityRequestParams,
     systemAssignedConfig,
 } from "../../test_kit/ManagedIdentityTestUtils";
 import { AuthenticationResult } from "@azure/msal-common";
 import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient";
-import { ManagedIdentityEnvironmentVariableNames } from "../../../src/utils/Constants";
+import {
+    ManagedIdentityEnvironmentVariableNames,
+    ManagedIdentitySourceNames,
+} from "../../../src/utils/Constants";
 import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
@@ -47,11 +49,12 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
             managedIdentityApplication = new ManagedIdentityApplication(
                 systemAssignedConfig
             );
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.CLOUD_SHELL
+            );
         });
 
         test("acquires a token", async () => {
-            expect(ManagedIdentityTestUtils.isCloudShell()).toBe(true);
-
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams
@@ -64,8 +67,6 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
         });
 
         test("returns an already acquired token from the cache", async () => {
-            expect(ManagedIdentityTestUtils.isCloudShell()).toBe(true);
-
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken({
                     resource: MANAGED_IDENTITY_RESOURCE,
@@ -89,10 +90,11 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
 
     describe("Errors", () => {
         test("throws an error when a user assigned managed identity is used", async () => {
-            expect(ManagedIdentityTestUtils.isCloudShell()).toBe(true);
-
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedClientIdConfig);
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.CLOUD_SHELL
+            );
 
             await expect(
                 managedIdentityApplication.acquireToken(

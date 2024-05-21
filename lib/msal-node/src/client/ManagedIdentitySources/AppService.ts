@@ -43,12 +43,7 @@ export class AppService extends BaseManagedIdentitySource {
         this.identityHeader = identityHeader;
     }
 
-    public static tryCreate(
-        logger: Logger,
-        nodeStorage: NodeStorage,
-        networkClient: INetworkModule,
-        cryptoProvider: CryptoProvider
-    ): AppService | null {
+    public static getEnvironmentVariables(): Array<string | undefined> {
         const identityEndpoint: string | undefined =
             process.env[
                 ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
@@ -57,6 +52,18 @@ export class AppService extends BaseManagedIdentitySource {
             process.env[
                 ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER
             ];
+
+        return [identityEndpoint, identityHeader];
+    }
+
+    public static tryCreate(
+        logger: Logger,
+        nodeStorage: NodeStorage,
+        networkClient: INetworkModule,
+        cryptoProvider: CryptoProvider
+    ): AppService | null {
+        const [identityEndpoint, identityHeader] =
+            AppService.getEnvironmentVariables();
 
         // if either of the identity endpoint or identity header variables are undefined, this MSI provider is unavailable.
         if (!identityEndpoint || !identityHeader) {

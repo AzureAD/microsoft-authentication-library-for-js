@@ -15,7 +15,7 @@ jobs:
     - job: Build
       displayName: "Build MSAL.js"
       pool:
-          vmImage: "ubuntu-latest"
+          vmImage: "windows-latest"
       steps:
           - task: CodeQL3000Init@0
 
@@ -28,13 +28,6 @@ jobs:
             displayName: "Install Dependencies"
             inputs:
                 command: "ci"
-
-          # Required because of https://github.com/npm/cli/issues/4828
-          - task: Npm@1
-            displayName: "Install optional dependencies"
-            inputs:
-                command: "custom"
-                customCommand: "install --no-save @rollup/rollup-linux-x64-gnu @parcel/watcher-linux-x64-glibc"
 
           - task: Npm@1
             displayName: "Build Libraries"

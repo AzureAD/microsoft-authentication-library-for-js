@@ -1,8 +1,34 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Thu, 11 Apr 2024 21:46:57 GMT and should not be manually modified.
+This log was last generated on Mon, 13 May 2024 18:03:26 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.8.1
+
+Mon, 13 May 2024 18:03:26 GMT
+
+### Patches
+
+- Fixed bug where dev-provided certificate was not being attached to client assertion #7088 (rginsburg@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+
+## 2.8.0
+
+Mon, 06 May 2024 23:48:17 GMT
+
+### Minor changes
+
+- Client Assertion Implementation now accepts a callback instead of a string argument (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v14.10.0
+- Bump eslint-config-msal to v0.0.0
+
+### Patches
+
+-  Fixed inconsistencies with cancellationToken (timeout) (rginsburg@microsoft.com)
+- ClientCredential and OBO acquireToken requests with claims will now skip the cache (rginsburg@microsoft.com)
+- Managed Identity: ManagedIdentityTokenResponse's expires_in is now calculated correctly (rginsburg@microsoft.com)
+- Removed Managed Identity Resource URI Validation (rginsburg@microsoft.com)
 
 ## 2.7.0
 

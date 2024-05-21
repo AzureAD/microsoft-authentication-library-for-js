@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Export invoke and invokeAsync functions #7065",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

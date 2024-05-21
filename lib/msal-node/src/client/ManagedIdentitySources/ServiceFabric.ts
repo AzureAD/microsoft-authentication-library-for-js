@@ -43,13 +43,7 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         this.identityHeader = identityHeader;
     }
 
-    public static tryCreate(
-        logger: Logger,
-        nodeStorage: NodeStorage,
-        networkClient: INetworkModule,
-        cryptoProvider: CryptoProvider,
-        managedIdentityId: ManagedIdentityId
-    ): ServiceFabric | null {
+    public static getEnvironmentVariables(): Array<string | undefined> {
         const identityEndpoint: string | undefined =
             process.env[
                 ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
@@ -63,6 +57,19 @@ export class ServiceFabric extends BaseManagedIdentitySource {
                 ManagedIdentityEnvironmentVariableNames
                     .IDENTITY_SERVER_THUMBPRINT
             ];
+
+        return [identityEndpoint, identityHeader, identityServerThumbprint];
+    }
+
+    public static tryCreate(
+        logger: Logger,
+        nodeStorage: NodeStorage,
+        networkClient: INetworkModule,
+        cryptoProvider: CryptoProvider,
+        managedIdentityId: ManagedIdentityId
+    ): ServiceFabric | null {
+        const [identityEndpoint, identityHeader, identityServerThumbprint] =
+            ServiceFabric.getEnvironmentVariables();
 
         /*
          * if either of the identity endpoint, identity header, or identity server thumbprint

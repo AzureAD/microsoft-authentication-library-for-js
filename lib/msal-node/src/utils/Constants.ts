@@ -32,14 +32,20 @@ export type ManagedIdentityEnvironmentVariableNames =
 
 /**
  * Managed Identity Source Names
+ * @public
  */
 export const ManagedIdentitySourceNames = {
-    APP_SERVICE: "App Service",
-    AZURE_ARC: "Azure Arc",
-    CLOUD_SHELL: "Cloud Shell",
-    IMDS: "IMDS",
-    SERVICE_FABRIC: "Service Fabric",
+    APP_SERVICE: "AppService",
+    AZURE_ARC: "AzureArc",
+    CLOUD_SHELL: "CloudShell",
+    DEFAULT_TO_IMDS: "DefaultToImds",
+    IMDS: "Imds",
+    SERVICE_FABRIC: "ServiceFabric",
 } as const;
+/**
+ * The ManagedIdentitySourceNames type
+ * @public
+ */
 export type ManagedIdentitySourceNames =
     (typeof ManagedIdentitySourceNames)[keyof typeof ManagedIdentitySourceNames];
 
