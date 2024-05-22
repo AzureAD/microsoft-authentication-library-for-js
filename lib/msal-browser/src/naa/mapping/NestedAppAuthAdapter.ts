@@ -129,7 +129,7 @@ export class NestedAppAuthAdapter {
             idToken: response.token.id_token,
             idTokenClaims,
             accessToken: response.token.access_token,
-            fromCache: true,
+            fromCache: false,
             expiresOn: expiresOn,
             tokenType:
                 request.authenticationScheme || AuthenticationScheme.BEARER,
