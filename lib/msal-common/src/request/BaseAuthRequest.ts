@@ -7,6 +7,7 @@ import { AuthenticationScheme } from "../utils/Constants";
 import { AzureCloudOptions } from "../config/ClientConfiguration";
 import { StringDict } from "../utils/MsalTypes";
 import { StoreInCache } from "./StoreInCache";
+import { ReqCnfData } from "../crypto/PopTokenGenerator";
 import { ShrOptions } from "../crypto/SignedHttpRequest";
 
 /**
@@ -48,4 +49,5 @@ export type BaseAuthRequest = {
     tokenQueryParameters?: StringDict;
     storeInCache?: StoreInCache;
     scenarioId?: string;
+    reqCnf?: ReqCnfData;
 };

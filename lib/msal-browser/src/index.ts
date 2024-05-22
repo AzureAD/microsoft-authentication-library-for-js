@@ -91,6 +91,9 @@ export {
     SignedHttpRequestOptions,
 } from "./crypto/SignedHttpRequest";
 
+export { base64Encode as Base64Encode } from "./encode/Base64Encode";
+export { base64Decode as Base64Decode } from "./encode/Base64Decode";
+
 export {
     PopupWindowAttributes,
     PopupSize,
