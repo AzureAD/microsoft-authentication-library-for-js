@@ -232,17 +232,17 @@ export class StandardController implements IController {
         // Initialize the browser storage class.
         this.browserStorage = this.isBrowserEnvironment
             ? new BrowserCacheManager(
-                this.config.auth.clientId,
-                this.config.cache,
-                this.browserCrypto,
-                this.logger,
-                buildStaticAuthorityOptions(this.config.auth),
-                this.performanceClient
-            )
+                  this.config.auth.clientId,
+                  this.config.cache,
+                  this.browserCrypto,
+                  this.logger,
+                  buildStaticAuthorityOptions(this.config.auth),
+                  this.performanceClient
+              )
             : DEFAULT_BROWSER_CACHE_MANAGER(
-                this.config.auth.clientId,
-                this.logger
-            );
+                  this.config.auth.clientId,
+                  this.logger
+              );
 
         // initialize in memory storage for native flows
         const nativeCacheOptions: Required<CacheOptions> = {
@@ -418,9 +418,9 @@ export class StandardController implements IController {
         const correlationId = useNative
             ? request?.correlationId
             : this.browserStorage.getTemporaryCache(
-                TemporaryCacheKeys.CORRELATION_ID,
-                true
-            ) || "";
+                  TemporaryCacheKeys.CORRELATION_ID,
+                  true
+              ) || "";
         const rootMeasurement = this.performanceClient.startMeasurement(
             "acquireTokenRedirect",
             correlationId
@@ -1300,7 +1300,12 @@ export class StandardController implements IController {
      * @returns Array of AccountInfo objects in cache
      */
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
-        return AccountManager.getAllAccounts(this.logger, this.browserStorage, this.isBrowserEnvironment, accountFilter);
+        return AccountManager.getAllAccounts(
+            this.logger,
+            this.browserStorage,
+            this.isBrowserEnvironment,
+            accountFilter
+        );
     }
 
     /**
@@ -1309,7 +1314,11 @@ export class StandardController implements IController {
      * @returns The first account found in the cache matching the provided filter or null if no account could be found.
      */
     getAccount(accountFilter: AccountFilter): AccountInfo | null {
-        return AccountManager.getAccount(accountFilter, this.logger, this.browserStorage);
+        return AccountManager.getAccount(
+            accountFilter,
+            this.logger,
+            this.browserStorage
+        );
     }
 
     /**
@@ -1321,7 +1330,11 @@ export class StandardController implements IController {
      * @returns The account object stored in MSAL
      */
     getAccountByUsername(username: string): AccountInfo | null {
-        return AccountManager.getAccountByUsername(username, this.logger, this.browserStorage);
+        return AccountManager.getAccountByUsername(
+            username,
+            this.logger,
+            this.browserStorage
+        );
     }
 
     /**
@@ -1332,7 +1345,11 @@ export class StandardController implements IController {
      * @returns The account object stored in MSAL
      */
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
-        return AccountManager.getAccountByHomeId(homeAccountId, this.logger, this.browserStorage);
+        return AccountManager.getAccountByHomeId(
+            homeAccountId,
+            this.logger,
+            this.browserStorage
+        );
     }
 
     /**
@@ -1343,7 +1360,11 @@ export class StandardController implements IController {
      * @returns The account object stored in MSAL
      */
     getAccountByLocalId(localAccountId: string): AccountInfo | null {
-        return AccountManager.getAccountByLocalId(localAccountId, this.logger, this.browserStorage);
+        return AccountManager.getAccountByLocalId(
+            localAccountId,
+            this.logger,
+            this.browserStorage
+        );
     }
 
     /**
@@ -2173,22 +2194,22 @@ function checkIfRefreshTokenErrorCanBeResolvedSilently(
         refreshTokenError instanceof InteractionRequiredAuthError &&
         // For refresh token errors, bad_token does not always require interaction (silently resolvable)
         refreshTokenError.subError !==
-        InteractionRequiredAuthErrorCodes.badToken
+            InteractionRequiredAuthErrorCodes.badToken
     );
 
     // Errors that result when the refresh token needs to be replaced
     const refreshTokenRefreshRequired =
         refreshTokenError.errorCode === BrowserConstants.INVALID_GRANT_ERROR ||
         refreshTokenError.errorCode ===
-        ClientAuthErrorCodes.tokenRefreshRequired;
+            ClientAuthErrorCodes.tokenRefreshRequired;
 
     // Errors that may be resolved before falling back to interaction (through iframe renewal)
     const isSilentlyResolvable =
         (noInteractionRequired && refreshTokenRefreshRequired) ||
         refreshTokenError.errorCode ===
-        InteractionRequiredAuthErrorCodes.noTokensFound ||
+            InteractionRequiredAuthErrorCodes.noTokensFound ||
         refreshTokenError.errorCode ===
-        InteractionRequiredAuthErrorCodes.refreshTokenExpired;
+            InteractionRequiredAuthErrorCodes.refreshTokenExpired;
 
     // Only these policies allow for an iframe renewal attempt
     const tryIframeRenewal = iFrameRenewalPolicies.includes(cacheLookupPolicy);

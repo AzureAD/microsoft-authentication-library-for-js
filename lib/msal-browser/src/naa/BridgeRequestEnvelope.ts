@@ -5,10 +5,7 @@
 
 import { TokenRequest } from "./TokenRequest";
 
-export type BridgeMethods =
-    | "GetToken"
-    | "GetInitContext"
-    | "GetTokenPopup";
+export type BridgeMethods = "GetToken" | "GetInitContext" | "GetTokenPopup";
 
 export type BridgeRequestEnvelope = {
     messageType: "NestedAppAuthRequest";
