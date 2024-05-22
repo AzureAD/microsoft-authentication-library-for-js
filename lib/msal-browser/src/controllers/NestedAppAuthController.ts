@@ -438,11 +438,9 @@ export class NestedAppAuthController implements IController {
         }
 
         // check if the account is the same as the active account
-        if (currentAccount !== this.getActiveAccount()) {
+        const activeAccount = this.getActiveAccount();
+        if (!(currentAccount === activeAccount)) {
             this.logger.verbose("account mismatch, falling back to the host");
-            const accountEntity =
-                AccountEntity.createFromAccountInfo(currentAccount);
-            await this.browserStorage.removeAccountContext(accountEntity);
             return Promise.resolve(null);
         }
 
