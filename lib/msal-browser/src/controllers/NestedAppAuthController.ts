@@ -425,7 +425,7 @@ export class NestedAppAuthController implements IController {
                 this.logger,
                 this.browserStorage
             );
-            // precedence to account context set by the hub, fall back to request account
+            // always prioritize for hub account context, the reqirement of `request.account` will be removed soon
             currentAccount = hubAccount || request.account;
         }
 
@@ -434,13 +434,6 @@ export class NestedAppAuthController implements IController {
             this.logger.verbose(
                 "No active account found, falling back to the host"
             );
-            return Promise.resolve(null);
-        }
-
-        // check if the account is the same as the active account
-        const activeAccount = this.getActiveAccount();
-        if (!(currentAccount === activeAccount)) {
-            this.logger.verbose("account mismatch, falling back to the host");
             return Promise.resolve(null);
         }
 
