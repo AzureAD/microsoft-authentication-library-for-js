@@ -24,6 +24,11 @@ import {
     StringUtils,
     createClientAuthError,
     OIDC_DEFAULT_SCOPES,
+    AccountInfo,
+    IdTokenEntity,
+    AccessTokenEntity,
+    TenantProfile,
+    buildTenantProfileFromIdTokenClaims,
 } from "@azure/msal-common";
 import { isBridgeError } from "../BridgeError";
 import { BridgeStatusCode } from "../BridgeStatusCode";
@@ -110,6 +115,7 @@ export class NestedAppAuthAdapter {
         );
         const account = this.fromNaaAccountInfo(
             response.account,
+            response.token.id_token,
             idTokenClaims
         );
         const scopes = response.token.scope || request.scope;
@@ -123,7 +129,7 @@ export class NestedAppAuthAdapter {
             idToken: response.token.id_token,
             idTokenClaims,
             accessToken: response.token.access_token,
-            fromCache: true,
+            fromCache: false,
             expiresOn: expiresOn,
             tokenType:
                 request.authenticationScheme || AuthenticationScheme.BEARER,
@@ -159,6 +165,7 @@ export class NestedAppAuthAdapter {
      */
     public fromNaaAccountInfo(
         fromAccount: NaaAccountInfo,
+        idToken?: string,
         idTokenClaims?: TokenClaims
     ): MsalAccountInfo {
         const effectiveIdTokenClaims =
@@ -183,6 +190,14 @@ export class NestedAppAuthAdapter {
 
         const name = fromAccount.name || effectiveIdTokenClaims?.name;
 
+        const tenantProfiles = new Map<string, TenantProfile>();
+
+        const tenantProfile = buildTenantProfileFromIdTokenClaims(
+            homeAccountId,
+            effectiveIdTokenClaims
+        );
+        tenantProfiles.set(tenantId, tenantProfile);
+
         const account: MsalAccountInfo = {
             homeAccountId,
             environment: fromAccount.environment,
@@ -190,8 +205,9 @@ export class NestedAppAuthAdapter {
             username,
             localAccountId,
             name,
-            idToken: fromAccount.idToken,
+            idToken: idToken,
             idTokenClaims: effectiveIdTokenClaims,
+            tenantProfiles,
         };
 
         return account;
@@ -248,5 +264,55 @@ export class NestedAppAuthAdapter {
         } else {
             return new AuthError("unknown_error", "An unknown error occurred");
         }
+    }
+
+    /**
+     * Returns an AuthenticationResult from the given cache items
+     *
+     * @param account
+     * @param idToken
+     * @param accessToken
+     * @param reqTimestamp
+     * @returns
+     */
+    public toAuthenticationResultFromCache(
+        account: AccountInfo,
+        idToken: IdTokenEntity,
+        accessToken: AccessTokenEntity,
+        request: SilentRequest,
+        correlationId: string
+    ): AuthenticationResult {
+        if (!idToken || !accessToken) {
+            throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken);
+        }
+
+        const idTokenClaims = AuthToken.extractTokenClaims(
+            idToken.secret,
+            this.crypto.base64Decode
+        );
+
+        const scopes = accessToken.target || request.scopes.join(" ");
+
+        const authenticationResult: AuthenticationResult = {
+            authority: accessToken.environment || account.environment,
+            uniqueId: account.localAccountId,
+            tenantId: account.tenantId,
+            scopes: scopes.split(" "),
+            account,
+            idToken: idToken.secret,
+            idTokenClaims: idTokenClaims || {},
+            accessToken: accessToken.secret,
+            fromCache: true,
+            expiresOn: new Date(Number(accessToken.expiresOn) * 1000),
+            tokenType:
+                request.authenticationScheme || AuthenticationScheme.BEARER,
+            correlationId,
+            extExpiresOn: new Date(
+                Number(accessToken.extendedExpiresOn) * 1000
+            ),
+            state: request.state,
+        };
+
+        return authenticationResult;
     }
 }
