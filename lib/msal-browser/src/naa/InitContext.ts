@@ -10,5 +10,5 @@ export interface InitContext {
     capabilities?: BridgeCapabilities;
     sdkName: string;
     sdkVersion: string;
-    accountContext: AccountContext;
+    accountContext?: AccountContext;
 }
