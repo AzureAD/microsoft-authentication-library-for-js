@@ -196,12 +196,12 @@ export class BridgeProxy implements IBridgeProxy {
     private constructor(
         sdkName: string,
         sdkVersion: string,
-        accountContext: AccountContext,
+        accountContext?: AccountContext | undefined,
         capabilities?: BridgeCapabilities
     ) {
         this.sdkName = sdkName;
         this.sdkVersion = sdkVersion;
-        this.accountContext = accountContext;
+        this.accountContext = accountContext || undefined;
         this.capabilities = capabilities;
     }
 
@@ -214,7 +214,7 @@ export class BridgeProxy implements IBridgeProxy {
         return new BridgeProxy(
             response.sdkName,
             response.sdkVersion,
-            response.accountContext,
+            response.accountContext || undefined,
             response.capabilities
         );
     }
