@@ -496,7 +496,7 @@ export class NestedAppAuthController implements IController {
             return Promise.resolve(null);
         }
 
-        return this.nestedAppAuthAdapter.fromCachedTokens(
+        return this.nestedAppAuthAdapter.toAuthenticationResultFromCache(
             currentAccount,
             cachedIdToken,
             cachedAccessToken,
