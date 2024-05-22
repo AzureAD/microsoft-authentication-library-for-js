@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1716329383231,
+  "lastUpdate": 1716420391514,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8872,6 +8872,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 189191,
             "range": "±2.21%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sameera.gajjarapu@microsoft.com",
+            "name": "Sameera Gajjarapu",
+            "username": "sameerag"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0db42395be44d5534861880d2c113dd639caf4c7",
+          "message": "Supports caching in NAA apps (#7072)\n\nNAA apps currently always request the bridge for tokens, adding load to\r\nthe host caching hence blocking the deployment on scale. This PR adds\r\nsupport for:\r\n\r\n* Caching NAA app tokens (idToken and accessToken) in the naa app\r\nstorage (based on `cacheConfig`)\r\n* Allows for NAA app to set `initContext` with `accountContext` to look\r\nfor specific account in cache when available.\r\n\r\nMetaOS apps create and delete the NAA apps independent of the session.\r\nHence, we always assume the Bridge will add the account context and only\r\nlook for those tokens. If the account is not found, we always go for the\r\nhub to fetch tokens.\r\n\r\n**Minor additions:**\r\n* AccountManager created to not duplicate account lookup code and make\r\nthem functions (saving size).\r\n* If a token is expired while cache lookup, it is cleaned.\r\n\r\n**Note and TBD:** \r\nSince there is no `logout` and naa app life cycle does not map to\r\nsession life time, cache clean up is not comprehensive. However, this PR\r\nclears the cache when a token is identified as expired. The logout\r\nequivalent cache clearance (if the parent logs out, nested app should\r\nclean up cache) will be handled as a separate use case.\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-05-22T16:21:04-07:00",
+          "tree_id": "c42c9df6eb46834507f741fcb88389462464e5a3",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/0db42395be44d5534861880d2c113dd639caf4c7"
+        },
+        "date": 1716420390182,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 190314,
+            "range": "±2.20%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 186010,
+            "range": "±2.14%",
             "unit": "ops/sec",
             "extra": "223 samples"
           }
