@@ -267,6 +267,7 @@ export class NestedAppAuthAdapter {
     }
 
     /**
+     * Returns an AuthenticationResult from the given cache items
      *
      * @param account
      * @param idToken
@@ -274,7 +275,7 @@ export class NestedAppAuthAdapter {
      * @param reqTimestamp
      * @returns
      */
-    public fromCachedTokens(
+    public toAuthenticationResultFromCache(
         account: AccountInfo,
         idToken: IdTokenEntity,
         accessToken: AccessTokenEntity,
