@@ -25,6 +25,7 @@ export class StandardOperatingContext extends BaseOperatingContext {
     getModuleName(): string {
         return StandardOperatingContext.MODULE_NAME;
     }
+
     /**
      * Returns the unique identifier for this operating context
      * @returns string

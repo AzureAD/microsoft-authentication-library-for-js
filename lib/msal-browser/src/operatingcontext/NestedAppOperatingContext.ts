@@ -6,11 +6,11 @@
 import { BaseOperatingContext } from "./BaseOperatingContext";
 import { IBridgeProxy } from "../naa/IBridgeProxy";
 import { BridgeProxy } from "../naa/BridgeProxy";
-import { AccountInfo } from "../naa/AccountInfo";
+import { AccountContext } from "../naa/BridgeAccountContext";
 
-export class TeamsAppOperatingContext extends BaseOperatingContext {
+export class NestedAppOperatingContext extends BaseOperatingContext {
     protected bridgeProxy: IBridgeProxy | undefined = undefined;
-    protected activeAccount: AccountInfo | undefined = undefined;
+    protected accountContext: AccountContext | null = null;
 
     /*
      * TODO: Once we have determine the bundling code return here to specify the name of the bundle
@@ -21,7 +21,7 @@ export class TeamsAppOperatingContext extends BaseOperatingContext {
     /**
      * Unique identifier for the operating context
      */
-    static readonly ID: string = "TeamsAppOperatingContext";
+    static readonly ID: string = "NestedAppOperatingContext";
 
     /**
      * Return the module name.  Intended for use with import() to enable dynamic import
@@ -29,26 +29,23 @@ export class TeamsAppOperatingContext extends BaseOperatingContext {
      * @returns
      */
     getModuleName(): string {
-        return TeamsAppOperatingContext.MODULE_NAME;
+        return NestedAppOperatingContext.MODULE_NAME;
     }
+
     /**
      * Returns the unique identifier for this operating context
      * @returns string
      */
     getId(): string {
-        return TeamsAppOperatingContext.ID;
+        return NestedAppOperatingContext.ID;
     }
 
+    /**
+     * Returns the current BridgeProxy
+     * @returns IBridgeProxy | undefined
+     */
     getBridgeProxy(): IBridgeProxy | undefined {
         return this.bridgeProxy;
-    }
-
-    getActiveAccount(): AccountInfo | undefined {
-        return this.activeAccount;
-    }
-
-    setActiveAccount(account: AccountInfo): void {
-        this.activeAccount = account;
     }
 
     /**
@@ -62,26 +59,15 @@ export class TeamsAppOperatingContext extends BaseOperatingContext {
          *
          */
 
-        if (!this.getConfig().auth.supportsNestedAppAuth) {
-            return false;
-        }
-
         try {
             if (typeof window !== "undefined") {
                 const bridgeProxy: IBridgeProxy = await BridgeProxy.create();
                 /*
-                 * Because we want single sign on we need to attempt to
-                 * grab the active account as part of initialization
-                 * this.activeAccount = await bridgeProxy.getActiveAccount();
+                 * Because we want single sign on we expect the host app to provide the account context
+                 * with a min set of params that can be used to identify the account
+                 * this.account = nestedApp.getAccountByFilter(bridgeProxy.getAccountContext());
                  */
-                try {
-                    if (bridgeProxy.getHostCapabilities()?.queryAccount) {
-                        this.activeAccount =
-                            await bridgeProxy.getActiveAccount();
-                    }
-                } catch {
-                    // Ignore errors
-                }
+                this.accountContext = bridgeProxy.getAccountContext();
                 this.bridgeProxy = bridgeProxy;
                 this.available = bridgeProxy !== undefined;
             }
