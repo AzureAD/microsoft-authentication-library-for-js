@@ -6,7 +6,7 @@ variables:
         sourceBranch: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
     ${{ if startsWith(variables['Build.SourceBranch'], 'refs/pull/') }}:
         sourceBranch: ${{ replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', '') }}
-    sourceRepo: "msal-javascript-1p"
+    sourceRepo: "microsoft-authentication-library-for-js"
 
 resources:
     repositories:
