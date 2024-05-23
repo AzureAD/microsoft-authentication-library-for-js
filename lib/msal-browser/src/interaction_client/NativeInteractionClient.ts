@@ -132,10 +132,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
         try {
             const silentRequest = this.createSilentCacheRequest(request, account);
             const result = await this.silentCacheClient.acquireToken(silentRequest);
-            
+
             const fullAccount = {
                 ...account,
-                idTokenClaims: result.idTokenClaims as TokenClaims,
+                idTokenClaims: result.idTokenClaims as TokenClaims
             };
             return {
                 ...result, 
