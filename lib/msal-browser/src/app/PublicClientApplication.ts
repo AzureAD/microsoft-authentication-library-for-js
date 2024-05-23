@@ -28,6 +28,8 @@ import { AuthenticationResult } from "../response/AuthenticationResult";
 import { EventCallbackFunction } from "../event/EventMessage";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
+import { NestedAppAuthController } from "../controllers/NestedAppAuthController";
+import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -36,6 +38,7 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 export class PublicClientApplication implements IPublicClientApplication {
     protected controller: IController;
 
+    // creates StandardController and passes it to the PublicClientApplication
     public static async createPublicClientApplication(
         configuration: Configuration
     ): Promise<IPublicClientApplication> {
@@ -70,14 +73,9 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param IController Optional parameter to explictly set the controller. (Will be removed when we remove public constructor)
      */
     public constructor(configuration: Configuration, controller?: IController) {
-        if (controller) {
-            this.controller = controller;
-        } else {
-            const standardOperatingContext = new StandardOperatingContext(
-                configuration
-            );
-            this.controller = new StandardController(standardOperatingContext);
-        }
+        this.controller =
+            controller ||
+            new StandardController(new StandardOperatingContext(configuration));
     }
 
     /**
@@ -416,4 +414,41 @@ export class PublicClientApplication implements IPublicClientApplication {
     clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
         return this.controller.clearCache(logoutRequest);
     }
+}
+
+/**
+ * creates NestedAppAuthController and passes it to the PublicClientApplication,
+ * falls back to StandardController if NestedAppAuthController is not available
+ *
+ * @param configuration
+ * @returns IPublicClientApplication
+ *
+ */
+export async function createNestablePublicClientApplication(
+    configuration: Configuration
+): Promise<IPublicClientApplication> {
+    const nestedAppAuth = new NestedAppOperatingContext(configuration);
+    await nestedAppAuth.initialize();
+
+    if (nestedAppAuth.isAvailable()) {
+        const controller = new NestedAppAuthController(nestedAppAuth);
+        return new PublicClientApplication(configuration, controller);
+    }
+
+    return createStandardPublicClientApplication(configuration);
+}
+
+/**
+ * creates PublicClientApplication using StandardController
+ *
+ * @param configuration
+ * @returns IPublicClientApplication
+ *
+ */
+export async function createStandardPublicClientApplication(
+    configuration: Configuration
+): Promise<IPublicClientApplication> {
+    const pca = new PublicClientApplication(configuration);
+    await pca.initialize();
+    return pca;
 }

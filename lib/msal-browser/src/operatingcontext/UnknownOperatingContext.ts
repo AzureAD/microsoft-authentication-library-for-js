@@ -18,19 +18,20 @@ export class UnknownOperatingContext extends BaseOperatingContext {
     static readonly ID: string = "UnknownOperatingContext";
 
     /**
+     * Returns the unique identifier for this operating context
+     * @returns string
+     */
+    getId(): string {
+        return UnknownOperatingContext.ID;
+    }
+
+    /**
      * Return the module name.  Intended for use with import() to enable dynamic import
      * of the implementation associated with this operating context
      * @returns
      */
     getModuleName(): string {
         return UnknownOperatingContext.MODULE_NAME;
-    }
-    /**
-     * Returns the unique identifier for this operating context
-     * @returns string
-     */
-    getId(): string {
-        return UnknownOperatingContext.ID;
     }
 
     /**

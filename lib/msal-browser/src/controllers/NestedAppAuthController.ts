@@ -13,8 +13,12 @@ import {
     IPerformanceClient,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     PerformanceEvents,
-    AccountFilter,
     TimeUtils,
+    buildStaticAuthorityOptions,
+    AccountEntity,
+    OIDC_DEFAULT_SCOPES,
+    BaseAuthRequest,
+    AccountFilter,
 } from "@azure/msal-common";
 import { ITokenCache } from "../cache/ITokenCache";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -33,7 +37,7 @@ import {
     DEFAULT_REQUEST,
 } from "../utils/BrowserConstants";
 import { IController } from "./IController";
-import { TeamsAppOperatingContext } from "../operatingcontext/TeamsAppOperatingContext";
+import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext";
 import { IBridgeProxy } from "../naa/IBridgeProxy";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { NestedAppAuthAdapter } from "../naa/mapping/NestedAppAuthAdapter";
@@ -42,12 +46,16 @@ import { EventHandler } from "../event/EventHandler";
 import { EventType } from "../event/EventType";
 import { EventCallbackFunction, EventError } from "../event/EventMessage";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
+import {
+    BrowserCacheManager,
+    DEFAULT_BROWSER_CACHE_MANAGER,
+} from "../cache/BrowserCacheManager";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
+import * as AccountManager from "../cache/AccountManager";
 
 export class NestedAppAuthController implements IController {
     // OperatingContext
-    protected readonly operatingContext: TeamsAppOperatingContext;
+    protected readonly operatingContext: NestedAppOperatingContext;
 
     // BridgeProxy
     protected readonly bridgeProxy: IBridgeProxy;
@@ -57,6 +65,9 @@ export class NestedAppAuthController implements IController {
 
     // Input configuration by developer/user
     protected readonly config: BrowserConfiguration;
+
+    // Storage interface implementation
+    protected readonly browserStorage!: BrowserCacheManager;
 
     // Logger
     protected logger: Logger;
@@ -70,7 +81,7 @@ export class NestedAppAuthController implements IController {
     // NestedAppAuthAdapter
     protected readonly nestedAppAuthAdapter: NestedAppAuthAdapter;
 
-    constructor(operatingContext: TeamsAppOperatingContext) {
+    constructor(operatingContext: NestedAppOperatingContext) {
         this.operatingContext = operatingContext;
         const proxy = this.operatingContext.getBridgeProxy();
         if (proxy !== undefined) {
@@ -84,6 +95,7 @@ export class NestedAppAuthController implements IController {
 
         // Initialize logger
         this.logger = this.operatingContext.getLogger();
+
         // Initialize performance client
         this.performanceClient = this.config.telemetry.client;
 
@@ -91,6 +103,20 @@ export class NestedAppAuthController implements IController {
         this.browserCrypto = operatingContext.isBrowserEnvironment()
             ? new CryptoOps(this.logger, this.performanceClient)
             : DEFAULT_CRYPTO_IMPLEMENTATION;
+
+        // Initialize the browser storage class.
+        this.browserStorage = this.operatingContext.isBrowserEnvironment()
+            ? new BrowserCacheManager(
+                  this.config.auth.clientId,
+                  this.config.cache,
+                  this.browserCrypto,
+                  this.logger,
+                  buildStaticAuthorityOptions(this.config.auth)
+              )
+            : DEFAULT_BROWSER_CACHE_MANAGER(
+                  this.config.auth.clientId,
+                  this.logger
+              );
 
         this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
 
@@ -100,27 +126,54 @@ export class NestedAppAuthController implements IController {
             this.browserCrypto,
             this.logger
         );
-    }
-    getBrowserStorage(): BrowserCacheManager {
-        throw NestedAppAuthError.createUnsupportedError();
+
+        // Set the active account if available
+        const accountContext = this.bridgeProxy.getAccountContext();
+        if (accountContext) {
+            const cachedAccount = AccountManager.getAccount(
+                accountContext,
+                this.logger,
+                this.browserStorage
+            );
+
+            AccountManager.setActiveAccount(cachedAccount, this.browserStorage);
+        }
     }
 
+    /**
+     * Returns the event handler instance
+     * @returns EventHandler
+     */
     getEventHandler(): EventHandler {
         return this.eventHandler;
     }
 
+    /**
+     * Factory function to create a new instance of NestedAppAuthController
+     * @param operatingContext
+     * @returns Promise<IController>
+     */
     static async createController(
-        operatingContext: TeamsAppOperatingContext
+        operatingContext: NestedAppOperatingContext
     ): Promise<IController> {
         const controller = new NestedAppAuthController(operatingContext);
         return Promise.resolve(controller);
     }
 
+    /**
+     * Specific implementation of initialize function for NestedAppAuthController
+     * @returns
+     */
     initialize(): Promise<void> {
         // do nothing not required by this controller
         return Promise.resolve();
     }
 
+    /**
+     * Validate the incoming request and add correlationId if not present
+     * @param request
+     * @returns
+     */
     private ensureValidRequest<
         T extends
             | SsoSilentRequest
@@ -137,6 +190,11 @@ export class NestedAppAuthController implements IController {
         };
     }
 
+    /**
+     * Internal implementation of acquireTokenInteractive flow
+     * @param request
+     * @returns
+     */
     private async acquireTokenInteractive(
         request: PopupRequest | RedirectRequest
     ): Promise<AuthenticationResult> {
@@ -169,7 +227,10 @@ export class NestedAppAuthController implements IController {
                     reqTimestamp
                 );
 
-            this.operatingContext.setActiveAccount(result.account);
+            // cache the tokens in the response
+            await this.hydrateCache(result, request);
+
+            this.browserStorage.setActiveAccount(result.account);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
                 InteractionType.Popup,
@@ -207,6 +268,11 @@ export class NestedAppAuthController implements IController {
         }
     }
 
+    /**
+     * Internal implementation of acquireTokenSilent flow
+     * @param request
+     * @returns
+     */
     private async acquireTokenSilentInternal(
         request: SilentRequest
     ): Promise<AuthenticationResult> {
@@ -217,6 +283,19 @@ export class NestedAppAuthController implements IController {
             validRequest
         );
 
+        // Look for tokens in the cache first
+        const result = await this.acquireTokenFromCache(validRequest);
+
+        if (result) {
+            this.eventHandler.emitEvent(
+                EventType.ACQUIRE_TOKEN_SUCCESS,
+                InteractionType.Silent,
+                result
+            );
+            return result;
+        }
+
+        // proceed with acquiring tokens via the host
         const ssoSilentMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.SsoSilent,
             validRequest.correlationId
@@ -243,7 +322,10 @@ export class NestedAppAuthController implements IController {
                     reqTimestamp
                 );
 
-            this.operatingContext.setActiveAccount(result.account);
+            // cache the tokens in the response
+            await this.hydrateCache(result, request);
+
+            this.browserStorage.setActiveAccount(result.account);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
                 InteractionType.Silent,
@@ -276,28 +358,201 @@ export class NestedAppAuthController implements IController {
         }
     }
 
+    /**
+     * acquires tokens from cache
+     * @param request
+     * @returns
+     */
+    private async acquireTokenFromCache(
+        request: SilentRequest
+    ): Promise<AuthenticationResult | null> {
+        const atsMeasurement = this.performanceClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            request.correlationId
+        );
+
+        atsMeasurement?.add({
+            nestedAppAuthRequest: true,
+        });
+
+        const result = await this.acquireTokenFromCacheInternal(request);
+
+        if (result) {
+            this.eventHandler.emitEvent(
+                EventType.ACQUIRE_TOKEN_SUCCESS,
+                InteractionType.Silent,
+                result
+            );
+            atsMeasurement?.add({
+                accessTokenSize: result?.accessToken.length,
+                idTokenSize: result?.idToken.length,
+            });
+            atsMeasurement?.end({
+                success: true,
+            });
+            return result;
+        }
+
+        this.logger.error(
+            "Cached tokens are not found for the account, proceeding with silent token request."
+        );
+
+        this.eventHandler.emitEvent(
+            EventType.ACQUIRE_TOKEN_FAILURE,
+            InteractionType.Silent,
+            null
+        );
+        atsMeasurement?.end({
+            success: false,
+        });
+
+        return null;
+    }
+
+    /**
+     *
+     * @param request
+     * @returns
+     */
+    private async acquireTokenFromCacheInternal(
+        request: SilentRequest
+    ): Promise<AuthenticationResult | null> {
+        const accountContext = this.bridgeProxy.getAccountContext();
+        let currentAccount = null;
+        if (accountContext) {
+            const hubAccount = AccountManager.getAccount(
+                accountContext,
+                this.logger,
+                this.browserStorage
+            );
+            // always prioritize for hub account context, the reqirement of `request.account` will be removed soon
+            currentAccount = hubAccount || request.account;
+        }
+
+        // fall back to brokering if no cached account is found
+        if (!currentAccount) {
+            this.logger.verbose(
+                "No active account found, falling back to the host"
+            );
+            return Promise.resolve(null);
+        }
+
+        this.logger.verbose(
+            "active account found, attempting to acquire token silently"
+        );
+
+        const authRequest: BaseAuthRequest = {
+            ...request,
+            correlationId:
+                request.correlationId || this.browserCrypto.createNewGuid(),
+            authority: request.authority || currentAccount.environment,
+            scopes: request.scopes?.length
+                ? request.scopes
+                : [...OIDC_DEFAULT_SCOPES],
+        };
+
+        // fetch access token and check for expiry
+        const tokenKeys = this.browserStorage.getTokenKeys();
+        const cachedAccessToken = this.browserStorage.getAccessToken(
+            currentAccount,
+            authRequest,
+            tokenKeys,
+            currentAccount.tenantId,
+            this.performanceClient,
+            authRequest.correlationId
+        );
+
+        // If there is no access token, log it and return null
+        if (!cachedAccessToken) {
+            this.logger.verbose("No cached access token found");
+            return Promise.resolve(null);
+            // If access token has expired, remove the token from cache and return null
+        } else if (
+            TimeUtils.wasClockTurnedBack(cachedAccessToken.cachedAt) ||
+            TimeUtils.isTokenExpired(
+                cachedAccessToken.expiresOn,
+                this.config.system.tokenRenewalOffsetSeconds
+            )
+        ) {
+            this.logger.verbose(
+                "Cached access token has expired, deleting all related tokens from cache"
+            );
+            const accountEntity =
+                AccountEntity.createFromAccountInfo(currentAccount);
+            await this.browserStorage.removeAccountContext(accountEntity);
+            return Promise.resolve(null);
+        }
+
+        const cachedIdToken = this.browserStorage.getIdToken(
+            currentAccount,
+            tokenKeys,
+            currentAccount.tenantId,
+            this.performanceClient,
+            authRequest.correlationId
+        );
+
+        if (!cachedIdToken) {
+            this.logger.verbose("No cached id token found");
+            return Promise.resolve(null);
+        }
+
+        return this.nestedAppAuthAdapter.toAuthenticationResultFromCache(
+            currentAccount,
+            cachedIdToken,
+            cachedAccessToken,
+            authRequest,
+            authRequest.correlationId
+        );
+    }
+
+    /**
+     * acquireTokenPopup flow implementation
+     * @param request
+     * @returns
+     */
     async acquireTokenPopup(
         request: PopupRequest
     ): Promise<AuthenticationResult> {
         return this.acquireTokenInteractive(request);
     }
+
+    /**
+     * acquireTokenRedirect flow is not supported in nested app auth
+     * @param request
+     */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         throw NestedAppAuthError.createUnsupportedError();
     }
 
+    /**
+     * acquireTokenSilent flow implementation
+     * @param silentRequest
+     * @returns
+     */
     async acquireTokenSilent(
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
         return this.acquireTokenSilentInternal(silentRequest);
     }
 
+    /**
+     * Hybrid flow is not currently supported in nested app auth
+     * @param request
+     */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     acquireTokenByCode(
         request: AuthorizationCodeRequest // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<AuthenticationResult> {
         throw NestedAppAuthError.createUnsupportedError();
     }
+
+    /**
+     * acquireTokenNative flow is not currently supported in nested app auth
+     * @param request
+     * @param apiId
+     * @param accountId
+     */
     acquireTokenNative(
         request: // eslint-disable-line @typescript-eslint/no-unused-vars
         | SilentRequest
@@ -317,6 +572,12 @@ export class NestedAppAuthController implements IController {
     ): Promise<AuthenticationResult> {
         throw NestedAppAuthError.createUnsupportedError();
     }
+
+    /**
+     * acquireTokenByRefreshToken flow is not currently supported in nested app auth
+     * @param commonRequest
+     * @param silentRequest
+     */
     acquireTokenByRefreshToken(
         commonRequest: CommonSilentFlowRequest, // eslint-disable-line @typescript-eslint/no-unused-vars
         silentRequest: SilentRequest // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -344,77 +605,116 @@ export class NestedAppAuthController implements IController {
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
         throw NestedAppAuthError.createUnsupportedError();
     }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     removePerformanceCallback(callbackId: string): boolean {
         throw NestedAppAuthError.createUnsupportedError();
     }
+
     enableAccountStorageEvents(): void {
         throw NestedAppAuthError.createUnsupportedError();
     }
+
     disableAccountStorageEvents(): void {
         throw NestedAppAuthError.createUnsupportedError();
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // #region Account APIs
+
+    /**
+     * Returns all the accounts in the cache that match the optional filter. If no filter is provided, all accounts are returned.
+     * @param accountFilter - (Optional) filter to narrow down the accounts returned
+     * @returns Array of AccountInfo objects in cache
+     */
+    getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
+        return AccountManager.getAllAccounts(
+            this.logger,
+            this.browserStorage,
+            this.isBrowserEnv(),
+            accountFilter
+        );
+    }
+
+    /**
+     * Returns the first account found in the cache that matches the account filter passed in.
+     * @param accountFilter
+     * @returns The first account found in the cache matching the provided filter or null if no account could be found.
+     */
     getAccount(accountFilter: AccountFilter): AccountInfo | null {
-        throw NestedAppAuthError.createUnsupportedError();
-        // TODO: Look at standard implementation
+        return AccountManager.getAccount(
+            accountFilter,
+            this.logger,
+            this.browserStorage
+        );
     }
 
+    /**
+     * Returns the signed in account matching username.
+     * (the account object is created at the time of successful login)
+     * or null when no matching account is found.
+     * This API is provided for convenience but getAccountById should be used for best reliability
+     * @param username
+     * @returns The account object stored in MSAL
+     */
+    getAccountByUsername(username: string): AccountInfo | null {
+        return AccountManager.getAccountByUsername(
+            username,
+            this.logger,
+            this.browserStorage
+        );
+    }
+
+    /**
+     * Returns the signed in account matching homeAccountId.
+     * (the account object is created at the time of successful login)
+     * or null when no matching account is found
+     * @param homeAccountId
+     * @returns The account object stored in MSAL
+     */
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
-        const currentAccount = this.operatingContext.getActiveAccount();
-        if (currentAccount !== undefined) {
-            if (currentAccount.homeAccountId === homeAccountId) {
-                return this.nestedAppAuthAdapter.fromNaaAccountInfo(
-                    currentAccount
-                );
-            } else {
-                return null;
-            }
-        } else {
-            return null;
-        }
+        return AccountManager.getAccountByHomeId(
+            homeAccountId,
+            this.logger,
+            this.browserStorage
+        );
     }
 
-    getAccountByLocalId(localId: string): AccountInfo | null {
-        const currentAccount = this.operatingContext.getActiveAccount();
-        if (currentAccount !== undefined) {
-            if (currentAccount.localAccountId === localId) {
-                return this.nestedAppAuthAdapter.fromNaaAccountInfo(
-                    currentAccount
-                );
-            } else {
-                return null;
-            }
-        } else {
-            return null;
-        }
+    /**
+     * Returns the signed in account matching localAccountId.
+     * (the account object is created at the time of successful login)
+     * or null when no matching account is found
+     * @param localAccountId
+     * @returns The account object stored in MSAL
+     */
+    getAccountByLocalId(localAccountId: string): AccountInfo | null {
+        return AccountManager.getAccountByLocalId(
+            localAccountId,
+            this.logger,
+            this.browserStorage
+        );
     }
 
-    getAccountByUsername(userName: string): AccountInfo | null {
-        const currentAccount = this.operatingContext.getActiveAccount();
-        if (currentAccount !== undefined) {
-            if (currentAccount.username === userName) {
-                return this.nestedAppAuthAdapter.fromNaaAccountInfo(
-                    currentAccount
-                );
-            } else {
-                return null;
-            }
-        } else {
-            return null;
-        }
+    /**
+     * Sets the account to use as the active account. If no account is passed to the acquireToken APIs, then MSAL will use this active account.
+     * @param account
+     */
+    setActiveAccount(account: AccountInfo | null): void {
+        /*
+         * StandardController uses this to allow the developer to set the active account
+         * in the nested app auth scenario the active account is controlled by the app hosting the nested app
+         */
+        return AccountManager.setActiveAccount(account, this.browserStorage);
     }
-    getAllAccounts(): AccountInfo[] {
-        const currentAccount = this.operatingContext.getActiveAccount();
-        if (currentAccount !== undefined) {
-            return [
-                this.nestedAppAuthAdapter.fromNaaAccountInfo(currentAccount),
-            ];
-        } else {
-            return [];
-        }
+
+    /**
+     * Gets the currently active account
+     */
+    getActiveAccount(): AccountInfo | null {
+        return AccountManager.getActiveAccount(this.browserStorage);
     }
+
+    // #endregion
+
     handleRedirectPromise(
         hash?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<AuthenticationResult | null> {
@@ -478,23 +778,6 @@ export class NestedAppAuthController implements IController {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    setActiveAccount(account: AccountInfo | null): void {
-        /*
-         * StandardController uses this to allow the developer to set the active account
-         * in the nested app auth scenario the active account is controlled by the app hosting the nested app
-         */
-        this.logger.warning("nestedAppAuth does not support setActiveAccount");
-        return;
-    }
-    getActiveAccount(): AccountInfo | null {
-        const currentAccount = this.operatingContext.getActiveAccount();
-        if (currentAccount !== undefined) {
-            return this.nestedAppAuthAdapter.fromNaaAccountInfo(currentAccount);
-        } else {
-            return null;
-        }
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void {
         /*
          * Standard controller uses this to set the sku and version of the wrapper library in the storage
@@ -502,21 +785,26 @@ export class NestedAppAuthController implements IController {
          */
         return;
     }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setNavigationClient(navigationClient: INavigationClient): void {
         this.logger.warning(
             "setNavigationClient is not supported in nested app auth"
         );
     }
+
     getConfiguration(): BrowserConfiguration {
         return this.config;
     }
+
     isBrowserEnv(): boolean {
         return this.operatingContext.isBrowserEnvironment();
     }
+
     getBrowserCrypto(): ICrypto {
         return this.browserCrypto;
     }
+
     getPerformanceClient(): IPerformanceClient {
         throw NestedAppAuthError.createUnsupportedError();
     }
@@ -530,17 +818,22 @@ export class NestedAppAuthController implements IController {
         throw NestedAppAuthError.createUnsupportedError();
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async hydrateCache(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         result: AuthenticationResult,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         request:
             | SilentRequest
             | SsoSilentRequest
             | RedirectRequest
             | PopupRequest
     ): Promise<void> {
-        throw NestedAppAuthError.createUnsupportedError();
+        this.logger.verbose("hydrateCache called");
+
+        const accountEntity = AccountEntity.createFromAccountInfo(
+            result.account,
+            result.cloudGraphHostName,
+            result.msGraphHost
+        );
+        this.browserStorage.setAccount(accountEntity);
+        return this.browserStorage.hydrateCache(result, request);
     }
 }

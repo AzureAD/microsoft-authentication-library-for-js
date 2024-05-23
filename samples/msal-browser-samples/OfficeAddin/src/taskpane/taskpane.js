@@ -1,9 +1,9 @@
-/*
+/**
  * Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
  * See LICENSE in the project root for license information.
  */
 
-import { PublicClientNext } from "@azure/msal-browser";
+import  * as msal from "@azure/msal-browser";
 
 /* global document, Office, Word */
 
@@ -33,10 +33,10 @@ export async function run() {
 // Config object to be passed to Msal on creation
 const msalConfig = {
   auth: {
-      clientId: "a076930c-cfc9-4ebd-9607-7963bccbf666",
-      authority: "https://login.microsoftonline.com/common",
-      supportsNestedAppAuth: true
-  }
+    clientId: "a076930c-cfc9-4ebd-9607-7963bccbf666",
+    authority: "https://login.microsoftonline.com/common",
+    supportsNestedAppAuth: true
+  },
 };
 
 const loginRequest = {
@@ -45,7 +45,7 @@ const loginRequest = {
 
 let pca = undefined;
 
-PublicClientNext.createPublicClientApplication(msalConfig).then((result) => {
+msal.createNestablePublicClientApplication(msalConfig).then((result) => {
   pca = result;
   ssoGetToken();
 });

@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Support cache in NAA apps #7072",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}

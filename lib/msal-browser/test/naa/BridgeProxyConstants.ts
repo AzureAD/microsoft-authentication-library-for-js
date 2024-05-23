@@ -21,6 +21,11 @@ export const INIT_CONTEXT_RESPONSE: InitContext = {
     sdkName: "test",
     sdkVersion: "1.0.0",
     capabilities: { queryAccount: false },
+    accountContext: {
+        homeAccountId: "homeAccountId",
+        environment: "login.microsoftonline.com",
+        tenantId: "tenantId",
+    },
 };
 
 export const POPUP_REQUEST: PopupRequest = {

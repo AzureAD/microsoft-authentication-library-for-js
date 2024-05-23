@@ -217,7 +217,7 @@ describe("BridgeProxy tests", () => {
             ).rejects.toMatchObject(BRIDGE_ERROR_NAA_UNAVAILABLE);
         });
     });
-    describe("get account info tests", () => {
+    describe("get account context tests", () => {
         let bridgeProxy: IBridgeProxy;
         let mockBridge: MockBridge;
 
@@ -241,14 +241,9 @@ describe("BridgeProxy tests", () => {
             expect(bridgeProxy).toBeInstanceOf(BridgeProxy);
         });
 
-        it("get active account", async () => {
-            mockBridge.addAccountResponse(
-                "GetActiveAccount",
-                ACCOUNT_INFO_RESPONSE
-            );
-            const response = await bridgeProxy.getActiveAccount();
-            expect(response.homeAccountId).toEqual(
-                ACCOUNT_INFO_RESPONSE.homeAccountId
+        it("get account context", async () => {
+            expect(bridgeProxy.getAccountContext()).toEqual(
+                INIT_CONTEXT_RESPONSE.accountContext
             );
         });
     });
