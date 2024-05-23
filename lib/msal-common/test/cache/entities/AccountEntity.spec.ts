@@ -13,7 +13,6 @@ import { AuthorityOptions } from "../../../src/authority/AuthorityOptions";
 import { ProtocolMode } from "../../../src/authority/ProtocolMode";
 import { LogLevel, Logger } from "../../../src/logger/Logger";
 import { Authority } from "../../../src/authority/Authority";
-import { ClientAuthError, ClientAuthErrorMessage } from "../../../src/error/ClientAuthError";
 import { AuthorityType } from "../../../src/authority/AuthorityType";
 
 const cryptoInterface: ICrypto = {
@@ -309,7 +308,6 @@ describe("AccountEntity.ts Unit Tests", () => {
             "exp": 1536361411,
             "name": "Abe Lincoln",
             "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-            "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
             "nonce": "123523",
             "upn": "testupn"
         };
@@ -533,7 +531,6 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             "exp": 1536361411,
             "name": "Abe Lincoln",
             "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-            "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
             "nonce": "123523",
             "upn": "testupn"
         };
@@ -581,7 +578,6 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
             "exp": 1536361411,
             "name": "Abe Lincoln",
-            "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
             "nonce": "123523",
             "upn": "testupn"
         };

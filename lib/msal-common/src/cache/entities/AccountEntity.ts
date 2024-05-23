@@ -138,7 +138,6 @@ export class AccountEntity {
         }
 
         account.clientInfo = accountDetails.clientInfo;
-        account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
         account.homeAccountId = accountDetails.homeAccountId;
         account.nativeAccountId = accountDetails.nativeAccountId;
 
@@ -162,10 +161,14 @@ export class AccountEntity {
          * In most cases it will contain a single email. This field should not be relied upon if a custom 
          * policy is configured to return more than 1 email.
          */
-        const preferredUsername = accountDetails.idTokenClaims.preferred_username;
-        const email = (accountDetails.idTokenClaims.emails) ? accountDetails.idTokenClaims.emails[0] : null;
-            
-        account.username = preferredUsername || email || Constants.EMPTY_STRING;
+        if (account.authorityType === CacheAccountType.MSSTS_ACCOUNT_TYPE) {
+            const preferredUsername = accountDetails.idTokenClaims.preferred_username;
+            const email = (accountDetails.idTokenClaims.emails) ? accountDetails.idTokenClaims.emails[0] : null;
+                
+            account.username = preferredUsername || email || "";
+        } else {
+            account.username = accountDetails.idTokenClaims.upn || "";
+        }
         account.name = accountDetails.idTokenClaims.name;
 
         account.cloudGraphHostName = accountDetails.cloudGraphHostName;
