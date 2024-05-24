@@ -524,7 +524,7 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
 
 ## Configurations for Angular 17 apps with standalone components
 
-Angular 17 applications using standalone components can be used with [factory providers](#factory-providers) as above in the `app.config.ts` file, which is then imported into `main.ts` for bootstrapping.
+Angular 17 and 18 applications using standalone components can be used with [factory providers](#factory-providers) as above in the `app.config.ts` file, which is then imported into `main.ts` for bootstrapping.
 
 Please see our [Angular 17 Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular17-standalone-sample) for usage.
 
