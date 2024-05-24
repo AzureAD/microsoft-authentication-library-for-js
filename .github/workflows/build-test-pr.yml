@@ -4,13 +4,7 @@
 name: Run CI
 # Runs CI on Pull Requests for libraries affected by PR
 
-on:
-  pull_request:
-    paths:
-      - 'lib/**/*'
-      - 'extensions/msal-node-extensions/**/*'
-      - '!**.md'
-      - '.github/workflows/build-test-pr.yml'
+on: pull_request
       
 concurrency:
   group: ci-${{github.ref}}
