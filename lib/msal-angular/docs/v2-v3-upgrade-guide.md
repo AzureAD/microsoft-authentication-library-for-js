@@ -1,6 +1,6 @@
 # Upgrading from MSAL Angular v2 to v3
 
-MSAL Angular v3 brings our Angular wrapper up-to-date with the latest version of MSAL common, and with out-of-the-box support for Angular 15, 16, 17, 18 and rxjs 7.
+MSAL Angular v3 brings our Angular wrapper up-to-date with the latest version of MSAL Common, and with out-of-the-box support for Angular 15, 16, 17, 18 and rxjs 7.
 
 This guide will demonstrate changes needed to migrate an existing application from `@azure/msal-angular` v2 to v3.
 
