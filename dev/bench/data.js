@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1716420391514,
+  "lastUpdate": 1716584838224,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8910,6 +8910,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 186010,
             "range": "±2.14%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1ad0936846ba97cdc5a71da153b3b294e6847017",
+          "message": "Angular 18 support changes (#7124)\n\nThis PR:\r\n- Updates MSAL Angular documentation to reflect Angular 18 support\r\n- Updates the `angular18-standalone-sample` to use Angular 18 release\r\nversion",
+          "timestamp": "2024-05-24T14:01:50-07:00",
+          "tree_id": "782ab25d0bdf510159eee7d709bf5003be62b87c",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/1ad0936846ba97cdc5a71da153b3b294e6847017"
+        },
+        "date": 1716584837177,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 190413,
+            "range": "±2.08%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 202428,
+            "range": "±2.06%",
             "unit": "ops/sec",
             "extra": "223 samples"
           }
