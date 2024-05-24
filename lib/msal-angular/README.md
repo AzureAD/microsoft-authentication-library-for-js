@@ -54,6 +54,8 @@ At a minimum, `@azure/msal-angular` will follow the [support schedule of the mai
 
 Before using `@azure/msal-angular`, [register an application in Azure AD](https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app) to get your `clientId`.
 
+For local development, please see the [`contributing.md`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md) file for more information.
+
 ## Installation
 
 The `@azure/msal-angular` package is available on NPM:
@@ -127,17 +129,42 @@ See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tr
 
 ## Build and running tests
 
-If you want to build the library and run all the unit tests, you can do the following.
+See the [`contributing.md`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md) file for more information.
 
-First navigate to the root directory of the library(msal-angular) and install the dependencies:
+### Building the package locally
 
-    npm install
+To build the `@azure/msal-angular` library, you can do the following:
 
-Then use the following command to build the library and run all the unit tests:
+```bash
+// Install dev dependencies from root of repo
+npm install
+// Change to the msal-angular package directory
+cd lib/msal-angular/
+// To run build only for angular package
+npm run build
+```
 
-    npm run build
+To build both the `@azure/msal-angular` library and `@azure/msal-browser` libraries, you can do the following:
 
-    npm run test
+```bash
+// Install dev dependencies from root of repo
+npm install
+// Change to the msal-angular package directory
+cd lib/msal-angular/
+// To run build for angular and browser packages
+npm run build:all
+```
+
+### Running Tests
+
+`@azure/msal-angular` uses [jest](https://jestjs.io/) to run unit tests and coverage.
+
+```bash
+// To run tests
+npm run test
+// To run tests with code coverage
+npm run test:coverage
+```
 
 ## Versioning
 
