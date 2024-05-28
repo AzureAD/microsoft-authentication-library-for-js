@@ -26,6 +26,7 @@
     "@types/express": "^4.17.3",
     "@types/morgan": "^1.9.0",
     "jest": "^27.5.1",
+    "jest-junit": "^16.0.0",
     "ts-jest": "^27.1.4",
     "typescript": "^3.8.3"
   },
