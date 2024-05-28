@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Add API Extractor Build Step #7097",
-  "packageName": "@azure/msal-react",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}

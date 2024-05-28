@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Mon, 06 May 2024 23:48:17 GMT and should not be manually modified.
+This log was last generated on Tue, 28 May 2024 21:37:23 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.0.18
+
+Tue, 28 May 2024 21:37:23 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v3.15.0
+- Bump eslint-config-msal to v0.0.0
 
 ## 3.0.17
 
