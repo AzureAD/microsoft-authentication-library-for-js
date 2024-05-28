@@ -392,17 +392,18 @@ export class AuthorizationCodeClient extends BaseClient {
 
             let reqCnfData = request.reqCnf;
             if (!reqCnfData) {
-                reqCnfData = await invokeAsync(
+                const generatedReqCnfData = await invokeAsync(
                     popTokenGenerator.generateCnf.bind(popTokenGenerator),
                     PerformanceEvents.PopTokenGenerateCnf,
                     this.logger,
                     this.performanceClient,
                     request.correlationId
                 )(request, this.logger);
+                reqCnfData = generatedReqCnfData.reqCnfString;
             }
 
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
-            parameterBuilder.addPopToken(reqCnfData.reqCnfString);
+            parameterBuilder.addPopToken(reqCnfData);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
             if (request.sshJwk) {
                 parameterBuilder.addSshJwk(request.sshJwk);
@@ -690,15 +691,16 @@ export class AuthorizationCodeClient extends BaseClient {
                 // req_cnf is always sent as a string for SPAs
                 let reqCnfData = request.reqCnf;
                 if (!reqCnfData) {
-                    reqCnfData = await invokeAsync(
+                    const generatedReqCnfData = await invokeAsync(
                         popTokenGenerator.generateCnf.bind(popTokenGenerator),
                         PerformanceEvents.PopTokenGenerateCnf,
                         this.logger,
                         this.performanceClient,
                         request.correlationId
                     )(request, this.logger);
+                    reqCnfData = generatedReqCnfData.reqCnfString;
                 }
-                parameterBuilder.addPopToken(reqCnfData.reqCnfString);
+                parameterBuilder.addPopToken(reqCnfData);
             }
         }
 

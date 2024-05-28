@@ -911,7 +911,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 ...request.tokenQueryParameters,
             },
             extendedExpiryToken: false, // Make this configurable?
-            reqCnf: "",
+            reqCnf: request.reqCnf || "",
         };
 
         this.handleExtraBrokerParams(validatedRequest);
@@ -934,18 +934,18 @@ export class NativeInteractionClient extends BaseInteractionClient {
             // generate reqCnf if not provided in the request
             let reqCnfData = request.reqCnf;
             if (!reqCnfData) {
-                reqCnfData = await invokeAsync(
+                const generatedReqCnfData = await invokeAsync(
                     popTokenGenerator.generateCnf.bind(popTokenGenerator),
                     PerformanceEvents.PopTokenGenerateCnf,
                     this.logger,
                     this.performanceClient,
                     request.correlationId
                 )(shrParameters, this.logger);
+                reqCnfData = generatedReqCnfData.reqCnfString;
             }
 
             // SPAs require whole string to be passed to broker
-            validatedRequest.reqCnf = reqCnfData.reqCnfString;
-            validatedRequest.keyId = reqCnfData.kid;
+            validatedRequest.reqCnf = reqCnfData;
         }
 
         return validatedRequest;

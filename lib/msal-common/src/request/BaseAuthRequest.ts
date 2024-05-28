@@ -7,7 +7,6 @@ import { AuthenticationScheme } from "../utils/Constants";
 import { AzureCloudOptions } from "../config/ClientConfiguration";
 import { StringDict } from "../utils/MsalTypes";
 import { StoreInCache } from "./StoreInCache";
-import { ReqCnfData } from "../crypto/PopTokenGenerator";
 import { ShrOptions } from "../crypto/SignedHttpRequest";
 
 /**
@@ -29,6 +28,7 @@ import { ShrOptions } from "../crypto/SignedHttpRequest";
  * - tokenQueryParameters    - String to string map of custom query parameters added to the /token call
  * - storeInCache            - Object containing boolean values indicating whether to store tokens in the cache or not (default is true)
  * - scenarioId              - Scenario id to track custom user prompts
+ * - reqCnf                  - Base64 Encoded public key thumbprint
  */
 export type BaseAuthRequest = {
     authority: string;
@@ -49,5 +49,5 @@ export type BaseAuthRequest = {
     tokenQueryParameters?: StringDict;
     storeInCache?: StoreInCache;
     scenarioId?: string;
-    reqCnf?: ReqCnfData;
+    reqCnf?: string;
 };
