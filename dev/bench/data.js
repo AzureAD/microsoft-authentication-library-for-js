@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1716586598420,
+  "lastUpdate": 1716918121554,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -8986,6 +8986,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 187202,
             "range": "±2.00%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "86619c7c51c99b61b2ae3525fc257c7070452e64",
+          "message": "Update E2E Test Templates (#7103)\n\nThis PR:\r\n- Updates npm scripts in samples used for E2E testing to standardize the\r\ntest:e2e command\r\n- Updates `3p-e2e.yml` and 1`p-e2e.yml` to use the new unified\r\n`e2e-tests.yml` template instead of each package having it's own e2e\r\ntemplate to reduce duplication and pipeline fix overhead\r\n- Adds stage, branch and repo source logic to correctly handle branch\r\nname substitutions for every combination of 1P and 3P builds",
+          "timestamp": "2024-05-28T10:36:35-07:00",
+          "tree_id": "c8daf1d8510c13cab9549a4bad02ddc2e2f5f33d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/86619c7c51c99b61b2ae3525fc257c7070452e64"
+        },
+        "date": 1716918120227,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 193514,
+            "range": "±2.19%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 203401,
+            "range": "±2.18%",
             "unit": "ops/sec",
             "extra": "221 samples"
           }
