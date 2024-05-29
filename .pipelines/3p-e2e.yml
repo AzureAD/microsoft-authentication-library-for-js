@@ -52,15 +52,13 @@ extends:
                         sourceRepo: ${{ variables.sourceRepo }}
                         sourceBranch: ${{ variables.sourceBranch }}
                         workspace: "samples/msal-node-samples"
-                        nodeVersions: [16, 18, 20, 22]
+                        nodeVersions: [14,16,18]
                         samples:
                             - "auth-code"
-                            - "auth-code-cli-app"
                             - "client-credentials"
                             - "device-code"
                             - "silent-flow"
                             - "b2c-user-flows"
-                            # - "on-behalf-of"
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
                         jobName: "validate_msal_react"

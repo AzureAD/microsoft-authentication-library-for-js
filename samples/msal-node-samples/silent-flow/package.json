@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "node index.js",
-    "test": "jest",
+    "test:e2e": "jest",
     "test:agc": "jest --testMatch [ '**/test/**/*agc*.spec.ts' ]",
     "install:local": "npm install ../../../lib/msal-node"
   },
@@ -20,6 +20,7 @@
     "express-promise-router": "^4.0.1"
   },
   "devDependencies": {
-    "jest": "^27.0.4"
+    "jest": "^27.0.4",
+    "jest-junit": "^16.0.0"
   }
 }

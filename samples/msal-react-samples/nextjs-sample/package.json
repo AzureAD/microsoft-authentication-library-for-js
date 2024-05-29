@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "test": "jest",
+    "test:e2e": "jest",
     "build": "next build",
     "build:package": "cd ../../../lib/msal-react && npm run build:all",
     "start": "next start",
@@ -25,6 +25,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "jest": "^27.0.4"
+    "jest": "^27.0.4",
+    "jest-junit": "^16.0.0"
   }
 }

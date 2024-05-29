@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "node index.js",
-    "test": "jest",
+    "test:e2e": "jest",
     "test:agc": "jest --testMatch [ '**/test/**/*agc*.spec.ts' ]",
     "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
     "start:build": "npm run build:package && npm start",
@@ -19,6 +19,7 @@
     "express": "^4.17.1"
   },
   "devDependencies": {
-    "jest": "^27.0.4"
+    "jest": "^27.0.4",
+    "jest-junit": "^16.0.0"
   }
 }
