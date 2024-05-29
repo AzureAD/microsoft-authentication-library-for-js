@@ -60,7 +60,7 @@
         "axios": "^1.6.0",
         "bootstrap": "^5.2.3",
         "electron-squirrel-startup": "^1.0.0",
-        "react": "^18.2.0",
+        "react": "^18.3.0",
         "react-bootstrap": "^2.7.2",
         "react-dom": "^18.2.0",
         "react-router-dom": "^6.9.0"
