@@ -40,6 +40,7 @@
     "jasmine-core": "~4.0.0",
     "jasmine-spec-reporter": "^7.0.0",
     "jest": "^27.5.1",
+    "jest-junit": "^16.0.0",
     "karma": "~6.3.0",
     "karma-chrome-launcher": "~3.1.0",
     "karma-coverage": "~2.1.0",
