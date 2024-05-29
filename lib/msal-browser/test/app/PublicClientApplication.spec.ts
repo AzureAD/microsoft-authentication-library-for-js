@@ -1754,6 +1754,150 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(loginFailureEmitted).toBe(true);
             });
         });
+
+        it("emits error performance event", (done) => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowNativeBroker: true,
+                },
+            };
+
+            stubProvider(config);
+            pca = new PublicClientApplication({
+                ...config,
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            pca.initialize().then(() => {
+                //Implementation of PCA was moved to controller.
+                pca = (pca as any).controller;
+
+                const callbackId = pca.addPerformanceCallback((events) => {
+                    expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
+                    expect(events[0].success).toBe(false);
+                    expect(events[0].name).toBe(
+                        PerformanceEvents.AcquireTokenPreRedirect
+                    );
+                    expect(events[0].errorCode).toBe("test error code");
+                    pca.removePerformanceCallback(callbackId);
+                    done();
+                });
+
+                const testAccount: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    username: "AbeLi@microsoft.com",
+                    nativeAccountId: "test-nativeAccountId",
+                };
+
+                sinon
+                    .stub(RedirectClient.prototype, "acquireToken")
+                    .throws(
+                        new AuthError("test error code", "test error message")
+                    );
+                pca.acquireTokenRedirect({
+                    correlationId: RANDOM_TEST_GUID,
+                    scopes: ["User.Read"],
+                    account: testAccount,
+                    prompt: "select_account",
+                }).catch((e) => {});
+            });
+        });
+
+        it("emits pre-redirect telemetry event when onRedirectNavigate callback is set", (done) => {
+            const onRedirectNavigate = (url: string) => {
+                expect(url).toBeDefined();
+            };
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].name).toBe(
+                    PerformanceEvents.AcquireTokenPreRedirect
+                );
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            sinon
+                .stub(NavigationClient.prototype, "navigateExternal")
+                .callsFake(() => Promise.resolve(true));
+
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            const loginRequest: RedirectRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read", "openid", "profile"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                onRedirectNavigate,
+            };
+            pca.acquireTokenRedirect(loginRequest);
+        });
+
+        it("emits pre-redirect telemetry event when onRedirectNavigate callback is not set", (done) => {
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].name).toBe(
+                    PerformanceEvents.AcquireTokenPreRedirect
+                );
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            sinon
+                .stub(NavigationClient.prototype, "navigateExternal")
+                .callsFake(() => Promise.resolve(true));
+
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            const loginRequest: RedirectRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read", "openid", "profile"],
+                state: TEST_STATE_VALUES.USER_STATE,
+            };
+            pca.acquireTokenRedirect(loginRequest);
+        });
+
+        it("discard pre-redirect telemetry event when onRedirectNavigate callback returns false", async () => {
+            const onRedirectNavigate = (url: string) => {
+                return false;
+            };
+
+            const measurementDiscardSpy = sinon.spy(
+                PerformanceClient.prototype,
+                "discardMeasurements"
+            );
+
+            sinon
+                .stub(NavigationClient.prototype, "navigateExternal")
+                .callsFake(() => Promise.resolve(true));
+
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            const loginRequest: RedirectRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read", "openid", "profile"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                onRedirectNavigate,
+            };
+            await pca.acquireTokenRedirect(loginRequest);
+            expect(measurementDiscardSpy.calledOnce).toBeTruthy();
+        });
     });
 
     describe("loginPopup", () => {
