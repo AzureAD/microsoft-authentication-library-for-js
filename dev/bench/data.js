@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1717002331498,
+  "lastUpdate": 1717016448687,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -9100,6 +9100,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.60%",
             "unit": "ops/sec",
             "extra": "205 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "159d9da3a94293dc1c26a039f375586680f50fd4",
+          "message": "Add debug variables parameter to 1p-e2e pipeline (#7131)\n\nAdds a parameter that adds a step that prints certain key configuration\r\nvariables for debugging purposes",
+          "timestamp": "2024-05-29T13:55:12-07:00",
+          "tree_id": "de80136a8c28945e882ad7b168fcb510e3a068e4",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/159d9da3a94293dc1c26a039f375586680f50fd4"
+        },
+        "date": 1717016447662,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 189934,
+            "range": "±2.10%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 223786,
+            "range": "±0.64%",
+            "unit": "ops/sec",
+            "extra": "238 samples"
           }
         ]
       }
