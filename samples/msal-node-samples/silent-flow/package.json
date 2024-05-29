@@ -8,6 +8,7 @@
     "start": "node index.js",
     "test:e2e": "jest",
     "test:agc": "jest --testMatch [ '**/test/**/*agc*.spec.ts' ]",
+    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
     "install:local": "npm install ../../../lib/msal-node"
   },
   "author": "Microsoft",
