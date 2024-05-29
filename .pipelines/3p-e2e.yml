@@ -83,6 +83,7 @@ extends:
                         sourceRepo: ${{ variables.sourceRepo }}
                         sourceBranch: ${{ variables.sourceBranch }}
                         workspace: "samples/msal-angular-v2-samples"
+                        nodeVersions: [16] # Issues with source-map on later versions
                         samples:
                             - 'angular10-sample-app'
                             - 'angular11-sample-app'
