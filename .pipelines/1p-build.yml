@@ -59,4 +59,3 @@ extends:
                     parameters:
                         libName: msal-node-extensions
                         path: "extensions/"
-                        os: ["linux", "windows", "macOs"]
