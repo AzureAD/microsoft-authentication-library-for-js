@@ -1871,7 +1871,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.acquireTokenRedirect(loginRequest);
         });
 
-        it("discard pre-redirect telemetry event when onRedirectNavigate callback returns false", async () => {
+        it("discards pre-redirect telemetry event when onRedirectNavigate callback returns false", async () => {
             const onRedirectNavigate = (url: string) => {
                 return false;
             };
@@ -1897,6 +1897,35 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             await pca.acquireTokenRedirect(loginRequest);
             expect(measurementDiscardSpy.calledOnce).toBeTruthy();
+        });
+
+        it("instruments initialization error", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(false);
+                expect(events[0].errorCode).toBe(
+                    "uninitialized_public_client_application"
+                );
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            pca.acquireTokenRedirect({ scopes: [] })
+                .then(() => {
+                    throw new Error("success path should not be reached");
+                })
+                .catch((e) => {});
         });
     });
 
