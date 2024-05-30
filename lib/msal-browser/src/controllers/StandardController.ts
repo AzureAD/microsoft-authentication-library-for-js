@@ -591,12 +591,12 @@ export class StandardController implements IController {
             return navigate;
         };
 
+        // If logged in, emit acquire token events
+        const isLoggedIn = this.getAllAccounts().length > 0;
         try {
             BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
             this.browserStorage.setInteractionInProgress(true);
 
-            // If logged in, emit acquire token events
-            const isLoggedIn = this.getAllAccounts().length > 0;
             if (isLoggedIn) {
                 this.eventHandler.emitEvent(
                     EventType.ACQUIRE_TOKEN_START,
@@ -655,27 +655,24 @@ export class StandardController implements IController {
                 result = redirectClient.acquireToken(request);
             }
 
-            return await result.catch((e) => {
-                // If logged in, emit acquire token events
-                if (isLoggedIn) {
-                    this.eventHandler.emitEvent(
-                        EventType.ACQUIRE_TOKEN_FAILURE,
-                        InteractionType.Redirect,
-                        null,
-                        e
-                    );
-                } else {
-                    this.eventHandler.emitEvent(
-                        EventType.LOGIN_FAILURE,
-                        InteractionType.Redirect,
-                        null,
-                        e
-                    );
-                }
-                throw e;
-            });
+            return await result;
         } catch (e) {
             atrMeasurement.end({ success: false }, e);
+            if (isLoggedIn) {
+                this.eventHandler.emitEvent(
+                    EventType.ACQUIRE_TOKEN_FAILURE,
+                    InteractionType.Redirect,
+                    null,
+                    e as EventError
+                );
+            } else {
+                this.eventHandler.emitEvent(
+                    EventType.LOGIN_FAILURE,
+                    InteractionType.Redirect,
+                    null,
+                    e as EventError
+                );
+            }
             throw e;
         }
     }
