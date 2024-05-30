@@ -1,10 +1,15 @@
 import * as fs from "fs";
-import{ Page, HTTPResponse } from "puppeteer";
+import{ Page, HTTPResponse, WaitForOptions } from "puppeteer";
 import { LabConfig } from "./LabConfig";
 import { LabClient } from "./LabClient";
 
 export const ONE_SECOND_IN_MS = 1000;
 export const RETRY_TIMES = 5;
+export const SAMPLE_HOME_URL = "http://localhost";
+
+const WAIT_FOR_NAVIGATION_CONFIG: WaitForOptions = {
+    waitUntil: ["load", "domcontentloaded", "networkidle0"],
+};
 
 export class Screenshot {
     private folderName: string;
@@ -107,56 +112,83 @@ export async function setupCredentials(labConfig: LabConfig, labClient: LabClien
     return [username, accountPwd];
 }
 
-export async function enterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
-    try {
-        await page.waitForNavigation({ waitUntil: "networkidle0", timeout: 10000});
-        await page.waitForSelector("input#i0116.input.text-box");
-    } catch (e) {
-        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
-        throw e;
-    };
-    await page.type("input#i0116.input.text-box", username);
-    await page.waitForSelector("input#idSIButton9");
-    await screenshot.takeScreenshot(page, "loginPage");
+export async function enterCredentials(
+    page: Page,
+    screenshot: Screenshot,
+    username: string,
+    accountPwd: string
+): Promise<void> {
     await Promise.all([
-        page.waitForNavigation({ waitUntil: "networkidle0" }),
-        page.click("input#idSIButton9")
+        page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {}), // Wait for navigation but don't throw due to timeout
+        page.waitForSelector("#i0116"),
+        page.waitForSelector("#idSIButton9"),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
-    await page.waitForSelector("#idA_PWD_ForgotPassword");
-    await page.waitForSelector("input#i0118.input.text-box");
-    await page.waitForSelector("input#idSIButton9");
-    await screenshot.takeScreenshot(page, "pwdInputPage");
-    await page.type("input#i0118.input.text-box", accountPwd);
+    await screenshot.takeScreenshot(page, "loginPage");
+    await page.type("#i0116", username);
+    await screenshot.takeScreenshot(page, "loginPageUsernameFilled");
     await Promise.all([
-        page.click("input#idSIButton9"),
+        page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
+        page.click("#idSIButton9"),
+    ]).catch(async (e) => {
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+        throw e;
+    });
+
+    await page.waitForSelector("#idA_PWD_ForgotPassword");
+    await page.waitForSelector("#i0118");
+    await page.waitForSelector("#idSIButton9");
+    await screenshot.takeScreenshot(page, "pwdInputPage");
+    await page.type("#i0118", accountPwd);
+    await screenshot.takeScreenshot(page, "loginPagePasswordFilled");
+    await Promise.all([
+        page.click("#idSIButton9"),
 
         // Wait either for another navigation to Keep me signed in page or back to redirectUri
         Promise.race([
-            page.waitForNavigation({ waitUntil: "networkidle0" }),
-            page.waitForResponse((response: HTTPResponse) => response.url().startsWith("http://localhost"), { timeout: 0 })
-        ])
+            page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
+            page.waitForResponse(
+                (response: HTTPResponse) =>
+                    response.url().startsWith(SAMPLE_HOME_URL),
+                { timeout: 0 }
+            ),
+        ]),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
 
-    if (page.url().startsWith("http://localhost")) {
+    if (page.url().startsWith(SAMPLE_HOME_URL)) {
         return;
     }
+    await screenshot.takeScreenshot(page, "passwordSubmitted");
 
-    await page.waitForSelector('input#KmsiCheckboxField', {timeout: 1000});
-    await page.waitForSelector("input#idSIButton9");
-    await screenshot.takeScreenshot(page, "kmsiPage");
-    await Promise.all([
-        page.waitForResponse((response: HTTPResponse) => response.url().startsWith("http://localhost")),
-        page.click('input#idSIButton9')
-    ]).catch(async (e) => {
-        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
-        throw e;
-    });
+    // keep me signed in page
+    try {
+        const aadKmsi = page
+            .waitForSelector("#idSIButton9", { timeout: 1000 })
+            .then(() => {
+                return "#idSIButton9";
+            });
+        const msaKmsi = page
+            .waitForSelector("#kmsiTitle", { timeout: 1000 })
+            .then(() => {
+                return "#acceptButton";
+            });
+        const buttonTag = await Promise.race([aadKmsi, msaKmsi]);
+        await screenshot.takeScreenshot(page, "keepMeSignedInPage");
+        await Promise.all([
+            page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
+            page.click(buttonTag),
+        ]).catch(async (e) => {
+            await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+            throw e;
+        });
+    } catch (e) {
+        return;
+    }
 }
 
 export async function b2cLocalAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string) {

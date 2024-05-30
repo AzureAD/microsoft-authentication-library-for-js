@@ -1,53 +1,61 @@
-trigger: none # Disable push triggers
+variables:
+    CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
+    LinuxContainerImage: "mcr.microsoft.com/onebranch/cbl-mariner/build:2.0" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
+    WindowsContainerImage: "onebranch.azurecr.io/windows/ltsc2019/vse2022:latest" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
+    DEBIAN_FRONTEND: noninteractive
+    ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}:
+        sourceBranchName: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
+    ${{ if startsWith(variables['Build.SourceBranch'], 'refs/pull/') }}:
+        sourceBranchName: ${{ replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', '') }}
 
-pr:
-- msal-lts
+resources:
+    repositories:
+        - repository: templates
+          type: git
+          name: OneBranch.Pipelines/GovernedTemplates
+          ref: refs/heads/main
+        - repository: 1P
+          type: git
+          name: IDDP/msal-javascript-1p
+          ref: msal-lts
 
-jobs:
-  - job: Build_1P
-    displayName: 'Build with 1P library'
-    pool:
-      vmImage: 'ubuntu-latest'
-    steps:
-      - task: NodeTool@0
-        displayName: 'Install Node.js'
-        inputs:
-          versionSpec: '16.x'
-          
-      - checkout: git://IDDP/msal-javascript-1p@msal-lts
-      - script: |
-          npm run submodule:init
-        displayName: Initialize submodule
-      
-      - script: |
-          cd ./microsoft-authentication-library-for-js
-          git checkout $(System.PullRequest.SourceBranch)
-          git pull
-        displayName: 'Pull latest changes from 3P feature branch'
-
-      - task: npmAuthenticate@0
-        displayName: 'Authenticate to npm package registry'
-        inputs:
-          workingFile: ./.npmrc
-
-      - task: npmAuthenticate@0
-        displayName: 'Authenticate to npm package registry'
-        inputs:
-          workingFile: ./1ds.npmrc
-
-      - task: Npm@1
-        inputs:
-          command: 'ci'
-        displayName: 'Install Dependencies'
-
-      - task: Npm@1
-        inputs:
-          command: 'custom'
-          customCommand: 'run build'
-        displayName: 'Build Msal-Browser-1p'
-
-      - task: Npm@1
-        inputs:
-          command: 'custom'
-          customCommand: 'run test --workspace=msal-browser-1p'
-        displayName: 'Test Msal-Browser-1P'
+extends:
+    template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
+    parameters:
+        globalSdl:
+            policheck:
+                break: true
+        stages:
+            - stage: build_and_test
+              displayName: "MSAL JS Build and Test"
+              variables:
+                  Codeql.Enabled: true
+              jobs:
+                  - template: .pipelines/templates/ci-template.yml@1P
+                    parameters:
+                        libName: msal-common
+                        path: "lib/"
+                  - template: .pipelines/templates/ci-template.yml@1P
+                    parameters:
+                        libName: msal-browser
+                        path: "lib/"
+                  - template: .pipelines/templates/ci-template.yml@1P
+                    parameters:
+                        libName: msal-browser-1p
+                        subdirectory: ""
+                  - template: .pipelines/templates/ci-template.yml@1P
+                    parameters:
+                        libName: msal-node
+                        path: "lib/"
+                  - template: .pipelines/templates/ci-template.yml@1P
+                    parameters:
+                        libName: msal-react
+                        path: "lib/"
+                  - template: .pipelines/templates/ci-template.yml@1P
+                    parameters:
+                        libName: msal-angular
+                        path: "lib/"
+                  - template: .pipelines/templates/ci-template.yml@1P
+                    parameters:
+                        libName: msal-node-extensions
+                        path: "extensions/"

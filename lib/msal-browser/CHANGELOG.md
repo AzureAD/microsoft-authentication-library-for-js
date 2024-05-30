@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Thu, 26 Oct 2023 20:13:24 GMT and should not be manually modified.
+This log was last generated on Tue, 26 Mar 2024 20:58:39 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.38.4
+
+Tue, 26 Mar 2024 20:58:39 GMT
+
+### Patches
+
+- Add classname to silent token renewal iframe HTML element #6960 (lalimasharda@microsoft.com)
 
 ## 2.38.3
 
