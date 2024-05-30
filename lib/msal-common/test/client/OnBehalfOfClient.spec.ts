@@ -246,7 +246,12 @@ describe("OnBehalfOf unit tests", () => {
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new OnBehalfOfClient(config);
             const idToken: AuthToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, config.cryptoInterface!);
-            const expectedAccountEntity: AccountEntity = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, "123-test-uid.456-test-uid", idToken, config.authOptions.authority);
+            const expectedAccountEntity: AccountEntity = AccountEntity.createAccount({
+                    homeAccountId: "123-test-uid.456-test-uid",
+                    idTokenClaims: idToken.claims,
+                },
+                config.authOptions.authority
+            );
 
             sinon.stub(CacheManager.prototype, <any>"readAccountFromCache").returns(expectedAccountEntity);
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);

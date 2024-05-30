@@ -1943,6 +1943,7 @@ describe("RedirectClient", () => {
             };
 
             const testAccountInfo: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
@@ -2046,6 +2047,7 @@ describe("RedirectClient", () => {
 
         it("doesnt navigate if onRedirectNavigate returns false (specific account)", (done) => {
             const testAccountInfo: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
@@ -2123,6 +2125,7 @@ describe("RedirectClient", () => {
 
         it("does navigate if onRedirectNavigate returns true (specific account)", (done) => {
             const testAccountInfo: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
@@ -2214,6 +2217,7 @@ describe("RedirectClient", () => {
             };
 
             const testAccountInfo: AccountInfo = {
+                authorityType: "MSSTS",
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",

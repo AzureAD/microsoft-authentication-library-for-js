@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccessTokenEntity, ICrypto, IdTokenEntity, Logger, ScopeSet, Authority, AuthorityOptions, ExternalTokenResponse, AccountEntity, AuthToken, RefreshTokenEntity , AuthorityType, CacheRecord, AuthenticationResult, Constants } from "@azure/msal-common";
+import { AccessTokenEntity, ICrypto, IdTokenEntity, Logger, ScopeSet, Authority, AuthorityOptions, ExternalTokenResponse, AccountEntity, AuthToken, RefreshTokenEntity, CacheRecord, AuthenticationResult, Constants } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { SilentRequest } from "../request/SilentRequest";
 import { BrowserCacheManager } from "./BrowserCacheManager";
@@ -57,11 +57,12 @@ export class TokenCache implements ITokenCache {
 
         const idToken = new AuthToken(response.id_token, this.cryptoObj);
 
-        let cacheRecord: CacheRecord | undefined;
+        let cacheRecord: CacheRecord;
         let authority: Authority | undefined;
+        let cacheRecordAccount: AccountEntity;
 
         if (request.account) {
-            const cacheRecordAccount = this.loadAccount(idToken, request.account.environment, undefined, undefined, request.account.homeAccountId);
+            cacheRecordAccount = AccountEntity.createFromAccountInfo(request.account);
             cacheRecord = new CacheRecord(
                 cacheRecordAccount,
                 this.loadIdToken(idToken, cacheRecordAccount.homeAccountId, request.account.environment, request.account.tenantId),
@@ -83,7 +84,11 @@ export class TokenCache implements ITokenCache {
             // "clientInfo" from options takes precedence over "clientInfo" in response
             if (options.clientInfo) {
                 this.logger.trace("TokenCache - homeAccountId from options");
-                const cacheRecordAccount = this.loadAccount(idToken, authority.hostnameAndPort, options.clientInfo, authority.authorityType);
+                cacheRecordAccount = this.loadAccount(
+                    idToken,
+                    authority,
+                    options.clientInfo
+                );
                 cacheRecord = new CacheRecord(
                     cacheRecordAccount,
                     this.loadIdToken(idToken, cacheRecordAccount.homeAccountId, authority.hostnameAndPort, authority.tenant),
@@ -92,7 +97,7 @@ export class TokenCache implements ITokenCache {
                 );
             } else if (response.client_info) {
                 this.logger.trace("TokenCache - homeAccountId from response");
-                const cacheRecordAccount = this.loadAccount(idToken, authority.hostnameAndPort, response.client_info, authority.authorityType);
+                cacheRecordAccount = this.loadAccount(idToken, authority, response.client_info);
                 cacheRecord = new CacheRecord(
                     cacheRecordAccount,
                     this.loadIdToken(idToken, cacheRecordAccount.homeAccountId, authority.hostnameAndPort, authority.tenant),
@@ -106,7 +111,7 @@ export class TokenCache implements ITokenCache {
             throw BrowserAuthError.createUnableToLoadTokenError("Please provide a request with an account or a request with authority.");
         }
 
-        return this.generateAuthenticationResult(request, idToken, cacheRecord, authority);
+        return this.generateAuthenticationResult(request, idToken, cacheRecord, cacheRecordAccount, authority);
     }
 
     /**
@@ -118,22 +123,20 @@ export class TokenCache implements ITokenCache {
      * @param requestHomeAccountId
      * @returns `AccountEntity`
      */
-    private loadAccount(idToken: AuthToken, environment: string, clientInfo?: string, authorityType?: AuthorityType, requestHomeAccountId?: string): AccountEntity {
+    private loadAccount(idToken: AuthToken, authority: Authority, clientInfo?: string, requestHomeAccountId?: string): AccountEntity {
 
         let homeAccountId;
         if (requestHomeAccountId) {
             homeAccountId = requestHomeAccountId;
-        } else if (authorityType !== undefined && clientInfo) {
-            homeAccountId = AccountEntity.generateHomeAccountId(clientInfo, authorityType, this.logger, this.cryptoObj, idToken);
+        } else if (authority.authorityType !== undefined && clientInfo) {
+            homeAccountId = AccountEntity.generateHomeAccountId(clientInfo, authority.authorityType, this.logger, this.cryptoObj, idToken.claims);
         }
 
         if (!homeAccountId) {
             throw BrowserAuthError.createUnableToLoadTokenError("Unexpected missing homeAccountId");
         }
 
-        const accountEntity = clientInfo ?
-            AccountEntity.createAccount(clientInfo, homeAccountId, idToken, undefined, undefined, undefined, environment) :
-            AccountEntity.createGenericAccount(homeAccountId, idToken, undefined, undefined, undefined, environment);
+        const accountEntity = AccountEntity.createAccount({homeAccountId, idTokenClaims: idToken.claims, clientInfo, environment: authority.hostnameAndPort}, authority);
 
         if (this.isBrowserEnvironment) {
             this.logger.verbose("TokenCache - loading account");
@@ -236,13 +239,15 @@ export class TokenCache implements ITokenCache {
      * @param request
      * @param idTokenObj
      * @param cacheRecord
+     * @param accountEntity
      * @param authority
      * @returns `AuthenticationResult`
      */
     private generateAuthenticationResult(
         request: SilentRequest,
         idTokenObj: AuthToken,
-        cacheRecord?: CacheRecord,
+        cacheRecord: CacheRecord,
+        accountEntity: AccountEntity,
         authority?: Authority,
     ): AuthenticationResult {
         let accessToken: string = Constants.EMPTY_STRING;
@@ -250,7 +255,7 @@ export class TokenCache implements ITokenCache {
         let expiresOn: Date | null = null;
         let extExpiresOn: Date | undefined;
 
-        if (cacheRecord?.accessToken) {
+        if (cacheRecord.accessToken) {
             accessToken = cacheRecord.accessToken.secret;
             responseScopes = ScopeSet.fromString(cacheRecord.accessToken.target).asArray();
             expiresOn = new Date(Number(cacheRecord.accessToken.expiresOn) * 1000);
@@ -265,7 +270,7 @@ export class TokenCache implements ITokenCache {
             uniqueId: uid,
             tenantId: tid,
             scopes: responseScopes,
-            account: cacheRecord?.account ? cacheRecord.account.getAccountInfo() : null,
+            account: accountEntity ? accountEntity.getAccountInfo() : null,
             idToken: idTokenObj ? idTokenObj.rawToken : Constants.EMPTY_STRING,
             idTokenClaims: idTokenObj ? idTokenObj.claims : {},
             accessToken: accessToken,
@@ -277,8 +282,8 @@ export class TokenCache implements ITokenCache {
             familyId: Constants.EMPTY_STRING,
             tokenType: cacheRecord?.accessToken?.tokenType || Constants.EMPTY_STRING,
             state: Constants.EMPTY_STRING,
-            cloudGraphHostName: cacheRecord?.account?.cloudGraphHostName || Constants.EMPTY_STRING,
-            msGraphHost: cacheRecord?.account?.msGraphHost || Constants.EMPTY_STRING,
+            cloudGraphHostName: accountEntity.cloudGraphHostName || Constants.EMPTY_STRING,
+            msGraphHost: accountEntity.msGraphHost || Constants.EMPTY_STRING,
             code: undefined,
             fromNativeBroker: false
         };

@@ -60,7 +60,6 @@ describe("CacheManager.ts test cases", () => {
         ac.localAccountId = "object1234";
         ac.username = "Jane Goodman";
         ac.authorityType = "MSSTS";
-        ac.clientInfo = "eyJ1aWQiOiJzb21lVWlkIiwgInV0aWQiOiJzb21lVXRpZCJ9";
 
         const accountKey = ac.generateAccountKey();
         const cacheRecord = new CacheRecord();
@@ -149,7 +148,6 @@ describe("CacheManager.ts test cases", () => {
         ac.localAccountId = "object1234";
         ac.username = "Jane Goodman";
         ac.authorityType = "MSSTS";
-        ac.clientInfo = "eyJ1aWQiOiJzb21lVWlkIiwgInV0aWQiOiJzb21lVXRpZCJ9";
 
         const accountKey = ac.generateAccountKey();
         const cacheRecord = new CacheRecord();
@@ -516,7 +514,6 @@ describe("CacheManager.ts test cases", () => {
         ac.localAccountId = "object1234";
         ac.username = "Jane Goodman";
         ac.authorityType = "MSSTS";
-        ac.clientInfo = "eyJ1aWQiOiJzb21lVWlkIiwgInV0aWQiOiJzb21lVXRpZCJ9";
 
         const cacheRecord = new CacheRecord();
         cacheRecord.account = ac;

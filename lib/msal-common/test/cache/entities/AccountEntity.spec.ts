@@ -13,7 +13,6 @@ import { AuthorityOptions } from "../../../src/authority/AuthorityOptions";
 import { ProtocolMode } from "../../../src/authority/ProtocolMode";
 import { LogLevel, Logger } from "../../../src/logger/Logger";
 import { Authority } from "../../../src/authority/Authority";
-import { ClientAuthError, ClientAuthErrorMessage } from "../../../src/error/ClientAuthError";
 import { AuthorityType } from "../../../src/authority/AuthorityType";
 
 const cryptoInterface: ICrypto = {
@@ -126,18 +125,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(ac.generateAccountKey()).toEqual("uid.utid-login.microsoftonline.com-microsoft");
     });
 
-    it("throws error if account entity is not assigned a type", () => {
-        const ac = new AccountEntity();
-        expect(() => ac.generateType()).toThrowError(ClientAuthError);
-        expect(() => ac.generateType()).toThrowError(ClientAuthErrorMessage.unexpectedAccountType.desc);
-    });
-
-    it("generate type of the cache", () => {
-        const ac = new AccountEntity();
-        Object.assign(ac, mockAccountEntity);
-        expect(ac.generateType()).toEqual(1003);
-    });
-
     it("create an Account", () => {
         // Set up stubs
         const idTokenClaims = {
@@ -159,12 +146,12 @@ describe("AccountEntity.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken);
+            idToken.claims);
 
-        const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
-            homeAccountId,
-            idToken,
+        const acc = AccountEntity.createAccount({
+                homeAccountId,
+                idTokenClaims: idToken.claims,
+            }, 
             authority
         );
 
@@ -197,12 +184,12 @@ describe("AccountEntity.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken);
+            idToken.claims);
 
-        const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
-            homeAccountId,
-            idToken,
+        const acc = AccountEntity.createAccount({
+                homeAccountId,
+                idTokenClaims: idToken.claims,
+            },
             authority
         );
 
@@ -236,12 +223,12 @@ describe("AccountEntity.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken);
+            idToken.claims);
 
-        const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
-            homeAccountId,
-            idToken,
+        const acc = AccountEntity.createAccount({
+                homeAccountId,
+                idTokenClaims: idToken.claims,
+            },
             authority
         );
         expect(acc.generateAccountKey()).toEqual(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
@@ -281,12 +268,12 @@ describe("AccountEntity.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken);
+            idToken.claims);
 
-        const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
-            homeAccountId,
-            idToken,
+        const acc = AccountEntity.createAccount({
+                homeAccountId,
+                idTokenClaims: idToken.claims,
+            },
             authority
         );
 
@@ -321,7 +308,6 @@ describe("AccountEntity.ts Unit Tests", () => {
             "exp": 1536361411,
             "name": "Abe Lincoln",
             "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-            "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
             "nonce": "123523",
             "upn": "testupn"
         };
@@ -329,9 +315,10 @@ describe("AccountEntity.ts Unit Tests", () => {
 		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId = "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
-        const acc = AccountEntity.createGenericAccount(
-            homeAccountId,
-            idToken,
+        const acc = AccountEntity.createAccount({
+                homeAccountId,
+                idTokenClaims: idToken.claims,
+            },
             authority
         );
 
@@ -379,12 +366,12 @@ describe("AccountEntity.ts Unit Tests", () => {
                 AuthorityType.Default,
                 logger,
                 cryptoInterface,
-                idToken);
+                idToken.claims);
 
-            acc = AccountEntity.createAccount(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
-                homeAccountId,
-                idToken,
+            acc = AccountEntity.createAccount({
+                    homeAccountId,
+                    idTokenClaims: idToken.claims,
+                },
                 authority
             );
         })
@@ -544,7 +531,6 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             "exp": 1536361411,
             "name": "Abe Lincoln",
             "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-            "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
             "nonce": "123523",
             "upn": "testupn"
         };
@@ -552,9 +538,10 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId = "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
-        const acc = AccountEntity.createGenericAccount(
-            homeAccountId,
-            idToken,
+        const acc = AccountEntity.createAccount({
+                homeAccountId,
+                idTokenClaims: idToken.claims
+            },
             authority
         );
 
@@ -591,7 +578,6 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
             "exp": 1536361411,
             "name": "Abe Lincoln",
-            "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
             "nonce": "123523",
             "upn": "testupn"
         };
@@ -599,11 +585,12 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId = "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
-        const acc = AccountEntity.createGenericAccount(
+        const acc = AccountEntity.createAccount({
             homeAccountId,
-            idToken,
-            authority
-        );
+            idTokenClaims: idToken.claims,
+        },
+        authority
+    );
 
         expect(acc.generateAccountKey()).toEqual(`${idTokenClaims.sub.toLowerCase()}-myadfs.com-`);
         expect(acc.homeAccountId).toBe(homeAccountId);

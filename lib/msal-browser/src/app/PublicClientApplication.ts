@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents, ServerError, InteractionRequiredAuthError, InProgressPerformanceEvent, InteractionRequiredAuthErrorMessage } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents, ServerError, InteractionRequiredAuthError, InProgressPerformanceEvent, InteractionRequiredAuthErrorMessage, AccountEntity } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, InteractionType, ApiId, CacheLookupPolicy, BrowserConstants } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -281,5 +281,38 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         }).finally(() => {
             document.removeEventListener("visibilitychange",this.trackPageVisibility);
         });
+    }
+
+    /**
+     * Hydrates cache with the tokens and account in the AuthenticationResult object
+     * @param result
+     * @param request - The request object that was used to obtain the AuthenticationResult
+     * @returns
+     */
+    async hydrateCache(
+        result: AuthenticationResult,
+        request: SilentRequest
+    ): Promise<void> {
+        this.logger.verbose("hydrateCache called");
+
+        if(result.account) {
+            // Account gets saved to browser storage regardless of native or not
+            const accountEntity = AccountEntity.createFromAccountInfo(
+                result.account,
+                result.cloudGraphHostName,
+                result.msGraphHost
+            );
+            this.browserStorage.setAccount(accountEntity);
+
+            if (result.fromNativeBroker) {
+                this.logger.verbose(
+                    "Response was from native broker, storing in-memory"
+                );
+                // Tokens from native broker are stored in-memory
+                return this.nativeInternalStorage.hydrateCache(result, request);
+            } else {
+                return this.browserStorage.hydrateCache(result, request);
+            }
+        }
     }
 }

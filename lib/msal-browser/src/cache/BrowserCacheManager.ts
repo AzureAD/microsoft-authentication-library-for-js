@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, ActiveAccountFilters, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType, ClientAuthError, TokenKeys, CredentialType } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, ActiveAccountFilters, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType, ClientAuthError, TokenKeys, CredentialType, AuthenticationResult, AuthenticationScheme, CacheRecord } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys, InMemoryCacheKeys, StaticCacheKeys } from "../utils/BrowserConstants";
@@ -12,6 +12,7 @@ import { MemoryStorage } from "./MemoryStorage";
 import { IWindowStorage } from "./IWindowStorage";
 import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
+import { SilentRequest } from "../request/SilentRequest";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -1409,6 +1410,53 @@ export class BrowserCacheManager extends CacheManager {
      */
     setRedirectRequestContext(value: string): void {
         this.setTemporaryCache(TemporaryCacheKeys.REDIRECT_CONTEXT, value, true);
+    }
+
+    /**
+     * Builds credential entities from AuthenticationResult object and saves the resulting credentials to the cache
+     * @param result
+     * @param request
+     */
+    async hydrateCache(
+        result: AuthenticationResult,
+        request: SilentRequest
+    ): Promise<void> {
+        const idTokenEntity = IdTokenEntity.createIdTokenEntity(
+            result.account?.homeAccountId || "" ,
+            result.account?.environment || "",
+            result.idToken,
+            this.clientId,
+            result.tenantId
+        );
+
+        let claimsHash;
+        if (request.claims) {
+            claimsHash = await this.cryptoImpl.hashString(request.claims);
+        }
+        const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+            result.account?.homeAccountId || "",
+            result.account?.environment || "",
+            result.accessToken,
+            this.clientId,
+            result.tenantId,
+            result.scopes.join(" "),
+            result.expiresOn?.getTime() || 0,
+            result.extExpiresOn?.getTime() || 0,
+            this.cryptoImpl,
+            undefined, // refreshOn
+            result.tokenType as AuthenticationScheme,
+            undefined, // userAssertionHash
+            request.sshKid,
+            request.claims,
+            claimsHash
+        );
+
+        const cacheRecord = new CacheRecord(
+            undefined,
+            idTokenEntity,
+            accessTokenEntity
+        );
+        return this.saveCacheRecord(cacheRecord);
     }
 }
 
