@@ -591,10 +591,10 @@ export class StandardController implements IController {
             return navigate;
         };
 
-        BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
-        this.browserStorage.setInteractionInProgress(true);
-
         try {
+            BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
+            this.browserStorage.setInteractionInProgress(true);
+
             // If logged in, emit acquire token events
             const isLoggedIn = this.getAllAccounts().length > 0;
             if (isLoggedIn) {
