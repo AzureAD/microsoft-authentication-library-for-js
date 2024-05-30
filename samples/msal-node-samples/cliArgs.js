@@ -13,5 +13,4 @@ module.exports = require('yargs')
     .describe('scenario', '(Optional) Scenario name - default is AAD')
     .describe('cache location', '(Optional) Cache location - default is data/cache.json')
     .describe('runtime-options', '(Optional) Runtime options to inject into the application - default is null')
-    .strict()
     .argv;

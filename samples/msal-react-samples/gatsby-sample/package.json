@@ -9,7 +9,7 @@
     "develop": "gatsby develop -p 3000",
     "start": "gatsby serve -p 3000",
     "serve": "gatsby serve",
-    "test": "jest",
+    "test:e2e": "jest",
     "clean": "gatsby clean",
     "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
     "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^18 react-dom@^18"
@@ -27,6 +27,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "jest": "^27.0.4"
+    "jest": "^27.0.4",
+    "jest-junit": "^16.0.0"
   }
 }

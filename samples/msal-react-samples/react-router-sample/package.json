@@ -18,7 +18,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "test": "jest",
+    "test:e2e": "jest",
     "build": "react-scripts build",
     "build:package": "cd ../../../lib/msal-react & npm run build:all",
     "eject": "react-scripts eject",
@@ -45,6 +45,7 @@
     ]
   },
   "devDependencies": {
-    "jest": "^27.0.4"
+    "jest": "^27.0.4",
+    "jest-junit": "^16.0.0"
   }
 }

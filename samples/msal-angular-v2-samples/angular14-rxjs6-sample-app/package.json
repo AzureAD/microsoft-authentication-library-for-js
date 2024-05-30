@@ -7,7 +7,7 @@
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "jest",
+    "test:e2e": "jest",
     "install:local": "npm install ../../../lib/msal-angular/dist ../../../lib/msal-browser",
     "install:published": "npm install @azure/msal-angular@latest @azure/msal-browser@latest"
   },
@@ -40,6 +40,7 @@
     "jasmine-core": "~4.0.0",
     "jasmine-spec-reporter": "^7.0.0",
     "jest": "^27.5.1",
+    "jest-junit": "^16.0.0",
     "karma": "~6.3.0",
     "karma-chrome-launcher": "~3.1.0",
     "karma-coverage": "~2.2.0",
