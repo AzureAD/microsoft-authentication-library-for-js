@@ -258,7 +258,6 @@ export class MsalInterceptor implements HttpInterceptor {
     protectedResourcesEndpoints: string[],
     endpoint: string
   ): Array<string> {
-
     const matchingResources: Array<string> = [];
 
     protectedResourcesEndpoints.forEach((key) => {
@@ -280,18 +279,23 @@ export class MsalInterceptor implements HttpInterceptor {
 
   /**
    * Compares URL segments between key and endpoint
-   * @param key 
-   * @param endpoint 
-   * @returns 
+   * @param key
+   * @param endpoint
+   * @returns
    */
-  private checkUrlComponents(keyComponents: URL, endpointComponents: URL): boolean {
+  private checkUrlComponents(
+    keyComponents: URL,
+    endpointComponents: URL
+  ): boolean {
     // URL properties from https://developer.mozilla.org/en-US/docs/Web/API/URL
-    const urlProperties = ['protocol', 'host', 'pathname', 'search', 'hash'];
+    const urlProperties = ["protocol", "host", "pathname", "search", "hash"];
 
     for (const property of urlProperties) {
       if (keyComponents[property]) {
         const decodedInput = decodeURIComponent(keyComponents[property]);
-        if (!StringUtils.matchPattern(decodedInput, endpointComponents[property])) {
+        if (
+          !StringUtils.matchPattern(decodedInput, endpointComponents[property])
+        ) {
           return false;
         }
       }

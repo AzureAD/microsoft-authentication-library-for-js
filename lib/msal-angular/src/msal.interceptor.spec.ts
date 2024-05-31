@@ -1124,9 +1124,12 @@ describe("MsalInterceptor", () => {
       done();
     }, 200);
   });
-  
+
   it("attaches authorization header with access token when endpoint match is in HostNameAndPort instead of query string", (done) => {
-    const spy = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue(
+    const spy = spyOn(
+      PublicClientApplication.prototype,
+      "acquireTokenSilent"
+    ).and.returnValue(
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
@@ -1134,20 +1137,28 @@ describe("MsalInterceptor", () => {
         });
       })
     );
-  
+
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
       sampleAccountInfo,
     ]);
-  
-    httpClient.get("https://MY_API_SITE_1/api/sites?$filter=siteUrl eq 'https://MY_API_SITE_2'").subscribe();
-  
+
+    httpClient
+      .get(
+        "https://MY_API_SITE_1/api/sites?$filter=siteUrl eq 'https://MY_API_SITE_2'"
+      )
+      .subscribe();
+
     setTimeout(() => {
-      const request = httpMock.expectOne("https://MY_API_SITE_1/api/sites?$filter=siteUrl eq 'https://MY_API_SITE_2'");
+      const request = httpMock.expectOne(
+        "https://MY_API_SITE_1/api/sites?$filter=siteUrl eq 'https://MY_API_SITE_2'"
+      );
       request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+      expect(request.request.headers.get("Authorization")).toEqual(
+        "Bearer access-token"
+      );
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,
-        scopes: ['api://MY_API_SITE_1/as_user'],
+        scopes: ["api://MY_API_SITE_1/as_user"],
       });
       httpMock.verify();
       done();
