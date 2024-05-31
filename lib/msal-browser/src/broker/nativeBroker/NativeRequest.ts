@@ -31,6 +31,7 @@ export type NativeTokenRequest = {
     extendedExpiryToken?: boolean;
     extraParameters?: StringDict;
     storeInCache?: StoreInCache; // Object of booleans indicating whether to store tokens in the cache or not (default is true)
+    signPopToken?: boolean;
 };
 
 /**

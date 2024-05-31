@@ -66,7 +66,7 @@ export class PopTokenGenerator {
             this.performanceClient,
             request.correlationId
         )(request);
-        const reqCnfString: string = this.cryptoUtils.base64Encode(
+        const reqCnfString: string = this.cryptoUtils.base64UrlEncode(
             JSON.stringify(reqCnf)
         );
 

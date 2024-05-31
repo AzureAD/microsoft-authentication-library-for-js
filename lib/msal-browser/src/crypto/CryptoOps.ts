@@ -79,6 +79,14 @@ export class CryptoOps implements ICrypto {
     }
 
     /**
+     * Encodes input string to base64 URL safe string.
+     * @param input
+     */
+    base64UrlEncode(input: string): string {
+        return urlEncode(input);
+    }
+
+    /**
      * Generates a keypair, stores it and returns a thumbprint
      * @param request
      */

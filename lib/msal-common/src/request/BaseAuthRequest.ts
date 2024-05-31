@@ -50,4 +50,5 @@ export type BaseAuthRequest = {
     storeInCache?: StoreInCache;
     scenarioId?: string;
     reqCnf?: string;
+    signPopToken?: boolean;
 };
