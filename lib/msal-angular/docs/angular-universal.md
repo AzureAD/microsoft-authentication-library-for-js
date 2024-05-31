@@ -4,7 +4,7 @@ Angular Universal is minimally supported in `@azure/msal-angular`. As `@azure/ms
 
 Please see instructions from the [Angular docs](https://angular.io/guide/universal) on how to install Angular Universal with an existing application, and for more information on [browser-only global objects](https://angular.io/guide/universal#working-around-the-browser-apis).
 
-**Note:** MSAL Angular currently does not officially support Angular 17's server-side and prerendering capabilities. Using SSR with MSAL Angular may break your app.
+**Note:** MSAL Angular does not officially support Angular 17 and 18's server-side and prerendering capabilities. Using SSR with MSAL Angular may break your app.
 
 ## Using MSAL Angular with Angular Universal
 

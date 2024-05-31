@@ -33,6 +33,7 @@ import {
     BrowserCacheManager,
     DEFAULT_BROWSER_CACHE_MANAGER,
 } from "../cache/BrowserCacheManager";
+import * as AccountManager from "../cache/AccountManager";
 import { BrowserConfiguration, CacheOptions } from "../config/Configuration";
 import {
     InteractionType,
@@ -421,7 +422,7 @@ export class StandardController implements IController {
                   true
               ) || "";
         const rootMeasurement = this.performanceClient.startMeasurement(
-            "acquireTokenRedirect",
+            PerformanceEvents.AcquireTokenRedirect,
             correlationId
         );
         this.eventHandler.emitEvent(
@@ -566,88 +567,114 @@ export class StandardController implements IController {
         // Preflight request
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.verbose("acquireTokenRedirect called", correlationId);
-        BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
-        this.browserStorage.setInteractionInProgress(true);
+
+        const atrMeasurement = this.performanceClient.startMeasurement(
+            PerformanceEvents.AcquireTokenPreRedirect,
+            correlationId
+        );
+        atrMeasurement.add({
+            accountType: getAccountType(request.account),
+            scenarioId: request.scenarioId,
+        });
+
+        const onRedirectNavigateCb = request.onRedirectNavigate;
+        request.onRedirectNavigate = (url: string) => {
+            const navigate =
+                typeof onRedirectNavigateCb === "function"
+                    ? onRedirectNavigateCb(url)
+                    : undefined;
+            if (navigate !== false) {
+                atrMeasurement.end({ success: true });
+            } else {
+                atrMeasurement.discard();
+            }
+            return navigate;
+        };
 
         // If logged in, emit acquire token events
         const isLoggedIn = this.getAllAccounts().length > 0;
-        if (isLoggedIn) {
-            this.eventHandler.emitEvent(
-                EventType.ACQUIRE_TOKEN_START,
-                InteractionType.Redirect,
-                request
-            );
-        } else {
-            this.eventHandler.emitEvent(
-                EventType.LOGIN_START,
-                InteractionType.Redirect,
-                request
-            );
-        }
+        try {
+            BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
+            this.browserStorage.setInteractionInProgress(true);
 
-        let result: Promise<void>;
+            if (isLoggedIn) {
+                this.eventHandler.emitEvent(
+                    EventType.ACQUIRE_TOKEN_START,
+                    InteractionType.Redirect,
+                    request
+                );
+            } else {
+                this.eventHandler.emitEvent(
+                    EventType.LOGIN_START,
+                    InteractionType.Redirect,
+                    request
+                );
+            }
 
-        if (this.nativeExtensionProvider && this.canUseNative(request)) {
-            const nativeClient = new NativeInteractionClient(
-                this.config,
-                this.browserStorage,
-                this.browserCrypto,
-                this.logger,
-                this.eventHandler,
-                this.navigationClient,
-                ApiId.acquireTokenRedirect,
-                this.performanceClient,
-                this.nativeExtensionProvider,
-                this.getNativeAccountId(request),
-                this.nativeInternalStorage,
-                correlationId
-            );
-            result = nativeClient
-                .acquireTokenRedirect(request)
-                .catch((e: AuthError) => {
-                    if (
-                        e instanceof NativeAuthError &&
-                        isFatalNativeAuthError(e)
-                    ) {
-                        this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
-                        const redirectClient =
-                            this.createRedirectClient(correlationId);
-                        return redirectClient.acquireToken(request);
-                    } else if (e instanceof InteractionRequiredAuthError) {
-                        this.logger.verbose(
-                            "acquireTokenRedirect - Resolving interaction required error thrown by native broker by falling back to web flow"
-                        );
-                        const redirectClient =
-                            this.createRedirectClient(correlationId);
-                        return redirectClient.acquireToken(request);
-                    }
-                    this.browserStorage.setInteractionInProgress(false);
-                    throw e;
-                });
-        } else {
-            const redirectClient = this.createRedirectClient(correlationId);
-            result = redirectClient.acquireToken(request);
-        }
+            let result: Promise<void>;
 
-        return result.catch((e) => {
-            // If logged in, emit acquire token events
+            if (this.nativeExtensionProvider && this.canUseNative(request)) {
+                const nativeClient = new NativeInteractionClient(
+                    this.config,
+                    this.browserStorage,
+                    this.browserCrypto,
+                    this.logger,
+                    this.eventHandler,
+                    this.navigationClient,
+                    ApiId.acquireTokenRedirect,
+                    this.performanceClient,
+                    this.nativeExtensionProvider,
+                    this.getNativeAccountId(request),
+                    this.nativeInternalStorage,
+                    correlationId
+                );
+                result = nativeClient
+                    .acquireTokenRedirect(request, atrMeasurement)
+                    .catch((e: AuthError) => {
+                        if (
+                            e instanceof NativeAuthError &&
+                            isFatalNativeAuthError(e)
+                        ) {
+                            this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                            const redirectClient =
+                                this.createRedirectClient(correlationId);
+                            return redirectClient.acquireToken(request);
+                        } else if (e instanceof InteractionRequiredAuthError) {
+                            this.logger.verbose(
+                                "acquireTokenRedirect - Resolving interaction required error thrown by native broker by falling back to web flow"
+                            );
+                            const redirectClient =
+                                this.createRedirectClient(correlationId);
+                            return redirectClient.acquireToken(request);
+                        }
+                        this.browserStorage.setInteractionInProgress(false);
+                        throw e;
+                    });
+            } else {
+                const redirectClient = this.createRedirectClient(correlationId);
+                result = redirectClient.acquireToken(request);
+            }
+
+            return await result;
+        } catch (e) {
+            atrMeasurement.end({ success: false }, e);
             if (isLoggedIn) {
                 this.eventHandler.emitEvent(
                     EventType.ACQUIRE_TOKEN_FAILURE,
                     InteractionType.Redirect,
                     null,
-                    e
+                    e as EventError
                 );
             } else {
                 this.eventHandler.emitEvent(
                     EventType.LOGIN_FAILURE,
                     InteractionType.Redirect,
                     null,
-                    e
+                    e as EventError
                 );
             }
             throw e;
-        });
+        }
     }
 
     // #endregion
@@ -1299,10 +1326,12 @@ export class StandardController implements IController {
      * @returns Array of AccountInfo objects in cache
      */
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[] {
-        this.logger.verbose("getAllAccounts called");
-        return this.isBrowserEnvironment
-            ? this.browserStorage.getAllAccounts(accountFilter)
-            : [];
+        return AccountManager.getAllAccounts(
+            this.logger,
+            this.browserStorage,
+            this.isBrowserEnvironment,
+            accountFilter
+        );
     }
 
     /**
@@ -1311,26 +1340,11 @@ export class StandardController implements IController {
      * @returns The first account found in the cache matching the provided filter or null if no account could be found.
      */
     getAccount(accountFilter: AccountFilter): AccountInfo | null {
-        this.logger.trace("getAccount called");
-        if (Object.keys(accountFilter).length === 0) {
-            this.logger.warning("getAccount: No accountFilter provided");
-            return null;
-        }
-
-        const account: AccountInfo | null =
-            this.browserStorage.getAccountInfoFilteredBy(accountFilter);
-
-        if (account) {
-            this.logger.verbose(
-                "getAccount: Account matching provided filter found, returning"
-            );
-            return account;
-        } else {
-            this.logger.verbose(
-                "getAccount: No matching account found, returning null"
-            );
-            return null;
-        }
+        return AccountManager.getAccount(
+            accountFilter,
+            this.logger,
+            this.browserStorage
+        );
     }
 
     /**
@@ -1342,29 +1356,11 @@ export class StandardController implements IController {
      * @returns The account object stored in MSAL
      */
     getAccountByUsername(username: string): AccountInfo | null {
-        this.logger.trace("getAccountByUsername called");
-        if (!username) {
-            this.logger.warning("getAccountByUsername: No username provided");
-            return null;
-        }
-
-        const account = this.browserStorage.getAccountInfoFilteredBy({
+        return AccountManager.getAccountByUsername(
             username,
-        });
-        if (account) {
-            this.logger.verbose(
-                "getAccountByUsername: Account matching username found, returning"
-            );
-            this.logger.verbosePii(
-                `getAccountByUsername: Returning signed-in accounts matching username: ${username}`
-            );
-            return account;
-        } else {
-            this.logger.verbose(
-                "getAccountByUsername: No matching account found, returning null"
-            );
-            return null;
-        }
+            this.logger,
+            this.browserStorage
+        );
     }
 
     /**
@@ -1375,31 +1371,11 @@ export class StandardController implements IController {
      * @returns The account object stored in MSAL
      */
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
-        this.logger.trace("getAccountByHomeId called");
-        if (!homeAccountId) {
-            this.logger.warning(
-                "getAccountByHomeId: No homeAccountId provided"
-            );
-            return null;
-        }
-
-        const account = this.browserStorage.getAccountInfoFilteredBy({
+        return AccountManager.getAccountByHomeId(
             homeAccountId,
-        });
-        if (account) {
-            this.logger.verbose(
-                "getAccountByHomeId: Account matching homeAccountId found, returning"
-            );
-            this.logger.verbosePii(
-                `getAccountByHomeId: Returning signed-in accounts matching homeAccountId: ${homeAccountId}`
-            );
-            return account;
-        } else {
-            this.logger.verbose(
-                "getAccountByHomeId: No matching account found, returning null"
-            );
-            return null;
-        }
+            this.logger,
+            this.browserStorage
+        );
     }
 
     /**
@@ -1410,31 +1386,11 @@ export class StandardController implements IController {
      * @returns The account object stored in MSAL
      */
     getAccountByLocalId(localAccountId: string): AccountInfo | null {
-        this.logger.trace("getAccountByLocalId called");
-        if (!localAccountId) {
-            this.logger.warning(
-                "getAccountByLocalId: No localAccountId provided"
-            );
-            return null;
-        }
-
-        const account = this.browserStorage.getAccountInfoFilteredBy({
+        return AccountManager.getAccountByLocalId(
             localAccountId,
-        });
-        if (account) {
-            this.logger.verbose(
-                "getAccountByLocalId: Account matching localAccountId found, returning"
-            );
-            this.logger.verbosePii(
-                `getAccountByLocalId: Returning signed-in accounts matching localAccountId: ${localAccountId}`
-            );
-            return account;
-        } else {
-            this.logger.verbose(
-                "getAccountByLocalId: No matching account found, returning null"
-            );
-            return null;
-        }
+            this.logger,
+            this.browserStorage
+        );
     }
 
     /**
@@ -1442,14 +1398,14 @@ export class StandardController implements IController {
      * @param account
      */
     setActiveAccount(account: AccountInfo | null): void {
-        this.browserStorage.setActiveAccount(account);
+        AccountManager.setActiveAccount(account, this.browserStorage);
     }
 
     /**
      * Gets the currently active account
      */
     getActiveAccount(): AccountInfo | null {
-        return this.browserStorage.getActiveAccount();
+        return AccountManager.getActiveAccount(this.browserStorage);
     }
 
     // #endregion

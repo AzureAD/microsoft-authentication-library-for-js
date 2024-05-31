@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Instrument preflight check errors #7113",
+  "comment": "Instrument pre-redirect flow #7134",
   "packageName": "@azure/msal-browser",
   "email": "kshabelko@microsoft.com",
   "dependentChangeType": "patch"

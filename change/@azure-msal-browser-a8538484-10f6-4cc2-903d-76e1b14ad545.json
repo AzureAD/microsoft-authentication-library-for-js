@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Add API Extractor Build Step #7097",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -13,7 +13,7 @@
         "publish": "electron-forge publish",
         "lint": "eslint --ext .ts,.tsx .",
         "pretest": "npm run package",
-        "test": "npx playwright test"
+        "test:e2e": "npx playwright test"
     },
     "keywords": [
         "msal-node",

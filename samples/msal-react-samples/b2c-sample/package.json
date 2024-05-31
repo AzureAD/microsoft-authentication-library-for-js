@@ -27,8 +27,7 @@
         "start": "react-scripts start",
         "build": "react-scripts build",
         "eject": "react-scripts eject",
-        "test": "jest",
-        "test:ci": "npm run test -- --watchAll=false --detectOpenHandles --forceExit --reporters=default --reporters=jest-junit",
+        "test:e2e": "jest",
         "build:package": "cd ../../../ && npm run build:all --workspace=lib/msal-react"
     },
     "browserslist": {
