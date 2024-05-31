@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Export IUri",
-  "packageName": "@azure/msal-browser",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "none"
-}

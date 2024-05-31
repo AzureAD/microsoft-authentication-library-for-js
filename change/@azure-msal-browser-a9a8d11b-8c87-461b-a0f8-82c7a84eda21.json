@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Export IUri #7137",
+  "packageName": "@azure/msal-browser",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}
