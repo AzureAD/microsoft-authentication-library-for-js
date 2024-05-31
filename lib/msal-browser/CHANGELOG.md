@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 06 May 2024 23:48:17 GMT and should not be manually modified.
+This log was last generated on Tue, 28 May 2024 21:37:23 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.15.0
+
+Tue, 28 May 2024 21:37:23 GMT
+
+### Minor changes
+
+- Add createNestablePublicClientApplication() (sameera.gajjarapu@microsoft.com)
+- Instrument preflight check errors #7113 (kshabelko@microsoft.com)
+- Support cache in NAA apps #7072 (sameera.gajjarapu@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- Fix miscalculation of expiresIn in hydrateCache() API (sameera.gajjarapu@microsoft.com)
 
 ## 3.14.0
 

@@ -1,11 +1,17 @@
+parameters:
+    - name: "debugVariables"
+      displayName: "Debug Variables"
+      type: boolean
+      default: false
 variables:
     CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
     LinuxContainerImage: "mcr.microsoft.com/onebranch/cbl-mariner/build:2.0" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
     DEBIAN_FRONTEND: noninteractive
     ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}:
-        sourceBranchName: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
+        sourceBranch: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
     ${{ if startsWith(variables['Build.SourceBranch'], 'refs/pull/') }}:
-        sourceBranchName: ${{ replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', '') }}
+        sourceBranch: ${{ replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', '') }}
+    sourceRepo: "microsoft-authentication-library-for-js"
 
 resources:
     repositories:
@@ -24,19 +30,22 @@ extends:
         globalSdl:
             policheck:
                 break: true
-
         stages:
-            - stage: e2e_test
+            - stage: e2e_tests
               displayName: "E2E Tests"
+              variables:
+                  Codeql.Enabled: true
               jobs:
-                  - template: .pipelines/templates/msal-browser-1p-e2e.yml@1P
+                  - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
                         jobName: "msal_browser_1p_3p_e2e_tests"
+                        targetLib: "msal-browser-1p"
                         poolType: "linux"
-                        sourceBranchName: ${{ variables.sourceBranchName }}
-                        thirdPartyReleaseBranch: ${{ variables.sourceBranchName }}
-                        stage: "pr-check"
-                        override: true
+                        stage: "CI"
+                        sourceRepo: ${{ variables.sourceRepo }}
+                        sourceBranch: ${{ variables.sourceBranch }}
+                        workspace: "samples/"
                         samples:
                             - "Broker_WAMTestApp"
                             - "PerformanceTelemetrySample"
+                        debugVariables: ${{ parameters.debugVariables }}

@@ -2,6 +2,35 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 28 May 2024 21:37:23 GMT",
+      "version": "2.9.0",
+      "tag": "@azure/msal-node_v2.9.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "86619c7c51c99b61b2ae3525fc257c7070452e64",
+            "comment": "Added API for Managed Identity to detect the current environment #7093"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "86619c7c51c99b61b2ae3525fc257c7070452e64",
+            "comment": "Add API Extractor Build Step #7097"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 13 May 2024 18:03:26 GMT",
       "version": "2.8.1",
       "tag": "@azure/msal-node_v2.8.1",

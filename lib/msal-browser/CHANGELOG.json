@@ -2,6 +2,61 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 28 May 2024 21:37:23 GMT",
+      "version": "3.15.0",
+      "tag": "@azure/msal-browser_v3.15.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86619c7c51c99b61b2ae3525fc257c7070452e64",
+            "comment": "Add createNestablePublicClientApplication()"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86619c7c51c99b61b2ae3525fc257c7070452e64",
+            "comment": "Instrument preflight check errors #7113"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86619c7c51c99b61b2ae3525fc257c7070452e64",
+            "comment": "Support cache in NAA apps #7072"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86619c7c51c99b61b2ae3525fc257c7070452e64",
+            "comment": "Fix miscalculation of expiresIn in hydrateCache() API"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86619c7c51c99b61b2ae3525fc257c7070452e64",
+            "comment": "Add API Extractor Build Step #7097"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 06 May 2024 23:48:17 GMT",
       "version": "3.14.0",
       "tag": "@azure/msal-browser_v3.14.0",

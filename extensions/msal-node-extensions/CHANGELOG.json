@@ -2,6 +2,21 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Tue, 28 May 2024 21:37:23 GMT",
+      "version": "1.0.17",
+      "tag": "@azure/msal-node-extensions_v1.0.17",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 06 May 2024 23:48:17 GMT",
       "version": "1.0.16",
       "tag": "@azure/msal-node-extensions_v1.0.16",
