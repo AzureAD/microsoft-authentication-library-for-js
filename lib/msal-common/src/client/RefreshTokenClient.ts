@@ -418,6 +418,7 @@ export class RefreshTokenClient extends BaseClient {
                 )(request, this.logger);
 
                 reqCnfData = generatedReqCnfData.reqCnfString;
+                request.signPopToken = true;
             }
 
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
