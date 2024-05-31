@@ -19,6 +19,7 @@ import {
   InteractionType,
   StringUtils,
   UrlString,
+  IUri
 } from "@azure/msal-browser";
 import { Observable, EMPTY, of } from "rxjs";
 import { switchMap, catchError, take, filter } from "rxjs/operators";
@@ -275,9 +276,6 @@ export class MsalInterceptor implements HttpInterceptor {
     protectedResourcesEndpoints.forEach((key) => {
       // Normalizes and adds resource to matchingResources.absoluteResources if key matches endpoint. StringUtils.matchPattern accounts for wildcards
       const normalizedKey = this.location.normalize(key);
-      if (StringUtils.matchPattern(normalizedKey, endpoint)) {
-        matchingResources.absoluteResources.push(key);
-      }
 
       // Get url components for relative urls
       const absoluteKey = this.getAbsoluteUrl(key);
@@ -286,6 +284,11 @@ export class MsalInterceptor implements HttpInterceptor {
       const endpointComponents = new UrlString(
         absoluteEndpoint
       ).getUrlComponents();
+
+      // Add resource to matchingResources.absoluteResources if keyComponents match endpointComponents
+      if (this.checkUrlComponents(keyComponents, endpointComponents)) {
+        matchingResources.absoluteResources.push(key);
+      }
 
       // Normalized key should include query strings if applicable
       const relativeNormalizedKey = keyComponents.QueryString
@@ -304,6 +307,30 @@ export class MsalInterceptor implements HttpInterceptor {
     });
 
     return matchingResources;
+  }
+
+  /**
+   * Compares URL segments between key and endpoint
+   * @param key 
+   * @param endpoint 
+   * @returns 
+   */
+  private checkUrlComponents(keyComponents: IUri, endpointComponents: IUri): boolean {
+    // Check if all properties of keyComponents are undefined
+    if (!keyComponents || !endpointComponents || Object.values(keyComponents).every(value => value === undefined)) {
+      return false;
+    }
+
+    for (const component in keyComponents) {
+      if (keyComponents[component]) {
+        const decodedInput = decodeURIComponent(keyComponents[component]);
+        if (!StringUtils.matchPattern(decodedInput, endpointComponents[component])) {
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 
   /**
