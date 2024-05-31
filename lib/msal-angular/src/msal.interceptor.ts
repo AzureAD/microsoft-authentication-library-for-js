@@ -18,8 +18,6 @@ import {
   InteractionStatus,
   InteractionType,
   StringUtils,
-  UrlString,
-  IUri
 } from "@azure/msal-browser";
 import { Observable, EMPTY, of } from "rxjs";
 import { switchMap, catchError, take, filter } from "rxjs/operators";
@@ -28,7 +26,6 @@ import {
   MsalInterceptorAuthRequest,
   MsalInterceptorConfiguration,
   ProtectedResourceScopes,
-  MatchingResources,
 } from "./msal.interceptor.config";
 import { MsalBroadcastService } from "./msal.broadcast.service";
 import { MSAL_INTERCEPTOR_CONFIG } from "./constants";
@@ -265,15 +262,14 @@ export class MsalInterceptor implements HttpInterceptor {
     const matchingResources: Array<string> = [];
 
     protectedResourcesEndpoints.forEach((key) => {
-      // Get url components for relative urls
-      const absoluteKey = this.getAbsoluteUrl(key);
-      const keyComponents = new UrlString(absoluteKey).getUrlComponents();
-      const absoluteEndpoint = this.getAbsoluteUrl(endpoint);
-      const endpointComponents = new UrlString(
-        absoluteEndpoint
-      ).getUrlComponents();
+      const normalizedKey = this.location.normalize(key);
 
-      // Add resource to matchingResources if keyComponents match endpointComponents
+      // Get url components
+      const absoluteKey = this.getAbsoluteUrl(normalizedKey);
+      const keyComponents = new URL(absoluteKey);
+      const absoluteEndpoint = this.getAbsoluteUrl(endpoint);
+      const endpointComponents = new URL(absoluteEndpoint);
+
       if (this.checkUrlComponents(keyComponents, endpointComponents)) {
         matchingResources.push(key);
       }
@@ -288,16 +284,14 @@ export class MsalInterceptor implements HttpInterceptor {
    * @param endpoint 
    * @returns 
    */
-  private checkUrlComponents(keyComponents: IUri, endpointComponents: IUri): boolean {
-    // Check if all properties of keyComponents are undefined
-    if (!keyComponents || !endpointComponents || Object.values(keyComponents).every(value => value === undefined)) {
-      return false;
-    }
+  private checkUrlComponents(keyComponents: URL, endpointComponents: URL): boolean {
+    // URL properties from https://developer.mozilla.org/en-US/docs/Web/API/URL
+    const urlProperties = ['protocol', 'host', 'pathname', 'search', 'hash'];
 
-    for (const component in keyComponents) {
-      if (keyComponents[component]) {
-        const decodedInput = decodeURIComponent(keyComponents[component]);
-        if (!StringUtils.matchPattern(decodedInput, endpointComponents[component])) {
+    for (const property of urlProperties) {
+      if (keyComponents[property]) {
+        const decodedInput = decodeURIComponent(keyComponents[property]);
+        if (!StringUtils.matchPattern(decodedInput, endpointComponents[property])) {
           return false;
         }
       }

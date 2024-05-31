@@ -138,7 +138,6 @@ export {
     ExternalTokenResponse,
     // Utils
     StringUtils,
-    IUri,
     UrlString,
     JsonWebTokenTypes,
     // AzureCloudInstance enum
