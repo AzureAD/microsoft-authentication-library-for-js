@@ -240,17 +240,10 @@ export class MsalInterceptor implements HttpInterceptor {
       normalizedEndpoint
     );
 
-    // Check absolute urls of resources first before checking relative to prevent incorrect matching where multiple resources have similar relative urls
-    if (matchingProtectedResources.absoluteResources.length > 0) {
+    if (matchingProtectedResources.length > 0) {
       return this.matchScopesToEndpoint(
         this.msalInterceptorConfig.protectedResourceMap,
-        matchingProtectedResources.absoluteResources,
-        httpMethod
-      );
-    } else if (matchingProtectedResources.relativeResources.length > 0) {
-      return this.matchScopesToEndpoint(
-        this.msalInterceptorConfig.protectedResourceMap,
-        matchingProtectedResources.relativeResources,
+        matchingProtectedResources,
         httpMethod
       );
     }
@@ -267,16 +260,11 @@ export class MsalInterceptor implements HttpInterceptor {
   private matchResourcesToEndpoint(
     protectedResourcesEndpoints: string[],
     endpoint: string
-  ): MatchingResources {
-    const matchingResources: MatchingResources = {
-      absoluteResources: [],
-      relativeResources: [],
-    };
+  ): Array<string> {
+
+    const matchingResources: Array<string> = [];
 
     protectedResourcesEndpoints.forEach((key) => {
-      // Normalizes and adds resource to matchingResources.absoluteResources if key matches endpoint. StringUtils.matchPattern accounts for wildcards
-      const normalizedKey = this.location.normalize(key);
-
       // Get url components for relative urls
       const absoluteKey = this.getAbsoluteUrl(key);
       const keyComponents = new UrlString(absoluteKey).getUrlComponents();
@@ -285,24 +273,9 @@ export class MsalInterceptor implements HttpInterceptor {
         absoluteEndpoint
       ).getUrlComponents();
 
-      // Add resource to matchingResources.absoluteResources if keyComponents match endpointComponents
+      // Add resource to matchingResources if keyComponents match endpointComponents
       if (this.checkUrlComponents(keyComponents, endpointComponents)) {
-        matchingResources.absoluteResources.push(key);
-      }
-
-      // Normalized key should include query strings if applicable
-      const relativeNormalizedKey = keyComponents.QueryString
-        ? `${keyComponents.AbsolutePath}?${keyComponents.QueryString}`
-        : this.location.normalize(keyComponents.AbsolutePath);
-
-      // Add resource to matchingResources.relativeResources if same origin, relativeKey matches endpoint, and is not empty
-      if (
-        keyComponents.HostNameAndPort === endpointComponents.HostNameAndPort &&
-        StringUtils.matchPattern(relativeNormalizedKey, absoluteEndpoint) &&
-        relativeNormalizedKey !== "" &&
-        relativeNormalizedKey !== "/*"
-      ) {
-        matchingResources.relativeResources.push(key);
+        matchingResources.push(key);
       }
     });
 
