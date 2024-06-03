@@ -422,7 +422,7 @@ export class StandardController implements IController {
                   true
               ) || "";
         const rootMeasurement = this.performanceClient.startMeasurement(
-            "acquireTokenRedirect",
+            PerformanceEvents.AcquireTokenRedirect,
             correlationId
         );
         this.eventHandler.emitEvent(
@@ -567,88 +567,114 @@ export class StandardController implements IController {
         // Preflight request
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.verbose("acquireTokenRedirect called", correlationId);
-        BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
-        this.browserStorage.setInteractionInProgress(true);
+
+        const atrMeasurement = this.performanceClient.startMeasurement(
+            PerformanceEvents.AcquireTokenPreRedirect,
+            correlationId
+        );
+        atrMeasurement.add({
+            accountType: getAccountType(request.account),
+            scenarioId: request.scenarioId,
+        });
+
+        const onRedirectNavigateCb = request.onRedirectNavigate;
+        request.onRedirectNavigate = (url: string) => {
+            const navigate =
+                typeof onRedirectNavigateCb === "function"
+                    ? onRedirectNavigateCb(url)
+                    : undefined;
+            if (navigate !== false) {
+                atrMeasurement.end({ success: true });
+            } else {
+                atrMeasurement.discard();
+            }
+            return navigate;
+        };
 
         // If logged in, emit acquire token events
         const isLoggedIn = this.getAllAccounts().length > 0;
-        if (isLoggedIn) {
-            this.eventHandler.emitEvent(
-                EventType.ACQUIRE_TOKEN_START,
-                InteractionType.Redirect,
-                request
-            );
-        } else {
-            this.eventHandler.emitEvent(
-                EventType.LOGIN_START,
-                InteractionType.Redirect,
-                request
-            );
-        }
+        try {
+            BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
+            this.browserStorage.setInteractionInProgress(true);
 
-        let result: Promise<void>;
+            if (isLoggedIn) {
+                this.eventHandler.emitEvent(
+                    EventType.ACQUIRE_TOKEN_START,
+                    InteractionType.Redirect,
+                    request
+                );
+            } else {
+                this.eventHandler.emitEvent(
+                    EventType.LOGIN_START,
+                    InteractionType.Redirect,
+                    request
+                );
+            }
 
-        if (this.nativeExtensionProvider && this.canUseNative(request)) {
-            const nativeClient = new NativeInteractionClient(
-                this.config,
-                this.browserStorage,
-                this.browserCrypto,
-                this.logger,
-                this.eventHandler,
-                this.navigationClient,
-                ApiId.acquireTokenRedirect,
-                this.performanceClient,
-                this.nativeExtensionProvider,
-                this.getNativeAccountId(request),
-                this.nativeInternalStorage,
-                correlationId
-            );
-            result = nativeClient
-                .acquireTokenRedirect(request)
-                .catch((e: AuthError) => {
-                    if (
-                        e instanceof NativeAuthError &&
-                        isFatalNativeAuthError(e)
-                    ) {
-                        this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
-                        const redirectClient =
-                            this.createRedirectClient(correlationId);
-                        return redirectClient.acquireToken(request);
-                    } else if (e instanceof InteractionRequiredAuthError) {
-                        this.logger.verbose(
-                            "acquireTokenRedirect - Resolving interaction required error thrown by native broker by falling back to web flow"
-                        );
-                        const redirectClient =
-                            this.createRedirectClient(correlationId);
-                        return redirectClient.acquireToken(request);
-                    }
-                    this.browserStorage.setInteractionInProgress(false);
-                    throw e;
-                });
-        } else {
-            const redirectClient = this.createRedirectClient(correlationId);
-            result = redirectClient.acquireToken(request);
-        }
+            let result: Promise<void>;
 
-        return result.catch((e) => {
-            // If logged in, emit acquire token events
+            if (this.nativeExtensionProvider && this.canUseNative(request)) {
+                const nativeClient = new NativeInteractionClient(
+                    this.config,
+                    this.browserStorage,
+                    this.browserCrypto,
+                    this.logger,
+                    this.eventHandler,
+                    this.navigationClient,
+                    ApiId.acquireTokenRedirect,
+                    this.performanceClient,
+                    this.nativeExtensionProvider,
+                    this.getNativeAccountId(request),
+                    this.nativeInternalStorage,
+                    correlationId
+                );
+                result = nativeClient
+                    .acquireTokenRedirect(request, atrMeasurement)
+                    .catch((e: AuthError) => {
+                        if (
+                            e instanceof NativeAuthError &&
+                            isFatalNativeAuthError(e)
+                        ) {
+                            this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                            const redirectClient =
+                                this.createRedirectClient(correlationId);
+                            return redirectClient.acquireToken(request);
+                        } else if (e instanceof InteractionRequiredAuthError) {
+                            this.logger.verbose(
+                                "acquireTokenRedirect - Resolving interaction required error thrown by native broker by falling back to web flow"
+                            );
+                            const redirectClient =
+                                this.createRedirectClient(correlationId);
+                            return redirectClient.acquireToken(request);
+                        }
+                        this.browserStorage.setInteractionInProgress(false);
+                        throw e;
+                    });
+            } else {
+                const redirectClient = this.createRedirectClient(correlationId);
+                result = redirectClient.acquireToken(request);
+            }
+
+            return await result;
+        } catch (e) {
+            atrMeasurement.end({ success: false }, e);
             if (isLoggedIn) {
                 this.eventHandler.emitEvent(
                     EventType.ACQUIRE_TOKEN_FAILURE,
                     InteractionType.Redirect,
                     null,
-                    e
+                    e as EventError
                 );
             } else {
                 this.eventHandler.emitEvent(
                     EventType.LOGIN_FAILURE,
                     InteractionType.Redirect,
                     null,
-                    e
+                    e as EventError
                 );
             }
             throw e;
-        });
+        }
     }
 
     // #endregion

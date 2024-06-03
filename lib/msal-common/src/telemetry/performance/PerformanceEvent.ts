@@ -41,8 +41,16 @@ export const PerformanceEvents = {
     AcquireTokenPopup: "acquireTokenPopup",
 
     /**
+     * acquireTokenPreRedirect (msal-browser).
+     * First part of the redirect flow.
+     * Used to acquire a new access token interactively through redirects.
+     */
+    AcquireTokenPreRedirect: "acquireTokenPreRedirect",
+
+    /**
      * acquireTokenRedirect (msal-browser).
-     * Used to acquire a new access token interactively through redirects
+     * Second part of the redirect flow.
+     * Used to acquire a new access token interactively through redirects.
      */
     AcquireTokenRedirect: "acquireTokenRedirect",
 

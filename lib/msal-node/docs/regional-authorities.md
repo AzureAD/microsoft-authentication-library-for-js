@@ -1,5 +1,7 @@
 # Enabling regional authorities
 
+> NOTE: This legacy feature is only available for internal Microsoft services and the client credential flow. It is recommended to use [Managed Identity](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/managed-identity.md) instead.
+
 To increase the reliability, availability and performance of Azure, regionalization aims to keep all trafic inside a geographical area. For example, if an app needs to fetch data from Key Vault in WestUs2, all the traffic this entails - including MSAL generated traffic - should stay in WestUs2.
 
 A few important notes about regional authorities:
@@ -8,7 +10,7 @@ A few important notes about regional authorities:
 
 -   A token obtained for one region is valid for the non-regional endpoint (tokens for "westus2.login.microsoft.com " are the same as tokens for "login.microsotonline.com "). And vice-versa. It's the same token, minus one claim called rh
 
-> NOTE: This feature is currently only available for the client credential flow.
+
 
 ## Confguration
 
@@ -47,7 +49,7 @@ cca.acquireTokenByClientCredential(clientCredentialRequest)
     });
 ```
 
-> NOTE: If you provide the value `"TryAutoDetect"` in the `azureRegion` field, the msal library which will try to discover the region the application has been deployed to and use that region. If no region is auto discovered the library will fall back to using the global authority.
+> NOTE: If you provide the value `"TryAutoDetect"` in the `azureRegion` field, the msal library which will try to discover the region the application has been deployed to and use that region. This is unreliable and should be avoided.
 
 ## Sample
 
