@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1717087842926,
+  "lastUpdate": 1717428314037,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -9174,6 +9174,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 188640,
             "range": "±2.22%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "bogavril@microsoft.com",
+            "name": "Bogdan Gavril",
+            "username": "bgavrilMS"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "69e58c3131ab6b84def41e26ec33846d6d8c14f1",
+          "message": "Update regional-authorities.md (#7078)\n\n@trwalke and @Robbie-Microsoft - please review.\r\n\r\n---------\r\n\r\nCo-authored-by: Peter <34331512+pmaytak@users.noreply.github.com>",
+          "timestamp": "2024-06-03T08:19:45-07:00",
+          "tree_id": "66a9717012b5314c839c896bd900cb5344c92e61",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/69e58c3131ab6b84def41e26ec33846d6d8c14f1"
+        },
+        "date": 1717428312136,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 199525,
+            "range": "±2.00%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 192946,
+            "range": "±2.05%",
             "unit": "ops/sec",
             "extra": "222 samples"
           }
