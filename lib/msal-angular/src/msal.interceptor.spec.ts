@@ -57,6 +57,8 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
       string,
       Array<string | ProtectedResourceScopes> | null
     >([
+      ["https://MY_API_SITE_2", ["api://MY_API_SITE_2/as_user"]],
+      ["https://MY_API_SITE_1", ["api://MY_API_SITE_1/as_user"]],
       ["https://graph.microsoft.com/v1.0/me", ["user.read"]],
       ["relative/me", ["relative.scope"]],
       ["https://myapplication.com/user/*", ["customscope.read"]],
@@ -906,9 +908,9 @@ describe("MsalInterceptor", () => {
       sampleAccountInfo,
     ]);
 
-    httpClient.get("http://site.com/relative/me").subscribe();
+    httpClient.get("http://localhost:9876/relative/me").subscribe();
     setTimeout(() => {
-      const request = httpMock.expectOne("http://site.com/relative/me");
+      const request = httpMock.expectOne("http://localhost:9876/relative/me");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual(
         "Bearer access-token"
@@ -1117,6 +1119,46 @@ describe("MsalInterceptor", () => {
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,
         scopes: ["customF.scope"],
+      });
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+
+  it("attaches authorization header with access token when endpoint match is in HostNameAndPort instead of query string", (done) => {
+    const spy = spyOn(
+      PublicClientApplication.prototype,
+      "acquireTokenSilent"
+    ).and.returnValue(
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve({
+          accessToken: "access-token",
+        });
+      })
+    );
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
+      sampleAccountInfo,
+    ]);
+
+    httpClient
+      .get(
+        "https://MY_API_SITE_1/api/sites?$filter=siteUrl eq 'https://MY_API_SITE_2'"
+      )
+      .subscribe();
+
+    setTimeout(() => {
+      const request = httpMock.expectOne(
+        "https://MY_API_SITE_1/api/sites?$filter=siteUrl eq 'https://MY_API_SITE_2'"
+      );
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toEqual(
+        "Bearer access-token"
+      );
+      expect(spy).toHaveBeenCalledWith({
+        account: sampleAccountInfo,
+        scopes: ["api://MY_API_SITE_1/as_user"],
       });
       httpMock.verify();
       done();
