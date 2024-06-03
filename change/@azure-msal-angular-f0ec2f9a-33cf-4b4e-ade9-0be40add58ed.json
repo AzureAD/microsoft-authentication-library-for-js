@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix query string instead of HostNameAndPort bug in MsalInterceptor #7137",
+  "packageName": "@azure/msal-angular",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}

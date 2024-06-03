@@ -17,6 +17,9 @@ import {
     Logger,
     CacheRecord,
     AADServerParamKeys,
+    IPerformanceClient,
+    InProgressPerformanceEvent,
+    PerformanceEvents,
 } from "@azure/msal-common";
 import sinon from "sinon";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
@@ -39,19 +42,9 @@ import {
 } from "../../src/error/NativeAuthError";
 import { NativeExtensionRequestBody } from "../../src/broker/nativeBroker/NativeRequest";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
-import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import { IPublicClientApplication } from "../../src";
+import { BrowserPerformanceClient, IPublicClientApplication } from "../../src";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
-
-const networkInterface = {
-    sendGetRequestAsync<T>(): T {
-        return {} as T;
-    },
-    sendPostRequestAsync<T>(): T {
-        return {} as T;
-    },
-};
 
 const MOCK_WAM_RESPONSE = {
     access_token: TEST_TOKENS.ACCESS_TOKEN,
@@ -117,59 +110,33 @@ describe("NativeInteractionClient Tests", () => {
     let wamProvider: NativeMessageHandler;
     let postMessageSpy: sinon.SinonSpy;
     let mcPort: MessagePort;
-
-    beforeAll(async () => {
-        pca = new PublicClientApplication({
-            auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-            },
-        });
-
-        await pca.initialize();
-
-        //Implementation of PCA was moved to controller.
-        pca = (pca as any).controller;
-
-        wamProvider = new NativeMessageHandler(
-            pca.getLogger(),
-            2000,
-            getDefaultPerformanceClient()
-        );
-        // @ts-ignore
-        nativeInteractionClient = new NativeInteractionClient(
-            // @ts-ignore
-            pca.config,
-            // @ts-ignore
-            pca.browserStorage,
-            // @ts-ignore
-            pca.browserCrypto,
-            pca.getLogger(),
-            // @ts-ignore
-            pca.eventHandler,
-            // @ts-ignore
-            pca.navigationClient,
-            ApiId.acquireTokenRedirect,
-            // @ts-ignore
-            pca.performanceClient,
-            wamProvider,
-            "nativeAccountId",
-            // @ts-ignore
-            pca.nativeInternalStorage,
-            RANDOM_TEST_GUID
-        );
-    });
+    let perfClient: IPerformanceClient;
+    let perfMeasurement: InProgressPerformanceEvent;
 
     beforeEach(async () => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
+            telemetry: {
+                client: new BrowserPerformanceClient({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                }),
+                application: {
+                    appName: TEST_CONFIG.applicationName,
+                    appVersion: TEST_CONFIG.applicationVersion,
+                },
+            },
         });
 
         await pca.initialize();
 
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
+        // @ts-ignore
+        perfClient = pca.performanceClient;
 
         //@ts-ignore
         browserCacheManager = pca.browserStorage;
@@ -195,8 +162,7 @@ describe("NativeInteractionClient Tests", () => {
             // @ts-ignore
             pca.navigationClient,
             ApiId.acquireTokenRedirect,
-            // @ts-ignore
-            pca.performanceClient,
+            perfClient,
             wamProvider,
             "nativeAccountId",
             // @ts-ignore
@@ -206,6 +172,10 @@ describe("NativeInteractionClient Tests", () => {
 
         postMessageSpy = sinon.spy(window, "postMessage");
         sinon.stub(MessageEvent.prototype, "source").get(() => window); // source property not set by jsdom window messaging APIs
+        perfMeasurement = perfClient.startMeasurement(
+            "test-measurement",
+            "test-correlation-id"
+        );
     });
 
     afterEach(() => {
@@ -657,8 +627,6 @@ describe("NativeInteractionClient Tests", () => {
 
     describe("acquireTokenRedirect tests", () => {
         it("acquires token successfully then redirects to start page", (done) => {
-            //here
-
             sinon
                 .stub(NavigationClient.prototype, "navigateExternal")
                 .callsFake((url: string) => {
@@ -671,9 +639,38 @@ describe("NativeInteractionClient Tests", () => {
                 .callsFake((): Promise<object> => {
                     return Promise.resolve(MOCK_WAM_RESPONSE);
                 });
-            nativeInteractionClient.acquireTokenRedirect({
-                scopes: ["User.Read"],
+            nativeInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                },
+                perfMeasurement
+            );
+        });
+
+        it("emits successful pre-redirect telemetry event", (done) => {
+            sinon
+                .stub(NavigationClient.prototype, "navigateExternal")
+                .callsFake((url: string) => {
+                    expect(url).toBe(window.location.href);
+                    return Promise.resolve(true);
+                });
+            sinon
+                .stub(NativeMessageHandler.prototype, "sendMessage")
+                .callsFake((): Promise<object> => {
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].name).toBe(perfMeasurement.event.name);
+                pca.removePerformanceCallback(callbackId);
+                done();
             });
+            nativeInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                },
+                perfMeasurement
+            );
         });
 
         it("throws if native token acquisition fails with fatal error", (done) => {
@@ -688,7 +685,10 @@ describe("NativeInteractionClient Tests", () => {
                     );
                 });
             nativeInteractionClient
-                .acquireTokenRedirect({ scopes: ["User.Read"] })
+                .acquireTokenRedirect(
+                    { scopes: ["User.Read"] },
+                    perfMeasurement
+                )
                 .catch((e) => {
                     expect(e.errorCode).toBe("ContentError");
                     done();
@@ -711,9 +711,12 @@ describe("NativeInteractionClient Tests", () => {
                 });
             // @ts-ignore
             pca.browserStorage.setInteractionInProgress(true);
-            await nativeInteractionClient.acquireTokenRedirect({
-                scopes: ["User.Read"],
-            });
+            await nativeInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                },
+                perfMeasurement
+            );
             const response =
                 await nativeInteractionClient.handleRedirectPromise();
             expect(response).not.toBe(null);
@@ -759,10 +762,13 @@ describe("NativeInteractionClient Tests", () => {
                 );
             // @ts-ignore
             pca.browserStorage.setInteractionInProgress(true);
-            await nativeInteractionClient.acquireTokenRedirect({
-                scopes: ["User.Read"],
-                prompt: "login",
-            });
+            await nativeInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                    prompt: "login",
+                },
+                perfMeasurement
+            );
             const response =
                 await nativeInteractionClient.handleRedirectPromise();
             expect(response).not.toBe(null);
@@ -813,7 +819,10 @@ describe("NativeInteractionClient Tests", () => {
             // @ts-ignore
             pca.browserStorage.setInteractionInProgress(true);
             nativeInteractionClient
-                .acquireTokenRedirect({ scopes: ["User.Read"] })
+                .acquireTokenRedirect(
+                    { scopes: ["User.Read"] },
+                    perfMeasurement
+                )
                 .then(() => {
                     const inProgress =
                         // @ts-ignore
@@ -846,9 +855,12 @@ describe("NativeInteractionClient Tests", () => {
                 .callsFake((): Promise<object> => {
                     return Promise.resolve(MOCK_WAM_RESPONSE);
                 });
-            await nativeInteractionClient.acquireTokenRedirect({
-                scopes: ["User.Read"],
-            });
+            await nativeInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                },
+                perfMeasurement
+            );
             const response =
                 await nativeInteractionClient.handleRedirectPromise();
             expect(response).toBe(null);
