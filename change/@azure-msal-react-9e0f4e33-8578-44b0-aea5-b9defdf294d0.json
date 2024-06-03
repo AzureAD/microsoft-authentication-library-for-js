@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Bump  react to 18.3.0",
+  "packageName": "@azure/msal-react",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
