@@ -1,6 +1,8 @@
+import { config } from './authConfig';
+
 // Create the main myMSALObj instance
 // configuration parameters are located at authConfig.js
-const myMSALObj = new msal.PublicClientApplication(msalConfig);
+const myMSALObj = new msal.PublicClientApplication(config.msalConfig);
 
 let username = "";
 
@@ -65,7 +67,7 @@ function signIn() {
      * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md#request
      */
 
-    myMSALObj.loginPopup(loginRequest)
+    myMSALObj.loginPopup(config.loginRequest)
         .then(handleResponse)
         .catch(error => {
             console.error(error);
