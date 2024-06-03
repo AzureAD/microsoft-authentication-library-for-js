@@ -16,6 +16,7 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 import { BrowserUtils } from "../utils/BrowserUtils";
+import { SsoSilentRequest } from "../request/SsoSilentRequest";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -292,6 +293,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     async hydrateCache(
         result: AuthenticationResult,
         request: SilentRequest
+        | SsoSilentRequest
+        | RedirectRequest
+        | PopupRequest
     ): Promise<void> {
         this.logger.verbose("hydrateCache called");
 

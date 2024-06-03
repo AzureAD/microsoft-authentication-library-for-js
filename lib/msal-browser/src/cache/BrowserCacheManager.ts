@@ -13,6 +13,9 @@ import { IWindowStorage } from "./IWindowStorage";
 import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
 import { SilentRequest } from "../request/SilentRequest";
+import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { RedirectRequest } from "../request/RedirectRequest";
+import { PopupRequest } from "../request/PopupRequest";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -1420,6 +1423,9 @@ export class BrowserCacheManager extends CacheManager {
     async hydrateCache(
         result: AuthenticationResult,
         request: SilentRequest
+        | SsoSilentRequest
+        | RedirectRequest
+        | PopupRequest
     ): Promise<void> {
         const idTokenEntity = IdTokenEntity.createIdTokenEntity(
             result.account?.homeAccountId || "" ,
