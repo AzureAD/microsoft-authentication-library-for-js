@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1717428314037,
+  "lastUpdate": 1717433759416,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -9212,6 +9212,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 192946,
             "range": "±2.05%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8e4b664577672409573431df264307fb4864564d",
+          "message": "Fix MSAL Angular MsalInterceptor bug matching to query string (#7137)\n\nThis PR addresses a bug where the `MsalInterceptor` could match the\r\nprotectedResource to the query string part of the URL instead of the\r\nhost name and port part of the URL. It also refactors the code\r\nsurrounding relative URLs.\r\n\r\nThis addresses issue #7111",
+          "timestamp": "2024-06-03T09:50:33-07:00",
+          "tree_id": "1991ba22c0bca8659809e699a23b9d93f1c790e5",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8e4b664577672409573431df264307fb4864564d"
+        },
+        "date": 1717433758007,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 188430,
+            "range": "±1.99%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 187994,
+            "range": "±2.01%",
             "unit": "ops/sec",
             "extra": "222 samples"
           }
