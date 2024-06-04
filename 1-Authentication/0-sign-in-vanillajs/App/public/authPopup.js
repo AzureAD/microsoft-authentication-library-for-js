@@ -1,4 +1,5 @@
-// import { config } from './authConfig';
+import { msalConfig } from './authConfig.js';
+// const config = require('./authConfig.js');
 
 // Create the main myMSALObj instance
 // configuration parameters are located at authConfig.js
@@ -67,7 +68,7 @@ function signIn() {
      * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md#request
      */
 
-    myMSALObj.loginPopup(config.loginRequest)
+    myMSALObj.loginPopup(loginRequest)
         .then(handleResponse)
         .catch(error => {
             console.error(error);
@@ -91,3 +92,5 @@ function signOut() {
 }
 
 selectAccount();
+
+export { selectAccount, handleResponse, signIn, signOut };

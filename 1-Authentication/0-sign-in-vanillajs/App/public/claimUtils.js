@@ -222,3 +222,5 @@ const changeDateFormat = (date) => {
     let dateObj = new Date(date * 1000);
     return `${date} - [${dateObj.toString()}]`;
 };
+
+export { createClaimsTable, populateClaim, changeDateFormat };
