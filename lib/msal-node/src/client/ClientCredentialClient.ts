@@ -38,7 +38,7 @@ import {
 import {
     ManagedIdentityConfiguration,
     ManagedIdentityNodeConfiguration,
-} from "../config/Configuration";
+} from "../config/Configuration.js";
 
 /**
  * OAuth2.0 client credential grant
