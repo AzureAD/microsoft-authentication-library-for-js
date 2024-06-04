@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Instrument pre-redirect flow #7134",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

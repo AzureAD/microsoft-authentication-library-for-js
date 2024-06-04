@@ -2,6 +2,27 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 04 Jun 2024 00:08:57 GMT",
+      "version": "2.9.1",
+      "tag": "@azure/msal-node_v2.9.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.11.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 28 May 2024 21:37:23 GMT",
       "version": "2.9.0",
       "tag": "@azure/msal-node_v2.9.0",
