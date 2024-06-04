@@ -1,8 +1,8 @@
-import { config } from './authConfig';
+// import { config } from './authConfig';
 
 // Create the main myMSALObj instance
 // configuration parameters are located at authConfig.js
-const myMSALObj = new msal.PublicClientApplication(config.msalConfig);
+const myMSALObj = new msal.PublicClientApplication(msalConfig);
 
 let username = "";
 

@@ -1,11 +1,10 @@
-import { msalConfig } from 'authConfig';
+// import { msalConfig } from 'authConfig';
 
 // Create the main myMSALObj instance
 // configuration parameters are located at authConfig.js
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
 
-let username = "";
-
+myMSALObj.initialize().then(() => {
 /**
  * A promise handler needs to be registered for handling the
  * response returned from redirect flow. For more information, visit:
@@ -16,6 +15,10 @@ myMSALObj.handleRedirectPromise()
     .catch((error) => {
         console.error(error);
     });
+});
+
+let username = "";
+
 
 function selectAccount() {
 

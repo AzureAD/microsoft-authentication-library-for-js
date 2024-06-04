@@ -5,6 +5,10 @@
  */
 const msalConfig = {
     auth: {
+        clientId: '94fc755a-af32-43f9-9ce6-5f86f2beb928', // This is the ONLY mandatory field that you need to supply.
+        authority: 'https://TrialTenantkwFwHYij.ciamlogin.com/', // Replace the placeholder with your tenant subdomain
+        redirectUri: 'http://localhost:3000/redirect', // You must register this URI on Azure Portal/App Registration. Defaults to window.location.href e.g. http://localhost:3000/
+        navigateToLoginRequestUrl: true, // If "true", will navigate back to the original request location before processing the auth code response.
     },
     cache: {
         cacheLocation: 'sessionStorage', // Configures cache location. "sessionStorage" is more secure, but "localStorage" gives you SSO.
@@ -56,14 +60,9 @@ const loginRequest = {
 // };
 
 // exporting config object for jest
-// if (typeof exports !== 'undefined') {
-//     module.exports = {
-//         msalConfig: msalConfig,
-//         loginRequest: loginRequest,
-//     };
-// }
-
-module.exports = {
-    msalConfig: msalConfig,
-    loginRequest: loginRequest,
-};
+if (typeof exports !== 'undefined') {
+    module.exports = {
+        msalConfig: msalConfig,
+        loginRequest: loginRequest,
+    };
+}
