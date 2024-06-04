@@ -51,6 +51,9 @@ export interface IPublicClientApplication {
     hydrateCache(
         result: AuthenticationResult,
         request: SilentRequest
+        | SsoSilentRequest
+        | RedirectRequest
+        | PopupRequest
     ): Promise<void>;
 }
 
