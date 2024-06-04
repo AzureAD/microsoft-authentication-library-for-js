@@ -223,4 +223,4 @@ const changeDateFormat = (date) => {
     return `${date} - [${dateObj.toString()}]`;
 };
 
-export { createClaimsTable, populateClaim, changeDateFormat };
+// export { createClaimsTable, populateClaim, changeDateFormat };

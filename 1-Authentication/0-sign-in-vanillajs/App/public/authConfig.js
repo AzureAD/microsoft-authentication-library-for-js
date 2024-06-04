@@ -60,11 +60,11 @@ const loginRequest = {
 // };
 
 // exporting config object for jest
-// if (typeof exports !== 'undefined') {
-//     module.exports = {
-//         msalConfig: msalConfig,
-//         loginRequest: loginRequest,
-//     };
-// }
+if (typeof exports !== 'undefined') {
+    module.exports = {
+        msalConfig: msalConfig,
+        loginRequest: loginRequest,
+    };
+}
 
-export { msalConfig, loginRequest };
+// export { msalConfig, loginRequest };

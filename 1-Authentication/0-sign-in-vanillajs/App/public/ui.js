@@ -30,4 +30,4 @@ function updateTable(account) {
     });
 };
 
-export { signInButton, signOutButton, titleDiv, welcomeDiv, tableBody, tableDiv, welcomeUser, updateTable };
+// export { signInButton, signOutButton, titleDiv, welcomeDiv, tableBody, tableDiv, welcomeUser, updateTable };

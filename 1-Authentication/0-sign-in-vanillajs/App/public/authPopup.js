@@ -1,4 +1,4 @@
-import { msalConfig } from './authConfig.js';
+// import { msalConfig } from './authConfig.js';
 // const config = require('./authConfig.js');
 
 // Create the main myMSALObj instance
@@ -93,4 +93,4 @@ function signOut() {
 
 selectAccount();
 
-export { selectAccount, handleResponse, signIn, signOut };
+// export { selectAccount, handleResponse, signIn, signOut };
