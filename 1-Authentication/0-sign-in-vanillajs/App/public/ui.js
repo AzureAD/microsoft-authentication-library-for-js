@@ -7,6 +7,7 @@ const tableDiv = document.getElementById('table-div');
 const tableBody = document.getElementById('table-body-div');
 
 function welcomeUser(username) {
+    console.log('welcome called');
     signInButton.classList.add('d-none');
     signOutButton.classList.remove('d-none');
     titleDiv.classList.add('d-none');
