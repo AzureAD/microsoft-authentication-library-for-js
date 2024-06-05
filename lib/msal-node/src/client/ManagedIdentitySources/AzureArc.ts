@@ -32,11 +32,16 @@ import {
     RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
 } from "../../utils/Constants";
 import { NodeStorage } from "../../cache/NodeStorage";
-import { readFileSync } from "fs";
+import { readFileSync, statSync } from "fs";
 import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
 
 export const ARC_API_VERSION: string = "2019-11-01";
+
+export const SUPPORTED_AZURE_ARC_PLATFORMS = {
+    win32: `${process.env["ProgramData"]}\\AzureConnectedMachineAgent\\Tokens`,
+    linux: "/var/opt/azcmagent/tokens",
+};
 
 /**
  * Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/AzureArcManagedIdentitySource.cs
@@ -168,15 +173,58 @@ export class AzureArc extends BaseManagedIdentitySource {
                 );
             }
 
-            const secretFile = wwwAuthHeader.split("Basic realm=")[1];
-            let secret;
+            const secretFilePath = wwwAuthHeader.split("Basic realm=")[1];
+
+            // throw an error if the managed identity application is not being run on Windows or Linux
+            if (
+                !SUPPORTED_AZURE_ARC_PLATFORMS.hasOwnProperty(process.platform)
+            ) {
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.platformNotSupported
+                );
+            }
+
+            // get the expected Windows or Linux file path)
+            const expectedSecretFilePath: string =
+                SUPPORTED_AZURE_ARC_PLATFORMS[process.platform as string];
+
+            /*
+             * throw an error if the file path from the www-authenticate header does not match the
+             * expected file path for the platform (Windows or Linux) the managed identity application
+             * is running on
+             */
+            if (!secretFilePath.startsWith(expectedSecretFilePath)) {
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidFilePath
+                );
+            }
+
+            let secretFileSize;
+            // attempt to get the secret file's size, in bytes
             try {
-                secret = readFileSync(secretFile, "utf-8");
+                secretFileSize = await statSync(secretFilePath).size;
             } catch (e) {
                 throw createManagedIdentityError(
                     ManagedIdentityErrorCodes.unableToReadSecretFile
                 );
             }
+            // throw an error if the secret file's size is greater than 4096 bytes
+            if (secretFileSize > 4096) {
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidSecret
+                );
+            }
+
+            // attempt to read the contents of the secret file
+            let secret;
+            try {
+                secret = readFileSync(secretFilePath, "utf-8");
+            } catch (e) {
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.unableToReadSecretFile
+                );
+            }
+
             const authHeaderValue = `Basic ${secret}`;
 
             this.logger.info(
