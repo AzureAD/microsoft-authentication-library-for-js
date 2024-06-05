@@ -924,7 +924,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 ...request.tokenQueryParameters,
             },
             extendedExpiryToken: false, // Make this configurable?
-            reqCnf: request.reqCnf || "",
+            keyId: request.popKid || "",
         };
 
         this.handleExtraBrokerParams(validatedRequest);
@@ -945,9 +945,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
             const popTokenGenerator = new PopTokenGenerator(this.browserCrypto);
 
             // generate reqCnf if not provided in the request
-            let reqCnfData = request.reqCnf;
-            let kid;
-            if (!reqCnfData) {
+            let reqCnfData;
+            if (!validatedRequest.keyId) {
                 const generatedReqCnfData = await invokeAsync(
                     popTokenGenerator.generateCnf.bind(popTokenGenerator),
                     PerformanceEvents.PopTokenGenerateCnf,
@@ -956,21 +955,16 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     request.correlationId
                 )(shrParameters, this.logger);
                 reqCnfData = generatedReqCnfData.reqCnfString;
-                kid = generatedReqCnfData.kid;
+                validatedRequest.keyId = generatedReqCnfData.kid;
                 validatedRequest.signPopToken = true;
             } else {
-                try {
-                    kid = JSON.parse(base64Decode(reqCnfData)).kid;
-                } catch (e) {
-                    throw createClientAuthError(
-                        ClientAuthErrorCodes.keyIdMissing
-                    );
-                }
+                reqCnfData = this.browserCrypto.base64UrlEncode(
+                    JSON.stringify({ kid: validatedRequest.keyId })
+                );
             }
 
             // SPAs require whole string to be passed to broker
             validatedRequest.reqCnf = reqCnfData;
-            validatedRequest.keyId = kid;
         }
 
         return validatedRequest;

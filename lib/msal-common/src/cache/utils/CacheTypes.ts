@@ -87,6 +87,7 @@ export type CredentialFilter = {
     userAssertionHash?: string;
     tokenType?: AuthenticationScheme;
     keyId?: string;
+    externalKeyId?: string;
     requestedClaimsHash?: string;
 };
 

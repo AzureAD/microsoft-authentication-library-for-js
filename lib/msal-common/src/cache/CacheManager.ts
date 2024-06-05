@@ -591,6 +591,7 @@ export abstract class CacheManager implements ICacheManager {
             realm: credential.realm,
             tokenType: credential.tokenType,
             requestedClaimsHash: credential.requestedClaimsHash,
+            externalKeyId: credential.externalKeyId,
         };
 
         const tokenKeys = this.getTokenKeys();
@@ -881,6 +882,15 @@ export abstract class CacheManager implements ICacheManager {
             // KeyId (sshKid) in request must match cached SSH certificate keyId because SSH cert is bound to a specific key
             if (filter.tokenType === AuthenticationScheme.SSH) {
                 if (filter.keyId && !this.matchKeyId(entity, filter.keyId)) {
+                    return false;
+                }
+            }
+
+            if (filter.tokenType === AuthenticationScheme.POP) {
+                if (
+                    (entity.externalKeyId || filter.externalKeyId) &&
+                    !this.matchExternalKeyId(entity, filter.externalKeyId)
+                ) {
                     return false;
                 }
             }
@@ -1363,6 +1373,7 @@ export abstract class CacheManager implements ICacheManager {
             target: scopes,
             tokenType: authScheme,
             keyId: request.sshKid,
+            externalKeyId: request.popKid,
             requestedClaimsHash: request.requestedClaimsHash,
         };
 
@@ -1905,10 +1916,28 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * Returns true if the credential's keyId matches the one in the request, false otherwise
      * @param entity
-     * @param tokenType
+     * @param keyId
      */
     private matchKeyId(entity: CredentialEntity, keyId: string): boolean {
         return !!(entity.keyId && entity.keyId === keyId);
+    }
+
+    /**
+     * Returns true if the credential's external keyId matches the one in the request, false otherwise
+     * @param entity
+     * @param externalKeyId
+     */
+    private matchExternalKeyId(
+        entity: CredentialEntity,
+        externalKeyId?: string
+    ): boolean {
+        if (entity.externalKeyId) {
+        }
+        return !!(
+            entity.externalKeyId &&
+            externalKeyId &&
+            entity.externalKeyId === externalKeyId
+        );
     }
 
     /**

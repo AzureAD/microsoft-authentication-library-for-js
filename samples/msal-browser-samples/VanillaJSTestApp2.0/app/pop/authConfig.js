@@ -11,7 +11,7 @@ const msalConfig = {
     system: {
         allowNativeBroker: false, // Disables WAM Broker
         loggerOptions: {
-            logLevel: msal.LogLevel.Trace,
+            logLevel: msal.LogLevel.Verbose,
             loggerCallback: (level, message, containsPii) => {
                 if (containsPii) {
                     return;
@@ -67,8 +67,8 @@ const popTokenRequest = {
     resourceRequestUri: popConfig.endpoint
 }
 
-const popTokenWithCnfRequest = {
+const popTokenWithKidRequest = {
     scopes: ["openid", "profile", "User.Read"],
     authenticationScheme: msal.AuthenticationScheme.POP,
-    reqCnf: "eyJraWQiOiJYbnN1QXZ0dFRQcDBubjFLX1lNTGVQTERicDdzeUNLaE5IdDdIallISlljIiwieG1zX2tzbCI6InN3In0"
+    popKid: "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc",
 };

@@ -36,11 +36,11 @@ function showPopTokenAcquired(encodedJwt) {
     jwtBodyView.textContent = jwtBody;
 }
 
-function showPopTokenWithCnfAcquired(encodedJwt) {
+function showPopTokenWithKidAcquired(encodedJwt) {
     popCardDiv.style.display = 'initial'
     const popTokenWithCnfAcquired = document.createElement('p');
-    popTokenWithCnfAcquired.setAttribute("id", "PopTokenWithCnfAcquired");
-    popTokenWithCnfAcquired.innerHTML = "Successfully acquired PoP Token with cnf";
+    popTokenWithCnfAcquired.setAttribute("id", "PopTokenWithKidAcquired");
+    popTokenWithCnfAcquired.innerHTML = "Successfully acquired PoP Token with kid";
     profileDiv.appendChild(popTokenWithCnfAcquired);
 
     const jwtWindow = document.getElementById("jwtWindow");

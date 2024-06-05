@@ -407,8 +407,9 @@ export class RefreshTokenClient extends BaseClient {
                 this.cryptoUtils,
                 this.performanceClient
             );
-            let reqCnfData = request.reqCnf;
-            if (!reqCnfData) {
+
+            let reqCnfData;
+            if (!request.popKid) {
                 const generatedReqCnfData = await invokeAsync(
                     popTokenGenerator.generateCnf.bind(popTokenGenerator),
                     PerformanceEvents.PopTokenGenerateCnf,
@@ -419,6 +420,10 @@ export class RefreshTokenClient extends BaseClient {
 
                 reqCnfData = generatedReqCnfData.reqCnfString;
                 request.signPopToken = true;
+            } else {
+                reqCnfData = this.cryptoUtils.base64UrlEncode(
+                    JSON.stringify({ kid: request.popKid })
+                );
             }
 
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)

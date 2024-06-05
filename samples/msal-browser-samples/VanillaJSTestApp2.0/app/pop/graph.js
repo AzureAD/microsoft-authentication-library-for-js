@@ -70,12 +70,12 @@ async function fetchPopToken() {
     }
 }
 
-async function fetchPopTokenWithCnf() {
+async function fetchPopTokenWithKid() {
     const currentAcc = myMSALObj.getAccountByUsername(username);
     if (currentAcc) {
-        return getTokenPopup(popTokenWithCnfRequest, currentAcc).then(response => {
+        return getTokenPopup(popTokenWithKidRequest, currentAcc).then(response => {
             if (response.accessToken) {
-                showPopTokenWithCnfAcquired(response.accessToken);
+                showPopTokenWithKidAcquired(response.accessToken);
                 return response.accessToken;
             }
         }).catch(error => {

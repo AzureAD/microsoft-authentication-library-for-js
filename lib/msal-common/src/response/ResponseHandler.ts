@@ -513,7 +513,8 @@ export class ResponseHandler {
                 userAssertionHash,
                 serverTokenResponse.key_id,
                 request.claims,
-                request.requestedClaimsHash
+                request.requestedClaimsHash,
+                request.popKid
             );
         }
 
@@ -591,11 +592,14 @@ export class ResponseHandler {
         let familyId: string = Constants.EMPTY_STRING;
 
         if (cacheRecord.accessToken) {
-            // if the request object has `reqCnf` property, the token will be returned unsigned
+            /*
+             * if the request object has `popKid` property, `signPopToken` will be set to false and
+             * the token will be returned unsigned
+             */
             if (
                 cacheRecord.accessToken.tokenType ===
                     AuthenticationScheme.POP &&
-                !request.reqCnf
+                request.signPopToken
             ) {
                 const popTokenGenerator: PopTokenGenerator =
                     new PopTokenGenerator(cryptoObj);
