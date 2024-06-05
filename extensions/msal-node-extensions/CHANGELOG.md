@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Tue, 28 May 2024 21:37:23 GMT and should not be manually modified.
+This log was last generated on Tue, 04 Jun 2024 00:08:57 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.18
+
+Tue, 04 Jun 2024 00:08:57 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v14.11.0
+- Bump eslint-config-msal to v0.0.0
 
 ## 1.0.17
 
