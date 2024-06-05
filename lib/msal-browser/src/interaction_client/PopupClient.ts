@@ -343,6 +343,16 @@ export class PopupClient extends StandardInteractionClient {
                 validRequest
             );
 
+            this.performanceClient.addFields(
+                {
+                    request: {
+                        ...request,
+                        account: result.account,
+                    },
+                },
+                this.correlationId
+            );
+
             return result;
         } catch (e) {
             // Close the synchronous popup if an error is thrown before the window unload event is registered

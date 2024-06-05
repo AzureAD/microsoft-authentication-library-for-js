@@ -12,6 +12,7 @@ import {
     PerformanceEvent,
     PerformanceEvents,
     PreQueueEvent,
+    RequestThumbprint,
     SubMeasurement,
 } from "@azure/msal-common/browser";
 import { Configuration } from "../config/Configuration.js";
@@ -21,6 +22,11 @@ import {
     BrowserCacheLocation,
 } from "../utils/BrowserConstants.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
+import { SilentRequest } from "../request/SilentRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { base64Encode } from "../encode/Base64Encode.js";
 
 /**
  * Returns browser performance measurement module if session flag is enabled. Returns undefined otherwise.
@@ -95,6 +101,31 @@ export class BrowserPerformanceClient
 
     generateId(): string {
         return BrowserCrypto.createNewGuid();
+    }
+
+    /**
+     * Generates base64 encoded request thumbprint
+     * @param request { SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest }
+     * @return string
+     */
+    generateRequestThumbprint(
+        request:
+            | SilentRequest
+            | SsoSilentRequest
+            | PopupRequest
+            | RedirectRequest
+    ): string {
+        const thumbprint: RequestThumbprint = {
+            clientId: this.clientId,
+            authority: request.authority || "",
+            scopes: request.scopes || [],
+            authenticationScheme: request.authenticationScheme,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
+            sshKid: request.sshKid,
+            shrOptions: request.shrOptions,
+        };
+        return base64Encode(JSON.stringify(thumbprint));
     }
 
     private getPageVisibility(): string | null {

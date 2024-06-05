@@ -3,6 +3,9 @@
  * Licensed under the MIT License.
  */
 
+import { CommonAuthorizationCodeRequest } from "../../request/CommonAuthorizationCodeRequest";
+import { CommonAuthorizationUrlRequest } from "../../request/CommonAuthorizationUrlRequest";
+
 /**
  * Enumeration of operations that are instrumented by have their performance measured by the PerformanceClient.
  *
@@ -868,6 +871,14 @@ export type PerformanceEvent = {
 
     embeddedClientId?: string;
     embeddedRedirectUri?: string;
+
+    // Request
+    request?: CommonAuthorizationUrlRequest | CommonAuthorizationCodeRequest;
+
+    // Correlated failed silent calls
+    firstSilentCorrelationId?: string;
+    lastSilentCorrelationId?: string;
+    silentCallsCount?: number;
 };
 
 export type PerformanceEventContext = {
