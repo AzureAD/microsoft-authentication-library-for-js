@@ -29,5 +29,3 @@ function updateTable(account) {
         cell3.innerHTML = tokenClaims[key][2];
     });
 };
-
-// export { signInButton, signOutButton, titleDiv, welcomeDiv, tableBody, tableDiv, welcomeUser, updateTable };

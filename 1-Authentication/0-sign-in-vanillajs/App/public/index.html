@@ -17,14 +17,6 @@
 </head>
 
 <body>
-    <!-- importing app scripts (load order is important) -->
-    <script type="text/javascript" src="./authConfig.js"></script>
-    <script type="text/javascript" src="./ui.js"></script>
-    <script type="text/javascript" src="./claimUtils.js"></script>
-    <!-- <script type="text/javascript" src="./authRedirect.js"></script> -->
-    <!-- uncomment the above line and comment the line below if you would like to use the redirect flow -->
-    <script type="text/javascript" src="./authRedirect.js"></script>
-
     <nav class="navbar navbar-expand-sm navbar-dark bg-primary navbarStyle">
         <a class="navbar-brand" href="/">Microsoft identity platform</a>
         <div class="navbar-collapse justify-content-end">
@@ -64,7 +56,13 @@
         integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
         crossorigin="anonymous"></script>
         
-
+    <!-- importing app scripts (load order is important) -->
+    <script type="text/javascript" src="./authConfig.js"></script>
+    <script type="text/javascript" src="./ui.js"></script>
+    <script type="text/javascript" src="./claimUtils.js"></script>
+    <script type="text/javascript" src="./authRedirect.js"></script>
+    <!-- uncomment the above line and comment the line below if you would like to use the popup flow -->
+    <!-- <script type="text/javascript" src="./authPopup.js"></script> -->
 </body>
 
 </html>

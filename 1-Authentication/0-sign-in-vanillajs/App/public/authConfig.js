@@ -66,5 +66,3 @@ if (typeof exports !== 'undefined') {
         loginRequest: loginRequest,
     };
 }
-
-// export { msalConfig, loginRequest };

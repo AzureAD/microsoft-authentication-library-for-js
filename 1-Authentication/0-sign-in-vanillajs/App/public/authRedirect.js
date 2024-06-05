@@ -1,5 +1,3 @@
-// import { msalConfig } from './authConfig.js';
-
 // Create the main myMSALObj instance
 // configuration parameters are located at authConfig.js
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
@@ -100,5 +98,3 @@ function signOut() {
 
     myMSALObj.logoutRedirect(logoutRequest);
 }
-
-// export { selectAccount, handleResponse, signIn, signOut };
