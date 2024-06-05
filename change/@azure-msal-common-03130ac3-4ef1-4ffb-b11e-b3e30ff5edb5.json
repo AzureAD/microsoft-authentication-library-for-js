@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Instrument a correlation between silent and interactive requests #7146",
+  "packageName": "@azure/msal-common",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
