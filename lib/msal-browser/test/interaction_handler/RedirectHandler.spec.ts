@@ -146,6 +146,9 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 base64Encode: (input: string): string => {
                     return "testEncodedString";
                 },
+                base64UrlEncode(input: string): string {
+                    return Buffer.from(input, "utf-8").toString("base64url");
+                },
                 getPublicKeyThumbprint: async (): Promise<string> => {
                     return TEST_POP_VALUES.ENCODED_REQ_CNF;
                 },

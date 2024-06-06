@@ -51,6 +51,16 @@ describe("PopTokenGenerator Unit Tests", () => {
                     return input;
             }
         },
+        base64UrlEncode(input: string): string {
+            switch (input) {
+                case '{"kid": "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc"}':
+                    return "e2tpZDogIlhuc3VBdnR0VFBwMG5uMUtfWU1MZVBMRGJwN3N5Q0toTkh0N0hqWUhKWWMifQ";
+                case '{"kid":"NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs","xms_ksl":"sw"}':
+                    return "eyJraWQiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwieG1zX2tzbCI6InN3In0";
+                default:
+                    return input;
+            }
+        },
         async getPublicKeyThumbprint(): Promise<string> {
             return TEST_POP_VALUES.KID;
         },

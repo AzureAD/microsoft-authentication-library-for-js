@@ -2757,9 +2757,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.REQ_CNF}=${encodeURIComponent(
-                        TEST_POP_VALUES.ENCODED_REQ_CNF
-                    )}`
+                    `${AADServerParamKeys.REQ_CNF}=${TEST_POP_VALUES.ENCODED_REQ_CNF}`
                 )
             ).toBe(true);
             expect(
@@ -2827,7 +2825,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                         return input;
                 }
             };
-            const signedJwt = "signedJwt";
+            const signedJwt =
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsia2lkIjoiTnpiTHNYaDh1RENjZC02TU53WEY0V183bm9XWEZaQWZIa3hac1JHQzlYcyJ9fQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
             config.cryptoInterface.signJwt = async (
                 // @ts-ignore

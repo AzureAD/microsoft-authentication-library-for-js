@@ -57,7 +57,8 @@ const networkInterface: INetworkModule = {
         return {} as T;
     },
 };
-const signedJwt = "SignedJwt";
+const signedJwt =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsia2lkIjoiTnpiTHNYaDh1RENjZC02TU53WEY0V183bm9XWEZaQWZIa3hac1JHQzlYcyJ9fQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 const cryptoInterface: ICrypto = {
     createNewGuid(): string {
         return RANDOM_TEST_GUID;
@@ -82,6 +83,14 @@ const cryptoInterface: ICrypto = {
                 return TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
             case TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_DECODED:
                 return TEST_POP_VALUES.SAMPLE_POP_AT_PAYLOAD_ENCODED;
+            default:
+                return input;
+        }
+    },
+    base64UrlEncode(input: string): string {
+        switch (input) {
+            case '{kid: "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc"}':
+                return "e2tpZDogIlhuc3VBdnR0VFBwMG5uMUtfWU1MZVBMRGJwN3N5Q0toTkh0N0hqWUhKWWMifQ";
             default:
                 return input;
         }
@@ -630,15 +639,12 @@ describe("ResponseHandler.ts", () => {
             expect(result.accessToken).toBe(signedJwt);
         });
 
-        it("Does not sign access token when reqCnf is set and PoP scheme enabled", async () => {
+        it("Does not sign access token when PoP kid is set and PoP scheme enabled", async () => {
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,
                 correlationId: "CORRELATION_ID",
                 scopes: ["openid", "profile", "User.Read", "email"],
-                reqCnf: {
-                    kid: TEST_POP_VALUES.KID,
-                    reqCnfString: "Some String",
-                },
+                popKid: TEST_POP_VALUES.POPKID,
             };
             const testResponse: ServerAuthorizationTokenResponse = {
                 ...POP_AUTHENTICATION_RESULT.body,

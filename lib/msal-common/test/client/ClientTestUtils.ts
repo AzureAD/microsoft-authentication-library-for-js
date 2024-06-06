@@ -227,6 +227,9 @@ export const mockCrypto = {
     base64Encode(input: string): string {
         return Buffer.from(input, "utf-8").toString("base64");
     },
+    base64UrlEncode(input: string): string {
+        return Buffer.from(input, "utf-8").toString("base64url");
+    },
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
     },

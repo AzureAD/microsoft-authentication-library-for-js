@@ -7,8 +7,7 @@ import { TEST_CONFIG, TEST_URIS } from "./StringConstants";
 import {
     BrowserUtils,
     BrowserAuthError,
-    BrowserAuthErrorMessage,
-    InteractionType,
+    BrowserAuthErrorCodes,
 } from "../../src";
 
 describe("BrowserUtils.ts Function Unit Tests", () => {
@@ -101,7 +100,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             } catch (e) {
                 const browserAuthError = e as BrowserAuthError;
                 expect(browserAuthError.errorCode).toBe(
-                    BrowserAuthErrorMessage.redirectInIframeError.code
+                    BrowserAuthErrorCodes.redirectInIframe
                 );
                 done();
             }

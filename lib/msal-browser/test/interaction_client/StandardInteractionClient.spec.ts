@@ -142,10 +142,10 @@ describe("StandardInteractionClient", () => {
             await testClient.initializeAuthorizationCodeRequest(request);
         expect(request.codeChallenge).toBe(TEST_CONFIG.TEST_CHALLENGE);
         expect(authCodeRequest.codeVerifier).toBe(TEST_CONFIG.TEST_VERIFIER);
-        expect(authCodeRequest.reqCnf).toBeUndefined;
+        expect(authCodeRequest.popKid).toBeUndefined;
     });
 
-    it("initializeAuthorizationCodeRequest validates the request and does not influence undefined reqCnf param", async () => {
+    it("initializeAuthorizationCodeRequest validates the request and does not influence undefined popKid param", async () => {
         const request: AuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
@@ -166,7 +166,7 @@ describe("StandardInteractionClient", () => {
 
         const authCodeRequest =
             await testClient.initializeAuthorizationCodeRequest(request);
-        expect(authCodeRequest.reqCnf).toBeUndefined;
+        expect(authCodeRequest.popKid).toBeUndefined;
     });
 
     it("initializeAuthorizationCodeRequest validates the request and adds reqCnf param when user defined", async () => {
@@ -181,7 +181,7 @@ describe("StandardInteractionClient", () => {
             nonce: "",
             authenticationScheme:
                 TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-            reqCnf: TEST_REQ_CNF_DATA,
+            popKid: TEST_REQ_CNF_DATA.kid,
         };
 
         jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -191,7 +191,7 @@ describe("StandardInteractionClient", () => {
 
         const authCodeRequest =
             await testClient.initializeAuthorizationCodeRequest(request);
-        expect(authCodeRequest.reqCnf).toEqual(TEST_REQ_CNF_DATA);
+        expect(authCodeRequest.popKid).toEqual(TEST_REQ_CNF_DATA.kid);
     });
 
     it("getDiscoveredAuthority - request authority only", async () => {
