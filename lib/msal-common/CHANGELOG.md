@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Thu, 26 Oct 2023 20:13:24 GMT and should not be manually modified.
+This log was last generated on Thu, 06 Jun 2024 20:36:43 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 13.3.3
+
+Thu, 06 Jun 2024 20:36:43 GMT
+
+### Patches
+
+- Add `hydrateCache()` API support (sameera.gajjarapu@microsoft.com)
 
 ## 13.3.1
 

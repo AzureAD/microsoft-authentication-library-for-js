@@ -2,6 +2,35 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Thu, 06 Jun 2024 20:36:40 GMT",
+      "tag": "@azure/msal-browser_v2.39.0",
+      "version": "2.39.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thnorlin@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a30f3780cc6f3bba03684be5d732e2a173976573",
+            "comment": "Fix hydrateCache typings"
+          }
+        ],
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c132cdb8b59869624f4f5a9be64192d3ced18acf",
+            "comment": "Add `hydrateCache()` API support"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v13.3.3",
+            "commit": "a30f3780cc6f3bba03684be5d732e2a173976573"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 26 Mar 2024 20:58:39 GMT",
       "version": "2.38.4",
       "tag": "@azure/msal-browser_v2.38.4",

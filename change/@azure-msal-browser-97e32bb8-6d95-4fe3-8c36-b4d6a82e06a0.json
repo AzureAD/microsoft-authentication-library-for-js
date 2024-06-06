@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix hydrateCache typings",
-  "packageName": "@azure/msal-browser",
-  "email": "thnorlin@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add `hydrateCache()` API support",
-  "packageName": "@azure/msal-common",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch"
-}

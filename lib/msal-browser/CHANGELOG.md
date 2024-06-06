@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 26 Mar 2024 20:58:39 GMT and should not be manually modified.
+This log was last generated on Thu, 06 Jun 2024 20:36:40 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.39.0
+
+Thu, 06 Jun 2024 20:36:40 GMT
+
+### Minor changes
+
+- Add `hydrateCache()` API support (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v13.3.3
+
+### Patches
+
+- Fix hydrateCache typings (thnorlin@microsoft.com)
 
 ## 2.38.4
 

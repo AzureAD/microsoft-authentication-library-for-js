@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Thu, 06 Jun 2024 20:36:43 GMT",
+      "tag": "@azure/msal-common_v13.3.3",
+      "version": "13.3.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c132cdb8b59869624f4f5a9be64192d3ced18acf",
+            "comment": "Add `hydrateCache()` API support"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 26 Oct 2023 20:13:24 GMT",
       "tag": "@azure/msal-common_v13.3.1",
       "version": "13.3.1",
