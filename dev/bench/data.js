@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1717460139392,
+  "lastUpdate": 1717705179195,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -9286,6 +9286,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 197783,
             "range": "±1.98%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cc18b42d4ffaf80b72262d0efee2d157ab9f7a1c",
+          "message": "Remove outdated TS Sample (#7149)",
+          "timestamp": "2024-06-06T13:13:59-07:00",
+          "tree_id": "1f21c7ff38cff8061cde83ae3eda2d8d39cdc0fb",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/cc18b42d4ffaf80b72262d0efee2d157ab9f7a1c"
+        },
+        "date": 1717705178139,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 186749,
+            "range": "±2.18%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 184167,
+            "range": "±2.18%",
             "unit": "ops/sec",
             "extra": "222 samples"
           }
