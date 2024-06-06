@@ -1,0 +1,28 @@
+{
+  "name": "msal-node-obo",
+  "version": "1.0.0",
+  "description": "sample app for msal-node showing on-behalf-of flow",
+  "main": "test/obo-aad.spec.ts",
+  "private": true,
+  "scripts": {
+    "test:e2e": "jest",
+    "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-node",
+    "start:build": "npm run build:package && npm start"
+  },
+  "author": "Microsoft",
+  "license": "MIT",
+  "dependencies": {
+    "@azure/msal-node": "^2.0.0-beta.0",
+    "dotenv": "^16.0.3",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.0",
+    "jwks-rsa": "^3.0.1",
+    "uuid": "^8.3.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "e2e-test-utils": "^0.0.1",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0"
+  }
+}

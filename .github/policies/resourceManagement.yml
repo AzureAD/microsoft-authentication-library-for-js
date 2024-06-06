@@ -1,0 +1,227 @@
+id: 
+name: GitOps.PullRequestIssueManagement
+description: GitOps.PullRequestIssueManagement primitive
+owner: 
+resource: repository
+disabled: false
+where: 
+configuration:
+  resourceManagementConfiguration:
+    scheduledSearches:
+    - description: 
+      frequencies:
+      - hourly:
+          hour: 12
+      filters:
+      - isOpen
+      - hasLabel:
+          label: question
+      - hasLabel:
+          label: 'Needs: Author Feedback'
+      - noActivitySince:
+          days: 5
+      - isIssue
+      - isNotLabeledWith:
+          label: no-issue-activity
+      actions:
+      - addReply:
+          reply: '@${issueAuthor} This issue has been automatically marked as stale because it is marked as requiring author feedback but has not had any activity for **5 days**. If your issue has been resolved please let us know by closing the issue. If your issue has **not** been resolved please leave a comment to keep this open. It will be closed automatically in **7 days** if it remains stale.'
+      - addLabel:
+          label: no-issue-activity
+    - description: 
+      frequencies:
+      - hourly:
+          hour: 12
+      filters:
+      - isOpen
+      - hasLabel:
+          label: no-issue-activity
+      - noActivitySince:
+          days: 7
+      - isIssue
+      actions:
+      - closeIssue
+    - description: 
+      frequencies:
+      - weekday:
+          day: Monday
+          time: 8:00
+      filters:
+      - isOpen
+      - isNotDraftPullRequest
+      - isPullRequest
+      - noActivitySince:
+          days: 14
+      - isNotLabeledWith:
+          label: 'Needs: Attention :wave:'
+      actions:
+      - addReply:
+          reply: >-
+            Reminder: This PR appears to be stale. If this PR is still a work in progress please mark as draft.
+      - addLabel:
+          label: 'Needs: Attention :wave:'
+    eventResponderTasks:
+    - if:
+      - payloadType: Issues
+      - or:
+        - labelAdded:
+            label: bug
+        - labelAdded:
+            label: p1
+        - labelAdded:
+            label: p2
+        - labelAdded:
+            label: enhancement
+        - labelAdded:
+            label: feature
+      then:
+      - removeLabel:
+          label: bug-unconfirmed
+      - removeLabel:
+          label: question
+      - removeLabel:
+          label: answered
+      - removeLabel:
+          label: no-issue-activity
+      - removeLabel:
+          label: 'Needs: Attention :wave:'
+      - removeLabel:
+          label: 'Needs: Author Feedback'
+      - removeLabel:
+          label: feature-unconfirmed
+      description: 
+    - if:
+      - payloadType: Issues
+      - isAction:
+          action: Closed
+      then:
+      - removeLabel:
+          label: 'Needs: Attention :wave:'
+      - removeLabel:
+          label: 'Needs: Author Feedback'
+      description: 
+    - if:
+      - payloadType: Issues
+      - isOpen
+      - labelAdded:
+          label: 'Needs: Author Feedback'
+      then:
+      - removeLabel:
+          label: 'Needs: Attention :wave:'
+      description: 
+    - if:
+      - payloadType: Issues
+      - isOpen
+      - labelAdded:
+          label: 'Needs: Attention :wave:'
+      then:
+      - removeLabel:
+          label: 'Needs: Author Feedback'
+      description: 
+    - if:
+      - payloadType: Pull_Request
+      - isAction:
+          action: Opened
+      - isActivitySender:
+          user: dependabot[bot]
+          issueAuthor: False
+      then:
+      - approvePullRequest:
+          comment: ''
+      description: 
+    - if:
+      - payloadType: Issues
+      - hasLabel:
+          label: question
+      - isAction:
+          action: Opened
+      then:
+      - addLabel:
+          label: 'Needs: Attention :wave:'
+      description: 
+    - if:
+      - payloadType: Pull_Request
+      - isAction:
+          action: Opened
+      - not:
+          activitySenderHasAssociation:
+            association: Member
+      - not:
+          isActivitySender:
+            user: github-actions[bot]
+            issueAuthor: False
+      then:
+      - assignIcmUsers:
+          teamId: 80279
+          primary: True
+          secondary: False
+      - assignIcmUsers:
+          teamId: 80279
+          primary: False
+          secondary: True
+      description: 
+    - if:
+      - payloadType: Pull_Request
+      - hasLabel:
+          label: 'Needs: Attention :wave:'
+      - or:
+        - isAction:
+            action: Null
+        - isAction:
+            action: Synchronize
+        - isAction:
+            action: Closed
+      then:
+      - removeLabel:
+          label: 'Needs: Attention :wave:'
+      description: 
+    - if:
+      - payloadType: Pull_Request_Review
+      - hasLabel:
+          label: 'Needs: Attention :wave:'
+      then:
+      - removeLabel:
+          label: 'Needs: Attention :wave:'
+      description: 
+    - if:
+      - payloadType: Issues
+      - not: isAssignedToSomeone
+      - isAction:
+          action: Labeled
+      - hasLabel:
+          label: confidential-client
+      then:
+      - assignIcmUsers:
+          teamId: 80279
+          primary: True
+          secondary: False
+      description: 
+    - if:
+      - payloadType: Issue_Comment
+      - isOpen
+      - activitySenderHasAssociation:
+          association: Member
+      - hasLabel:
+          label: 'Needs: Attention :wave:'
+      then:
+        - removeLabel:
+            label: 'Needs: Attention :wave:'
+        - addLabel:
+            label: 'Needs: Author Feedback'
+      description: "Removes the 'Needs: Attention :wave:' label and adds the 'Needs: Author Feedback' label when a team member comments on an issue"
+    - if:
+      - payloadType: Issue_Comment
+      - isOpen
+      - isActivitySender:
+          issueAuthor: true
+      - hasLabel:
+          label: 'Needs: Author Feedback'
+      then:
+        - removeLabel:
+            label: 'Needs: Author Feedback'
+        - addLabel:
+            label: 'Needs: Attention :wave:'
+      description: "Removes the 'Needs: Author Feedback' label and adds the 'Needs: Attention :wave:' label when the issue author comments on an issue"
+
+onFailure: 
+onSuccess: 

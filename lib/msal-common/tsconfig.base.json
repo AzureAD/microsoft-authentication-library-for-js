@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "suppressImplicitAnyIndexErrors": true,
+        "sourceMap": true,
+        "declaration": true,
+        "experimentalDecorators": true,
+        "importHelpers": true,
+        "noImplicitAny": true,
+        "composite": true,
+        "declarationMap": true
+    },
+    "compileOnSave": false,
+    "buildOnSave": false
+}

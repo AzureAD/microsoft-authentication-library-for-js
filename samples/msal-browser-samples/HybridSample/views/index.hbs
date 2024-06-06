@@ -1,0 +1,11 @@
+<h1>MSAL.js Hybrid Flow sample</h1>
+
+<p>This sample demonstrate how to perform the hybrid flow to login when performing server-side and client-side authentication. By obtaining the SPA auth code server-side and passing it to the MSAL <code>acquireTokenByCode</code> API client-side, applications can remove a second request to the AAD <code>authorize</code> endpoint (which requires third-party cookies) to SSO client-side.</p>
+
+{{#if isAuthenticated }}
+    <a href="/auth/logout">Logout</a>
+{{else}}
+    <a href="/auth/login?hybrid=true">Login (w/ hybrid using auth code flow)</a><br />
+    <a href="/auth/login">Login (w/o hybrid using auth code flow)</a><br />
+    <a href="/auth/login?implicit=true">Login (w/o hybrid using implicit flow)</a>
+{{/if}}

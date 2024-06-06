@@ -1,0 +1,16 @@
+[
+    {
+        "tokenType": "Bearer",
+        "expiresIn": 4987,
+        "expiresOn": "2022-06-29T18:57:39.648Z",
+        "resource": "https://graph.microsoft.com",
+        "accessToken": "eyJ0...",
+        "refreshToken": "0.AUU...",
+        "userId": "janedoe@mytenant.onmicrosoft.com",
+        "isUserIdDisplayable": true,
+        "familyName": "Doe",
+        "givenName": "Jane",
+        "oid": "91b9b524-e4d0-4133-aafd-1ff32e3e7cfc",
+        "tenantId": "a541e3eb-8333-48a0-a635-2a08f6726ece"
+    }
+]

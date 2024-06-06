@@ -1,0 +1,6 @@
+# MSAL specific ignore files
+node_modules/
+test/
+typings/
+build/
+.git

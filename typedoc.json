@@ -1,0 +1,10 @@
+{
+    "entryPoints": [
+        "lib/*",
+        "extensions/msal-node-extensions"
+    ],
+    "entryPointStrategy": "packages",
+    "includeVersion": true,
+    "out": "./ref",
+    "readme": "./README.md"
+}

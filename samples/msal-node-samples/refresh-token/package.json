@@ -1,0 +1,24 @@
+{
+    "name": "refresh-token",
+    "version": "1.0.0",
+    "description": "sample app for migrating from adal-node to msal-node",
+    "private": true,
+    "scripts": {
+        "start:msal": "node ./msalApp.js",
+        "start:adal": "node ./adalApp.js",
+        "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build"
+    },
+    "author": "Microsoft",
+    "license": "MIT",
+    "dependencies": {
+        "@azure/msal-node": "^2.0.0-beta.0",
+        "adal-node": "^0.2.3",
+        "cookie-parser": "^1.4.6",
+        "express": "^4.19.2",
+        "express-session": "^1.17.2",
+        "underscore": "^1.13.3"
+    },
+    "devDependencies": {
+        "dotenv": "^16.3.1"
+    }
+}

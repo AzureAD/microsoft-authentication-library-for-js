@@ -1,0 +1,25 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./dist/out-tsc",
+    "sourceMap": true,
+    "declaration": false,
+    "downlevelIteration": true,
+    "experimentalDecorators": true,
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "target": "es2020",
+    "module": "es2020",
+    "lib": [
+      "ES2020",
+      "dom"
+    ],
+    "paths": {
+      "msal-angular": [
+        "dist/msal-angular"
+      ]
+    },
+    "useDefineForClassFields": false
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "name": "@azure/msal-angular",
+  "version": "3.0.19",
+  "author": {
+    "name": "Microsoft",
+    "email": "nugetaad@microsoft.com",
+    "url": "https://www.microsoft.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+  },
+  "description": "Microsoft Authentication Library for Angular",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "build:prod": "ng build --configuration production",
+    "build:all": "npm run build:browser && npm run build",
+    "build:all:prod": "npm run build:browser && npm run build:prod",
+    "build:browser": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser",
+    "build:pack": "npm run build && cd dist && npm pack",
+    "deploy": "npm run build:all:prod && npm publish ./dist --workspaces=false",
+    "test": "ng test",
+    "test:coverage": "npm test",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "npm run lint -- --fix",
+    "e2e": "ng e2e",
+    "prepack": "npm run build:all",
+    "prepublishOnly": "echo Use npm run deploy && exit 1",
+    "format:check": "prettier --ignore-path .gitignore --check src",
+    "format:fix": "prettier --ignore-path .gitignore --write src"
+  },
+  "typings": "./dist/azure-msal-angular.d.ts",
+  "beachball": {
+    "disallowedChangeTypes": [
+      "major"
+    ]
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^15.1.5",
+    "@angular/animations": "^15.1.4",
+    "@angular/cli": "^15.1.5",
+    "@angular/common": "^15.1.4",
+    "@angular/compiler": "^15.1.4",
+    "@angular/compiler-cli": "^15.1.4",
+    "@angular/core": "^15.1.4",
+    "@angular/forms": "^15.1.4",
+    "@angular/platform-browser": "^15.1.4",
+    "@angular/platform-browser-dynamic": "^15.1.4",
+    "@angular/router": "^15.1.4",
+    "@azure/msal-browser": "^3.16.0",
+    "@types/jasmine": "~3.6.0",
+    "@types/jasminewd2": "~2.0.3",
+    "@types/node": "^12.11.1",
+    "eslint-config-msal": "file:../../shared-configs/eslint-config-msal",
+    "jasmine-core": "~4.0.0",
+    "jasmine-spec-reporter": "~5.0.0",
+    "karma": "~6.3.2",
+    "karma-chrome-launcher": "~3.1.0",
+    "karma-coverage-istanbul-reporter": "~3.0.2",
+    "karma-jasmine": "~5.0.0",
+    "karma-jasmine-html-reporter": "^2.0.0",
+    "ng-packagr": "^15.1.2",
+    "prettier": "2.8.7",
+    "rxjs": "^7.8.1",
+    "ts-node": "~8.3.0",
+    "tslib": "^2.0.0",
+    "typescript": "~4.8.4",
+    "zone.js": "~0.11.8"
+  },
+  "peerDependencies": {
+    "@azure/msal-browser": "^3.16.0",
+    "rxjs": "^7.0.0"
+  }
+}

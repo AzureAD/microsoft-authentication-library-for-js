@@ -1,0 +1,67 @@
+{
+    "extends": "./tsconfig.base.json",
+    "ts-node": {
+        "transpileOnly": true,
+        "files": true,
+        "compilerOptions": {
+            "moduleResolution": "node",
+            "module": "commonjs",
+            "target": "es2020",
+            "lib": [
+                "es2020",
+                "dom",
+                "es2020.promise"
+            ],
+            "outDir": "./dist",
+            "esModuleInterop": true,
+            "resolveJsonModule": true,
+            "strict": true,
+            "strictNullChecks": true,
+            "strictFunctionTypes": true,
+            "strictPropertyInitialization": false,
+            "noImplicitThis": true,
+            "noUnusedLocals": true,
+            "noUnusedParameters": true,
+            "noImplicitAny": false,
+            "noFallthroughCasesInSwitch": true
+        }
+    },
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "module": "es2020",
+        "target": "es2020",
+        "lib": [
+            "es2020",
+            "dom",
+            "es2020.promise"
+        ],
+        "outDir": "./dist",
+        "allowUnusedLabels": false,
+        "composite": false,
+        "noImplicitReturns": true,
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "strict": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "strictPropertyInitialization": false,
+        "noImplicitThis": true,
+        "noImplicitAny": true,
+        "alwaysStrict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": false,
+        "noFallthroughCasesInSwitch": true,
+        "types": [
+            "node",
+            "jest"
+        ]
+    },
+    "include": [
+        "src",
+        "test",
+        "scripts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

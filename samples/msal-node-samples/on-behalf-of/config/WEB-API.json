@@ -1,0 +1,10 @@
+{
+    "authOptions": {
+        "clientId": "<ENTER_CLIENT_ID>",
+        "authority": "https://login.microsoftonline.com/<ENTER_TENANT_ID>",
+        "clientSecret": "<ENTER_CLIENT_SECRET>"
+    },
+    "serverPort": 8000,
+    "webApiScope": "<ENTER_WEB_API_SCOPE>",
+    "discoveryKeysEndpoint": "https://login.microsoftonline.com/<ENTER_TENANT_ID>/discovery/v2.0/keys"
+}

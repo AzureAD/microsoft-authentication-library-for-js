@@ -1,0 +1,44 @@
+name: Typedoc
+
+on:
+  workflow_dispatch:
+  
+  pull_request:
+    types: [closed]
+    branches:
+      - dev
+
+jobs:
+  deploy:
+    if: ((github.event.pull_request.merged == true && contains(github.head_ref,'post-release')) || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true  # Fetch Hugo themes (true OR recursive)
+          fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build --workspace=lib/** --workspace=extensions/**
+
+      - name: Generate
+        run: npm run doc:generate
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./ref
+          destination_dir: ./ref
+          keep_files: true

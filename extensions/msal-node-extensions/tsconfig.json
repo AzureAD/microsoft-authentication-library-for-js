@@ -1,0 +1,33 @@
+{
+  "include": [
+    "src",
+    "test"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "es2020",
+    "moduleResolution": "node",
+    "lib": [
+      "dom",
+      "esnext"
+    ],
+    "importHelpers": true,
+    "composite": false,
+    "declaration": true,
+    "sourceMap": true,
+    "rootDir": "./",
+    "outDir": "./dist",
+    "noUnusedLocals": true,
+    "baseUrl": "./",
+    "jsx": "react",
+    "esModuleInterop": true,
+    "strict": true,
+    "types": [
+      "node",
+      "jest"
+    ]
+  }
+}

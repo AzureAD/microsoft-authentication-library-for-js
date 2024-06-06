@@ -1,0 +1,13 @@
+{
+    "authOptions":
+    {
+        "clientId": "c3f3b506-8ca9-4c23-acda-035ee2c9d960",
+        "authority": "https://login.microsoftonline.com/common"
+    },
+    "request":
+    {
+        "deviceCodeUrlParameters": {
+            "scopes": ["user.read"]
+        }
+    }
+}

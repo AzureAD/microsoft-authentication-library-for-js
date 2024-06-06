@@ -1,0 +1,71 @@
+# Bump package version numbers and create a release branch
+name: Beachball Bump
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - dev
+
+concurrency:
+  group: beachball-bump
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  bump:
+    permissions:
+      contents: write  # for peter-evans/create-pull-request to create branch
+      pull-requests: write  # for peter-evans/create-pull-request to create a PR
+    if: github.event.pull_request.merged == true && !contains(github.head_ref, 'release')
+    name: Bump versions and create changelogs
+    runs-on: ubuntu-latest
+    env:
+      BEACHBALL: 1
+
+    steps:
+      # Check-out repo
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Install node_modules
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install beachball
+        run: npm ci --workspaces=false
+
+      # Beachball bump
+      - name: bump package versions
+        run: npm run beachball:bump
+
+      - name: Set Timezone
+        run: sudo timedatectl set-timezone America/Los_Angeles
+
+      - name: Get release date
+        id: release-date
+        run: echo "::set-output name=date::$(node release-scripts/getReleaseDate.js)"
+
+      - name: Get a list of packages with bumped versions
+        id: bumped-package-list
+        run: echo "::set-output name=list::$(node release-scripts/getUpdatedVersions.js)"
+
+      # Create/update Pull Request
+      - name: Create Pull Request
+        id: pr
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: Bump package versions
+          branch: release-staging
+          title: "${{ steps.release-date.outputs.date }} Release"
+          body: |
+            Release PR : This PR contains the changelogs and version bumps for the ${{ steps.release-date.outputs.date }} releases.
+            
+            ${{ steps.bumped-package-list.outputs.list }}
+          labels: release
+          draft: true

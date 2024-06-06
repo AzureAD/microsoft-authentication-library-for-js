@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electron system browser auth redirect page</title>
+    <style>
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+        font-size: 20px;
+     }
+    </style>
+    <script>
+        /*
+         * We are using the ClientID to assign a unique protocol to the application as a deep link. 
+         * If you like, you can replace this value with any unique string e.g. `your-unique-protocol-name://`. 
+         * This is to ensure that this deep link only matches to your own application and does not coincide with 
+         * other application deep links that might be registered on your system. For more information, 
+         * please check https://www.electronjs.org/docs/latest/tutorial/launch-app-from-url-in-another-app
+         *   
+         */
+        addEventListener('DOMContentLoaded', (event) => {
+            window.location.href = 'msal{Enter_the_Application_Id_Here}://auth'
+        });
+    </script>
+</head>
+<body>
+    <div class='container'>
+        <h5>You are now signed in. You may close this window.</h5>
+        <p>
+            This page is for handling redirects only. Login through the electron application first to receive an authorization code.
+        </p>
+    </div>
+</body>
+</html>

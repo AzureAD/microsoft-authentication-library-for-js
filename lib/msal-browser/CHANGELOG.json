@@ -1,0 +1,3973 @@
+{
+  "name": "@azure/msal-browser",
+  "entries": [
+    {
+      "date": "Tue, 04 Jun 2024 00:08:57 GMT",
+      "version": "3.16.0",
+      "tag": "@azure/msal-browser_v3.16.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "8e4b664577672409573431df264307fb4864564d",
+            "comment": "Instrument pre-redirect flow #7134"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.11.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 28 May 2024 21:37:23 GMT",
+      "version": "3.15.0",
+      "tag": "@azure/msal-browser_v3.15.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86619c7c51c99b61b2ae3525fc257c7070452e64",
+            "comment": "Add createNestablePublicClientApplication()"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86619c7c51c99b61b2ae3525fc257c7070452e64",
+            "comment": "Instrument preflight check errors #7113"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86619c7c51c99b61b2ae3525fc257c7070452e64",
+            "comment": "Support cache in NAA apps #7072"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86619c7c51c99b61b2ae3525fc257c7070452e64",
+            "comment": "Fix miscalculation of expiresIn in hydrateCache() API"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86619c7c51c99b61b2ae3525fc257c7070452e64",
+            "comment": "Add API Extractor Build Step #7097"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 06 May 2024 23:48:17 GMT",
+      "version": "3.14.0",
+      "tag": "@azure/msal-browser_v3.14.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e5fa16efec03ddf9ee66ebac83b8a958e5b4a384",
+            "comment": "Instrument scenario id for tracking custom user prompts #7043"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e5fa16efec03ddf9ee66ebac83b8a958e5b4a384",
+            "comment": "Discard empty redirect telemetry events with no error codes #7058"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e5fa16efec03ddf9ee66ebac83b8a958e5b4a384",
+            "comment": "Export invoke and invokeAsync functions #7065"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e5fa16efec03ddf9ee66ebac83b8a958e5b4a384",
+            "comment": "Instrument account type #7049"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.10.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "dasau@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e5fa16efec03ddf9ee66ebac83b8a958e5b4a384",
+            "comment": "Add getAccount API to IPublicClientApplication (#7019)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e5fa16efec03ddf9ee66ebac83b8a958e5b4a384",
+            "comment": "Fix uncaught exceptions in acquireTokenSilent #7073"
+          },
+          {
+            "author": "dasau@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e5fa16efec03ddf9ee66ebac83b8a958e5b4a384",
+            "comment": "Add additional logging for Nested App Auth initialization errors (#7064)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 11 Apr 2024 21:46:57 GMT",
+      "version": "3.13.0",
+      "tag": "@azure/msal-browser_v3.13.0",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "1549ef7bde5a8ffe0c15024bba5169030a422a64",
+            "comment": "Skip v3.12.0"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "1549ef7bde5a8ffe0c15024bba5169030a422a64",
+            "comment": "Migrate ADO Pipelines to OneBranch #6992"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "1549ef7bde5a8ffe0c15024bba5169030a422a64",
+            "comment": "Capture and instrument cache errors #7021"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.9.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "dasau@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "1549ef7bde5a8ffe0c15024bba5169030a422a64",
+            "comment": "Nested App Auth: allow empty parameters for loginPopup (#6941)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "1549ef7bde5a8ffe0c15024bba5169030a422a64",
+            "comment": "Improve perf and reliability of parallel acquireTokenSilent calls that must fallback to iframes #6962"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "1549ef7bde5a8ffe0c15024bba5169030a422a64",
+            "comment": "fix handleRedirectPromise memoization #6998"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "1549ef7bde5a8ffe0c15024bba5169030a422a64",
+            "comment": "Add classname to silent token renewal iframe HTML element #6985"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 27 Mar 2024 18:41:17 GMT",
+      "version": "3.11.1",
+      "tag": "@azure/msal-browser_v3.11.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.8.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 22 Mar 2024 20:32:39 GMT",
+      "version": "3.11.0",
+      "tag": "@azure/msal-browser_v3.11.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cba97b5f7a87dc8e55f2cad384ff471931b67f2a",
+            "comment": "Fix AcquireTokenSilentAsync sub-measurement instrumentation #6947"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cba97b5f7a87dc8e55f2cad384ff471931b67f2a",
+            "comment": "Export IPerformanceClient and StubPerformanceClient"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cba97b5f7a87dc8e55f2cad384ff471931b67f2a",
+            "comment": "move build request functions"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cba97b5f7a87dc8e55f2cad384ff471931b67f2a",
+            "comment": "Internal refactor of async storage"
+          },
+          {
+            "author": "dasau@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cba97b5f7a87dc8e55f2cad384ff471931b67f2a",
+            "comment": "Fix compatibility issue with Nested App Auth and msal-react (#6892)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cba97b5f7a87dc8e55f2cad384ff471931b67f2a",
+            "comment": "Minor cache cleanup"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cba97b5f7a87dc8e55f2cad384ff471931b67f2a",
+            "comment": "Instrument non-auth error name and stack #6937"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cba97b5f7a87dc8e55f2cad384ff471931b67f2a",
+            "comment": "Capture telemetry event tree #6948"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cba97b5f7a87dc8e55f2cad384ff471931b67f2a",
+            "comment": "Move preflightBrowserEnvironmentCheck to BrowserUtils"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.8.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 17 Feb 2024 01:49:05 GMT",
+      "version": "3.10.0",
+      "tag": "@azure/msal-browser_v3.10.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ee8478695b89e8dc5590d9e4832051bae2684d8a",
+            "comment": "Add ID Token secret to AccountInfo in all reponses #6903"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ee8478695b89e8dc5590d9e4832051bae2684d8a",
+            "comment": "Bug fix for user switch error and broker app's native account id being stored in embedded app cache #6846"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ee8478695b89e8dc5590d9e4832051bae2684d8a",
+            "comment": "Remove invalid prompt for silent request instead of throwing an error #6895"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ee8478695b89e8dc5590d9e4832051bae2684d8a",
+            "comment": "Export createGuid function #6868"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ee8478695b89e8dc5590d9e4832051bae2684d8a",
+            "comment": "Use UUIDv7 in PerformanceClient #6866"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.7.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 07 Feb 2024 22:00:37 GMT",
+      "version": "3.9.0",
+      "tag": "@azure/msal-browser_v3.9.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Instrument handleRedirectPromise() #6861"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Make BrowserCrypto generate UUID v7 by default #6841"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Add active account update event #6854"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.7.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "reduce number of calls to resolveEndpoints"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Update shared config version references to use local files #6855"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d33c817d7501f8509413d78c3df2ea04355972a5",
+            "comment": "Bump browser #6882"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 23 Jan 2024 00:06:05 GMT",
+      "version": "3.7.1",
+      "tag": "@azure/msal-browser_v3.7.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2c5e4f1c72835d4dc47a72d158094af89964b9b0",
+            "comment": "Support state on acquireTokenSilent"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2c5e4f1c72835d4dc47a72d158094af89964b9b0",
+            "comment": "Fix bug affecting metadata resolution for tenanted authorities"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.6.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 09 Jan 2024 00:03:25 GMT",
+      "version": "3.7.0",
+      "tag": "@azure/msal-browser_v3.7.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Fix token refreshes with relative redirectUri #6761"
+          },
+          {
+            "author": "dasau@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Change Nested App Auth internal schema (#6737)"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Allow overriding log level and PII setting with session storage key-values #6704"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Fix external account loading #6744"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Handle bad_token by removing bad refresh token from cache #6757"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Convert ThrottlingEntity into a Type"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Refactor AuthorityMetadataEntity into type"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Refactor appMetadataEntity into Type"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Dynamically load BrowserPerformanceMeasurement to capture browser perf measurements if session storage flag is set #6748"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4789406b295c6c9ea21c7a99845b0fbe1d27b997",
+            "comment": "Check RT expiration before attempting to redeem it #6703"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.6.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 01 Dec 2023 18:46:06 GMT",
+      "version": "3.6.0",
+      "tag": "@azure/msal-browser_v3.6.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "dasau@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "Nested App Auth minor fixes (#6672)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "Performance optimization when creating hidden iframe"
+          },
+          {
+            "author": "dasau@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "Nested App Auth fix for Android response (#6707)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "Fix logoutPopup request type"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "Fix bug causing temporary cache not to be cleared #6676"
+          }
+        ],
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "Increase default iframe timout to 10s #6700"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "392020bee299d01d14db2907da0cab681a3fbdc3",
+            "comment": "Add support for Multi-tenant accounts and cross-tenant token caching #6466"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.5.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Nov 2023 00:01:50 GMT",
+      "version": "3.5.0",
+      "tag": "@azure/msal-browser_v3.5.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "619e10fe4ffb23060137150cd93c954cc2ca05ae",
+            "comment": "Optimize response parsing & address bugs related to query response type #6646"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "42a5e13c333d34be82734bcc3cd91ff7e8dd7d25",
+            "comment": "Convert ServerTelemetryEntity to Type instead of Class #6651"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e9dd9337c02fcfe008514f5fd057087d3409cc91",
+            "comment": "Make SHR header configurable #6654"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.4.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "53ca42e1b4b04b70c13b6d4c697cb3e2477b1005",
+            "comment": "Generate one correlation id across a flow #6650"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "460e17d0fd02938cfe2d2404c977ac9cf002c6b0",
+            "comment": "Fix race condition which may cause popups not to close #6652"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 30 Oct 2023 21:38:24 GMT",
+      "version": "3.4.0",
+      "tag": "@azure/msal-browser_v3.4.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a9442419c825fdf209114820aae300b79a32452a",
+            "comment": "Fix iframe fallback when RT is not found in cache"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "bf61f42aff220c33ae4b0e248cc4aa9009306f3a",
+            "comment": "Use invokeAsync in popup/redirect flows"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9296e4b86b6834c6160583771a598bf9de59372d",
+            "comment": "Add inlineDynamicImports to rollup config to fix CJS build. Make factory methods basic functions #6615"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "3e4c956c57e1476632cab77832493d4d0c51470b",
+            "comment": "Don't use temporary cache for silent & popup flows #6586"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5f49a5e39a6d0d5ae319c7a21ed18d06d8a6fd51",
+            "comment": "Refactor token cache entities to be defined as Types rather than Classes #6580"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.3.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 18 Oct 2023 17:24:19 GMT",
+      "version": "3.3.0",
+      "tag": "@azure/msal-browser_v3.3.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cfac159c239152524542e7fe6d76ca5e0b415b7f",
+            "comment": "Instrument create/remove hidden iframe & refactor monitorIframeForHash #6533"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "31fb0a77a6bf9db77a41330fa09a76db4ff030c0",
+            "comment": "Additional ATS instrumentation #6562"
+          },
+          {
+            "author": "email not defined",
+            "package": "@azure/msal-browser",
+            "commit": "d5ae4e0ea383a70cd74d75002b16d7583b2809e2",
+            "comment": "addressing rollup issue based on combined configuration"
+          }
+        ],
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0f5e6c2142889ea9f43d808f270aec9264afd363",
+            "comment": "Build account objects from cached ID Token #6529"
+          },
+          {
+            "author": "email not defined",
+            "package": "@azure/msal-browser",
+            "commit": "618c4caa4bf0fb0bd64128dadb7a0c8a681c6b87",
+            "comment": "Added new PublicClientNext and additional Operating Contexts and associated Controllers; Initially to address NestedAppAuth. #6359"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "487be359ff08d4c8fc82a7232d04048172023409",
+            "comment": "Replace custom encoder with TextEncoder in code challenge generator #6560"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "3f02f79c53c5904494e7d8bc15ffab36971a7f26",
+            "comment": "Preconnect to authority to speed up /token calls #6550"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.2.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 05 Oct 2023 18:06:42 GMT",
+      "version": "3.2.0",
+      "tag": "@azure/msal-browser_v3.2.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "3f74c7263ffb405a3183186640945337fbf5cfd4",
+            "comment": "Modified proactive refresh in silent-flow to also return the cached token when the token needs to be refreshed #6397."
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "6eaf83f4abff2e6f89bd952c27fea7d6d0d9099a",
+            "comment": "Refactor BrowserConfigurationAuthError #6473"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "48659582a1634c48324194d812177f8a1d8c8b01",
+            "comment": "Add getAccount and enhance account filtering #6499"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.1.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "renaud.aste@ocea-sb.com",
+            "package": "@azure/msal-browser",
+            "commit": "558d60032123fd9aaf61a5fc4303032d839293f3",
+            "comment": "doc: JSDoc for deprecated BrowserAuthErrorMessage"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "781325ba46c8c7eb216b8fff8eebda253aadfea9",
+            "comment": "Instrument Crypto APIs #6512"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4d75b093973b1c0b01feb4601f07d10390d44dd2",
+            "comment": "Refactor ClientAuthError for reduced size #6433"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "32d7a1ac2e0627d41454f9721e329548cf1b5896",
+            "comment": "Fix monitorIframeForHash telemetry event name"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "41585f85e2e5b19d6c1f661a3d1b683df322317a",
+            "comment": "Use the proper algo name for `window.crypto.subtle.digest()` #6521"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ae39f51c138afa8160f17f9d5e1fc6f3f01afb08",
+            "comment": "use invoke for telem measurements #6486"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0cad734bb8ded0a17c9eeedfd8d25c7717bbf6a7",
+            "comment": "Refactor NativeAuthError, JoseHeaderError and AuthError for reduced size #6497"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "764d246483a4ef9712d5d32832cf1ed8ea23cd87",
+            "comment": "Update telemetry measurements to use invoke #6484"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "bfdd254075e204a9c101e8614efd6965c7d40dd7",
+            "comment": "Add tokenBodyParameters support in RefreshTokenClient #6504"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ae92c9a9fefcdc98b3bff206d66c9bc4db1db76c",
+            "comment": "Refactor ClientConfigurationError #6471"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5f19f7f29e8eeac7c53030598c1bf6fc7a96c615",
+            "comment": "Refactor InteractionRequiredAuthError #6472"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "90629381de88e0bb391c3cb658b9ec2923806993",
+            "comment": "Bug fix: id token Base64 decoding #6535"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a9af309d6ead067c79e221a49eb804758c613655",
+            "comment": "Add missing queue measurement instrumentation #6480"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "fbbb9060775198412eead3e844ef6f4d1968cea3",
+            "comment": "Turn off composite/project references"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 05 Sep 2023 22:13:47 GMT",
+      "version": "3.1.0",
+      "tag": "@azure/msal-browser_v3.1.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "dc5ec8dd1491c5d07971e215f9a74f900bb30af6",
+            "comment": "Clear claims from cache when config is not set #6430"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a5a93f9944739924d73917b49ebaab2430b87743",
+            "comment": "Add a linter rule to avoid floating promises #6421"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "72e3963095f82c3a0f4d21b2e2d4e4a25dfa60a9",
+            "comment": "Make AuthToken methods instead of class #6423"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5d050542c3f24a5d5ded1b9b1eb7e49d73cd5b8d",
+            "comment": "Make `eventName` of type string for `BrowserPerformanceClient` and `PerformanceClient` #6386"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "39ff93c407886f9d3883f814d4439f36dba69b11",
+            "comment": "Refactor BrowserAuthError to reduce size"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2ef47fe40e817cfd4428ed75dd8dbf11a3f13632",
+            "comment": "Make base64 encoder and decoder methods instead of classes #6416"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ca09bbd8c4ea6848d95a552b08dce2d7ccd8fcae",
+            "comment": "Instrument ssoSilent #6383"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0046b300428f9c0899af70fa30eac02a93b39cc7",
+            "comment": "Fix for source-map related errors #6398"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "59fb3e847bedbd3cb4594291a7a462fcc2e9cb3c",
+            "comment": "Remove legacy code (IE11 Detection, XHRClient and custom GUID Generator)"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2096e5ab5706227dcf39fd15efdf4315e1905f8a",
+            "comment": "Remove redundant controller internal methods and classes from internals #6413"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "eba1c90fd10a8d2ffb521a4670662fe3a6b1a5fe",
+            "comment": "New API to silently clear cache #6374"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "54ea1713810f7dfef3bec7f78937c8a95fab9119",
+            "comment": "Remove browser internals #6420"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.0.3",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "7b0c4cbfc05b32145acbbb9308d945eb4dd85d31",
+            "comment": "Update lint step"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "1e7ac8c21451783cc25303e9be5713daa1350343",
+            "comment": "shared jest config"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "566f47811deff3c282513ec19e45be58dbda294d",
+            "comment": "Remove isEmpty helper API"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 18 Aug 2023 18:40:03 GMT",
+      "tag": "@azure/msal-browser_v3.0.2",
+      "version": "3.0.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "212d1ba6a2069298ca496f95d5e8fc0489990779",
+            "comment": "Fix input parameter type for addEventCallback"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "739f260318705f7832623adcd9470d2b40b53693",
+            "comment": "Extend hydrateCache request type to include ssoSilentRequest, PopupRequest and RedirectRequest #6329"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.0.2",
+            "commit": "05b714f7670e8195f9440f8dd2f750ba6896c3bb"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d6bdb1c9987e54a347874537025c17e70b546f36",
+            "comment": "Typedocs"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 11 Aug 2023 19:00:44 GMT",
+      "tag": "@azure/msal-browser_v3.0.1",
+      "version": "3.0.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ae5fbc436e4c9b331494caa599510bb5f7b10272",
+            "comment": "Update dist settings for packages #6322"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "be329dede8f8edf97789a245a0b3f1610b40eeb1",
+            "comment": "Add `tokenBodyParameters` to silent and interaction request types #6325"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.0.1",
+            "commit": "69d1715ac133eb486d94f87ebbb3fc61b4df3910"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "3528e0e99f86b928e942c4cf104cb8909809639c",
+            "comment": "Pick up broker extra query params #6286"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "7d957524c2181d44487d16709186dbefc160258e",
+            "comment": "Update readmes v3 #6326"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 07 Aug 2023 18:15:15 GMT",
+      "tag": "@azure/msal-browser_v3.0.0",
+      "version": "3.0.0",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "94ee143a36f1cccc72ca0ed41206c10e239637d7",
+            "comment": "Remove disallowedChangeTypes from package.json files"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c34e759455a7cbb86cba943923cff34f5b942e28",
+            "comment": "Fix formatting #6264"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "88f49fb55daa60410bbbc126856bdb7d2189817a",
+            "comment": "Replace lerna with npm workspaces #6136"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "f714b51f03eb87ccd0102d886c814b3dab2b5cc9",
+            "comment": "DevDependency updates"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "534a2463b8582f8fa745e9d03097c3395c4431dd",
+            "comment": " Merge LTS changelogs"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Remove dropped version checks from v3 workflows #5729"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Msal v3 final rebase #5859"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a24e4953e5e733166364cb820a0621403d70d19f",
+            "comment": "Package-lock updates"
+          }
+        ],
+        "major": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2a169dc79b09ee661e85210073a6de1995e3b12a",
+            "comment": "Revert allowNativeBroker default to false #6280"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "`allowNativeBroker` configuration defaults to `true` #5616"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9f5c1288cbe52fa2176f41269032c7bb7920de14",
+            "comment": "Fix telemetry typos #5868"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.0.0",
+            "commit": "534a2463b8582f8fa745e9d03097c3395c4431dd"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2819735fe031ae36bea1d88f31f56089ac6ee21f",
+            "comment": "Expose CacheRecord as part of internals API #6291"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ab44706bcf8e5a281b70ac93a44c58420c07d16a",
+            "comment": "Add exports to package.json and update type to module #6194"
+          },
+          {
+            "author": "shylasummers@users.noreply.github.com",
+            "package": "@azure/msal-browser",
+            "commit": "c8e0f54ad7c6280ec6336759bbf04b5c64c121cd",
+            "comment": "Added OIDCOptions parameter to config"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e498fa34e673349f77f3dd57dcb831b3fad5cce7",
+            "comment": "Expose `BrowserPerformanceClient` and `BrowserPerformanceMeasurement` artifacts as public #6273"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "26a8031e4466662fef3cd793d377adb5afd988f4",
+            "comment": "Throw when initialize has not been called #6233"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4c99ad07b7ea40e1f2191173e58d80cec143c72d",
+            "comment": "Update PerformanceClient for better usability/extendibility #6270"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "8c382b3b677bf9388154ab6c2863d6951905e91a",
+            "comment": "Add hydrateCache API #6271"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d8b4b702d4bf4293a35bcf9a22b8c45210afb871",
+            "comment": "Add storeInCache request parameter to control which tokens are persisted to the cache"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4ccef1b8a11ca5643c11eb9586e45f8e45398e8c",
+            "comment": "Make claims-based caching configurable #6163"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b2b17b3cc0485be1eaca97a15de06c846557921a",
+            "comment": "Update string conversion function"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9939c2767634aabe878fa613060084c581e621d2",
+            "comment": "Make account info mandatory for AuthenticationResult and CacheRecord types #6156"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5ecb611181d878b533ddb43f4774b064d63f8f3a",
+            "comment": "Export IdTokenClaims & PromptValue types"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0a3f082508e09a87bb155c25779d6d50ff48133e",
+            "comment": "Switch from enums to object literals to reduce the bundle size #6056"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "85383fb2f35d9c5e02e32d316a6d573ef09a22ed",
+            "comment": "Fix inProgress state reset when page restored from bfCache #6037"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c27d5727a8ab559fc2f1dc6f8ffa6ba6b79a5a8a",
+            "comment": "Remove legacy MsCrypto and MsrCrypto polyfill to reduce the bundle size #6086"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "13e5e7225602f48dabaa102641c84b583b1fb3b6",
+            "comment": "Update bundled files to be included in published package #5997"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "8788b7d52841f088d330aa881d1196a33e9e6f7a",
+            "comment": "Revert to common as a regular dependency #5985"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d8b8ddf1f6eeccce45821f2cd6214f306c386e83",
+            "comment": "Add CIAM support for v3(#5915)"
+          },
+          {
+            "author": "nicolas.zawada@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "b2536c48f4437035c8d15a83bf1d076cf2ecc7c0",
+            "comment": "Add temporaryCacheLocation to Cache Options #5725"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "42d55e7106afc0f9c574155d3e9ff63cffd9f3b5",
+            "comment": "Randomize native extension response identifiers to facilitate concurrency #5903"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.0.0",
+            "commit": "94ee143a36f1cccc72ca0ed41206c10e239637d7"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2ccd5eb856e05545971f1762c117eedf87740549",
+            "comment": "Treat invalid_method as a fatal error for WAM #6094"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cad79d2a14f7c58819f5e77cddfd08766fa2abb3",
+            "comment": "Added authority check for native and silent flows #6002"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0f84d651552b1fb7fef88a65b74bd743bd381f0f",
+            "comment": "Fix silent cache lookup bugs for native flows #6067"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b416b465f2b7f20be4f0865cd4364319df82830c",
+            "comment": "ignore native broker initialize check if application is not top-frame #6129"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "85bbdefbd59785a8dd3fc46368409d95472bd2a1",
+            "comment": "Fix prepack hook #5967"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ac6dd99473b600a2601fc756ad6680078d017497",
+            "comment": "Bundle local version of msal-common into msal-browser #5953"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "1a04e92c8416da2f654446a729fccc4addf9d716",
+            "comment": "Fix missing idToken in response after refresh #5871"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5af79c8561d09ce63669937752ea9a6d3ba51f69",
+            "comment": "Improve iframe error detection #5891"
+          },
+          {
+            "author": "kapjain@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "84a31a3476375782c63a1b558ea1fd1ec52efb40",
+            "comment": "Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Exception is thrown in acquireTokenByClientCredential if tenantId is missing #5805"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4f26fba90f10fc62cc7a8774d1f079996e120d76",
+            "comment": "`removeAccount` does not throw if account does not exist in cache #5911"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "629883fbfe597b56260483e4567bacd9ae9ba81d",
+            "comment": "Remove unused enum"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 01 May 2023 20:47:44 GMT",
+      "tag": "@azure/msal-browser_v2.37.0",
+      "version": "2.37.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "f25c33932ea9a4d86fd39285e8d1afa26f72fb87",
+            "comment": "Fix missing idToken in response after refresh #5870"
+          }
+        ],
+        "minor": [
+          {
+            "author": "nicolas.zawada@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "4f8de2948a094dbb5b022b764f54d67ff1c00f1c",
+            "comment": "Add temporaryCacheLocation to Cache Options #5725"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v13.0.0",
+            "commit": "38c29bdb23f75989f9b1efcdd038e28586370fb0"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 03 Apr 2023 21:29:32 GMT",
+      "tag": "@azure/msal-browser_v2.35.0",
+      "version": "2.35.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c4432b9cc711cc037261c815410433346836c95d",
+            "comment": "Optimize account lookups in cache #5792"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "7d39c2c90527a41115556ff05cfb6b84e30fac0a",
+            "comment": "Optimize token lookups in cache #5806"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v12.0.0",
+            "commit": "98cb8fce7ff4199e528ffe819dccbf58d28a8c80"
+          }
+        ],
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "089c78094966d99c5e387bb512945430618e780e",
+            "comment": "Fix missing telemetry queue information #5809"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "112abff69ebb68d4c8a88e86af6d056cf650e492",
+            "comment": "Dup code removal in NativeInteractionClient (#5768)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Mar 2023 16:48:51 GMT",
+      "tag": "@azure/msal-browser_v2.34.0",
+      "version": "2.34.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "f3f54cbc2faf30894852a98585e22c5869277858",
+            "comment": "Reduce preQueueTimeByCorrelationId RAM footprint #5681"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "6a8d2e6bcca2a846da75b8e4726a2ed4d0f41746",
+            "comment": "exporting native classes as internals and separating out native telemetry #5692"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "392e3c350509bd85a38ef71ec8614c8367c93f4e",
+            "comment": "Remove deprecated telemetry `flushMeasurements()` function from unit tests #5718"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0a7d1be785ee7fc1dd05d35a1614dadd0e3a0441",
+            "comment": "Refactor handleNativeResponse (#5757)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "17953165ef5bb105e6f2385e93bce7b98a7195da",
+            "comment": "Add support for hybrid flow with native bridge enabled #5759"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b03430c5841e5caad33d0b928b160af9f1535708",
+            "comment": "Reduce telemetry RAM footprint and improve usability/readability #5676"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b83aeef9118568cd3eedf79a5079a9bb2cf0340c",
+            "comment": "Capture native bridge telemetry data points #5698"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v11.0.0",
+            "commit": "cbd2c9ddae007b1ca0468a3299aebe0ae053bf80"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 06 Feb 2023 18:51:51 GMT",
+      "tag": "@azure/msal-browser_v2.33.0",
+      "version": "2.33.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "860be0de8a95165a48eea8727708ea0a9ef1618a",
+            "comment": "Add JS Queue Measurements to acquireTokenSilent #5352"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "44882f9b34db5954be640b5897678a6f3340ec7e",
+            "comment": "proxyUrl is now passed to msal-node's httpClient via it's constructor #5599"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v10.0.0",
+            "commit": "a7d7ecc41dbd3aed621d22a3e3263aee25ce6c10"
+          }
+        ],
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9e32914346f11a1d2925e66b1301adf89d443bd6",
+            "comment": "Removed tokenQueryParameters from Public Client flows because they don't use the /token endpoint. #5573"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5894ff0920bfaad5c17d83b7d1921399f044a88e",
+            "comment": "Export browser telemetry classes #5641"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c37a5debbcac889ed509880d476e3721d3aff2bc",
+            "comment": "Adding page visibility change event for silent calls like AcquireTokenSilent #5555"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0c107eaadf7fe5c22367d3f22265d355acc0ac96",
+            "comment": "Revert typo changes #5582"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 09 Jan 2023 22:44:57 GMT",
+      "tag": "@azure/msal-browser_v2.32.2",
+      "version": "2.32.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0caefaa1ada3372f33fc0c07584f922855ceb1fb",
+            "comment": "Export CryptoOps and NativeAuthError for internal use #5482"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5d768052d5de051f93068d7327b8d90bfebb8a91",
+            "comment": "added http version changes #5211"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0db3780cd80f1b3853f8c993e50cf91a84cbf345",
+            "comment": "fix typos #5531"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "00d3fd949453e3f9dc3316cc0e913a84b9c2cfa2",
+            "comment": "fix logger explicitly set to undefined error #5355 "
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0d1a3cd2bdd67ae4e361fc1504dfeb010bf2b98b",
+            "comment": "Log number of accounts in trace mode. #5529"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v9.0.2",
+            "commit": "1c8f7d7e2fde5d0b701f7eb5bd1866177a5f8794"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 07 Dec 2022 16:53:07 GMT",
+      "tag": "@azure/msal-browser_v2.32.1",
+      "version": "2.32.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a586eff8cc981fd99eaa64e5a11a8499c4fad65f",
+            "comment": "Added caching methods to set or get redirect context of application during redirect flow. #5411"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v9.0.1",
+            "commit": "48cb414b1a722dacf5439a1df6bad070cff62aa4"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 21 Nov 2022 19:14:45 GMT",
+      "tag": "@azure/msal-browser_v2.32.0",
+      "version": "2.32.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "86a80ac5b9d6db617cbe268aba4cbf50970b3fe9",
+            "comment": "Export popup attributes #5364"
+          }
+        ],
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "3abd22bdd6a3360822f442c5f9408c7d8e47fdde",
+            "comment": "Added logging to Authority class"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v9.0.0",
+            "commit": "b6454bd1ff556f8d3482689d6a769e5e659a9f7d"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 07 Nov 2022 22:46:55 GMT",
+      "tag": "@azure/msal-browser_v2.31.0",
+      "version": "2.31.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "049d82bda9e1fc90e7ba4bb0d5e175c15882beb1",
+            "comment": "Add MATS fields to telemetry #5308"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "8e3282f6ddfe949a08e33424c3b05b9d219ab715",
+            "comment": "Fix double prompt in native broker redirect flow #5239"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cf5c5886ccc94ab273b6fabe577ebbca9d4bdd38",
+            "comment": "Add static fields to telemetry #5224"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v8.0.0",
+            "commit": "ae6f326996be7eec25faa19d3f714b860a424878"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 10 Oct 2022 22:27:02 GMT",
+      "tag": "@azure/msal-browser_v2.30.0",
+      "version": "2.30.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "louisv@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a13f3bd96113821e9bed4d5c95f82e7b205def48",
+            "comment": "Extend msal-browser TokenCache to load refresh tokens #5233"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "01171423cfbbf37f445316abacfd2caafc51146a",
+            "comment": "Make popup poll interval configurable #5276"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.6.0",
+            "commit": "1bb8ed44ca44617636fb62199deb005d69341fb7"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 03 Oct 2022 22:12:26 GMT",
+      "tag": "@azure/msal-browser_v2.29.0",
+      "version": "2.29.0",
+      "comments": {
+        "none": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "64e4116894106694d3f904e5eff885f958fd82ea",
+            "comment": "Update package-lock.json for published releases #5213"
+          }
+        ],
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0d8f85e56eb9d67ee6c3b2cdd866a30aa6fd8225",
+            "comment": "Implemented Cache Lookup Policy for acquireTokenSilent #5014"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "53b25d537a22c9491094083407264615d14df15e",
+            "comment": "Add support for MSR Crypto #3826"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "fa3f0d8f63e1980945f2c5bdcb4891f0a50f012c",
+            "comment": "Add x-ms-request-id to perf telemetry logging #5244"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "886338aea3543f961f2dbce7814938e874a6955a",
+            "comment": "Added 'no_session' to prompt enum #5131"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.5.0",
+            "commit": "22b4edc74bd5a561ded056cf6451a8371598c76c"
+          }
+        ],
+        "patch": [
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "be0c85f6d4940c5f1f3e95c17f3235cb8099559b",
+            "comment": "Include Refresh token size in perf telemetry data #5250"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 12 Sep 2022 18:19:32 GMT",
+      "tag": "@azure/msal-browser_v2.28.3",
+      "version": "2.28.3",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ffde7158aba741b804d5558fc162c1f1c45c28cd",
+            "comment": "Post Release September 2022 #5186"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b393c6d0c8d7aa142f3b138ce2ffc185039cf203",
+            "comment": "Fix keystore clearing on Firefox #5112"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "318bba8273151a6260c59461d352ef6e33d129ad",
+            "comment": "Restore error codes for acquireTokenSilent telemetry #5190"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.4.1",
+            "commit": "cf19d12246949f9cb99f4853953cbefb7d27009e"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 02 Sep 2022 18:06:53 GMT",
+      "tag": "@azure/msal-browser_v2.28.2",
+      "version": "2.28.2",
+      "comments": {
+        "none": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5a31694427f380f643df9848d19f44f7cac2cddb",
+            "comment": "Exposed raw id token on account info objects #5036"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.4.0",
+            "commit": "75e3189e8cf3d46497a7587d7f221057a5f0ede6"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 01 Aug 2022 22:22:35 GMT",
+      "tag": "@azure/msal-browser_v2.28.1",
+      "version": "2.28.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cbd1697063b933c8b6bca93a14a645d1ef471f5c",
+            "comment": "Rename native request property scopes to scope #5043"
+          },
+          {
+            "author": "ellymakuba@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e035fe595a8f4b809514b1ad26ec9f7e3eb41161",
+            "comment": "adding network performance measurement #4834"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9520dd864e2fef29ceb8d8969d5c6ac88ea73a33",
+            "comment": "Send login_hint claim instead of sid if available #4990"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.3.0",
+            "commit": "9ddeaca3f2b983b459cd0b4651aa4a7adc10e18c"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c8eb53d59a2df026832a914284c0bfb61486a016",
+            "comment": " Package-lock updates"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "674ff0c4a543fb2b5b52f3a7aed4fe32b387b7b2",
+            "comment": "Update package-lock"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 18 Jul 2022 23:26:21 GMT",
+      "tag": "@azure/msal-browser_v2.28.0",
+      "version": "2.28.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0c23631c04e48d14115fd7f2c74e3367bec6ea6f",
+            "comment": "Added new token size field in the perf telemetry data #4973"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "1cf6266c2a5e52067744fe800772a7740670ca75",
+            "comment": "Add local cache support for JS-WAM bridge #4971"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.2.0",
+            "commit": "1b74296d45864f3721895819733ea5ee39006b6f"
+          }
+        ],
+        "patch": [
+          {
+            "author": "t-ssummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "aff6dd392ec3a07b6ef0375f625dbcb9617c2dbf",
+            "comment": "Fix bug with activeAccount when two accounts have same local account id #5004"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ff3a2452ff8778a56df04065b798ed827589b434",
+            "comment": "Update package-locks to fix CI issue #5005"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 05 Jul 2022 22:37:04 GMT",
+      "tag": "@azure/msal-browser_v2.27.0",
+      "version": "2.27.0",
+      "comments": {
+        "none": [
+          {
+            "author": "azamfahmy@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "23d16b6a21bd89485c6471decbab10c157d0ef15",
+            "comment": {
+              "title": "updated the function description for createRedirectClient()",
+              "value": ""
+            }
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "6dfc1ebe77fe97964f194da0d9efc82a920a2bed",
+            "comment": "Update unit tests with jwks_uri #4905"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "48f2df2559f6446fdeb5aa69335e6e5a369b647a",
+            "comment": "Update WAM docs #4952"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "560fe1d158719556d1aba93bf973b1fbdd620d59",
+            "comment": "Fix prompt behavior for native broker requests #4949"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "867516c11c83639890abe2fcd6fc6e73ed659644",
+            "comment": "Non-fatal native broker errors should clear interaction in progress flag #4950"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "bb972bebeccfb8e4fd3d5fc4c8fc857abfc0e59f",
+            "comment": "Mark temporary cache cookies as SameSite lax #4957"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d501fbdded20ff9bdadfe02dc46e13a6e6ed4e56",
+            "comment": "Handle ACCOUNT_UNAVAILABLE error status from native broker #4951"
+          }
+        ],
+        "minor": [
+          {
+            "author": "samuelkamau@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "37dbd0a0c751d9aef0371b813122d89e978ff57e",
+            "comment": "feat: adding authority metadata resiliency #4536"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.1.0",
+            "commit": "bfd3760ce1aca6b4be8ae937606215676a72e5c5"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 13 Jun 2022 22:28:09 GMT",
+      "tag": "@azure/msal-browser_v2.26.0",
+      "version": "2.26.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "17bf0dd14cc1b23bd43a531d73c878ccd09e66e9",
+            "comment": "Add errorCode and subErrorCode to client telemetry events (#4863)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.0.0",
+            "commit": "e325d870a211b4ad6fa97bb95b6b224299247940"
+          }
+        ],
+        "patch": [
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "49d6a3dde3e09a12ee01aeae52137e3c007649e8",
+            "comment": "Add strict assertion checks for OBO clients (#4691)"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d7836e8cdad77b5990ecbd4a278ebce097633478",
+            "comment": "Update redirect_in_iframe message to include messaging for embedded applications #4895"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "00e44cc4bc966d8e4e8a57c0207d4ba26557c88e",
+            "comment": "preflightBrowserEnvironmentCheck should not always set interaction in progress #4893"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a78532e3aec29b2ba0b0650f98d065e78c0fac88",
+            "comment": "Return correct fromCache value when tokens are acquired from native broker #4880"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 06 Jun 2022 22:13:00 GMT",
+      "tag": "@azure/msal-browser_v2.25.0",
+      "version": "2.25.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ce0df0236f729feefce4c85470046e74a7e94961",
+            "comment": "Add keyId to SHR header and make x5c_ca claim type string array #4729"
+          },
+          {
+            "author": "paulrsauer@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "96db5ab0dbe4774bd4b79d56d73d12c54789e41a",
+            "comment": "Fixes assignment of expiresOn inside loadExternalTokens to fix issue where all access tokens appear expired during E2E #4711"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "3b8942d3cf281352236b820c931a89b4dbcbf85b",
+            "comment": "SHR params renamed as per MSAL JS's naming convention #4794"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "abdbeb5323698de03795131ca23f040a6e32f0b7",
+            "comment": "Fallback to web flow when native broker throws 'DISABLED' status #4837"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "64215f9509abdce13ae45d86851d6cb399700fa3",
+            "comment": "Change log message level in initialize from warning to info #4820"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "214bee3d2fa81f23a742369315a140b89732e68d",
+            "comment": "Fix empty hash errors in popups #4793"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "90365303db30da0fb4817b3e075db137a1ee3e33",
+            "comment": "Add PoP support for Encrypted Access Tokens #4730"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v6.4.0",
+            "commit": "3b8942d3cf281352236b820c931a89b4dbcbf85b"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "db858a9ef01e9fb4022da75dcdc8f28713099d89",
+            "comment": "Fix failing unit tests #4783"
+          },
+          {
+            "author": "brianmel@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "79d96ca89542170be24d22dc6750d3f20783dd35"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 02 May 2022 22:23:33 GMT",
+      "tag": "@azure/msal-browser_v2.24.0",
+      "version": "2.24.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cbf5e7a6c81d01ce40bfbcbca9be158c5ee395aa",
+            "comment": "Fix for WAM window parenting #4755"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b2a0deb2d8bdced83ea9eae67cfe61defec6944d",
+            "comment": "Ensure interaction status is properly set during logout with onRedirectNavigate #4719"
+          }
+        ],
+        "minor": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "87dc6cdf90ab29668dfb82ba27ab6ed80743312b",
+            "comment": "Move internals needed for msal-browser-1p to separate export #4742"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cb93cc7e0deadefac126b23c3326c4b2aa4be142",
+            "comment": "Add support for acquiring tokens from the native broker #4531"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v6.3.0",
+            "commit": "cbf5e7a6c81d01ce40bfbcbca9be158c5ee395aa"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 04 Apr 2022 21:12:42 GMT",
+      "tag": "@azure/msal-browser_v2.23.0",
+      "version": "2.23.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "561749e626ffa0ac14e0708dda0eb3b7ea208780",
+            "comment": "Add performance telemetry API #4570"
+          },
+          {
+            "author": "prithviraj.kanherkar@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b3cc863ed0decc5a088d16ee0c9489dbb44a4bff",
+            "comment": "Add Client Application telemetry parameters to MSAL #4616"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v6.2.0",
+            "commit": "63c34341780208480edc2f86e623ba12a7f847c3"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "be68c190f5561e1a8e7c3144cfee35a5dbc5f109",
+            "comment": "Fix persistent key store deletion on logout #4617"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 07 Mar 2022 23:28:43 GMT",
+      "tag": "@azure/msal-browser_v2.22.1",
+      "version": "2.22.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "131bde21ec44897898a8f461e80d3865129b6b6e",
+            "comment": "Clear temporary cache when back button is clicked during redirect flow #4513"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "8fba82a563a25eb92f5d071f0358ef24c4304595",
+            "comment": "Don't reassign request object properties #4563"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a67bd3b8d476268e1ac18840e6b03828c87f34d5",
+            "comment": "Unit tests only"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 08 Feb 2022 00:41:06 GMT",
+      "tag": "@azure/msal-browser_v2.22.0",
+      "version": "2.22.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4c7418a6a76f29706ff0e5f7efd890d22fa4af0b",
+            "comment": "Add support for logout_hint #4450"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d576b7d35f8f24e53946c72bc78c0401a8d2dc86",
+            "comment": "Add AzureCloudInstance to JS libraries"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v6.1.0",
+            "commit": "639253acbc825e1f19ca712bc72dce8da149e3e8"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "19f76b1d9cd2b0f1a4a7e4765c8ee9e7e17f3d59",
+            "comment": "Test changes #4383"
+          },
+          {
+            "author": "sgo_2001@hotmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "27c04e7adc601b0855714540c2d55ab3dc8e5256",
+            "comment": "Fix typo in logger message #4385"
+          },
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "5767008f8ef9f3b05aeba421cc4aa6c6bb616e86",
+            "comment": "fix: update package-lock files"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "67ce881faa2a6931320541d99de2efe4e9ba6a3f",
+            "comment": "Expose OIDC_DEFAULT_SCOPES constant #4280"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "729c4a180f8c4f8ba97856af9ad3d626ffad6416",
+            "comment": "Improve reliability of interaction_in_progress #4460"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "6808be4858c97d4f7d31eda2b6d2a8403f8c6e0f",
+            "comment": "Clear hash only if it contains known response properties #4415"
+          },
+          {
+            "author": "prkanher@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "597d8d95e15f1bfc7e62a6346733661cc2454d12",
+            "comment": "Adding exports and other changes for extensibility #4459"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 04 Jan 2022 00:20:29 GMT",
+      "tag": "@azure/msal-browser_v2.21.0",
+      "version": "2.21.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "60e2cfc0e9daa3c24e994617b4ac42aef6880b74",
+            "comment": "Add support for requested claims in silent token acquisition #4296"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v6.0.0",
+            "commit": "bd9b1af91c278926ab2e6943cf90817a7ac4957b"
+          }
+        ],
+        "patch": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e3c66105f3bf617dc4fd06905e04b37e865c303c",
+            "comment": "Clear interaction status even if there is no ongoing request #4314"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Dec 2021 00:17:01 GMT",
+      "tag": "@azure/msal-browser_v2.20.0",
+      "version": "2.20.0",
+      "comments": {
+        "none": [
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "8259de7520d2940d290332cd03c5b8babeb0966e",
+            "comment": "deps: run an audit fix on msal-browser"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "02dbd9172368bfc69e4a47f01a3ada0b96345c81",
+            "comment": "Package.json updates"
+          }
+        ],
+        "minor": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4741b6c3a6a3dd58feefde93c095c05e1eca5e03",
+            "comment": "Add acquireTokenByCode API for hybrid spa flow #3978"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v5.2.0",
+            "commit": "d7c209f7aa3ae4380a77a31ff1319fbf7201ae45"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e983e25ba899bb437a135ec50ad6c77023c72e5b",
+            "comment": "Fix circular dependencies in AuthenticationHeaderParser and AsyncMemoryStorage #4235"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 01 Nov 2021 23:53:21 GMT",
+      "tag": "@azure/msal-browser_v2.19.0",
+      "version": "2.19.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "51669adf5e2fe446bf94925fe77762b64e9513fc",
+            "comment": "Add support for in-memory storage of token binding keys #4183"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a81fcef3d82523e03828d91bb0ee8d2ab2cc20d8",
+            "comment": "Add support for ephemeral SSH certificate acquisition #4178"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "51669adf5e2fe446bf94925fe77762b64e9513fc",
+            "comment": "Add support for in-memory storage of token binding keys #4183"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5b350a5f97b43e1a5a87153bb4a13632f7c615b9",
+            "comment": "Add support for SHR nonce #3999"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v5.1.0",
+            "commit": "6ac29855822ce1ba9531a68bcaa6f37443ef16c0"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9099d711c0e52e13937bcfda7ddf34bac48f9ecd",
+            "comment": "Add support for different key types in IndexedDB storage #4052"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b1f5bd520f8abb972725c1a863f37b7fb5ebd756",
+            "comment": "Ensure correlation is passed to all interaction clients in acquireTokenSilent #4186"
+          },
+          {
+            "author": "Michael.Currie@rjwgroup.com",
+            "package": "@azure/msal-browser",
+            "commit": "3f3f5a8880a7e46445d71b8920a6ccc70d453f30",
+            "comment": "Fix typo in noTokenRequestCacheError (#4136)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "dc80d3177eef0b3c7499cbf3ebb2fea8e2c408c9",
+            "comment": "Fix redirect processing when allowRedirectInIframe: true #4142"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 04 Oct 2021 23:12:35 GMT",
+      "tag": "@azure/msal-browser_v2.18.0",
+      "version": "2.18.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "jagore@microsoft.com",
+            "package": "@azure/msal-browser",
+            "comment": "Consistently export error types and messages for errors thrown by MSAL #4117",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "comment": "Move helper functions up to BaseInteractionClient #4049",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "comment": "Export library version #4124",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "comment": "Disallow major bumps",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-browser",
+            "comment": "fix: add forked bindings library to node-extensions",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "comment": "Emit event when user logs in or out from a different tab or window #3981",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "prkanher@microsoft.com",
+            "package": "@azure/msal-browser",
+            "comment": "Remove requirement of user hint on ssoSilent API #4123",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v5.0.1",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Sep 2021 23:22:24 GMT",
+      "tag": "@azure/msal-browser_v2.17.0",
+      "version": "2.17.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add configuration for popup window size and placement #3946",
+            "author": "joarroyo@microsoft.com",
+            "commit": "aefe791ee660bbb6bf7df789b5cfb77b46887e05",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add API to sideload tokens to msal-browser #3895",
+            "author": "joarroyo@microsoft.com",
+            "commit": "cef2629499cf997f9167fe3ecc7628cf32513dfc",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add SignedHttpRequest class #3058",
+            "author": "janutter@microsoft.com",
+            "commit": "19fe65ef6562deeae0778db5030f44fa6e24aa5d",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Refactor acquireToken logic into InteractionClients #3871",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "8ac64949f23346cdbdac6f8a2f6c8293d016ee32",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Clear cache before constructing logout url #3982",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "9e4d8a161cd8eac51ea7ded5dadc2b6ff028f5d7",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add pop params to request thumbprint #3973",
+            "author": "hemoral@microsoft.com",
+            "commit": "b3b18bc86a5949905be265c9b892e288551ac894",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update ADAL to MSAL SSO logic to use preferred_username instead of upn by default #3945",
+            "author": "ellymakuba@microsoft.com",
+            "commit": "0eb77a9e467f0074bb9ee5bf52d7c2dfa6f7efad",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Populate msal v2 loginHint from cached msal v1 id token #4027",
+            "author": "janutter@microsoft.com",
+            "commit": "de24de1d3a135c106143a6cc9907cc1264f546e0",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Throw interaction in progress if any msal instance has interaction in progress #4014",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "5188d7d9fb2aa7a9e9f2ffd12abd8d438c4c3876",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Only emit handleRedirect start event on first invocation of handleRedirectPromise #4013",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "09f8cece289c07dd9c5681a31ec285e4111db4ae",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add correlationId to AuthenticationResult type #3947",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "931061695df57488a26397763bbdb3e466713df8",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Remove token binding key from key store when refreshing pop token #3500",
+            "author": "hemoral@microsoft.com",
+            "commit": "6592652877f31405c8ed73a66f03eada90a78c0a",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Fix clearing active account on logout #3948",
+            "author": "hemoral@microsoft.com",
+            "commit": "cd45c77348f6fc259f9378f69b25569146e1c58a",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add correlationId to errors thrown #3930",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "c2d19c27d11fdab54fb336b9a455b05c753ae750",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Fix accesstoken_with_authscheme implementation #3910",
+            "author": "hemoral@microsoft.com",
+            "commit": "9aceb4219ebad900277aa6a59ca1ff93c5a21e0a",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update FAQ #3934",
+            "author": "joliuac@gmail.com",
+            "commit": "323d7eabbbd95c499d2c2a2446cdea4531af71c5",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Jul 2021 22:50:22 GMT",
+      "tag": "@azure/msal-browser_v2.16.0",
+      "version": "2.16.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add fix for loginRedirect failure when angular index.html base href is different from the origin (#3875)",
+            "author": "rishanthakumar@gmail.com",
+            "commit": "9da0b3f92216367d68bdb7fea74cd9050d202a76",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "fix: fixing the npm audit issues",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "9b19470078b65bedf2b69246ba764b32b533a268",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Expose isInPopup helper function #3825",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "45e51762597ffde61d70a9e085e77893b339d0e1",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Add support for prompt=create #3773",
+            "author": "joarroyo@microsoft.com",
+            "commit": "c9314cedfe08b643e43e358243dc7f49253f77ef",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Msal-Browser supports parallel silent requests #3837",
+            "author": "joarroyo@microsoft.com",
+            "commit": "3d6a01191deb3fa1da722b4362d52535c350ddd7",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Persist active account #3755",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "db59cc072e50f201f09e03a09a1b7b8355e10ee1",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 28 Jun 2021 23:39:48 GMT",
+      "tag": "@azure/msal-browser_v2.15.0",
+      "version": "2.15.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Component governance dependency updates #3655",
+            "author": "joarroyo@microsoft.com",
+            "commit": "3f74f3bffd88fc0b39a854da090f01aa9c072618",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Remove unused error #3657",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "f6f7a7c738706668c869fcc84338d8c212a5ab4f",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Upgrade Jest to v27 #3719",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6c34aa5be3ee9536bd2febd2b7781fcdf0d28786",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "fix: update package lock files",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "0199e41269b79de70f7d0da0fb12448db534f784",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Update monitor_window_timeout error message with link to error docs #3783",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "728b63ea69ba0aa57c1a1fa0a0c714dbb168b9a6",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Refactor event APIs into EventHandler class #3770",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "f0c574a8c2ffeb3132703e7e9e17d01e1898abaa",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Fix logoutPopup parameter type on IPublicClientApplication #3663",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "16200653c5f9d31d890d1d592e8b58ffde7259ed",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add correlationId to log messages #3601",
+            "author": "joarroyo@microsoft.com",
+            "commit": "8d58f91c9dd9d65df4a016c7bcdbbd03e9bf573e",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add CCS parameters to headers or form_data #3636",
+            "author": "prkanher@microsoft.com",
+            "commit": "2956380aecde38382a28c7ed15164b8dfd65cfca",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 13 May 2021 18:34:08 GMT",
+      "tag": "@azure/msal-browser_v2.14.2",
+      "version": "2.14.2",
+      "comments": {
+        "none": [
+          {
+            "comment": "Enable no-param-reassign lint rule",
+            "author": "janutter@microsoft.com",
+            "commit": "e24f5cff944c05ccaecb180fa68814bc89512095",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 12 May 2021 18:35:03 GMT",
+      "tag": "@azure/msal-browser_v2.14.2",
+      "version": "2.14.2",
+      "comments": {
+        "none": [
+          {
+            "comment": "[docs] updates and replacements",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "56a947b117302218a625d365b63e8ad85859125f",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "replace legacy password-reset flow",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "f272ffce86591aeeacd892f3b53e522ebcd19555",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Regenerate package-lock #3510",
+            "author": "joarroyo@microsoft.com",
+            "commit": "ba0092a452f71a7bc58aaf7acdf94536d66f7493",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add incompatibility with Azure App Proxy to browser FAQ",
+            "author": "janutter@microsoft.com",
+            "commit": "daf2d0cb86225ab84d9be11fd147ac045ab72e9e",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Use msrCrypto for browsers unit tests",
+            "author": "janutter@microsoft.com",
+            "commit": "9b35b53d3dcecf1e560bb7607265f3aa1a463447",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add known issues for IE",
+            "author": "janutter@microsoft.com",
+            "commit": "f86c673b1baed6b94e0a3d890d4eecdae6a1160a",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Adjust log messages #3589",
+            "author": "joarroyo@microsoft.com",
+            "commit": "822ea2293a3f2e6fa3182a9bea97f122758952bd",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Fix hash removal from URL and browser history after interactive request #3609",
+            "author": "hemoral@microsoft.com",
+            "commit": "b773d95b05f87030ad3e72689cd2f847d8298fb7",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update account equality check #3527",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "878253750fecf12b4a865a5821df20d333ff0134",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Close popup if error is thrown before popup window navigation occurs #3572",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "1ddbb1bec251759959be5d5962e44d9c6537ce7c",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "change msal-browser/msal-common to preserveModules to enable tree-shaking #3300",
+            "author": "oo.thomas96@gmail.com",
+            "commit": "065f107fff0e2dd37d9c8cee2fd6808988bb4038",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Apr 2021 23:26:08 GMT",
+      "tag": "@azure/msal-browser_v2.14.1",
+      "version": "2.14.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Documentation Updates #3499",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "366ec6a251e099a45ad83c380aa22e4dff7b4a9e",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Run npm audit for PRs",
+            "author": "janutter@microsoft.com",
+            "commit": "b3c5bcf2101cbe92edca972c53d64343f775dcc9",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update and fix eslint rules",
+            "author": "janutter@microsoft.com",
+            "commit": "70debe58239b6a6fdf4e533a8a1ee057257846a8",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "resource-and-scopes doc correction",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "8e24069543f421d38a3612382691fb86fbe20178",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Add .browserslistrc #3471",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "04c6d659d4dc76183ef9043075d3b6cacc450c9b",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Look for temp cache items in local storage as fallback #3509",
+            "author": "janutter@microsoft.com",
+            "commit": "01b835a2bdbc90557aa357fadae37f6bbe817ebc",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 14 Apr 2021 18:39:53 GMT",
+      "tag": "@azure/msal-browser_v2.14.0",
+      "version": "2.14.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Add Typedocs links to event doc #2964",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6e6b1e9cc11140d0f8da21a19fc0fef100b550c6",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "[docs] code snippet correction",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "1bdda4f0c07b4c7964fd627af17e8c906fbed5df",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Changes to test files",
+            "author": "prkanher@microsoft.com",
+            "commit": "543d4a94d7508da60ca5f12c710c5de3b240e4b6",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Docs update",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "4e4a6b7334dedabc783f8da4f887f575cffc9c50",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "property name correction",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "7d728fd177f4914ada7a25e45ea91d5fe2a9bdbc",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Make SHR parameters optional (#3320)",
+            "author": "hemoral@microsoft.com",
+            "commit": "fd0dcd559af8ab0e04dec3c30cf3d4e122d6057d",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add support for AccessToken_With_AuthScheme credential type #3426",
+            "author": "hectormgdev@gmail.com",
+            "commit": "c35e120dd8af5dda03b2480cf559cf226fb2fc21",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 31 Mar 2021 22:25:57 GMT",
+      "tag": "@azure/msal-browser_v2.13.1",
+      "version": "2.13.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Updates typdoc comments for request types #3309",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "91da4f7f8dc126458dcc7b4a1e22b707f48a302a",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add AT PoP documentation (#3071)",
+            "author": "hemoral@microsoft.com",
+            "commit": "b5f1bc8e9a400e50658fd91e14feea460cfb7ce9",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Export PopupEvent #3360",
+            "author": "joarroyo@microsoft.com",
+            "commit": "24fda4c133476d87c12ac913f49eb9aff696f68e",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 24 Mar 2021 22:55:46 GMT",
+      "tag": "@azure/msal-browser_v2.13.0",
+      "version": "2.13.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Add Typedocs links to event doc #2964",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6e6b1e9cc11140d0f8da21a19fc0fef100b550c6",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Doc Updates #3287",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "e4f3b3a09aa3f48c7b8d1d0b58f978f3eb8dca29",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Fix code example",
+            "author": "stef.heyenrath@gmail.com",
+            "commit": "f2542071844d89989a5db16d36552cdd5826309b",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add custom SHR Client Claims documentation (#3089)",
+            "author": "hemoral@microsoft.com",
+            "commit": "44bc5edc3104400bef0e876c68ea529ce543e398",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Fix errors thrown on cache lookups when reading non-msal cache values #3245",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "8626ba19ec3fb33bc16b9c62fda914920e3a21e0",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update blockReloadInIframe error message with link to error doc #3294",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "e4601c8d5581e0cedd4b7b0cc4301e4e56b49049",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Block nested popups #3249",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "4241838226c4f0e54c2f7dee79d5e999e0f34f71",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add logoutPopup API #3044",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "9c913e05cc75728510e6a88fc50c7d759ec82fef",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 15 Mar 2021 23:45:17 GMT",
+      "tag": "@azure/msal-browser_v2.12.1",
+      "version": "2.12.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update Docs #3177",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "d448f10701d5416190ea0eb267495ad6522320a2",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Docs changes for sid/loginHint in SSO scenarios #3147",
+            "author": "prkanher@microsoft.com",
+            "commit": "c4eadd724df908e287faf162787ab15a512ed192",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Clear temporary cache cookies on page load #3129",
+            "author": "prkanher@microsoft.com",
+            "commit": "3cbb550cb0cd63a78f3f78621d56ee42c905fcf3",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Throw BrowserAuthError when fetch fails #3146",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "da0294f006a4646f101f646544cb9542d8b29628",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 03 Mar 2021 21:47:05 GMT",
+      "tag": "@azure/msal-browser_v2.12.0",
+      "version": "2.12.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update browser error doc (#3093)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "c26265e6f337cead73979c8da396d09929d963e8",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "docs: fix",
+            "author": "johnjosephmendez2016@gmail.com",
+            "commit": "0d2ad7b0170f9c7bd658dd7fa70a66d62578d76a",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Separate telemetry for ssoSilent and ATS iframe renewal (#3064)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "8fb91651b0f3e0fbfdfceaf92ca6048148a28643",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add instrumentation to msal-browser (#3004)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "e512a95d65964ccf304a9adb37aa758d25e59f58",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Memoize multiple calls to handleRedirectPromise (#3072)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6f1537582e6f254463ee091e13747c352cb3b540",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add option to make MSAL browser cookies secure (#3001)",
+            "author": "hemoral@microsoft.com",
+            "commit": "04db417301936b0f2ad9d36f535d9c3e6b8dc75c",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add setNavigationClient API and expose INavigationClient interface (#2985)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "0ef9a0af4aba8a63ae84690ee62ac2ab0baaa85b",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 18 Feb 2021 00:34:32 GMT",
+      "tag": "@azure/msal-browser_v2.11.2",
+      "version": "2.11.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Ensure scrollbars are enabled for popups in browser",
+            "author": "janutter@microsoft.com",
+            "commit": "fbdccb8be4f089493b2a4130bdbf95596f0e88a4",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 09 Feb 2021 01:48:22 GMT",
+      "tag": "@azure/msal-browser_v2.11.1",
+      "version": "2.11.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix version.json import errors (#2993)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6dc3bc9e2148bc53b181d9f079f6e11e0159620b",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add missing network types to browser exports (#2995)",
+            "author": "prkanher@microsoft.com",
+            "commit": "46d7dd34752dbcad595eef1298b8c277106ef57b",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Ignore OIDC scopes during cache lookup or replacement (#2969)",
+            "author": "prkanher@microsoft.com",
+            "commit": "554f47e8ff576c3230c36df74cd73b6101d333ab",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Allow apps to not use the current page as default postLogoutRedirectUri in MSAL Browser (#2789)",
+            "author": "janutter@microsoft.com",
+            "commit": "3d8d372276d2c42d359bbf05cfcdd1d7c890c7d8",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Fix PCA stub errors (#2963)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6a0c28447f198eaa3f02cd450d8f181c02536bcf",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Add instrumentation (#2863)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "838f95742432a4d19a9784b784d978834e5e19f4",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add API Extractor for msal-node",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "01747296efdf08eefe585930097d9bbbf6b00789",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 02 Feb 2021 01:56:47 GMT",
+      "tag": "@azure/msal-browser_v2.11.0",
+      "version": "2.11.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Test changes",
+            "author": "prkanher@microsoft.com",
+            "commit": "12f9fa2b6a9530fac5f7570ee3c49dc39232284c",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Typedocs Updates (#2926)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "3fd4a48143ed4fb62b9e3266338b1abda920d68a",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update acquire-token.md",
+            "author": "hello@kubaprzetakiewi.cz",
+            "commit": "828086ab6df566b7711d430cc0b98338293f1365",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add project references (#2930)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a836e77e372f1b4da28195d4ad8c0c75d6794875",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Test updates (#2949)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "cbdd4cd8ba23b5794aeb1f0788b828f1248f7236",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update login-user.md",
+            "author": "hello@kubaprzetakiewi.cz",
+            "commit": "5e00712d7e7097c607cc9925b507c4532f6ecab1",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "FAQ Update (#2928)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6ad6d4d95da5f5753c3d4dea7b07b9af428cf2d2",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Fix temp cache cleanup when using localStorage (#2935)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "21dc607120091d51da368b850f0c6f8347d974dd",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Get package version from version.json (#2915)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a6f4702f9439e318a8cb6dc65d1def16351a84fd",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add initializeWrapperLibrary API (#2845)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "27597c148c718e3d001309349a4498a958688cbd",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add getInteractionStatusFromEvent to msal-browser (#2885)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "c263c12b7708dd61d8772e4fd147031e4eeb280d",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 21 Jan 2021 21:48:01 GMT",
+      "tag": "@azure/msal-browser_v2.10.0",
+      "version": "2.10.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Authority metadata caching (#2758)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "28b3268b1385e99249c0b7a95b0b14299011ca46",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Fix handling of multiple popup windows (#2842)",
+            "author": "janutter@microsoft.com",
+            "commit": "db5ae673ae9a115e91e0db172c53c8a463210770",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "redirectStartPage supports relative URIs (#2866)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "e3127c06f80ebd2ad97ede8caa5e0c5bf0efa215",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Add missing license files",
+            "author": "janutter@microsoft.com",
+            "commit": "bee8cbd1f3a22efccb83ba045231eb611e2a7f7d",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 12 Jan 2021 00:51:26 GMT",
+      "tag": "@azure/msal-browser_v2.9.0",
+      "version": "2.9.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update event docs in msal-browser (#2764)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "f85db233464aed9718444ab4d29d19f432850bdf",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update msal-angular link in msal-browser readme (#2751)",
+            "author": "suhendri_s@outlook.com",
+            "commit": "16e2b6cf3d4294c3723db49e1eace1d5354e4dcb",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "package.lock change",
+            "author": "samuel.kamau@microsoft.com",
+            "commit": "4e50ca592f5a17578072be9e4ac28e05b3e6d594",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Fix npm audit warnings",
+            "author": "janutter@microsoft.com",
+            "commit": "751026cdaa24dd370c50ad714bf0b1d54c71fbde",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Adding an active account API to PublicClientApplication (#2728)",
+            "author": "prkanher@microsoft.com",
+            "commit": "ca8c0d55d2abc4eefaa52c833510e313610eb424",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add internal in-memory storage to BrowserCacheManager (#2765)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "d97cc2e1dc08a56614b66404294c45ff9ab43bca",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Enable strict TypeScript option (#2792)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a6fae46d307d0a6101e926cb28298fd9f60d4a49",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 07 Dec 2020 22:19:03 GMT",
+      "tag": "@azure/msal-browser_v2.8.0",
+      "version": "2.8.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix clearing of temporary cache items (#2696)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "db0e692ba0dbd1fafd0ffdbacadc83f68498d201",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add exports to index.ts (#2680)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "7c2b0d1aae5730017bda2f63049fab48f9e71e7f",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Expose idTokenClaims on AccountInfo (#2554)",
+            "author": "janutter@microsoft.com",
+            "commit": "cb2165aad7995d904ec49ade565d907dc314ce16",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add onRedirectNavigate to redirect operations in browser (#2669)",
+            "author": "janutter@microsoft.com",
+            "commit": "8b460eeab3ec8f94cac5291c97a5f94a05aa9270",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update Internal PCA Configuration (#2602)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "ebf18c6daead16f8cfd2afb3b63cbd59fc63046a",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add allowRedirectInIframe flag to browser (#2593)",
+            "author": "janutter@microsoft.com",
+            "commit": "1b8ac77845b61603d479b3ef1096ee894b9b5065",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Log messages contain package name and version (#2589)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "4568c16bd425e242cdb799ec59b3508654cc2e45",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update request types (#2512)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "5b891222d674eb5664af9187f319a61b50341f55",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "update browser export (#2693)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "e5a4b5c4b2ba2e996e404883705d3b53833109b3",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Package Lock update",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "9c029bc074ecd32483a45cfab8721f0771c31e55",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "adding faq for b2c support and b2c clientId scope behavior in acquireTokenSilent",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "adc3e98b23bb16270977021e6cd381270cd97278",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Remove console.log in unit tests (#2629)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "b89d8029a3703b2bfa1f9399456e652fe6f26e4f",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "CDN Links",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "dcb07e2011222da6178d4da903dcf44a9f413130",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Readme updates (#2592)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "cfea3b511ebfcd4a22334a1b7c7625f8a7a3a098",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Doc update (#2587)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "fa9b7009f094b3c17a6d177fcec9b736320735c0",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Enable the instance_aware flow (#1804)",
+            "author": "prkanher@microsoft.com",
+            "commit": "3e616e162149f4e57257b70e6d481c4596d91ef9",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 11 Nov 2020 23:33:20 GMT",
+      "tag": "@azure/msal-browser_v2.7.0",
+      "version": "2.7.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Adds getAccountByLocalId to PCA Interface (#2588)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "b6e1692cc3e3ea8c0d9b5808c4469446c01cfb84",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add navigateFrameWait and change loadFrameTimeout to browser to match core behavior (#2545)",
+            "author": "janutter@microsoft.com",
+            "commit": "9427b1f3ae14b7e0c143900f8b6de911db12a134",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Documentation update for new account retrieval APIs (#2585)",
+            "author": "hemoral@microsoft.com",
+            "commit": "cb782967cc8f07581488de71c4509fa12a702774",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Support relative paths on redirectUri parameter (#2560)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "12ccf0441f8735e9d2875cebac6065447ecc622d",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 10 Nov 2020 01:48:44 GMT",
+      "tag": "@azure/msal-browser_v2.6.1",
+      "version": "2.6.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Export stubbed PCA instance (#2540)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "612feaeb6e5099cae6d1f606d187f5e38063018f",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Sat, 07 Nov 2020 01:50:14 GMT",
+      "tag": "@azure/msal-browser_v2.6.0",
+      "version": "2.6.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Fixing a bug and adding `localAccountId` in AccountInfo interface (#2516)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "98f43038608fe66a256dabfff0810476e9e6b3ab",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Build Pipeline Changes (#2406)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "af8459c0d53a4dc2bf495017608c0bb03004d006",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 02 Nov 2020 23:33:39 GMT",
+      "tag": "@azure/msal-browser_v2.5.2",
+      "version": "2.5.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix JSON.parse issue and cache value validation (#2527)",
+            "author": "prkanher@microsoft.com",
+            "commit": "62cfc6bf4a8f299ba7160a70a71c84890b49a051",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 30 Oct 2020 00:52:19 GMT",
+      "tag": "@azure/msal-browser_v2.5.1",
+      "version": "2.5.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Restore string to cacheLocation type (#2523)",
+            "author": "janutter@microsoft.com",
+            "commit": "7f45b2d37f6784f25aa454f599d0cb7f81463b5c",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 29 Oct 2020 20:36:48 GMT",
+      "tag": "@azure/msal-browser_v2.5.0",
+      "version": "2.5.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add handleRedirect End Event (#2518)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "22369204b53bbd7b791d83f5b9476661eebdeda5",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Ensure history.replaceState is a function",
+            "author": "janutter@microsoft.com",
+            "commit": "77143b3994fb16313324fb91799e38a462bac1c1",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Allow hash to be passed into handleRedirectPromise, reset non-msal after processing",
+            "author": "janutter@microsoft.com",
+            "commit": "689c9df7a9fe3f9dabb7cdd604a84707fd216154",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add getLogger and setLogger to msal-browser (#2513)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "664b02b2c8075ef0a5fd3880ce38117523ed3e74",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Adding memory storage option for cache location (#2481)",
+            "author": "prkanher@microsoft.com",
+            "commit": "f07cef165707ffa46827069a0d0d202eb0313312",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Add script to automate generation and updating of browser SRI hashes",
+            "author": "janutter@microsoft.com",
+            "commit": "894453a2e68a9570ba6984da6f692ed05188ae8f",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 26 Oct 2020 21:00:29 GMT",
+      "tag": "@azure/msal-browser_v2.4.1",
+      "version": "2.4.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update SRI hashes for msal@1.4.2 and browser@2.4.0",
+            "author": "janutter@microsoft.com",
+            "commit": "2edf8ba703ad49c78f548e17ace9ee494abf30f1",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update Readme (#2468)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "dca9f652c157ee621302225c04ec87f488b2c8cb",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add docs for event API (#2459)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "9b6fd4426eac56327a6180739888ecaa4b54af7e",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "msal-browser and msal-node cache Interfaces to msal-common updated (#2415)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "9d4c4a18de10eb3d918810dc10766fbd5547165d",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 20 Oct 2020 23:47:28 GMT",
+      "tag": "@azure/msal-browser_v2.4.0",
+      "version": "2.4.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Updated cdn docs for MSAL Browser",
+            "author": "janutter@microsoft.com",
+            "commit": "034fc94ad59499932fe7530b0e5ab3152bcbf11e",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update FAQ (#2440)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "1de35f42e0340d2b3020ba7938d0ae5d7d067a42",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Updated eslint rules (#2345)",
+            "author": "janutter@microsoft.com",
+            "commit": "64a4f9e868e63346dfd711dec717abe7fd14d949",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add removeEventCallback API (#2462)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "f934892a769d3287a8edda8ec3f72928ff288ea8",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add event api to msal-browser (#2394)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "b1a6ccc6348b556cd4636511aeb8e58060154daa",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Use history API to clear hash for msal-browser",
+            "author": "janutter@microsoft.com",
+            "commit": "9a3618b430e9f174505529949ebacf4bccd04858",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Export InteractionType (#2438)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "9fc76a676ed0e157e43e6a9512352fcb29099aae",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add extraQueryParameters to acquireTokenSilent in msal-browser",
+            "author": "janutter@microsoft.com",
+            "commit": "d2132c15c759f33c299761b9869dd1144907c0a8",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Fix unexpected interaction_required error in redirect flow (#2404)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "c22bb29b8880de4bf0b9437a1c2ad48776a9d88f",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Adds support for any OIDC-compliant authority (#2389).",
+            "author": "jamckenn@microsoft.com",
+            "commit": "2b6b9ec9033a8b829393e44c3feb7b19b163d2cd",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 14 Oct 2020 23:45:07 GMT",
+      "tag": "@azure/msal-browser_v2.3.1",
+      "version": "2.3.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Remove rogue console.log() in the BrowserCrypto.ts file and add a lint rule to prevent future issues (#2410)",
+            "author": "prkanher@microsoft.com",
+            "commit": "d2fc6bb778a79d9160474cebfc6c5a52bcf464ff",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Check for Headers class when configuring network client",
+            "author": "janutter@microsoft.com",
+            "commit": "15798f723cd9beb8f6160703168f3ff63bcb8793",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update getItem to return ServerTelemetryEntity (#2223)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "82b982ba38d70d9060e3cf5d9c38e0203b60d963",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Update docs to explain B2C invite flow (#2392)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "319fe7bb2f6e2c7ea905d1df10ed7665d64264f3",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update README.md",
+            "author": "prkanher@microsoft.com",
+            "commit": "8f5e957039dfbfb0ecfa42a2f1244873d2f4b5b1",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add enhanced documentation about responseMode in browser (#2228)",
+            "author": "jamckenn@microsoft.com",
+            "commit": "1c098e24d82c19f32dc5c493b76f46a89eca1828",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 02 Oct 2020 17:42:35 GMT",
+      "tag": "@azure/msal-browser_v2.3.0",
+      "version": "2.3.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Implementation of Access Token Proof-of-Possession Flow (#2151, #2153, #2154, #2209, #2289)",
+            "author": "prkanher@microsoft.com",
+            "commit": "3cffbc99730532bbd0b35f2e3a9df17f032c0675",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 30 Sep 2020 17:58:33 GMT",
+      "tag": "@azure/msal-browser_v2.2.1",
+      "version": "2.2.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Support SSR in msal-browser (#2073)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "e697ad8b77313a7f01d21f71f1ca841af87c2459",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Updating dependency versions and package-lock.json(#2342)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "bc3f324edd6cf83937c31f73d3aefc6dbaf5f748",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 17 Sep 2020 23:16:22 GMT",
+      "tag": "@azure/msal-browser_v2.2.0",
+      "version": "2.2.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix issue with base64 encoding of spaces (#2248)",
+            "author": "prkanher@microsoft.com",
+            "commit": "",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Properly support multiple concurrent RT requests (#2290)",
+            "author": "janutter@microsoft.com",
+            "commit": "5956762593a9d0d2b23a33d8ad9f94eb5d2342dd",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Default scope addition done in msal-common (#2267)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "3a18b100f38149a35c01cc491a9de78ea505d771",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "acquireTokenSilent calls ssoSilent (#2264)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6923e66fc9ca44c460489b41ff6a4d104ebde864",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Check for interaction in progress when processing redirect hash (#2183)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "40458a19510286c3ad7eba566bdd283d7ba83bfa",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Creating ClientApplication.ts subclass (#2199)",
+            "author": "prkanher@microsoft.com",
+            "commit": "6750c4f1aa6a230bac76c37aab185aa04b894a2c",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add SsoSilentRequest for ssoSilent, update tests and samples",
+            "author": "joarroyo@microsoft.com",
+            "commit": "a7e1bb304b93509400405915a4df32e651ec16bf",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add Angular 10 browser sample, update documentation",
+            "author": "joarroyo@microsoft.com",
+            "commit": "98e1960987d13950d080ba5e15b0b17260ec47e2",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Add name field to AccountInfo (#2288)",
+            "author": "jamckenn@microsoft.com",
+            "commit": "d917d6a91987522f1c4390817966945ce18fa099",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update core, browser, common to use central eslint configuration",
+            "author": "janutter@microsoft.com",
+            "commit": "fc49c6f16b3f7a62a67d249107fc484272133305",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Doc updates (#2215)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "b50572c407dbe3a5f61ebde7d50171e9044cb894",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Doc updates",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a89fcea6df5c806a99de9e38ca67816910c93883",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "update cdn hash for v2.1.0",
+            "author": "prkanher@microsoft.com",
+            "commit": "14acf773f07700f8dd9bac1459e204d97385eb84",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Fix Unit Tests (#2191)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "f0f2d5c884431a93f32e50d78b2f29b83e6f0449",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Updating CDN docs",
+            "author": "prkanher@microsoft.com",
+            "commit": "f831b9f079665b839168a27badd2f9dcbe884214",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "none",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "9760b6ff6c0ad403ac1b26968cb10d3d7e72a6fd",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Added client-side throttling to enhance server stability (#1907)",
+            "author": "jamckenn@microsoft.com",
+            "commit": "91a1dba29dbfb8f6fc329c0381767d6b6f661281",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 25 Aug 2020 00:40:45 GMT",
+      "tag": "@azure/msal-browser_v2.1.0",
+      "version": "2.1.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update APP_META_DATA to APP_METADATA",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "282035aecb07956dca323d65275fdaa703c4a325",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add getAccountByHomeId API (#2114)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "40b1716fec63893f57762f37b55944f6c8c86e21",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Change msal-browser loginPopup and openPopup, add ability to configure popup delay (#2132)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "61a1173a2cb96170b8898973c7ea3ede435cffa2",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update POST header to type Record (#2128)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "c9b65c59797cd3240aad2b4f1e0e866a90373c4a",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Client Capabilities Support (#2169)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "0cdad1b8a3855b2414be9740862df29524897a22",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 13 Aug 2020 02:20:48 GMT",
+      "tag": "@azure/msal-browser_v2.0.2",
+      "version": "2.0.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix hash parsing issue from #2118 and back button cache clearing (#2129)",
+            "author": "prkanher@microsoft.com",
+            "commit": "10ab51ecd9e4bb1ba1668972b693055310c65736",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Update Migration Guide (#2111)",
+            "author": "thomas.l.norling@gmail.com",
+            "commit": "671ababe31fe86f8e702507d261101e50548346d",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add beachball config",
+            "author": "prkanher@microsoft.com",
+            "commit": "50d9a9533b07a4a5bf7833bd6a5d0d35798c4903",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    }
+  ]
+}

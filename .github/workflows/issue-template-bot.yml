@@ -1,0 +1,24 @@
+name: Issue Template Bot
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions: {}
+
+jobs:
+  run:
+    permissions:
+      contents: read #  to fetch code (actions/checkout)
+      issues: write #  to label, comment, close issues
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Bot
+        uses: ./.github/actions/issue_template_bot
+        with: 
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config_path: ".github/issue_template_bot.json"

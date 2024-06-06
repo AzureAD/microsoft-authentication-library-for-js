@@ -1,0 +1,17 @@
+msal-node:
+  - lib/msal-node/**/*
+extensions:
+  - extensions/**/*
+msal-angular:
+  - lib/msal-angular/**/*
+msal-common:
+  - lib/msal-common/**/*
+msal-browser:
+  - lib/msal-browser/**/*
+msal-react:
+  - lib/msal-react/**/*
+samples:
+  - samples/**/*
+documentation:
+  - '**/docs/**/*'
+  - '**/*.md'

@@ -1,0 +1,63 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  - package-ecosystem: "npm" # See documentation for possible values
+    directory: "/lib/msal-angular" # Location of package manifests
+    schedule:
+      interval: "monthly"
+    allow:
+      - dependency-name: "caniuse-lite"
+
+  - package-ecosystem: "npm" # See documentation for possible values
+    directory: "/lib/msal-browser" # Location of package manifests
+    schedule:
+      interval: "monthly"
+    allow:
+      - dependency-name: "caniuse-lite"
+
+  - package-ecosystem: "npm" # See documentation for possible values
+    directory: "/lib/msal-common" # Location of package manifests
+    schedule:
+      interval: "monthly"
+    allow:
+      - dependency-name: "caniuse-lite"
+
+  - package-ecosystem: "npm" # See documentation for possible values
+    directory: "/lib/msal-node" # Location of package manifests
+    schedule:
+      interval: "monthly"
+    allow:
+      - dependency-name: "caniuse-lite"
+      
+  - package-ecosystem: "npm" # See documentation for possible values
+    directory: "/lib/msal-react" # Location of package manifests
+    schedule:
+      interval: "monthly"
+    allow:
+      - dependency-name: "caniuse-lite"
+
+  - package-ecosystem: "npm" # See documentation for possible values
+    directory: "/extensions/msal-node-extensions" # Location of package manifests
+    schedule:
+      interval: "monthly"
+    allow:
+      - dependency-name: "caniuse-lite"
+
+  - package-ecosystem: "npm" # See documentation for possible values
+    directory: "/samples" # Location of package manifests
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-name: "puppeteer"
+    ignore:
+      - dependency-name: "puppeteer"
+        update-types: ["version-update:semver-patch", "version-update:semver-minor"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

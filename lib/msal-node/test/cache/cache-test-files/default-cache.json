@@ -1,0 +1,87 @@
+{
+    "Account": {
+        "uid.utid-login.microsoftonline.com-microsoft": {
+            "username": "John Doe",
+            "local_account_id": "object1234",
+            "realm": "microsoft",
+            "environment": "login.microsoftonline.com",
+            "home_account_id": "uid.utid",
+            "authority_type": "MSSTS",
+            "client_info": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
+        }
+    },
+    "RefreshToken": {
+        "uid.utid-login.microsoftonline.com-refreshtoken-mock_client_id----": {
+            "environment": "login.microsoftonline.com",
+            "credential_type": "RefreshToken",
+            "secret": "a refresh token",
+            "client_id": "mock_client_id",
+            "home_account_id": "uid.utid"
+        },
+        "uid.utid-login.microsoftonline.com-refreshtoken-1----": {
+            "environment": "login.microsoftonline.com",
+            "credential_type": "RefreshToken",
+            "secret": "a refresh token",
+            "client_id": "mock_client_id",
+            "home_account_id": "uid.utid",
+            "family_id": "1"
+        }
+    },
+    "AccessToken": {
+        "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3--": {
+            "environment": "login.microsoftonline.com",
+            "credential_type": "AccessToken",
+            "secret": "an access token",
+            "realm": "microsoft",
+            "target": "scope1 scope2 scope3",
+            "client_id": "mock_client_id",
+            "cached_at": "1000",
+            "home_account_id": "uid.utid",
+            "extended_expires_on": "4600",
+            "expires_on": "4600"
+        },
+        "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope4 scope5--": {
+            "environment": "login.microsoftonline.com",
+            "credential_type": "AccessToken",
+            "secret": "an access token",
+            "realm": "microsoft",
+            "target": "scope4 scope5",
+            "client_id": "mock_client_id",
+            "cached_at": "1000",
+            "home_account_id": "uid.utid",
+            "extended_expires_on": "4600",
+            "expires_on": "4600"
+        },
+        "uid.utid-login.microsoftonline.com-accesstoken_with_authscheme-mock_client_id-microsoft-scope4 scope5--pop": {
+            "environment": "login.microsoftonline.com",
+            "credential_type": "AccessToken_With_AuthScheme",
+            "secret": "a POP-protected access token",
+            "realm": "microsoft",
+            "target": "scope4 scope5",
+            "client_id": "mock_client_id",
+            "cached_at": "1000",
+            "home_account_id": "uid.utid",
+            "extended_expires_on": "4600",
+            "expires_on": "4600",
+            "keyId": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
+            "tokenType": "pop"
+        }
+    },
+    "IdToken": {
+        "uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft---": {
+            "realm": "microsoft",
+            "environment": "login.microsoftonline.com",
+            "credential_type": "IdToken",
+            "secret": "header.eyJvaWQiOiAib2JqZWN0MTIzNCIsICJwcmVmZXJyZWRfdXNlcm5hbWUiOiAiSm9obiBEb2UiLCAic3ViIjogInN1YiJ9.signature",
+            "client_id": "mock_client_id",
+            "home_account_id": "uid.utid"
+        }
+    },
+    "AppMetadata": {
+        "appmetadata-login.microsoftonline.com-mock_client_id": {
+            "environment": "login.microsoftonline.com",
+            "family_id": "1",
+            "client_id": "mock_client_id"
+        }
+    }
+}

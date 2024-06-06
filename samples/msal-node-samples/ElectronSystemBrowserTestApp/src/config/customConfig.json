@@ -1,0 +1,19 @@
+{
+    "authOptions":
+        {
+            "clientId": "Enter_the_Application_Id_Here",
+            "authority": "https://login.microsoftonline.com/Enter_the_Application_Id_Here"
+        },
+    "resourceApi":
+    {
+        "endpoint": "https://graph.microsoft.com/v1.0",
+        "scopes": ["User.Read"]
+    },
+    "customProtocol":
+    {
+        "name": "msal{Enter_the_Application_Id_Here}"
+    },
+    "cache": {
+        "cacheLocation": "./data/cache.json"
+    }
+}

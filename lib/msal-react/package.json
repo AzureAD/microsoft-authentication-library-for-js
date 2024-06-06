@@ -1,0 +1,75 @@
+{
+  "name": "@azure/msal-react",
+  "version": "2.0.18",
+  "author": {
+    "name": "Microsoft",
+    "email": "nugetaad@microsoft.com",
+    "url": "https://www.microsoft.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+  },
+  "description": "Microsoft Authentication Library for React",
+  "type": "module",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=10"
+  },
+  "beachball": {
+    "disallowedChangeTypes": [
+      "major"
+    ]
+  },
+  "scripts": {
+    "build": "rollup -c --strictDeprecations --bundleConfigAsCjs",
+    "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts --ext .tsx",
+    "lint:fix": "npm run lint -- --fix",
+    "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=@azure/msal-react",
+    "prepack": "npm run build:all",
+    "format:check": "prettier --ignore-path .gitignore --check src test",
+    "format:fix": "prettier --ignore-path .gitignore --write src test",
+    "apiExtractor": "api-extractor run"
+  },
+  "peerDependencies": {
+    "@azure/msal-browser": "^3.16.0",
+    "react": "^16.8.0 || ^17 || ^18"
+  },
+  "devDependencies": {
+    "@azure/msal-browser": "^3.16.0",
+    "@microsoft/api-extractor": "^7.43.4",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "@testing-library/jest-dom": "^5.11.5",
+    "@testing-library/react": "^13.4.0",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.5.1",
+    "@types/react": "^18.2.13",
+    "@types/react-dom": "^18.2.6",
+    "eslint-config-msal": "file:../../shared-configs/eslint-config-msal",
+    "jest": "^29.5.0",
+    "jest-environment-jsdom": "^29.5.0",
+    "prettier": "2.8.7",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "rollup": "^4.9.6",
+    "ts-jest": "^29.1.0",
+    "tslib": "^2.0.0",
+    "typescript": "^4.9.5"
+  }
+}
