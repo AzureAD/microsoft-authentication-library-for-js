@@ -141,7 +141,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 // and the WWW-Authentication header the first time the network request is executed
                 .mockReturnValueOnce(
                     networkErrorClient.getSendGetRequestAsyncReturnObject(
-                        `Basic realm=${SUPPORTED_AZURE_ARC_PLATFORMS.linux}/AzureArcSecret.key` // Linux
+                        `Basic realm=${SUPPORTED_AZURE_ARC_PLATFORMS.linux}AzureArcSecret.key` // Linux
                     )
                 );
 
@@ -209,12 +209,39 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
             );
         });
 
+        test("throws an error if the www-authenticate header has been returned from the azure arc managed identity, but the file in the file path is not a .key file", async () => {
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication({
+                    system: {
+                        networkClient: new ManagedIdentityNetworkErrorClient(
+                            `Basic realm=${SUPPORTED_AZURE_ARC_PLATFORMS.linux}AzureArcSecret.txt` // Linux
+                        ),
+                        // managedIdentityIdParams will be omitted for system assigned
+                    },
+                });
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.AZURE_ARC
+            );
+
+            await expect(
+                managedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                )
+            ).rejects.toMatchObject(
+                createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidFileExtension
+                )
+            );
+
+            jest.restoreAllMocks();
+        });
+
         test("throws an error if the www-authenticate header has been returned from the azure arc managed identity, but the managed identity application is not being run on Windows or Linux", async () => {
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication({
                     system: {
                         networkClient: new ManagedIdentityNetworkErrorClient(
-                            `Basic realm=${SUPPORTED_AZURE_ARC_PLATFORMS.linux}/AzureArcSecret.key` // Linux
+                            `Basic realm=${SUPPORTED_AZURE_ARC_PLATFORMS.linux}AzureArcSecret.key` // Linux
                         ),
                         // managedIdentityIdParams will be omitted for system assigned
                     },
@@ -248,7 +275,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 new ManagedIdentityApplication({
                     system: {
                         networkClient: new ManagedIdentityNetworkErrorClient(
-                            "Basic realm=/this/is/an/invalid/file/location/for/linux/AzureArcSecret.key" // neither Windows or Linux
+                            `Basic realm=${SUPPORTED_AZURE_ARC_PLATFORMS.linux}this_will_throw_because_file_path_must_match_exactly/AzureArcSecret.key` // Linux
                         ),
                         // managedIdentityIdParams will be omitted for system assigned
                     },
@@ -275,7 +302,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 new ManagedIdentityApplication({
                     system: {
                         networkClient: new ManagedIdentityNetworkErrorClient(
-                            `Basic realm=${SUPPORTED_AZURE_ARC_PLATFORMS.linux}/AzureArcSecret.key` // Linux
+                            `Basic realm=${SUPPORTED_AZURE_ARC_PLATFORMS.linux}AzureArcSecret.key` // Linux
                         ),
                         // managedIdentityIdParams will be omitted for system assigned
                     },
@@ -357,7 +384,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 new ManagedIdentityApplication({
                     system: {
                         networkClient: new ManagedIdentityNetworkErrorClient(
-                            "Basic realm=/var/opt/azcmagent/tokens/AzureArcSecret.key" // Linux
+                            `Basic realm=${SUPPORTED_AZURE_ARC_PLATFORMS.linux}AzureArcSecret.key` // Linux
                         ),
                         // managedIdentityIdParams will be omitted for system assigned
                     },

@@ -24,6 +24,7 @@ import {
 import {
     API_VERSION_QUERY_PARAMETER_NAME,
     AUTHORIZATION_HEADER_NAME,
+    AZURE_ARC_SECRET_FILE_MAX_SIZE_BYTES,
     HttpMethod,
     METADATA_HEADER_NAME,
     ManagedIdentityEnvironmentVariableNames,
@@ -35,12 +36,13 @@ import { NodeStorage } from "../../cache/NodeStorage";
 import { readFileSync, statSync } from "fs";
 import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId";
+import path from "path";
 
 export const ARC_API_VERSION: string = "2019-11-01";
 
 export const SUPPORTED_AZURE_ARC_PLATFORMS = {
-    win32: `${process.env["ProgramData"]}\\AzureConnectedMachineAgent\\Tokens`,
-    linux: "/var/opt/azcmagent/tokens",
+    win32: `${process.env["ProgramData"]}\\AzureConnectedMachineAgent\\Tokens\\`,
+    linux: "/var/opt/azcmagent/tokens/",
 };
 
 /**
@@ -188,12 +190,20 @@ export class AzureArc extends BaseManagedIdentitySource {
             const expectedSecretFilePath: string =
                 SUPPORTED_AZURE_ARC_PLATFORMS[process.platform as string];
 
+            // throw an error if the file in the file path is not a .key file
+            const fileName: string = path.basename(secretFilePath);
+            if (!fileName.endsWith(".key")) {
+                throw createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidFileExtension
+                );
+            }
+
             /*
              * throw an error if the file path from the www-authenticate header does not match the
              * expected file path for the platform (Windows or Linux) the managed identity application
              * is running on
              */
-            if (!secretFilePath.startsWith(expectedSecretFilePath)) {
+            if (expectedSecretFilePath + fileName !== secretFilePath) {
                 throw createManagedIdentityError(
                     ManagedIdentityErrorCodes.invalidFilePath
                 );
@@ -209,7 +219,7 @@ export class AzureArc extends BaseManagedIdentitySource {
                 );
             }
             // throw an error if the secret file's size is greater than 4096 bytes
-            if (secretFileSize > 4096) {
+            if (secretFileSize > AZURE_ARC_SECRET_FILE_MAX_SIZE_BYTES) {
                 throw createManagedIdentityError(
                     ManagedIdentityErrorCodes.invalidSecret
                 );
