@@ -33,10 +33,6 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { generatePkceCodes } from "../crypto/PkceGenerator";
 import { createNewGuid } from "../crypto/BrowserCrypto";
 import { initializeBaseRequest } from "../request/RequestHelpers";
-import {
-    BrowserAuthErrorCodes,
-    createBrowserAuthError,
-} from "../error/BrowserAuthError";
 
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
