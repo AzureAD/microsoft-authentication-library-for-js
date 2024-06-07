@@ -50,5 +50,4 @@ export type BaseAuthRequest = {
     storeInCache?: StoreInCache;
     scenarioId?: string;
     popKid?: string;
-    signPopToken?: boolean; // Set to true only if token request deos not contain a PoP keyId
 };

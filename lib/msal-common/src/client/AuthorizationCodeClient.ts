@@ -400,10 +400,8 @@ export class AuthorizationCodeClient extends BaseClient {
                     request.correlationId
                 )(request, this.logger);
                 reqCnfData = generatedReqCnfData.reqCnfString;
-                request.signPopToken = true;
             } else {
                 reqCnfData = this.cryptoUtils.encodeKid(request.popKid);
-                request.signPopToken = false;
             }
 
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
@@ -703,10 +701,8 @@ export class AuthorizationCodeClient extends BaseClient {
                         request.correlationId
                     )(request, this.logger);
                     reqCnfData = generatedReqCnfData.reqCnfString;
-                    request.signPopToken = true;
                 } else {
                     reqCnfData = this.cryptoUtils.encodeKid(request.popKid);
-                    request.signPopToken = false;
                 }
                 parameterBuilder.addPopToken(reqCnfData);
             }

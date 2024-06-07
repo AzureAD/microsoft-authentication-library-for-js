@@ -2630,7 +2630,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                     }
                 });
 
-            const signedJwt = "signedJwt";
+            const signedJwt =
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsia2lkIjoiTnpiTHNYaDh1RENjZC02TU53WEY0V183bm9XWEZaQWZIa3hac1JHQzlYcyJ9fQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
             config.cryptoInterface.signJwt = async (
                 // @ts-ignore

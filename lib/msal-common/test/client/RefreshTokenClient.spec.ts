@@ -612,7 +612,6 @@ describe("RefreshTokenClient unit tests", () => {
                     credential: testAccount.homeAccountId,
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 },
-                signPopToken: true,
             };
             const refreshTokenClientSpy = sinon.spy(
                 RefreshTokenClient.prototype,
