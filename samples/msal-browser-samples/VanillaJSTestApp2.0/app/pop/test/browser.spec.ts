@@ -112,7 +112,7 @@ describe("Browser PoP tests", function () {
         expect(Object.keys(storage).length).toEqual(7);
     });
 
-    it("Performs loginRedirect, acquires and verifies a PoP token is unsigned if reqCnf is provided in request", async () => {
+    it("Performs loginRedirect, acquires and verifies a PoP token is unsigned if PoP kid is provided in request", async () => {
         const testName = "redirectBaseCaseWithCnf";
         const screenshot = new Screenshot(
             `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
@@ -131,13 +131,13 @@ describe("Browser PoP tests", function () {
         await page.waitForSelector("#popCnfToken", { visible: true });
         await screenshot.takeScreenshot(page, "samplePageLoggedIn");
         await page.click("#popCnfToken");
-        await page.waitForSelector("#PopTokenWithCnfAcquired");
+        await page.waitForSelector("#PopTokenWithKidAcquired");
         await screenshot.takeScreenshot(page, "popTokenWithCnfClicked");
         console.log("Waiting for pop token to be generated");
         const tokenStore = await BrowserCache.getTokens();
         expect(tokenStore.idTokens).toHaveLength(1);
         // One Bearer Token and one PoP token
-        expect(tokenStore.accessTokens).toHaveLength(1);
+        expect(tokenStore.accessTokens).toHaveLength(2);
         expect(tokenStore.refreshTokens).toHaveLength(1);
         const cachedAccount = await BrowserCache.getAccountFromCache(
             tokenStore.idTokens[0]
@@ -151,6 +151,6 @@ describe("Browser PoP tests", function () {
         expect(defaultCachedToken).toBeTruthy();
 
         const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(6);
+        expect(Object.keys(storage).length).toEqual(7);
     });
 });
