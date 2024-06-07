@@ -87,6 +87,15 @@ export class CryptoOps implements ICrypto {
     }
 
     /**
+     * Stringifies and base64Url encodes input public key
+     * @param inputKid
+     * @returns Base64Url encoded public key
+     */
+    encodeKid(inputKid: string): string {
+        return this.base64UrlEncode(JSON.stringify({ kid: inputKid }));
+    }
+
+    /**
      * Generates a keypair, stores it and returns a thumbprint
      * @param request
      */

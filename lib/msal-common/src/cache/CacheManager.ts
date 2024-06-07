@@ -886,6 +886,12 @@ export abstract class CacheManager implements ICacheManager {
                 }
             }
 
+            /**
+             * We do not want to return the cached access token entity  if the requested scopes are the same
+             * but there is a mismatch in externalKeyId between the entity and the credential filter.
+             * In that case we would want to return false and refresh the tokens based on the new externalKeyId passed in.
+             * If there is no externalKeyId, MSAL JS will return the cached access token that matches the request.
+             */
             if (filter.tokenType === AuthenticationScheme.POP) {
                 if (
                     (entity.externalKeyId || filter.externalKeyId) &&

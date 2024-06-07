@@ -391,9 +391,7 @@ export class AuthorizationCodeClient extends BaseClient {
             );
 
             let reqCnfData;
-            const popKid = request.popKid;
-
-            if (!popKid) {
+            if (!request.popKid) {
                 const generatedReqCnfData = await invokeAsync(
                     popTokenGenerator.generateCnf.bind(popTokenGenerator),
                     PerformanceEvents.PopTokenGenerateCnf,
@@ -404,7 +402,8 @@ export class AuthorizationCodeClient extends BaseClient {
                 reqCnfData = generatedReqCnfData.reqCnfString;
                 request.signPopToken = true;
             } else {
-                reqCnfData = this.cryptoUtils.base64UrlEncode(popKid);
+                reqCnfData = this.cryptoUtils.encodeKid(request.popKid);
+                request.signPopToken = false;
             }
 
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
@@ -706,9 +705,8 @@ export class AuthorizationCodeClient extends BaseClient {
                     reqCnfData = generatedReqCnfData.reqCnfString;
                     request.signPopToken = true;
                 } else {
-                    reqCnfData = this.cryptoUtils.base64UrlEncode(
-                        JSON.stringify({ kid: request.popKid })
-                    );
+                    reqCnfData = this.cryptoUtils.encodeKid(request.popKid);
+                    request.signPopToken = false;
                 }
                 parameterBuilder.addPopToken(reqCnfData);
             }

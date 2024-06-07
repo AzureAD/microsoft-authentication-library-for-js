@@ -33,6 +33,10 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { generatePkceCodes } from "../crypto/PkceGenerator";
 import { createNewGuid } from "../crypto/BrowserCrypto";
 import { initializeBaseRequest } from "../request/RequestHelpers";
+import {
+    BrowserAuthErrorCodes,
+    createBrowserAuthError,
+} from "../error/BrowserAuthError";
 
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
@@ -357,6 +361,13 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             if (legacyLoginHint) {
                 validatedRequest.loginHint = legacyLoginHint;
             }
+        }
+
+        // Check for PoP token requests: signPopToken should only be set to true if popKid is not set
+        if (validatedRequest.signPopToken && !!validatedRequest.popKid) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.invalidPopTokenRequest
+            );
         }
 
         return validatedRequest;

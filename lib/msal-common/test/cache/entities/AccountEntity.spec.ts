@@ -60,8 +60,16 @@ const cryptoInterface: ICrypto = {
     },
     base64UrlEncode(input: string): string {
         switch (input) {
-            case '{kid: "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc"}':
-                return "e2tpZDogIlhuc3VBdnR0VFBwMG5uMUtfWU1MZVBMRGJwN3N5Q0toTkh0N0hqWUhKWWMifQ";
+            case '{"kid": "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc"}':
+                return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
+            default:
+                return input;
+        }
+    },
+    encodeKid(input: string): string {
+        switch (input) {
+            case "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc":
+                return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
             default:
                 return input;
         }

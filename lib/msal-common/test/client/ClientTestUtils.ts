@@ -230,6 +230,11 @@ export const mockCrypto = {
     base64UrlEncode(input: string): string {
         return Buffer.from(input, "utf-8").toString("base64url");
     },
+    encodeKid(input: string): string {
+        return Buffer.from(JSON.stringify({ kid: input }), "utf-8").toString(
+            "base64url"
+        );
+    },
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
     },

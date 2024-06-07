@@ -421,9 +421,8 @@ export class RefreshTokenClient extends BaseClient {
                 reqCnfData = generatedReqCnfData.reqCnfString;
                 request.signPopToken = true;
             } else {
-                reqCnfData = this.cryptoUtils.base64UrlEncode(
-                    JSON.stringify({ kid: request.popKid })
-                );
+                reqCnfData = this.cryptoUtils.encodeKid(request.popKid);
+                request.signPopToken = false;
             }
 
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)

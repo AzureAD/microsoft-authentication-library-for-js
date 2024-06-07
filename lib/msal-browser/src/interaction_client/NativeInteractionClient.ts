@@ -908,6 +908,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
             }
         };
 
+        // Check for PoP token requests: signPopToken should only be set to true if popKid is not set
+        if (request.signPopToken && !!request.popKid) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.invalidPopTokenRequest
+            );
+        }
+
         const validatedRequest: NativeTokenRequest = {
             ...remainingProperties,
             accountId: this.accountId,
@@ -924,7 +931,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 ...request.tokenQueryParameters,
             },
             extendedExpiryToken: false, // Make this configurable?
-            keyId: request.popKid || "",
+            keyId: request.popKid,
         };
 
         this.handleExtraBrokerParams(validatedRequest);
@@ -961,6 +968,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 reqCnfData = this.browserCrypto.base64UrlEncode(
                     JSON.stringify({ kid: validatedRequest.keyId })
                 );
+                validatedRequest.signPopToken = false;
             }
 
             // SPAs require whole string to be passed to broker
