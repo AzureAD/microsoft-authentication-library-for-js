@@ -102,8 +102,7 @@ export function createAccessTokenEntity(
     userAssertionHash?: string,
     keyId?: string,
     requestedClaims?: string,
-    requestedClaimsHash?: string,
-    externalkeyId?: string
+    requestedClaimsHash?: string
 ): AccessTokenEntity {
     const atEntity: AccessTokenEntity = {
         homeAccountId: homeAccountId,
@@ -117,7 +116,6 @@ export function createAccessTokenEntity(
         realm: tenantId,
         target: scopes,
         tokenType: tokenType || AuthenticationScheme.BEARER,
-        externalKeyId: externalkeyId,
     };
 
     if (userAssertionHash) {

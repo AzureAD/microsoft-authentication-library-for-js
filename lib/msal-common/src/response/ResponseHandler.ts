@@ -513,8 +513,7 @@ export class ResponseHandler {
                 userAssertionHash,
                 serverTokenResponse.key_id,
                 request.claims,
-                request.requestedClaimsHash,
-                request.popKid
+                request.requestedClaimsHash
             );
         }
 

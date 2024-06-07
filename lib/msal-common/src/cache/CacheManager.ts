@@ -591,7 +591,6 @@ export abstract class CacheManager implements ICacheManager {
             realm: credential.realm,
             tokenType: credential.tokenType,
             requestedClaimsHash: credential.requestedClaimsHash,
-            externalKeyId: credential.externalKeyId,
         };
 
         const tokenKeys = this.getTokenKeys();
@@ -882,21 +881,6 @@ export abstract class CacheManager implements ICacheManager {
             // KeyId (sshKid) in request must match cached SSH certificate keyId because SSH cert is bound to a specific key
             if (filter.tokenType === AuthenticationScheme.SSH) {
                 if (filter.keyId && !this.matchKeyId(entity, filter.keyId)) {
-                    return false;
-                }
-            }
-
-            /**
-             * We do not want to return the cached access token entity  if the requested scopes are the same
-             * but there is a mismatch in externalKeyId between the entity and the credential filter.
-             * In that case we would want to return false and refresh the tokens based on the new externalKeyId passed in.
-             * If there is no externalKeyId, MSAL JS will return the cached access token that matches the request.
-             */
-            if (filter.tokenType === AuthenticationScheme.POP) {
-                if (
-                    (entity.externalKeyId || filter.externalKeyId) &&
-                    !this.matchExternalKeyId(entity, filter.externalKeyId)
-                ) {
                     return false;
                 }
             }
@@ -1379,7 +1363,6 @@ export abstract class CacheManager implements ICacheManager {
             target: scopes,
             tokenType: authScheme,
             keyId: request.sshKid,
-            externalKeyId: request.popKid,
             requestedClaimsHash: request.requestedClaimsHash,
         };
 
@@ -1926,24 +1909,6 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchKeyId(entity: CredentialEntity, keyId: string): boolean {
         return !!(entity.keyId && entity.keyId === keyId);
-    }
-
-    /**
-     * Returns true if the credential's external keyId matches the one in the request, false otherwise
-     * @param entity
-     * @param externalKeyId
-     */
-    private matchExternalKeyId(
-        entity: CredentialEntity,
-        externalKeyId?: string
-    ): boolean {
-        if (entity.externalKeyId) {
-        }
-        return !!(
-            entity.externalKeyId &&
-            externalKeyId &&
-            entity.externalKeyId === externalKeyId
-        );
     }
 
     /**

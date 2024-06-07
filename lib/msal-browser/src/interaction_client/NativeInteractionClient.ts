@@ -170,10 +170,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
             );
         }
 
+        const { keyId, signPopToken, ...nativeTokenRequest } = nativeRequest;
+
         // fall back to native calls
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
-            request: { ...nativeRequest, keyId: "" },
+            request: nativeTokenRequest,
         };
 
         const response: object = await this.nativeMessageHandler.sendMessage(
@@ -289,9 +291,11 @@ export class NativeInteractionClient extends BaseInteractionClient {
         );
         const nativeRequest = await this.initializeNativeRequest(request);
 
+        const { keyId, signPopToken, ...nativeTokenRequest } = nativeRequest;
+
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
-            request: { ...nativeRequest, keyId: "" },
+            request: nativeTokenRequest,
         };
 
         try {
