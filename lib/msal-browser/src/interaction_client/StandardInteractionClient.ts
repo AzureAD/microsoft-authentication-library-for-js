@@ -363,13 +363,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             }
         }
 
-        // Check for PoP token requests: signPopToken should only be set to true if popKid is not set
-        if (validatedRequest.signPopToken && !!validatedRequest.popKid) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.invalidPopTokenRequest
-            );
-        }
-
         return validatedRequest;
     }
 }
