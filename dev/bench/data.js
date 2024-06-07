@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1717776382833,
+  "lastUpdate": 1717782856384,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -9364,6 +9364,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.00%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3893cce8de08594155125c3c1db140ec69a7da07",
+          "message": "Update gatsby and angular samples (#7150)\n\nThis PR updates the version for Gatsby in the gatsby-sample app to patch\r\na `sharp` vulnerability and makes some required updates to angular\r\nsample dependencies",
+          "timestamp": "2024-06-07T10:43:27-07:00",
+          "tree_id": "efe34e80f2973e2d45b224c0ff393dbdaa3b8898",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/3893cce8de08594155125c3c1db140ec69a7da07"
+        },
+        "date": 1717782855276,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 183144,
+            "range": "±2.06%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 183536,
+            "range": "±2.28%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
