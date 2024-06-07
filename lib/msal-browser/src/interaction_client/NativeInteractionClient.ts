@@ -170,7 +170,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             );
         }
 
-        const { keyId, signPopToken, ...nativeTokenRequest } = nativeRequest;
+        const { ...nativeTokenRequest } = nativeRequest;
 
         // fall back to native calls
         const messageBody: NativeExtensionRequestBody = {
@@ -291,7 +291,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         );
         const nativeRequest = await this.initializeNativeRequest(request);
 
-        const { keyId, signPopToken, ...nativeTokenRequest } = nativeRequest;
+        const { ...nativeTokenRequest } = nativeRequest;
 
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
