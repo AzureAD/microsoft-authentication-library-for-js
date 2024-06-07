@@ -234,7 +234,6 @@ export class AzureArc extends BaseManagedIdentitySource {
                     ManagedIdentityErrorCodes.unableToReadSecretFile
                 );
             }
-
             const authHeaderValue = `Basic ${secret}`;
 
             this.logger.info(
