@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Implementation Based on Feature Request #7151",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
