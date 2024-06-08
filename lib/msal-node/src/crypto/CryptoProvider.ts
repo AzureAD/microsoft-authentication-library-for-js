@@ -27,6 +27,21 @@ export class CryptoProvider implements ICrypto {
     }
 
     /**
+     * base64 URL safe encoded string
+     */
+    base64UrlEncode(): string {
+        throw new Error("Method not implemented.");
+    }
+    /**
+     * Stringifies and base64Url encodes input public key
+     * @param inputKid
+     * @returns Base64Url encoded public key
+     */
+    encodeKid(): string {
+        throw new Error("Method not implemented.");
+    }
+
+    /**
      * Creates a new random GUID - used to populate state and nonce.
      * @returns string (GUID)
      */
