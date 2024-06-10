@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1717800749409,
+  "lastUpdate": 1718047293952,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -9440,6 +9440,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.96%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sameera.gajjarapu@microsoft.com",
+            "name": "Sameera Gajjarapu",
+            "username": "sameerag"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "25aefea3e9f4ee814a6e8ab597d91b6806eecba6",
+          "message": "Support pop as optional for full framed apps (#7119)\n\n- This PR signs the POP tokens only if the reqCnf is not passed in as a\r\nrequest parameter. This is to enable any clients that choose to sign\r\ntheir tokens. However, please consider this an advanced feature only.\r\n- This PR also addresses the native flow bug where cnf is to be sent a\r\nstring instead of a hash!\r\n- Removes reqCnfHash in the ReqCnfData since we do not use it. It is\r\nonly internal, so this should not be a breaking change.\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>\r\nCo-authored-by: Lalima Sharda <lalimasharda@microsoft.com>\r\nCo-authored-by: Hector Morales <hemoral@microsoft.com>",
+          "timestamp": "2024-06-10T12:15:44-07:00",
+          "tree_id": "ce6763c3a94c902dbbd4df55c7f69f53853164a3",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/25aefea3e9f4ee814a6e8ab597d91b6806eecba6"
+        },
+        "date": 1718047292846,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 213734,
+            "range": "±0.76%",
+            "unit": "ops/sec",
+            "extra": "239 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 206928,
+            "range": "±0.63%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
