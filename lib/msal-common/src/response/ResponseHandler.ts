@@ -598,7 +598,7 @@ export class ResponseHandler {
             if (
                 cacheRecord.accessToken.tokenType ===
                     AuthenticationScheme.POP &&
-                request.popKid
+                !request.popKid
             ) {
                 const popTokenGenerator: PopTokenGenerator =
                     new PopTokenGenerator(cryptoObj);
