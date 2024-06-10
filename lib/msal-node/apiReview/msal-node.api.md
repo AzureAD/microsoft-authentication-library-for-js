@@ -225,8 +225,11 @@ export class CryptoProvider implements ICrypto {
     constructor();
     base64Decode(input: string): string;
     base64Encode(input: string): string;
+    base64UrlEncode(): string;
     clearKeystore(): Promise<boolean>;
     createNewGuid(): string;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    encodeKid(): string;
     generatePkceCodes(): Promise<PkceCodes>;
     getPublicKeyThumbprint(): Promise<string>;
     hashString(plainText: string): Promise<string>;
@@ -730,8 +733,6 @@ export const version = "2.9.1";
 
 // Warnings were encountered during analysis:
 //
-// dist/crypto/CryptoProvider.d.ts:7:22 - (TS2420) Class 'CryptoProvider' incorrectly implements interface 'ICrypto'.
-//   Type 'CryptoProvider' is missing the following properties from type 'ICrypto': base64UrlEncode, encodeKid
 // src/client/ClientCredentialClient.ts:235:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/ClientCredentialClient.ts:236:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/ClientCredentialClient.ts:333:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
