@@ -1905,7 +1905,7 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * Returns true if the credential's keyId matches the one in the request, false otherwise
      * @param entity
-     * @param tokenType
+     * @param keyId
      */
     private matchKeyId(entity: CredentialEntity, keyId: string): boolean {
         return !!(entity.keyId && entity.keyId === keyId);

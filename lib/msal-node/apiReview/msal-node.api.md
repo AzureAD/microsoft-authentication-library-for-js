@@ -225,8 +225,11 @@ export class CryptoProvider implements ICrypto {
     constructor();
     base64Decode(input: string): string;
     base64Encode(input: string): string;
+    base64UrlEncode(): string;
     clearKeystore(): Promise<boolean>;
     createNewGuid(): string;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    encodeKid(): string;
     generatePkceCodes(): Promise<PkceCodes>;
     getPublicKeyThumbprint(): Promise<string>;
     hashString(plainText: string): Promise<string>;

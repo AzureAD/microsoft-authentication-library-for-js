@@ -591,8 +591,14 @@ export class ResponseHandler {
         let familyId: string = Constants.EMPTY_STRING;
 
         if (cacheRecord.accessToken) {
+            /*
+             * if the request object has `popKid` property, `signPopToken` will be set to false and
+             * the token will be returned unsigned
+             */
             if (
-                cacheRecord.accessToken.tokenType === AuthenticationScheme.POP
+                cacheRecord.accessToken.tokenType ===
+                    AuthenticationScheme.POP &&
+                !request.popKid
             ) {
                 const popTokenGenerator: PopTokenGenerator =
                     new PopTokenGenerator(cryptoObj);

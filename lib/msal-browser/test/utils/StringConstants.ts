@@ -170,6 +170,11 @@ export const TEST_POP_VALUES = {
         '{"kid":"NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs","xms_ksl":"sw"}',
 };
 
+export const TEST_REQ_CNF_DATA = {
+    kid: TEST_POP_VALUES.KID,
+    reqCnfString: TEST_POP_VALUES.DECODED_REQ_CNF,
+};
+
 export const TEST_SSH_VALUES = {
     SSH_JWK:
         '{"kty":"RSA","n":"wDJwv083ZhGGkpMPVcBMwtSBNLu7qhT2VmKv7AyPEz_dWb8GQzNEnWT1niNjFI0isDMFWQ7X2O-dhTL9J1QguQ==","e":"AQAB"}',

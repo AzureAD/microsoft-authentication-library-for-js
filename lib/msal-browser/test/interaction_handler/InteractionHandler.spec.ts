@@ -129,6 +129,14 @@ const cryptoInterface = {
     base64Encode: (input: string): string => {
         return "testEncodedString";
     },
+    base64UrlEncode(input: string): string {
+        return Buffer.from(input, "utf-8").toString("base64url");
+    },
+    encodeKid(input: string): string {
+        return Buffer.from(JSON.stringify({ kid: input }), "utf-8").toString(
+            "base64url"
+        );
+    },
     generatePkceCodes: async (): Promise<PkceCodes> => {
         return testPkceCodes;
     },

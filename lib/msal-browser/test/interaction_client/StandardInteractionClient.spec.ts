@@ -22,6 +22,7 @@ import {
     TEST_URIS,
     DEFAULT_TENANT_DISCOVERY_RESPONSE,
     DEFAULT_OPENID_CONFIG_RESPONSE,
+    TEST_REQ_CNF_DATA,
 } from "../utils/StringConstants";
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
 import { RedirectRequest } from "../../src/request/RedirectRequest";
@@ -141,6 +142,56 @@ describe("StandardInteractionClient", () => {
             await testClient.initializeAuthorizationCodeRequest(request);
         expect(request.codeChallenge).toBe(TEST_CONFIG.TEST_CHALLENGE);
         expect(authCodeRequest.codeVerifier).toBe(TEST_CONFIG.TEST_VERIFIER);
+        expect(authCodeRequest.popKid).toBeUndefined;
+    });
+
+    it("initializeAuthorizationCodeRequest validates the request and does not influence undefined popKid param", async () => {
+        const request: AuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            loginHint: "AbeLi@microsoft.com",
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            nonce: "",
+            authenticationScheme:
+                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+        };
+
+        jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+            challenge: TEST_CONFIG.TEST_CHALLENGE,
+            verifier: TEST_CONFIG.TEST_VERIFIER,
+        });
+
+        const authCodeRequest =
+            await testClient.initializeAuthorizationCodeRequest(request);
+        expect(authCodeRequest.popKid).toBeUndefined;
+    });
+
+    it("initializeAuthorizationCodeRequest validates the request and adds reqCnf param when user defined", async () => {
+        const request: AuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            loginHint: "AbeLi@microsoft.com",
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            nonce: "",
+            authenticationScheme:
+                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+            popKid: TEST_REQ_CNF_DATA.kid,
+        };
+
+        jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+            challenge: TEST_CONFIG.TEST_CHALLENGE,
+            verifier: TEST_CONFIG.TEST_VERIFIER,
+        });
+
+        const authCodeRequest =
+            await testClient.initializeAuthorizationCodeRequest(request);
+        expect(authCodeRequest.popKid).toEqual(TEST_REQ_CNF_DATA.kid);
     });
 
     it("getDiscoveredAuthority - request authority only", async () => {
