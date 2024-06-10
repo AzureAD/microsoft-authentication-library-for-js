@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Tue, 04 Jun 2024 00:08:57 GMT and should not be manually modified.
+This log was last generated on Mon, 10 Jun 2024 22:30:36 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.12.0
+
+Mon, 10 Jun 2024 22:30:36 GMT
+
+### Minor changes
+
+- Add support for apps to set their own `reqCnf` and correct native flows cnf format #6357 (sameera.gajjarapu@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
 
 ## 14.11.0
 

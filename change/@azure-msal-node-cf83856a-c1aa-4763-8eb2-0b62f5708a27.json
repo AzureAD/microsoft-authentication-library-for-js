@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fixed msal-node unit tests for PoP token support #\u0016\u00167119",
-  "packageName": "@azure/msal-node",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "patch"
-}
