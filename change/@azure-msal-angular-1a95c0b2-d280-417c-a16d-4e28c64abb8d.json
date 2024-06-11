@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "update dependencies",
+  "packageName": "@azure/msal-angular",
+  "email": "thnorlin@microsoft.com",
+  "dependentChangeType": "none"
+}
