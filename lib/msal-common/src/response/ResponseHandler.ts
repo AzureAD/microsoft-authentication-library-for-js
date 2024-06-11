@@ -553,13 +553,13 @@ export class ResponseHandler {
             };
         }
 
-        return new CacheRecord(
-            cachedAccount,
-            cachedIdToken,
-            cachedAccessToken,
-            cachedRefreshToken,
-            cachedAppMetadata
-        );
+        return {
+            account: cachedAccount,
+            idToken: cachedIdToken,
+            accessToken: cachedAccessToken,
+            refreshToken: cachedRefreshToken,
+            appMetadata: cachedAppMetadata,
+        };
     }
 
     /**

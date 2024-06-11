@@ -728,11 +728,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 base64Decode
             );
 
-        const nativeCacheRecord = new CacheRecord(
-            undefined,
-            cachedIdToken,
-            cachedAccessToken
-        );
+        const nativeCacheRecord = {
+            idToken: cachedIdToken,
+            accessToken: cachedAccessToken,
+        };
 
         void this.nativeStorageManager.saveCacheRecord(
             nativeCacheRecord,
