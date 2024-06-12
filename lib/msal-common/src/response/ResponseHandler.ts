@@ -454,8 +454,8 @@ export class ResponseHandler {
                 this.cacheStorage,
                 authority,
                 this.homeAccountIdentifier,
-                idTokenClaims,
                 this.cryptoObj.base64Decode,
+                idTokenClaims,
                 serverTokenResponse.client_info,
                 env,
                 claimsTenantId,
@@ -688,8 +688,8 @@ export function buildAccountToCache(
     cacheStorage: CacheManager,
     authority: Authority,
     homeAccountId: string,
-    idTokenClaims: TokenClaims,
     base64Decode: (input: string) => string,
+    idTokenClaims?: TokenClaims,
     clientInfo?: string,
     environment?: string,
     claimsTenantId?: string | null,
@@ -730,6 +730,7 @@ export function buildAccountToCache(
 
     if (
         claimsTenantId &&
+        idTokenClaims &&
         !tenantProfiles.find((tenantProfile) => {
             return tenantProfile.tenantId === claimsTenantId;
         })

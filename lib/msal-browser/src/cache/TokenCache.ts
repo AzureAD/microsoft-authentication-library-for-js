@@ -114,9 +114,9 @@ export class TokenCache implements ITokenCache {
 
         const cacheRecordAccount: AccountEntity = this.loadAccount(
             request,
+            options.clientInfo || response.client_info || "",
             idTokenClaims,
-            authority,
-            options.clientInfo || response.client_info
+            authority
         );
 
         const idToken = this.loadIdToken(
@@ -165,9 +165,9 @@ export class TokenCache implements ITokenCache {
      */
     private loadAccount(
         request: SilentRequest,
+        clientInfo: string,
         idTokenClaims?: TokenClaims,
-        authority?: Authority,
-        clientInfo?: string
+        authority?: Authority
     ): AccountEntity {
         this.logger.verbose("TokenCache - loading account");
 
@@ -177,7 +177,7 @@ export class TokenCache implements ITokenCache {
             );
             this.storage.setAccount(accountEntity);
             return accountEntity;
-        } else if (!idTokenClaims || !authority || !clientInfo) {
+        } else if (!authority || (!clientInfo && !idTokenClaims)) {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToLoadToken
             );
@@ -191,14 +191,14 @@ export class TokenCache implements ITokenCache {
             idTokenClaims
         );
 
-        const claimsTenantId = idTokenClaims.tid;
+        const claimsTenantId = idTokenClaims?.tid;
 
         const cachedAccount = buildAccountToCache(
             this.storage,
             authority,
             homeAccountId,
-            idTokenClaims,
             base64Decode,
+            idTokenClaims,
             clientInfo,
             authority.hostnameAndPort,
             claimsTenantId,
@@ -322,7 +322,7 @@ export class TokenCache implements ITokenCache {
             response.refresh_token,
             this.config.auth.clientId,
             response.foci,
-            undefined,
+            undefined, // userAssertionHash
             response.refresh_token_expires_in
         );
 
