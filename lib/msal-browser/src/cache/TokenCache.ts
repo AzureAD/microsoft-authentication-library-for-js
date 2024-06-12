@@ -82,7 +82,7 @@ export class TokenCache implements ITokenCache {
     ): AuthenticationResult {
         if (!this.isBrowserEnvironment) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadToken
+                BrowserAuthErrorCodes.nonBrowserEnvironment
             );
         }
 
@@ -118,44 +118,37 @@ export class TokenCache implements ITokenCache {
             authority,
             options.clientInfo || response.client_info
         );
-        const cacheRecord: CacheRecord & { account: AccountEntity } = {
-            account: cacheRecordAccount,
-        };
 
-        if (response.id_token) {
-            const idToken = this.loadIdToken(
-                response.id_token,
-                cacheRecordAccount.homeAccountId,
-                cacheRecordAccount.environment,
-                cacheRecordAccount.realm
-            );
-            cacheRecord.idToken = idToken;
-        }
+        const idToken = this.loadIdToken(
+            response,
+            cacheRecordAccount.homeAccountId,
+            cacheRecordAccount.environment,
+            cacheRecordAccount.realm
+        );
 
-        if (response.access_token) {
-            const accessToken = this.loadAccessToken(
-                request,
-                response,
-                cacheRecordAccount.homeAccountId,
-                cacheRecordAccount.environment,
-                cacheRecordAccount.realm,
-                options
-            );
-            cacheRecord.accessToken = accessToken;
-        }
+        const accessToken = this.loadAccessToken(
+            request,
+            response,
+            cacheRecordAccount.homeAccountId,
+            cacheRecordAccount.environment,
+            cacheRecordAccount.realm,
+            options
+        );
 
-        if (response.refresh_token) {
-            const refreshToken = this.loadRefreshToken(
-                response,
-                cacheRecordAccount.homeAccountId,
-                cacheRecordAccount.environment
-            );
-            cacheRecord.refreshToken = refreshToken;
-        }
+        const refreshToken = this.loadRefreshToken(
+            response,
+            cacheRecordAccount.homeAccountId,
+            cacheRecordAccount.environment
+        );
 
         return this.generateAuthenticationResult(
             request,
-            cacheRecord,
+            {
+                account: cacheRecordAccount,
+                idToken,
+                accessToken,
+                refreshToken,
+            },
             idTokenClaims,
             authority
         );
@@ -174,8 +167,7 @@ export class TokenCache implements ITokenCache {
         request: SilentRequest,
         idTokenClaims?: TokenClaims,
         authority?: Authority,
-        clientInfo?: string,
-        requestHomeAccountId?: string
+        clientInfo?: string
     ): AccountEntity {
         this.logger.verbose("TokenCache - loading account");
 
@@ -185,30 +177,20 @@ export class TokenCache implements ITokenCache {
             );
             this.storage.setAccount(accountEntity);
             return accountEntity;
-        } else if (!idTokenClaims || !authority) {
+        } else if (!idTokenClaims || !authority || !clientInfo) {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToLoadToken
             );
         }
 
-        let homeAccountId;
-        if (requestHomeAccountId) {
-            homeAccountId = requestHomeAccountId;
-        } else if (authority.authorityType !== undefined && clientInfo) {
-            homeAccountId = AccountEntity.generateHomeAccountId(
-                clientInfo,
-                authority.authorityType,
-                this.logger,
-                this.cryptoObj,
-                idTokenClaims
-            );
-        }
+        const homeAccountId = AccountEntity.generateHomeAccountId(
+            clientInfo,
+            authority.authorityType,
+            this.logger,
+            this.cryptoObj,
+            idTokenClaims
+        );
 
-        if (!homeAccountId) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadToken
-            );
-        }
         const claimsTenantId = idTokenClaims.tid;
 
         const cachedAccount = buildAccountToCache(
@@ -238,20 +220,25 @@ export class TokenCache implements ITokenCache {
      * @returns `IdTokenEntity`
      */
     private loadIdToken(
-        idToken: string,
+        response: ExternalTokenResponse,
         homeAccountId: string,
         environment: string,
         tenantId: string
-    ): IdTokenEntity {
+    ): IdTokenEntity | null {
+        if (!response.id_token) {
+            this.logger.verbose("TokenCache - no id token found in response");
+            return null;
+        }
+
+        this.logger.verbose("TokenCache - loading id token");
         const idTokenEntity = CacheHelpers.createIdTokenEntity(
             homeAccountId,
             environment,
-            idToken,
+            response.id_token,
             this.config.auth.clientId,
             tenantId
         );
 
-        this.logger.verbose("TokenCache - loading id token");
         this.storage.setIdTokenCredential(idTokenEntity);
         return idTokenEntity;
     }
@@ -273,30 +260,24 @@ export class TokenCache implements ITokenCache {
         tenantId: string,
         options: LoadTokenOptions
     ): AccessTokenEntity | null {
-        if (!response.access_token) {
+        if (!response.access_token || !response.expires_in) {
             this.logger.verbose(
-                "TokenCache - No access token provided for caching"
+                "TokenCache - no access token found in response"
             );
             return null;
         }
 
-        if (!response.expires_in) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadToken
-            );
-        }
-
-        if (!options.extendedExpiresOn) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.unableToLoadToken
-            );
-        }
+        this.logger.verbose("TokenCache - loading access token");
 
         const scopes = new ScopeSet(request.scopes).printScopes();
         const expiresOn =
             options.expiresOn ||
             response.expires_in + new Date().getTime() / 1000;
-        const extendedExpiresOn = options.extendedExpiresOn;
+
+        const extendedExpiresOn =
+            options.extendedExpiresOn ||
+            (response.ext_expires_in || response.expires_in) +
+                new Date().getTime() / 1000;
 
         const accessTokenEntity = CacheHelpers.createAccessTokenEntity(
             homeAccountId,
@@ -310,7 +291,6 @@ export class TokenCache implements ITokenCache {
             base64Decode
         );
 
-        this.logger.verbose("TokenCache - loading access token");
         this.storage.setAccessTokenCredential(accessTokenEntity);
         return accessTokenEntity;
     }
@@ -330,19 +310,22 @@ export class TokenCache implements ITokenCache {
     ): RefreshTokenEntity | null {
         if (!response.refresh_token) {
             this.logger.verbose(
-                "TokenCache - No refresh token provided for caching"
+                "TokenCache - no refresh token found in response"
             );
             return null;
         }
 
+        this.logger.verbose("TokenCache - loading refresh token");
         const refreshTokenEntity = CacheHelpers.createRefreshTokenEntity(
             homeAccountId,
             environment,
             response.refresh_token,
-            this.config.auth.clientId
+            this.config.auth.clientId,
+            response.foci,
+            undefined,
+            response.refresh_token_expires_in
         );
 
-        this.logger.verbose("TokenCache - loading refresh token");
         this.storage.setRefreshTokenCredential(refreshTokenEntity);
         return refreshTokenEntity;
     }
@@ -400,7 +383,6 @@ export class TokenCache implements ITokenCache {
             state: request.state || "",
             cloudGraphHostName: accountEntity.cloudGraphHostName || "",
             msGraphHost: accountEntity.msGraphHost || "",
-            code: undefined,
             fromNativeBroker: false,
         };
     }

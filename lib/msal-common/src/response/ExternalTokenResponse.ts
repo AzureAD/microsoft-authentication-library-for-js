@@ -17,7 +17,14 @@ import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResp
  */
 export type ExternalTokenResponse = Pick<
     ServerAuthorizationTokenResponse,
-    "token_type" | "scope" | "expires_in" | "id_token" | "refresh_token"
+    | "token_type"
+    | "scope"
+    | "expires_in"
+    | "ext_expires_in"
+    | "id_token"
+    | "refresh_token"
+    | "refresh_token_expires_in"
+    | "foci"
 > & {
     access_token?: string;
     client_info?: string;
