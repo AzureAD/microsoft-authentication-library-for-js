@@ -1,0 +1,7 @@
+{
+  "comment": "update dependencies",
+  "type": "none",
+  "packageName": "@azure/node-token-validation",
+  "email": "thnorlin@microsoft.com",
+  "dependentChangeType": "none"
+}

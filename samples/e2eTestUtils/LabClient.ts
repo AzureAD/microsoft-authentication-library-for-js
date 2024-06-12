@@ -1,8 +1,9 @@
 import { ClientCertificateCredential, AccessToken } from "@azure/identity";
-import axios from "axios";
 import { ENV_VARIABLES, LAB_SCOPE, LAB_API_ENDPOINT, ParamKeys } from "./Constants";
 import { LabApiQueryParams } from "./LabApiQueryParams";
 import * as dotenv from "dotenv";
+
+const axios = require("axios/dist/node/axios.cjs")
 
 dotenv.config({
     path: "../../.env"

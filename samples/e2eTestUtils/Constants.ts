@@ -5,7 +5,7 @@ export const ENV_VARIABLES = {
 };
 
 export const LAB_API_ENDPOINT = "https://msidlab.com/api";
-export const LAB_SCOPE = "https://msidlab.com/.default";
+export const LAB_SCOPE = "https://request.msidlab.com/.default";
 
 export const ParamKeys = {
     AZURE_ENVIRONMENT: "azureenvironment",
