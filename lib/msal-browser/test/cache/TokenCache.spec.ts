@@ -335,9 +335,9 @@ describe("TokenCache tests", () => {
                 account: {
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                     environment: testEnvironment,
-                    tenantId: TEST_CONFIG.TENANT,
+                    tenantId: ID_TOKEN_CLAIMS.tid,
                     username: "username",
-                    localAccountId: "localAccountId",
+                    localAccountId: ID_TOKEN_CLAIMS.oid,
                 },
             };
             const response: ExternalTokenResponse = {
@@ -352,6 +352,10 @@ describe("TokenCache tests", () => {
                 options
             );
 
+            expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+            expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(
+                idTokenEntity
+            );
             expect(result.accessToken).toEqual("");
             expect(
                 browserStorage.getAccessTokenCredential(accessTokenKey)
@@ -421,13 +425,34 @@ describe("TokenCache tests", () => {
             );
         });
 
+        it("loads refresh token with request authority and client info provided in response", () => {
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
+            };
+            const response: ExternalTokenResponse = {
+                refresh_token: testRefreshToken,
+                client_info: testClientInfo,
+            };
+            const options: LoadTokenOptions = {};
+
+            const result = tokenCache.loadExternalTokens(
+                request,
+                response,
+                options
+            );
+
+            expect(
+                browserStorage.getRefreshTokenCredential(refreshTokenKey)
+            ).toEqual(refreshTokenEntity);
+        });
+
         it("loads refresh token with request authority and client info provided in options", () => {
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
             };
             const response: ExternalTokenResponse = {
-                id_token: testIdToken,
                 refresh_token: testRefreshToken,
             };
             const options: LoadTokenOptions = {
@@ -440,9 +465,61 @@ describe("TokenCache tests", () => {
                 options
             );
 
-            expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(
                 browserStorage.getRefreshTokenCredential(refreshTokenKey)
+            ).toEqual(refreshTokenEntity);
+        });
+
+        it("loads refresh token with request authority and information from id_token", () => {
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
+            };
+            const response: ExternalTokenResponse = {
+                id_token: testIdToken,
+                refresh_token: testRefreshToken,
+            };
+            const options: LoadTokenOptions = {};
+
+            const result = tokenCache.loadExternalTokens(
+                request,
+                response,
+                options
+            );
+
+            testHomeAccountId = AccountEntity.generateHomeAccountId(
+                "",
+                AuthorityType.Default,
+                logger,
+                cryptoObj,
+                testIdTokenClaims
+            );
+
+            idTokenEntity = CacheHelpers.createIdTokenEntity(
+                testHomeAccountId,
+                testEnvironment,
+                TEST_TOKENS.IDTOKEN_V2,
+                configuration.auth.clientId,
+                ID_TOKEN_CLAIMS.tid
+            );
+
+            refreshTokenEntity = CacheHelpers.createRefreshTokenEntity(
+                testHomeAccountId,
+                testEnvironment,
+                testRefreshToken,
+                configuration.auth.clientId
+            );
+
+            expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+            expect(
+                browserStorage.getIdTokenCredential(
+                    CacheHelpers.generateCredentialKey(idTokenEntity)
+                )
+            ).toEqual(idTokenEntity);
+            expect(
+                browserStorage.getRefreshTokenCredential(
+                    CacheHelpers.generateCredentialKey(refreshTokenEntity)
+                )
             ).toEqual(refreshTokenEntity);
         });
     });
