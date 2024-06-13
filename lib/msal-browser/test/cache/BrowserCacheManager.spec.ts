@@ -1643,11 +1643,7 @@ describe("BrowserCacheManager tests", () => {
                     );
 
                     cacheManager
-                        .saveCacheRecord(
-                            new CacheRecord(),
-                            undefined,
-                            "test-correlation-id"
-                        )
+                        .saveCacheRecord({}, undefined, "test-correlation-id")
                         .then(() => {
                             throw new Error(
                                 "saveCacheRecord should have thrown"

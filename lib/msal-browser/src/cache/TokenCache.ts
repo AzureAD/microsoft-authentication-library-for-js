@@ -178,6 +178,9 @@ export class TokenCache implements ITokenCache {
             this.storage.setAccount(accountEntity);
             return accountEntity;
         } else if (!authority || (!clientInfo && !idTokenClaims)) {
+            this.logger.error(
+                "TokenCache - if an account is not provided on the request, authority and either clientInfo or idToken must be provided instead."
+            );
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.unableToLoadToken
             );
@@ -260,9 +263,14 @@ export class TokenCache implements ITokenCache {
         tenantId: string,
         options: LoadTokenOptions
     ): AccessTokenEntity | null {
-        if (!response.access_token || !response.expires_in) {
+        if (!response.access_token) {
             this.logger.verbose(
                 "TokenCache - no access token found in response"
+            );
+            return null;
+        } else if (!response.expires_in) {
+            this.logger.warning(
+                "TokenCache - no expiration set on the access token. Cannot add it to the cache."
             );
             return null;
         }
