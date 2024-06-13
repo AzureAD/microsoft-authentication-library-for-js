@@ -8,7 +8,6 @@ import {
     ClientConfigurationErrorCodes,
 } from "../error/ClientConfigurationError";
 import { PromptValue, CodeChallengeMethodValues } from "../utils/Constants";
-import { StringDict } from "../utils/MsalTypes";
 
 /**
  * Validates server consumable params from the "request" objects
@@ -87,30 +86,5 @@ export class RequestValidator {
                 ClientConfigurationErrorCodes.invalidCodeChallengeMethod
             );
         }
-    }
-
-    /**
-     * Removes unnecessary, duplicate, and empty string query parameters from extraQueryParameters
-     * @param request
-     */
-    static sanitizeEQParams(
-        eQParams: StringDict,
-        queryParams: Map<string, string>
-    ): StringDict {
-        if (!eQParams) {
-            return {};
-        }
-
-        // Remove any query parameters already included in SSO params
-        queryParams.forEach((_value, key) => {
-            if (eQParams[key]) {
-                delete eQParams[key];
-            }
-        });
-
-        // remove empty string parameters
-        return Object.fromEntries(
-            Object.entries(eQParams).filter((kv) => kv[1] !== "")
-        );
     }
 }
