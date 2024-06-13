@@ -269,15 +269,25 @@ export class TokenCache implements ITokenCache {
             );
             return null;
         } else if (!response.expires_in) {
-            this.logger.warning(
+            this.logger.error(
                 "TokenCache - no expiration set on the access token. Cannot add it to the cache."
+            );
+            return null;
+        } else if (
+            !response.scope &&
+            (!request.scopes || !request.scopes.length)
+        ) {
+            this.logger.error(
+                "TokenCache - scopes not specified in the request or response. Cannot add token to the cache."
             );
             return null;
         }
 
         this.logger.verbose("TokenCache - loading access token");
 
-        const scopes = new ScopeSet(request.scopes).printScopes();
+        const scopes = response.scope
+            ? ScopeSet.fromString(response.scope)
+            : new ScopeSet(request.scopes);
         const expiresOn =
             options.expiresOn ||
             response.expires_in + new Date().getTime() / 1000;
@@ -293,7 +303,7 @@ export class TokenCache implements ITokenCache {
             response.access_token,
             this.config.auth.clientId,
             tenantId,
-            scopes,
+            scopes.printScopes(),
             expiresOn,
             extendedExpiresOn,
             base64Decode
