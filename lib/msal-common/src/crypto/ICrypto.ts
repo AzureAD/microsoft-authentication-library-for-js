@@ -50,6 +50,16 @@ export interface ICrypto {
      */
     base64Decode(input: string): string;
     /**
+     * base64 URL safe encoded string
+     */
+    base64UrlEncode(input: string): string;
+    /**
+     * Stringifies and base64Url encodes input public key
+     * @param inputKid
+     * @returns Base64Url encoded public key
+     */
+    encodeKid(inputKid: string): string;
+    /**
      * Generates an JWK RSA S256 Thumbprint
      * @param request
      */
@@ -90,6 +100,12 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     base64Encode: (): string => {
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+    },
+    base64UrlEncode: (): string => {
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+    },
+    encodeKid: (): string => {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
     async getPublicKeyThumbprint(): Promise<string> {

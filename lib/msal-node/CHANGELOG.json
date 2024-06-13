@@ -2,6 +2,39 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 10 Jun 2024 22:30:36 GMT",
+      "version": "2.9.2",
+      "tag": "@azure/msal-node_v2.9.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5685c8cff1f0334ad77268759ccf828c71db419b",
+            "comment": "Fixed msal-node unit tests for PoP token support #\u0016\u00167119"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5685c8cff1f0334ad77268759ccf828c71db419b",
+            "comment": "Implementation Based on Feature Request #7151"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.12.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 04 Jun 2024 00:08:57 GMT",
       "version": "2.9.1",
       "tag": "@azure/msal-node_v2.9.1",

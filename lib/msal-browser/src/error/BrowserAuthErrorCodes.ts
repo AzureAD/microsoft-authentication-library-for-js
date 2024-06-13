@@ -55,3 +55,4 @@ export const uninitializedPublicClientApplication =
     "uninitialized_public_client_application";
 export const nativePromptNotSupported = "native_prompt_not_supported";
 export const invalidBase64String = "invalid_base64_string";
+export const invalidPopTokenRequest = "invalid_pop_token_request";
