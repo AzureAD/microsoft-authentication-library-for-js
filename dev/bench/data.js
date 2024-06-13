@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718059037904,
+  "lastUpdate": 1718304111270,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -9552,6 +9552,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.96%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jshrico@gmail.com",
+            "name": "Josh",
+            "username": "joshhhz"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "152785dfe94a264906d5512801be192e2c86e9dd",
+          "message": "Update Angular Samples README.md (#7143)\n\nFix typo in Angular Samples README.md\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-06-13T11:36:12-07:00",
+          "tree_id": "f35fafa6877f06ebc8906899f636bb969ff75f64",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/152785dfe94a264906d5512801be192e2c86e9dd"
+        },
+        "date": 1718304110182,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 188000,
+            "range": "±2.16%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 215503,
+            "range": "±0.99%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
