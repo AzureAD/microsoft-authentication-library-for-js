@@ -51,6 +51,26 @@ describe("PopTokenGenerator Unit Tests", () => {
                     return input;
             }
         },
+        base64UrlEncode(input: string): string {
+            switch (input) {
+                case '{"kid": "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc"}':
+                    return "e2tpZDogIlhuc3VBdnR0VFBwMG5uMUtfWU1MZVBMRGJwN3N5Q0toTkh0N0hqWUhKWWMifQ";
+                case '{"kid":"NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs","xms_ksl":"sw"}':
+                    return "eyJraWQiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwieG1zX2tzbCI6InN3In0";
+                default:
+                    return input;
+            }
+        },
+        encodeKid(input: string): string {
+            switch (input) {
+                case "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc":
+                    return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
+                case "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs":
+                    return "eyJraWQiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwieG1zX2tzbCI6InN3In0";
+                default:
+                    return input;
+            }
+        },
         async getPublicKeyThumbprint(): Promise<string> {
             return TEST_POP_VALUES.KID;
         },
@@ -86,9 +106,6 @@ describe("PopTokenGenerator Unit Tests", () => {
                 TEST_POP_VALUES.ENCODED_REQ_CNF
             );
             expect(reqCnfData.kid).toBe(TEST_POP_VALUES.KID);
-            expect(reqCnfData.reqCnfHash).toBe(
-                TEST_CRYPTO_VALUES.TEST_SHA256_HASH
-            );
         });
     });
 

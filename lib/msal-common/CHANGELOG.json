@@ -2,6 +2,33 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 10 Jun 2024 22:30:36 GMT",
+      "version": "14.12.0",
+      "tag": "@azure/msal-common_v14.12.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5685c8cff1f0334ad77268759ccf828c71db419b",
+            "comment": "Add support for apps to set their own `reqCnf` and correct native flows cnf format #6357"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 04 Jun 2024 00:08:57 GMT",
       "version": "14.11.0",
       "tag": "@azure/msal-common_v14.11.0",

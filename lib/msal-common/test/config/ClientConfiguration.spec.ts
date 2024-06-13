@@ -152,6 +152,22 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 base64Encode: (input: string): string => {
                     return "testEncodedString";
                 },
+                base64UrlEncode(input: string): string {
+                    switch (input) {
+                        case '{"kid": "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc"}':
+                            return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
+                        default:
+                            return input;
+                    }
+                },
+                encodeKid(input: string): string {
+                    switch (input) {
+                        case "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc":
+                            return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
+                        default:
+                            return input;
+                    }
+                },
                 async getPublicKeyThumbprint(): Promise<string> {
                     return TEST_POP_VALUES.KID;
                 },

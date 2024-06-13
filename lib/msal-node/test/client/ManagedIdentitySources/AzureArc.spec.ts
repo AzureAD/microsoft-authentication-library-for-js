@@ -27,7 +27,10 @@ import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
 } from "../../../src/error/ManagedIdentityError";
-import { ARC_API_VERSION } from "../../../src/client/ManagedIdentitySources/AzureArc";
+import {
+    ARC_API_VERSION,
+    SUPPORTED_AZURE_ARC_PLATFORMS,
+} from "../../../src/client/ManagedIdentitySources/AzureArc";
 import * as fs from "fs";
 import {
     ManagedIdentityEnvironmentVariableNames,
@@ -37,11 +40,18 @@ import {
 jest.mock("fs");
 
 describe("Acquires a token successfully via an Azure Arc Managed Identity", () => {
+    let originalPlatform: string;
+
     beforeAll(() => {
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT] =
             "fake_IDENTITY_ENDPOINT";
         process.env[ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT] =
             "fake_IMDS_ENDPOINT";
+
+        originalPlatform = process.platform;
+        Object.defineProperty(process, "platform", {
+            value: "linux",
+        });
     });
 
     afterAll(() => {
@@ -51,6 +61,10 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
         delete process.env[
             ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT
         ];
+
+        Object.defineProperty(process, "platform", {
+            value: originalPlatform,
+        });
     });
 
     afterEach(() => {
@@ -104,7 +118,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
             );
         });
 
-        test("attempts to acquire a token, a 401 and www-authenticate header are returned form the azure arc managed identity, then retries the network request with the www-authenticate header", async () => {
+        test("attempts to acquire a token, a 401 and www-authenticate header are returned from the azure arc managed identity, then retries the network request with the www-authenticate header", async () => {
             const networkClient: ManagedIdentityNetworkClient =
                 new ManagedIdentityNetworkClient(MANAGED_IDENTITY_RESOURCE_ID);
 
@@ -127,10 +141,15 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 // and the WWW-Authentication header the first time the network request is executed
                 .mockReturnValueOnce(
                     networkErrorClient.getSendGetRequestAsyncReturnObject(
-                        "Basic realm=lib/msal-node/test/test_kit/AzureArcSecret.key"
+                        `Basic realm=${SUPPORTED_AZURE_ARC_PLATFORMS.linux}AzureArcSecret.key` // Linux
                     )
                 );
 
+            const statSyncSpy: jest.SpyInstance = jest
+                .spyOn(fs, "statSync")
+                .mockReturnValueOnce({
+                    size: 4000,
+                } as fs.Stats);
             const readFileSyncSpy: jest.SpyInstance = jest
                 .spyOn(fs, "readFileSync")
                 .mockReturnValueOnce(TEST_TOKENS.ACCESS_TOKEN);
@@ -146,6 +165,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
             );
 
             expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
+            expect(statSyncSpy).toHaveBeenCalledTimes(1);
             expect(readFileSyncSpy).toHaveBeenCalledTimes(1);
 
             expect(sendGetRequestAsyncSpy).toHaveBeenNthCalledWith(
@@ -171,7 +191,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
     });
 
     describe("Errors", () => {
-        test("throws an error when a user assigned managed identity is used", async () => {
+        test("throws an error if a user assigned managed identity is used", async () => {
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedClientIdConfig);
             expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
@@ -189,7 +209,126 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
             );
         });
 
-        test("throws an error when the www-authenticate header is missing", async () => {
+        test("throws an error if the www-authenticate header has been returned from the azure arc managed identity, but the file in the file path is not a .key file", async () => {
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication({
+                    system: {
+                        networkClient: new ManagedIdentityNetworkErrorClient(
+                            `Basic realm=${SUPPORTED_AZURE_ARC_PLATFORMS.linux}AzureArcSecret.txt` // Linux
+                        ),
+                        // managedIdentityIdParams will be omitted for system assigned
+                    },
+                });
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.AZURE_ARC
+            );
+
+            await expect(
+                managedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                )
+            ).rejects.toMatchObject(
+                createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidFileExtension
+                )
+            );
+
+            jest.restoreAllMocks();
+        });
+
+        test("throws an error if the www-authenticate header has been returned from the azure arc managed identity, but the managed identity application is not being run on Windows or Linux", async () => {
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication({
+                    system: {
+                        networkClient: new ManagedIdentityNetworkErrorClient(
+                            `Basic realm=${SUPPORTED_AZURE_ARC_PLATFORMS.linux}AzureArcSecret.key` // Linux
+                        ),
+                        // managedIdentityIdParams will be omitted for system assigned
+                    },
+                });
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.AZURE_ARC
+            );
+
+            Object.defineProperty(process, "platform", {
+                value: "darwin",
+            });
+
+            await expect(
+                managedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                )
+            ).rejects.toMatchObject(
+                createManagedIdentityError(
+                    ManagedIdentityErrorCodes.platformNotSupported
+                )
+            );
+
+            Object.defineProperty(process, "platform", {
+                value: "linux",
+            });
+            jest.restoreAllMocks();
+        });
+
+        test("throws an error if the www-authenticate header has been returned from the azure arc managed identity, but the path of the secret file from the www-authenticate header is not in the expected Windows or Linux formats", async () => {
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication({
+                    system: {
+                        networkClient: new ManagedIdentityNetworkErrorClient(
+                            `Basic realm=${SUPPORTED_AZURE_ARC_PLATFORMS.linux}this_will_throw_because_file_path_must_match_exactly/AzureArcSecret.key` // Linux
+                        ),
+                        // managedIdentityIdParams will be omitted for system assigned
+                    },
+                });
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.AZURE_ARC
+            );
+
+            await expect(
+                managedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                )
+            ).rejects.toMatchObject(
+                createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidFilePath
+                )
+            );
+
+            jest.restoreAllMocks();
+        });
+
+        test("throws an error if the www-authenticate header has been returned from the azure arc managed identity, but the size of the secret file from the www-authenticate header is greater than 4096 bytes", async () => {
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication({
+                    system: {
+                        networkClient: new ManagedIdentityNetworkErrorClient(
+                            `Basic realm=${SUPPORTED_AZURE_ARC_PLATFORMS.linux}AzureArcSecret.key` // Linux
+                        ),
+                        // managedIdentityIdParams will be omitted for system assigned
+                    },
+                });
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.AZURE_ARC
+            );
+
+            jest.spyOn(fs, "statSync").mockReturnValueOnce({
+                size: 4097,
+            } as fs.Stats);
+
+            await expect(
+                managedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                )
+            ).rejects.toMatchObject(
+                createManagedIdentityError(
+                    ManagedIdentityErrorCodes.invalidSecret
+                )
+            );
+
+            jest.restoreAllMocks();
+        });
+
+        test("throws an error if the www-authenticate header is missing", async () => {
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication({
                     system: {
@@ -215,7 +354,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
             );
         });
 
-        test("throws an error when the www-authenticate header is in an unsupported format", async () => {
+        test("throws an error if the www-authenticate header is in an unsupported format", async () => {
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication({
                     system: {
@@ -240,12 +379,12 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
             );
         });
 
-        test("throws an error when the secret file cannot be found", async () => {
+        test("throws an error if the secret file cannot be found/read", async () => {
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication({
                     system: {
                         networkClient: new ManagedIdentityNetworkErrorClient(
-                            "Basic realm=invalid/secret/file/location.key"
+                            `Basic realm=${SUPPORTED_AZURE_ARC_PLATFORMS.linux}AzureArcSecret.key` // Linux
                         ),
                         // managedIdentityIdParams will be omitted for system assigned
                     },
@@ -253,6 +392,24 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
             expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
                 ManagedIdentitySourceNames.AZURE_ARC
             );
+
+            jest.spyOn(fs, "statSync").mockImplementationOnce(() => {
+                throw new Error();
+            });
+
+            await expect(
+                managedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                )
+            ).rejects.toMatchObject(
+                createManagedIdentityError(
+                    ManagedIdentityErrorCodes.unableToReadSecretFile
+                )
+            );
+
+            jest.spyOn(fs, "statSync").mockReturnValueOnce({
+                size: 4000,
+            } as fs.Stats);
 
             jest.spyOn(fs, "readFileSync").mockImplementationOnce(() => {
                 throw new Error();

@@ -246,6 +246,22 @@ export const mockCrypto = {
                 return input;
         }
     },
+    base64UrlEncode(input: string): string {
+        switch (input) {
+            case TEST_POP_VALUES.DECODED_REQ_CNF:
+                return TEST_POP_VALUES.URLSAFE_ENCODED_REQCNF;
+            default:
+                return input;
+        }
+    },
+    encodeKid(input: string): string {
+        switch (input) {
+            case TEST_POP_VALUES.KID:
+                return TEST_POP_VALUES.URLSAFE_ENCODED_REQCNF;
+            default:
+                return input;
+        }
+    },
     async generatePkceCodes(): Promise<PkceCodes> {
         return {
             challenge: TEST_CONFIG.TEST_CHALLENGE,

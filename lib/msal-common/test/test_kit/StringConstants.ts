@@ -234,8 +234,11 @@ export const TEST_POP_VALUES = {
     CLIENT_CLAIMS:
         '{"customClaim":"CustomClaimValue","anotherClaim":"AnotherValue"}',
     KID: "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
+    POPKID: "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc",
+    POPKID_OBJ:
+        '{"kid":"NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs","xms_ksl":"sw"}',
     ENCODED_REQ_CNF:
-        "eyJraWQiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwieG1zX2tzbCI6InN3In0=",
+        "eyJraWQiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwieG1zX2tzbCI6InN3In0",
     DECODED_REQ_CNF:
         '{"kid":"NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs","xms_ksl":"sw"}',
     SAMPLE_POP_AT:

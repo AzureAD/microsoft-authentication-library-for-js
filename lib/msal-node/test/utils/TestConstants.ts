@@ -120,6 +120,12 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     async hashString(): Promise<string> {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     },
+    base64UrlEncode: function (): string {
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+    },
+    encodeKid: function (): string {
+        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
+    },
 };
 
 export const DEFAULT_OPENID_CONFIG_RESPONSE = {

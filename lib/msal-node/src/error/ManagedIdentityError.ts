@@ -12,8 +12,16 @@ export { ManagedIdentityErrorCodes };
  * ManagedIdentityErrorMessage class containing string constants used by error codes and messages.
  */
 export const ManagedIdentityErrorMessages = {
+    [ManagedIdentityErrorCodes.invalidFileExtension]:
+        "The file path in the WWW-Authenticate header does not contain a .key file.",
+    [ManagedIdentityErrorCodes.invalidFilePath]:
+        "The file path in the WWW-Authenticate header is not in a valid Windows or Linux Format.",
     [ManagedIdentityErrorCodes.invalidManagedIdentityIdType]:
         "More than one ManagedIdentityIdType was provided.",
+    [ManagedIdentityErrorCodes.invalidSecret]:
+        "The secret in the file on the file path in the WWW-Authenticate header is greater than 4096 bytes.",
+    [ManagedIdentityErrorCodes.platformNotSupported]:
+        "The platform is not supported by Azure Arc. Azure Arc only supports Windows and Linux.",
     [ManagedIdentityErrorCodes.missingId]:
         "A ManagedIdentityId id was not provided.",
     [ManagedIdentityErrorCodes.MsiEnvironmentVariableUrlMalformedErrorCodes

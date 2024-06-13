@@ -1294,6 +1294,57 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
     });
 
+    it("Adds req-cnf as needed", async () => {
+        // Override with alternate authority openid_config
+        sinon
+            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
+            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+
+        const config: ClientConfiguration =
+            await ClientTestUtils.createTestClientConfiguration();
+        const client = new AuthorizationCodeClient(config);
+
+        if (!config.cryptoInterface) {
+            throw TestError.createTestSetupError(
+                "configuration cryptoInterface not initialized correctly."
+            );
+        }
+
+        const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+            scopes: [
+                ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                ...TEST_CONFIG.DEFAULT_SCOPES,
+            ],
+            authority: TEST_CONFIG.validAuthority,
+            responseMode: ResponseMode.FORM_POST,
+            codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+            codeChallengeMethod: TEST_CONFIG.CODE_CHALLENGE_METHOD,
+            state: TEST_CONFIG.STATE,
+            prompt: PromptValue.LOGIN,
+            loginHint: TEST_CONFIG.LOGIN_HINT,
+            domainHint: TEST_CONFIG.DOMAIN_HINT,
+            claims: TEST_CONFIG.CLAIMS,
+            nonce: TEST_CONFIG.NONCE,
+            correlationId: RANDOM_TEST_GUID,
+            authenticationScheme: AuthenticationScheme.POP,
+            nativeBroker: true,
+        };
+        const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
+        expect(
+            loginUrl.includes(
+                `${AADServerParamKeys.NATIVE_BROKER}=${encodeURIComponent("1")}`
+            )
+        ).toBe(true);
+        expect(
+            loginUrl.includes(
+                `${AADServerParamKeys.REQ_CNF}=${encodeURIComponent(
+                    TEST_POP_VALUES.ENCODED_REQ_CNF
+                )}`
+            )
+        ).toBe(true);
+    });
+
     describe("handleFragmentResponse()", () => {
         it("returns valid server code response", async () => {
             const config: ClientConfiguration =
@@ -2579,7 +2630,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                     }
                 });
 
-            const signedJwt = "signedJwt";
+            const signedJwt =
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsia2lkIjoiTnpiTHNYaDh1RENjZC02TU53WEY0V183bm9XWEZaQWZIa3hac1JHQzlYcyJ9fQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
             config.cryptoInterface.signJwt = async (
                 // @ts-ignore
@@ -2706,9 +2758,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.REQ_CNF}=${encodeURIComponent(
-                        TEST_POP_VALUES.ENCODED_REQ_CNF
-                    )}`
+                    `${AADServerParamKeys.REQ_CNF}=${TEST_POP_VALUES.ENCODED_REQ_CNF}`
                 )
             ).toBe(true);
             expect(
@@ -2776,7 +2826,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                         return input;
                 }
             };
-            const signedJwt = "signedJwt";
+            const signedJwt =
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsia2lkIjoiTnpiTHNYaDh1RENjZC02TU53WEY0V183bm9XWEZaQWZIa3hac1JHQzlYcyJ9fQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
             config.cryptoInterface.signJwt = async (
                 // @ts-ignore
