@@ -25,7 +25,6 @@ import {
     AuthError,
     CommonSilentFlowRequest,
     AccountInfo,
-    CacheRecord,
     AADServerParamKeys,
     TokenClaims,
     createClientAuthError,
