@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718304111270,
+  "lastUpdate": 1718384891319,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -9590,6 +9590,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.99%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "127046736+shaouari-Dev@users.noreply.github.com",
+            "name": "shaouari-Dev",
+            "username": "shaouari-Dev"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a8f04307fde93b5bd46363f3b5375263594f12ae",
+          "message": "fix : msal-browser acquireTokenSilentAsync memory leak (#7154)\n\nThis pull request addresses a memory leak issue in the MSAL-Browser\r\nlibrary.\r\n\r\nThe issue was originally identified in Zone.js for Angular 16, where the\r\nuse of arrow functions in the visibilitychange event listeners caused\r\nproblems. Specifically, Zone.js cannot compare the arrow functions when\r\nadding and removing the event listeners, which leads to the tasks not\r\nbeing properly removed and resulting in a more important memory leaks\r\nover time.",
+          "timestamp": "2024-06-14T10:02:47-07:00",
+          "tree_id": "fef587f1f9296822fd29aad7fa538637b49c4bd7",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/a8f04307fde93b5bd46363f3b5375263594f12ae"
+        },
+        "date": 1718384889617,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 199892,
+            "range": "±2.04%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 198117,
+            "range": "±2.02%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
