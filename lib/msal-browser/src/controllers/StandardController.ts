@@ -1963,6 +1963,7 @@ export class StandardController implements IController {
         request: SilentRequest & { correlationId: string },
         account: AccountInfo
     ): Promise<AuthenticationResult> {
+        const trackPageVisibility = () => this.trackPageVisibility(request.correlationId);
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.AcquireTokenSilentAsync,
             request.correlationId
@@ -1981,9 +1982,7 @@ export class StandardController implements IController {
             );
         }
 
-        document.addEventListener("visibilitychange", () =>
-            this.trackPageVisibility(request.correlationId)
-        );
+        document.addEventListener("visibilitychange", trackPageVisibility);
 
         const silentRequest = await invokeAsync(
             initializeSilentRequest,
@@ -2124,9 +2123,7 @@ export class StandardController implements IController {
                 throw tokenRenewalError;
             })
             .finally(() => {
-                document.removeEventListener("visibilitychange", () =>
-                    this.trackPageVisibility(request.correlationId)
-                );
+                document.removeEventListener("visibilitychange", trackPageVisibility);
             });
     }
 
