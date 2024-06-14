@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Reformatted ManagedIdentityTokenResponse + adjusted unit tests",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
