@@ -16,6 +16,7 @@ import {
     DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
     DEFAULT_MANAGED_IDENTITY_ID,
 } from "../../src/utils/Constants";
+import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse";
 
 // This file contains the string constants used by the test classes.
 
@@ -380,6 +381,21 @@ export const MANAGED_IDENTITY_CONTENT_TYPE_HEADER: string =
 
 export const MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR: string =
     "There was an error retrieving the access token from the managed identity.";
+export const MANAGED_IDENTITY_IMDS_NETWORK_REQUEST_400_ERROR: ManagedIdentityTokenResponse =
+    {
+        error: "fake_error",
+        error_description: MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
+        error_codes: ["fake_error_code"],
+        timestamp: "fake_timestamp",
+        trace_id: "fake_trace_id",
+        correlation_id: "fake_correlation_id",
+    };
+
+export const MANAGED_IDENTITY_NETWORK_REQUEST_500_ERROR: ManagedIdentityTokenResponse =
+    {
+        message: MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
+        correlationId: "fake_correlation_id",
+    };
 
 export const MANAGED_IDENTITY_RESOURCE_BASE: string =
     "https://graph.microsoft.com";

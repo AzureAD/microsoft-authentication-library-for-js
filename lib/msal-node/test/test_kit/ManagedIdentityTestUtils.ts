@@ -130,6 +130,7 @@ export class ManagedIdentityNetworkErrorClient implements INetworkModule {
     }
 
     sendGetRequestForRetryAsync<T>(
+        errorResponse: ManagedIdentityTokenResponse,
         // optional retry-after header
         headers?: Record<string, string>,
         httpStatusCode?: HttpStatus
@@ -137,10 +138,7 @@ export class ManagedIdentityNetworkErrorClient implements INetworkModule {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve({
                 status: httpStatusCode || HttpStatus.SERVER_ERROR,
-                body: {
-                    message: MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
-                    correlationId: mockAuthenticationResult.correlationId,
-                } as ManagedIdentityTokenResponse,
+                body: errorResponse,
                 headers: headers || EMPTY_HEADERS,
             } as NetworkResponse<T>);
         });
