@@ -390,15 +390,22 @@ export class AuthorizationCodeClient extends BaseClient {
                 this.performanceClient
             );
 
-            const reqCnfData = await invokeAsync(
-                popTokenGenerator.generateCnf.bind(popTokenGenerator),
-                PerformanceEvents.PopTokenGenerateCnf,
-                this.logger,
-                this.performanceClient,
-                request.correlationId
-            )(request, this.logger);
+            let reqCnfData;
+            if (!request.popKid) {
+                const generatedReqCnfData = await invokeAsync(
+                    popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                    PerformanceEvents.PopTokenGenerateCnf,
+                    this.logger,
+                    this.performanceClient,
+                    request.correlationId
+                )(request, this.logger);
+                reqCnfData = generatedReqCnfData.reqCnfString;
+            } else {
+                reqCnfData = this.cryptoUtils.encodeKid(request.popKid);
+            }
+
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
-            parameterBuilder.addPopToken(reqCnfData.reqCnfString);
+            parameterBuilder.addPopToken(reqCnfData);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
             if (request.sshJwk) {
                 parameterBuilder.addSshJwk(request.sshJwk);
@@ -682,15 +689,22 @@ export class AuthorizationCodeClient extends BaseClient {
                 const popTokenGenerator = new PopTokenGenerator(
                     this.cryptoUtils
                 );
-                // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
-                const reqCnfData = await invokeAsync(
-                    popTokenGenerator.generateCnf.bind(popTokenGenerator),
-                    PerformanceEvents.PopTokenGenerateCnf,
-                    this.logger,
-                    this.performanceClient,
-                    request.correlationId
-                )(request, this.logger);
-                parameterBuilder.addPopToken(reqCnfData.reqCnfHash);
+
+                // req_cnf is always sent as a string for SPAs
+                let reqCnfData;
+                if (!request.popKid) {
+                    const generatedReqCnfData = await invokeAsync(
+                        popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                        PerformanceEvents.PopTokenGenerateCnf,
+                        this.logger,
+                        this.performanceClient,
+                        request.correlationId
+                    )(request, this.logger);
+                    reqCnfData = generatedReqCnfData.reqCnfString;
+                } else {
+                    reqCnfData = this.cryptoUtils.encodeKid(request.popKid);
+                }
+                parameterBuilder.addPopToken(reqCnfData);
             }
         }
 

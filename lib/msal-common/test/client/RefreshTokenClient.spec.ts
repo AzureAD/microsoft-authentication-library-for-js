@@ -619,6 +619,7 @@ describe("RefreshTokenClient unit tests", () => {
             );
 
             await client.acquireTokenByRefreshToken(silentFlowRequest);
+            expect(refreshTokenClientSpy.called).toBe(true);
             expect(
                 refreshTokenClientSpy.calledWith(expectedRefreshRequest)
             ).toBe(true);

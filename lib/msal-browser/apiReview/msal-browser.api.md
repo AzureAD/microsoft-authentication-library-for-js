@@ -234,7 +234,8 @@ declare namespace BrowserAuthErrorCodes {
         nativeConnectionNotEstablished,
         uninitializedPublicClientApplication,
         nativePromptNotSupported,
-        invalidBase64String
+        invalidBase64String,
+        invalidPopTokenRequest
     }
 }
 export { BrowserAuthErrorCodes }
@@ -420,6 +421,10 @@ export const BrowserAuthErrorMessage: {
         desc: string;
     };
     invalidBase64StringError: {
+        code: string;
+        desc: string;
+    };
+    invalidPopTokenRequest: {
         code: string;
         desc: string;
     };
@@ -1021,6 +1026,11 @@ const invalidBase64String = "invalid_base64_string";
 //
 // @public (undocumented)
 const invalidCacheType = "invalid_cache_type";
+
+// Warning: (ae-missing-release-tag) "invalidPopTokenRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const invalidPopTokenRequest = "invalid_pop_token_request";
 
 export { IPerformanceClient }
 
@@ -1652,7 +1662,7 @@ const userCancelled = "user_cancelled";
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "3.16.0";
+export const version = "3.17.0";
 
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
