@@ -29,7 +29,10 @@ export type ManagedIdentityTokenResponse = {
 
     // error
 
-    // (Web/Function) App Service
+    /*
+     * (Web/Function) App Service
+     * 500 errors can return this from all MI sources as well
+     */
     message?: string;
     correlationId?: string;
 
@@ -44,7 +47,7 @@ export type ManagedIdentityTokenResponse = {
 
 /*
  * This is the only error property that exists for Cloud Shell
- * 500 errors can return this from all MI sources as well
+ * It can also be the only thing App Service will return
  */
 export type ErrorObject = {
     code: string;

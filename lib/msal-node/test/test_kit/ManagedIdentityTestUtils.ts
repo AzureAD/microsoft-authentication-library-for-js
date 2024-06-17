@@ -7,21 +7,19 @@ import {
     AuthenticationScheme,
     HttpStatus,
     INetworkModule,
-    NetworkRequestOptions,
     NetworkResponse,
     TimeUtils,
 } from "@azure/msal-common";
 import {
+    MANAGED_IDENTITY_NETWORK_REQUEST_500_ERROR,
     MANAGED_IDENTITY_RESOURCE,
     MANAGED_IDENTITY_RESOURCE_ID,
-    MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
     TEST_TOKENS,
     TEST_TOKEN_LIFETIMES,
 } from "./StringConstants";
 import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse";
 import { ManagedIdentityRequestParams } from "../../src";
 import { ManagedIdentityConfiguration } from "../../src/config/Configuration";
-import { mockAuthenticationResult } from "../utils/TestConstants";
 
 const EMPTY_HEADERS: Record<string, string> = {};
 
@@ -33,11 +31,8 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
         this.clientId = clientId;
     }
 
-    sendGetRequestAsync<T>(
-        _url: string,
-        _options?: NetworkRequestOptions,
-        _timeout?: number
-    ): Promise<NetworkResponse<T>> {
+    // App Service, Azure Arc, Imds, Service Fabric
+    sendGetRequestAsync<T>(): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve({
                 status: HttpStatus.SUCCESS,
@@ -58,10 +53,8 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
         });
     }
 
-    sendPostRequestAsync<T>(
-        _url: string,
-        _options?: NetworkRequestOptions
-    ): Promise<NetworkResponse<T>> {
+    // Cloud Shell
+    sendPostRequestAsync<T>(): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve({
                 status: HttpStatus.SUCCESS,
@@ -83,78 +76,39 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
 }
 
 export class ManagedIdentityNetworkErrorClient implements INetworkModule {
-    private wwwAuthenticateHeader: string | undefined;
-    private status: number | undefined;
+    private errorResponse: ManagedIdentityTokenResponse;
+    private headers: Record<string, string>;
+    private status: number;
 
-    constructor(wwwAuthenticateHeader?: string, status?: number) {
-        this.wwwAuthenticateHeader = wwwAuthenticateHeader || undefined;
-        this.status = status || undefined;
-    }
-
-    getSendGetRequestAsyncReturnObject<T>(
-        wwwAuthenticateHeader: string | undefined,
-        status?: number | undefined
-    ): NetworkResponse<T> {
-        const headers: Record<string, string> = {};
-        if (wwwAuthenticateHeader) {
-            headers["www-authenticate"] = wwwAuthenticateHeader;
-        }
-
-        return {
-            status:
-                status ||
-                (wwwAuthenticateHeader
-                    ? HttpStatus.UNAUTHORIZED
-                    : HttpStatus.BAD_REQUEST),
-            body: {
-                message: MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
-                correlationId: mockAuthenticationResult.correlationId,
-            } as ManagedIdentityTokenResponse,
-            headers,
-        } as NetworkResponse<T>;
-    }
-
-    sendGetRequestAsync<T>(
-        _url: string,
-        _options?: NetworkRequestOptions,
-        _timeout?: number
-    ): Promise<NetworkResponse<T>> {
-        return new Promise<NetworkResponse<T>>((resolve, _reject) => {
-            resolve(
-                this.getSendGetRequestAsyncReturnObject(
-                    this.wwwAuthenticateHeader,
-                    this.status
-                )
-            );
-        });
-    }
-
-    sendGetRequestForRetryAsync<T>(
-        errorResponse: ManagedIdentityTokenResponse,
-        // optional retry-after header
+    constructor(
+        errorResponse?: ManagedIdentityTokenResponse,
         headers?: Record<string, string>,
-        httpStatusCode?: HttpStatus
-    ): Promise<NetworkResponse<T>> {
+        status?: number
+    ) {
+        // default to 500 error
+        this.errorResponse =
+            errorResponse || MANAGED_IDENTITY_NETWORK_REQUEST_500_ERROR;
+        this.headers = headers || EMPTY_HEADERS;
+        this.status = status || HttpStatus.SERVER_ERROR;
+    }
+
+    // App Service, Azure Arc, Imds, Service Fabric
+    sendGetRequestAsync<T>(): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve({
-                status: httpStatusCode || HttpStatus.SERVER_ERROR,
-                body: errorResponse,
-                headers: headers || EMPTY_HEADERS,
+                status: this.status,
+                body: this.errorResponse,
+                headers: this.headers,
             } as NetworkResponse<T>);
         });
     }
 
-    sendPostRequestAsync<T>(
-        _url: string,
-        _options?: NetworkRequestOptions
-    ): Promise<NetworkResponse<T>> {
+    // Cloud Shell
+    sendPostRequestAsync<T>(): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve({
-                status: HttpStatus.BAD_REQUEST,
-                body: {
-                    message: MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
-                    correlationId: mockAuthenticationResult.correlationId,
-                } as ManagedIdentityTokenResponse,
+                status: this.status,
+                body: this.errorResponse,
                 headers: EMPTY_HEADERS,
             } as NetworkResponse<T>);
         });

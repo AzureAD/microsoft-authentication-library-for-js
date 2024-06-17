@@ -197,15 +197,16 @@ export class ResponseHandler {
             serverResponse.error_description ||
             serverResponse.suberror
         ) {
-            const errString = `${
-                serverResponse.error_codes || "No Error Codes Available"
-            } - [${serverResponse.timestamp || "No Timestamp Available"}]: ${
-                serverResponse.error_description ||
-                "No Error Description Available"
+            const errString = `Error(s): ${
+                serverResponse.error_codes || Constants.NOT_AVAILABLE
+            } - Timestamp: ${
+                serverResponse.timestamp || Constants.NOT_AVAILABLE
+            } - Description: ${
+                serverResponse.error_description || Constants.NOT_AVAILABLE
             } - Correlation ID: ${
-                serverResponse.correlation_id || "No Correlation ID Available"
+                serverResponse.correlation_id || Constants.NOT_AVAILABLE
             } - Trace ID: ${
-                serverResponse.trace_id || "No Trace ID Available"
+                serverResponse.trace_id || Constants.NOT_AVAILABLE
             }`;
             const serverErrorNo = serverResponse.error_codes?.length
                 ? serverResponse.error_codes[0]
