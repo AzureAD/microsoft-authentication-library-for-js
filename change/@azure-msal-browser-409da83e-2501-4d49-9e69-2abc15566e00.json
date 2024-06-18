@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update error message typo in NAA errors",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}

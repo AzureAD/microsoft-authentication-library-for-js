@@ -11,7 +11,7 @@ import { AuthError } from "@azure/msal-common";
 export const NestedAppAuthErrorMessage = {
     unsupportedMethod: {
         code: "unsupported_method",
-        desc: "The PKCE code challenge and verifier could not be generated.",
+        desc: "This method is not supported in nested app environment.",
     },
 };
 
