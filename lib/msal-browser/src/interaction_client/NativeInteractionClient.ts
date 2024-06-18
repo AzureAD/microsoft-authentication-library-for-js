@@ -25,7 +25,6 @@ import {
     AuthError,
     CommonSilentFlowRequest,
     AccountInfo,
-    CacheRecord,
     AADServerParamKeys,
     TokenClaims,
     createClientAuthError,
@@ -458,8 +457,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.browserStorage,
             authority,
             homeAccountIdentifier,
-            idTokenClaims,
             base64Decode,
+            idTokenClaims,
             response.client_info,
             undefined, // environment
             idTokenClaims.tid,
@@ -739,11 +738,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 request.keyId
             );
 
-        const nativeCacheRecord = new CacheRecord(
-            undefined,
-            cachedIdToken,
-            cachedAccessToken
-        );
+        const nativeCacheRecord = {
+            idToken: cachedIdToken,
+            accessToken: cachedAccessToken,
+        };
 
         void this.nativeStorageManager.saveCacheRecord(
             nativeCacheRecord,
