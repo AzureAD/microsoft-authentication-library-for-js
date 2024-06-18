@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718742038125,
+  "lastUpdate": 1718742705422,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -9666,6 +9666,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.10%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0a905a98bb3926ae8d0e34446ba740177c99a359",
+          "message": "Fix extraQueryParameters being dropped from request (#7166)\n\nIn cases where a field included in extraQueryParameters already exists\r\non the query string it was being deleted from the object which prevented\r\nit from being used on the next request i.e. removed on /authorize, no\r\nlonger exists on /token. This caused a bug in Pairwise broker and NAA\r\nflows ultimately resulting in the server throwing an\r\n\"unauthorized_client\" error.\r\n\r\nThis PR fixes this bug.\r\n\r\nNote: Objects in JavaScript are passed by reference which is why the\r\noriginal implementation caused this bug. There are other places in the\r\ncode where we similarly edit an object that has been passed in. A\r\nseparate work item has been created to address those other instances in\r\na separate PR & turn on a lint rule to prevent this pattern in the\r\nfuture.",
+          "timestamp": "2024-06-18T13:26:23-07:00",
+          "tree_id": "054b098c96492f468f131ed9621c76e6684f07e1",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/0a905a98bb3926ae8d0e34446ba740177c99a359"
+        },
+        "date": 1718742704332,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 190078,
+            "range": "±1.90%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 192462,
+            "range": "±2.02%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
