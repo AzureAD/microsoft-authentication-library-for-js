@@ -620,4 +620,79 @@ describe("RequestParameterBuilder unit tests", () => {
             );
         });
     });
+
+    describe("addExtraQueryParameters tests", () => {
+        it("adds extra query parameters to the request", () => {
+            const requestParameterBuilder = new RequestParameterBuilder();
+            requestParameterBuilder.addClientId(TEST_CONFIG.MSAL_CLIENT_ID);
+            const eqp = {
+                testKey1: "testVal1",
+                testKey2: "testVal2",
+            };
+
+            requestParameterBuilder.addExtraQueryParameters(eqp);
+            const expectedString = `client_id=${TEST_CONFIG.MSAL_CLIENT_ID}&testKey1=testVal1&testKey2=testVal2`;
+
+            expect(requestParameterBuilder.createQueryString()).toBe(
+                expectedString
+            );
+        });
+
+        it("Does not add extra query parameters if they are empty", () => {
+            const requestParameterBuilder = new RequestParameterBuilder();
+            requestParameterBuilder.addClientId(TEST_CONFIG.MSAL_CLIENT_ID);
+            const eqp = {
+                testKey1: "testVal1",
+                testKey2: "testVal2",
+                testKey3: "",
+            };
+
+            requestParameterBuilder.addExtraQueryParameters(eqp);
+            const expectedString = `client_id=${TEST_CONFIG.MSAL_CLIENT_ID}&testKey1=testVal1&testKey2=testVal2`;
+
+            expect(requestParameterBuilder.createQueryString()).toBe(
+                expectedString
+            );
+        });
+
+        it("Does not  add extra query parameters if they already exist in the request", () => {
+            const requestParameterBuilder = new RequestParameterBuilder();
+            requestParameterBuilder.addClientId(TEST_CONFIG.MSAL_CLIENT_ID);
+            const eqp = {
+                testKey1: "testVal1",
+                testKey2: "testVal2",
+                client_id: "some-other-client-id",
+            };
+
+            requestParameterBuilder.addExtraQueryParameters(eqp);
+            const expectedString = `client_id=${TEST_CONFIG.MSAL_CLIENT_ID}&testKey1=testVal1&testKey2=testVal2`;
+
+            expect(requestParameterBuilder.createQueryString()).toBe(
+                expectedString
+            );
+        });
+
+        it("Does not mutate the original extraQueryParameters object", () => {
+            const requestParameterBuilder = new RequestParameterBuilder();
+            requestParameterBuilder.addClientId(TEST_CONFIG.MSAL_CLIENT_ID);
+            const eqp = {
+                testKey1: "testVal1",
+                testKey2: "testVal2",
+                client_id: "some-other-client-id",
+            };
+
+            requestParameterBuilder.addExtraQueryParameters(eqp);
+
+            expect(Object.keys(eqp)).toEqual([
+                "testKey1",
+                "testKey2",
+                "client_id",
+            ]);
+            expect(Object.values(eqp)).toEqual([
+                "testVal1",
+                "testVal2",
+                "some-other-client-id",
+            ]);
+        });
+    });
 });

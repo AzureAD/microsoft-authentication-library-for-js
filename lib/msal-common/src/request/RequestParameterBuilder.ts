@@ -465,12 +465,10 @@ export class RequestParameterBuilder {
      * @param eQParams
      */
     addExtraQueryParameters(eQParams: StringDict): void {
-        const sanitizedEQParams = RequestValidator.sanitizeEQParams(
-            eQParams,
-            this.parameters
-        );
-        Object.keys(sanitizedEQParams).forEach((key) => {
-            this.parameters.set(key, eQParams[key]);
+        Object.entries(eQParams).forEach(([key, value]) => {
+            if (!this.parameters.has(key) && value) {
+                this.parameters.set(key, value);
+            }
         });
     }
 
