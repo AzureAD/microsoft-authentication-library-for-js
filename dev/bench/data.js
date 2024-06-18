@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718742705422,
+  "lastUpdate": 1718745182695,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -9704,6 +9704,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.02%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sameera.gajjarapu@microsoft.com",
+            "name": "Sameera Gajjarapu",
+            "username": "sameerag"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "362442e1681867ca90ddf860d82e115436b8b1a6",
+          "message": "Update typo in NAA unsupported error (#7168)\n\nUpdate typo in NAA unsupported error",
+          "timestamp": "2024-06-18T14:07:27-07:00",
+          "tree_id": "68c10cd3d1cc5b122b6015682edc281367116dc8",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/362442e1681867ca90ddf860d82e115436b8b1a6"
+        },
+        "date": 1718745180936,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 196530,
+            "range": "±1.87%",
+            "unit": "ops/sec",
+            "extra": "228 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 192749,
+            "range": "±2.18%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
