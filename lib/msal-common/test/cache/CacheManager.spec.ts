@@ -96,7 +96,7 @@ describe("CacheManager.ts test cases", () => {
             ac.authorityType = "MSSTS";
 
             const accountKey = ac.generateAccountKey();
-            const cacheRecord = new CacheRecord();
+            const cacheRecord: CacheRecord = {};
             cacheRecord.account = ac;
             await mockCache.cacheManager.saveCacheRecord(cacheRecord);
             const mockCacheAccount = mockCache.cacheManager.getAccount(
@@ -126,7 +126,7 @@ describe("CacheManager.ts test cases", () => {
             };
 
             const atKey = CacheHelpers.generateCredentialKey(at);
-            const cacheRecord = new CacheRecord();
+            const cacheRecord: CacheRecord = {};
             cacheRecord.accessToken = at;
             await mockCache.cacheManager.saveCacheRecord(cacheRecord);
             const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(
@@ -158,7 +158,7 @@ describe("CacheManager.ts test cases", () => {
             );
 
             const atKey = CacheHelpers.generateCredentialKey(at);
-            const cacheRecord = new CacheRecord();
+            const cacheRecord: CacheRecord = {};
             cacheRecord.accessToken = at;
             await mockCache.cacheManager.saveCacheRecord(cacheRecord, {
                 accessToken: false,
@@ -185,7 +185,7 @@ describe("CacheManager.ts test cases", () => {
             };
 
             const atKey = CacheHelpers.generateCredentialKey(at);
-            const cacheRecord = new CacheRecord();
+            const cacheRecord: CacheRecord = {};
             cacheRecord.accessToken = at;
             await mockCache.cacheManager.saveCacheRecord(cacheRecord);
             const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(
@@ -214,7 +214,7 @@ describe("CacheManager.ts test cases", () => {
             );
 
             const idTokenKey = CacheHelpers.generateCredentialKey(idToken);
-            const cacheRecord = new CacheRecord();
+            const cacheRecord: CacheRecord = {};
             cacheRecord.idToken = idToken;
             await mockCache.cacheManager.saveCacheRecord(cacheRecord, {
                 idToken: false,
@@ -290,7 +290,7 @@ describe("CacheManager.ts test cases", () => {
 
             const refreshTokenKey =
                 CacheHelpers.generateCredentialKey(refreshToken);
-            const cacheRecord = new CacheRecord();
+            const cacheRecord: CacheRecord = {};
             cacheRecord.refreshToken = refreshToken;
             await mockCache.cacheManager.saveCacheRecord(cacheRecord, {
                 refreshToken: false,
@@ -672,7 +672,7 @@ describe("CacheManager.ts test cases", () => {
         ac.authorityType = "MSSTS";
 
         const accountKey = ac.generateAccountKey();
-        const cacheRecord = new CacheRecord();
+        const cacheRecord: CacheRecord = {};
         cacheRecord.account = ac;
         await mockCache.cacheManager.saveCacheRecord(cacheRecord);
 
@@ -697,7 +697,7 @@ describe("CacheManager.ts test cases", () => {
         };
 
         const credKey = CacheHelpers.generateCredentialKey(accessTokenEntity);
-        const cacheRecord = new CacheRecord();
+        const cacheRecord: CacheRecord = {};
         cacheRecord.accessToken = accessTokenEntity;
         await mockCache.cacheManager.saveCacheRecord(cacheRecord);
 
@@ -725,7 +725,7 @@ describe("CacheManager.ts test cases", () => {
         };
 
         const credKey = CacheHelpers.generateCredentialKey(accessTokenEntity);
-        const cacheRecord = new CacheRecord();
+        const cacheRecord: CacheRecord = {};
         cacheRecord.accessToken = accessTokenEntity;
         await mockCache.cacheManager.saveCacheRecord(cacheRecord);
 

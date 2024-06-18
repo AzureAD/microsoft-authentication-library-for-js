@@ -135,7 +135,7 @@ export class AccountEntity {
     static createAccount(
         accountDetails: {
             homeAccountId: string;
-            idTokenClaims: TokenClaims;
+            idTokenClaims?: TokenClaims;
             clientInfo?: string;
             cloudGraphHostName?: string;
             msGraphHost?: string;
@@ -189,8 +189,8 @@ export class AccountEntity {
         // How do you account for MSA CID here?
         account.localAccountId =
             clientInfo?.uid ||
-            accountDetails.idTokenClaims.oid ||
-            accountDetails.idTokenClaims.sub ||
+            accountDetails.idTokenClaims?.oid ||
+            accountDetails.idTokenClaims?.sub ||
             "";
 
         /*
@@ -199,14 +199,14 @@ export class AccountEntity {
          * policy is configured to return more than 1 email.
          */
         const preferredUsername =
-            accountDetails.idTokenClaims.preferred_username ||
-            accountDetails.idTokenClaims.upn;
-        const email = accountDetails.idTokenClaims.emails
+            accountDetails.idTokenClaims?.preferred_username ||
+            accountDetails.idTokenClaims?.upn;
+        const email = accountDetails.idTokenClaims?.emails
             ? accountDetails.idTokenClaims.emails[0]
             : null;
 
         account.username = preferredUsername || email || "";
-        account.name = accountDetails.idTokenClaims.name;
+        account.name = accountDetails.idTokenClaims?.name || "";
 
         account.cloudGraphHostName = accountDetails.cloudGraphHostName;
         account.msGraphHost = accountDetails.msGraphHost;
