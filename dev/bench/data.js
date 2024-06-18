@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718384891319,
+  "lastUpdate": 1718742038125,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -9628,6 +9628,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.02%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ef11c8804a9e3c1d330fafc672a18100148dc84e",
+          "message": "Relax loadExternalTokens requirements to allow loading without id_token (#7165)\n\nRefactors `loadExternalTokens` to allow loading of any combination of\r\ntokens. Previously id_token was required in order to load access and/or\r\nrefresh tokens, now client_info or an AccountInfo object can be used\r\ninstead.\r\n\r\n---------\r\n\r\nCo-authored-by: Sameera Gajjarapu <sameera.gajjarapu@microsoft.com>",
+          "timestamp": "2024-06-18T13:15:04-07:00",
+          "tree_id": "fe9ffebe1ba25b56f35ae2df2117cf43c0b7d6bf",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/ef11c8804a9e3c1d330fafc672a18100148dc84e"
+        },
+        "date": 1718742037078,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 187984,
+            "range": "±1.98%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 193609,
+            "range": "±2.10%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
