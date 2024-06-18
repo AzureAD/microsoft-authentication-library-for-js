@@ -27,7 +27,7 @@ See the type definitions for each, which can be imported from `@azure/msal-brows
 
 ## Loading tokens
 
-You can provide any combination of id, access and refresh tokens for caching but at a minimum the `loadExternalTokens` API requires one of the following sets of input parameters to identify who the tokens belong to and be capable of storing them in the cache:
+You can provide any combination of id, access and refresh tokens for caching but at a minimum the `loadExternalTokens` API requires one of the following sets of input parameters to identify token associations and cache appropriately:
 
 -   A `SilentRequest` object with [account information](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_browser.AccountInfo.html), OR
 -   A `SilentRequest` object with the authority AND a `LoadTokenOptions` object with `clientInfo`, OR
