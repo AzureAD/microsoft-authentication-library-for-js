@@ -420,6 +420,10 @@ export class RedirectClient extends StandardInteractionClient {
         }
 
         const cachedRequest = this.browserStorage.getCachedRequest(state);
+        this.performanceClient.addFields(
+            { request: { cachedRequest } },
+            this.correlationId
+        );
         this.logger.verbose("handleResponse called, retrieved cached request");
 
         if (serverParams.accountId) {
@@ -488,7 +492,22 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient
         );
-        return interactionHandler.handleCodeResponse(serverParams, state);
+        const result = await interactionHandler.handleCodeResponse(
+            serverParams,
+            state
+        );
+
+        this.performanceClient.addFields(
+            {
+                request: {
+                    ...cachedRequest,
+                    account: result.account,
+                },
+            },
+            this.correlationId
+        );
+
+        return result;
     }
 
     /**

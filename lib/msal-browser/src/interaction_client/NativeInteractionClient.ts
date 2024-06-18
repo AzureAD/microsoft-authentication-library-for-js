@@ -156,6 +156,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 this.accountId,
                 nativeRequest
             );
+            nativeATMeasurement.add({
+                request: {
+                    ...request,
+                    account: result.account,
+                },
+            });
             nativeATMeasurement.end({
                 success: true,
                 isNativeBroker: false, // Should be true only when the result is coming directly from the broker
@@ -189,6 +195,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
             reqTimestamp
         )
             .then((result: AuthenticationResult) => {
+                nativeATMeasurement.add({
+                    request: {
+                        ...request,
+                        account: result.account,
+                    },
+                });
                 nativeATMeasurement.end({
                     success: true,
                     isNativeBroker: true,

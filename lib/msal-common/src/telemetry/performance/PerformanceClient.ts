@@ -26,10 +26,18 @@ import { AuthError } from "../../error/AuthError";
 import { CacheError } from "../../error/CacheError";
 import { ServerError } from "../../error/ServerError";
 import { InteractionRequiredAuthError } from "../../error/InteractionRequiredAuthError";
+import { CommonAuthorizationUrlRequest } from "../../request/CommonAuthorizationUrlRequest";
+import { CommonAuthorizationCodeRequest } from "../../request/CommonAuthorizationCodeRequest";
 
 export interface PreQueueEvent {
     name: PerformanceEvents;
     time: number;
+}
+
+interface PerfThumbprint {
+    firstCorrelationId: string;
+    lastCorrelationId: string;
+    count: number;
 }
 
 /**
@@ -254,14 +262,15 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected applicationTelemetry: ApplicationTelemetry;
     protected clientId: string;
     protected logger: Logger;
-    protected callbacks: Map<string, PerformanceCallbackFunction>;
+    protected readonly callbacks: Map<string, PerformanceCallbackFunction>;
+    protected readonly thumbprints: Map<string, Map<string, PerfThumbprint>>;
 
     /**
      * Multiple events with the same correlation id.
      * @protected
      * @type {Map<string, PerformanceEvent>}
      */
-    protected eventsByCorrelationId: Map<string, PerformanceEvent>;
+    protected readonly eventsByCorrelationId: Map<string, PerformanceEvent>;
 
     /**
      * Map of pre-queue times by correlation Id
@@ -269,7 +278,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @protected
      * @type {Map<string, PreQueueEvent>}
      */
-    protected preQueueTimeByCorrelationId: Map<string, PreQueueEvent>;
+    protected readonly preQueueTimeByCorrelationId: Map<string, PreQueueEvent>;
 
     /**
      * Map of queue measurements by correlation Id
@@ -277,23 +286,26 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @protected
      * @type {Map<string, Array<QueueMeasurement>>}
      */
-    protected queueMeasurements: Map<string, Array<QueueMeasurement>>;
+    protected readonly queueMeasurements: Map<string, Array<QueueMeasurement>>;
 
-    protected intFields: Set<string>;
+    protected readonly intFields: Set<string>;
 
     /**
      * Map of stacked events by correlation id.
      *
      * @protected
      */
-    protected eventStack: Map<string, PerformanceEventStackedContext[]>;
+    protected readonly eventStack: Map<
+        string,
+        PerformanceEventStackedContext[]
+    >;
 
     /**
      * Event name abbreviations
      *
      * @protected
      */
-    protected abbreviations: Map<string, string>;
+    protected readonly abbreviations: Map<string, string>;
 
     /**
      * Creates an instance of PerformanceClient,
@@ -338,6 +350,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         for (const [key, value] of PerformanceEventAbbreviations) {
             this.abbreviations.set(key, value);
         }
+        this.thumbprints = new Map();
     }
 
     /**
@@ -376,6 +389,132 @@ export abstract class PerformanceClient implements IPerformanceClient {
         eventName: PerformanceEvents,
         correlationId?: string
     ): void;
+
+    /**
+     * Generates encoded request thumbprint
+     * @param request CommonAuthorizationUrlRequest | CommonAuthorizationCodeRequest
+     * @return string
+     */
+    abstract generateRequestThumbprint(
+        request: CommonAuthorizationUrlRequest | CommonAuthorizationCodeRequest
+    ): string;
+
+    /**
+     * Manages thumbprints to establish a correlation between failed silent requests and consequent successful
+     * interactive ones
+     * @param params { rootEvent: PerformanceEvent; event: PerformanceEvent; thumbprints: Map<string, Thumbprint>; }
+     */
+    protected handleThumbprint(params: {
+        rootEvent: PerformanceEvent;
+        event: PerformanceEvent;
+    }): void {
+        const event = params.event;
+        const rootEvent = params.rootEvent;
+        const request = event.request || rootEvent.request;
+
+        if (
+            !request ||
+            !(
+                event.name in
+                [
+                    PerformanceEvents.AcquireTokenSilent,
+                    PerformanceEvents.SsoSilent,
+                    PerformanceEvents.AcquireTokenRedirect,
+                    PerformanceEvents.AcquireTokenPopup,
+                ]
+            )
+        ) {
+            return;
+        }
+
+        const requestAccount = request["account"];
+        // Match by home account id or default to an empty string
+        const requestAccountId =
+            requestAccount && requestAccount["homeAccountId"]
+                ? requestAccount["homeAccountId"]
+                : "";
+        const requestThumbprint = this.generateRequestThumbprint(request);
+        const thumbprintsByAccount =
+            this.thumbprints.get(requestThumbprint) ||
+            new Map<string, PerfThumbprint>();
+
+        // Update or set thumbprint for failed silent request
+        if (
+            !event.success &&
+            event.name in
+                [
+                    PerformanceEvents.AcquireTokenSilent,
+                    PerformanceEvents.SsoSilent,
+                ]
+        ) {
+            // Update thumbprint payload for consequent failed silent request
+            const thumbPrintPayload =
+                thumbprintsByAccount?.get(requestAccountId);
+
+            if (thumbPrintPayload) {
+                thumbPrintPayload.count++;
+                thumbPrintPayload.lastCorrelationId = event.correlationId;
+                return;
+            }
+
+            // FIFO clean up to mitigate scenarios when failed silent requests never recover
+            if (this.thumbprints.size >= 10) {
+                const [firstKey] = this.thumbprints.keys();
+                this.thumbprints.delete(firstKey);
+            }
+            if (thumbprintsByAccount && thumbprintsByAccount.size >= 10) {
+                const [firstKey] = this.thumbprints.keys();
+                this.thumbprints.delete(firstKey);
+            }
+
+            // Set thumbprint payload for first failed silent request
+            thumbprintsByAccount.set(requestAccountId, {
+                firstCorrelationId: event.correlationId,
+                lastCorrelationId: event.correlationId,
+                count: 1,
+            });
+            this.thumbprints.set(requestThumbprint, thumbprintsByAccount);
+            return;
+        }
+
+        // No matched failed silent requests were found
+        if (!thumbprintsByAccount.size) {
+            return;
+        }
+
+        const thumbPrintPayload = {
+            ...(thumbprintsByAccount.get(requestAccountId) ||
+                thumbprintsByAccount.get("")),
+        };
+        // Request thumbprint matches, but home account id is set and does not match
+        if (!thumbPrintPayload) {
+            return;
+        }
+
+        if (thumbprintsByAccount.size > 1) {
+            thumbprintsByAccount.delete(requestAccountId) ||
+                thumbprintsByAccount.delete("");
+        } else {
+            this.thumbprints.delete(requestThumbprint);
+        }
+
+        // Recovered with a silent flow
+        if (
+            event.success &&
+            event.name in
+                [
+                    PerformanceEvents.AcquireTokenSilent,
+                    PerformanceEvents.SsoSilent,
+                ]
+        ) {
+            return;
+        }
+
+        rootEvent.firstSilentCorrelationId =
+            thumbPrintPayload.firstCorrelationId;
+        rootEvent.lastSilentCorrelationId = thumbPrintPayload.lastCorrelationId;
+        rootEvent.silentCallsCount = thumbPrintPayload.count;
+    }
 
     /**
      * Gets map of pre-queue times by correlation Id
@@ -608,6 +747,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
         event.durationMs = Math.round(
             event.durationMs || this.getDurationMs(event.startTimeMs)
         );
+
+        this.handleThumbprint({
+            rootEvent,
+            event,
+        });
 
         const context = JSON.stringify(
             endContext(

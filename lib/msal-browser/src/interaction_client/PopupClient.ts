@@ -353,6 +353,16 @@ export class PopupClient extends StandardInteractionClient {
                 validRequest
             );
 
+            this.performanceClient.addFields(
+                {
+                    request: {
+                        ...request,
+                        account: result.account,
+                    },
+                },
+                this.correlationId
+            );
+
             return result;
         } catch (e) {
             if (popup) {

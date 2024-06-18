@@ -698,6 +698,7 @@ export class StandardController implements IController {
         atPopupMeasurement.add({
             scenarioId: request.scenarioId,
             accountType: getAccountType(request.account),
+            request,
         });
 
         try {
@@ -879,6 +880,7 @@ export class StandardController implements IController {
         this.ssoSilentMeasurement?.add({
             scenarioId: request.scenarioId,
             accountType: getAccountType(request.account),
+            request,
         });
         preflightCheck(this.initialized, this.ssoSilentMeasurement);
         this.ssoSilentMeasurement?.increment({
@@ -1873,7 +1875,10 @@ export class StandardController implements IController {
         if (!account) {
             throw createBrowserAuthError(BrowserAuthErrorCodes.noAccountError);
         }
-        atsMeasurement.add({ accountType: getAccountType(account) });
+        atsMeasurement.add({
+            accountType: getAccountType(account),
+            request,
+        });
 
         const thumbprint: RequestThumbprint = {
             clientId: this.config.auth.clientId,
