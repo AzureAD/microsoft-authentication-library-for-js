@@ -1864,11 +1864,10 @@ export class BrowserCacheManager extends CacheManager {
             claimsHash
         );
 
-        const cacheRecord = new CacheRecord(
-            undefined,
-            idTokenEntity,
-            accessTokenEntity
-        );
+        const cacheRecord = {
+            idToken: idTokenEntity,
+            accessToken: accessTokenEntity,
+        };
         return this.saveCacheRecord(cacheRecord);
     }
 

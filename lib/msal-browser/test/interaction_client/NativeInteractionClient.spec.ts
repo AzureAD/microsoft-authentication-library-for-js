@@ -90,14 +90,6 @@ const testAccessTokenEntity: AccessTokenEntity = {
     cachedAt: `${TimeUtils.nowSeconds()}`,
 };
 
-const testCacheRecord: CacheRecord = {
-    account: testAccountEntity,
-    idToken: TEST_ID_TOKEN,
-    accessToken: testAccessTokenEntity,
-    refreshToken: null,
-    appMetadata: null,
-};
-
 describe("NativeInteractionClient Tests", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
 
@@ -196,18 +188,18 @@ describe("NativeInteractionClient Tests", () => {
             jest.spyOn(
                 CacheManager.prototype,
                 "getAccessToken"
-            ).mockReturnValue(testCacheRecord.accessToken);
+            ).mockReturnValue(testAccessTokenEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
-                testCacheRecord.idToken
+                TEST_ID_TOKEN
             );
             jest.spyOn(
                 CacheManager.prototype,
                 "readAppMetadataFromCache"
-            ).mockReturnValue(testCacheRecord.appMetadata);
+            ).mockReturnValue(null);
             jest.spyOn(
                 CacheManager.prototype,
                 "readAccountFromCache"
-            ).mockReturnValue(testCacheRecord.account);
+            ).mockReturnValue(testAccountEntity);
         });
 
         it("Tokens found in cache", async () => {

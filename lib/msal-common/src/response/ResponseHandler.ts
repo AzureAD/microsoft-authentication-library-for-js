@@ -464,8 +464,8 @@ export class ResponseHandler {
                 this.cacheStorage,
                 authority,
                 this.homeAccountIdentifier,
-                idTokenClaims,
                 this.cryptoObj.base64Decode,
+                idTokenClaims,
                 serverTokenResponse.client_info,
                 env,
                 claimsTenantId,
@@ -563,13 +563,13 @@ export class ResponseHandler {
             };
         }
 
-        return new CacheRecord(
-            cachedAccount,
-            cachedIdToken,
-            cachedAccessToken,
-            cachedRefreshToken,
-            cachedAppMetadata
-        );
+        return {
+            account: cachedAccount,
+            idToken: cachedIdToken,
+            accessToken: cachedAccessToken,
+            refreshToken: cachedRefreshToken,
+            appMetadata: cachedAppMetadata,
+        };
     }
 
     /**
@@ -704,8 +704,8 @@ export function buildAccountToCache(
     cacheStorage: CacheManager,
     authority: Authority,
     homeAccountId: string,
-    idTokenClaims: TokenClaims,
     base64Decode: (input: string) => string,
+    idTokenClaims?: TokenClaims,
     clientInfo?: string,
     environment?: string,
     claimsTenantId?: string | null,
@@ -746,6 +746,7 @@ export function buildAccountToCache(
 
     if (
         claimsTenantId &&
+        idTokenClaims &&
         !tenantProfiles.find((tenantProfile) => {
             return tenantProfile.tenantId === claimsTenantId;
         })

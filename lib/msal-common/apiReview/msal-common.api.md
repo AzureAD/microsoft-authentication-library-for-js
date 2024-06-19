@@ -129,7 +129,7 @@ export class AccountEntity {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static createAccount(accountDetails: {
         homeAccountId: string;
-        idTokenClaims: TokenClaims;
+        idTokenClaims?: TokenClaims;
         clientInfo?: string;
         cloudGraphHostName?: string;
         msGraphHost?: string;
@@ -651,7 +651,7 @@ const bindingKeyNotRemoved = "binding_key_not_removed";
 // Warning: (ae-missing-release-tag) "buildAccountToCache" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export function buildAccountToCache(cacheStorage: CacheManager, authority: Authority, homeAccountId: string, idTokenClaims: TokenClaims, base64Decode: (input: string) => string, clientInfo?: string, environment?: string, claimsTenantId?: string | null, authCodePayload?: AuthorizationCodePayload, nativeAccountId?: string, logger?: Logger): AccountEntity;
+export function buildAccountToCache(cacheStorage: CacheManager, authority: Authority, homeAccountId: string, base64Decode: (input: string) => string, idTokenClaims?: TokenClaims, clientInfo?: string, environment?: string, claimsTenantId?: string | null, authCodePayload?: AuthorizationCodePayload, nativeAccountId?: string, logger?: Logger): AccountEntity;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -918,19 +918,13 @@ const cacheQuotaExceededErrorCode = "cache_quota_exceeded";
 // Warning: (ae-internal-missing-underscore) The name "CacheRecord" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal (undocumented)
-export class CacheRecord {
-    constructor(accountEntity?: AccountEntity | null, idTokenEntity?: IdTokenEntity | null, accessTokenEntity?: AccessTokenEntity | null, refreshTokenEntity?: RefreshTokenEntity | null, appMetadataEntity?: AppMetadataEntity | null);
-    // (undocumented)
-    accessToken: AccessTokenEntity | null;
-    // (undocumented)
-    account: AccountEntity | null;
-    // (undocumented)
-    appMetadata: AppMetadataEntity | null;
-    // (undocumented)
-    idToken: IdTokenEntity | null;
-    // (undocumented)
-    refreshToken: RefreshTokenEntity | null;
-}
+export type CacheRecord = {
+    account?: AccountEntity | null;
+    idToken?: IdTokenEntity | null;
+    accessToken?: AccessTokenEntity | null;
+    refreshToken?: RefreshTokenEntity | null;
+    appMetadata?: AppMetadataEntity | null;
+};
 
 // Warning: (ae-missing-release-tag) "CacheType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "CacheType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1949,7 +1943,7 @@ const EXPIRES_IN = "expires_in";
 // Warning: (ae-missing-release-tag) "ExternalTokenResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type ExternalTokenResponse = Pick<ServerAuthorizationTokenResponse, "token_type" | "scope" | "expires_in" | "id_token" | "refresh_token"> & {
+export type ExternalTokenResponse = Pick<ServerAuthorizationTokenResponse, "token_type" | "scope" | "expires_in" | "ext_expires_in" | "id_token" | "refresh_token" | "refresh_token_expires_in" | "foci"> & {
     access_token?: string;
     client_info?: string;
 };

@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Relax loadExternalTokens requirements to allow loading access or refresh tokens without id_token",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
