@@ -1,13 +1,18 @@
 import { ServerError } from "../../src/error/ServerError";
 import { AuthError } from "../../src/error/AuthError";
+import { HttpStatus } from "../../src";
 
 describe("ServerError.ts Class Unit Tests", () => {
     it("ServerError object can be created", () => {
         const TEST_ERROR_CODE: string = "test";
         const TEST_ERROR_MSG: string = "This is a test error";
+        const TEST_ERROR_STATUS: number = HttpStatus.BAD_REQUEST;
         const err: ServerError = new ServerError(
             TEST_ERROR_CODE,
-            TEST_ERROR_MSG
+            TEST_ERROR_MSG,
+            undefined,
+            undefined,
+            TEST_ERROR_STATUS
         );
 
         expect(err instanceof ServerError).toBe(true);
@@ -18,5 +23,6 @@ describe("ServerError.ts Class Unit Tests", () => {
         expect(err.message).toBe(`${TEST_ERROR_CODE}: ${TEST_ERROR_MSG}`);
         expect(err.name).toBe("ServerError");
         expect(err.stack?.includes("ServerError.spec.ts")).toBe(true);
+        expect(err.status).toBe(TEST_ERROR_STATUS);
     });
 });
