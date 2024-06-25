@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1718745182695,
+  "lastUpdate": 1719347470295,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -9742,6 +9742,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.18%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "348301bd86ad0fbd87ed8e464b29acb619867bd4",
+          "message": "Managed Identity - Reformatted ManagedIdentityTokenResponse + adjusted unit tests (#7167)\n\nUpdated msal-common ResponseHandler's validateTokenResponse function to\r\naccount for undefined portions of a network error. It now accounts for\r\n[different error\r\nformats](https://microsoft.sharepoint.com/teams/ADAL/_layouts/15/Doc.aspx?sourcedoc={0339bdd6-b5e5-4d94-b4c9-ea47127f5023}&action=edit&wd=target%28ID4S%2FMSALs%2FTechnical%2FMSI.one%7Ca2a57687-9a17-4c9e-86d1-60aa32ab5005%2FMSI%20Errors%20%20Exceptions%7C41fe3612-4fac-475d-9667-4a114aebeeda%2F%29&wdorigin=NavigationUrl)\r\nfrom all Managed Identity sources.\r\n\r\nCreated new unit tests + overhauled existing Managed Identity unit\r\ntests.\r\n\r\nManual testing was completed for all Managed Identity sources except\r\nService Fabric.",
+          "timestamp": "2024-06-25T16:25:35-04:00",
+          "tree_id": "df221b0593a1d2619460a7326daf0ada7b2bb34b",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/348301bd86ad0fbd87ed8e464b29acb619867bd4"
+        },
+        "date": 1719347469345,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 191297,
+            "range": "±2.17%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 193231,
+            "range": "±2.14%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
