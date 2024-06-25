@@ -1,6 +1,6 @@
 import { ServerError } from "../../src/error/ServerError";
 import { AuthError } from "../../src/error/AuthError";
-import { HttpStatus } from "../../src";
+import { Constants, HttpStatus } from "../../src";
 
 describe("ServerError.ts Class Unit Tests", () => {
     it("ServerError object can be created", () => {
@@ -24,5 +24,20 @@ describe("ServerError.ts Class Unit Tests", () => {
         expect(err.name).toBe("ServerError");
         expect(err.stack?.includes("ServerError.spec.ts")).toBe(true);
         expect(err.status).toBe(TEST_ERROR_STATUS);
+    });
+
+    it("Values are set as expected when no info was provided to ServerError", () => {
+        const err: ServerError = new ServerError();
+
+        expect(err instanceof ServerError).toBe(true);
+        expect(err instanceof AuthError).toBe(true);
+        expect(err instanceof Error).toBe(true);
+        expect(err.errorCode).toBe(Constants.EMPTY_STRING);
+        expect(err.errorMessage).toBe(Constants.EMPTY_STRING);
+        expect(err.errorNo).toBeUndefined();
+        expect(err.message).toBe(Constants.EMPTY_STRING);
+        expect(err.name).toBe("ServerError");
+        expect(err.stack?.includes("ServerError.spec.ts")).toBe(true);
+        expect(err.status).toBeUndefined();
     });
 });
