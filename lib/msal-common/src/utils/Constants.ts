@@ -45,6 +45,7 @@ export const Constants = {
     NOT_DEFINED: "not_defined",
     EMPTY_STRING: "",
     NOT_APPLICABLE: "N/A",
+    NOT_AVAILABLE: "Not Available",
     FORWARD_SLASH: "/",
     IMDS_ENDPOINT: "http://169.254.169.254/metadata/instance/compute/location",
     IMDS_VERSION: "2020-06-01",

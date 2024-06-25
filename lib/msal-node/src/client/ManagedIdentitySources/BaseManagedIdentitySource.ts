@@ -102,8 +102,20 @@ export abstract class BaseManagedIdentitySource {
             refresh_in: refreshIn,
 
             // error
-            error: response.body.message,
-            correlation_id: response.body.correlationId,
+            correlation_id:
+                response.body.correlation_id || response.body.correlationId,
+            error:
+                typeof response.body.error === "string"
+                    ? response.body.error
+                    : response.body.error?.code,
+            error_description:
+                response.body.message ||
+                (typeof response.body.error === "string"
+                    ? response.body.error_description
+                    : response.body.error?.message),
+            error_codes: response.body.error_codes,
+            timestamp: response.body.timestamp,
+            trace_id: response.body.trace_id,
         };
 
         return serverTokenResponse;

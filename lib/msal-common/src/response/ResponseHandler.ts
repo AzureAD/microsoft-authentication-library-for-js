@@ -197,7 +197,17 @@ export class ResponseHandler {
             serverResponse.error_description ||
             serverResponse.suberror
         ) {
-            const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
+            const errString = `Error(s): ${
+                serverResponse.error_codes || Constants.NOT_AVAILABLE
+            } - Timestamp: ${
+                serverResponse.timestamp || Constants.NOT_AVAILABLE
+            } - Description: ${
+                serverResponse.error_description || Constants.NOT_AVAILABLE
+            } - Correlation ID: ${
+                serverResponse.correlation_id || Constants.NOT_AVAILABLE
+            } - Trace ID: ${
+                serverResponse.trace_id || Constants.NOT_AVAILABLE
+            }`;
             const serverErrorNo = serverResponse.error_codes?.length
                 ? serverResponse.error_codes[0]
                 : undefined;
@@ -205,7 +215,8 @@ export class ResponseHandler {
                 serverResponse.error,
                 errString,
                 serverResponse.suberror,
-                serverErrorNo
+                serverErrorNo,
+                serverResponse.status
             );
 
             // check if 500 error
