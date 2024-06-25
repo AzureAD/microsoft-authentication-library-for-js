@@ -7,6 +7,7 @@ import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityA
 import {
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
+    MANAGED_IDENTITY_APP_SERVICE_NETWORK_REQUEST_400_ERROR,
     MANAGED_IDENTITY_RESOURCE,
 } from "../../test_kit/StringConstants";
 
@@ -14,8 +15,14 @@ import {
     userAssignedClientIdConfig,
     managedIdentityRequestParams,
     systemAssignedConfig,
+    networkClient,
+    ManagedIdentityNetworkErrorClient,
 } from "../../test_kit/ManagedIdentityTestUtils";
-import { AuthenticationResult } from "@azure/msal-common";
+import {
+    AuthenticationResult,
+    HttpStatus,
+    ServerError,
+} from "@azure/msal-common";
 import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient";
 import {
     ManagedIdentityEnvironmentVariableNames,
@@ -104,6 +111,51 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
             expect(cachedManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
+        });
+    });
+
+    describe("Errors", () => {
+        test("ensures that the error format is correct", async () => {
+            const managedIdentityNetworkErrorClient400 =
+                new ManagedIdentityNetworkErrorClient(
+                    MANAGED_IDENTITY_APP_SERVICE_NETWORK_REQUEST_400_ERROR,
+                    undefined,
+                    HttpStatus.BAD_REQUEST
+                );
+
+            jest.spyOn(networkClient, <any>"sendGetRequestAsync")
+                // permanently override the networkClient's sendGetRequestAsync method to return a 400
+                .mockReturnValue(
+                    managedIdentityNetworkErrorClient400.sendGetRequestAsync()
+                );
+
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication(systemAssignedConfig);
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.APP_SERVICE
+            );
+
+            let serverError: ServerError = new ServerError();
+            try {
+                await managedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                );
+            } catch (e) {
+                serverError = e as ServerError;
+            }
+
+            expect(
+                serverError.errorMessage.includes(
+                    MANAGED_IDENTITY_APP_SERVICE_NETWORK_REQUEST_400_ERROR.message as string
+                )
+            ).toBe(true);
+            expect(
+                serverError.errorMessage.includes(
+                    MANAGED_IDENTITY_APP_SERVICE_NETWORK_REQUEST_400_ERROR.correlation_id as string
+                )
+            ).toBe(true);
+
+            jest.restoreAllMocks();
         });
     });
 });

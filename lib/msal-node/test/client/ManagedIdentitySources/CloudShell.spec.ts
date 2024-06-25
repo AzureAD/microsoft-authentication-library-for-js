@@ -6,15 +6,24 @@
 import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication";
 import {
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
+    MANAGED_IDENTITY_CLOUD_SHELL_NETWORK_REQUEST_400_ERROR,
     MANAGED_IDENTITY_RESOURCE,
+    MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
+    MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR_MESSAGE,
 } from "../../test_kit/StringConstants";
 
 import {
     userAssignedClientIdConfig,
     managedIdentityRequestParams,
     systemAssignedConfig,
+    ManagedIdentityNetworkErrorClient,
+    networkClient,
 } from "../../test_kit/ManagedIdentityTestUtils";
-import { AuthenticationResult } from "@azure/msal-common";
+import {
+    AuthenticationResult,
+    HttpStatus,
+    ServerError,
+} from "@azure/msal-common";
 import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient";
 import {
     ManagedIdentityEnvironmentVariableNames,
@@ -105,6 +114,47 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
                     ManagedIdentityErrorCodes.unableToCreateCloudShell
                 )
             );
+        });
+
+        test("ensures that the error format is correct", async () => {
+            const managedIdentityNetworkErrorClient400 =
+                new ManagedIdentityNetworkErrorClient(
+                    MANAGED_IDENTITY_CLOUD_SHELL_NETWORK_REQUEST_400_ERROR,
+                    undefined,
+                    HttpStatus.BAD_REQUEST
+                );
+
+            jest.spyOn(networkClient, <any>"sendPostRequestAsync")
+                // permanently override the networkClient's sendPostRequestAsync method to return a 400
+                .mockReturnValue(
+                    managedIdentityNetworkErrorClient400.sendPostRequestAsync()
+                );
+
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication(systemAssignedConfig);
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.CLOUD_SHELL
+            );
+
+            let serverError: ServerError = new ServerError();
+            try {
+                await managedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                );
+            } catch (e) {
+                serverError = e as ServerError;
+            }
+
+            expect(
+                serverError.errorCode.includes(
+                    MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR as string
+                )
+            ).toBe(true);
+            expect(
+                serverError.errorMessage.includes(
+                    MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR_MESSAGE as string
+                )
+            ).toBe(true);
         });
     });
 });
