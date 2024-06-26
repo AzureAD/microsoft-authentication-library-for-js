@@ -28,6 +28,28 @@ export type ManagedIdentityTokenResponse = {
     token_type?: AuthenticationScheme;
 
     // error
-    message?: string; // will be converted to error
-    correlationId?: string; // will be converted to correlation_id
+
+    /*
+     * (Web/Function) App Service
+     * 500 errors can return this from all MI sources as well
+     */
+    message?: string;
+    correlationId?: string;
+
+    // IMDS, Azure Arc, Service Fabric (unconfirmed)
+    error?: string | ErrorObject;
+    error_description?: string;
+    error_codes?: Array<string>;
+    correlation_id?: string;
+    timestamp?: string;
+    trace_id?: string;
+};
+
+/*
+ * This is the only error property that exists for Cloud Shell
+ * It can also be the only thing App Service will return
+ */
+export type ErrorObject = {
+    code: string;
+    message: string;
 };

@@ -14,15 +14,22 @@ export class ServerError extends AuthError {
      */
     readonly errorNo?: string;
 
+    /**
+     * Http status number;
+     */
+    readonly status?: number;
+
     constructor(
         errorCode?: string,
         errorMessage?: string,
         subError?: string,
-        errorNo?: string
+        errorNo?: string,
+        status?: number
     ) {
         super(errorCode, errorMessage, subError);
         this.name = "ServerError";
         this.errorNo = errorNo;
+        this.status = status;
 
         Object.setPrototypeOf(this, ServerError.prototype);
     }

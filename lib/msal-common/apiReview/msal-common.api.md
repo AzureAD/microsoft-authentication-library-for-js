@@ -1650,6 +1650,7 @@ export const Constants: {
     NOT_DEFINED: string;
     EMPTY_STRING: string;
     NOT_APPLICABLE: string;
+    NOT_AVAILABLE: string;
     FORWARD_SLASH: string;
     IMDS_ENDPOINT: string;
     IMDS_VERSION: string;
@@ -3618,8 +3619,9 @@ export type ServerDeviceCodeResponse = {
 //
 // @public
 export class ServerError extends AuthError {
-    constructor(errorCode?: string, errorMessage?: string, subError?: string, errorNo?: string);
+    constructor(errorCode?: string, errorMessage?: string, subError?: string, errorNo?: string, status?: number);
     readonly errorNo?: string;
+    readonly status?: number;
 }
 
 // Warning: (ae-missing-release-tag) "ServerResponseType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -4261,9 +4263,9 @@ const X_MS_LIB_CAPABILITY = "x-ms-lib-capability";
 // src/request/AuthenticationHeaderParser.ts:74:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/request/ScopeSet.ts:72:15 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
 // src/request/ScopeSet.ts:73:15 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-// src/response/ResponseHandler.ts:419:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/response/ResponseHandler.ts:420:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/response/ResponseHandler.ts:421:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/response/ResponseHandler.ts:430:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/response/ResponseHandler.ts:431:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/response/ResponseHandler.ts:432:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/telemetry/performance/PerformanceClient.ts:886:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/telemetry/performance/PerformanceClient.ts:886:15 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
 // src/telemetry/performance/PerformanceClient.ts:898:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
