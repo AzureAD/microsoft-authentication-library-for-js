@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1719347470295,
+  "lastUpdate": 1719420708336,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -9778,6 +9778,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 193231,
             "range": "±2.14%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2b6041320cc8bcf007dd2e6bab41745c81057aec",
+          "message": "Update package-lock (#7176)\n\nThis PR updates package-lock to fix build issues",
+          "timestamp": "2024-06-26T09:46:24-07:00",
+          "tree_id": "c373e468b4e58cf3586968709ddeae7d12c8db5e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/2b6041320cc8bcf007dd2e6bab41745c81057aec"
+        },
+        "date": 1719420707053,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 190965,
+            "range": "±2.10%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 188891,
+            "range": "±2.17%",
             "unit": "ops/sec",
             "extra": "223 samples"
           }
