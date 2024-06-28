@@ -565,12 +565,18 @@ export class RequestParameterBuilder {
 
     /**
      * add server telemetry fields
-     * @param serverTelemetryManager
+     * @param serverTelemetryManager {ServerTelemetryManager}
+     * @param extraQueryParameters {StringDict}
      */
-    addServerTelemetry(serverTelemetryManager: ServerTelemetryManager): void {
+    addServerTelemetry(
+        serverTelemetryManager: ServerTelemetryManager,
+        extraQueryParameters: StringDict = {}
+    ): void {
         this.parameters.set(
             AADServerParamKeys.X_CLIENT_CURR_TELEM,
-            serverTelemetryManager.generateCurrentRequestHeaderValue()
+            serverTelemetryManager.generateCurrentRequestHeaderValue(
+                extraQueryParameters[AADServerParamKeys.X_CLIENT_CURR_TELEM]
+            )
         );
         this.parameters.set(
             AADServerParamKeys.X_CLIENT_LAST_TELEM,

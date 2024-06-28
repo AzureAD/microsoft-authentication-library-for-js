@@ -17,6 +17,17 @@ import { ServerTelemetryRequest } from "./ServerTelemetryRequest";
 import { ServerTelemetryEntity } from "../../cache/entities/ServerTelemetryEntity";
 import { RegionDiscoveryMetadata } from "../../authority/RegionDiscoveryMetadata";
 
+function parsePlatformFields(currentRequest: string): string[] {
+    const currentRequestFields = currentRequest.split(
+        SERVER_TELEM_CONSTANTS.CATEGORY_SEPARATOR
+    );
+    return currentRequestFields.length >= 3 && currentRequestFields[2].length
+        ? currentRequestFields[2]
+              .split(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR)
+              .filter((v) => v.length)
+        : [];
+}
+
 /** @internal */
 export class ServerTelemetryManager {
     private cacheManager: CacheManager;
@@ -49,9 +60,16 @@ export class ServerTelemetryManager {
     /**
      * API to add MSER Telemetry to request
      */
-    generateCurrentRequestHeaderValue(): string {
+    generateCurrentRequestHeaderValue(currentRequest?: string): string {
         const request = `${this.apiId}${SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR}${this.cacheOutcome}`;
-        const platformFields = [this.wrapperSKU, this.wrapperVer].join(
+        const platformFieldsArr = [this.wrapperSKU, this.wrapperVer];
+        if (currentRequest?.length) {
+            const addedPlatformFields = parsePlatformFields(currentRequest);
+            if (addedPlatformFields.length) {
+                platformFieldsArr.push(...addedPlatformFields);
+            }
+        }
+        const platformFields = platformFieldsArr.join(
             SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR
         );
         const regionDiscoveryFields = this.getRegionDiscoveryFields();

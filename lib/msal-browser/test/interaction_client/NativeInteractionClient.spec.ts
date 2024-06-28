@@ -530,6 +530,106 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
         });
 
+        it("adds MSAL.js SKU to request extra query parameters", async () => {
+            sinon
+                .stub(NativeMessageHandler.prototype, "sendMessage")
+                .callsFake((message): Promise<object> => {
+                    expect(
+                        message.request?.extraParameters!["x-client-xtra-sku"]
+                    ).toEqual("msal.js.browser|3.17.0,|,|,|");
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+            await nativeInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+            });
+        });
+
+        it("adds MSAL.js and Chrome extension SKUs to request extra query parameters", async () => {
+            sinon
+                .stub(NativeMessageHandler.prototype, "sendMessage")
+                .callsFake((message): Promise<object> => {
+                    expect(
+                        message.request?.extraParameters!["x-client-xtra-sku"]
+                    ).toEqual("msal.js.browser|3.17.0,|,chrome|1.0.2,|");
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+
+            sinon
+                .stub(NativeMessageHandler.prototype, "getExtensionId")
+                .returns("ppnbnpeolgkicgegkbkbjmhlideopiji");
+            sinon
+                .stub(NativeMessageHandler.prototype, "getExtensionVersion")
+                .returns("1.0.2");
+
+            nativeInteractionClient = new NativeInteractionClient(
+                // @ts-ignore
+                pca.config,
+                // @ts-ignore
+                pca.browserStorage,
+                // @ts-ignore
+                pca.browserCrypto,
+                pca.getLogger(),
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                ApiId.acquireTokenRedirect,
+                perfClient,
+                wamProvider,
+                "nativeAccountId",
+                // @ts-ignore
+                pca.nativeInternalStorage,
+                RANDOM_TEST_GUID
+            );
+
+            await nativeInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+            });
+        });
+
+        it("adds MSAL.js and unknown extension SKUs to request extra query parameters", async () => {
+            sinon
+                .stub(NativeMessageHandler.prototype, "sendMessage")
+                .callsFake((message): Promise<object> => {
+                    expect(
+                        message.request?.extraParameters!["x-client-xtra-sku"]
+                    ).toEqual("msal.js.browser|3.17.0,|,unknown|2.3.4,|");
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+
+            sinon
+                .stub(NativeMessageHandler.prototype, "getExtensionId")
+                .returns("random_extension_id");
+            sinon
+                .stub(NativeMessageHandler.prototype, "getExtensionVersion")
+                .returns("2.3.4");
+
+            nativeInteractionClient = new NativeInteractionClient(
+                // @ts-ignore
+                pca.config,
+                // @ts-ignore
+                pca.browserStorage,
+                // @ts-ignore
+                pca.browserCrypto,
+                pca.getLogger(),
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                ApiId.acquireTokenRedirect,
+                perfClient,
+                wamProvider,
+                "nativeAccountId",
+                // @ts-ignore
+                pca.nativeInternalStorage,
+                RANDOM_TEST_GUID
+            );
+
+            await nativeInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+            });
+        });
+
         describe("storeInCache tests", () => {
             //here
 
@@ -685,6 +785,30 @@ describe("NativeInteractionClient Tests", () => {
                     expect(e.errorCode).toBe("ContentError");
                     done();
                 });
+        });
+
+        it("adds MSAL.js SKU to request extra query parameters", (done) => {
+            sinon
+                .stub(NavigationClient.prototype, "navigateExternal")
+                .callsFake((url: string) => {
+                    expect(url).toBe(window.location.href);
+                    done();
+                    return Promise.resolve(true);
+                });
+            sinon
+                .stub(NativeMessageHandler.prototype, "sendMessage")
+                .callsFake((message): Promise<object> => {
+                    expect(
+                        message.request?.extraParameters!["x-client-xtra-sku"]
+                    ).toEqual("msal.js.browser|3.17.0,|,|,|");
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+            nativeInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                },
+                perfMeasurement
+            );
         });
     });
 

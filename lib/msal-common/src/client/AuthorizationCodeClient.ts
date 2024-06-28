@@ -351,7 +351,10 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addThrottling();
 
         if (this.serverTelemetryManager && !isOidcProtocolMode(this.config)) {
-            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+            parameterBuilder.addServerTelemetry(
+                this.serverTelemetryManager,
+                request.tokenQueryParameters
+            );
         }
 
         // add code_verifier if passed

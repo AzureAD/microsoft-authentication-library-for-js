@@ -50,6 +50,7 @@ import {
     ApiId,
     TemporaryCacheKeys,
     NativeConstants,
+    BrowserConstants,
 } from "../utils/BrowserConstants";
 import {
     NativeExtensionRequestBody,
@@ -72,11 +73,39 @@ import {
 import { SilentCacheClient } from "./SilentCacheClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { base64Decode } from "../encode/Base64Decode";
+import { version } from "../packageMetadata";
 
 const BrokerServerParamKeys = {
     BROKER_CLIENT_ID: "brk_client_id",
     BROKER_REDIRECT_URI: "brk_redirect_uri",
 };
+
+/**
+ * Sets MSAL and browser extension SKUs
+ * @param messageHandler {NativeMessageHandler}
+ */
+function setSKUs(messageHandler: NativeMessageHandler): string {
+    const groupSeparator = ",";
+    const valueSeparator = "|";
+    const skus = Array.from({ length: 4 }, () => valueSeparator);
+    // Report MSAL SKU
+    skus[0] = [BrowserConstants.MSAL_SKU, version].join(valueSeparator);
+
+    // Report extension SKU
+    const extensionName =
+        messageHandler.getExtensionId() === "ppnbnpeolgkicgegkbkbjmhlideopiji"
+            ? "chrome"
+            : messageHandler.getExtensionId()?.length
+            ? "unknown"
+            : undefined;
+
+    if (extensionName) {
+        skus[2] = [extensionName, messageHandler.getExtensionVersion()].join(
+            valueSeparator
+        );
+    }
+    return skus.join(groupSeparator);
+}
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -84,6 +113,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
     protected nativeMessageHandler: NativeMessageHandler;
     protected silentCacheClient: SilentCacheClient;
     protected nativeStorageManager: BrowserCacheManager;
+    protected skus: string;
 
     constructor(
         config: BrowserConfiguration,
@@ -125,6 +155,19 @@ export class NativeInteractionClient extends BaseInteractionClient {
             provider,
             correlationId
         );
+        this.skus = setSKUs(this.nativeMessageHandler);
+    }
+
+    /**
+     * Adds SKUs to request extra query parameters
+     * @param request {NativeTokenRequest}
+     * @private
+     */
+    private addRequestSKUs(request: NativeTokenRequest) {
+        request.extraParameters = {
+            ...request.extraParameters,
+            "x-client-xtra-sku": this.skus,
+        };
     }
 
     /**
@@ -980,6 +1023,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             // SPAs require whole string to be passed to broker
             validatedRequest.reqCnf = reqCnfData;
         }
+        this.addRequestSKUs(validatedRequest);
 
         return validatedRequest;
     }
