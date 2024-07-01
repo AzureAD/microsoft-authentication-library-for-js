@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1719420708336,
+  "lastUpdate": 1719855597038,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -9816,6 +9816,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 188891,
             "range": "±2.17%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "586aa65856854e025661086fab47c782e1e8c753",
+          "message": "Add main field to package.json (#7184)\n\nAdds main field to package.json to unblock usage with consumers that\r\ndon't understand the \"exports\" field & don't support ESM",
+          "timestamp": "2024-07-01T10:34:32-07:00",
+          "tree_id": "9dcfde34285f96074b0088c87bebd14a29bc0a7c",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/586aa65856854e025661086fab47c782e1e8c753"
+        },
+        "date": 1719855596220,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 187078,
+            "range": "±2.06%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 187324,
+            "range": "±2.08%",
             "unit": "ops/sec",
             "extra": "223 samples"
           }
