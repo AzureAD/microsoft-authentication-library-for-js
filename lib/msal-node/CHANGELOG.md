@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 10 Jun 2024 22:30:36 GMT and should not be manually modified.
+This log was last generated on Mon, 01 Jul 2024 19:18:29 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.10.0
+
+Mon, 01 Jul 2024 19:18:29 GMT
+
+### Minor changes
+
+- Add main field to package.json (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.13.0
+- Bump eslint-config-msal to v0.0.0
+
+### Patches
+
+- Reformatted ManagedIdentityTokenResponse + adjusted unit tests #7167 (rginsburg@microsoft.com)
 
 ## 2.9.2
 

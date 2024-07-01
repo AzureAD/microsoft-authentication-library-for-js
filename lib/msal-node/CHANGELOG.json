@@ -2,6 +2,41 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 01 Jul 2024 19:18:29 GMT",
+      "version": "2.10.0",
+      "tag": "@azure/msal-node_v2.10.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "586aa65856854e025661086fab47c782e1e8c753",
+            "comment": "Add main field to package.json"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.13.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "586aa65856854e025661086fab47c782e1e8c753",
+            "comment": "Reformatted ManagedIdentityTokenResponse + adjusted unit tests #7167"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 10 Jun 2024 22:30:36 GMT",
       "version": "2.9.2",
       "tag": "@azure/msal-node_v2.9.2",

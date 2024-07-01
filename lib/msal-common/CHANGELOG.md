@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 10 Jun 2024 22:30:36 GMT and should not be manually modified.
+This log was last generated on Mon, 01 Jul 2024 19:18:29 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.13.0
+
+Mon, 01 Jul 2024 19:18:29 GMT
+
+### Minor changes
+
+- Add main field to package.json (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- Reformatted ManagedIdentityTokenResponse + adjusted unit tests #7167 (rginsburg@microsoft.com)
+- Fix extraQueryParameters being dropped from request (thomas.norling@microsoft.com)
+- Make idTokenClaims optional when creating AccountEntity (thomas.norling@microsoft.com)
 
 ## 14.12.0
 

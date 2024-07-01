@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "fix : msal-browser acquireTokenSilentAsync memory leak",
-  "packageName": "@azure/msal-browser",
-  "email": "127046736+shaouari-Dev@users.noreply.github.com",
-  "dependentChangeType": "patch"
-}
