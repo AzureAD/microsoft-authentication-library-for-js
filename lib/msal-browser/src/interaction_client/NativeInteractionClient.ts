@@ -93,7 +93,7 @@ function setSKUs(messageHandler: NativeMessageHandler): string {
 
     // Report extension SKU
     const extensionName =
-        messageHandler.getExtensionId() === "ppnbnpeolgkicgegkbkbjmhlideopiji"
+        messageHandler.getExtensionId() === NativeConstants.CHROME_EXTENSION_ID
             ? "chrome"
             : messageHandler.getExtensionId()?.length
             ? "unknown"
@@ -166,7 +166,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
     private addRequestSKUs(request: NativeTokenRequest) {
         request.extraParameters = {
             ...request.extraParameters,
-            "x-client-xtra-sku": this.skus,
+            [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
         };
     }
 

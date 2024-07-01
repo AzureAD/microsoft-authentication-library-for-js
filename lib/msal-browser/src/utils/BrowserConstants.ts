@@ -45,6 +45,7 @@ export const NativeConstants = {
     CHANNEL_ID: "53ee284d-920a-4b59-9d30-a60315b26836",
     PREFERRED_EXTENSION_ID: "ppnbnpeolgkicgegkbkbjmhlideopiji",
     MATS_TELEMETRY: "MATS",
+    CHROME_EXTENSION_ID: "ppnbnpeolgkicgegkbkbjmhlideopiji",
 };
 
 export const NativeExtensionMethod = {

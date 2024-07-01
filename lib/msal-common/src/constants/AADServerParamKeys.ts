@@ -55,3 +55,4 @@ export const LOGOUT_HINT = "logout_hint";
 export const SID = "sid";
 export const LOGIN_HINT = "login_hint";
 export const DOMAIN_HINT = "domain_hint";
+export const X_CLIENT_EXTRA_SKU = "x-client-xtra-sku";

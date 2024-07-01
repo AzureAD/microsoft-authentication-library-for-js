@@ -45,6 +45,8 @@ import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { BrowserPerformanceClient, IPublicClientApplication } from "../../src";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
+import { version } from "../../src/packageMetadata";
+import { BrowserConstants } from "../../src/utils/BrowserConstants";
 
 const MOCK_WAM_RESPONSE = {
     access_token: TEST_TOKENS.ACCESS_TOKEN,
@@ -536,7 +538,7 @@ describe("NativeInteractionClient Tests", () => {
                 .callsFake((message): Promise<object> => {
                     expect(
                         message.request?.extraParameters!["x-client-xtra-sku"]
-                    ).toEqual("msal.js.browser|3.17.0,|,|,|");
+                    ).toEqual(`${BrowserConstants.MSAL_SKU}|${version},|,|,|`);
                     return Promise.resolve(MOCK_WAM_RESPONSE);
                 });
             await nativeInteractionClient.acquireToken({
@@ -550,7 +552,9 @@ describe("NativeInteractionClient Tests", () => {
                 .callsFake((message): Promise<object> => {
                     expect(
                         message.request?.extraParameters!["x-client-xtra-sku"]
-                    ).toEqual("msal.js.browser|3.17.0,|,chrome|1.0.2,|");
+                    ).toEqual(
+                        `${BrowserConstants.MSAL_SKU}|${version},|,chrome|1.0.2,|`
+                    );
                     return Promise.resolve(MOCK_WAM_RESPONSE);
                 });
 
@@ -593,7 +597,9 @@ describe("NativeInteractionClient Tests", () => {
                 .callsFake((message): Promise<object> => {
                     expect(
                         message.request?.extraParameters!["x-client-xtra-sku"]
-                    ).toEqual("msal.js.browser|3.17.0,|,unknown|2.3.4,|");
+                    ).toEqual(
+                        `${BrowserConstants.MSAL_SKU}|${version},|,unknown|2.3.4,|`
+                    );
                     return Promise.resolve(MOCK_WAM_RESPONSE);
                 });
 
@@ -800,7 +806,7 @@ describe("NativeInteractionClient Tests", () => {
                 .callsFake((message): Promise<object> => {
                     expect(
                         message.request?.extraParameters!["x-client-xtra-sku"]
-                    ).toEqual("msal.js.browser|3.17.0,|,|,|");
+                    ).toEqual(`${BrowserConstants.MSAL_SKU}|${version},|,|,|`);
                     return Promise.resolve(MOCK_WAM_RESPONSE);
                 });
             nativeInteractionClient.acquireTokenRedirect(
