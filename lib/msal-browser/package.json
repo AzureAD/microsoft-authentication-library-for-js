@@ -23,6 +23,7 @@
   ],
   "type": "module",
   "sideEffects": false,
+  "main": "./lib/msal-browser.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
