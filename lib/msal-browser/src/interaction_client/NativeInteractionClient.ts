@@ -36,6 +36,7 @@ import {
     CacheHelpers,
     buildAccountToCache,
     InProgressPerformanceEvent,
+    ServerTelemetryManager,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -114,6 +115,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
     protected silentCacheClient: SilentCacheClient;
     protected nativeStorageManager: BrowserCacheManager;
     protected skus: string;
+    protected serverTelemetryManager: ServerTelemetryManager;
 
     constructor(
         config: BrowserConfiguration,
@@ -155,6 +157,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
             provider,
             correlationId
         );
+        this.serverTelemetryManager = this.initializeServerTelemetryManager(
+            this.apiId
+        );
         this.skus = setSKUs(this.nativeMessageHandler);
     }
 
@@ -190,64 +195,73 @@ export class NativeInteractionClient extends BaseInteractionClient {
         );
         const reqTimestamp = TimeUtils.nowSeconds();
 
-        // initialize native request
-        const nativeRequest = await this.initializeNativeRequest(request);
-
-        // check if the tokens can be retrieved from internal cache
         try {
-            const result = await this.acquireTokensFromCache(
-                this.accountId,
-                nativeRequest
-            );
-            nativeATMeasurement.end({
-                success: true,
-                isNativeBroker: false, // Should be true only when the result is coming directly from the broker
-                fromCache: true,
-            });
-            return result;
-        } catch (e) {
-            // continue with a native call for any and all errors
-            this.logger.info(
-                "MSAL internal Cache does not contain tokens, proceed to make a native call"
-            );
-        }
+            // initialize native request
+            const nativeRequest = await this.initializeNativeRequest(request);
 
-        const { ...nativeTokenRequest } = nativeRequest;
-
-        // fall back to native calls
-        const messageBody: NativeExtensionRequestBody = {
-            method: NativeExtensionMethod.GetToken,
-            request: nativeTokenRequest,
-        };
-
-        const response: object = await this.nativeMessageHandler.sendMessage(
-            messageBody
-        );
-        const validatedResponse: NativeResponse =
-            this.validateNativeResponse(response);
-
-        return this.handleNativeResponse(
-            validatedResponse,
-            nativeRequest,
-            reqTimestamp
-        )
-            .then((result: AuthenticationResult) => {
+            // check if the tokens can be retrieved from internal cache
+            try {
+                const result = await this.acquireTokensFromCache(
+                    this.accountId,
+                    nativeRequest
+                );
                 nativeATMeasurement.end({
                     success: true,
-                    isNativeBroker: true,
-                    requestId: result.requestId,
+                    isNativeBroker: false, // Should be true only when the result is coming directly from the broker
+                    fromCache: true,
                 });
                 return result;
-            })
-            .catch((error: AuthError) => {
-                nativeATMeasurement.end({
-                    success: false,
-                    errorCode: error.errorCode,
-                    subErrorCode: error.subError,
-                    isNativeBroker: true,
+            } catch (e) {
+                // continue with a native call for any and all errors
+                this.logger.info(
+                    "MSAL internal Cache does not contain tokens, proceed to make a native call"
+                );
+            }
+
+            const { ...nativeTokenRequest } = nativeRequest;
+
+            // fall back to native calls
+            const messageBody: NativeExtensionRequestBody = {
+                method: NativeExtensionMethod.GetToken,
+                request: nativeTokenRequest,
+            };
+
+            const response: object =
+                await this.nativeMessageHandler.sendMessage(messageBody);
+            const validatedResponse: NativeResponse =
+                this.validateNativeResponse(response);
+
+            return await this.handleNativeResponse(
+                validatedResponse,
+                nativeRequest,
+                reqTimestamp
+            )
+                .then((result: AuthenticationResult) => {
+                    nativeATMeasurement.end({
+                        success: true,
+                        isNativeBroker: true,
+                        requestId: result.requestId,
+                    });
+                    this.serverTelemetryManager.clearNativeBrokerErrorCode();
+                    return result;
+                })
+                .catch((error: AuthError) => {
+                    nativeATMeasurement.end({
+                        success: false,
+                        errorCode: error.errorCode,
+                        subErrorCode: error.subError,
+                        isNativeBroker: true,
+                    });
+                    throw error;
                 });
-                throw error;
-            });
+        } catch (e) {
+            if (e instanceof NativeAuthError) {
+                this.serverTelemetryManager.setNativeBrokerErrorCode(
+                    e.errorCode
+                );
+            }
+            throw e;
+        }
     }
 
     /**
@@ -350,10 +364,16 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.validateNativeResponse(response);
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
-            if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
-                throw e;
+            if (e instanceof NativeAuthError) {
+                this.serverTelemetryManager.setNativeBrokerErrorCode(
+                    e.errorCode
+                );
+                if (isFatalNativeAuthError(e)) {
+                    throw e;
+                }
             }
         }
+        this.serverTelemetryManager.clearNativeBrokerErrorCode();
         this.browserStorage.setTemporaryCache(
             TemporaryCacheKeys.NATIVE_REQUEST,
             JSON.stringify(nativeRequest),

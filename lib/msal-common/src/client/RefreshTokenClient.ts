@@ -373,10 +373,7 @@ export class RefreshTokenClient extends BaseClient {
         parameterBuilder.addThrottling();
 
         if (this.serverTelemetryManager && !isOidcProtocolMode(this.config)) {
-            parameterBuilder.addServerTelemetry(
-                this.serverTelemetryManager,
-                request.tokenQueryParameters
-            );
+            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
 
         parameterBuilder.addCorrelationId(correlationId);

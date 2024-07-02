@@ -257,45 +257,21 @@ describe("ServerTelemetryManager.ts", () => {
                 testTelemetryPayload,
                 testCacheManager
             );
+            telemetryManager.setNativeBrokerErrorCode("native_dummy_error");
             const currHeaderVal =
-                telemetryManager.generateCurrentRequestHeaderValue(
-                    "dummy_value1|dummy_value2|broker_error=native_dummy_error"
-                );
+                telemetryManager.generateCurrentRequestHeaderValue();
             expect(currHeaderVal).toEqual(
-                `5|${testApiCode},0,,,|,,broker_error=native_dummy_error`
-            );
-            const currHeaderVal2 =
-                telemetryManager.generateCurrentRequestHeaderValue(
-                    "dummy_value1|dummy_value2|,,broker_error=native_dummy_error"
-                );
-            expect(currHeaderVal2).toEqual(
                 `5|${testApiCode},0,,,|,,broker_error=native_dummy_error`
             );
         });
 
-        it("Adds payload to platform fields", () => {
+        it("Does not add broker error code to platform fields", () => {
             const telemetryManager = new ServerTelemetryManager(
                 testTelemetryPayload,
                 testCacheManager
             );
             const currHeaderVal =
-                telemetryManager.generateCurrentRequestHeaderValue(
-                    "dummy_value1|dummy_value2|,,,dummy_payload"
-                );
-            expect(currHeaderVal).toEqual(
-                `5|${testApiCode},0,,,|,,dummy_payload`
-            );
-        });
-
-        it("Does not add payload to platform fields", () => {
-            const telemetryManager = new ServerTelemetryManager(
-                testTelemetryPayload,
-                testCacheManager
-            );
-            const currHeaderVal =
-                telemetryManager.generateCurrentRequestHeaderValue(
-                    "dummy_value1|dummy_value2|,,,"
-                );
+                telemetryManager.generateCurrentRequestHeaderValue();
             expect(currHeaderVal).toEqual(`5|${testApiCode},0,,,|,`);
         });
     });

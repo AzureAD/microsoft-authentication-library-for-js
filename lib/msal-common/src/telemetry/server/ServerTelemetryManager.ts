@@ -17,17 +17,6 @@ import { ServerTelemetryRequest } from "./ServerTelemetryRequest";
 import { ServerTelemetryEntity } from "../../cache/entities/ServerTelemetryEntity";
 import { RegionDiscoveryMetadata } from "../../authority/RegionDiscoveryMetadata";
 
-function parsePlatformFields(currentRequest: string): string[] {
-    const currentRequestFields = currentRequest.split(
-        SERVER_TELEM_CONSTANTS.CATEGORY_SEPARATOR
-    );
-    return currentRequestFields.length >= 3 && currentRequestFields[2].length
-        ? currentRequestFields[2]
-              .split(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR)
-              .filter((v) => v.length)
-        : [];
-}
-
 /** @internal */
 export class ServerTelemetryManager {
     private cacheManager: CacheManager;
@@ -60,14 +49,12 @@ export class ServerTelemetryManager {
     /**
      * API to add MSER Telemetry to request
      */
-    generateCurrentRequestHeaderValue(currentRequest?: string): string {
+    generateCurrentRequestHeaderValue(): string {
         const request = `${this.apiId}${SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR}${this.cacheOutcome}`;
         const platformFieldsArr = [this.wrapperSKU, this.wrapperVer];
-        if (currentRequest?.length) {
-            const addedPlatformFields = parsePlatformFields(currentRequest);
-            if (addedPlatformFields.length) {
-                platformFieldsArr.push(...addedPlatformFields);
-            }
+        const nativeBrokerErrorCode = this.getNativeBrokerErrorCode();
+        if (nativeBrokerErrorCode?.length) {
+            platformFieldsArr.push(`broker_error=${nativeBrokerErrorCode}`);
         }
         const platformFields = platformFieldsArr.join(
             SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR
@@ -294,5 +281,27 @@ export class ServerTelemetryManager {
      */
     setCacheOutcome(cacheOutcome: CacheOutcome): void {
         this.cacheOutcome = cacheOutcome;
+    }
+
+    setNativeBrokerErrorCode(errorCode: string): void {
+        const lastRequests = this.getLastRequests();
+        lastRequests.nativeBrokerErrorCode = errorCode;
+        this.cacheManager.setServerTelemetry(
+            this.telemetryCacheKey,
+            lastRequests
+        );
+    }
+
+    getNativeBrokerErrorCode(): string | undefined {
+        return this.getLastRequests().nativeBrokerErrorCode;
+    }
+
+    clearNativeBrokerErrorCode(): void {
+        const lastRequests = this.getLastRequests();
+        delete lastRequests.nativeBrokerErrorCode;
+        this.cacheManager.setServerTelemetry(
+            this.telemetryCacheKey,
+            lastRequests
+        );
     }
 }
