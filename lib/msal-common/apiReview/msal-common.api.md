@@ -72,7 +72,8 @@ declare namespace AADServerParamKeys {
         LOGOUT_HINT,
         SID,
         LOGIN_HINT,
-        DOMAIN_HINT
+        DOMAIN_HINT,
+        X_CLIENT_EXTRA_SKU
     }
 }
 export { AADServerParamKeys }
@@ -3423,11 +3424,11 @@ export class RequestParameterBuilder {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     addScopes(scopes: string[], addOidcScopes?: boolean, defaultScopes?: Array<string>): void;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    addServerTelemetry(serverTelemetryManager: ServerTelemetryManager, extraQueryParameters?: StringDict): void;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    addServerTelemetry(serverTelemetryManager: ServerTelemetryManager): void;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     addSid(sid: string): void;
     addSshJwk(sshJwkString: string): void;
@@ -3646,6 +3647,7 @@ export type ServerTelemetryEntity = {
     failedRequests: Array<string | number>;
     errors: string[];
     cacheHits: number;
+    nativeBrokerErrorCode?: string;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "ServerTelemetryManager" should be prefixed with an underscore because the declaration is marked as @internal
@@ -3655,15 +3657,21 @@ export class ServerTelemetryManager {
     constructor(telemetryRequest: ServerTelemetryRequest, cacheManager: CacheManager);
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     cacheFailedRequest(error: unknown): void;
+    // (undocumented)
+    clearNativeBrokerErrorCode(): void;
     clearTelemetryCache(): void;
-    generateCurrentRequestHeaderValue(currentRequest?: string): string;
+    generateCurrentRequestHeaderValue(): string;
     generateLastRequestHeaderValue(): string;
     getLastRequests(): ServerTelemetryEntity;
+    // (undocumented)
+    getNativeBrokerErrorCode(): string | undefined;
     getRegionDiscoveryFields(): string;
     incrementCacheHits(): number;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static maxErrorsToSend(serverTelemetryEntity: ServerTelemetryEntity): number;
     setCacheOutcome(cacheOutcome: CacheOutcome): void;
+    // (undocumented)
+    setNativeBrokerErrorCode(errorCode: string): void;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     updateRegionDiscoveryMetadata(regionDiscoveryMetadata: RegionDiscoveryMetadata): void;
 }
@@ -4165,6 +4173,11 @@ const X_CLIENT_CPU = "x-client-CPU";
 // @public (undocumented)
 const X_CLIENT_CURR_TELEM = "x-client-current-telemetry";
 
+// Warning: (ae-missing-release-tag) "X_CLIENT_EXTRA_SKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const X_CLIENT_EXTRA_SKU = "x-client-xtra-sku";
+
 // Warning: (ae-missing-release-tag) "X_CLIENT_LAST_TELEM" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -4250,9 +4263,9 @@ const X_MS_LIB_CAPABILITY = "x-ms-lib-capability";
 // src/client/AuthorizationCodeClient.ts:228:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/AuthorizationCodeClient.ts:229:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/AuthorizationCodeClient.ts:307:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/AuthorizationCodeClient.ts:504:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/AuthorizationCodeClient.ts:719:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/AuthorizationCodeClient.ts:759:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:501:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:716:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:756:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:193:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:277:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:278:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
