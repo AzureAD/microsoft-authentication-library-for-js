@@ -28,7 +28,6 @@ import {
     AccountFilter,
     buildStaticAuthorityOptions,
     InteractionRequiredAuthErrorCodes,
-    AADServerParamKeys,
 } from "@azure/msal-common";
 import {
     BrowserCacheManager,
@@ -2167,11 +2166,6 @@ export class StandardController implements IController {
             ).catch(async (e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to web flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
-                    silentRequest.tokenQueryParameters =
-                        silentRequest.tokenQueryParameters || {};
-                    silentRequest.tokenQueryParameters[
-                        AADServerParamKeys.X_CLIENT_CURR_TELEM
-                    ] = ["", "", `broker_error=${e.errorCode}`].join("|");
                     this.logger.verbose(
                         "acquireTokenSilent - native platform unavailable, falling back to web flow"
                     );
