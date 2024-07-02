@@ -34,7 +34,7 @@ import { HttpClientWithRetries } from "../network/HttpClientWithRetries.js";
  * - knownAuthorities       - Needed for Azure B2C and ADFS. All authorities that will be used in the client application. Only the host of the authority should be passed in.
  * - clientSecret           - Secret string that the application uses when requesting a token. Only used in confidential client applications. Can be created in the Azure app registration portal.
  * - clientAssertion        - A ClientAssertion object containing an assertion string or a callback function that returns an assertion string that the application uses when requesting a token, as well as the assertion's type (urn:ietf:params:oauth:client-assertion-type:jwt-bearer). Only used in confidential client applications.
- * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 thumbprint of the certificiate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
+ * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-2 thumbprint of the certificiate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
  * - protocolMode           - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  * - skipAuthorityMetadataCache - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
  * @public
@@ -45,7 +45,13 @@ export type NodeAuthOptions = {
     clientSecret?: string;
     clientAssertion?: string | ClientAssertionCallback;
     clientCertificate?: {
-        thumbprint: string;
+        /**
+         * @deprecated Use thumbprintSha2 property instead. Thumbprint should be a SHA-2 string.
+         * NIST formally deprecated use of SHA-1 in 2011, disallowed its use for digital signatures in 2013,
+         * and declared that it should be phased out by 2030.
+         */
+        thumbprint?: string;
+        thumbprintSha2: string;
         privateKey: string;
         x5c?: string;
     };
@@ -137,7 +143,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     clientSecret: Constants.EMPTY_STRING,
     clientAssertion: Constants.EMPTY_STRING,
     clientCertificate: {
-        thumbprint: Constants.EMPTY_STRING,
+        thumbprintSha2: Constants.EMPTY_STRING,
         privateKey: Constants.EMPTY_STRING,
         x5c: Constants.EMPTY_STRING,
     },

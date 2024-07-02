@@ -222,11 +222,11 @@ export class ConfidentialClientApplication
         const clientSecretNotEmpty = !!configuration.auth.clientSecret;
         const clientAssertionNotEmpty = !!configuration.auth.clientAssertion;
         const certificate = configuration.auth.clientCertificate || {
-            thumbprint: Constants.EMPTY_STRING,
+            thumbprintSha2: Constants.EMPTY_STRING,
             privateKey: Constants.EMPTY_STRING,
         };
         const certificateNotEmpty =
-            !!certificate.thumbprint || !!certificate.privateKey;
+            !!certificate.thumbprintSha2 || !!certificate.privateKey;
 
         /*
          * If app developer configures this callback, they don't need a credential
@@ -264,7 +264,7 @@ export class ConfidentialClientApplication
             );
         } else {
             this.clientAssertion = ClientAssertion.fromCertificate(
-                certificate.thumbprint,
+                certificate.thumbprintSha2,
                 certificate.privateKey,
                 configuration.auth.clientCertificate?.x5c
             );

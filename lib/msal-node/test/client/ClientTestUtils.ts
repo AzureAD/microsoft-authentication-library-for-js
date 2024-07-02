@@ -404,7 +404,7 @@ export class ClientTestUtils {
                 authority: TEST_CONSTANTS.AUTHORITY,
                 // clientSecret, clientAssertion
                 clientCertificate: {
-                    thumbprint: cryptoKeys.thumbprint,
+                    thumbprintSha2: cryptoKeys.thumbprint,
                     privateKey: cryptoKeys.privateKey,
                 },
                 knownAuthorities: [TEST_CONSTANTS.AUTHORITY],
