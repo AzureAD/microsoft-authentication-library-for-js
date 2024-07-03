@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Make idTokenClaims optional when creating AccountEntity",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

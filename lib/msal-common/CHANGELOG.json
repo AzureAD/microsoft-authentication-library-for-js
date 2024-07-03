@@ -2,6 +2,53 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 01 Jul 2024 19:18:29 GMT",
+      "version": "14.13.0",
+      "tag": "@azure/msal-common_v14.13.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "586aa65856854e025661086fab47c782e1e8c753",
+            "comment": "Reformatted ManagedIdentityTokenResponse + adjusted unit tests #7167"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "586aa65856854e025661086fab47c782e1e8c753",
+            "comment": "Fix extraQueryParameters being dropped from request"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "586aa65856854e025661086fab47c782e1e8c753",
+            "comment": "Make idTokenClaims optional when creating AccountEntity"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "586aa65856854e025661086fab47c782e1e8c753",
+            "comment": "Add main field to package.json"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 10 Jun 2024 22:30:36 GMT",
       "version": "14.12.0",
       "tag": "@azure/msal-common_v14.12.0",
