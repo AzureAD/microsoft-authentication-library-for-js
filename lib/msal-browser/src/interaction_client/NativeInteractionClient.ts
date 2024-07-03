@@ -94,7 +94,8 @@ function setSKUs(messageHandler: NativeMessageHandler): string {
 
     // Report extension SKU
     const extensionName =
-        messageHandler.getExtensionId() === NativeConstants.CHROME_EXTENSION_ID
+        messageHandler.getExtensionId() ===
+        NativeConstants.PREFERRED_EXTENSION_ID
             ? "chrome"
             : messageHandler.getExtensionId()?.length
             ? "unknown"
@@ -373,7 +374,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 }
             }
         }
-        this.serverTelemetryManager.clearNativeBrokerErrorCode();
         this.browserStorage.setTemporaryCache(
             TemporaryCacheKeys.NATIVE_REQUEST,
             JSON.stringify(nativeRequest),
@@ -462,7 +462,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 reqTimestamp
             );
             this.browserStorage.setInteractionInProgress(false);
-            return await result;
+            const res = await result;
+            this.serverTelemetryManager.clearNativeBrokerErrorCode();
+            return res;
         } catch (e) {
             this.browserStorage.setInteractionInProgress(false);
             throw e;
