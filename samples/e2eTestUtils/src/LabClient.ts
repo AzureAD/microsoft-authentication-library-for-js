@@ -30,7 +30,10 @@ export class LabClient {
         this.credentials = new ClientCertificateCredential(
             tenant,
             clientId,
-            client_cert_path
+            client_cert_path,
+            {
+                sendCertificateChain: true,
+            }
         );
     }
 

@@ -26,7 +26,7 @@ $clientIdValue = $(az keyvault secret show --name "LabVaultAppId" --vault-name "
 $pfxPath = "LabCert.pfx";
 $pemPath = "LabCert.pem";
 # get the lab app cert
-az keyvault secret download --vault-name "msidlabs" -n "LabVaultAccessCert" --file $pfxPath --encoding base64
+az keyvault secret download --vault-name "msidlabs" -n "LabAuth" --file $pfxPath --encoding base64
 # convert pfx file to pem
 openssl pkcs12 -in $pfxPath -out $pemPath -nodes --passin pass:
 
