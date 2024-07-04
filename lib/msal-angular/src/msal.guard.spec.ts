@@ -4,6 +4,8 @@ import { UrlTree } from "@angular/router";
 import { RouterTestingModule } from "@angular/router/testing";
 import { Location } from "@angular/common";
 import {
+  AccountInfo,
+  AuthenticationResult,
   BrowserSystemOptions,
   InteractionType,
   IPublicClientApplication,
@@ -28,6 +30,9 @@ let testInteractionType: InteractionType;
 let testLoginFailedRoute: string;
 let testConfiguration: Partial<MsalGuardConfiguration>;
 let browserSystemOptions: BrowserSystemOptions;
+let enableCheckForExpiredToken: boolean | undefined;
+let minimumSecondsBeforeTokenExpiration: number | undefined;
+let silentAuthRequest: any;
 
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
@@ -53,6 +58,20 @@ function MSALGuardConfigFactory(): MsalGuardConfiguration {
     interactionType: testInteractionType,
     loginFailedRoute: testLoginFailedRoute,
     authRequest: testConfiguration?.authRequest,
+    ...(enableCheckForExpiredToken === undefined
+      ? {} // when enableCheckForExpiredToken is undefined we do not change the returned config object. Important to test backward compatibility when property is not present
+      : { enableCheckForExpiredToken: enableCheckForExpiredToken }),
+    ...(minimumSecondsBeforeTokenExpiration === undefined
+      ? {} // when minimumSecondsBeforeTokenExpiration is undefined we do not change the returned config object. Important to test backward compatibility when property is not present
+      : {
+          minimumSecondsBeforeTokenExpiration:
+            minimumSecondsBeforeTokenExpiration,
+        }),
+    ...(silentAuthRequest === undefined
+      ? {} // when minimumSecondsBeforeTokenExpiration is undefined we do not change the returned config object. Important to test backward compatibility when property is not present
+      : {
+          silentAuthRequest: silentAuthRequest,
+        }),
   };
 }
 
@@ -80,6 +99,8 @@ describe("MsalGuard", () => {
     testLoginFailedRoute = undefined;
     testConfiguration = {};
     browserSystemOptions = {};
+    enableCheckForExpiredToken = undefined;
+    minimumSecondsBeforeTokenExpiration = undefined;
     routeStateMock = { snapshot: {}, url: "/" };
     initializeMsal();
   });
@@ -358,6 +379,126 @@ describe("MsalGuard", () => {
         username: "test",
       },
     ]);
+
+    guard.canActivate(routeMock, routeStateMock).subscribe((result) => {
+      expect(result).toBeTrue();
+      done();
+    });
+  });
+
+  it("returns false for option enableCheckForExpiredToken is true and token is expired and silentRefresh fails", (done) => {
+    enableCheckForExpiredToken = true;
+    initializeMsal();
+
+    authService.handleRedirectObservable().subscribe();
+
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+      //@ts-ignore
+      of("test")
+    );
+
+    spyOn(
+      PublicClientApplication.prototype,
+      "getActiveAccount"
+    ).and.returnValue({
+      idTokenClaims: {
+        exp: Math.round(Date.now() / 1000) - 10, // set expiration claim to now + 10 secs
+      },
+    } as AccountInfo);
+
+    spyOn(MsalService.prototype, "acquireTokenSilent").and.returnValue(
+      of({ accessToken: undefined } as AuthenticationResult)
+    );
+
+    guard.canActivate(routeMock, routeStateMock).subscribe((result) => {
+      expect(result).toBeFalse();
+      done();
+    });
+  });
+
+  it("returns false for option enableCheckForExpiredToken is true and token is not expired but not within minimumSecondsBeforeTokenExpiration and silentRefresh fails", (done) => {
+    enableCheckForExpiredToken = true;
+    minimumSecondsBeforeTokenExpiration = 60;
+    initializeMsal();
+
+    authService.handleRedirectObservable().subscribe();
+
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+      //@ts-ignore
+      of("test")
+    );
+
+    spyOn(
+      PublicClientApplication.prototype,
+      "getActiveAccount"
+    ).and.returnValue({
+      idTokenClaims: {
+        exp: Math.round(Date.now() / 1000) + 30, // set expiration claim to now + 30 secs
+      },
+    } as AccountInfo);
+
+    spyOn(MsalService.prototype, "acquireTokenSilent").and.returnValue(
+      of({ accessToken: undefined } as AuthenticationResult)
+    );
+
+    guard.canActivate(routeMock, routeStateMock).subscribe((result) => {
+      expect(result).toBeFalse();
+      done();
+    });
+  });
+
+  it("returns true for option enableCheckForExpiredToken is true and token is expired and silentRefresh succeeds", (done) => {
+    enableCheckForExpiredToken = true;
+    silentAuthRequest = {}; // set silentauth request or it will not be tried
+    initializeMsal();
+
+    authService.handleRedirectObservable().subscribe();
+
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+      //@ts-ignore
+      of("test")
+    );
+
+    spyOn(
+      PublicClientApplication.prototype,
+      "getActiveAccount"
+    ).and.returnValue({
+      idTokenClaims: {
+        exp: Math.round(Date.now() / 1000) - 10, // set expiration claim to now + 10 secs
+      },
+    } as AccountInfo);
+
+    spyOn(MsalService.prototype, "acquireTokenSilent").and.returnValue(
+      of({ accessToken: "validToken" } as AuthenticationResult)
+    );
+
+    guard.canActivate(routeMock, routeStateMock).subscribe((result) => {
+      expect(result).toBeTrue();
+      done();
+    });
+  });
+
+  it("returns true for option enableCheckForExpiredToken is true and token is not expired", (done) => {
+    enableCheckForExpiredToken = true;
+    initializeMsal();
+
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+      //@ts-ignore
+      of("test")
+    );
+
+    spyOn(
+      PublicClientApplication.prototype,
+      "getActiveAccount"
+    ).and.returnValue({
+      idTokenClaims: {
+        exp: Math.round(Date.now() / 1000) + 60, // set expiration claim to now + 10 secs
+      },
+    } as AccountInfo);
+
+    // spyOn(MsalService.prototype, "acquireTokenSilent").and.returnValue(
+    //   of({ accessToken: "validToken" } as AuthenticationResult)
+    // );
 
     guard.canActivate(routeMock, routeStateMock).subscribe((result) => {
       expect(result).toBeTrue();
