@@ -353,8 +353,17 @@ export class MsalGuard {
           return this.authService.acquireTokenSilent(silentRequest);
         }),
         map((authResult) => {
-          this.authService.getLogger().info("Guard - silent refresh succeeded");
-          return !!authResult.accessToken;
+          if (!!authResult.accessToken) {
+            this.authService
+              .getLogger()
+              .info("Guard - silent refresh succeeded");
+            return true;
+          } else {
+            this.authService
+              .getLogger()
+              .warning("Guard - silent refresh did not return a token");
+            return false;
+          }
         }),
         catchError((err) => {
           this.authService

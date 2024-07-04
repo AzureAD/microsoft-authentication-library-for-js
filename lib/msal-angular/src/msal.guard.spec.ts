@@ -7,13 +7,14 @@ import {
   AccountInfo,
   AuthenticationResult,
   BrowserSystemOptions,
+  InteractionStatus,
   InteractionType,
   IPublicClientApplication,
   LogLevel,
   PublicClientApplication,
   UrlString,
 } from "@azure/msal-browser";
-import { of } from "rxjs";
+import { BehaviorSubject, of } from "rxjs";
 import {
   MsalModule,
   MsalGuard,
@@ -21,6 +22,7 @@ import {
   MsalBroadcastService,
 } from "./public-api";
 import { MsalGuardConfiguration } from "./msal.guard.config";
+import { bootstrapApplication } from "@angular/platform-browser";
 
 let guard: MsalGuard;
 let authService: MsalService;
@@ -388,14 +390,12 @@ describe("MsalGuard", () => {
 
   it("returns false for option enableCheckForExpiredToken is true and token is expired and silentRefresh fails", (done) => {
     enableCheckForExpiredToken = true;
+    silentAuthRequest = {};
     initializeMsal();
 
-    authService.handleRedirectObservable().subscribe();
-
-    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
-      //@ts-ignore
-      of("test")
-    );
+    authService.handleRedirectObservable().subscribe((result) => {
+      console.log("handleRedirectObservable result", result);
+    });
 
     spyOn(
       PublicClientApplication.prototype,
@@ -410,6 +410,8 @@ describe("MsalGuard", () => {
       of({ accessToken: undefined } as AuthenticationResult)
     );
 
+    spyOn(guard as any, "loginInteractively").and.returnValue(of(false));
+
     guard.canActivate(routeMock, routeStateMock).subscribe((result) => {
       expect(result).toBeFalse();
       done();
@@ -419,14 +421,12 @@ describe("MsalGuard", () => {
   it("returns false for option enableCheckForExpiredToken is true and token is not expired but not within minimumSecondsBeforeTokenExpiration and silentRefresh fails", (done) => {
     enableCheckForExpiredToken = true;
     minimumSecondsBeforeTokenExpiration = 60;
+    silentAuthRequest = {};
     initializeMsal();
 
-    authService.handleRedirectObservable().subscribe();
-
-    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
-      //@ts-ignore
-      of("test")
-    );
+    authService.handleRedirectObservable().subscribe((result) => {
+      console.log("handleRedirectObservable result", result);
+    });
 
     spyOn(
       PublicClientApplication.prototype,
@@ -441,6 +441,8 @@ describe("MsalGuard", () => {
       of({ accessToken: undefined } as AuthenticationResult)
     );
 
+    spyOn(guard as any, "loginInteractively").and.returnValue(of(false));
+
     guard.canActivate(routeMock, routeStateMock).subscribe((result) => {
       expect(result).toBeFalse();
       done();
@@ -452,12 +454,9 @@ describe("MsalGuard", () => {
     silentAuthRequest = {}; // set silentauth request or it will not be tried
     initializeMsal();
 
-    authService.handleRedirectObservable().subscribe();
-
-    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
-      //@ts-ignore
-      of("test")
-    );
+    authService.handleRedirectObservable().subscribe((result) => {
+      console.log("handleRedirectObservable result", result);
+    });
 
     spyOn(
       PublicClientApplication.prototype,
