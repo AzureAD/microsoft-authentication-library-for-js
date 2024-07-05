@@ -498,6 +498,35 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             // @ts-ignore
             expect(pca.nativeExtensionProvider).toBeUndefined();
         });
+
+        it("reports telemetry event using provided correlation id", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].name).toEqual(
+                    PerformanceEvents.InitializeClientApplication
+                );
+                expect(events[0].correlationId).toEqual("test-correlation-id");
+                expect(
+                    events[0]["clearTokensAndKeysWithClaimsDurationMs"]
+                ).toBeGreaterThanOrEqual(0);
+                pca.removePerformanceCallback(callbackId);
+                done();
+            });
+
+            pca.initialize("test-correlation-id");
+        });
     });
 
     describe("handleRedirectPromise", () => {

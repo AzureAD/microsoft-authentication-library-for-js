@@ -80,9 +80,10 @@ export class PublicClientApplication implements IPublicClientApplication {
 
     /**
      * Initializer function to perform async startup tasks such as connecting to WAM extension
+     * @param correlationId {?string} correlation id
      */
-    async initialize(): Promise<void> {
-        return this.controller.initialize();
+    async initialize(correlationId?: string): Promise<void> {
+        return this.controller.initialize(correlationId);
     }
 
     /**

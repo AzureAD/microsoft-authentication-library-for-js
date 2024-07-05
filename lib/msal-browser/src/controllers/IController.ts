@@ -27,7 +27,7 @@ import { EventCallbackFunction } from "../event/EventMessage";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
 
 export interface IController {
-    initialize(): Promise<void>;
+    initialize(correlationId?: string): Promise<void>;
 
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
 

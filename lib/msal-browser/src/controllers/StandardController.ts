@@ -301,8 +301,9 @@ export class StandardController implements IController {
 
     /**
      * Initializer function to perform async startup tasks such as connecting to WAM extension
+     * @param correlationId {?string} correlation id
      */
-    async initialize(): Promise<void> {
+    async initialize(correlationId?: string): Promise<void> {
         this.logger.trace("initialize called");
         if (this.initialized) {
             this.logger.info(
@@ -311,9 +312,12 @@ export class StandardController implements IController {
             return;
         }
 
+        const initCorrelationId =
+            correlationId || this.getRequestCorrelationId();
         const allowNativeBroker = this.config.system.allowNativeBroker;
         const initMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.InitializeClientApplication
+            PerformanceEvents.InitializeClientApplication,
+            initCorrelationId
         );
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
 
@@ -341,8 +345,9 @@ export class StandardController implements IController {
                 ),
                 PerformanceEvents.ClearTokensAndKeysWithClaims,
                 this.logger,
-                this.performanceClient
-            )(this.performanceClient);
+                this.performanceClient,
+                initCorrelationId
+            )(this.performanceClient, initCorrelationId);
         }
 
         this.initialized = true;
