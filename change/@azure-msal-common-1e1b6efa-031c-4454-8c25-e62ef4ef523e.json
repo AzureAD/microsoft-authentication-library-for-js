@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix extraQueryParameters being dropped from request",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

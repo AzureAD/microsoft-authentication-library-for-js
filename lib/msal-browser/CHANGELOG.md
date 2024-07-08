@@ -1,8 +1,25 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 10 Jun 2024 22:30:36 GMT and should not be manually modified.
+This log was last generated on Mon, 01 Jul 2024 19:18:29 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.18.0
+
+Mon, 01 Jul 2024 19:18:29 GMT
+
+### Minor changes
+
+- Add main field to package.json (thomas.norling@microsoft.com)
+- Relax loadExternalTokens requirements to allow loading access or refresh tokens without id_token (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.13.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- fix : msal-browser acquireTokenSilentAsync memory leak (127046736+shaouari-Dev@users.noreply.github.com)
+- Update error message typo in NAA errors (sameera.gajjarapu@microsoft.com)
 
 ## 3.17.0
 

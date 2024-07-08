@@ -1,3 +1,3 @@
 /* eslint-disable header/header */
 export const name = "@azure/msal-react";
-export const version = "2.0.19";
+export const version = "2.0.20";
