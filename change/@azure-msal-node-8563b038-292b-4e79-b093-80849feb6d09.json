@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Implemented SHA2 cert functionality",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
