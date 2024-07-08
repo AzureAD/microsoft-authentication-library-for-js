@@ -915,8 +915,6 @@ export interface IController {
     handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
     // (undocumented)
     hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
-    // Warning: (ae-forgotten-export) The symbol "InitializeApplicationRequest" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     initialize(request?: InitializeApplicationRequest): Promise<void>;
     // (undocumented)
@@ -969,6 +967,13 @@ export interface INavigationClient {
 }
 
 export { INetworkModule }
+
+// Warning: (ae-missing-release-tag) "InitializeApplicationRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export type InitializeApplicationRequest = {
+    correlationId?: string;
+};
 
 // Warning: (ae-missing-release-tag) "inMemRedirectUnavailable" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
