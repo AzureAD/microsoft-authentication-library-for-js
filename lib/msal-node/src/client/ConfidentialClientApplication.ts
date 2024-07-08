@@ -6,7 +6,7 @@
 // AADAuthorityConstants
 
 import { ClientApplication } from "./ClientApplication.js";
-import { Configuration } from "../config/Configuration.js";
+import { Configuration, NodeConfiguration } from "../config/Configuration.js";
 import { ClientAssertion } from "./ClientAssertion.js";
 import {
     Constants as NodeConstants,
@@ -19,7 +19,6 @@ import {
     AuthenticationResult,
     AzureRegionConfiguration,
     AuthError,
-    Constants,
     IAppTokenProvider,
     OIDC_DEFAULT_SCOPES,
     UrlString,
@@ -218,15 +217,11 @@ export class ConfidentialClientApplication
         }
     }
 
-    private setClientCredential(configuration: Configuration): void {
+    private setClientCredential(configuration: NodeConfiguration): void {
         const clientSecretNotEmpty = !!configuration.auth.clientSecret;
         const clientAssertionNotEmpty = !!configuration.auth.clientAssertion;
-        const certificate = configuration.auth.clientCertificate || {
-            thumbprint: Constants.EMPTY_STRING,
-            privateKey: Constants.EMPTY_STRING,
-        };
         const certificateNotEmpty =
-            !!certificate.thumbprint || !!certificate.privateKey;
+            !!configuration.auth.clientCertificate.x509Certificate;
 
         /*
          * If app developer configures this callback, they don't need a credential
@@ -264,9 +259,7 @@ export class ConfidentialClientApplication
             );
         } else {
             this.clientAssertion = ClientAssertion.fromCertificate(
-                certificate.thumbprint,
-                certificate.privateKey,
-                configuration.auth.clientCertificate?.x5c
+                configuration.auth.clientCertificate
             );
         }
     }

@@ -27,6 +27,21 @@ import {
 } from "../utils/Constants.js";
 import { LinearRetryPolicy } from "../retry/LinearRetryPolicy.js";
 import { HttpClientWithRetries } from "../network/HttpClientWithRetries.js";
+import { X509Certificate } from "crypto";
+
+// clientCertificate - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 thumbprint of the certificiate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
+type CertificateParameters = {
+    privateKey: string;
+    sendX5C?: boolean;
+};
+
+export type PemCertificate = CertificateParameters & {
+    pemCertificate: string;
+};
+
+export type x509Certificate = CertificateParameters & {
+    x509Certificate: X509Certificate | string;
+};
 
 /**
  * - clientId               - Client id of the application.
@@ -34,7 +49,6 @@ import { HttpClientWithRetries } from "../network/HttpClientWithRetries.js";
  * - knownAuthorities       - Needed for Azure B2C and ADFS. All authorities that will be used in the client application. Only the host of the authority should be passed in.
  * - clientSecret           - Secret string that the application uses when requesting a token. Only used in confidential client applications. Can be created in the Azure app registration portal.
  * - clientAssertion        - A ClientAssertion object containing an assertion string or a callback function that returns an assertion string that the application uses when requesting a token, as well as the assertion's type (urn:ietf:params:oauth:client-assertion-type:jwt-bearer). Only used in confidential client applications.
- * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 thumbprint of the certificiate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
  * - protocolMode           - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  * - skipAuthorityMetadataCache - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
  * @public
@@ -44,11 +58,7 @@ export type NodeAuthOptions = {
     authority?: string;
     clientSecret?: string;
     clientAssertion?: string | ClientAssertionCallback;
-    clientCertificate?: {
-        thumbprint: string;
-        privateKey: string;
-        x5c?: string;
-    };
+    clientCertificate?: PemCertificate;
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
     authorityMetadata?: string;
@@ -137,9 +147,9 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     clientSecret: Constants.EMPTY_STRING,
     clientAssertion: Constants.EMPTY_STRING,
     clientCertificate: {
-        thumbprint: Constants.EMPTY_STRING,
+        pemCertificate: Constants.EMPTY_STRING,
         privateKey: Constants.EMPTY_STRING,
-        x5c: Constants.EMPTY_STRING,
+        sendX5C: false,
     },
     knownAuthorities: [],
     cloudDiscoveryMetadata: Constants.EMPTY_STRING,
@@ -181,8 +191,13 @@ const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
 };
 
 /** @internal */
+type AuthNodeConfiguration = Required<
+    Omit<NodeAuthOptions, "clientCertificate"> & {
+        clientCertificate: x509Certificate;
+    }
+>;
 export type NodeConfiguration = {
-    auth: Required<NodeAuthOptions>;
+    auth: AuthNodeConfiguration;
     broker: BrokerOptions;
     cache: CacheOptions;
     system: Required<NodeSystemOptions>;
@@ -217,8 +232,30 @@ export function buildAppConfiguration({
         disableInternalRetries: system?.disableInternalRetries || false,
     };
 
+    /*
+     * combine defaults and what was passed in,
+     * then strip the clientCertificate (PEM format) and save it to a new variable
+     */
+    const { clientCertificate, ...nodeAuthOptions }: Required<NodeAuthOptions> =
+        {
+            ...DEFAULT_AUTH_OPTIONS,
+            ...auth,
+        };
+
+    const combinedAuth: AuthNodeConfiguration = {
+        ...nodeAuthOptions,
+        clientCertificate: {
+            // do not make a X509Certificate if a PEM certificate was not passed in
+            x509Certificate: clientCertificate.pemCertificate
+                ? new X509Certificate(clientCertificate.pemCertificate)
+                : clientCertificate.pemCertificate, // would be an empty string here
+            privateKey: clientCertificate.privateKey,
+            sendX5C: clientCertificate.sendX5C,
+        },
+    };
+
     return {
-        auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
+        auth: combinedAuth,
         broker: { ...broker },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
         system: { ...systemOptions, ...system },

@@ -6,13 +6,14 @@
 import jwt from "jsonwebtoken";
 import {
     TimeUtils,
-    Constants,
     createClientAuthError,
     ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import { CryptoProvider } from "../crypto/CryptoProvider.js";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { JwtConstants } from "../utils/Constants.js";
+import { x509Certificate } from "../config/Configuration.js";
+import { X509Certificate } from "crypto";
 
 /**
  * Client assertion of type jwt-bearer used in confidential client flows
@@ -21,11 +22,11 @@ import { JwtConstants } from "../utils/Constants.js";
 export class ClientAssertion {
     private jwt: string;
     private privateKey: string;
+    private x5c: string;
     private thumbprint: string;
     private expirationTime: number;
     private issuer: string;
     private jwtAudience: string;
-    private publicCertificate: Array<string>;
 
     /**
      * Initialize the ClientAssertion class from the clientAssertion passed by the user
@@ -39,21 +40,22 @@ export class ClientAssertion {
 
     /**
      * Initialize the ClientAssertion class from the certificate passed by the user
-     * @param thumbprint - identifier of a certificate
-     * @param privateKey - secret key
-     * @param publicCertificate - electronic document provided to prove the ownership of the public key
+     * @param x509Certificate - contains the X509Certificate, string private key and the boolean x5C
+     * @returns the client assertion object that will be used in getJwt
      */
     public static fromCertificate(
-        thumbprint: string,
-        privateKey: string,
-        publicCertificate?: string
+        clientCertificate: x509Certificate
     ): ClientAssertion {
         const clientAssertion = new ClientAssertion();
-        clientAssertion.privateKey = privateKey;
-        clientAssertion.thumbprint = thumbprint;
-        if (publicCertificate) {
-            clientAssertion.publicCertificate =
-                this.parseCertificate(publicCertificate);
+        clientAssertion.thumbprint = (
+            clientCertificate.x509Certificate as X509Certificate
+        ).fingerprint256;
+        clientAssertion.privateKey = clientCertificate.privateKey;
+
+        if (clientCertificate.sendX5C) {
+            clientAssertion.x5c = EncodingUtils.base64Decode(
+                clientCertificate.x509Certificate.toString()
+            );
         }
         return clientAssertion;
     }
@@ -112,9 +114,9 @@ export class ClientAssertion {
             x5t: EncodingUtils.base64EncodeUrl(this.thumbprint, "hex"),
         };
 
-        if (this.publicCertificate) {
+        if (this.x5c) {
             Object.assign(header, {
-                x5c: this.publicCertificate,
+                x5c: this.x5c,
             } as Partial<jwt.JwtHeader>);
         }
 
@@ -142,24 +144,27 @@ export class ClientAssertion {
      * Extracts the raw certs from a given certificate string and returns them in an array.
      * @param publicCertificate - electronic document provided to prove the ownership of the public key
      */
-    public static parseCertificate(publicCertificate: string): Array<string> {
-        /**
-         * This is regex to identify the certs in a given certificate string.
-         * We want to look for the contents between the BEGIN and END certificate strings, without the associated newlines.
-         * The information in parens "(.+?)" is the capture group to represent the cert we want isolated.
-         * "." means any string character, "+" means match 1 or more times, and "?" means the shortest match.
-         * The "g" at the end of the regex means search the string globally, and the "s" enables the "." to match newlines.
-         */
-        const regexToFindCerts =
-            /-----BEGIN CERTIFICATE-----\r*\n(.+?)\r*\n-----END CERTIFICATE-----/gs;
-        const certs: string[] = [];
-
-        let matches;
-        while ((matches = regexToFindCerts.exec(publicCertificate)) !== null) {
-            // matches[1] represents the first parens capture group in the regex.
-            certs.push(matches[1].replace(/\r*\n/g, Constants.EMPTY_STRING));
-        }
-
-        return certs;
-    }
+    /**
+     * This is regex to identify the certs in a given certificate string.
+     * We want to look for the contents between the BEGIN and END certificate strings, without the associated newlines.
+     * The information in parens "(.+?)" is the capture group to represent the cert we want isolated.
+     * "." means any string character, "+" means match 1 or more times, and "?" means the shortest match.
+     * The "g" at the end of the regex means search the string globally, and the "s" enables the "." to match newlines.
+     */
+    /*
+     *public static parseCertificate(publicCertificate: string): Array<string> {
+     *  // paste above comment here
+     *  const regexToFindCerts =
+     *      /-----BEGIN CERTIFICATE-----\r*\n(.+?)\r*\n-----END CERTIFICATE-----/gs;
+     *  const certs: string[] = [];
+     *
+     *  let matches;
+     *  while ((matches = regexToFindCerts.exec(publicCertificate)) !== null) {
+     *      // matches[1] represents the first parens capture group in the regex.
+     *      certs.push(matches[1].replace(/\r*\n/g, Constants.EMPTY_STRING));
+     *  }
+     *
+     *  return certs;
+     *}
+     */
 }
