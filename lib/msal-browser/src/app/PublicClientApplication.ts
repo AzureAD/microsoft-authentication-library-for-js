@@ -43,15 +43,12 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Creates StandardController and passes it to the PublicClientApplication
      *
      * @param configuration {Configuration}
-     * @param request {?InitializeApplicationRequest}
      */
     public static async createPublicClientApplication(
-        configuration: Configuration,
-        request?: InitializeApplicationRequest
+        configuration: Configuration
     ): Promise<IPublicClientApplication> {
         const controller = await ControllerFactory.createV3Controller(
-            configuration,
-            request
+            configuration
         );
         const pca = new PublicClientApplication(configuration, controller);
 
