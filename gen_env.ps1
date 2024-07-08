@@ -31,6 +31,9 @@ az keyvault secret download --vault-name "msidlabs" -n "LabAuth" --file $pfxPath
 openssl pkcs12 -in $pfxPath -out $pemPath -nodes --passin pass:
 
 $fullPemPath = (Get-Location).Path + "\" + $pemPath
+$pemUpdateScriptPath = $PSScriptRoot + "/dev-scripts/updatePemCert.js"
+Write-Output "Re-ordering x5c cert chain in pem file..."
+node $pemUpdateScriptPath $fullPemPath
 
 # Used to secure sessions for samples that use express-session
 $sessionSecret = New-Guid
