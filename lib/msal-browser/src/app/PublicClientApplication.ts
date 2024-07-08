@@ -43,7 +43,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Creates StandardController and passes it to the PublicClientApplication
      *
      * @param configuration {Configuration}
-     * @param request {?InitializeApplicationRequest} correlation id
+     * @param request {?InitializeApplicationRequest}
      */
     public static async createPublicClientApplication(
         configuration: Configuration,
