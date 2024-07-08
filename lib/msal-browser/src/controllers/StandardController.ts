@@ -84,6 +84,7 @@ import { AuthenticationResult } from "../response/AuthenticationResult";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
 import { createNewGuid } from "../crypto/BrowserCrypto";
 import { initializeSilentRequest } from "../request/RequestHelpers";
+import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest";
 
 function getAccountType(
     account?: AccountInfo
@@ -281,10 +282,11 @@ export class StandardController implements IController {
     }
 
     static async createController(
-        operatingContext: BaseOperatingContext
+        operatingContext: BaseOperatingContext,
+        request?: InitializeApplicationRequest
     ): Promise<IController> {
         const controller = new StandardController(operatingContext);
-        await controller.initialize();
+        await controller.initialize(request);
         return controller;
     }
 
@@ -301,9 +303,9 @@ export class StandardController implements IController {
 
     /**
      * Initializer function to perform async startup tasks such as connecting to WAM extension
-     * @param correlationId {?string} correlation id
+     * @param request {?InitializeApplicationRequest} correlation id
      */
-    async initialize(correlationId?: string): Promise<void> {
+    async initialize(request?: InitializeApplicationRequest): Promise<void> {
         this.logger.trace("initialize called");
         if (this.initialized) {
             this.logger.info(
@@ -313,7 +315,7 @@ export class StandardController implements IController {
         }
 
         const initCorrelationId =
-            correlationId || this.getRequestCorrelationId();
+            request?.correlationId || this.getRequestCorrelationId();
         const allowNativeBroker = this.config.system.allowNativeBroker;
         const initMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.InitializeClientApplication,

@@ -525,7 +525,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 done();
             });
 
-            pca.initialize("test-correlation-id");
+            pca.initialize({ correlationId: "test-correlation-id" });
         });
     });
 

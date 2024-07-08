@@ -25,9 +25,10 @@ import { EventHandler } from "../event/EventHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { EventCallbackFunction } from "../event/EventMessage";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
+import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest";
 
 export interface IController {
-    initialize(correlationId?: string): Promise<void>;
+    initialize(request?: InitializeApplicationRequest): Promise<void>;
 
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
 
