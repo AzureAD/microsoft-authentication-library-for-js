@@ -7,8 +7,6 @@ const path = require("path");
 const fs = require("fs");
 
 const pemPath = process.argv[2];
-console.log(process.argv);
-console.log(`Processing ${pemPath}`);
 const pemCert = fs.readFileSync(pemPath, "utf8");
 
 const END_PRIVATE_KEY = "-----END PRIVATE KEY-----";
