@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Deprecated SHA-1 thumbprint for clientCertificate",
+  "comment": "Deprecated SHA-1 thumbprint for clientCertificate #7185",
   "packageName": "@azure/msal-node",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
