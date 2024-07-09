@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1719861910814,
+  "lastUpdate": 1720544269891,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -9892,6 +9892,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.11%",
             "unit": "ops/sec",
             "extra": "225 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6339ce72fd790ed59aaf1b428b0a4d537e5a5fbc",
+          "message": "Add correlation id param to initialize and clearTokensAndKeysWithClaims APIs to streamline telemetry data analysis (#7190)\n\n- Add correlation id param to initialize and\r\nclearTokensAndKeysWithClaims APIs to streamline telemetry data analysis",
+          "timestamp": "2024-07-09T12:52:31-04:00",
+          "tree_id": "8f025afaae13d909922a0535f01c9f504385a750",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/6339ce72fd790ed59aaf1b428b0a4d537e5a5fbc"
+        },
+        "date": 1720544268452,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 189750,
+            "range": "±2.28%",
+            "unit": "ops/sec",
+            "extra": "199 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 187923,
+            "range": "±1.91%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
