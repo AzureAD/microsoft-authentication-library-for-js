@@ -288,13 +288,16 @@ export class NativeInteractionClient extends BaseInteractionClient {
         this.logger.trace(
             "NativeInteractionClient - acquireTokenRedirect called."
         );
-        const nativeRequest = await this.initializeNativeRequest(request);
 
-        const { ...nativeTokenRequest } = nativeRequest;
+        const { onRedirectNavigate, ...remainingParameters } = request;
+
+        const nativeRequest = await this.initializeNativeRequest(
+            remainingParameters
+        );
 
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
-            request: nativeTokenRequest,
+            request: nativeRequest,
         };
 
         try {
