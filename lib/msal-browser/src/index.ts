@@ -66,6 +66,7 @@ export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
 export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 export { ClearCacheRequest } from "./request/ClearCacheRequest";
+export { InitializeApplicationRequest } from "./request/InitializeApplicationRequest";
 
 // Cache
 export { LoadTokenOptions } from "./cache/TokenCache";
