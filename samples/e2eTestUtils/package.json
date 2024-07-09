@@ -5,7 +5,7 @@
     "private": true,
     "main": "src/index.ts",
     "dependencies": {
-        "@azure/identity": "3.1.2",
+        "@azure/identity": "^4.3.0",
         "axios": "^1.6.0",
         "dotenv": "^8.2.0",
         "find-process": "^1.4.4"
