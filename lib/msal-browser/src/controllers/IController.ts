@@ -28,6 +28,7 @@ import { ClearCacheRequest } from "../request/ClearCacheRequest";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest";
 
 export interface IController {
+    // TODO: Make request mandatory in the next major version?
     initialize(request?: InitializeApplicationRequest): Promise<void>;
 
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
