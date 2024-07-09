@@ -397,7 +397,7 @@ export class ClientTestUtils {
             logLevel: LogLevel.Verbose,
         };
 
-        const x509: X509Certificate = new X509Certificate(
+        const x509Certificate: X509Certificate = new X509Certificate(
             CLIENT_CERTIFICATE.PEM_CERT
         );
 
@@ -408,7 +408,7 @@ export class ClientTestUtils {
                 // clientSecret, clientAssertion
                 clientCertificate: {
                     // default to SHA-2 for all tests
-                    thumbprintSha2: x509.fingerprint256,
+                    thumbprintSha2: x509Certificate.fingerprint256,
                     privateKey: CLIENT_CERTIFICATE.PRIVATE_KEY,
                 },
                 knownAuthorities: [TEST_CONSTANTS.AUTHORITY],
