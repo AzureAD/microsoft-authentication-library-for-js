@@ -9,14 +9,16 @@ import { IController } from "./IController";
 import { Configuration } from "../config/Configuration";
 import { StandardController } from "./StandardController";
 import { NestedAppAuthController } from "./NestedAppAuthController";
+import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest";
 
 export async function createV3Controller(
-    config: Configuration
+    config: Configuration,
+    request?: InitializeApplicationRequest
 ): Promise<IController> {
     const standard = new StandardOperatingContext(config);
 
     await standard.initialize();
-    return StandardController.createController(standard);
+    return StandardController.createController(standard, request);
 }
 
 export async function createController(

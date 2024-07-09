@@ -916,7 +916,7 @@ export interface IController {
     // (undocumented)
     hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
     // (undocumented)
-    initialize(): Promise<void>;
+    initialize(request?: InitializeApplicationRequest): Promise<void>;
     // (undocumented)
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
     // @internal (undocumented)
@@ -967,6 +967,13 @@ export interface INavigationClient {
 }
 
 export { INetworkModule }
+
+// Warning: (ae-missing-release-tag) "InitializeApplicationRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export type InitializeApplicationRequest = {
+    correlationId?: string;
+};
 
 // Warning: (ae-missing-release-tag) "inMemRedirectUnavailable" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1358,7 +1365,8 @@ export class PublicClientApplication implements IPublicClientApplication {
     clearCache(logoutRequest?: ClearCacheRequest): Promise<void>;
     // (undocumented)
     protected controller: IController;
-    // (undocumented)
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     static createPublicClientApplication(configuration: Configuration): Promise<IPublicClientApplication>;
     disableAccountStorageEvents(): void;
     enableAccountStorageEvents(): void;
@@ -1386,7 +1394,9 @@ export class PublicClientApplication implements IPublicClientApplication {
     handleRedirectPromise(hash?: string | undefined): Promise<AuthenticationResult | null>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
-    initialize(): Promise<void>;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
+    initialize(request?: InitializeApplicationRequest): Promise<void>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;

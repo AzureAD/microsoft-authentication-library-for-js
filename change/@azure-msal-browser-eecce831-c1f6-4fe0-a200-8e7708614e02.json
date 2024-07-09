@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add correlation id param to initialize and clearTokensAndKeysWithClaims APIs to streamline telemetry data analysis #7190",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -1105,10 +1105,12 @@ describe("BrowserCacheManager tests", () => {
                     ).toEqual(testAT4);
 
                     browserSessionStorage.clearTokensAndKeysWithClaims(
-                        getDefaultPerformanceClient()
+                        getDefaultPerformanceClient(),
+                        "test-correlation-id"
                     );
                     browserLocalStorage.clearTokensAndKeysWithClaims(
-                        getDefaultPerformanceClient()
+                        getDefaultPerformanceClient(),
+                        "test-correlation-id"
                     );
 
                     expect(
