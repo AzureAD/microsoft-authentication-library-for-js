@@ -68,6 +68,10 @@ export const ClientAuthErrorMessages = {
         "Client assertion must meet requirements described in https://tools.ietf.org/html/rfc7515",
     [ClientAuthErrorCodes.invalidClientCredential]:
         "Client credential (secret, certificate, or assertion) must not be empty when creating a confidential client. An application should at most have one credential",
+    [ClientAuthErrorCodes.invalidThumbprint]:
+        "Client certificate must not contain both SHA-1 and SHA-2 thumbprints.",
+    [ClientAuthErrorCodes.thumbprintMissing]:
+        "Client certificate does not contain a SHA-1 or SHA-2 thumbprint.",
     [ClientAuthErrorCodes.tokenRefreshRequired]:
         "Cannot return token from cache because it must be refreshed. This may be due to one of the following reasons: forceRefresh parameter is set to true, claims have been requested, there is no cached access token or it is expired.",
     [ClientAuthErrorCodes.userTimeoutReached]:

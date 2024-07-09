@@ -15,6 +15,8 @@ import {
     ApplicationTelemetry,
     INativeBrokerPlugin,
     ClientAssertionCallback,
+    createClientAuthError,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
@@ -47,11 +49,10 @@ export type NodeAuthOptions = {
     clientCertificate?: {
         /**
          * @deprecated Use thumbprintSha2 property instead. Thumbprint should be a SHA-2 string.
-         * NIST formally deprecated use of SHA-1 in 2011, disallowed its use for digital signatures in 2013,
-         * and declared that it should be phased out by 2030.
+         * SHA-1 is only needed for backwards compatibility with older versions of ADFS.
          */
         thumbprint?: string;
-        thumbprintSha2: string;
+        thumbprintSha2?: string;
         privateKey: string;
         x5c?: string;
     };
@@ -143,6 +144,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     clientSecret: Constants.EMPTY_STRING,
     clientAssertion: Constants.EMPTY_STRING,
     clientCertificate: {
+        thumbprint: Constants.EMPTY_STRING,
         thumbprintSha2: Constants.EMPTY_STRING,
         privateKey: Constants.EMPTY_STRING,
         x5c: Constants.EMPTY_STRING,
@@ -222,6 +224,24 @@ export function buildAppConfiguration({
         loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
         disableInternalRetries: system?.disableInternalRetries || false,
     };
+
+    // if client certificate was provided, ensure that at least one of the SHA-1 or SHA-2 thumbprints were provided
+    if (
+        !!auth.clientCertificate &&
+        !!!auth.clientCertificate.thumbprint &&
+        !!!auth.clientCertificate.thumbprintSha2
+    ) {
+        throw createClientAuthError(ClientAuthErrorCodes.thumbprintMissing);
+    }
+
+    // if client certificate was provided, ensure that only one of the SHA-1 or SHA-2 thumbprints were provided
+    if (
+        !!auth.clientCertificate &&
+        !!auth.clientCertificate.thumbprint &&
+        !!auth.clientCertificate.thumbprintSha2
+    ) {
+        throw createClientAuthError(ClientAuthErrorCodes.invalidThumbprint);
+    }
 
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },

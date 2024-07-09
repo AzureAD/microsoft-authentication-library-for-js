@@ -35,6 +35,7 @@ import {
 } from "../../src";
 import {
     CAE_CONSTANTS,
+    CLIENT_CERTIFICATE,
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
     TEST_CONFIG,
     TEST_TOKENS,
@@ -43,6 +44,7 @@ import { mockNetworkClient } from "../utils/MockNetworkClient";
 import { ClientTestUtils, getClientAssertionCallback } from "./ClientTestUtils";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { Constants } from "../../src/utils/Constants";
+import { X509Certificate } from "crypto";
 
 describe("ConfidentialClientApplication", () => {
     let config: Configuration;
@@ -354,7 +356,7 @@ describe("ConfidentialClientApplication", () => {
             );
         });
 
-        test("ensures that developer-provided certificate is attached to client assertion", async () => {
+        test("ensures that developer-provided certificate can be provided with a SHA-2 thumbprint, and is attached to client assertion", async () => {
             const getClientAssertionSpy: jest.SpyInstance = jest.spyOn(
                 ClientApplication.prototype,
                 <any>"getClientAssertion"
@@ -380,6 +382,58 @@ describe("ConfidentialClientApplication", () => {
             expect(clientAssertion.assertion.length).toBeGreaterThan(1);
             expect(clientAssertion.assertionType).toBe(
                 Constants.JWT_BEARER_ASSERTION_TYPE
+            );
+        });
+
+        test("ensures that developer-provided certificate can be provided with a SHA-1 thumbprint", async () => {
+            const x509Certificate: X509Certificate = new X509Certificate(
+                CLIENT_CERTIFICATE.PEM_CERT
+            );
+
+            // requires use of non-null assertion operator
+            config.auth.clientCertificate!.thumbprint =
+                x509Certificate.fingerprint;
+            delete config.auth.clientCertificate?.thumbprintSha2;
+
+            const client: ConfidentialClientApplication =
+                new ConfidentialClientApplication(config);
+
+            const request: ClientCredentialRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                skipCache: false,
+            };
+
+            const authResult = (await client.acquireTokenByClientCredential(
+                request
+            )) as AuthenticationResult;
+            expect(authResult.accessToken).toEqual(
+                CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+            );
+        });
+
+        test("ensures that developer-provided certificate must be provided with a SHA-1 or SHA-2 thumbprint", async () => {
+            delete config.auth.clientCertificate?.thumbprintSha2;
+
+            expect(() => {
+                new ConfidentialClientApplication(config);
+            }).toThrow(
+                createClientAuthError(ClientAuthErrorCodes.thumbprintMissing)
+            );
+        });
+
+        test("ensures that developer-provided certificate was not provided with both a SHA-1 and SHA-2 thumbprint", async () => {
+            const x509Certificate: X509Certificate = new X509Certificate(
+                CLIENT_CERTIFICATE.PEM_CERT
+            );
+
+            // requires use of non-null assertion operator
+            config.auth.clientCertificate!.thumbprint =
+                x509Certificate.fingerprint;
+
+            expect(() => {
+                new ConfidentialClientApplication(config);
+            }).toThrow(
+                createClientAuthError(ClientAuthErrorCodes.invalidThumbprint)
             );
         });
     });

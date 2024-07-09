@@ -221,12 +221,11 @@ export class ConfidentialClientApplication
     private setClientCredential(configuration: Configuration): void {
         const clientSecretNotEmpty = !!configuration.auth.clientSecret;
         const clientAssertionNotEmpty = !!configuration.auth.clientAssertion;
-        const certificate = configuration.auth.clientCertificate || {
-            thumbprintSha2: Constants.EMPTY_STRING,
-            privateKey: Constants.EMPTY_STRING,
-        };
+        const certificate = configuration.auth.clientCertificate;
         const certificateNotEmpty =
-            !!certificate.thumbprintSha2 || !!certificate.privateKey;
+            certificate &&
+            (certificate.thumbprint || certificate.thumbprintSha2) &&
+            certificate.privateKey;
 
         /*
          * If app developer configures this callback, they don't need a credential
@@ -264,7 +263,14 @@ export class ConfidentialClientApplication
             );
         } else {
             this.clientAssertion = ClientAssertion.fromCertificate(
-                certificate.thumbprintSha2,
+                certificate.thumbprint ||
+                    certificate.thumbprintSha2 ||
+                    /*
+                     * Both properties are optional, so this empty string const is required.
+                     * The error checking that ensures only one of the properties
+                     * is provided by the developer occurs in Configuration.ts
+                     */
+                    Constants.EMPTY_STRING,
                 certificate.privateKey,
                 configuration.auth.clientCertificate?.x5c
             );
