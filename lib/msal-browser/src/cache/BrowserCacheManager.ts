@@ -1266,13 +1266,16 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Clears all access tokes that have claims prior to saving the current one
      * @param performanceClient {IPerformanceClient}
+     * @param correlationId {string} correlation id
      * @returns
      */
     async clearTokensAndKeysWithClaims(
-        performanceClient: IPerformanceClient
+        performanceClient: IPerformanceClient,
+        correlationId: string
     ): Promise<void> {
         performanceClient.addQueueMeasurement(
-            PerformanceEvents.ClearTokensAndKeysWithClaims
+            PerformanceEvents.ClearTokensAndKeysWithClaims,
+            correlationId
         );
 
         const tokenKeys = this.getTokenKeys();

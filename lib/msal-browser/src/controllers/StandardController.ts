@@ -84,6 +84,7 @@ import { AuthenticationResult } from "../response/AuthenticationResult";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
 import { createNewGuid } from "../crypto/BrowserCrypto";
 import { initializeSilentRequest } from "../request/RequestHelpers";
+import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest";
 
 function getAccountType(
     account?: AccountInfo
@@ -281,10 +282,11 @@ export class StandardController implements IController {
     }
 
     static async createController(
-        operatingContext: BaseOperatingContext
+        operatingContext: BaseOperatingContext,
+        request?: InitializeApplicationRequest
     ): Promise<IController> {
         const controller = new StandardController(operatingContext);
-        await controller.initialize();
+        await controller.initialize(request);
         return controller;
     }
 
@@ -301,8 +303,9 @@ export class StandardController implements IController {
 
     /**
      * Initializer function to perform async startup tasks such as connecting to WAM extension
+     * @param request {?InitializeApplicationRequest} correlation id
      */
-    async initialize(): Promise<void> {
+    async initialize(request?: InitializeApplicationRequest): Promise<void> {
         this.logger.trace("initialize called");
         if (this.initialized) {
             this.logger.info(
@@ -311,9 +314,12 @@ export class StandardController implements IController {
             return;
         }
 
+        const initCorrelationId =
+            request?.correlationId || this.getRequestCorrelationId();
         const allowNativeBroker = this.config.system.allowNativeBroker;
         const initMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.InitializeClientApplication
+            PerformanceEvents.InitializeClientApplication,
+            initCorrelationId
         );
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
 
@@ -341,8 +347,9 @@ export class StandardController implements IController {
                 ),
                 PerformanceEvents.ClearTokensAndKeysWithClaims,
                 this.logger,
-                this.performanceClient
-            )(this.performanceClient);
+                this.performanceClient,
+                initCorrelationId
+            )(this.performanceClient, initCorrelationId);
         }
 
         this.initialized = true;
