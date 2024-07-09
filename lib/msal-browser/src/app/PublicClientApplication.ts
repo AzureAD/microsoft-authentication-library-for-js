@@ -30,6 +30,7 @@ import { ClearCacheRequest } from "../request/ClearCacheRequest";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { NestedAppAuthController } from "../controllers/NestedAppAuthController";
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext";
+import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -38,7 +39,11 @@ import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatin
 export class PublicClientApplication implements IPublicClientApplication {
     protected controller: IController;
 
-    // creates StandardController and passes it to the PublicClientApplication
+    /**
+     * Creates StandardController and passes it to the PublicClientApplication
+     *
+     * @param configuration {Configuration}
+     */
     public static async createPublicClientApplication(
         configuration: Configuration
     ): Promise<IPublicClientApplication> {
@@ -80,9 +85,10 @@ export class PublicClientApplication implements IPublicClientApplication {
 
     /**
      * Initializer function to perform async startup tasks such as connecting to WAM extension
+     * @param request {?InitializeApplicationRequest}
      */
-    async initialize(): Promise<void> {
-        return this.controller.initialize();
+    async initialize(request?: InitializeApplicationRequest): Promise<void> {
+        return this.controller.initialize(request);
     }
 
     /**
