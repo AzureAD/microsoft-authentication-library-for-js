@@ -29,7 +29,7 @@ function reorderCerts(certs) {
     // Remove the last element which is an empty string
     x5cCerts.pop();
     // Move the leaf certificate to the front of the chain
-    x5cCerts.unshift(x5cCerts.pop());\
+    x5cCerts.unshift(x5cCerts.pop());
     // Rejoin into a serialized cert chain
     return x5cCerts.join(END_CERTIFICATE);
 }
