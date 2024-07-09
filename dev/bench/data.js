@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1720544269891,
+  "lastUpdate": 1720557383009,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -9930,6 +9930,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.91%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1a15eb9c61f1b884ccb10aece26e84e5a1e0ae4e",
+          "message": "Use SNI certs (#7188)\n\nMoving to SNI certs instead of pinned certs for LabClient token\r\nacquisition",
+          "timestamp": "2024-07-09T13:30:49-07:00",
+          "tree_id": "468105db7cd72e44c1dd7438d2b85fe01d0d2f7f",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/1a15eb9c61f1b884ccb10aece26e84e5a1e0ae4e"
+        },
+        "date": 1720557381962,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 189850,
+            "range": "±2.28%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 189901,
+            "range": "±2.13%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
