@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add missing param to PCA.initialize #7194",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
