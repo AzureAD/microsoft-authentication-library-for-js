@@ -28,7 +28,7 @@ import {
     IdTokenEntity,
     AccessTokenEntity,
     TenantProfile,
-    buildTenantProfileFromIdTokenClaims,
+    buildTenantProfile,
 } from "@azure/msal-common";
 import { isBridgeError } from "../BridgeError";
 import { BridgeStatusCode } from "../BridgeStatusCode";
@@ -192,8 +192,10 @@ export class NestedAppAuthAdapter {
 
         const tenantProfiles = new Map<string, TenantProfile>();
 
-        const tenantProfile = buildTenantProfileFromIdTokenClaims(
+        const tenantProfile = buildTenantProfile(
             homeAccountId,
+            localAccountId,
+            tenantId,
             effectiveIdTokenClaims
         );
         tenantProfiles.set(tenantId, tenantProfile);

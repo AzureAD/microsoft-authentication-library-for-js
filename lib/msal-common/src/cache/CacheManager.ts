@@ -303,22 +303,12 @@ export abstract class CacheManager implements ICacheManager {
         accountFilter?: AccountFilter
     ): AccountInfo[] {
         return cachedAccounts.flatMap((accountEntity) => {
-            return this.getAccountInfoForTenantProfiles(
+            return this.getTenantProfilesFromAccountEntity(
                 accountEntity,
+                accountFilter?.tenantId,
                 accountFilter
             );
         });
-    }
-
-    private getAccountInfoForTenantProfiles(
-        accountEntity: AccountEntity,
-        accountFilter?: AccountFilter
-    ): AccountInfo[] {
-        return this.getTenantProfilesFromAccountEntity(
-            accountEntity,
-            accountFilter?.tenantId,
-            accountFilter
-        );
     }
 
     private getTenantedAccountInfoByFilter(

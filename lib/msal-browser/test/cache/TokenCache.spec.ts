@@ -40,6 +40,7 @@ import {
     BrowserAuthError,
     BrowserAuthErrorCodes,
     BrowserAuthErrorMessage,
+    PublicClientApplication,
     SilentRequest,
 } from "../../src";
 import { base64Decode } from "../../src/encode/Base64Decode";
@@ -465,6 +466,19 @@ describe("TokenCache tests", () => {
                 options
             );
 
+            // Validate account can be retrieved
+            const pca = new PublicClientApplication(configuration);
+            expect(pca.getAllAccounts()).toHaveLength(1);
+            expect(
+                pca.getAccount({
+                    localAccountId: result.account.localAccountId,
+                    homeAccountId: result.account.homeAccountId,
+                    realm: result.account.tenantId,
+                    environment: result.account.environment,
+                })
+            ).toEqual(result.account);
+
+            // Validate tokens can be retrieved
             expect(
                 browserStorage.getRefreshTokenCredential(refreshTokenKey)
             ).toEqual(refreshTokenEntity);

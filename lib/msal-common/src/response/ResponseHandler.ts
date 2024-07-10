@@ -48,7 +48,7 @@ import {
 } from "../account/TokenClaims";
 import {
     AccountInfo,
-    buildTenantProfileFromIdTokenClaims,
+    buildTenantProfile,
     updateAccountTenantProfileData,
 } from "../account/AccountInfo";
 import * as CacheHelpers from "../cache/utils/CacheHelpers";
@@ -744,16 +744,17 @@ export function buildAccountToCache(
         );
 
     const tenantProfiles = baseAccount.tenantProfiles || [];
-
+    const tenantId = claimsTenantId || baseAccount.realm;
     if (
-        claimsTenantId &&
-        idTokenClaims &&
+        tenantId &&
         !tenantProfiles.find((tenantProfile) => {
-            return tenantProfile.tenantId === claimsTenantId;
+            return tenantProfile.tenantId === tenantId;
         })
     ) {
-        const newTenantProfile = buildTenantProfileFromIdTokenClaims(
+        const newTenantProfile = buildTenantProfile(
             homeAccountId,
+            baseAccount.localAccountId,
+            tenantId,
             idTokenClaims
         );
         tenantProfiles.push(newTenantProfile);
