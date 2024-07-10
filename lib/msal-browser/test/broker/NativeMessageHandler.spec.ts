@@ -16,7 +16,6 @@ import { NativeExtensionMethod } from "../../src/utils/BrowserConstants";
 import { NativeAuthError } from "../../src/error/NativeAuthError";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
-import { NativeExtensionRequestBody } from "../../src/broker/nativeBroker/NativeRequest";
 
 let performanceClient: IPerformanceClient;
 
