@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1720557383009,
+  "lastUpdate": 1720623061264,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -9968,6 +9968,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.13%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b07a985e8fc2e92faf1134e40f706f2f7d57acca",
+          "message": "Add missing param to PCA.initialize (#7194)\n\n- Add missing param to PCA.initialize",
+          "timestamp": "2024-07-10T10:45:26-04:00",
+          "tree_id": "96451ef6be7223e43d72f131349a7fa79d321fcf",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/b07a985e8fc2e92faf1134e40f706f2f7d57acca"
+        },
+        "date": 1720623060181,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 192422,
+            "range": "±2.12%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 204996,
+            "range": "±2.01%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
