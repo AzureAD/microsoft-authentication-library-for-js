@@ -27,9 +27,11 @@ import { BrowserConfiguration } from "../config/Configuration";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { EventCallbackFunction } from "../event/EventMessage";
 import { ClearCacheRequest } from "../request/ClearCacheRequest";
+import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest";
 
 export interface IPublicClientApplication {
-    initialize(): Promise<void>;
+    // TODO: Make request mandatory in the next major version?
+    initialize(request?: InitializeApplicationRequest): Promise<void>;
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
     acquireTokenRedirect(request: RedirectRequest): Promise<void>;
     acquireTokenSilent(

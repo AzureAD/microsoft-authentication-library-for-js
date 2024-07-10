@@ -26,11 +26,14 @@ $clientIdValue = $(az keyvault secret show --name "LabVaultAppId" --vault-name "
 $pfxPath = "LabCert.pfx";
 $pemPath = "LabCert.pem";
 # get the lab app cert
-az keyvault secret download --vault-name "msidlabs" -n "LabVaultAccessCert" --file $pfxPath --encoding base64
+az keyvault secret download --vault-name "msidlabs" -n "LabAuth" --file $pfxPath --encoding base64
 # convert pfx file to pem
 openssl pkcs12 -in $pfxPath -out $pemPath -nodes --passin pass:
 
 $fullPemPath = (Get-Location).Path + "\" + $pemPath
+$pemUpdateScriptPath = $PSScriptRoot + "/dev-scripts/updatePemCert.js"
+Write-Output "Re-ordering x5c cert chain in pem file..."
+node $pemUpdateScriptPath $fullPemPath
 
 # Used to secure sessions for samples that use express-session
 $sessionSecret = New-Guid
