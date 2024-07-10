@@ -16,6 +16,7 @@ import { NativeExtensionMethod } from "../../src/utils/BrowserConstants";
 import { NativeAuthError } from "../../src/error/NativeAuthError";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { NativeExtensionRequestBody } from "../../src/broker/nativeBroker/NativeRequest";
 
 let performanceClient: IPerformanceClient;
 
@@ -480,6 +481,85 @@ describe("NativeMessageHandler Tests", () => {
                             );
                             done();
                         });
+                })
+                .finally(() => {
+                    window.removeEventListener("message", eventHandler, true);
+                });
+        });
+
+        it("Throws DOMException error if native token request contains a callback function", (done) => {
+            const onRedirectNavigate = () => {
+                return false;
+            };
+
+            const nativeRedirectRequest = {
+                accountId: "accountId",
+                clientId: "abc123",
+                authority: "https://login.microsoftonline.com/common",
+                redirectUri: "https://google.com",
+                scope: "User.Read",
+                correlationId: "123456789",
+                windowTitleSubstring: "My App",
+                onRedirectNavigate: onRedirectNavigate,
+            };
+
+            const messageBody: NativeExtensionRequestBody = {
+                method: NativeExtensionMethod.GetToken,
+                request: nativeRedirectRequest,
+            };
+
+            const testResponse = {
+                status: "Fail",
+                code: "DOMException",
+                description: "Failed to execute 'postMessage' on 'MessagePort'",
+            };
+
+            const eventHandler = function (event: MessageEvent) {
+                event.stopImmediatePropagation();
+                const request = event.data;
+                const req = {
+                    channel: "53ee284d-920a-4b59-9d30-a60315b26836",
+                    extensionId: "test-ext-id",
+                    responseId: request.responseId,
+                    body: {
+                        method: "HandshakeResponse",
+                        version: 3,
+                    },
+                };
+
+                mcPort = postMessageSpy.args[0][2][0];
+                if (!mcPort) {
+                    throw new Error("MessageChannel port was not transferred");
+                }
+                mcPort.onmessage = (event) => {
+                    expect(event.data.body.method).toBe(
+                        NativeExtensionMethod.GetToken
+                    );
+                    mcPort.postMessage({
+                        channelId: "53ee284d-920a-4b59-9d30-a60315b26836",
+                        extensionId: "test-ext-id",
+                        responseId: event.data.responseId,
+                        body: {
+                            method: "Response",
+                            response: testResponse,
+                        },
+                    });
+                };
+                mcPort.postMessage(req);
+            };
+
+            window.addEventListener("message", eventHandler, true);
+
+            NativeMessageHandler.createProvider(
+                new Logger({}),
+                2000,
+                performanceClient
+            )
+                .then((wamMessageHandler) => {
+                    wamMessageHandler.sendMessage(messageBody).catch((e) => {
+                        expect(e.toString()).toContain("DataCloneError");
+                        done();
+                    });
                 })
                 .finally(() => {
                     window.removeEventListener("message", eventHandler, true);
