@@ -221,7 +221,8 @@ export abstract class ClientApplication {
 export class ClientAssertion {
     static fromAssertion(assertion: string): ClientAssertion;
     static fromCertificate(
-        thumbprint: string,
+        thumbprint: string | undefined,
+        thumbprint256: string | undefined,
         privateKey: string,
         publicCertificate?: string
     ): ClientAssertion;
@@ -624,7 +625,7 @@ export type NodeAuthOptions = {
     clientAssertion?: string | ClientAssertionCallback;
     clientCertificate?: {
         thumbprint?: string;
-        thumbprintSha2: string;
+        thumbprintSha256?: string;
         privateKey: string;
         x5c?: string;
     };
