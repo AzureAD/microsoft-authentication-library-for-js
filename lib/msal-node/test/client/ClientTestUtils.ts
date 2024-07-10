@@ -35,7 +35,6 @@ import {
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
-    CLIENT_CERTIFICATE,
     ID_TOKEN_CLAIMS,
     RANDOM_TEST_GUID,
     TEST_CONFIG,
@@ -46,7 +45,6 @@ import {
 } from "../test_kit/StringConstants";
 import { Configuration } from "../../src/config/Configuration";
 import { TEST_CONSTANTS } from "../utils/TestConstants";
-import { X509Certificate } from "crypto";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
@@ -397,19 +395,16 @@ export class ClientTestUtils {
             logLevel: LogLevel.Verbose,
         };
 
-        const x509Certificate: X509Certificate = new X509Certificate(
-            CLIENT_CERTIFICATE.PEM_CERT
-        );
-
         const confidentialClientConfig: Configuration = {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
                 authority: TEST_CONSTANTS.AUTHORITY,
                 // clientSecret, clientAssertion
                 clientCertificate: {
-                    // default to SHA-256 for all tests
-                    thumbprintSha256: x509Certificate.fingerprint256,
-                    privateKey: CLIENT_CERTIFICATE.PRIVATE_KEY,
+                    // defaults to SHA-256 when both thumbprints are provided
+                    thumbprint: TEST_CONSTANTS.THUMBPRINT,
+                    thumbprintSha256: TEST_CONSTANTS.THUMBPRINT256,
+                    privateKey: TEST_CONSTANTS.PRIVATE_KEY,
                 },
                 knownAuthorities: [TEST_CONSTANTS.AUTHORITY],
                 cloudDiscoveryMetadata: "",

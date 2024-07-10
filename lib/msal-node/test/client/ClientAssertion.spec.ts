@@ -8,8 +8,8 @@ import { EncodingUtils } from "../../src/utils/EncodingUtils";
 import { JwtConstants } from "../../src/utils/Constants";
 import { getClientAssertionCallback } from "./ClientTestUtils";
 import { getClientAssertion } from "@azure/msal-common";
-
 import jwt from "jsonwebtoken";
+
 jest.mock("jsonwebtoken");
 
 describe("Client assertion test", () => {

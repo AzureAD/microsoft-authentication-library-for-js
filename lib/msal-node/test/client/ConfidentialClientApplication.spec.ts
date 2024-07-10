@@ -35,7 +35,6 @@ import {
 } from "../../src";
 import {
     CAE_CONSTANTS,
-    CLIENT_CERTIFICATE,
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
     TEST_CONFIG,
     TEST_TOKENS,
@@ -44,9 +43,15 @@ import { mockNetworkClient } from "../utils/MockNetworkClient";
 import { ClientTestUtils, getClientAssertionCallback } from "./ClientTestUtils";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { Constants } from "../../src/utils/Constants";
-import { X509Certificate } from "crypto";
+import jwt from "jsonwebtoken";
+
+jest.mock("jsonwebtoken");
 
 describe("ConfidentialClientApplication", () => {
+    beforeAll(() => {
+        jest.spyOn(jwt, <any>"sign").mockReturnValue("fake_jwt_string");
+    });
+
     let config: Configuration;
     beforeEach(async () => {
         config =
@@ -356,7 +361,7 @@ describe("ConfidentialClientApplication", () => {
             );
         });
 
-        test("ensures that developer-provided certificate can be provided with a SHA-2 thumbprint, and is attached to client assertion", async () => {
+        test("ensures that developer-provided certificate can be provided with a SHA-256 thumbprint, and is attached to client assertion", async () => {
             const getClientAssertionSpy: jest.SpyInstance = jest.spyOn(
                 ClientApplication.prototype,
                 <any>"getClientAssertion"
@@ -386,13 +391,6 @@ describe("ConfidentialClientApplication", () => {
         });
 
         test("ensures that developer-provided certificate can be provided with a SHA-1 thumbprint", async () => {
-            const x509Certificate: X509Certificate = new X509Certificate(
-                CLIENT_CERTIFICATE.PEM_CERT
-            );
-
-            // requires use of non-null assertion operator
-            config.auth.clientCertificate!.thumbprint =
-                x509Certificate.fingerprint;
             delete config.auth.clientCertificate?.thumbprintSha256;
 
             const client: ConfidentialClientApplication =
@@ -412,6 +410,7 @@ describe("ConfidentialClientApplication", () => {
         });
 
         test("ensures that developer-provided certificate must be provided with a SHA-1 or SHA-2 thumbprint", async () => {
+            delete config.auth.clientCertificate?.thumbprint;
             delete config.auth.clientCertificate?.thumbprintSha256;
 
             expect(() => {
