@@ -21,7 +21,8 @@ import { JwtConstants } from "../utils/Constants.js";
 export class ClientAssertion {
     private jwt: string;
     private privateKey: string;
-    private thumbprint: string;
+    private thumbprint: string | undefined;
+    private thumbprint256: string | undefined;
     private expirationTime: number;
     private issuer: string;
     private jwtAudience: string;
@@ -44,13 +45,15 @@ export class ClientAssertion {
      * @param publicCertificate - electronic document provided to prove the ownership of the public key
      */
     public static fromCertificate(
-        thumbprint: string,
+        thumbprint: string | undefined,
+        thumbprint256: string | undefined,
         privateKey: string,
         publicCertificate?: string
     ): ClientAssertion {
         const clientAssertion = new ClientAssertion();
         clientAssertion.privateKey = privateKey;
         clientAssertion.thumbprint = thumbprint;
+        clientAssertion.thumbprint256 = thumbprint256;
         if (publicCertificate) {
             clientAssertion.publicCertificate =
                 this.parseCertificate(publicCertificate);
@@ -70,7 +73,7 @@ export class ClientAssertion {
         jwtAudience: string
     ): string {
         // if assertion was created from certificate, check if jwt is expired and create new one.
-        if (this.privateKey && this.thumbprint) {
+        if (this.privateKey && (this.thumbprint || this.thumbprint256)) {
             if (
                 this.jwt &&
                 !this.isExpired() &&
@@ -109,8 +112,24 @@ export class ClientAssertion {
 
         const header: jwt.JwtHeader = {
             alg: JwtConstants.RSA_256,
-            x5t: EncodingUtils.base64EncodeUrl(this.thumbprint, "hex"),
         };
+
+        if (this.thumbprint256) {
+            Object.assign(header, {
+                "x5t#S256": EncodingUtils.base64EncodeUrl(
+                    this.thumbprint256,
+                    "hex"
+                ),
+            } as Partial<jwt.JwtHeader>);
+        } else {
+            Object.assign(header, {
+                x5t: EncodingUtils.base64EncodeUrl(
+                    // at this point, due to prior error checking, thumbprint will be guaranteed to be a string here
+                    this.thumbprint as string,
+                    "hex"
+                ),
+            } as Partial<jwt.JwtHeader>);
+        }
 
         if (this.publicCertificate) {
             Object.assign(header, {

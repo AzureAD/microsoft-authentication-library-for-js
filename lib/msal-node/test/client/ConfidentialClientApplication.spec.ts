@@ -393,7 +393,7 @@ describe("ConfidentialClientApplication", () => {
             // requires use of non-null assertion operator
             config.auth.clientCertificate!.thumbprint =
                 x509Certificate.fingerprint;
-            delete config.auth.clientCertificate?.thumbprintSha2;
+            delete config.auth.clientCertificate?.thumbprintSha256;
 
             const client: ConfidentialClientApplication =
                 new ConfidentialClientApplication(config);
@@ -412,28 +412,12 @@ describe("ConfidentialClientApplication", () => {
         });
 
         test("ensures that developer-provided certificate must be provided with a SHA-1 or SHA-2 thumbprint", async () => {
-            delete config.auth.clientCertificate?.thumbprintSha2;
+            delete config.auth.clientCertificate?.thumbprintSha256;
 
             expect(() => {
                 new ConfidentialClientApplication(config);
             }).toThrow(
                 createClientAuthError(ClientAuthErrorCodes.thumbprintMissing)
-            );
-        });
-
-        test("ensures that developer-provided certificate was not provided with both a SHA-1 and SHA-2 thumbprint", async () => {
-            const x509Certificate: X509Certificate = new X509Certificate(
-                CLIENT_CERTIFICATE.PEM_CERT
-            );
-
-            // requires use of non-null assertion operator
-            config.auth.clientCertificate!.thumbprint =
-                x509Certificate.fingerprint;
-
-            expect(() => {
-                new ConfidentialClientApplication(config);
-            }).toThrow(
-                createClientAuthError(ClientAuthErrorCodes.invalidThumbprint)
             );
         });
     });

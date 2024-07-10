@@ -407,8 +407,8 @@ export class ClientTestUtils {
                 authority: TEST_CONSTANTS.AUTHORITY,
                 // clientSecret, clientAssertion
                 clientCertificate: {
-                    // default to SHA-2 for all tests
-                    thumbprintSha2: x509Certificate.fingerprint256,
+                    // default to SHA-256 for all tests
+                    thumbprintSha256: x509Certificate.fingerprint256,
                     privateKey: CLIENT_CERTIFICATE.PRIVATE_KEY,
                 },
                 knownAuthorities: [TEST_CONSTANTS.AUTHORITY],

@@ -48,11 +48,11 @@ export type NodeAuthOptions = {
     clientAssertion?: string | ClientAssertionCallback;
     clientCertificate?: {
         /**
-         * @deprecated Use thumbprintSha2 property instead. Thumbprint should be a SHA-2 string.
+         * @deprecated Use thumbprintSha2 property instead. Thumbprint needs to be computed with SHA-256 algorithm.
          * SHA-1 is only needed for backwards compatibility with older versions of ADFS.
          */
         thumbprint?: string;
-        thumbprintSha2?: string;
+        thumbprintSha256?: string;
         privateKey: string;
         x5c?: string;
     };
@@ -145,7 +145,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     clientAssertion: Constants.EMPTY_STRING,
     clientCertificate: {
         thumbprint: Constants.EMPTY_STRING,
-        thumbprintSha2: Constants.EMPTY_STRING,
+        thumbprintSha256: Constants.EMPTY_STRING,
         privateKey: Constants.EMPTY_STRING,
         x5c: Constants.EMPTY_STRING,
     },
@@ -225,23 +225,13 @@ export function buildAppConfiguration({
         disableInternalRetries: system?.disableInternalRetries || false,
     };
 
-    // if client certificate was provided
-    if (!!auth.clientCertificate) {
-        // ensure that at least one of the SHA-1 or SHA-2 thumbprints were provided
-        if (
-            !!!auth.clientCertificate.thumbprint &&
-            !!!auth.clientCertificate.thumbprintSha2
-        ) {
-            throw createClientAuthError(ClientAuthErrorCodes.thumbprintMissing);
-        }
-
-        // ensure that only one of the SHA-1 or SHA-2 thumbprints were provided
-        if (
-            !!auth.clientCertificate.thumbprint &&
-            !!auth.clientCertificate.thumbprintSha2
-        ) {
-            throw createClientAuthError(ClientAuthErrorCodes.invalidThumbprint);
-        }
+    // if client certificate was provided, ensure that at least one of the SHA-1 or SHA-2 thumbprints were provided
+    if (
+        !!auth.clientCertificate &&
+        !!!auth.clientCertificate.thumbprint &&
+        !!!auth.clientCertificate.thumbprintSha256
+    ) {
+        throw createClientAuthError(ClientAuthErrorCodes.thumbprintMissing);
     }
 
     return {
