@@ -734,37 +734,6 @@ export const version = "2.10.0";
 
 // Warnings were encountered during analysis:
 //
-// dist/cache/ITokenCache.d.ts:1:29 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/cache/NodeStorage.d.ts:1:273 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/cache/TokenCache.d.ts:2:76 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/cache/distributed/DistributedCachePlugin.d.ts:1:49 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/cache/distributed/IPartitionManager.d.ts:1:31 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/cache/serializer/Deserializer.d.ts:1:99 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/cache/serializer/Serializer.d.ts:1:99 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/cache/serializer/SerializerTypes.d.ts:1:115 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/client/ClientApplication.d.ts:1:204 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/client/ClientCredentialClient.d.ts:1:193 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/client/ConfidentialClientApplication.d.ts:3:57 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/client/DeviceCodeClient.d.ts:1:96 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/client/IConfidentialClientApplication.d.ts:1:65 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/client/IPublicClientApplication.d.ts:1:59 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/client/ManagedIdentityApplication.d.ts:1:38 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/client/OnBehalfOfClient.d.ts:1:96 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/client/PublicClientApplication.d.ts:1:51 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/client/UsernamePasswordClient.d.ts:1:102 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/config/Configuration.d.ts:3:162 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/crypto/CryptoProvider.d.ts:1:36 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/index.d.ts:44:784 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/network/ILoopbackClient.d.ts:1:49 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/request/AuthorizationCodeRequest.d.ts:1:48 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/request/AuthorizationUrlRequest.d.ts:1:47 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/request/ClientCredentialRequest.d.ts:1:72 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/request/DeviceCodeRequest.d.ts:1:61 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/request/OnBehalfOfRequest.d.ts:1:41 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/request/RefreshTokenRequest.d.ts:1:43 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/request/SignOutRequest.d.ts:1:29 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/request/SilentFlowRequest.d.ts:1:54 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
-// dist/request/UsernamePasswordRequest.d.ts:1:47 - (TS2307) Cannot find module '@azure/msal-common' or its corresponding type declarations.
 // src/client/ClientCredentialClient.ts:235:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/ClientCredentialClient.ts:236:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/ClientCredentialClient.ts:333:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
