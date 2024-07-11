@@ -263,18 +263,16 @@ export class ConfidentialClientApplication
             this.clientAssertion = !!this.config.auth.clientCertificate
                 .thumbprintSha256
                 ? ClientAssertion.fromCertificate(
-                      // guaranteed to be a string due to the definition of the variable certificateNotEmpty
-                      (this.config.auth.clientCertificate.thumbprint ||
-                          this.config.auth.clientCertificate
-                              .thumbprintSha256) as string,
+                      // guaranteed to be a string
+                      this.config.auth.clientCertificate
+                          .thumbprintSha256 as string,
                       this.config.auth.clientCertificate.privateKey,
                       this.config.auth.clientCertificate.x5c
                   )
                 : ClientAssertion.fromCertificateWithSha256Thumbprint(
-                      // guaranteed to be a string due to the definition of the variable certificateNotEmpty
-                      (this.config.auth.clientCertificate.thumbprint ||
-                          this.config.auth.clientCertificate
-                              .thumbprintSha256) as string,
+                      // guaranteed to be a string
+                      this.config.auth.clientCertificate
+                          .thumbprintSha256 as string,
                       this.config.auth.clientCertificate.privateKey,
                       this.config.auth.clientCertificate.x5c
                   );
