@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Remove onRedirectNative call back function in native ATRedirect calls #7193",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}
