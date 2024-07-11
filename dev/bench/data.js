@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1720623061264,
+  "lastUpdate": 1720716099054,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10006,6 +10006,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.01%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2adfb68294d29f35a3afcd6571a199e64c6e99b3",
+          "message": "Remove onRedirectNavigate callback function in native ATRedirect calls (#7193)\n\nWe cannot pass functions in Message Channel",
+          "timestamp": "2024-07-11T09:36:08-07:00",
+          "tree_id": "bcb89a7082d9d8b559069991fcdfd55dfbda3f59",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/2adfb68294d29f35a3afcd6571a199e64c6e99b3"
+        },
+        "date": 1720716097475,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 192281,
+            "range": "±2.15%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 189794,
+            "range": "±2.03%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
