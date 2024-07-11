@@ -67,7 +67,6 @@ describe("Client assertion test", () => {
 
         const assertion = ClientAssertion.fromCertificate(
             TEST_CONSTANTS.THUMBPRINT,
-            false,
             TEST_CONSTANTS.PRIVATE_KEY
         );
         assertion.getJwt(cryptoProvider, issuer, audience);
@@ -96,9 +95,8 @@ describe("Client assertion test", () => {
             },
         };
 
-        const assertion = ClientAssertion.fromCertificate(
+        const assertion = ClientAssertion.fromCertificateWithSha256Thumbprint(
             TEST_CONSTANTS.THUMBPRINT256,
-            true,
             TEST_CONSTANTS.PRIVATE_KEY
         );
         assertion.getJwt(cryptoProvider, issuer, audience);
@@ -130,7 +128,6 @@ describe("Client assertion test", () => {
 
         const assertion = ClientAssertion.fromCertificate(
             TEST_CONSTANTS.THUMBPRINT,
-            false,
             TEST_CONSTANTS.PRIVATE_KEY,
             TEST_CONSTANTS.PUBLIC_CERTIFICATE
         );
@@ -161,9 +158,8 @@ describe("Client assertion test", () => {
             },
         };
 
-        const assertion = ClientAssertion.fromCertificate(
+        const assertion = ClientAssertion.fromCertificateWithSha256Thumbprint(
             TEST_CONSTANTS.THUMBPRINT256,
-            true,
             TEST_CONSTANTS.PRIVATE_KEY,
             TEST_CONSTANTS.PUBLIC_CERTIFICATE
         );

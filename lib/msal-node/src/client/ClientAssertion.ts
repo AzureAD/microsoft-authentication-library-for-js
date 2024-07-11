@@ -39,6 +39,7 @@ export class ClientAssertion {
     }
 
     /**
+     * @deprecated Use fromCertificateWithSha256Thumbprint instead, with a SHA-256 thumprint
      * Initialize the ClientAssertion class from the certificate passed by the user
      * @param thumbprint - identifier of a certificate
      * @param privateKey - secret key
@@ -46,14 +47,35 @@ export class ClientAssertion {
      */
     public static fromCertificate(
         thumbprint: string,
-        useSha256: boolean,
         privateKey: string,
         publicCertificate?: string
     ): ClientAssertion {
         const clientAssertion = new ClientAssertion();
         clientAssertion.privateKey = privateKey;
         clientAssertion.thumbprint = thumbprint;
-        clientAssertion.useSha256 = useSha256;
+        clientAssertion.useSha256 = false;
+        if (publicCertificate) {
+            clientAssertion.publicCertificate =
+                this.parseCertificate(publicCertificate);
+        }
+        return clientAssertion;
+    }
+
+    /**
+     * Initialize the ClientAssertion class from the certificate passed by the user
+     * @param thumbprint - identifier of a certificate
+     * @param privateKey - secret key
+     * @param publicCertificate - electronic document provided to prove the ownership of the public key
+     */
+    public static fromCertificateWithSha256Thumbprint(
+        thumbprint: string,
+        privateKey: string,
+        publicCertificate?: string
+    ): ClientAssertion {
+        const clientAssertion = new ClientAssertion();
+        clientAssertion.privateKey = privateKey;
+        clientAssertion.thumbprint = thumbprint;
+        clientAssertion.useSha256 = true;
         if (publicCertificate) {
             clientAssertion.publicCertificate =
                 this.parseCertificate(publicCertificate);

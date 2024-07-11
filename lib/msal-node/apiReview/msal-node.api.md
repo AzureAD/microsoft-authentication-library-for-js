@@ -169,7 +169,9 @@ export abstract class ClientApplication {
 // @public
 export class ClientAssertion {
     static fromAssertion(assertion: string): ClientAssertion;
-    static fromCertificate(thumbprint: string, useSha256: boolean, privateKey: string, publicCertificate?: string): ClientAssertion;
+    // @deprecated (undocumented)
+    static fromCertificate(thumbprint: string, privateKey: string, publicCertificate?: string): ClientAssertion;
+    static fromCertificateWithSha256Thumbprint(thumbprint: string, privateKey: string, publicCertificate?: string): ClientAssertion;
     getJwt(cryptoProvider: CryptoProvider, issuer: string, jwtAudience: string): string;
     static parseCertificate(publicCertificate: string): Array<string>;
 }
