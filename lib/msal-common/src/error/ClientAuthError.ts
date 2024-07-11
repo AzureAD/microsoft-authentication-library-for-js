@@ -91,8 +91,6 @@ export const ClientAuthErrorMessages = {
         "This method has not been implemented",
     [ClientAuthErrorCodes.nestedAppAuthBridgeDisabled]:
         "The nested app auth bridge is disabled",
-    [ClientAuthErrorCodes.thumbprintMissing]:
-        "Client certificate does not contain a SHA-1 or SHA-2 thumbprint.",
 };
 
 /**

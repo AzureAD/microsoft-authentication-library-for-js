@@ -44,6 +44,7 @@ import { ClientTestUtils, getClientAssertionCallback } from "./ClientTestUtils";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { Constants } from "../../src/utils/Constants";
 import jwt from "jsonwebtoken";
+import { NodeAuthError } from "../../src/error/NodeAuthError";
 
 jest.mock("jsonwebtoken");
 
@@ -415,9 +416,7 @@ describe("ConfidentialClientApplication", () => {
 
             expect(() => {
                 new ConfidentialClientApplication(config);
-            }).toThrow(
-                createClientAuthError(ClientAuthErrorCodes.thumbprintMissing)
-            );
+            }).toThrow(NodeAuthError.createStateNotFoundError());
         });
     });
 

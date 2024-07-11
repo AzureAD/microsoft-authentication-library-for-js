@@ -15,8 +15,6 @@ import {
     ApplicationTelemetry,
     INativeBrokerPlugin,
     ClientAssertionCallback,
-    createClientAuthError,
-    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
@@ -29,6 +27,7 @@ import {
 } from "../utils/Constants.js";
 import { LinearRetryPolicy } from "../retry/LinearRetryPolicy.js";
 import { HttpClientWithRetries } from "../network/HttpClientWithRetries.js";
+import { NodeAuthError } from "../error/NodeAuthError.js";
 
 /**
  * - clientId               - Client id of the application.
@@ -36,7 +35,7 @@ import { HttpClientWithRetries } from "../network/HttpClientWithRetries.js";
  * - knownAuthorities       - Needed for Azure B2C and ADFS. All authorities that will be used in the client application. Only the host of the authority should be passed in.
  * - clientSecret           - Secret string that the application uses when requesting a token. Only used in confidential client applications. Can be created in the Azure app registration portal.
  * - clientAssertion        - A ClientAssertion object containing an assertion string or a callback function that returns an assertion string that the application uses when requesting a token, as well as the assertion's type (urn:ietf:params:oauth:client-assertion-type:jwt-bearer). Only used in confidential client applications.
- * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-2 thumbprint of the certificate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
+ * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 or SHA-256 thumbprint of the certificate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
  * - protocolMode           - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  * - skipAuthorityMetadataCache - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
  * @public
@@ -225,13 +224,13 @@ export function buildAppConfiguration({
         disableInternalRetries: system?.disableInternalRetries || false,
     };
 
-    // if client certificate was provided, ensure that at least one of the SHA-1 or SHA-2 thumbprints were provided
+    // if client certificate was provided, ensure that at least one of the SHA-1 or SHA-256 thumbprints were provided
     if (
         !!auth.clientCertificate &&
         !!!auth.clientCertificate.thumbprint &&
         !!!auth.clientCertificate.thumbprintSha256
     ) {
-        throw createClientAuthError(ClientAuthErrorCodes.thumbprintMissing);
+        throw NodeAuthError.createStateNotFoundError();
     }
 
     return {
