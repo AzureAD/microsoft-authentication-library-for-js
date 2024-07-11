@@ -262,17 +262,14 @@ export class ConfidentialClientApplication
         } else {
             this.clientAssertion = !!this.config.auth.clientCertificate
                 .thumbprintSha256
-                ? ClientAssertion.fromCertificate(
-                      // guaranteed to be a string
-                      this.config.auth.clientCertificate
-                          .thumbprintSha256 as string,
+                ? ClientAssertion.fromCertificateWithSha256Thumbprint(
+                      this.config.auth.clientCertificate.thumbprintSha256,
                       this.config.auth.clientCertificate.privateKey,
                       this.config.auth.clientCertificate.x5c
                   )
-                : ClientAssertion.fromCertificateWithSha256Thumbprint(
-                      // guaranteed to be a string
-                      this.config.auth.clientCertificate
-                          .thumbprintSha256 as string,
+                : ClientAssertion.fromCertificate(
+                      // guaranteed to be a string, due to prior error checking in this function
+                      this.config.auth.clientCertificate.thumbprint as string,
                       this.config.auth.clientCertificate.privateKey,
                       this.config.auth.clientCertificate.x5c
                   );
