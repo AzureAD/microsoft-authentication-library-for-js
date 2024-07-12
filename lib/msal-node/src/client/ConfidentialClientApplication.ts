@@ -19,7 +19,6 @@ import {
     AuthenticationResult,
     AzureRegionConfiguration,
     AuthError,
-    Constants,
     IAppTokenProvider,
     OIDC_DEFAULT_SCOPES,
     UrlString,
@@ -67,7 +66,7 @@ export class ConfidentialClientApplication
      */
     constructor(configuration: Configuration) {
         super(configuration);
-        this.setClientCredential(this.config);
+        this.setClientCredential();
         this.appTokenProvider = undefined;
     }
 
@@ -218,15 +217,13 @@ export class ConfidentialClientApplication
         }
     }
 
-    private setClientCredential(configuration: Configuration): void {
-        const clientSecretNotEmpty = !!configuration.auth.clientSecret;
-        const clientAssertionNotEmpty = !!configuration.auth.clientAssertion;
-        const certificate = configuration.auth.clientCertificate || {
-            thumbprint: Constants.EMPTY_STRING,
-            privateKey: Constants.EMPTY_STRING,
-        };
+    private setClientCredential(): void {
+        const clientSecretNotEmpty = !!this.config.auth.clientSecret;
+        const clientAssertionNotEmpty = !!this.config.auth.clientAssertion;
         const certificateNotEmpty =
-            !!certificate.thumbprint || !!certificate.privateKey;
+            (!!this.config.auth.clientCertificate.thumbprint ||
+                !!this.config.auth.clientCertificate.thumbprintSha256) &&
+            !!this.config.auth.clientCertificate.privateKey;
 
         /*
          * If app developer configures this callback, they don't need a credential
@@ -247,14 +244,14 @@ export class ConfidentialClientApplication
             );
         }
 
-        if (configuration.auth.clientSecret) {
-            this.clientSecret = configuration.auth.clientSecret;
+        if (this.config.auth.clientSecret) {
+            this.clientSecret = this.config.auth.clientSecret;
             return;
         }
 
-        if (configuration.auth.clientAssertion) {
+        if (this.config.auth.clientAssertion) {
             this.developerProvidedClientAssertion =
-                configuration.auth.clientAssertion;
+                this.config.auth.clientAssertion;
             return;
         }
 
@@ -263,11 +260,19 @@ export class ConfidentialClientApplication
                 ClientAuthErrorCodes.invalidClientCredential
             );
         } else {
-            this.clientAssertion = ClientAssertion.fromCertificate(
-                certificate.thumbprint,
-                certificate.privateKey,
-                configuration.auth.clientCertificate?.x5c
-            );
+            this.clientAssertion = !!this.config.auth.clientCertificate
+                .thumbprintSha256
+                ? ClientAssertion.fromCertificateWithSha256Thumbprint(
+                      this.config.auth.clientCertificate.thumbprintSha256,
+                      this.config.auth.clientCertificate.privateKey,
+                      this.config.auth.clientCertificate.x5c
+                  )
+                : ClientAssertion.fromCertificate(
+                      // guaranteed to be a string, due to prior error checking in this function
+                      this.config.auth.clientCertificate.thumbprint as string,
+                      this.config.auth.clientCertificate.privateKey,
+                      this.config.auth.clientCertificate.x5c
+                  );
         }
     }
 }

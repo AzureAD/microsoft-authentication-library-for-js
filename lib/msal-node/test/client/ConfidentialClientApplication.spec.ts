@@ -43,8 +43,16 @@ import { mockNetworkClient } from "../utils/MockNetworkClient";
 import { ClientTestUtils, getClientAssertionCallback } from "./ClientTestUtils";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { Constants } from "../../src/utils/Constants";
+import jwt from "jsonwebtoken";
+import { NodeAuthError } from "../../src/error/NodeAuthError";
+
+jest.mock("jsonwebtoken");
 
 describe("ConfidentialClientApplication", () => {
+    beforeAll(() => {
+        jest.spyOn(jwt, <any>"sign").mockReturnValue("fake_jwt_string");
+    });
+
     let config: Configuration;
     beforeEach(async () => {
         config =
@@ -354,7 +362,7 @@ describe("ConfidentialClientApplication", () => {
             );
         });
 
-        test("ensures that developer-provided certificate is attached to client assertion", async () => {
+        test("ensures that developer-provided certificate can be provided with a SHA-256 thumbprint, and is attached to client assertion", async () => {
             const getClientAssertionSpy: jest.SpyInstance = jest.spyOn(
                 ClientApplication.prototype,
                 <any>"getClientAssertion"
@@ -381,6 +389,34 @@ describe("ConfidentialClientApplication", () => {
             expect(clientAssertion.assertionType).toBe(
                 Constants.JWT_BEARER_ASSERTION_TYPE
             );
+        });
+
+        test("ensures that developer-provided certificate can be provided with a SHA-1 thumbprint", async () => {
+            delete config.auth.clientCertificate?.thumbprintSha256;
+
+            const client: ConfidentialClientApplication =
+                new ConfidentialClientApplication(config);
+
+            const request: ClientCredentialRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                skipCache: false,
+            };
+
+            const authResult = (await client.acquireTokenByClientCredential(
+                request
+            )) as AuthenticationResult;
+            expect(authResult.accessToken).toEqual(
+                CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+            );
+        });
+
+        test("ensures that developer-provided certificate must be provided with a SHA-1 or SHA-2 thumbprint", async () => {
+            delete config.auth.clientCertificate?.thumbprint;
+            delete config.auth.clientCertificate?.thumbprintSha256;
+
+            expect(() => {
+                new ConfidentialClientApplication(config);
+            }).toThrow(NodeAuthError.createStateNotFoundError());
         });
     });
 

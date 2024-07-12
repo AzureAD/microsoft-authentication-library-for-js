@@ -37,6 +37,10 @@ export const NodeAuthErrorMessage = {
         code: "state_not_found",
         desc: "State not found. Please verify that the request originated from msal.",
     },
+    thumbprintMissing: {
+        code: "thumbprint_missing_from_client_certificate",
+        desc: "Client certificate does not contain a SHA-1 or SHA-256 thumbprint.",
+    },
 };
 
 export class NodeAuthError extends AuthError {
@@ -112,6 +116,16 @@ export class NodeAuthError extends AuthError {
         return new NodeAuthError(
             NodeAuthErrorMessage.stateNotFoundError.code,
             NodeAuthErrorMessage.stateNotFoundError.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when client certificate was provided, but neither the SHA-1 or SHA-256 thumbprints were provided
+     */
+    static createThumbprintMissingError(): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.thumbprintMissing.code,
+            NodeAuthErrorMessage.thumbprintMissing.desc
         );
     }
 }
