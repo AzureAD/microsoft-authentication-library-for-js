@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1720716099054,
+  "lastUpdate": 1720806349013,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10042,6 +10042,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 189794,
             "range": "±2.03%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2ff18f23f0631507ccbf966478b152b02c9d25af",
+          "message": "Deprecated SHA-1 Thumbprints and Added SHA-256 support in Auth Flow with Certificate (#7185)\n\nSHA-1 thumbprints have been deprecated. It's now up to the developer to\r\npass in a SHA-256 thumbprint. A warning will be shown to the dev that\r\nstates the deprecation.\r\n\r\nThis is a quick-fix that puts the burden of providing a SHA-2 thumbprint\r\non the developer.\r\n\r\nManual testing has been completed.",
+          "timestamp": "2024-07-12T13:40:17-04:00",
+          "tree_id": "320273be0922ec3bc02534b7dcd87e535d5d35b9",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/2ff18f23f0631507ccbf966478b152b02c9d25af"
+        },
+        "date": 1720806347360,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 194244,
+            "range": "±2.12%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 187351,
+            "range": "±2.08%",
             "unit": "ops/sec",
             "extra": "222 samples"
           }
