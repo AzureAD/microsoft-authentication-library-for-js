@@ -77,10 +77,10 @@ export function tenantIdMatchesHomeTenant(
 
 /**
  * Build tenant profile
- * @param homeAccountId
- * @param localAccountId
- * @param tenantId
- * @param idTokenClaims
+ * @param homeAccountId - Home account identifier for this account object
+ * @param localAccountId - Local account identifer for this account object
+ * @param tenantId - Full tenant or organizational id that this account belongs to
+ * @param idTokenClaims - Claims from the ID token
  * @returns
  */
 export function buildTenantProfile(
