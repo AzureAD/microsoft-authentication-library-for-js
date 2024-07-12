@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 01 Jul 2024 19:18:29 GMT and should not be manually modified.
+This log was last generated on Fri, 12 Jul 2024 19:56:47 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.11.0
+
+Fri, 12 Jul 2024 19:56:47 GMT
+
+### Minor changes
+
+- Deprecated SHA-1 thumbprint for clientCertificate #7185 (rginsburg@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
 
 ## 2.10.0
 

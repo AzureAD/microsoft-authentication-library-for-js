@@ -2,6 +2,27 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Fri, 12 Jul 2024 19:56:47 GMT",
+      "version": "2.11.0",
+      "tag": "@azure/msal-node_v2.11.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "2ff18f23f0631507ccbf966478b152b02c9d25af",
+            "comment": "Deprecated SHA-1 thumbprint for clientCertificate #7185"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 Jul 2024 19:18:29 GMT",
       "version": "2.10.0",
       "tag": "@azure/msal-node_v2.10.0",
