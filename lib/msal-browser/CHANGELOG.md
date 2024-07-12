@@ -1,8 +1,23 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 01 Jul 2024 19:18:29 GMT and should not be manually modified.
+This log was last generated on Fri, 12 Jul 2024 19:56:47 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.19.0
+
+Fri, 12 Jul 2024 19:56:47 GMT
+
+### Minor changes
+
+- Add missing param to PCA.initialize #7194 (kshabelko@microsoft.com)
+- Add correlation id param to initialize and clearTokensAndKeysWithClaims APIs to streamline telemetry data analysis #7190 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- Remove onRedirectNative call back function in native ATRedirect calls #7193 (lalimasharda@microsoft.com)
 
 ## 3.18.0
 

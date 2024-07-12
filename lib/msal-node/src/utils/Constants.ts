@@ -146,6 +146,7 @@ export type ApiId = (typeof ApiId)[keyof typeof ApiId];
 export const JwtConstants = {
     ALGORITHM: "alg",
     RSA_256: "RS256",
+    X5T_256: "x5t#S256",
     X5T: "x5t",
     X5C: "x5c",
     AUDIENCE: "aud",

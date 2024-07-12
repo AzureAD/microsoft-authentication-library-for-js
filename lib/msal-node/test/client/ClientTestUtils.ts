@@ -45,7 +45,6 @@ import {
 } from "../test_kit/StringConstants";
 import { Configuration } from "../../src/config/Configuration";
 import { TEST_CONSTANTS } from "../utils/TestConstants";
-import { CryptoKeys } from "../utils/CryptoKeys";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
@@ -396,16 +395,16 @@ export class ClientTestUtils {
             logLevel: LogLevel.Verbose,
         };
 
-        const cryptoKeys: CryptoKeys = new CryptoKeys();
-
         const confidentialClientConfig: Configuration = {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
                 authority: TEST_CONSTANTS.AUTHORITY,
                 // clientSecret, clientAssertion
                 clientCertificate: {
-                    thumbprint: cryptoKeys.thumbprint,
-                    privateKey: cryptoKeys.privateKey,
+                    // defaults to SHA-256 when both thumbprints are provided
+                    thumbprint: TEST_CONSTANTS.THUMBPRINT,
+                    thumbprintSha256: TEST_CONSTANTS.THUMBPRINT256,
+                    privateKey: TEST_CONSTANTS.PRIVATE_KEY,
                 },
                 knownAuthorities: [TEST_CONSTANTS.AUTHORITY],
                 cloudDiscoveryMetadata: "",

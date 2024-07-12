@@ -2,6 +2,47 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Fri, 12 Jul 2024 19:56:47 GMT",
+      "version": "3.19.0",
+      "tag": "@azure/msal-browser_v3.19.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2ff18f23f0631507ccbf966478b152b02c9d25af",
+            "comment": "Add missing param to PCA.initialize #7194"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2ff18f23f0631507ccbf966478b152b02c9d25af",
+            "comment": "Add correlation id param to initialize and clearTokensAndKeysWithClaims APIs to streamline telemetry data analysis #7190"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "2ff18f23f0631507ccbf966478b152b02c9d25af",
+            "comment": "Remove onRedirectNative call back function in native ATRedirect calls #7193"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 Jul 2024 19:18:29 GMT",
       "version": "3.18.0",
       "tag": "@azure/msal-browser_v3.18.0",

@@ -169,7 +169,9 @@ export abstract class ClientApplication {
 // @public
 export class ClientAssertion {
     static fromAssertion(assertion: string): ClientAssertion;
+    // @deprecated (undocumented)
     static fromCertificate(thumbprint: string, privateKey: string, publicCertificate?: string): ClientAssertion;
+    static fromCertificateWithSha256Thumbprint(thumbprint: string, privateKey: string, publicCertificate?: string): ClientAssertion;
     getJwt(cryptoProvider: CryptoProvider, issuer: string, jwtAudience: string): string;
     static parseCertificate(publicCertificate: string): Array<string>;
 }
@@ -475,7 +477,8 @@ export type NodeAuthOptions = {
     clientSecret?: string;
     clientAssertion?: string | ClientAssertionCallback;
     clientCertificate?: {
-        thumbprint: string;
+        thumbprint?: string;
+        thumbprintSha256?: string;
         privateKey: string;
         x5c?: string;
     };
@@ -729,7 +732,7 @@ export { ValidCacheType }
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "2.10.0";
+export const version = "2.11.0";
 
 // Warnings were encountered during analysis:
 //
