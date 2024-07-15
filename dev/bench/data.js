@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1720814568770,
+  "lastUpdate": 1721086532450,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10118,6 +10118,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.01%",
             "unit": "ops/sec",
             "extra": "228 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "aa24330717b5e1f2f98c9d534d3766caefbaa452",
+          "message": "Create default tenant profile without idToken (#7197)\n\nAccount lookup doesn't work at all if the cached accounts don't have a\r\ntenant profile, which can happen if there is no id token yet. This PR\r\nupdates account generation to build a default tenant profile when an\r\nidToken is not present",
+          "timestamp": "2024-07-15T16:30:10-07:00",
+          "tree_id": "ce9fc1f38c15f8befc282b1fbaaf31e9b03d3f81",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/aa24330717b5e1f2f98c9d534d3766caefbaa452"
+        },
+        "date": 1721086531512,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 190791,
+            "range": "±2.00%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 186630,
+            "range": "±1.97%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
