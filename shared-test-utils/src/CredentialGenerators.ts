@@ -5,7 +5,7 @@ import {
     IdTokenEntity,
     TenantProfile,
     TokenClaims,
-    buildTenantProfileFromIdTokenClaims,
+    buildTenantProfile,
 } from "@azure/msal-common";
 
 export function buildAccountFromIdTokenClaims(
@@ -30,8 +30,10 @@ export function buildAccountFromIdTokenClaims(
         tenantProfiles: new Map<string, TenantProfile>([
             [
                 tenantId,
-                buildTenantProfileFromIdTokenClaims(
+                buildTenantProfile(
                     homeAccountId,
+                    oid || "",
+                    tenantId,
                     idTokenClaims
                 ),
             ],
@@ -41,8 +43,10 @@ export function buildAccountFromIdTokenClaims(
         const guestTenantId = guestIdTokenClaims.tid || "";
         accountInfo.tenantProfiles?.set(
             guestTenantId,
-            buildTenantProfileFromIdTokenClaims(
+            buildTenantProfile(
                 accountInfo.homeAccountId,
+                accountInfo.localAccountId,
+                guestTenantId,
                 guestIdTokenClaims
             )
         );

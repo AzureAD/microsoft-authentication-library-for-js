@@ -75,26 +75,44 @@ export function tenantIdMatchesHomeTenant(
     );
 }
 
-export function buildTenantProfileFromIdTokenClaims(
+/**
+ * Build tenant profile
+ * @param homeAccountId - Home account identifier for this account object
+ * @param localAccountId - Local account identifer for this account object
+ * @param tenantId - Full tenant or organizational id that this account belongs to
+ * @param idTokenClaims - Claims from the ID token
+ * @returns
+ */
+export function buildTenantProfile(
     homeAccountId: string,
-    idTokenClaims: TokenClaims
+    localAccountId: string,
+    tenantId: string,
+    idTokenClaims?: TokenClaims
 ): TenantProfile {
-    const { oid, sub, tid, name, tfp, acr } = idTokenClaims;
+    if (idTokenClaims) {
+        const { oid, sub, tid, name, tfp, acr } = idTokenClaims;
 
-    /**
-     * Since there is no way to determine if the authority is AAD or B2C, we exhaust all the possible claims that can serve as tenant ID with the following precedence:
-     * tid - TenantID claim that identifies the tenant that issued the token in AAD. Expected in all AAD ID tokens, not present in B2C ID Tokens.
-     * tfp - Trust Framework Policy claim that identifies the policy that was used to authenticate the user. Functions as tenant for B2C scenarios.
-     * acr - Authentication Context Class Reference claim used only with older B2C policies. Fallback in case tfp is not present, but likely won't be present anyway.
-     */
-    const tenantId = tid || tfp || acr || "";
+        /**
+         * Since there is no way to determine if the authority is AAD or B2C, we exhaust all the possible claims that can serve as tenant ID with the following precedence:
+         * tid - TenantID claim that identifies the tenant that issued the token in AAD. Expected in all AAD ID tokens, not present in B2C ID Tokens.
+         * tfp - Trust Framework Policy claim that identifies the policy that was used to authenticate the user. Functions as tenant for B2C scenarios.
+         * acr - Authentication Context Class Reference claim used only with older B2C policies. Fallback in case tfp is not present, but likely won't be present anyway.
+         */
+        const tenantId = tid || tfp || acr || "";
 
-    return {
-        tenantId: tenantId,
-        localAccountId: oid || sub || "",
-        name: name,
-        isHomeTenant: tenantIdMatchesHomeTenant(tenantId, homeAccountId),
-    };
+        return {
+            tenantId: tenantId,
+            localAccountId: oid || sub || "",
+            name: name,
+            isHomeTenant: tenantIdMatchesHomeTenant(tenantId, homeAccountId),
+        };
+    } else {
+        return {
+            tenantId,
+            localAccountId,
+            isHomeTenant: tenantIdMatchesHomeTenant(tenantId, homeAccountId),
+        };
+    }
 }
 
 /**
@@ -122,8 +140,10 @@ export function updateAccountTenantProfileData(
         // Ignore isHomeTenant, loginHint, and sid which are part of tenant profile but not base account info
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { isHomeTenant, ...claimsSourcedTenantProfile } =
-            buildTenantProfileFromIdTokenClaims(
+            buildTenantProfile(
                 baseAccountInfo.homeAccountId,
+                baseAccountInfo.localAccountId,
+                baseAccountInfo.tenantId,
                 idTokenClaims
             );
 

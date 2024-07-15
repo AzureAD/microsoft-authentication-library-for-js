@@ -41,7 +41,7 @@ export {
     TenantProfile,
     updateAccountTenantProfileData,
     tenantIdMatchesHomeTenant,
-    buildTenantProfileFromIdTokenClaims,
+    buildTenantProfile,
 } from "./account/AccountInfo";
 export { AuthToken };
 export {

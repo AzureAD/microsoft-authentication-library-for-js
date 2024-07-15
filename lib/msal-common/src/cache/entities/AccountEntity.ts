@@ -10,7 +10,7 @@ import { ClientInfo, buildClientInfo } from "../../account/ClientInfo";
 import {
     AccountInfo,
     TenantProfile,
-    buildTenantProfileFromIdTokenClaims,
+    buildTenantProfile,
 } from "../../account/AccountInfo";
 import {
     createClientAuthError,
@@ -214,15 +214,13 @@ export class AccountEntity {
         if (accountDetails.tenantProfiles) {
             account.tenantProfiles = accountDetails.tenantProfiles;
         } else {
-            const tenantProfiles = [];
-            if (accountDetails.idTokenClaims) {
-                const tenantProfile = buildTenantProfileFromIdTokenClaims(
-                    accountDetails.homeAccountId,
-                    accountDetails.idTokenClaims
-                );
-                tenantProfiles.push(tenantProfile);
-            }
-            account.tenantProfiles = tenantProfiles;
+            const tenantProfile = buildTenantProfile(
+                accountDetails.homeAccountId,
+                account.localAccountId,
+                account.realm,
+                accountDetails.idTokenClaims
+            );
+            account.tenantProfiles = [tenantProfile];
         }
 
         return account;
