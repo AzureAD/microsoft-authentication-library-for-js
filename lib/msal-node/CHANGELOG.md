@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Fri, 12 Jul 2024 19:56:47 GMT and should not be manually modified.
+This log was last generated on Tue, 16 Jul 2024 18:22:27 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.11.1
+
+Tue, 16 Jul 2024 18:22:27 GMT
+
+### Patches
+
+- SHA-256 thumbprints now use PSS padding #7200 (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v14.13.1
+- Bump eslint-config-msal to v0.0.0
 
 ## 2.11.0
 

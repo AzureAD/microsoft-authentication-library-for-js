@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "SHA-256 thumbprints now use PSS padding #7200",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}

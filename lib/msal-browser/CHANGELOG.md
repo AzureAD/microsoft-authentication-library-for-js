@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Fri, 12 Jul 2024 19:56:47 GMT and should not be manually modified.
+This log was last generated on Tue, 16 Jul 2024 18:22:27 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.19.1
+
+Tue, 16 Jul 2024 18:22:27 GMT
+
+### Patches
+
+- Generate tenantProfile even without idTokenClaims (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.13.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
 
 ## 3.19.0
 

@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 01 Jul 2024 19:18:29 GMT and should not be manually modified.
+This log was last generated on Tue, 16 Jul 2024 18:22:27 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.13.1
+
+Tue, 16 Jul 2024 18:22:27 GMT
+
+### Patches
+
+- Generate tenantProfile even without idTokenClaims (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
 
 ## 14.13.0
 

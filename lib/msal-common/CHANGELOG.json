@@ -2,6 +2,33 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 16 Jul 2024 18:22:27 GMT",
+      "version": "14.13.1",
+      "tag": "@azure/msal-common_v14.13.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5eabb42fe253ca40be6ded4158e63da2b8a2c6ec",
+            "comment": "Generate tenantProfile even without idTokenClaims"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 Jul 2024 19:18:29 GMT",
       "version": "14.13.0",
       "tag": "@azure/msal-common_v14.13.0",
