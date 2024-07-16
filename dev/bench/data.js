@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1721086532450,
+  "lastUpdate": 1721148730606,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10156,6 +10156,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.97%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5eabb42fe253ca40be6ded4158e63da2b8a2c6ec",
+          "message": "SHA-256 thumbprints now use PSS padding (#7200)\n\nSHA-256 thumbprints now use PSS padding.\r\nSHA-1 thumbprints still use RSA padding.\r\n\r\nManually tested with `thumbprint` and `thumbprintSha256` passed into\r\n`clientCertificate`.",
+          "timestamp": "2024-07-16T12:46:33-04:00",
+          "tree_id": "da90817b8c49385c3d458a0bcb47957f75d6d4d8",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/5eabb42fe253ca40be6ded4158e63da2b8a2c6ec"
+        },
+        "date": 1721148729099,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 198231,
+            "range": "±2.13%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 210931,
+            "range": "±1.12%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
