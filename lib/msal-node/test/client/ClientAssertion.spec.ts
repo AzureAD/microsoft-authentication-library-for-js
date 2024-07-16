@@ -87,7 +87,7 @@ describe("Client assertion test", () => {
 
         const expectedOptions = {
             header: {
-                [JwtConstants.ALGORITHM]: JwtConstants.RSA_256,
+                [JwtConstants.ALGORITHM]: JwtConstants.PSS_256,
                 [JwtConstants.X5T_256]: EncodingUtils.base64EncodeUrl(
                     TEST_CONSTANTS.THUMBPRINT256,
                     "hex"
@@ -149,7 +149,7 @@ describe("Client assertion test", () => {
 
         const expectedOptions = {
             header: {
-                [JwtConstants.ALGORITHM]: JwtConstants.RSA_256,
+                [JwtConstants.ALGORITHM]: JwtConstants.PSS_256,
                 [JwtConstants.X5T_256]: EncodingUtils.base64EncodeUrl(
                     TEST_CONSTANTS.THUMBPRINT256,
                     "hex"

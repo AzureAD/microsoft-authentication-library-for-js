@@ -132,8 +132,11 @@ export class ClientAssertion {
         const issuedAt = TimeUtils.nowSeconds();
         this.expirationTime = issuedAt + 600;
 
+        const algorithm = this.useSha256
+            ? JwtConstants.PSS_256
+            : JwtConstants.RSA_256;
         const header: jwt.JwtHeader = {
-            alg: JwtConstants.RSA_256,
+            alg: algorithm,
         };
 
         const thumbprintHeader = this.useSha256
