@@ -16,11 +16,6 @@ import {
     ValidCredentialType,
     TokenKeys,
     CacheHelpers,
-    TokenClaims,
-    CredentialType,
-    buildTenantProfileFromIdTokenClaims,
-    TenantProfile,
-    AccountInfo,
 } from "@azure/msal-common";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
