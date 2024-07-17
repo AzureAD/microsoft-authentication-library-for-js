@@ -582,8 +582,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 });
             expect(networkManagedIdentityResult.fromCache).toBe(false);
 
-            console.log(sendGetRequestAsyncSpy);
-
             expect(
                 sendGetRequestAsyncSpy.mock.lastCall[1].body.includes(
                     `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
