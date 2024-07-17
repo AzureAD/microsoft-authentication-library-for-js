@@ -449,6 +449,7 @@ export type ManagedIdentityIdParams = {
 //
 // @public
 export type ManagedIdentityRequestParams = {
+    claims?: string;
     forceRefresh?: boolean;
     resource: string;
 };
