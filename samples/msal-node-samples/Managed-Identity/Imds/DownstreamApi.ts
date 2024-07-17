@@ -5,7 +5,7 @@ export const getSecretFromKeyVault = (
     keyVaultUri: string,
     secretName: string
 ): Promise<string> => {
-    const customOptions: https.RequestOptions = {
+    const options: https.RequestOptions = {
         headers: {
             Authorization: `Bearer ${accessToken}`,
         },
@@ -15,7 +15,7 @@ export const getSecretFromKeyVault = (
         https
             .get(
                 `${keyVaultUri}secrets/${secretName}?api-version=7.2`,
-                customOptions,
+                options,
                 (response) => {
                     const data: Buffer[] = [];
                     response.on("data", (chunk) => {
@@ -23,14 +23,33 @@ export const getSecretFromKeyVault = (
                     });
 
                     response.on("end", () => {
-                        // combine all received buffer streams into one buffer, and then into a string
-                        const parsedData = Buffer.concat([...data]).toString();
-                        resolve(JSON.parse(parsedData).value);
+                        // combine all received buffer streams into one buffer, convert it to a string,
+                        // then parse it as a JSON object
+                        let parsedData;
+                        try {
+                            parsedData = JSON.parse(
+                                Buffer.concat([...data]).toString()
+                            );
+                        } catch (error) {
+                            return reject(
+                                new Error(
+                                    "Unable to parse response from the Key Vault"
+                                )
+                            );
+                        }
+
+                        if (parsedData.error) {
+                            return reject(
+                                new Error(`${parsedData.error.message}`)
+                            );
+                        }
+
+                        return resolve(parsedData.value);
                     });
                 }
             )
             .on("error", (error) => {
-                reject(new Error(`Error: ${error.message}`));
+                return reject(new Error(`${error.message}`));
             });
     });
 };
