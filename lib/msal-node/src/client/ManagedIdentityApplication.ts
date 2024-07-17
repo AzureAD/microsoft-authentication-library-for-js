@@ -130,6 +130,7 @@ export class ManagedIdentityApplication {
         }
 
         const managedIdentityRequest: ManagedIdentityRequest = {
+            claims: managedIdentityRequestParams.claims,
             forceRefresh: managedIdentityRequestParams.forceRefresh,
             resource: managedIdentityRequestParams.resource.replace(
                 "/.default",
@@ -142,7 +143,10 @@ export class ManagedIdentityApplication {
             correlationId: this.cryptoProvider.createNewGuid(),
         };
 
-        if (managedIdentityRequest.forceRefresh) {
+        if (
+            managedIdentityRequest.claims ||
+            managedIdentityRequest.forceRefresh
+        ) {
             // make a network call to the managed identity source
             return this.managedIdentityClient.sendManagedIdentityTokenRequest(
                 managedIdentityRequest,

@@ -548,6 +548,38 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             );
         });
 
+        test("ignores a cached token when claims are provided", async () => {
+            let networkManagedIdentityResult: AuthenticationResult =
+                await systemAssignedManagedIdentityApplication.acquireToken({
+                    resource: MANAGED_IDENTITY_RESOURCE,
+                });
+            expect(networkManagedIdentityResult.fromCache).toBe(false);
+
+            expect(networkManagedIdentityResult.accessToken).toEqual(
+                DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+            );
+
+            const cachedManagedIdentityResult: AuthenticationResult =
+                await systemAssignedManagedIdentityApplication.acquireToken({
+                    resource: MANAGED_IDENTITY_RESOURCE,
+                });
+            expect(cachedManagedIdentityResult.fromCache).toBe(true);
+            expect(cachedManagedIdentityResult.accessToken).toEqual(
+                DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+            );
+
+            networkManagedIdentityResult =
+                await systemAssignedManagedIdentityApplication.acquireToken({
+                    claims: "fake_claims",
+                    resource: MANAGED_IDENTITY_RESOURCE,
+                });
+            expect(networkManagedIdentityResult.fromCache).toBe(false);
+
+            expect(networkManagedIdentityResult.accessToken).toEqual(
+                DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+            );
+        });
+
         test("ignores a cached token when forceRefresh is set to true", async () => {
             let networkManagedIdentityResult: AuthenticationResult =
                 await systemAssignedManagedIdentityApplication.acquireToken({
