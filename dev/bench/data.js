@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1721154553062,
+  "lastUpdate": 1721249928278,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10230,6 +10230,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.04%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8130884783e88e6923b6e6c2361050334874b4f7",
+          "message": "Track MSAL SKU for broker flows (#7182)\n\n- Track MSAL SKU for broker flows\r\n- Enable server telemetry platform fields propagation \r\n- Propagate broker error to server telemetry",
+          "timestamp": "2024-07-17T16:53:23-04:00",
+          "tree_id": "d2c273cb7828adad6418de61af312bc0e5619805",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8130884783e88e6923b6e6c2361050334874b4f7"
+        },
+        "date": 1721249927277,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 194417,
+            "range": "±2.14%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 191129,
+            "range": "±1.98%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
