@@ -36,6 +36,7 @@ import {
     CacheHelpers,
     buildAccountToCache,
     InProgressPerformanceEvent,
+    ServerTelemetryManager,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -50,6 +51,7 @@ import {
     ApiId,
     TemporaryCacheKeys,
     NativeConstants,
+    BrowserConstants,
 } from "../utils/BrowserConstants";
 import {
     NativeExtensionRequestBody,
@@ -72,11 +74,40 @@ import {
 import { SilentCacheClient } from "./SilentCacheClient";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { base64Decode } from "../encode/Base64Decode";
+import { version } from "../packageMetadata";
 
 const BrokerServerParamKeys = {
     BROKER_CLIENT_ID: "brk_client_id",
     BROKER_REDIRECT_URI: "brk_redirect_uri",
 };
+
+/**
+ * Provides MSAL and browser extension SKUs
+ * @param messageHandler {NativeMessageHandler}
+ */
+function getSKUs(messageHandler: NativeMessageHandler): string {
+    const groupSeparator = ",";
+    const valueSeparator = "|";
+    const skus = Array.from({ length: 4 }, () => valueSeparator);
+    // Report MSAL SKU
+    skus[0] = [BrowserConstants.MSAL_SKU, version].join(valueSeparator);
+
+    // Report extension SKU
+    const extensionName =
+        messageHandler.getExtensionId() ===
+        NativeConstants.PREFERRED_EXTENSION_ID
+            ? "chrome"
+            : messageHandler.getExtensionId()?.length
+            ? "unknown"
+            : undefined;
+
+    if (extensionName) {
+        skus[2] = [extensionName, messageHandler.getExtensionVersion()].join(
+            valueSeparator
+        );
+    }
+    return skus.join(groupSeparator);
+}
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -84,6 +115,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
     protected nativeMessageHandler: NativeMessageHandler;
     protected silentCacheClient: SilentCacheClient;
     protected nativeStorageManager: BrowserCacheManager;
+    protected skus: string;
+    protected serverTelemetryManager: ServerTelemetryManager;
 
     constructor(
         config: BrowserConfiguration,
@@ -125,6 +158,22 @@ export class NativeInteractionClient extends BaseInteractionClient {
             provider,
             correlationId
         );
+        this.serverTelemetryManager = this.initializeServerTelemetryManager(
+            this.apiId
+        );
+        this.skus = getSKUs(this.nativeMessageHandler);
+    }
+
+    /**
+     * Adds SKUs to request extra query parameters
+     * @param request {NativeTokenRequest}
+     * @private
+     */
+    private addRequestSKUs(request: NativeTokenRequest) {
+        request.extraParameters = {
+            ...request.extraParameters,
+            [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
+        };
     }
 
     /**
@@ -147,64 +196,73 @@ export class NativeInteractionClient extends BaseInteractionClient {
         );
         const reqTimestamp = TimeUtils.nowSeconds();
 
-        // initialize native request
-        const nativeRequest = await this.initializeNativeRequest(request);
-
-        // check if the tokens can be retrieved from internal cache
         try {
-            const result = await this.acquireTokensFromCache(
-                this.accountId,
-                nativeRequest
-            );
-            nativeATMeasurement.end({
-                success: true,
-                isNativeBroker: false, // Should be true only when the result is coming directly from the broker
-                fromCache: true,
-            });
-            return result;
-        } catch (e) {
-            // continue with a native call for any and all errors
-            this.logger.info(
-                "MSAL internal Cache does not contain tokens, proceed to make a native call"
-            );
-        }
+            // initialize native request
+            const nativeRequest = await this.initializeNativeRequest(request);
 
-        const { ...nativeTokenRequest } = nativeRequest;
-
-        // fall back to native calls
-        const messageBody: NativeExtensionRequestBody = {
-            method: NativeExtensionMethod.GetToken,
-            request: nativeTokenRequest,
-        };
-
-        const response: object = await this.nativeMessageHandler.sendMessage(
-            messageBody
-        );
-        const validatedResponse: NativeResponse =
-            this.validateNativeResponse(response);
-
-        return this.handleNativeResponse(
-            validatedResponse,
-            nativeRequest,
-            reqTimestamp
-        )
-            .then((result: AuthenticationResult) => {
+            // check if the tokens can be retrieved from internal cache
+            try {
+                const result = await this.acquireTokensFromCache(
+                    this.accountId,
+                    nativeRequest
+                );
                 nativeATMeasurement.end({
                     success: true,
-                    isNativeBroker: true,
-                    requestId: result.requestId,
+                    isNativeBroker: false, // Should be true only when the result is coming directly from the broker
+                    fromCache: true,
                 });
                 return result;
-            })
-            .catch((error: AuthError) => {
-                nativeATMeasurement.end({
-                    success: false,
-                    errorCode: error.errorCode,
-                    subErrorCode: error.subError,
-                    isNativeBroker: true,
+            } catch (e) {
+                // continue with a native call for any and all errors
+                this.logger.info(
+                    "MSAL internal Cache does not contain tokens, proceed to make a native call"
+                );
+            }
+
+            const { ...nativeTokenRequest } = nativeRequest;
+
+            // fall back to native calls
+            const messageBody: NativeExtensionRequestBody = {
+                method: NativeExtensionMethod.GetToken,
+                request: nativeTokenRequest,
+            };
+
+            const response: object =
+                await this.nativeMessageHandler.sendMessage(messageBody);
+            const validatedResponse: NativeResponse =
+                this.validateNativeResponse(response);
+
+            return await this.handleNativeResponse(
+                validatedResponse,
+                nativeRequest,
+                reqTimestamp
+            )
+                .then((result: AuthenticationResult) => {
+                    nativeATMeasurement.end({
+                        success: true,
+                        isNativeBroker: true,
+                        requestId: result.requestId,
+                    });
+                    this.serverTelemetryManager.clearNativeBrokerErrorCode();
+                    return result;
+                })
+                .catch((error: AuthError) => {
+                    nativeATMeasurement.end({
+                        success: false,
+                        errorCode: error.errorCode,
+                        subErrorCode: error.subError,
+                        isNativeBroker: true,
+                    });
+                    throw error;
                 });
-                throw error;
-            });
+        } catch (e) {
+            if (e instanceof NativeAuthError) {
+                this.serverTelemetryManager.setNativeBrokerErrorCode(
+                    e.errorCode
+                );
+            }
+            throw e;
+        }
     }
 
     /**
@@ -307,8 +365,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.validateNativeResponse(response);
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
-            if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
-                throw e;
+            if (e instanceof NativeAuthError) {
+                this.serverTelemetryManager.setNativeBrokerErrorCode(
+                    e.errorCode
+                );
+                if (isFatalNativeAuthError(e)) {
+                    throw e;
+                }
             }
         }
         this.browserStorage.setTemporaryCache(
@@ -399,7 +462,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 reqTimestamp
             );
             this.browserStorage.setInteractionInProgress(false);
-            return await result;
+            const res = await result;
+            this.serverTelemetryManager.clearNativeBrokerErrorCode();
+            return res;
         } catch (e) {
             this.browserStorage.setInteractionInProgress(false);
             throw e;
@@ -980,6 +1045,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             // SPAs require whole string to be passed to broker
             validatedRequest.reqCnf = reqCnfData;
         }
+        this.addRequestSKUs(validatedRequest);
 
         return validatedRequest;
     }

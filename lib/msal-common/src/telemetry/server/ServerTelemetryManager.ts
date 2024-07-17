@@ -51,7 +51,12 @@ export class ServerTelemetryManager {
      */
     generateCurrentRequestHeaderValue(): string {
         const request = `${this.apiId}${SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR}${this.cacheOutcome}`;
-        const platformFields = [this.wrapperSKU, this.wrapperVer].join(
+        const platformFieldsArr = [this.wrapperSKU, this.wrapperVer];
+        const nativeBrokerErrorCode = this.getNativeBrokerErrorCode();
+        if (nativeBrokerErrorCode?.length) {
+            platformFieldsArr.push(`broker_error=${nativeBrokerErrorCode}`);
+        }
+        const platformFields = platformFieldsArr.join(
             SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR
         );
         const regionDiscoveryFields = this.getRegionDiscoveryFields();
@@ -276,5 +281,27 @@ export class ServerTelemetryManager {
      */
     setCacheOutcome(cacheOutcome: CacheOutcome): void {
         this.cacheOutcome = cacheOutcome;
+    }
+
+    setNativeBrokerErrorCode(errorCode: string): void {
+        const lastRequests = this.getLastRequests();
+        lastRequests.nativeBrokerErrorCode = errorCode;
+        this.cacheManager.setServerTelemetry(
+            this.telemetryCacheKey,
+            lastRequests
+        );
+    }
+
+    getNativeBrokerErrorCode(): string | undefined {
+        return this.getLastRequests().nativeBrokerErrorCode;
+    }
+
+    clearNativeBrokerErrorCode(): void {
+        const lastRequests = this.getLastRequests();
+        delete lastRequests.nativeBrokerErrorCode;
+        this.cacheManager.setServerTelemetry(
+            this.telemetryCacheKey,
+            lastRequests
+        );
     }
 }

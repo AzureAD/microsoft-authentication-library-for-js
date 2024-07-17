@@ -251,6 +251,29 @@ describe("ServerTelemetryManager.ts", () => {
                 `5|${testCacheHits}|${testApiCode},${testCorrelationId}|${testError}|2,1`
             );
         });
+
+        it("Adds a broker error to platform fields", () => {
+            const telemetryManager = new ServerTelemetryManager(
+                testTelemetryPayload,
+                testCacheManager
+            );
+            telemetryManager.setNativeBrokerErrorCode("native_dummy_error");
+            const currHeaderVal =
+                telemetryManager.generateCurrentRequestHeaderValue();
+            expect(currHeaderVal).toEqual(
+                `5|${testApiCode},0,,,|,,broker_error=native_dummy_error`
+            );
+        });
+
+        it("Does not add broker error code to platform fields", () => {
+            const telemetryManager = new ServerTelemetryManager(
+                testTelemetryPayload,
+                testCacheManager
+            );
+            const currHeaderVal =
+                telemetryManager.generateCurrentRequestHeaderValue();
+            expect(currHeaderVal).toEqual(`5|${testApiCode},0,,,|,`);
+        });
     });
 
     describe("clear telemetry cache tests", () => {
