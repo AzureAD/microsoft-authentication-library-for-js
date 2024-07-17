@@ -82,10 +82,10 @@ const BrokerServerParamKeys = {
 };
 
 /**
- * Sets MSAL and browser extension SKUs
+ * Provides MSAL and browser extension SKUs
  * @param messageHandler {NativeMessageHandler}
  */
-function setSKUs(messageHandler: NativeMessageHandler): string {
+function getSKUs(messageHandler: NativeMessageHandler): string {
     const groupSeparator = ",";
     const valueSeparator = "|";
     const skus = Array.from({ length: 4 }, () => valueSeparator);
@@ -161,7 +161,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         this.serverTelemetryManager = this.initializeServerTelemetryManager(
             this.apiId
         );
-        this.skus = setSKUs(this.nativeMessageHandler);
+        this.skus = getSKUs(this.nativeMessageHandler);
     }
 
     /**
