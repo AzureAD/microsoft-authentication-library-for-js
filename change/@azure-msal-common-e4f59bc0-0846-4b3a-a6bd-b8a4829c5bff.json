@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Implemented functionality to skip the cache for MI when claims are provided",
+  "comment": "Implemented functionality to skip the cache for MI when claims are provided #7207",
   "packageName": "@azure/msal-common",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"

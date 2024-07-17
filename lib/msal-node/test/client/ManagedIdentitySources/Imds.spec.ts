@@ -14,6 +14,7 @@ import {
     MANAGED_IDENTITY_RESOURCE_ID,
     MANAGED_IDENTITY_RESOURCE_ID_2,
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR_MESSAGE,
+    TEST_CONFIG,
     THREE_SECONDS_IN_MILLI,
     getCacheKey,
 } from "../../test_kit/StringConstants";
@@ -31,6 +32,7 @@ import {
     ManagedIdentitySourceNames,
 } from "../../../src/utils/Constants";
 import {
+    AADServerParamKeys,
     AccessTokenEntity,
     AuthenticationResult,
     CacheHelpers,
@@ -549,6 +551,11 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         });
 
         test("ignores a cached token when claims are provided", async () => {
+            const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            );
+
             let networkManagedIdentityResult: AuthenticationResult =
                 await systemAssignedManagedIdentityApplication.acquireToken({
                     resource: MANAGED_IDENTITY_RESOURCE,
@@ -570,10 +577,20 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
             networkManagedIdentityResult =
                 await systemAssignedManagedIdentityApplication.acquireToken({
-                    claims: "fake_claims",
+                    claims: TEST_CONFIG.CLAIMS,
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
             expect(networkManagedIdentityResult.fromCache).toBe(false);
+
+            console.log(sendGetRequestAsyncSpy);
+
+            expect(
+                sendGetRequestAsyncSpy.mock.lastCall[1].body.includes(
+                    `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
+                        TEST_CONFIG.CLAIMS
+                    )}`
+                )
+            ).toBe(true);
 
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken

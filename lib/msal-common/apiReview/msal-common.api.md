@@ -3461,6 +3461,23 @@ export type RequestThumbprint = {
     shrOptions?: ShrOptions;
 };
 
+// Warning: (ae-missing-release-tag) "RequestValidator" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export class RequestValidator {
+    // (undocumented)
+    static validateClaims(claims: string): void;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    static validateCodeChallengeMethod(codeChallengeMethod: string): void;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    static validateCodeChallengeParams(codeChallenge: string, codeChallengeMethod: string): void;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    static validatePrompt(prompt: string): void;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    static validateRedirectUri(redirectUri: string): void;
+}
+
 // Warning: (ae-missing-release-tag) "RESPONSE_MODE" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)

@@ -140,6 +140,7 @@ export { NativeRequest } from "./request/NativeRequest";
 export { NativeSignOutRequest } from "./request/NativeSignOutRequest";
 export { RequestParameterBuilder } from "./request/RequestParameterBuilder";
 export { StoreInCache } from "./request/StoreInCache";
+export { RequestValidator } from "./request/RequestValidator";
 export {
     ClientAssertion,
     ClientAssertionConfig,
