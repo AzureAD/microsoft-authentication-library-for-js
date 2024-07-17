@@ -17,6 +17,8 @@ type EventMessageWrapper<TEvent extends EventType, TInteraction extends Interact
 };
 
 export type EventMessage =
+| EventMessageWrapper<EventType.ACCOUNT_ADDED, null, AccountInfo, null>
+| EventMessageWrapper<EventType.ACCOUNT_REMOVED, null, AccountInfo, null>
 | EventMessageWrapper<EventType.LOGIN_START, InteractionType.Popup | InteractionType.Redirect, PopupRequest | RedirectRequest, null>
 | EventMessageWrapper<EventType.LOGIN_SUCCESS,InteractionType.Popup | InteractionType.Redirect, AuthenticationResult, null>
 | EventMessageWrapper<EventType.LOGIN_FAILURE, InteractionType.Popup | InteractionType.Redirect, null, AuthError | Error>
@@ -29,12 +31,11 @@ export type EventMessage =
 | EventMessageWrapper<EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, AuthError | Error>
 | EventMessageWrapper<EventType.HANDLE_REDIRECT_START, InteractionType.Redirect, null, null>
 | EventMessageWrapper<EventType.HANDLE_REDIRECT_END, InteractionType.Redirect, null, null>
+| EventMessageWrapper<EventType.POPUP_OPENED, InteractionType.Popup, PopupEvent, null>
 | EventMessageWrapper<EventType.LOGOUT_START, InteractionType.Redirect | InteractionType.Popup, EndSessionRequest, null>
-| EventMessageWrapper<EventType.LOGOUT_END, InteractionType.Redirect | InteractionType.Popup, null, null>
 | EventMessageWrapper<EventType.LOGOUT_SUCCESS, InteractionType.Redirect | InteractionType.Popup, EndSessionRequest, null>
 | EventMessageWrapper<EventType.LOGIN_FAILURE, InteractionType.Redirect | InteractionType.Popup, null, AuthError | Error>
-| EventMessageWrapper<EventType.ACCOUNT_ADDED, null, AccountInfo, null>
-| EventMessageWrapper<EventType.ACCOUNT_REMOVED, null, AccountInfo, null>;
+| EventMessageWrapper<EventType.LOGOUT_END, InteractionType.Redirect | InteractionType.Popup, null, null>;
 
 export type PopupEvent = {
     popupWindow: Window;
