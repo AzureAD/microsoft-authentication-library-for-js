@@ -33,7 +33,8 @@ export type EventMessage =
 | EventMessageWrapper<EventType.LOGOUT_END, InteractionType.Redirect | InteractionType.Popup, null, null>
 | EventMessageWrapper<EventType.LOGOUT_SUCCESS, InteractionType.Redirect | InteractionType.Popup, EndSessionRequest, null>
 | EventMessageWrapper<EventType.LOGIN_FAILURE, InteractionType.Redirect | InteractionType.Popup, null, AuthError | Error>
-| EventMessageWrapper<EventType.POPUP_OPENED, InteractionType.Popup, PopupEvent, null>;
+| EventMessageWrapper<EventType.ACCOUNT_ADDED, null, AccountInfo, null>
+| EventMessageWrapper<EventType.ACCOUNT_REMOVED, null, AccountInfo, null>;
 
 export type PopupEvent = {
     popupWindow: Window;
