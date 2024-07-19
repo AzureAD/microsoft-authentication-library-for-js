@@ -22,6 +22,8 @@ import {
     AccountInfo,
     INativeBrokerPlugin,
     ServerAuthorizationCodeResponse,
+    AADServerParamKeys,
+    ServerTelemetryManager,
 } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration.js";
 import { ClientApplication } from "./ClientApplication.js";
@@ -36,6 +38,7 @@ import { SilentFlowRequest } from "../request/SilentFlowRequest.js";
 import { SignOutRequest } from "../request/SignOutRequest.js";
 import { ILoopbackClient } from "../network/ILoopbackClient.js";
 import { DeviceCodeClient } from "./DeviceCodeClient.js";
+import { version } from "../packageMetadata";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -47,6 +50,7 @@ export class PublicClientApplication
     implements IPublicClientApplication
 {
     private nativeBrokerPlugin?: INativeBrokerPlugin;
+    private readonly skus: string;
     /**
      * Important attributes in the Configuration object for auth are:
      * - clientID: the application ID of your application. You can obtain one by registering your application with our Application registration portal.
@@ -78,6 +82,10 @@ export class PublicClientApplication
                 );
             }
         }
+        this.skus = ServerTelemetryManager.makeExtraSkuString({
+            libraryName: Constants.MSAL_SKU,
+            libraryVersion: version,
+        });
     }
 
     /**
@@ -156,6 +164,7 @@ export class PublicClientApplication
                 extraParameters: {
                     ...remainingProperties.extraQueryParameters,
                     ...remainingProperties.tokenQueryParameters,
+                    [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
                 },
                 accountId: remainingProperties.account?.nativeAccountId,
             };
@@ -247,7 +256,10 @@ export class PublicClientApplication
                 redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`,
                 authority: request.authority || this.config.auth.authority,
                 correlationId: correlationId,
-                extraParameters: request.tokenQueryParameters,
+                extraParameters: {
+                    ...request.tokenQueryParameters,
+                    [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
+                },
                 accountId: request.account.nativeAccountId,
                 forceRefresh: request.forceRefresh || false,
             };
