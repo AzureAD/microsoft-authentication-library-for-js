@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1721420268515,
+  "lastUpdate": 1721682195120,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10306,6 +10306,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.06%",
             "unit": "ops/sec",
             "extra": "219 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "99f8152a15ba356dba35ea424c670086bf8d776f",
+          "message": "Add debug parameter to E2E test template usages (#7203)\n\nThis PR adds a new debug parameter to 3p-triggered E2E test pipelines",
+          "timestamp": "2024-07-22T13:57:41-07:00",
+          "tree_id": "3df004f229c8811557cf6214750fb02a5312736d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/99f8152a15ba356dba35ea424c670086bf8d776f"
+        },
+        "date": 1721682194049,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 193062,
+            "range": "±2.01%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 195420,
+            "range": "±2.09%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
