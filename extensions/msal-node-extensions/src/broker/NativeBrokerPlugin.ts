@@ -4,6 +4,7 @@
  */
 
 import {
+    AADServerParamKeys,
     AccountInfo,
     AuthenticationResult,
     AuthenticationScheme,
@@ -21,6 +22,7 @@ import {
     NativeSignOutRequest,
     PromptValue,
     ServerError,
+    ServerTelemetryManager,
 } from "@azure/msal-common";
 import {
     msalNodeRuntime,
@@ -487,6 +489,23 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     }
                 );
             }
+
+            const skus =
+                request.extraParameters &&
+                request.extraParameters[AADServerParamKeys.X_CLIENT_EXTRA_SKU]
+                    ?.length
+                    ? request.extraParameters[
+                          AADServerParamKeys.X_CLIENT_EXTRA_SKU
+                      ]
+                    : "";
+            authParams.SetAdditionalParameter(
+                AADServerParamKeys.X_CLIENT_EXTRA_SKU,
+                ServerTelemetryManager.makeExtraSkuString({
+                    skus,
+                    extensionName: "msal.node.ext",
+                    extensionVersion: version,
+                })
+            );
         } catch (e) {
             const wrappedError = this.wrapError(e);
             if (wrappedError) {

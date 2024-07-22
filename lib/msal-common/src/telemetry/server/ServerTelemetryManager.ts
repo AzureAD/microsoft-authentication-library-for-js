@@ -17,6 +17,69 @@ import { ServerTelemetryRequest } from "./ServerTelemetryRequest";
 import { ServerTelemetryEntity } from "../../cache/entities/ServerTelemetryEntity";
 import { RegionDiscoveryMetadata } from "../../authority/RegionDiscoveryMetadata";
 
+const skuGroupSeparator = ",";
+const skuValueSeparator = "|";
+
+type SkuParams = {
+    libraryName?: string;
+    libraryVersion?: string;
+    extensionName?: string;
+    extensionVersion?: string;
+    skus?: string;
+};
+
+function makeExtraSkuString(params: SkuParams): string {
+    const {
+        skus,
+        libraryName,
+        libraryVersion,
+        extensionName,
+        extensionVersion,
+    } = params;
+    const skuMap: Map<number, (string | undefined)[]> = new Map([
+        [0, [libraryName, libraryVersion]],
+        [2, [extensionName, extensionVersion]],
+    ]);
+    let skuArr: string[] = [];
+
+    if (skus?.length) {
+        skuArr = skus.split(skuGroupSeparator);
+
+        // Ignore invalid input sku param
+        if (skuArr.length < 4) {
+            return skus;
+        }
+    } else {
+        skuArr = Array.from({ length: 4 }, () => skuValueSeparator);
+    }
+
+    skuMap.forEach((value, key) => {
+        if (value.length === 2 && value[0]?.length && value[1]?.length) {
+            setSku({
+                skuArr,
+                index: key,
+                skuName: value[0],
+                skuVersion: value[1],
+            });
+        }
+    });
+
+    return skuArr.join(skuGroupSeparator);
+}
+
+function setSku(params: {
+    skuArr: string[];
+    index: number;
+    skuName: string;
+    skuVersion: string;
+}): void {
+    const { skuArr, index, skuName, skuVersion } = params;
+    if (index >= skuArr.length) {
+        return;
+    }
+    skuArr[index] = [skuName, skuVersion].join(skuValueSeparator);
+}
+
 /** @internal */
 export class ServerTelemetryManager {
     private cacheManager: CacheManager;
@@ -303,5 +366,9 @@ export class ServerTelemetryManager {
             this.telemetryCacheKey,
             lastRequests
         );
+    }
+
+    static makeExtraSkuString(params: SkuParams): string {
+        return makeExtraSkuString(params);
     }
 }

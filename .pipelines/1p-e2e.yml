@@ -1,5 +1,5 @@
 parameters:
-    - name: "debugVariables"
+    - name: "debug"
       displayName: "Debug Variables"
       type: boolean
       default: false
@@ -48,4 +48,4 @@ extends:
                         samples:
                             - "Broker_WAMTestApp"
                             - "PerformanceTelemetrySample"
-                        debugVariables: ${{ parameters.debugVariables }}
+                        debug: ${{ parameters.debug }}

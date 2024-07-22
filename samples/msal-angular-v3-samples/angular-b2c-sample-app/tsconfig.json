@@ -18,6 +18,7 @@
     "importHelpers": true,
     "target": "ES2022",
     "module": "es2020",
+    "esModuleInterop": true,
     "lib": [
       "es2020",
       "dom"
