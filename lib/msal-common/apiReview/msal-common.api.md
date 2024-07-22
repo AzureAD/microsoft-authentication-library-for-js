@@ -3664,6 +3664,10 @@ export class ServerTelemetryManager {
     getNativeBrokerErrorCode(): string | undefined;
     getRegionDiscoveryFields(): string;
     incrementCacheHits(): number;
+    // Warning: (ae-forgotten-export) The symbol "SkuParams" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    static makeExtraSkuString(params: SkuParams): string;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static maxErrorsToSend(serverTelemetryEntity: ServerTelemetryEntity): number;
     setCacheOutcome(cacheOutcome: CacheOutcome): void;

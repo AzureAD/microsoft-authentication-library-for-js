@@ -81,34 +81,6 @@ const BrokerServerParamKeys = {
     BROKER_REDIRECT_URI: "brk_redirect_uri",
 };
 
-/**
- * Provides MSAL and browser extension SKUs
- * @param messageHandler {NativeMessageHandler}
- */
-function getSKUs(messageHandler: NativeMessageHandler): string {
-    const groupSeparator = ",";
-    const valueSeparator = "|";
-    const skus = Array.from({ length: 4 }, () => valueSeparator);
-    // Report MSAL SKU
-    skus[0] = [BrowserConstants.MSAL_SKU, version].join(valueSeparator);
-
-    // Report extension SKU
-    const extensionName =
-        messageHandler.getExtensionId() ===
-        NativeConstants.PREFERRED_EXTENSION_ID
-            ? "chrome"
-            : messageHandler.getExtensionId()?.length
-            ? "unknown"
-            : undefined;
-
-    if (extensionName) {
-        skus[2] = [extensionName, messageHandler.getExtensionVersion()].join(
-            valueSeparator
-        );
-    }
-    return skus.join(groupSeparator);
-}
-
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
     protected accountId: string;
@@ -161,7 +133,20 @@ export class NativeInteractionClient extends BaseInteractionClient {
         this.serverTelemetryManager = this.initializeServerTelemetryManager(
             this.apiId
         );
-        this.skus = getSKUs(this.nativeMessageHandler);
+
+        const extensionName =
+            this.nativeMessageHandler.getExtensionId() ===
+            NativeConstants.PREFERRED_EXTENSION_ID
+                ? "chrome"
+                : this.nativeMessageHandler.getExtensionId()?.length
+                ? "unknown"
+                : undefined;
+        this.skus = ServerTelemetryManager.makeExtraSkuString({
+            libraryName: BrowserConstants.MSAL_SKU,
+            libraryVersion: version,
+            extensionName: extensionName,
+            extensionVersion: this.nativeMessageHandler.getExtensionVersion(),
+        });
     }
 
     /**
