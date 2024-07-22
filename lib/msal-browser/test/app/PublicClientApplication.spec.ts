@@ -3855,14 +3855,24 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .callsFake(async () => {
                     return testTokenResponse;
                 });
-            const response = await pca.acquireTokenSilent({
+            const silentRequest = {
                 scopes: ["User.Read"],
                 account: testAccount,
-            });
+            };
+            const response = await pca.acquireTokenSilent(silentRequest);
 
             expect(response).toEqual(testTokenResponse);
             expect(nativeAcquireTokenSpy.calledOnce).toBeTruthy();
             expect(silentSpy.calledOnce).toBeTruthy();
+            expect(
+                silentSpy.calledWith({
+                    ...silentRequest,
+                    tokenQueryParameters: {
+                        "x-client-current-telemetry":
+                            "||broker_error=ContentError",
+                    },
+                })
+            );
         });
 
         it("throws error if native broker call fails due to non-fatal error", async () => {
