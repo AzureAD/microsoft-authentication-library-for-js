@@ -251,6 +251,29 @@ describe("ServerTelemetryManager.ts", () => {
                 `5|${testCacheHits}|${testApiCode},${testCorrelationId}|${testError}|2,1`
             );
         });
+
+        it("Adds a broker error to platform fields", () => {
+            const telemetryManager = new ServerTelemetryManager(
+                testTelemetryPayload,
+                testCacheManager
+            );
+            telemetryManager.setNativeBrokerErrorCode("native_dummy_error");
+            const currHeaderVal =
+                telemetryManager.generateCurrentRequestHeaderValue();
+            expect(currHeaderVal).toEqual(
+                `5|${testApiCode},0,,,|,,broker_error=native_dummy_error`
+            );
+        });
+
+        it("Does not add broker error code to platform fields", () => {
+            const telemetryManager = new ServerTelemetryManager(
+                testTelemetryPayload,
+                testCacheManager
+            );
+            const currHeaderVal =
+                telemetryManager.generateCurrentRequestHeaderValue();
+            expect(currHeaderVal).toEqual(`5|${testApiCode},0,,,|,`);
+        });
     });
 
     describe("clear telemetry cache tests", () => {
@@ -378,5 +401,57 @@ describe("ServerTelemetryManager.ts", () => {
             cacheKey
         ) as ServerTelemetryEntity;
         expect(cacheValue.cacheHits).toBe(2);
+    });
+
+    describe("makeExtraSkuString", () => {
+        it("Creates empty string from scratch", () => {
+            const skus = ServerTelemetryManager.makeExtraSkuString({});
+            expect(skus).toEqual("|,|,|,|");
+        });
+
+        it("Does not modify input string", () => {
+            const skus = ServerTelemetryManager.makeExtraSkuString({
+                skus: "test_sku|1.0.0,|,|,|",
+            });
+            expect(skus).toEqual("test_sku|1.0.0,|,|,|");
+        });
+
+        it("Returns invalid input", () => {
+            const skus = ServerTelemetryManager.makeExtraSkuString({
+                skus: "test_sku|1.0.0,|,|",
+                libraryName: "test_lib_name",
+                libraryVersion: "1.2.3",
+            });
+            expect(skus).toEqual("test_sku|1.0.0,|,|");
+        });
+
+        it("Adds library and extension info", () => {
+            const skus = ServerTelemetryManager.makeExtraSkuString({
+                skus: "test_sku|1.0.0,|,test_ext_sku|2.0.0,|",
+                libraryName: "test_lib_name",
+                libraryVersion: "1.2.3",
+                extensionName: "test_ext_name",
+                extensionVersion: "5.6.7",
+            });
+            expect(skus).toEqual("test_lib_name|1.2.3,|,test_ext_name|5.6.7,|");
+        });
+
+        it("Updates input string with library info", () => {
+            const skus = ServerTelemetryManager.makeExtraSkuString({
+                skus: "test_sku|1.0.0,|,test_ext_sku|2.0.0,|",
+                libraryName: "test_lib_name",
+                libraryVersion: "1.2.3",
+            });
+            expect(skus).toEqual("test_lib_name|1.2.3,|,test_ext_sku|2.0.0,|");
+        });
+
+        it("Updates input string with extension info", () => {
+            const skus = ServerTelemetryManager.makeExtraSkuString({
+                skus: "test_sku|1.0.0,|,test_ext_sku|2.0.0,|",
+                extensionName: "test_ext_name",
+                extensionVersion: "5.6.7",
+            });
+            expect(skus).toEqual("test_sku|1.0.0,|,test_ext_name|5.6.7,|");
+        });
     });
 });
