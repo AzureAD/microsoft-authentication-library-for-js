@@ -72,7 +72,8 @@ declare namespace AADServerParamKeys {
         LOGOUT_HINT,
         SID,
         LOGIN_HINT,
-        DOMAIN_HINT
+        DOMAIN_HINT,
+        X_CLIENT_EXTRA_SKU
     }
 }
 export { AADServerParamKeys }
@@ -3643,6 +3644,7 @@ export type ServerTelemetryEntity = {
     failedRequests: Array<string | number>;
     errors: string[];
     cacheHits: number;
+    nativeBrokerErrorCode?: string;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "ServerTelemetryManager" should be prefixed with an underscore because the declaration is marked as @internal
@@ -3652,15 +3654,25 @@ export class ServerTelemetryManager {
     constructor(telemetryRequest: ServerTelemetryRequest, cacheManager: CacheManager);
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     cacheFailedRequest(error: unknown): void;
+    // (undocumented)
+    clearNativeBrokerErrorCode(): void;
     clearTelemetryCache(): void;
     generateCurrentRequestHeaderValue(): string;
     generateLastRequestHeaderValue(): string;
     getLastRequests(): ServerTelemetryEntity;
+    // (undocumented)
+    getNativeBrokerErrorCode(): string | undefined;
     getRegionDiscoveryFields(): string;
     incrementCacheHits(): number;
+    // Warning: (ae-forgotten-export) The symbol "SkuParams" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    static makeExtraSkuString(params: SkuParams): string;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static maxErrorsToSend(serverTelemetryEntity: ServerTelemetryEntity): number;
     setCacheOutcome(cacheOutcome: CacheOutcome): void;
+    // (undocumented)
+    setNativeBrokerErrorCode(errorCode: string): void;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     updateRegionDiscoveryMetadata(regionDiscoveryMetadata: RegionDiscoveryMetadata): void;
 }
@@ -4161,6 +4173,11 @@ const X_CLIENT_CPU = "x-client-CPU";
 //
 // @public (undocumented)
 const X_CLIENT_CURR_TELEM = "x-client-current-telemetry";
+
+// Warning: (ae-missing-release-tag) "X_CLIENT_EXTRA_SKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const X_CLIENT_EXTRA_SKU = "x-client-xtra-sku";
 
 // Warning: (ae-missing-release-tag) "X_CLIENT_LAST_TELEM" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

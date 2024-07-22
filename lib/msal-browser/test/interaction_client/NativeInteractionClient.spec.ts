@@ -45,6 +45,9 @@ import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { BrowserPerformanceClient, IPublicClientApplication } from "../../src";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
+import { version } from "../../src/packageMetadata";
+import { BrowserConstants } from "../../src/utils/BrowserConstants";
+import * as NativeStatusCodes from "../../src/broker/nativeBroker/NativeStatusCodes";
 
 const MOCK_WAM_RESPONSE = {
     access_token: TEST_TOKENS.ACCESS_TOKEN,
@@ -530,6 +533,216 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
         });
 
+        it("adds MSAL.js SKU to request extra query parameters", async () => {
+            sinon
+                .stub(NativeMessageHandler.prototype, "sendMessage")
+                .callsFake((message): Promise<object> => {
+                    expect(
+                        message.request?.extraParameters!["x-client-xtra-sku"]
+                    ).toEqual(`${BrowserConstants.MSAL_SKU}|${version},|,|,|`);
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+            await nativeInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+            });
+        });
+
+        it("adds MSAL.js and Chrome extension SKUs to request extra query parameters", async () => {
+            sinon
+                .stub(NativeMessageHandler.prototype, "sendMessage")
+                .callsFake((message): Promise<object> => {
+                    expect(
+                        message.request?.extraParameters!["x-client-xtra-sku"]
+                    ).toEqual(
+                        `${BrowserConstants.MSAL_SKU}|${version},|,chrome|1.0.2,|`
+                    );
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+
+            sinon
+                .stub(NativeMessageHandler.prototype, "getExtensionId")
+                .returns("ppnbnpeolgkicgegkbkbjmhlideopiji");
+            sinon
+                .stub(NativeMessageHandler.prototype, "getExtensionVersion")
+                .returns("1.0.2");
+
+            nativeInteractionClient = new NativeInteractionClient(
+                // @ts-ignore
+                pca.config,
+                // @ts-ignore
+                pca.browserStorage,
+                // @ts-ignore
+                pca.browserCrypto,
+                pca.getLogger(),
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                ApiId.acquireTokenRedirect,
+                perfClient,
+                wamProvider,
+                "nativeAccountId",
+                // @ts-ignore
+                pca.nativeInternalStorage,
+                RANDOM_TEST_GUID
+            );
+
+            await nativeInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+            });
+        });
+
+        it("adds MSAL.js and unknown extension SKUs to request extra query parameters", async () => {
+            sinon
+                .stub(NativeMessageHandler.prototype, "sendMessage")
+                .callsFake((message): Promise<object> => {
+                    expect(
+                        message.request?.extraParameters!["x-client-xtra-sku"]
+                    ).toEqual(
+                        `${BrowserConstants.MSAL_SKU}|${version},|,unknown|2.3.4,|`
+                    );
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+
+            sinon
+                .stub(NativeMessageHandler.prototype, "getExtensionId")
+                .returns("random_extension_id");
+            sinon
+                .stub(NativeMessageHandler.prototype, "getExtensionVersion")
+                .returns("2.3.4");
+
+            nativeInteractionClient = new NativeInteractionClient(
+                // @ts-ignore
+                pca.config,
+                // @ts-ignore
+                pca.browserStorage,
+                // @ts-ignore
+                pca.browserCrypto,
+                pca.getLogger(),
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                ApiId.acquireTokenRedirect,
+                perfClient,
+                wamProvider,
+                "nativeAccountId",
+                // @ts-ignore
+                pca.nativeInternalStorage,
+                RANDOM_TEST_GUID
+            );
+
+            await nativeInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+            });
+        });
+
+        it("does not set native broker error to server telemetry", async () => {
+            sinon
+                .stub(NativeMessageHandler.prototype, "sendMessage")
+                .callsFake((message): Promise<object> => {
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+
+            await nativeInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+            });
+            expect(
+                JSON.parse(
+                    window.sessionStorage.getItem(
+                        `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
+                    ) || ""
+                )
+            ).toEqual({
+                cacheHits: 0,
+                errors: [],
+                failedRequests: [],
+            });
+        });
+
+        it("sets native broker error to server telemetry", async () => {
+            sinon
+                .stub(NativeMessageHandler.prototype, "sendMessage")
+                .callsFake((message): Promise<object> => {
+                    return Promise.reject(
+                        new NativeAuthError("test_native_error_code")
+                    );
+                });
+            try {
+                await nativeInteractionClient.acquireToken({
+                    scopes: ["User.Read"],
+                });
+            } catch (e) {}
+            expect(
+                JSON.parse(
+                    window.sessionStorage.getItem(
+                        `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
+                    ) || ""
+                )
+            ).toEqual({
+                cacheHits: 0,
+                errors: [],
+                failedRequests: [],
+                nativeBrokerErrorCode: "test_native_error_code",
+            });
+        });
+
+        it("resets native broker error in server telemetry", async () => {
+            const sendMessageStub = sinon.stub(
+                NativeMessageHandler.prototype,
+                "sendMessage"
+            );
+            sendMessageStub
+                .onFirstCall()
+                .callsFake((message): Promise<object> => {
+                    return Promise.reject(
+                        new NativeAuthError(
+                            "test_native_error_code",
+                            "test_error_desc",
+                            { status: NativeStatusCodes.PERSISTENT_ERROR }
+                        )
+                    );
+                });
+            sendMessageStub
+                .onSecondCall()
+                .callsFake((message): Promise<object> => {
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+
+            try {
+                await nativeInteractionClient.acquireToken({
+                    scopes: ["User.Read"],
+                });
+            } catch (e) {}
+            expect(
+                JSON.parse(
+                    window.sessionStorage.getItem(
+                        `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
+                    ) || ""
+                )
+            ).toEqual({
+                cacheHits: 0,
+                errors: [],
+                failedRequests: [],
+                nativeBrokerErrorCode: "test_native_error_code",
+            });
+
+            await nativeInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+            });
+            expect(
+                JSON.parse(
+                    window.sessionStorage.getItem(
+                        `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
+                    ) || ""
+                )
+            ).toEqual({
+                cacheHits: 0,
+                errors: [],
+                failedRequests: [],
+            });
+        });
+
         describe("storeInCache tests", () => {
             //here
 
@@ -685,6 +898,140 @@ describe("NativeInteractionClient Tests", () => {
                     expect(e.errorCode).toBe("ContentError");
                     done();
                 });
+        });
+
+        it("adds MSAL.js SKU to request extra query parameters", (done) => {
+            sinon
+                .stub(NavigationClient.prototype, "navigateExternal")
+                .callsFake((url: string) => {
+                    expect(url).toBe(window.location.href);
+                    done();
+                    return Promise.resolve(true);
+                });
+            sinon
+                .stub(NativeMessageHandler.prototype, "sendMessage")
+                .callsFake((message): Promise<object> => {
+                    expect(
+                        message.request?.extraParameters!["x-client-xtra-sku"]
+                    ).toEqual(`${BrowserConstants.MSAL_SKU}|${version},|,|,|`);
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+            nativeInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                },
+                perfMeasurement
+            );
+        });
+
+        it("sets native broker error to server telemetry", (done) => {
+            sinon
+                .stub(NavigationClient.prototype, "navigateExternal")
+                .callsFake((url: string) => {
+                    expect(url).toBe(window.location.href);
+                    expect(
+                        JSON.parse(
+                            window.sessionStorage.getItem(
+                                `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
+                            ) || ""
+                        )
+                    ).toHaveProperty(
+                        "nativeBrokerErrorCode",
+                        "test_native_error_code"
+                    );
+                    done();
+                    return Promise.resolve(true);
+                });
+            sinon
+                .stub(NativeMessageHandler.prototype, "sendMessage")
+                .callsFake((message): Promise<object> => {
+                    return Promise.reject(
+                        new NativeAuthError("test_native_error_code")
+                    );
+                });
+            nativeInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                },
+                perfMeasurement
+            );
+        });
+
+        it("resets native broker error in server telemetry", async () => {
+            sinon
+                .stub(NavigationClient.prototype, "navigateExternal")
+                .callsFake((url: string) => {
+                    return Promise.resolve(true);
+                });
+            const sendMessageStub = sinon.stub(
+                NativeMessageHandler.prototype,
+                "sendMessage"
+            );
+            sendMessageStub
+                .onFirstCall()
+                .callsFake((message): Promise<object> => {
+                    return Promise.reject(
+                        new NativeAuthError(
+                            "test_native_error_code",
+                            "test_error_desc",
+                            { status: NativeStatusCodes.PERSISTENT_ERROR }
+                        )
+                    );
+                });
+            sendMessageStub
+                .onSecondCall()
+                .callsFake((message): Promise<object> => {
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+            sendMessageStub
+                .onThirdCall()
+                .callsFake((message): Promise<object> => {
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+
+            try {
+                await nativeInteractionClient.acquireTokenRedirect(
+                    {
+                        scopes: ["User.Read"],
+                    },
+                    perfMeasurement
+                );
+            } catch (e) {}
+
+            expect(
+                JSON.parse(
+                    window.sessionStorage.getItem(
+                        `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
+                    ) || ""
+                )
+            ).toEqual({
+                cacheHits: 0,
+                errors: [],
+                failedRequests: [],
+                nativeBrokerErrorCode: "test_native_error_code",
+            });
+
+            await nativeInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                },
+                perfMeasurement
+            );
+            // @ts-ignore
+            pca.browserStorage.setInteractionInProgress(true);
+            await nativeInteractionClient.handleRedirectPromise();
+
+            expect(
+                JSON.parse(
+                    window.sessionStorage.getItem(
+                        `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
+                    ) || ""
+                )
+            ).toEqual({
+                cacheHits: 0,
+                errors: [],
+                failedRequests: [],
+            });
         });
     });
 
