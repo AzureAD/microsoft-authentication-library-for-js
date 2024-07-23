@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 16 Jul 2024 18:22:27 GMT and should not be manually modified.
+This log was last generated on Tue, 23 Jul 2024 14:19:34 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.20.0
+
+Tue, 23 Jul 2024 14:19:34 GMT
+
+### Minor changes
+
+- Track MSAL node SKU for broker flows #7213 (kshabelko@microsoft.com)
+- Track MSAL SKU for broker flows #7182 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.14.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
 
 ## 3.19.1
 
