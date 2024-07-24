@@ -215,7 +215,6 @@ export class PopupClient extends StandardInteractionClient {
 
         let authCodeRequest: CommonAuthorizationCodeRequest | null = null;
         let authClient: AuthorizationCodeClient | null = null;
-        let isNativeBroker: boolean = false;
 
         try {
             // Create auth code request and generate PKCE params
@@ -242,20 +241,12 @@ export class PopupClient extends StandardInteractionClient {
                 validRequest.account
             );
 
-            isNativeBroker = NativeMessageHandler.isNativeAvailable(
-                this.config,
-                this.logger,
-                this.nativeMessageHandler,
-                request.authenticationScheme
-            );
-
             // TODO: Start retry here? Invoke async / bind here?
             return await this.acquireTokenPopupAsyncHelper(
                 authClient,
                 authCodeRequest, 
                 validRequest,
                 request,
-                isNativeBroker,
                 popupName,
                 popupWindowAttributes,
                 popup,
@@ -273,8 +264,8 @@ export class PopupClient extends StandardInteractionClient {
             }
 
             if (e instanceof ServerError && e.errorCode === BrowserConstants.INVALID_GRANT_ERROR) {
-                if (this.retryCounter < 1) {
-                    this.retryCounter++;                
+                if (!this.requestRetried) {
+                    this.requestRetried = true;                
                     try {
                         if (!authClient || !authCodeRequest) {
                             // TODO: Telemetry that it did not retry
@@ -285,7 +276,6 @@ export class PopupClient extends StandardInteractionClient {
                                 authCodeRequest,
                                 validRequest,
                                 request,
-                                isNativeBroker,
                                 popupName,
                                 popupWindowAttributes,
                                 popup,
@@ -293,10 +283,7 @@ export class PopupClient extends StandardInteractionClient {
                         }
                     } catch (e) {
                         // TODO: Telemetry that retry returned an error, throwing
-                        if (this.retryCounter > 0) {
-                            // TODO: log data point
-                            throw e;
-                        }
+                        throw e;
                     }
                 } else {
                     // TODO: Log data point
@@ -313,8 +300,7 @@ export class PopupClient extends StandardInteractionClient {
      * @param authClient 
      * @param authCodeRequest 
      * @param validRequest 
-     * @param request 
-     * @param isNativeBroker 
+     * @param request  
      * @param popupName 
      * @param popupWindowAttributes 
      * @param popup 
@@ -325,11 +311,18 @@ export class PopupClient extends StandardInteractionClient {
         authCodeRequest: CommonAuthorizationCodeRequest,
         validRequest: AuthorizationUrlRequest,
         request: PopupRequest,
-        isNativeBroker: boolean,
         popupName: string,
         popupWindowAttributes: PopupWindowAttributes,
         popup?: Window | null
     ): Promise<AuthenticationResult> {
+
+        const isNativeBroker = NativeMessageHandler.isNativeAvailable(
+            this.config,
+            this.logger,
+            this.nativeMessageHandler,
+            request.authenticationScheme
+        );
+
         // Start measurement for server calls with native brokering enabled
         let fetchNativeAccountIdMeasurement;
         if (isNativeBroker) {
