@@ -49,6 +49,7 @@ export abstract class BaseInteractionClient {
     protected nativeMessageHandler: NativeMessageHandler | undefined;
     protected correlationId: string;
     protected performanceClient: IPerformanceClient;
+    protected retryCounter: number;
 
     constructor(
         config: BrowserConfiguration,
@@ -75,6 +76,7 @@ export abstract class BaseInteractionClient {
             this.correlationId
         );
         this.performanceClient = performanceClient;
+        this.retryCounter = 0;
     }
 
     abstract acquireToken(
