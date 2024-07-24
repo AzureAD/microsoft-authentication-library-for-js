@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Tue, 16 Jul 2024 18:22:27 GMT and should not be manually modified.
+This log was last generated on Tue, 23 Jul 2024 14:19:34 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.22
+
+Tue, 23 Jul 2024 14:19:34 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v3.20.0
+- Bump eslint-config-msal to v0.0.0
 
 ## 2.0.21
 
