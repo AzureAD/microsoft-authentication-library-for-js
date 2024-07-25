@@ -16,7 +16,8 @@ import {
 import { getSecretFromKeyVault } from "./DownstreamApi";
 
 const KEY_VAULT_URI: string = "YOUR_KEYVAULT_URL";
-const SECRET_NAME: string = "YOUR_SECRET_NAME";
+const FIRST_SECRET_NAME: string = "YOUR_FIRST_SECRET_NAME";
+const SECOND_SECRET_NAME: string = "YOUR_SECOND_SECRET_NAME";
 const AUDIENCE: string = "api://AzureADTokenExchange";
 const APP_CLIENT_ID: string = "YOUR_APP_CLIENT_ID";
 const RESOURCE_TENANT_ID: string = "YOUR_RESOURCE_TENANT_ID";
@@ -25,6 +26,17 @@ const AZURE_REGION: string = "YOUR_REGION"; // Replace with the right region for
  * uncomment when using user assigned MI (clientId, resourceId, or ObjectId)
  * const USER_ASSIGNED_MI_ID: string = "YOUR_USER_ASSIGNED_MI_ID";
  */
+
+async function createConfig(): Promise<Configuration> {
+    const clientAssertion: string = await getAccessTokenFromManagedIdentity();
+    return {
+        auth: {
+            clientId: APP_CLIENT_ID,
+            authority: `https://login.microsoftonline.com/${RESOURCE_TENANT_ID}`,
+            clientAssertion: clientAssertion,
+        },
+    };
+}
 
 async function getAccessTokenFromManagedIdentity(): Promise<string> {
     const config: ManagedIdentityConfiguration = {
@@ -61,28 +73,10 @@ async function getAccessTokenFromManagedIdentity(): Promise<string> {
     }
 }
 
-async function createConfig(): Promise<Configuration> {
-    const clientAssertion: string = await getAccessTokenFromManagedIdentity();
-    return {
-        auth: {
-            clientId: APP_CLIENT_ID,
-            authority: `https://login.microsoftonline.com/${RESOURCE_TENANT_ID}`,
-            clientAssertion: clientAssertion,
-        },
-    };
-}
-
-const main = async () => {
-    const config: Configuration = await createConfig();
-    const confidentialClientApplication = new ConfidentialClientApplication(
-        config
-    );
-
-    const request: ClientCredentialRequest = {
-        scopes: ["https://vault.azure.net/.default"],
-        azureRegion: AZURE_REGION,
-    };
-
+async function getAccessTokenForKeyVault(
+    confidentialClientApplication: ConfidentialClientApplication,
+    request: ClientCredentialRequest
+): Promise<AuthenticationResult> {
     let tokenResponse: AuthenticationResult | null = null;
     try {
         tokenResponse =
@@ -97,18 +91,66 @@ const main = async () => {
         throw "Token was not received from the Confidential Client";
     }
 
+    return tokenResponse;
+}
+
+const main = async () => {
+    const config: Configuration = await createConfig();
+    const confidentialClientApplication = new ConfidentialClientApplication(
+        config
+    );
+
+    const request: ClientCredentialRequest = {
+        scopes: ["https://vault.azure.net/.default"],
+        azureRegion: AZURE_REGION,
+    };
+
+    // ---------- get first secret ----------
+
+    let tokenResponse: AuthenticationResult = await getAccessTokenForKeyVault(
+        confidentialClientApplication,
+        request
+    );
+
+    console.log(
+        `The access token for the key vault was retrieved from cache: ${tokenResponse.fromCache}`
+    ); // false
+
     let secret: string;
     try {
         secret = await getSecretFromKeyVault(
             tokenResponse.accessToken,
             KEY_VAULT_URI,
-            SECRET_NAME
+            FIRST_SECRET_NAME
         );
     } catch (error) {
         throw error;
     }
 
-    console.log(`The secret, ${SECRET_NAME}, has a value of: ${secret}`);
+    console.log(`The secret, ${FIRST_SECRET_NAME}, has a value of: ${secret}`);
+
+    // ---------- get second secret ----------
+
+    tokenResponse = await getAccessTokenForKeyVault(
+        confidentialClientApplication,
+        request
+    );
+
+    console.log(
+        `The access token for the key vault was retrieved from cache: ${tokenResponse.fromCache}`
+    ); // true
+
+    try {
+        secret = await getSecretFromKeyVault(
+            tokenResponse.accessToken,
+            KEY_VAULT_URI,
+            SECOND_SECRET_NAME
+        );
+    } catch (error) {
+        throw error;
+    }
+
+    console.log(`The secret, ${SECOND_SECRET_NAME}, has a value of: ${secret}`);
 };
 
 (async () => {
