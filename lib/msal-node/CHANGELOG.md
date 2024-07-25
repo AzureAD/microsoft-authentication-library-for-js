@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 16 Jul 2024 18:22:27 GMT and should not be manually modified.
+This log was last generated on Tue, 23 Jul 2024 14:19:34 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.12.0
+
+Tue, 23 Jul 2024 14:19:34 GMT
+
+### Minor changes
+
+- Track MSAL node SKU for broker flows #7213 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.14.0
+- Bump eslint-config-msal to v0.0.0
 
 ## 2.11.1
 
