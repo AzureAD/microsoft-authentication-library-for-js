@@ -241,15 +241,20 @@ export class PopupClient extends StandardInteractionClient {
                 validRequest.account
             );
 
-            // TODO: Start retry here? Invoke async / bind here?
-            return await this.acquireTokenPopupAsyncHelper(
+            return await invokeAsync(
+                this.acquireTokenPopupAsyncHelper.bind(this),
+                PerformanceEvents.PopupClientTokenHelper,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(
                 authClient,
-                authCodeRequest, 
+                authCodeRequest,
                 validRequest,
                 request,
                 popupName,
                 popupWindowAttributes,
-                popup,
+                popup
             );
 
         } catch (e) {
@@ -266,27 +271,28 @@ export class PopupClient extends StandardInteractionClient {
             if (e instanceof ServerError && e.errorCode === BrowserConstants.INVALID_GRANT_ERROR) {
                 if (!this.requestRetried) {
                     this.requestRetried = true;                
-                    try {
-                        if (!authClient || !authCodeRequest) {
-                            // TODO: Telemetry that it did not retry
-                            throw e;
-                        } else {
-                            return await this.acquireTokenPopupAsyncHelper(
-                                authClient,
-                                authCodeRequest,
-                                validRequest,
-                                request,
-                                popupName,
-                                popupWindowAttributes,
-                                popup,
-                            );
-                        }
-                    } catch (e) {
-                        // TODO: Telemetry that retry returned an error, throwing
+                    if (!authClient || !authCodeRequest) {
                         throw e;
+                    } else {
+                        return await invokeAsync(
+                            this.acquireTokenPopupAsyncHelper.bind(this),
+                            PerformanceEvents.PopupClientTokenHelper,
+                            this.logger,
+                            this.performanceClient,
+                            this.correlationId
+                        )(
+                            authClient,
+                            authCodeRequest,
+                            validRequest,
+                            request,
+                            popupName,
+                            popupWindowAttributes,
+                            popup
+                        )
                     }
                 } else {
                     // TODO: Log data point
+                    this.logger.trace("PopupClient.acquireTokenPopupAsync: requestRetried already true, throwing error");
                     throw e;
                 }
             }
@@ -315,6 +321,11 @@ export class PopupClient extends StandardInteractionClient {
         popupWindowAttributes: PopupWindowAttributes,
         popup?: Window | null
     ): Promise<AuthenticationResult> {
+        const correlationId = validRequest.correlationId;
+        this.performanceClient.addQueueMeasurement(
+            PerformanceEvents.PopupClientTokenHelper,
+            correlationId
+        );
 
         const isNativeBroker = NativeMessageHandler.isNativeAvailable(
             this.config,

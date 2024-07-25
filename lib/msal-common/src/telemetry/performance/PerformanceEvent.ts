@@ -190,6 +190,11 @@ export const PerformanceEvents = {
     InitializeClientApplication: "initializeClientApplication",
 
     /**
+     * Helper function in PopupClient class (msal-browser).
+     */
+    PopupClientTokenHelper: "popupClientTokenHelper",
+
+    /**
      * Helper function in SilentIframeClient class (msal-browser).
      */
     SilentIframeClientTokenHelper: "silentIframeClientTokenHelper",
