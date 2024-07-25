@@ -29,6 +29,7 @@ import {
     ServerTelemetryManager,
     ProtocolUtils,
     NetworkManager,
+    ServerError,
 } from "@azure/msal-common";
 import {
     createBrowserAuthError,
@@ -45,7 +46,7 @@ import { NativeInteractionClient } from "../../src/interaction_client/NativeInte
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
-import { InteractionType } from "../../src/utils/BrowserConstants";
+import { BrowserConstants, InteractionType } from "../../src/utils/BrowserConstants";
 
 describe("SilentIframeClient", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
@@ -636,6 +637,124 @@ describe("SilentIframeClient", () => {
                     );
                     done();
                 });
+        });
+
+        it("retries on invalid_grant error and returns successful response", async () => {
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+            };
+            const testIdTokenClaims: TokenClaims = {
+                ver: "2.0",
+                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(
+                    Date.now() + testServerTokenResponse.expires_in * 1000
+                ),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+            const testInvalidGrantError = new ServerError(
+                BrowserConstants.INVALID_GRANT_ERROR,
+                "First Server Error"
+            );
+            sinon
+                .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
+                .resolves(testNavUrl);
+            sinon
+                .stub(SilentHandler, "monitorIframeForHash")
+                .resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
+            const handleCodeResponseStub = sinon
+                .stub(InteractionHandler.prototype, "handleCodeResponse")
+                .onFirstCall().rejects(testInvalidGrantError)
+                .onSecondCall().resolves(
+                    testTokenResponse
+                );
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+            const tokenResp = await silentIframeClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                loginHint: "testLoginHint",
+                prompt: PromptValue.NO_SESSION,
+            });
+            expect(tokenResp).toEqual(testTokenResponse);
+            expect(handleCodeResponseStub.calledTwice).toBeTruthy();
+            expect(handleCodeResponseStub.getCall(0).returnValue).toEqual(Promise.resolve(testInvalidGrantError));
+            expect(handleCodeResponseStub.getCall(1).args).toEqual(handleCodeResponseStub.getCall(0).args);
+        });
+
+        it("retries on invalid_grant error once and throws if still error", async () => {
+            const testInvalidGrantError = new ServerError(
+                BrowserConstants.INVALID_GRANT_ERROR,
+                "First Server Error"
+            );
+            sinon
+                .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
+                .resolves(testNavUrl);
+            sinon
+                .stub(SilentHandler, "monitorIframeForHash")
+                .resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
+            const handleCodeResponseStub = sinon
+                .stub(InteractionHandler.prototype, "handleCodeResponse")
+                .onFirstCall().rejects(testInvalidGrantError)
+                .onSecondCall().rejects(
+                    new ServerError(
+                        BrowserConstants.INVALID_GRANT_ERROR,
+                        "Second Server Error"
+                    )
+                );
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+            await silentIframeClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                loginHint: "testLoginHint",
+                prompt: PromptValue.NO_SESSION,
+            })
+            .catch((e) => {
+                expect(e.errorCode).toEqual(BrowserConstants.INVALID_GRANT_ERROR);
+                expect(e.errorMessage).toEqual("Second Server Error");
+                expect(handleCodeResponseStub.calledTwice).toBeTruthy();
+                expect(handleCodeResponseStub.getCall(0).returnValue).toEqual(Promise.resolve(testInvalidGrantError));
+                expect(handleCodeResponseStub.getCall(1).args).toEqual(handleCodeResponseStub.getCall(0).args);
+            });
         });
 
         describe("storeInCache tests", () => {

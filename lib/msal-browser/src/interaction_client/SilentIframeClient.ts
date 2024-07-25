@@ -15,6 +15,7 @@ import {
     PerformanceEvents,
     invokeAsync,
     invoke,
+    ServerError,
 } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
@@ -26,7 +27,7 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError";
-import { InteractionType, ApiId } from "../utils/BrowserConstants";
+import { InteractionType, ApiId, BrowserConstants } from "../utils/BrowserConstants";
 import {
     initiateAuthRequest,
     monitorIframeForHash,
@@ -123,9 +124,11 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.apiId
         );
 
+        let authClient: AuthorizationCodeClient | null = null;
+
         try {
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await invokeAsync(
+            authClient = await invokeAsync(
                 this.createAuthCodeClient.bind(this),
                 PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
                 this.logger,
@@ -150,6 +153,27 @@ export class SilentIframeClient extends StandardInteractionClient {
                 (e as AuthError).setCorrelationId(this.correlationId);
                 serverTelemetryManager.cacheFailedRequest(e);
             }
+
+            if (e instanceof ServerError && e.errorCode === BrowserConstants.INVALID_GRANT_ERROR) {
+                if (!this.requestRetried) {
+                    this.requestRetried = true;                
+                    if (!authClient) {
+                        throw e;
+                    } else {
+                        return await invokeAsync(
+                            this.silentTokenHelper.bind(this),
+                            PerformanceEvents.SilentIframeClientTokenHelper,
+                            this.logger,
+                            this.performanceClient,
+                            this.correlationId
+                        )(authClient, silentRequest);
+                    }
+                } else {
+                    this.logger.trace("SilentIframeClient.silentTokenHelper: requestRetried already true, throwing error");
+                    throw e;
+                }
+            }
+            
             throw e;
         }
     }
