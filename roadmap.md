@@ -12,13 +12,9 @@ If you don't see a feature listed on the roadmap, check our [Release Notes](http
 ## Focus Areas
 
 ### In Development
-- Ivy distribution of MSAL Angular
-- Angular 15 support
-- ES2020 support
-- Reducing package size through dropping deprecated support (example: Internet Explorer support)
 
 ### Up Next
-- Angular 16 support 
+- Angular 19 support 
 - Improve support for use in Teams Apps (Tabs) and Office Add-Ins
   
 
