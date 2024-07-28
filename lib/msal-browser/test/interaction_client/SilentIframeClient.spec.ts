@@ -30,6 +30,7 @@ import {
     ProtocolUtils,
     NetworkManager,
     ServerError,
+    TenantProfile,
 } from "@azure/msal-common";
 import {
     createBrowserAuthError,
@@ -41,12 +42,15 @@ import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import { ApiId, AuthenticationResult } from "../../src";
+import { ApiId, AuthenticationResult, BrowserUtils } from "../../src";
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
-import { BrowserConstants, InteractionType } from "../../src/utils/BrowserConstants";
+import {
+    BrowserConstants,
+    InteractionType,
+} from "../../src/utils/BrowserConstants";
 
 describe("SilentIframeClient", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
@@ -640,6 +644,42 @@ describe("SilentIframeClient", () => {
         });
 
         it("retries on invalid_grant error and returns successful response", async () => {
+            silentIframeClient = new SilentIframeClient(
+                //@ts-ignore
+                pca.config,
+                //@ts-ignore
+                pca.browserStorage,
+                //@ts-ignore
+                pca.browserCrypto,
+                //@ts-ignore
+                pca.logger,
+                //@ts-ignore
+                pca.eventHandler,
+                //@ts-ignore
+                pca.navigationClient,
+                ApiId.acquireTokenSilent_authCode,
+                //@ts-ignore
+                pca.performanceClient,
+                //@ts-ignore
+                pca.nativeInternalStorage,
+                undefined,
+                RANDOM_TEST_GUID
+            );
+            // TODO: Put this function somewhere
+            function calculateExpiresDate(expiresIn: number): Date {
+                const totalExpiresInSeconds = Math.round(Date.now() / 1000 + expiresIn);
+                return new Date(totalExpiresInSeconds * 1000);
+            }
+            const testServerErrorResponse = {
+                headers: {},
+                body: {
+                    error: "invalid_grant",
+                    error_description: "invalid_grant",
+                    error_codes: ["invalid_grant"],
+                    suberror: "first_server_error",
+                },
+                status: 200,
+            };
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
                 scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
@@ -648,56 +688,70 @@ describe("SilentIframeClient", () => {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 refresh_token: TEST_TOKENS.REFRESH_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2,
+                correlation_id: RANDOM_TEST_GUID,
             };
-            const testIdTokenClaims: TokenClaims = {
-                ver: "2.0",
-                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
+            const testServerResponse = {
+                headers: {},
+                body: testServerTokenResponse,
+                status: 200,
             };
+            const myTestStateSilent = `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsIm1ldGEiOnsiaW50ZXJhY3Rpb25UeXBlIjoic2lsZW50In19`;
+            const myTestHash = `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${myTestStateSilent}`;
             const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                homeAccountId:  ID_TOKEN_CLAIMS.sub,
                 environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || "",
+                tenantId: ID_TOKEN_CLAIMS.tid,
+                username: ID_TOKEN_CLAIMS.preferred_username,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                name: ID_TOKEN_CLAIMS.name,
+                nativeAccountId: undefined,
+                authorityType: 'MSSTS',
+                tenantProfiles: new Map<string, TenantProfile>([
+                    [ID_TOKEN_CLAIMS.tid, {
+                        isHomeTenant: false,
+                        localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                        name: ID_TOKEN_CLAIMS.name,
+                        tenantId: ID_TOKEN_CLAIMS.tid,
+                    }]
+                ]),
+                idTokenClaims: ID_TOKEN_CLAIMS,
+                idToken: TEST_TOKENS.IDTOKEN_V2,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
-                uniqueId: testIdTokenClaims.oid || "",
-                tenantId: testIdTokenClaims.tid || "",
+                uniqueId: ID_TOKEN_CLAIMS.oid,
+                tenantId: ID_TOKEN_CLAIMS.tid,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 idToken: testServerTokenResponse.id_token,
-                idTokenClaims: testIdTokenClaims,
+                idTokenClaims: ID_TOKEN_CLAIMS,
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
+                fromNativeBroker: false,
+                code: undefined,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: calculateExpiresDate(testServerTokenResponse.expires_in),
+                extExpiresOn: calculateExpiresDate(testServerTokenResponse.expires_in + testServerTokenResponse.ext_expires_in),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
+                refreshOn: undefined,
+                requestId: "",
+                familyId: "",
+                state: "",
+                msGraphHost: "",
+                cloudGraphHostName: "",
             };
-            const testInvalidGrantError = new ServerError(
-                BrowserConstants.INVALID_GRANT_ERROR,
-                "First Server Error"
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "getAuthCodeUrl"
+            ).mockResolvedValue(testNavUrl);
+            // TODO: Why does TEST_SUCCESS_CODE_HASH_SILENT not work here?
+            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+                // TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
+                myTestHash
             );
-            sinon
-                .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
-                .resolves(testNavUrl);
-            sinon
-                .stub(SilentHandler, "monitorIframeForHash")
-                .resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
-            const handleCodeResponseStub = sinon
-                .stub(InteractionHandler.prototype, "handleCodeResponse")
-                .onFirstCall().rejects(testInvalidGrantError)
-                .onSecondCall().resolves(
-                    testTokenResponse
-                );
+            const sendPostRequestSpy = jest.spyOn(NetworkManager.prototype, "sendPostRequest")
+                .mockResolvedValueOnce(testServerErrorResponse)
+                .mockResolvedValueOnce(testServerResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
@@ -709,33 +763,47 @@ describe("SilentIframeClient", () => {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
                 prompt: PromptValue.NO_SESSION,
+                nonce: "123523",
+                correlationId: RANDOM_TEST_GUID,
             });
             expect(tokenResp).toEqual(testTokenResponse);
-            expect(handleCodeResponseStub.calledTwice).toBeTruthy();
-            expect(handleCodeResponseStub.getCall(0).returnValue).toEqual(Promise.resolve(testInvalidGrantError));
-            expect(handleCodeResponseStub.getCall(1).args).toEqual(handleCodeResponseStub.getCall(0).args);
+            expect(sendPostRequestSpy).toHaveNthReturnedWith(1, Promise.resolve(testServerErrorResponse));
         });
 
         it("retries on invalid_grant error once and throws if still error", async () => {
-            const testInvalidGrantError = new ServerError(
-                BrowserConstants.INVALID_GRANT_ERROR,
-                "First Server Error"
+            const testFirstServerErrorResponse = {
+                headers: {},
+                body: {
+                    error: "invalid_grant",
+                    error_description: "invalid_grant",
+                    error_codes: ["invalid_grant"],
+                    suberror: "first_server_error",
+                },
+                status: 200,
+            };
+            const testSecondServerErrorResponse = {
+                headers: {},
+                body: {
+                    error: "invalid_grant",
+                    error_description: "invalid_grant",
+                    error_codes: ["invalid_grant"],
+                    suberror: "second_server_error",
+                },
+                status: 200,
+            };
+            const myTestStateSilent = `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsIm1ldGEiOnsiaW50ZXJhY3Rpb25UeXBlIjoic2lsZW50In19`;
+            const myTestHash = `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${myTestStateSilent}`;
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "getAuthCodeUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
+                // TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
+                myTestHash
             );
-            sinon
-                .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
-                .resolves(testNavUrl);
-            sinon
-                .stub(SilentHandler, "monitorIframeForHash")
-                .resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
-            const handleCodeResponseStub = sinon
-                .stub(InteractionHandler.prototype, "handleCodeResponse")
-                .onFirstCall().rejects(testInvalidGrantError)
-                .onSecondCall().rejects(
-                    new ServerError(
-                        BrowserConstants.INVALID_GRANT_ERROR,
-                        "Second Server Error"
-                    )
-                );
+            const sendPostRequestSpy = jest.spyOn(NetworkManager.prototype, "sendPostRequest")
+                .mockResolvedValueOnce(testFirstServerErrorResponse)
+                .mockResolvedValueOnce(testSecondServerErrorResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
@@ -743,18 +811,20 @@ describe("SilentIframeClient", () => {
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
                 RANDOM_TEST_GUID
             );
-            await silentIframeClient.acquireToken({
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                loginHint: "testLoginHint",
-                prompt: PromptValue.NO_SESSION,
-            })
-            .catch((e) => {
-                expect(e.errorCode).toEqual(BrowserConstants.INVALID_GRANT_ERROR);
-                expect(e.errorMessage).toEqual("Second Server Error");
-                expect(handleCodeResponseStub.calledTwice).toBeTruthy();
-                expect(handleCodeResponseStub.getCall(0).returnValue).toEqual(Promise.resolve(testInvalidGrantError));
-                expect(handleCodeResponseStub.getCall(1).args).toEqual(handleCodeResponseStub.getCall(0).args);
-            });
+            await silentIframeClient
+                .acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    loginHint: "testLoginHint",
+                    prompt: PromptValue.NO_SESSION,
+                })
+                .catch((e) => {
+                    expect(e.errorCode).toEqual(
+                        BrowserConstants.INVALID_GRANT_ERROR
+                    );
+                    expect(e.subError).toEqual("second_server_error");
+                    expect(sendPostRequestSpy).toHaveBeenCalledTimes(2);
+                    expect(sendPostRequestSpy).toHaveNthReturnedWith(1, Promise.resolve(testFirstServerErrorResponse));
+                });
         });
 
         describe("storeInCache tests", () => {
