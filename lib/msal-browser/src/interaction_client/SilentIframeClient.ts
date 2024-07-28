@@ -27,7 +27,11 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError";
-import { InteractionType, ApiId, BrowserConstants } from "../utils/BrowserConstants";
+import {
+    InteractionType,
+    ApiId,
+    BrowserConstants,
+} from "../utils/BrowserConstants";
 import {
     initiateAuthRequest,
     monitorIframeForHash,
@@ -154,9 +158,12 @@ export class SilentIframeClient extends StandardInteractionClient {
                 serverTelemetryManager.cacheFailedRequest(e);
             }
 
-            if (e instanceof ServerError && e.errorCode === BrowserConstants.INVALID_GRANT_ERROR) {
+            if (
+                e instanceof ServerError &&
+                e.errorCode === BrowserConstants.INVALID_GRANT_ERROR
+            ) {
                 if (!this.requestRetried) {
-                    this.requestRetried = true;                
+                    this.requestRetried = true;
                     if (!authClient) {
                         throw e;
                     } else {
@@ -169,11 +176,13 @@ export class SilentIframeClient extends StandardInteractionClient {
                         )(authClient, silentRequest);
                     }
                 } else {
-                    this.logger.trace("SilentIframeClient.silentTokenHelper: requestRetried already true, throwing error");
+                    this.logger.trace(
+                        "SilentIframeClient.silentTokenHelper: requestRetried already true, throwing error"
+                    );
                     throw e;
                 }
             }
-            
+
             throw e;
         }
     }
