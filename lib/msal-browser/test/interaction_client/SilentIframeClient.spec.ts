@@ -17,7 +17,7 @@ import {
     TEST_STATE_VALUES,
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
-    calculateExpiresDate
+    calculateExpiresDate,
 } from "../utils/StringConstants";
 import {
     AccountInfo,
@@ -673,21 +673,24 @@ describe("SilentIframeClient", () => {
                 status: 200,
             };
             const testAccount: AccountInfo = {
-                homeAccountId:  ID_TOKEN_CLAIMS.sub,
+                homeAccountId: ID_TOKEN_CLAIMS.sub,
                 environment: "login.windows.net",
                 tenantId: ID_TOKEN_CLAIMS.tid,
                 username: ID_TOKEN_CLAIMS.preferred_username,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 name: ID_TOKEN_CLAIMS.name,
                 nativeAccountId: undefined,
-                authorityType: 'MSSTS',
+                authorityType: "MSSTS",
                 tenantProfiles: new Map<string, TenantProfile>([
-                    [ID_TOKEN_CLAIMS.tid, {
-                        isHomeTenant: false,
-                        localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                        name: ID_TOKEN_CLAIMS.name,
-                        tenantId: ID_TOKEN_CLAIMS.tid,
-                    }]
+                    [
+                        ID_TOKEN_CLAIMS.tid,
+                        {
+                            isHomeTenant: false,
+                            localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                            name: ID_TOKEN_CLAIMS.name,
+                            tenantId: ID_TOKEN_CLAIMS.tid,
+                        },
+                    ],
                 ]),
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 idToken: TEST_TOKENS.IDTOKEN_V2,
@@ -704,8 +707,13 @@ describe("SilentIframeClient", () => {
                 fromNativeBroker: false,
                 code: undefined,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: calculateExpiresDate(testServerTokenResponse.expires_in),
-                extExpiresOn: calculateExpiresDate(testServerTokenResponse.expires_in + testServerTokenResponse.ext_expires_in),
+                expiresOn: calculateExpiresDate(
+                    testServerTokenResponse.expires_in
+                ),
+                extExpiresOn: calculateExpiresDate(
+                    testServerTokenResponse.expires_in +
+                        testServerTokenResponse.ext_expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
                 refreshOn: undefined,
@@ -722,7 +730,8 @@ describe("SilentIframeClient", () => {
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
             );
-            const sendPostRequestSpy = jest.spyOn(NetworkManager.prototype, "sendPostRequest")
+            const sendPostRequestSpy = jest
+                .spyOn(NetworkManager.prototype, "sendPostRequest")
                 .mockResolvedValueOnce(testServerErrorResponse)
                 .mockResolvedValueOnce(testServerResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -738,10 +747,13 @@ describe("SilentIframeClient", () => {
                 prompt: PromptValue.NO_SESSION,
                 nonce: "123523",
                 correlationId: RANDOM_TEST_GUID,
-                state: TEST_STATE_VALUES.USER_STATE
+                state: TEST_STATE_VALUES.USER_STATE,
             });
             expect(tokenResp).toEqual(testTokenResponse);
-            expect(sendPostRequestSpy).toHaveNthReturnedWith(1, Promise.resolve(testServerErrorResponse));
+            expect(sendPostRequestSpy).toHaveNthReturnedWith(
+                1,
+                Promise.resolve(testServerErrorResponse)
+            );
         });
 
         it("retries on invalid_grant error once and throws if still error", async () => {
@@ -772,7 +784,8 @@ describe("SilentIframeClient", () => {
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
             );
-            const sendPostRequestSpy = jest.spyOn(NetworkManager.prototype, "sendPostRequest")
+            const sendPostRequestSpy = jest
+                .spyOn(NetworkManager.prototype, "sendPostRequest")
                 .mockResolvedValueOnce(testFirstServerErrorResponse)
                 .mockResolvedValueOnce(testSecondServerErrorResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -787,7 +800,7 @@ describe("SilentIframeClient", () => {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     loginHint: "testLoginHint",
                     prompt: PromptValue.NO_SESSION,
-                    state: TEST_STATE_VALUES.USER_STATE
+                    state: TEST_STATE_VALUES.USER_STATE,
                 })
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
@@ -795,7 +808,10 @@ describe("SilentIframeClient", () => {
                     );
                     expect(e.subError).toEqual("second_server_error");
                     expect(sendPostRequestSpy).toHaveBeenCalledTimes(2);
-                    expect(sendPostRequestSpy).toHaveNthReturnedWith(1, Promise.resolve(testFirstServerErrorResponse));
+                    expect(sendPostRequestSpy).toHaveNthReturnedWith(
+                        1,
+                        Promise.resolve(testFirstServerErrorResponse)
+                    );
                 });
         });
 
