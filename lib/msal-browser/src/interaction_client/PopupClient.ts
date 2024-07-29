@@ -213,19 +213,17 @@ export class PopupClient extends StandardInteractionClient {
 
         BrowserUtils.preconnect(validRequest.authority);
 
-        let authCodeRequest: CommonAuthorizationCodeRequest | null = null;
         let authClient: AuthorizationCodeClient | null = null;
 
         try {
             // Create auth code request and generate PKCE params
-            authCodeRequest =
-                await invokeAsync(
-                    this.initializeAuthorizationCodeRequest.bind(this),
-                    PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-                    this.logger,
-                    this.performanceClient,
-                    this.correlationId
-                )(validRequest);
+            const authCodeRequest = await invokeAsync(
+                this.initializeAuthorizationCodeRequest.bind(this),
+                PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(validRequest);
 
             // Initialize the client
             authClient = await invokeAsync(
@@ -256,7 +254,6 @@ export class PopupClient extends StandardInteractionClient {
                 popupWindowAttributes,
                 popup
             );
-
         } catch (e) {
             if (popup) {
                 // Close the synchronous popup if an error is thrown before the window unload event is registered
@@ -268,32 +265,36 @@ export class PopupClient extends StandardInteractionClient {
                 serverTelemetryManager.cacheFailedRequest(e);
             }
 
-            if (e instanceof ServerError && e.errorCode === BrowserConstants.INVALID_GRANT_ERROR) {
-                if (!this.requestRetried) {
-                    this.requestRetried = true;                
-                    if (!authClient || !authCodeRequest) {
-                        throw e;
-                    } else {
-                        return await invokeAsync(
-                            this.acquireTokenPopupAsyncHelper.bind(this),
-                            PerformanceEvents.PopupClientTokenHelper,
-                            this.logger,
-                            this.performanceClient,
-                            this.correlationId
-                        )(
-                            authClient,
-                            authCodeRequest,
-                            validRequest,
-                            request,
-                            popupName,
-                            popupWindowAttributes,
-                            popup
-                        )
-                    }
-                } else {
-                    // TODO: Log data point
-                    this.logger.trace("PopupClient.acquireTokenPopupAsync: requestRetried already true, throwing error");
+            if (
+                e instanceof ServerError &&
+                e.errorCode === BrowserConstants.INVALID_GRANT_ERROR
+            ) {
+                if (!authClient) {
                     throw e;
+                } else {
+                    const retryAuthCodeRequest = await invokeAsync(
+                        this.initializeAuthorizationCodeRequest.bind(this),
+                        PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
+                        this.logger,
+                        this.performanceClient,
+                        this.correlationId
+                    )(validRequest);
+
+                    return await invokeAsync(
+                        this.acquireTokenPopupAsyncHelper.bind(this),
+                        PerformanceEvents.PopupClientTokenHelper,
+                        this.logger,
+                        this.performanceClient,
+                        this.correlationId
+                    )(
+                        authClient,
+                        retryAuthCodeRequest,
+                        validRequest,
+                        request,
+                        popupName,
+                        popupWindowAttributes,
+                        popup
+                    );
                 }
             }
 
@@ -303,13 +304,13 @@ export class PopupClient extends StandardInteractionClient {
 
     /**
      * Helper which obtains an access_token for your API via opening a popup window in the user's browser
-     * @param authClient 
-     * @param authCodeRequest 
-     * @param validRequest 
-     * @param request  
-     * @param popupName 
-     * @param popupWindowAttributes 
-     * @param popup 
+     * @param authClient
+     * @param authCodeRequest
+     * @param validRequest
+     * @param request
+     * @param popupName
+     * @param popupWindowAttributes
+     * @param popup
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     protected async acquireTokenPopupAsyncHelper(

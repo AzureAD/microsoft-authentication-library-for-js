@@ -18,6 +18,7 @@ import {
     TEST_SSH_VALUES,
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
+    calculateExpiresDate,
 } from "../utils/StringConstants";
 import {
     Constants,
@@ -38,6 +39,7 @@ import {
     ProtocolUtils,
     ProtocolMode,
     ServerError,
+    TenantProfile,
 } from "@azure/msal-common";
 import {
     TemporaryCacheKeys,
@@ -777,6 +779,16 @@ describe("PopupClient", () => {
         });
 
         it("retries on invalid_grant error and returns successful response", async () => {
+            const testServerErrorResponse = {
+                headers: {},
+                body: {
+                    error: "invalid_grant",
+                    error_description: "invalid_grant",
+                    error_codes: ["invalid_grant"],
+                    suberror: "first_server_error",
+                },
+                status: 200,
+            };
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
                 scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
@@ -786,61 +798,81 @@ describe("PopupClient", () => {
                 refresh_token: TEST_TOKENS.REFRESH_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2,
             };
-            const testIdTokenClaims: TokenClaims = {
-                ver: "2.0",
-                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
+            const testServerResponse = {
+                headers: {},
+                body: testServerTokenResponse,
+                status: 200,
             };
             const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                homeAccountId: ID_TOKEN_CLAIMS.sub,
                 environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || "",
+                tenantId: ID_TOKEN_CLAIMS.tid,
+                username: ID_TOKEN_CLAIMS.preferred_username,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                name: ID_TOKEN_CLAIMS.name,
+                nativeAccountId: undefined,
+                authorityType: "MSSTS",
+                tenantProfiles: new Map<string, TenantProfile>([
+                    [
+                        ID_TOKEN_CLAIMS.tid,
+                        {
+                            isHomeTenant: false,
+                            localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                            name: ID_TOKEN_CLAIMS.name,
+                            tenantId: ID_TOKEN_CLAIMS.tid,
+                        },
+                    ],
+                ]),
+                idTokenClaims: ID_TOKEN_CLAIMS,
+                idToken: TEST_TOKENS.IDTOKEN_V2,
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
-                uniqueId: testIdTokenClaims.oid || "",
-                tenantId: testIdTokenClaims.tid || "",
+                uniqueId: ID_TOKEN_CLAIMS.oid,
+                tenantId: ID_TOKEN_CLAIMS.tid,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 idToken: testServerTokenResponse.id_token,
-                idTokenClaims: testIdTokenClaims,
+                idTokenClaims: ID_TOKEN_CLAIMS,
                 accessToken: testServerTokenResponse.access_token,
-                correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                fromNativeBroker: false,
+                code: undefined,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                expiresOn: calculateExpiresDate(
+                    testServerTokenResponse.expires_in
+                ),
+                extExpiresOn: calculateExpiresDate(
+                    testServerTokenResponse.expires_in +
+                        testServerTokenResponse.ext_expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
+                refreshOn: undefined,
+                requestId: "",
+                familyId: "",
+                state: TEST_STATE_VALUES.USER_STATE,
+                msGraphHost: "",
+                cloudGraphHostName: "",
             };
-            const testInvalidGrantError = new ServerError(
-                BrowserConstants.INVALID_GRANT_ERROR,
-                "First Server Error"
-            );
-            sinon
-                .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
-                .resolves(testNavUrl);
-            sinon
-                .stub(PopupClient.prototype, "initiateAuthRequest")
-                .callsFake((requestUrl: string): Window => {
-                    expect(requestUrl).toEqual(testNavUrl);
-                    return window;
-                });
-            sinon
-                .stub(PopupClient.prototype, "monitorPopupForHash")
-                .resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
-            const handleCodeResponseStub = sinon
-                .stub(InteractionHandler.prototype, "handleCodeResponse")
-                .onFirstCall().rejects(testInvalidGrantError)
-                .onSecondCall().resolves(
-                    testTokenResponse
-                );
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "getAuthCodeUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(
+                PopupClient.prototype,
+                "initiateAuthRequest"
+            ).mockImplementation((requestUrl: string): Window => {
+                expect(requestUrl).toEqual(testNavUrl);
+                return window;
+            });
+            jest.spyOn(
+                PopupClient.prototype,
+                "monitorPopupForHash"
+            ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
+            const sendPostRequestSpy = jest
+                .spyOn(NetworkManager.prototype, "sendPostRequest")
+                .mockResolvedValueOnce(testServerErrorResponse)
+                .mockResolvedValueOnce(testServerResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
@@ -852,40 +884,58 @@ describe("PopupClient", () => {
             const result = await popupClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
-            })
+                nonce: "123523",
+                state: TEST_STATE_VALUES.USER_STATE,
+            });
 
             expect(result).toEqual(testTokenResponse);
-            expect(handleCodeResponseStub.calledTwice).toBeTruthy();
-            expect(handleCodeResponseStub.getCall(0).returnValue).toEqual(Promise.resolve(testInvalidGrantError));
-            expect(handleCodeResponseStub.getCall(1).args).toEqual(handleCodeResponseStub.getCall(0).args);
+            expect(sendPostRequestSpy).toHaveBeenCalledTimes(2);
+            expect(sendPostRequestSpy).toHaveNthReturnedWith(
+                1,
+                Promise.resolve(testServerErrorResponse)
+            );
         });
 
         it("retries on invalid_grant error once and throws if still error", async () => {
-            const testInvalidGrantError = new ServerError(
-                BrowserConstants.INVALID_GRANT_ERROR,
-                "First Server Error"
-            );
-            sinon
-                .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
-                .resolves(testNavUrl);
-            sinon
-                .stub(PopupClient.prototype, "initiateAuthRequest")
-                .callsFake((requestUrl: string): Window => {
-                    expect(requestUrl).toEqual(testNavUrl);
-                    return window;
-                });
-            sinon
-                .stub(PopupClient.prototype, "monitorPopupForHash")
-                .resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
-            const handleCodeResponseStub = sinon
-                .stub(InteractionHandler.prototype, "handleCodeResponse")
-                .onFirstCall().rejects(testInvalidGrantError)
-                .onSecondCall().rejects(
-                    new ServerError(
-                        BrowserConstants.INVALID_GRANT_ERROR,
-                        "Second Server Error"
-                    )
-                );
+            const testFirstServerErrorResponse = {
+                headers: {},
+                body: {
+                    error: "invalid_grant",
+                    error_description: "invalid_grant",
+                    error_codes: ["invalid_grant"],
+                    suberror: "first_server_error",
+                },
+                status: 200,
+            };
+            const testSecondServerErrorResponse = {
+                headers: {},
+                body: {
+                    error: "invalid_grant",
+                    error_description: "invalid_grant",
+                    error_codes: ["invalid_grant"],
+                    suberror: "second_server_error",
+                },
+                status: 200,
+            };
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "getAuthCodeUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(
+                PopupClient.prototype,
+                "initiateAuthRequest"
+            ).mockImplementation((requestUrl: string): Window => {
+                expect(requestUrl).toEqual(testNavUrl);
+                return window;
+            });
+            jest.spyOn(
+                PopupClient.prototype,
+                "monitorPopupForHash"
+            ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
+            const sendPostRequestSpy = jest
+                .spyOn(NetworkManager.prototype, "sendPostRequest")
+                .mockResolvedValueOnce(testFirstServerErrorResponse)
+                .mockResolvedValueOnce(testSecondServerErrorResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER,
@@ -894,17 +944,23 @@ describe("PopupClient", () => {
                 RANDOM_TEST_GUID
             );
 
-            await popupClient.acquireToken({
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-            })
-            .catch((e) => {
-                expect(e.errorCode).toEqual(BrowserConstants.INVALID_GRANT_ERROR);
-                expect(e.errorMessage).toEqual("Second Server Error");
-                expect(handleCodeResponseStub.calledTwice).toBeTruthy();
-                expect(handleCodeResponseStub.getCall(0).returnValue).toEqual(Promise.resolve(testInvalidGrantError));
-                expect(handleCodeResponseStub.getCall(1).args).toEqual(handleCodeResponseStub.getCall(0).args);
-            });
+            await popupClient
+                .acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    state: TEST_STATE_VALUES.USER_STATE,
+                })
+                .catch((e) => {
+                    expect(e.errorCode).toEqual(
+                        BrowserConstants.INVALID_GRANT_ERROR
+                    );
+                    expect(e.subError).toEqual("second_server_error");
+                    expect(sendPostRequestSpy).toHaveBeenCalledTimes(2);
+                    expect(sendPostRequestSpy).toHaveNthReturnedWith(
+                        1,
+                        Promise.resolve(testFirstServerErrorResponse)
+                    );
+                });
         });
     });
 
