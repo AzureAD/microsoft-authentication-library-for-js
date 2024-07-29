@@ -92,7 +92,7 @@ describe("SilentIframeClient", () => {
             //@ts-ignore
             pca.nativeInternalStorage,
             undefined,
-            RANDOM_TEST_GUID
+            TEST_CONFIG.CORRELATION_ID
         );
     });
 
@@ -665,7 +665,6 @@ describe("SilentIframeClient", () => {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 refresh_token: TEST_TOKENS.REFRESH_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2,
-                correlation_id: RANDOM_TEST_GUID,
             };
             const testServerResponse = {
                 headers: {},
@@ -706,7 +705,7 @@ describe("SilentIframeClient", () => {
                 fromCache: false,
                 fromNativeBroker: false,
                 code: undefined,
-                correlationId: RANDOM_TEST_GUID,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
                 expiresOn: calculateExpiresDate(
                     testServerTokenResponse.expires_in
                 ),
@@ -746,7 +745,6 @@ describe("SilentIframeClient", () => {
                 loginHint: "testLoginHint",
                 prompt: PromptValue.NO_SESSION,
                 nonce: "123523",
-                correlationId: RANDOM_TEST_GUID,
                 state: TEST_STATE_VALUES.USER_STATE,
             });
             expect(tokenResp).toEqual(testTokenResponse);
