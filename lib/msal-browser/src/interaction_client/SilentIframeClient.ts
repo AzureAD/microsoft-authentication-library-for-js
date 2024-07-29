@@ -162,32 +162,24 @@ export class SilentIframeClient extends StandardInteractionClient {
                 e instanceof ServerError &&
                 e.errorCode === BrowserConstants.INVALID_GRANT_ERROR
             ) {
-                if (!this.requestRetried) {
-                    this.requestRetried = true;
-                    if (!authClient) {
-                        throw e;
-                    } else {
-                        const retrySilentRequest: AuthorizationUrlRequest = await invokeAsync(
-                            this.initializeAuthorizationRequest.bind(this),
-                            PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
-                            this.logger,
-                            this.performanceClient,
-                            request.correlationId
-                        )(inputRequest, InteractionType.Silent);
-
-                        return await invokeAsync(
-                            this.silentTokenHelper.bind(this),
-                            PerformanceEvents.SilentIframeClientTokenHelper,
-                            this.logger,
-                            this.performanceClient,
-                            this.correlationId
-                        )(authClient, retrySilentRequest);
-                    }
-                } else {
-                    this.logger.trace(
-                        "SilentIframeClient.silentTokenHelper: requestRetried already true, throwing error"
-                    );
+                if (!authClient) {
                     throw e;
+                } else {
+                    const retrySilentRequest: AuthorizationUrlRequest = await invokeAsync(
+                        this.initializeAuthorizationRequest.bind(this),
+                        PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
+                        this.logger,
+                        this.performanceClient,
+                        request.correlationId
+                    )(inputRequest, InteractionType.Silent);
+
+                    return await invokeAsync(
+                        this.silentTokenHelper.bind(this),
+                        PerformanceEvents.SilentIframeClientTokenHelper,
+                        this.logger,
+                        this.performanceClient,
+                        this.correlationId
+                    )(authClient, retrySilentRequest);
                 }
             }
 
