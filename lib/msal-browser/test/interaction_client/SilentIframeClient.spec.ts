@@ -90,7 +90,9 @@ describe("SilentIframeClient", () => {
             //@ts-ignore
             pca.performanceClient,
             //@ts-ignore
-            pca.nativeInternalStorage
+            pca.nativeInternalStorage,
+            undefined,
+            RANDOM_TEST_GUID
         );
     });
 
@@ -645,27 +647,6 @@ describe("SilentIframeClient", () => {
         });
 
         it("retries on invalid_grant error and returns successful response", async () => {
-            silentIframeClient = new SilentIframeClient(
-                //@ts-ignore
-                pca.config,
-                //@ts-ignore
-                pca.browserStorage,
-                //@ts-ignore
-                pca.browserCrypto,
-                //@ts-ignore
-                pca.logger,
-                //@ts-ignore
-                pca.eventHandler,
-                //@ts-ignore
-                pca.navigationClient,
-                ApiId.acquireTokenSilent_authCode,
-                //@ts-ignore
-                pca.performanceClient,
-                //@ts-ignore
-                pca.nativeInternalStorage,
-                undefined,
-                RANDOM_TEST_GUID
-            );
             const testServerErrorResponse = {
                 headers: {},
                 body: {
@@ -691,8 +672,6 @@ describe("SilentIframeClient", () => {
                 body: testServerTokenResponse,
                 status: 200,
             };
-            const myTestStateSilent = `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsIm1ldGEiOnsiaW50ZXJhY3Rpb25UeXBlIjoic2lsZW50In19`;
-            const myTestHash = `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${myTestStateSilent}`;
             const testAccount: AccountInfo = {
                 homeAccountId:  ID_TOKEN_CLAIMS.sub,
                 environment: "login.windows.net",
@@ -732,7 +711,7 @@ describe("SilentIframeClient", () => {
                 refreshOn: undefined,
                 requestId: "",
                 familyId: "",
-                state: "",
+                state: TEST_STATE_VALUES.USER_STATE,
                 msGraphHost: "",
                 cloudGraphHostName: "",
             };
@@ -740,10 +719,8 @@ describe("SilentIframeClient", () => {
                 AuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
             ).mockResolvedValue(testNavUrl);
-            // TODO: Why does TEST_SUCCESS_CODE_HASH_SILENT not work here?
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
-                // TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
-                myTestHash
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
             );
             const sendPostRequestSpy = jest.spyOn(NetworkManager.prototype, "sendPostRequest")
                 .mockResolvedValueOnce(testServerErrorResponse)
@@ -761,6 +738,7 @@ describe("SilentIframeClient", () => {
                 prompt: PromptValue.NO_SESSION,
                 nonce: "123523",
                 correlationId: RANDOM_TEST_GUID,
+                state: TEST_STATE_VALUES.USER_STATE
             });
             expect(tokenResp).toEqual(testTokenResponse);
             expect(sendPostRequestSpy).toHaveNthReturnedWith(1, Promise.resolve(testServerErrorResponse));
@@ -787,15 +765,12 @@ describe("SilentIframeClient", () => {
                 },
                 status: 200,
             };
-            const myTestStateSilent = `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsIm1ldGEiOnsiaW50ZXJhY3Rpb25UeXBlIjoic2lsZW50In19`;
-            const myTestHash = `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${myTestStateSilent}`;
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(
-                // TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
-                myTestHash
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
             );
             const sendPostRequestSpy = jest.spyOn(NetworkManager.prototype, "sendPostRequest")
                 .mockResolvedValueOnce(testFirstServerErrorResponse)
@@ -812,6 +787,7 @@ describe("SilentIframeClient", () => {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     loginHint: "testLoginHint",
                     prompt: PromptValue.NO_SESSION,
+                    state: TEST_STATE_VALUES.USER_STATE
                 })
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
