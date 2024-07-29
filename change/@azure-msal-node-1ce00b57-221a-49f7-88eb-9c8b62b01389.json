@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Track MSAL node SKU for broker flows #7213",
-  "packageName": "@azure/msal-node",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
