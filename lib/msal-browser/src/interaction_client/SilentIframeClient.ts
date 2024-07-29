@@ -167,13 +167,21 @@ export class SilentIframeClient extends StandardInteractionClient {
                     if (!authClient) {
                         throw e;
                     } else {
+                        const retrySilentRequest: AuthorizationUrlRequest = await invokeAsync(
+                            this.initializeAuthorizationRequest.bind(this),
+                            PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
+                            this.logger,
+                            this.performanceClient,
+                            request.correlationId
+                        )(inputRequest, InteractionType.Silent);
+
                         return await invokeAsync(
                             this.silentTokenHelper.bind(this),
                             PerformanceEvents.SilentIframeClientTokenHelper,
                             this.logger,
                             this.performanceClient,
                             this.correlationId
-                        )(authClient, silentRequest);
+                        )(authClient, retrySilentRequest);
                     }
                 } else {
                     this.logger.trace(

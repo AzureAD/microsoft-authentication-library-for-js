@@ -17,6 +17,7 @@ import {
     TEST_STATE_VALUES,
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
+    calculateExpiresDate
 } from "../utils/StringConstants";
 import {
     AccountInfo,
@@ -665,11 +666,6 @@ describe("SilentIframeClient", () => {
                 undefined,
                 RANDOM_TEST_GUID
             );
-            // TODO: Put this function somewhere
-            function calculateExpiresDate(expiresIn: number): Date {
-                const totalExpiresInSeconds = Math.round(Date.now() / 1000 + expiresIn);
-                return new Date(totalExpiresInSeconds * 1000);
-            }
             const testServerErrorResponse = {
                 headers: {},
                 body: {
