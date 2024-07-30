@@ -62,7 +62,6 @@ import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { BrowserAuthErrorCodes } from "../../src";
-import { Server } from "http";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
