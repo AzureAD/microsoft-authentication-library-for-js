@@ -272,6 +272,13 @@ export class PopupClient extends StandardInteractionClient {
                 if (!authClient) {
                     throw e;
                 } else {
+                    this.performanceClient.addFields(
+                        {
+                            retryError: JSON.stringify(e),
+                        },
+                        this.correlationId
+                    );
+
                     const retryAuthCodeRequest = await invokeAsync(
                         this.initializeAuthorizationCodeRequest.bind(this),
                         PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,

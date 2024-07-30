@@ -38,7 +38,6 @@ import {
     NetworkManager,
     ProtocolUtils,
     ProtocolMode,
-    ServerError,
     TenantProfile,
 } from "@azure/msal-common";
 import {
