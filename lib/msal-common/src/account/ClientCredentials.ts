@@ -14,10 +14,15 @@ export type ClientAssertionCallback = (
 ) => Promise<string>;
 
 /**
+ * @deprecated Provide a callback instead of a string
+ */
+type assertionString = string;
+type assertionCallback = ClientAssertionCallback;
+/**
  * Client Assertion credential for Confidential Clients
  */
 export type ClientAssertion = {
-    assertion: string | ClientAssertionCallback;
+    assertion: assertionString | assertionCallback;
     assertionType: string;
 };
 

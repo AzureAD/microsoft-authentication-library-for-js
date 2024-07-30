@@ -1057,7 +1057,7 @@ const CLIENT_SECRET = "client_secret";
 //
 // @public
 export type ClientAssertion = {
-    assertion: string | ClientAssertionCallback;
+    assertion: assertionString | assertionCallback;
     assertionType: string;
 };
 
@@ -4224,6 +4224,8 @@ const X_MS_LIB_CAPABILITY = "x-ms-lib-capability";
 
 // Warnings were encountered during analysis:
 //
+// src/account/ClientCredentials.ts:25:5 - (ae-forgotten-export) The symbol "assertionString" needs to be exported by the entry point index.d.ts
+// src/account/ClientCredentials.ts:25:5 - (ae-forgotten-export) The symbol "assertionCallback" needs to be exported by the entry point index.d.ts
 // src/authority/Authority.ts:135:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/authority/Authority.ts:136:8 - (tsdoc-undefined-tag) The TSDoc tag "@private" is not defined in this configuration
 // src/authority/Authority.ts:138:5 - (ae-unresolved-link) The @link reference could not be resolved: The reference is ambiguous because "AuthorityType" has more than one declaration; you need to add a TSDoc member reference selector
