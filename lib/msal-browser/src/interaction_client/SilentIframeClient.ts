@@ -128,7 +128,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.apiId
         );
 
-        let authClient: AuthorizationCodeClient | null = null;
+        let authClient: AuthorizationCodeClient | undefined;
 
         try {
             // Initialize the client
