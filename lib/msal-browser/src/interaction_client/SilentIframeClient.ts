@@ -165,6 +165,13 @@ export class SilentIframeClient extends StandardInteractionClient {
                 if (!authClient) {
                     throw e;
                 } else {
+                    this.performanceClient.addFields(
+                        {
+                            retryError: JSON.stringify(e),
+                        },
+                        this.correlationId
+                    );
+
                     const retrySilentRequest: AuthorizationUrlRequest =
                         await invokeAsync(
                             this.initializeAuthorizationRequest.bind(this),

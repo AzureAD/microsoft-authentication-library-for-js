@@ -30,7 +30,6 @@ import {
     ServerTelemetryManager,
     ProtocolUtils,
     NetworkManager,
-    ServerError,
     TenantProfile,
 } from "@azure/msal-common";
 import {
@@ -43,7 +42,7 @@ import * as BrowserCrypto from "../../src/crypto/BrowserCrypto";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import { ApiId, AuthenticationResult, BrowserUtils } from "../../src";
+import { ApiId, AuthenticationResult } from "../../src";
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
