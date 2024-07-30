@@ -213,7 +213,7 @@ export class PopupClient extends StandardInteractionClient {
 
         BrowserUtils.preconnect(validRequest.authority);
 
-        let authClient: AuthorizationCodeClient | null = null;
+        let authClient: AuthorizationCodeClient | undefined;
 
         try {
             // Create auth code request and generate PKCE params
