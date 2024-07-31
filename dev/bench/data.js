@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1721744782843,
+  "lastUpdate": 1722462685877,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10378,6 +10378,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 192268,
             "range": "±2.05%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "167471362+ejahja@users.noreply.github.com",
+            "name": "ejahja",
+            "username": "ejahja"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f6ac592be2397bedd3f2cea3e3efbbf495c4f3b0",
+          "message": "Update roadmap.md (#7223)\n\nRemoved outdated information, and added upcoming angular support",
+          "timestamp": "2024-07-31T14:45:57-07:00",
+          "tree_id": "bdd9481bd4992d6da9e735df1f807a1c0dad8082",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/f6ac592be2397bedd3f2cea3e3efbbf495c4f3b0"
+        },
+        "date": 1722462684842,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 193027,
+            "range": "±1.94%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 195256,
+            "range": "±2.17%",
             "unit": "ops/sec",
             "extra": "223 samples"
           }
