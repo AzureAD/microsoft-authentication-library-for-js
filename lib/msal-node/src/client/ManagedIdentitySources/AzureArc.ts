@@ -107,8 +107,10 @@ export class AzureArc extends BaseManagedIdentitySource {
                 identityEndpoint = DEFAULT_AZURE_ARC_IDENTITY_ENDPOINT;
                 imdsEndpoint = HIMDS_EXECUTABLE_HELPER_STRING;
             } catch (err) {
-                // eslint-disable-next-line no-console
-                console.log("error");
+                /*
+                 * do nothing
+                 * accessSync returns undefined on success, and throws an error on failure
+                 */
             }
         }
 
@@ -125,29 +127,22 @@ export class AzureArc extends BaseManagedIdentitySource {
         const [identityEndpoint, imdsEndpoint] =
             AzureArc.getEnvironmentVariables();
 
-        // if either of the identity or imds endpoints are undefined
+        // if either of the identity or imds endpoints are undefined (even after himds file detection)
         if (!identityEndpoint || !imdsEndpoint) {
             logger.info(
-                `[Managed Identity] ${ManagedIdentitySourceNames.AZURE_ARC} managed identity is unavailable through environment variables because one or both of '${ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT}' and '${ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT}' are not defined.`
+                `[Managed Identity] ${ManagedIdentitySourceNames.AZURE_ARC} managed identity is unavailable through environment variables because one or both of '${ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT}' and '${ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT}' are not defined. ${ManagedIdentitySourceNames.AZURE_ARC} managed identity is also unavailable through file detection.`
             );
 
-            // check if the himds executable exists
-            if (identityEndpoint === DEFAULT_AZURE_ARC_IDENTITY_ENDPOINT) {
-                logger.info(
-                    `[Managed Identity] ${ManagedIdentitySourceNames.AZURE_ARC} managed identity is available through file detection. Defaulting to known ${ManagedIdentitySourceNames.AZURE_ARC} endpoint: ${DEFAULT_AZURE_ARC_IDENTITY_ENDPOINT}. Creating ${ManagedIdentitySourceNames.AZURE_ARC} managed identity.`
-                );
-            } else {
-                /*
-                 * if either of the identity or imds endpoints are undefined, and the himds executable was not found,
-                 * this MSI provider is unavailable
-                 */
-                logger.info(
-                    `[Managed Identity] ${ManagedIdentitySourceNames.AZURE_ARC} managed identity is also unavailable through file detection.`
-                );
-                return null;
-            }
+            return null;
+        }
+
+        // check if the imds endpoint is set to the default for file detection
+        if (imdsEndpoint === HIMDS_EXECUTABLE_HELPER_STRING) {
+            logger.info(
+                `[Managed Identity] ${ManagedIdentitySourceNames.AZURE_ARC} managed identity is available through file detection. Defaulting to known ${ManagedIdentitySourceNames.AZURE_ARC} endpoint: ${DEFAULT_AZURE_ARC_IDENTITY_ENDPOINT}. Creating ${ManagedIdentitySourceNames.AZURE_ARC} managed identity.`
+            );
         } else {
-            // otherwise, both the identity and imds endpoints are defined; validate them
+            // otherwise, both the identity and imds endpoints are defined without file detection; validate them
 
             const validatedIdentityEndpoint: string =
                 AzureArc.getValidatedEnvVariableUrlString(
