@@ -167,7 +167,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 } else {
                     this.performanceClient.addFields(
                         {
-                            retryError: JSON.stringify(e),
+                            retryError: e.errorCode,
                         },
                         this.correlationId
                     );
