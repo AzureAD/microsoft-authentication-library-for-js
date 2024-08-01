@@ -274,7 +274,7 @@ export class PopupClient extends StandardInteractionClient {
                 } else {
                     this.performanceClient.addFields(
                         {
-                            retryError: JSON.stringify(e),
+                            retryError: e.errorCode,
                         },
                         this.correlationId
                     );
