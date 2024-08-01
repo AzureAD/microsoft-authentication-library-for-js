@@ -26,8 +26,12 @@ export const silentLogoutUnsupported = "silent_logout_unsupported";
 export const noAccountError = "no_account_error";
 export const silentPromptValueError = "silent_prompt_value_error";
 export const noTokenRequestCacheError = "no_token_request_cache_error";
+export const noRedirectRequestCacheError = "no_redirect_request_cache_error";
+export const noRedirectRequestConfigError = "no_redirect_request_config_error";
 export const unableToParseTokenRequestCacheError =
     "unable_to_parse_token_request_cache_error";
+export const unableToParseRedirectRequestCacheError =
+    "unable_to_parse_redirect_request_cache_error";
 export const noCachedAuthorityError = "no_cached_authority_error";
 export const authRequestNotSetError = "auth_request_not_set_error";
 export const invalidCacheType = "invalid_cache_type";

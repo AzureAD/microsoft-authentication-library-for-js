@@ -14,6 +14,7 @@ import {
 
 export type BrowserStateObject = {
     interactionType: InteractionType;
+    requestRetried?: string; // TODO: Doesn't like boolean for Record<string, string>
 };
 
 /**

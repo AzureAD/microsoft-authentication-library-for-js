@@ -99,11 +99,28 @@ export type BrowserAuthOptions = {
      * @deprecated This flag is deprecated and will be removed in the next major version. createNestablePublicClientApplication should be used instead.
      */
     supportsNestedAppAuth?: boolean;
+    /**
+     * Callback that will be passed the url that MSAL will navigate to in redirect flows. Returning false in the callback will stop navigation.
+     *
+     * This configuration option will replace onRedirectNavigate in the RedirectRequest object in the next major version.
+     */
+    onRedirectNavigate?: (url: string) => boolean | void;
 };
 
 /** @internal */
-export type InternalAuthOptions = Required<BrowserAuthOptions> & {
+// export type InternalAuthOptions = Required<BrowserAuthOptions> & Omit<
+//     BrowserAuthOptions,
+//     "onRedirectNavigate"
+// > & {
+//     OIDCOptions: Required<OIDCOptions>;
+//     onRedirectNavigate?: (url: string) => boolean | void;
+// };
+export type InternalAuthOptions = Omit<
+    Required<BrowserAuthOptions>,
+    "onRedirectNavigate"
+> & {
     OIDCOptions: Required<OIDCOptions>;
+    onRedirectNavigate?: (url: string) => boolean | void;
 };
 
 /**

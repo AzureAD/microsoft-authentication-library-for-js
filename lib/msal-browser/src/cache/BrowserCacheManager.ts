@@ -1613,6 +1613,62 @@ export class BrowserCacheManager extends CacheManager {
         this.setInteractionInProgress(false);
     }
 
+    getCachedState(stateString?: string): string | null {
+        if (!stateString) {
+            return null;
+        }
+        const stateKey = this.generateStateKey(stateString);
+        return this.getTemporaryCache(stateKey);
+    }
+
+    // 1. Implementation with temporary cache
+    generateRequestRetriedKey(correlationId: string): string {
+        return `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${correlationId}`;
+    }
+
+    getRequestRetried(correlationId: string): string | null {
+        const requestRetriedKey = this.generateRequestRetriedKey(correlationId);
+        return this.getTemporaryCache(requestRetriedKey);
+    }
+
+    setRequestRetried(correlationId: string): void {
+        const requestRetriedKey = this.generateRequestRetriedKey(correlationId);
+        this.setTemporaryCache(requestRetriedKey, "retried", false);
+    }
+
+    // 2. Implementation with state.
+    // getRequestRetried(state: string): string {
+    //     const parsedState = extractBrowserRequestState(this.cryptoImpl, state);
+    //     console.log(`GET REQUEST STATE PARSED STATE: ${JSON.stringify(parsedState)}`);
+    //     return parsedState?.requestRetried || "";
+    // }
+
+    // setRequestRetried(state: string): void {
+    //     const parsedState = extractBrowserRequestState(this.cryptoImpl, state);
+    //     if (!parsedState) {
+    //         return;
+    //     }
+    //     console.log(`SET REQUEST STATE PARSED STATE: ${JSON.stringify(parsedState)}`);
+    //     parsedState.requestRetried = "retried";
+    //     console.log(`SET REQUEST STATE PARSED STATE AFTER: ${JSON.stringify(parsedState)}`);
+    //     this.setTemporaryCache(
+    //         this.generateStateKey(state),
+    //         JSON.stringify(parsedState), // Does not work. Need a way to generate state with same GUID
+    //         false
+    //     );
+    // }
+
+    cacheRedirectRequest(redirectRequest: RedirectRequest): void {
+        this.logger.trace("BrowserCacheManager.cacheRedirectRequest called");
+        const encodedValue = base64Encode(JSON.stringify(redirectRequest));
+
+        this.setTemporaryCache(
+            TemporaryCacheKeys.REDIRECT_REQUEST,
+            encodedValue,
+            true
+        );
+    }
+
     cacheCodeRequest(authCodeRequest: CommonAuthorizationCodeRequest): void {
         this.logger.trace("BrowserCacheManager.cacheCodeRequest called");
 
@@ -1622,6 +1678,42 @@ export class BrowserCacheManager extends CacheManager {
             encodedValue,
             true
         );
+    }
+
+    getCachedRedirectRequest(): RedirectRequest | undefined {
+        this.logger.trace(
+            "BrowserCacheManager.getCachedRedirectRequest called"
+        );
+        const encodedRedirectRequest = this.getTemporaryCache(
+            TemporaryCacheKeys.REDIRECT_REQUEST,
+            true
+        );
+        if (!encodedRedirectRequest) {
+            this.logger.error(`No cached redirect request found.`);
+        } else {
+            this.removeTemporaryItem(
+                this.generateCacheKey(TemporaryCacheKeys.REDIRECT_REQUEST)
+            );
+            let parsedRequest: RedirectRequest;
+            try {
+                parsedRequest = JSON.parse(
+                    base64Decode(encodedRedirectRequest)
+                ) as RedirectRequest;
+            } catch (e) {
+                this.logger.errorPii(
+                    `Attempted to parse: ${encodedRedirectRequest}`
+                );
+                this.logger.error(
+                    `Parsing cached redirect request threw with error: ${e}`
+                );
+                return;
+            }
+
+            if (parsedRequest) {
+                return parsedRequest;
+            }
+        }
+        return;
     }
 
     /**
