@@ -552,9 +552,9 @@ describe("RedirectClient", () => {
             );
             expect(
                 tokenResponse?.expiresOn &&
-                testTokenResponse.expiresOn &&
-                testTokenResponse.expiresOn.getMilliseconds() >=
-                tokenResponse.expiresOn.getMilliseconds()
+                    testTokenResponse.expiresOn &&
+                    testTokenResponse.expiresOn.getMilliseconds() >=
+                        tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
         });
 
@@ -714,9 +714,9 @@ describe("RedirectClient", () => {
             );
             expect(
                 tokenResponse?.expiresOn &&
-                testTokenResponse.expiresOn &&
-                testTokenResponse.expiresOn.getMilliseconds() >=
-                tokenResponse.expiresOn.getMilliseconds()
+                    testTokenResponse.expiresOn &&
+                    testTokenResponse.expiresOn.getMilliseconds() >=
+                        tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
         });
 
@@ -1062,9 +1062,9 @@ describe("RedirectClient", () => {
             );
             expect(
                 testTokenResponse.expiresOn &&
-                tokenResponse?.expiresOn &&
-                testTokenResponse.expiresOn.getMilliseconds() >=
-                tokenResponse.expiresOn.getMilliseconds()
+                    tokenResponse?.expiresOn &&
+                    testTokenResponse.expiresOn.getMilliseconds() >=
+                        tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
             expect(window.location.hash).toBe("");
         });
@@ -1115,20 +1115,20 @@ describe("RedirectClient", () => {
                 base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse: NetworkResponse<ServerAuthorizationTokenResponse> =
-            {
-                headers: {},
-                status: 200,
-                body: {
-                    token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                    scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
-                    expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                    ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                    access_token: TEST_TOKENS.ACCESS_TOKEN,
-                    refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-                    id_token: TEST_TOKENS.IDTOKEN_V2,
-                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                },
-            };
+                {
+                    headers: {},
+                    status: 200,
+                    body: {
+                        token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                        scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                        access_token: TEST_TOKENS.ACCESS_TOKEN,
+                        refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                        id_token: TEST_TOKENS.IDTOKEN_V2,
+                        client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    },
+                };
 
             const testAccount: AccountInfo =
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
@@ -1230,7 +1230,7 @@ describe("RedirectClient", () => {
             );
             expect(
                 testTokenResponse.expiresOn!.getMilliseconds() >=
-                tokenResponse.expiresOn!.getMilliseconds()
+                    tokenResponse.expiresOn!.getMilliseconds()
             ).toBeTruthy();
             expect(window.location.hash).toBe("");
         });
@@ -1377,9 +1377,9 @@ describe("RedirectClient", () => {
             );
             expect(
                 testTokenResponse.expiresOn &&
-                tokenResponse?.expiresOn &&
-                testTokenResponse.expiresOn.getMilliseconds() >=
-                tokenResponse.expiresOn.getMilliseconds()
+                    tokenResponse?.expiresOn &&
+                    testTokenResponse.expiresOn.getMilliseconds() >=
+                        tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
             expect(window.location.hash).toBe("");
         });
@@ -1975,7 +1975,7 @@ describe("RedirectClient", () => {
             ).toEqual("retried");
         });
 
-        it.only("throws invalid_grant error if already retried", (done) => {
+        it("throws invalid_grant error if already retried", (done) => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -2041,7 +2041,7 @@ describe("RedirectClient", () => {
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.CORRELATION_ID}`,
                 "retried"
-            )
+            );
 
             const testRedirectRequest: RedirectRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -2105,26 +2105,301 @@ describe("RedirectClient", () => {
 
             const acquireTokenSpy = jest.spyOn(redirectClient, "acquireToken");
 
-            // const tokenResponse = await redirectClient.handleRedirectPromise(
-            //     "",
-            //     rootMeasurement
-            // );
+            redirectClient
+                .handleRedirectPromise("", rootMeasurement)
+                .catch((err) => {
+                    expect(err instanceof ServerError).toBeTruthy();
+                    expect(err.errorCode).toEqual("invalid_grant");
+                    expect(acquireTokenSpy).toHaveBeenCalledTimes(0);
 
-            // expect(tokenResponse).toBe(null);
-            // expect(acquireTokenSpy).toHaveBeenCalledTimes(1);
-            // expect(
-            //     browserStorage.getTemporaryCache(
-            //         TemporaryCacheKeys.REDIRECT_REQUEST
-            //     )
-            // ).toEqual(null);
-            // expect(
-            //     browserStorage.getRequestRetried(TEST_CONFIG.CORRELATION_ID)
-            // ).toEqual("retried");
+                    expect(
+                        browserStorage.getTemporaryCache(
+                            TemporaryCacheKeys.REDIRECT_REQUEST
+                        )
+                    ).toEqual(null);
+                    expect(
+                        browserStorage.getRequestRetried(
+                            TEST_CONFIG.CORRELATION_ID
+                        )
+                    ).toEqual(null);
+
+                    done();
+                });
+        });
+
+        it("throws invalid_grant error if redirect request not correctly cached", (done) => {
+            let pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
+
+            // @ts-ignore
+            redirectClient = new RedirectClient(
+                // @ts-ignore
+                pca.config,
+                // @ts-ignore
+                pca.browserStorage,
+                // @ts-ignore
+                pca.browserCrypto,
+                // @ts-ignore
+                pca.logger,
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                // @ts-ignore
+                pca.performanceClient,
+                // @ts-ignore
+                pca.nativeInternalStorage,
+                undefined,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
+            const browserCrypto = new CryptoOps(new Logger({}));
+            const stateId = ProtocolUtils.parseRequestState(
+                browserCrypto,
+                stateString
+            ).libraryState.id;
+
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                TEST_URIS.TEST_REDIR_URI
+            );
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`,
+                TEST_CONFIG.validAuthority
+            );
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+            );
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                TEST_CONFIG.MSAL_CLIENT_ID
+            );
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`,
+                "123523"
+            );
+
+            const testTokenReq: CommonAuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+            };
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
+                base64Encode(JSON.stringify(testTokenReq))
+            );
+            const testServerErrorResponse = {
+                headers: {},
+                body: {
+                    error: "invalid_grant",
+                    error_description: "invalid_grant",
+                    error_codes: ["invalid_grant"],
+                    suberror: "first_server_error",
+                },
+                status: 200,
+            };
+
+            jest.spyOn(
+                FetchClient.prototype,
+                "sendGetRequestAsync"
+            ).mockImplementation((url): any => {
+                if (url.includes("discovery/instance")) {
+                    return DEFAULT_TENANT_DISCOVERY_RESPONSE;
+                } else if (url.includes(".well-known/openid-configuration")) {
+                    return DEFAULT_OPENID_CONFIG_RESPONSE;
+                }
+            });
+
+            jest.spyOn(
+                FetchClient.prototype,
+                "sendPostRequestAsync"
+            ).mockResolvedValueOnce(testServerErrorResponse);
+
+            const acquireTokenSpy = jest.spyOn(redirectClient, "acquireToken");
 
             redirectClient
                 .handleRedirectPromise("", rootMeasurement)
                 .catch((err) => {
                     expect(err instanceof ServerError).toBeTruthy();
+                    expect(err.errorCode).toEqual("invalid_grant");
+                    expect(acquireTokenSpy).toHaveBeenCalledTimes(0);
+
+                    expect(
+                        browserStorage.getTemporaryCache(
+                            TemporaryCacheKeys.REDIRECT_REQUEST
+                        )
+                    ).toEqual(null);
+                    expect(
+                        browserStorage.getRequestRetried(
+                            TEST_CONFIG.CORRELATION_ID
+                        )
+                    ).toEqual(null);
+                    done();
+                });
+        });
+
+        it("throws no_redirect_request_config_error if invalid_grant is returned from server and onRedirectNavigate is not set in config", (done) => {
+            let pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
+
+            // @ts-ignore
+            redirectClient = new RedirectClient(
+                // @ts-ignore
+                pca.config,
+                // @ts-ignore
+                pca.browserStorage,
+                // @ts-ignore
+                pca.browserCrypto,
+                // @ts-ignore
+                pca.logger,
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                // @ts-ignore
+                pca.performanceClient,
+                // @ts-ignore
+                pca.nativeInternalStorage,
+                undefined,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
+            const browserCrypto = new CryptoOps(new Logger({}));
+            const stateId = ProtocolUtils.parseRequestState(
+                browserCrypto,
+                stateString
+            ).libraryState.id;
+
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                TEST_URIS.TEST_REDIR_URI
+            );
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`,
+                TEST_CONFIG.validAuthority
+            );
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`,
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+            );
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                TEST_CONFIG.MSAL_CLIENT_ID
+            );
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`,
+                "123523"
+            );
+
+            const testRedirectRequest: RedirectRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                nonce: "",
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                onRedirectNavigate: (url: string) => {
+                    console.log("TEST ON REDIRECT NAVIGATE, URL:", url);
+                },
+            };
+
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REDIRECT_REQUEST}`,
+                base64Encode(JSON.stringify(testRedirectRequest))
+            );
+
+            const testTokenReq: CommonAuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+            };
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`,
+                base64Encode(JSON.stringify(testTokenReq))
+            );
+            const testServerErrorResponse = {
+                headers: {},
+                body: {
+                    error: "invalid_grant",
+                    error_description: "invalid_grant",
+                    error_codes: ["invalid_grant"],
+                    suberror: "first_server_error",
+                },
+                status: 200,
+            };
+
+            jest.spyOn(
+                FetchClient.prototype,
+                "sendGetRequestAsync"
+            ).mockImplementation((url): any => {
+                if (url.includes("discovery/instance")) {
+                    return DEFAULT_TENANT_DISCOVERY_RESPONSE;
+                } else if (url.includes(".well-known/openid-configuration")) {
+                    return DEFAULT_OPENID_CONFIG_RESPONSE;
+                }
+            });
+
+            jest.spyOn(
+                FetchClient.prototype,
+                "sendPostRequestAsync"
+            ).mockResolvedValueOnce(testServerErrorResponse);
+
+            const acquireTokenSpy = jest.spyOn(redirectClient, "acquireToken");
+
+            redirectClient
+                .handleRedirectPromise("", rootMeasurement)
+                .catch((err) => {
+                    expect(err instanceof AuthError).toBeTruthy();
+                    expect(err.errorCode).toEqual(
+                        "no_redirect_request_config_error"
+                    );
+                    expect(acquireTokenSpy).toHaveBeenCalledTimes(0);
+
+                    expect(
+                        browserStorage.getTemporaryCache(
+                            TemporaryCacheKeys.REDIRECT_REQUEST
+                        )
+                    ).toEqual(null);
+                    expect(
+                        browserStorage.getRequestRetried(
+                            TEST_CONFIG.CORRELATION_ID
+                        )
+                    ).toEqual("retried");
                     done();
                 });
         });
