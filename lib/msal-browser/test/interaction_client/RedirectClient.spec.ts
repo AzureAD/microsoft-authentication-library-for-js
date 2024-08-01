@@ -164,7 +164,9 @@ describe("RedirectClient", () => {
             //@ts-ignore
             pca.performanceClient,
             //@ts-ignore
-            pca.nativeInternalStorage
+            pca.nativeInternalStorage,
+            undefined,
+            TEST_CONFIG.CORRELATION_ID
         );
 
         rootMeasurement = new BrowserPerformanceClient(
@@ -1967,37 +1969,6 @@ describe("RedirectClient", () => {
         });
 
         it("throws invalid_grant error if already retried", (done) => {
-            let pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            });
-
-            //PCA implementation moved to controller
-            pca = (pca as any).controller;
-
-            // @ts-ignore
-            redirectClient = new RedirectClient(
-                // @ts-ignore
-                pca.config,
-                // @ts-ignore
-                pca.browserStorage,
-                // @ts-ignore
-                pca.browserCrypto,
-                // @ts-ignore
-                pca.logger,
-                // @ts-ignore
-                pca.eventHandler,
-                // @ts-ignore
-                pca.navigationClient,
-                // @ts-ignore
-                pca.performanceClient,
-                // @ts-ignore
-                pca.nativeInternalStorage,
-                undefined,
-                TEST_CONFIG.CORRELATION_ID
-            );
-
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -2112,37 +2083,6 @@ describe("RedirectClient", () => {
         });
 
         it("throws invalid_grant error if redirect request not correctly cached", (done) => {
-            let pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            });
-
-            //PCA implementation moved to controller
-            pca = (pca as any).controller;
-
-            // @ts-ignore
-            redirectClient = new RedirectClient(
-                // @ts-ignore
-                pca.config,
-                // @ts-ignore
-                pca.browserStorage,
-                // @ts-ignore
-                pca.browserCrypto,
-                // @ts-ignore
-                pca.logger,
-                // @ts-ignore
-                pca.eventHandler,
-                // @ts-ignore
-                pca.navigationClient,
-                // @ts-ignore
-                pca.performanceClient,
-                // @ts-ignore
-                pca.nativeInternalStorage,
-                undefined,
-                TEST_CONFIG.CORRELATION_ID
-            );
-
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -2238,37 +2178,6 @@ describe("RedirectClient", () => {
         });
 
         it("throws no_redirect_request_config_error if invalid_grant is returned from server and onRedirectNavigate is not set in config", (done) => {
-            let pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            });
-
-            //PCA implementation moved to controller
-            pca = (pca as any).controller;
-
-            // @ts-ignore
-            redirectClient = new RedirectClient(
-                // @ts-ignore
-                pca.config,
-                // @ts-ignore
-                pca.browserStorage,
-                // @ts-ignore
-                pca.browserCrypto,
-                // @ts-ignore
-                pca.logger,
-                // @ts-ignore
-                pca.eventHandler,
-                // @ts-ignore
-                pca.navigationClient,
-                // @ts-ignore
-                pca.performanceClient,
-                // @ts-ignore
-                pca.nativeInternalStorage,
-                undefined,
-                TEST_CONFIG.CORRELATION_ID
-            );
-
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
