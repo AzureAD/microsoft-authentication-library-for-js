@@ -50,8 +50,6 @@ import { INavigationClient } from "../navigation/INavigationClient";
 import { EventError } from "../event/EventMessage";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import * as ResponseHandler from "../response/ResponseHandler";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { on } from "events";
 
 export class RedirectClient extends StandardInteractionClient {
     protected nativeStorage: BrowserCacheManager;
@@ -207,8 +205,6 @@ export class RedirectClient extends StandardInteractionClient {
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.handleRedirectPromise
         );
-        let serverParams: ServerAuthorizationCodeResponse | null = null;
-        let responseString: string = Constants.EMPTY_STRING;
 
         try {
             if (!this.browserStorage.isInteractionInProgress(true)) {
@@ -217,7 +213,7 @@ export class RedirectClient extends StandardInteractionClient {
                 );
                 return null;
             }
-            [serverParams, responseString] = this.getRedirectResponse(
+            const [serverParams, responseString] = this.getRedirectResponse(
                 hash || ""
             );
             if (!serverParams) {
@@ -336,7 +332,6 @@ export class RedirectClient extends StandardInteractionClient {
 
             return null;
         } catch (e) {
-            console.log(`HIT HRP CATCH BLOCK: ${e}`);
             if (e instanceof AuthError) {
                 (e as AuthError).setCorrelationId(this.correlationId);
                 serverTelemetryManager.cacheFailedRequest(e);
@@ -346,93 +341,52 @@ export class RedirectClient extends StandardInteractionClient {
                 e instanceof ServerError &&
                 e.errorCode === BrowserConstants.INVALID_GRANT_ERROR
             ) {
-                // TESTING, TESTING
-                const keys = this.browserStorage.getKeys();
-                console.log(`HRP Keys: ${JSON.stringify(keys)}`);
+                this.performanceClient.addFields(
+                    {
+                        retryError: e.errorCode,
+                    },
+                    this.correlationId
+                );
 
-                // IMPLEMENTATION USING STATE:
-                // 1. Get cached? state from redirect request (no server params yet)
-                // if (!serverParams) {
-                //     console.log(`NO SERVER PARAM`);
-                //     // No server params, cannot get state, cannot retry.
-                //     throw e;
-                // }
-                // console.log(`GOT SERVER PARAMS`);
-
-                // const state = this.browserStorage.getCachedState(
-                //     serverParams.state
-                // );
-                // if (!state) {
-                //     console.log(`NO STATE`);
-                //     // No state, cannot retry.
-                //     throw e;
-                // }
-                // console.log(`GOT STATE`);
-
-                // 2. Check state for retry already
-                // const requestRetried =
-                //     this.browserStorage.getRequestRetried(state);
                 const requestRetried = this.browserStorage.getRequestRetried(
                     this.correlationId
                 );
 
                 if (requestRetried) {
-                    console.log(`REQUEST RETRIED`);
                     // Log that request has already been retried. Do not retry again.
-                    // Clear request retry, clear redirect request
+                    this.browserStorage.removeRequestRetried(
+                        this.correlationId
+                    );
                     throw e;
                 }
-                console.log(`REQUEST NOT RETRIED`);
 
                 // 3. Get cached redirect request
                 const redirectRequest =
                     this.browserStorage.getCachedRedirectRequest();
                 if (!redirectRequest) {
-                    console.log(`NO REDIRECT REQUEST`);
                     // No redirect request, no request to retry with, cannot retry.
                     throw e;
                 }
-                console.log(`GOT REDIRECT REQUEST`);
 
                 // Get onRedirectNavigate from config OR throw new error if none
                 const onRedirectNavigate = this.config.auth.onRedirectNavigate;
                 if (!onRedirectNavigate) {
-                    console.log(`NO ON REDIRECT NAVIGATE`);
                     // TODO: Update name
                     this.logger.error(
                         `Unable to retry redirect request without onRedirectNavigate. Please retry with redirect request and correlationId: ${this.correlationId}`
                     );
+                    this.browserStorage.setRequestRetried(this.correlationId);
+                    // CACHE: Clear redirect request, DO NOT CLEAR request retry
                     throw createBrowserAuthError(
                         BrowserAuthErrorCodes.noRedirectRequestConfigError
                     );
                 }
-                console.log(`ON REDIRECT NAVIGATE: ${onRedirectNavigate}`);
 
                 // 4. Add onRedirectNavigate to redirect request
                 redirectRequest.onRedirectNavigate = onRedirectNavigate;
 
-                // ?. Telemetry data point for retry
-                this.performanceClient.addFields(
-                    {
-                        retryError: JSON.stringify(e),
-                    },
-                    this.correlationId
-                );
-
                 // 5. Set state for redirect retry
                 this.browserStorage.setRequestRetried(this.correlationId);
-                const keysAfterSetRequestRetried =
-                    this.browserStorage.getKeys();
-                console.log(
-                    `HRP Keys AFTER: ${JSON.stringify(
-                        keysAfterSetRequestRetried
-                    )}`
-                );
-                console.log(
-                    `Check request retried: ${this.browserStorage.getRequestRetried(
-                        this.correlationId
-                    )}`
-                );
 
                 // 7. Retry acquire token
                 await this.acquireToken(redirectRequest);

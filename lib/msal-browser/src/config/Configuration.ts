@@ -108,13 +108,6 @@ export type BrowserAuthOptions = {
 };
 
 /** @internal */
-// export type InternalAuthOptions = Required<BrowserAuthOptions> & Omit<
-//     BrowserAuthOptions,
-//     "onRedirectNavigate"
-// > & {
-//     OIDCOptions: Required<OIDCOptions>;
-//     onRedirectNavigate?: (url: string) => boolean | void;
-// };
 export type InternalAuthOptions = Omit<
     Required<BrowserAuthOptions>,
     "onRedirectNavigate"

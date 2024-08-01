@@ -1613,51 +1613,46 @@ export class BrowserCacheManager extends CacheManager {
         this.setInteractionInProgress(false);
     }
 
-    getCachedState(stateString?: string): string | null {
-        if (!stateString) {
-            return null;
-        }
-        const stateKey = this.generateStateKey(stateString);
-        return this.getTemporaryCache(stateKey);
-    }
-
-    // 1. Implementation with temporary cache
+    /**
+     * Create request retry key to cache retry status
+     * @param correlationId
+     */
     generateRequestRetriedKey(correlationId: string): string {
         return `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${correlationId}`;
     }
 
+    /**
+     * Gets the request retry value from the cache
+     * @param correlationId
+     */
     getRequestRetried(correlationId: string): string | null {
         const requestRetriedKey = this.generateRequestRetriedKey(correlationId);
         return this.getTemporaryCache(requestRetriedKey);
     }
 
+    /**
+     * Sets the request retry value to "retried" in the cache
+     * @param correlationId
+     */
     setRequestRetried(correlationId: string): void {
+        this.logger.trace("BrowserCacheManager.setRequestRetried called");
         const requestRetriedKey = this.generateRequestRetriedKey(correlationId);
         this.setTemporaryCache(requestRetriedKey, "retried", false);
     }
 
-    // 2. Implementation with state.
-    // getRequestRetried(state: string): string {
-    //     const parsedState = extractBrowserRequestState(this.cryptoImpl, state);
-    //     console.log(`GET REQUEST STATE PARSED STATE: ${JSON.stringify(parsedState)}`);
-    //     return parsedState?.requestRetried || "";
-    // }
+    /**
+     * Removes the request retry value from the cache
+     * @param correlationId
+     */
+    removeRequestRetried(correlationId: string): void {
+        const requestRetriedKey = this.generateRequestRetriedKey(correlationId);
+        this.removeTemporaryItem(requestRetriedKey);
+    }
 
-    // setRequestRetried(state: string): void {
-    //     const parsedState = extractBrowserRequestState(this.cryptoImpl, state);
-    //     if (!parsedState) {
-    //         return;
-    //     }
-    //     console.log(`SET REQUEST STATE PARSED STATE: ${JSON.stringify(parsedState)}`);
-    //     parsedState.requestRetried = "retried";
-    //     console.log(`SET REQUEST STATE PARSED STATE AFTER: ${JSON.stringify(parsedState)}`);
-    //     this.setTemporaryCache(
-    //         this.generateStateKey(state),
-    //         JSON.stringify(parsedState), // Does not work. Need a way to generate state with same GUID
-    //         false
-    //     );
-    // }
-
+    /**
+     * Caches the redirectRequest in the cache
+     * @param redirectRequest
+     */
     cacheRedirectRequest(redirectRequest: RedirectRequest): void {
         this.logger.trace("BrowserCacheManager.cacheRedirectRequest called");
         const encodedValue = base64Encode(JSON.stringify(redirectRequest));
@@ -1669,17 +1664,9 @@ export class BrowserCacheManager extends CacheManager {
         );
     }
 
-    cacheCodeRequest(authCodeRequest: CommonAuthorizationCodeRequest): void {
-        this.logger.trace("BrowserCacheManager.cacheCodeRequest called");
-
-        const encodedValue = base64Encode(JSON.stringify(authCodeRequest));
-        this.setTemporaryCache(
-            TemporaryCacheKeys.REQUEST_PARAMS,
-            encodedValue,
-            true
-        );
-    }
-
+    /**
+     * Gets redirect request from the cache. Logs an error and returns undefined if nothing is found.
+     */
     getCachedRedirectRequest(): RedirectRequest | undefined {
         this.logger.trace(
             "BrowserCacheManager.getCachedRedirectRequest called"
@@ -1714,6 +1701,17 @@ export class BrowserCacheManager extends CacheManager {
             }
         }
         return;
+    }
+
+    cacheCodeRequest(authCodeRequest: CommonAuthorizationCodeRequest): void {
+        this.logger.trace("BrowserCacheManager.cacheCodeRequest called");
+
+        const encodedValue = base64Encode(JSON.stringify(authCodeRequest));
+        this.setTemporaryCache(
+            TemporaryCacheKeys.REQUEST_PARAMS,
+            encodedValue,
+            true
+        );
     }
 
     /**
