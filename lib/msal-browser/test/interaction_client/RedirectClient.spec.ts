@@ -552,9 +552,9 @@ describe("RedirectClient", () => {
             );
             expect(
                 tokenResponse?.expiresOn &&
-                    testTokenResponse.expiresOn &&
-                    testTokenResponse.expiresOn.getMilliseconds() >=
-                        tokenResponse.expiresOn.getMilliseconds()
+                testTokenResponse.expiresOn &&
+                testTokenResponse.expiresOn.getMilliseconds() >=
+                tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
         });
 
@@ -714,9 +714,9 @@ describe("RedirectClient", () => {
             );
             expect(
                 tokenResponse?.expiresOn &&
-                    testTokenResponse.expiresOn &&
-                    testTokenResponse.expiresOn.getMilliseconds() >=
-                        tokenResponse.expiresOn.getMilliseconds()
+                testTokenResponse.expiresOn &&
+                testTokenResponse.expiresOn.getMilliseconds() >=
+                tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
         });
 
@@ -1062,9 +1062,9 @@ describe("RedirectClient", () => {
             );
             expect(
                 testTokenResponse.expiresOn &&
-                    tokenResponse?.expiresOn &&
-                    testTokenResponse.expiresOn.getMilliseconds() >=
-                        tokenResponse.expiresOn.getMilliseconds()
+                tokenResponse?.expiresOn &&
+                testTokenResponse.expiresOn.getMilliseconds() >=
+                tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
             expect(window.location.hash).toBe("");
         });
@@ -1115,20 +1115,20 @@ describe("RedirectClient", () => {
                 base64Encode(JSON.stringify(testTokenReq))
             );
             const testServerTokenResponse: NetworkResponse<ServerAuthorizationTokenResponse> =
-                {
-                    headers: {},
-                    status: 200,
-                    body: {
-                        token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                        scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
-                        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                        access_token: TEST_TOKENS.ACCESS_TOKEN,
-                        refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-                        id_token: TEST_TOKENS.IDTOKEN_V2,
-                        client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                    },
-                };
+            {
+                headers: {},
+                status: 200,
+                body: {
+                    token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                    scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                    expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                    ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                    access_token: TEST_TOKENS.ACCESS_TOKEN,
+                    refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                    id_token: TEST_TOKENS.IDTOKEN_V2,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                },
+            };
 
             const testAccount: AccountInfo =
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
@@ -1230,7 +1230,7 @@ describe("RedirectClient", () => {
             );
             expect(
                 testTokenResponse.expiresOn!.getMilliseconds() >=
-                    tokenResponse.expiresOn!.getMilliseconds()
+                tokenResponse.expiresOn!.getMilliseconds()
             ).toBeTruthy();
             expect(window.location.hash).toBe("");
         });
@@ -1377,9 +1377,9 @@ describe("RedirectClient", () => {
             );
             expect(
                 testTokenResponse.expiresOn &&
-                    tokenResponse?.expiresOn &&
-                    testTokenResponse.expiresOn.getMilliseconds() >=
-                        tokenResponse.expiresOn.getMilliseconds()
+                tokenResponse?.expiresOn &&
+                testTokenResponse.expiresOn.getMilliseconds() >=
+                tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
             expect(window.location.hash).toBe("");
         });
@@ -1833,7 +1833,7 @@ describe("RedirectClient", () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    onRedirectNavigate: (url: string) => {},
+                    onRedirectNavigate: (url: string) => { },
                 },
             });
 
@@ -2778,27 +2778,8 @@ describe("RedirectClient", () => {
                 nonce: "",
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-                onRedirectNavigate: (url: string) => {},
+                onRedirectNavigate: (url: string) => { },
             };
-
-            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
-                challenge: TEST_CONFIG.TEST_CHALLENGE,
-                verifier: TEST_CONFIG.TEST_VERIFIER,
-            });
-
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    expect(options.noHistory).toBeFalsy();
-                    expect(urlNavigate).not.toBe("");
-                    return Promise.resolve(true);
-                }
-            );
 
             const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
@@ -2825,6 +2806,7 @@ describe("RedirectClient", () => {
             expect(cachedRequest.authenticationScheme).toEqual(
                 TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             );
+            expect(cachedRequest.onRedirectNavigate).toBeFalsy();
         });
 
         it("Caches token request correctly", async () => {
