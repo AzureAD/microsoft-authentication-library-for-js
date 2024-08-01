@@ -178,7 +178,9 @@ export class RedirectClient extends StandardInteractionClient {
                 navigationClient: this.navigationClient,
                 redirectTimeout: this.config.system.redirectNavigationTimeout,
                 redirectStartPage: redirectStartPage,
-                onRedirectNavigate: request.onRedirectNavigate,
+                onRedirectNavigate:
+                    this.config.auth.onRedirectNavigate ||
+                    request.onRedirectNavigate,
             });
         } catch (e) {
             if (e instanceof AuthError) {
@@ -353,51 +355,46 @@ export class RedirectClient extends StandardInteractionClient {
                 );
 
                 if (requestRetried) {
-                    // Log that request has already been retried. Do not retry again.
+                    this.logger.error(
+                        "Retried request already detected. Throwing error."
+                    );
                     this.browserStorage.removeRequestRetried(
                         this.correlationId
                     );
                     throw e;
                 }
 
-                // 3. Get cached redirect request
                 const redirectRequest =
                     this.browserStorage.getCachedRedirectRequest();
                 if (!redirectRequest) {
-                    // No redirect request, no request to retry with, cannot retry.
+                    this.logger.error(
+                        "Unable to retry redirect request without cached redirect request."
+                    );
                     throw e;
                 }
 
-                // Get onRedirectNavigate from config OR throw new error if none
                 const onRedirectNavigate = this.config.auth.onRedirectNavigate;
                 if (!onRedirectNavigate) {
-                    // TODO: Update name
                     this.logger.error(
                         `Unable to retry redirect request without onRedirectNavigate. Please retry with redirect request and correlationId: ${this.correlationId}`
                     );
                     this.browserStorage.setRequestRetried(this.correlationId);
-                    // CACHE: Clear redirect request, DO NOT CLEAR request retry
                     throw createBrowserAuthError(
-                        BrowserAuthErrorCodes.noRedirectRequestConfigError
+                        BrowserAuthErrorCodes.noAutoRetry
                     );
                 }
 
-                // 4. Add onRedirectNavigate to redirect request
-                redirectRequest.onRedirectNavigate = onRedirectNavigate;
-
-                // 5. Set state for redirect retry
                 this.browserStorage.setRequestRetried(this.correlationId);
 
-                // 7. Retry acquire token
                 await this.acquireToken(redirectRequest);
-                // TODO: What to return here?
                 return null;
             }
 
+            throw e;
+        } finally {
             this.browserStorage.cleanRequestByInteractionType(
                 InteractionType.Redirect
             );
-            throw e;
         }
     }
 

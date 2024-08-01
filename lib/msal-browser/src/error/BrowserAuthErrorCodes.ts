@@ -26,7 +26,6 @@ export const silentLogoutUnsupported = "silent_logout_unsupported";
 export const noAccountError = "no_account_error";
 export const silentPromptValueError = "silent_prompt_value_error";
 export const noTokenRequestCacheError = "no_token_request_cache_error";
-export const noRedirectRequestConfigError = "no_redirect_request_config_error";
 export const unableToParseTokenRequestCacheError =
     "unable_to_parse_token_request_cache_error";
 export const noCachedAuthorityError = "no_cached_authority_error";
@@ -57,3 +56,4 @@ export const uninitializedPublicClientApplication =
 export const nativePromptNotSupported = "native_prompt_not_supported";
 export const invalidBase64String = "invalid_base64_string";
 export const invalidPopTokenRequest = "invalid_pop_token_request";
+export const noAutoRetry = "no_auto_retry_error";

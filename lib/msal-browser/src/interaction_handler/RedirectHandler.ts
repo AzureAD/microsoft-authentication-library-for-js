@@ -222,6 +222,9 @@ export class RedirectHandler {
         )) as AuthenticationResult;
 
         this.browserStorage.cleanRequestByState(state);
+        this.browserStorage.removeRequestRetried(
+            this.authCodeRequest.correlationId
+        );
         return tokenResponse;
     }
 

@@ -92,6 +92,8 @@ export const BrowserAuthErrorMessages = {
         "Invalid base64 encoded string.",
     [BrowserAuthErrorCodes.invalidPopTokenRequest]:
         "Invalid PoP token request. The request should not have both a popKid value and signPopToken set to true.",
+    [BrowserAuthErrorCodes.noAutoRetry]:
+        "Unable to auto retry due to onRedirectNavigate not set in MSAL configuration. Please set onRedirectNavigate and manually retry with correlationId returned.",
 };
 
 /**

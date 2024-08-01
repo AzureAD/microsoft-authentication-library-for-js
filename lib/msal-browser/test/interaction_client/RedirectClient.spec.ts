@@ -1833,9 +1833,7 @@ describe("RedirectClient", () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    onRedirectNavigate: (url: string) => {
-                        console.log("TEST ON REDIRECT NAVIGATE", url);
-                    },
+                    onRedirectNavigate: (url: string) => {},
                 },
             });
 
@@ -1895,7 +1893,6 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`,
                 "123523"
             );
-
             const testRedirectRequest: RedirectRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -1905,16 +1902,11 @@ describe("RedirectClient", () => {
                 nonce: "",
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-                onRedirectNavigate: (url: string) => {
-                    console.log("TEST ON REDIRECT NAVIGATE, URL:", url);
-                },
             };
-
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REDIRECT_REQUEST}`,
                 base64Encode(JSON.stringify(testRedirectRequest))
             );
-
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
@@ -1935,7 +1927,6 @@ describe("RedirectClient", () => {
                     error: "invalid_grant",
                     error_description: "invalid_grant",
                     error_codes: ["invalid_grant"],
-                    suberror: "first_server_error",
                 },
                 status: 200,
             };
@@ -2042,7 +2033,6 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.CORRELATION_ID}`,
                 "retried"
             );
-
             const testRedirectRequest: RedirectRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -2052,16 +2042,11 @@ describe("RedirectClient", () => {
                 nonce: "",
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-                onRedirectNavigate: (url: string) => {
-                    console.log("TEST ON REDIRECT NAVIGATE, URL:", url);
-                },
             };
-
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REDIRECT_REQUEST}`,
                 base64Encode(JSON.stringify(testRedirectRequest))
             );
-
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
@@ -2082,7 +2067,6 @@ describe("RedirectClient", () => {
                     error: "invalid_grant",
                     error_description: "invalid_grant",
                     error_codes: ["invalid_grant"],
-                    suberror: "first_server_error",
                 },
                 status: 200,
             };
@@ -2190,7 +2174,6 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`,
                 "123523"
             );
-
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
@@ -2211,7 +2194,6 @@ describe("RedirectClient", () => {
                     error: "invalid_grant",
                     error_description: "invalid_grant",
                     error_codes: ["invalid_grant"],
-                    suberror: "first_server_error",
                 },
                 status: 200,
             };
@@ -2318,7 +2300,6 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`,
                 "123523"
             );
-
             const testRedirectRequest: RedirectRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -2328,16 +2309,11 @@ describe("RedirectClient", () => {
                 nonce: "",
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-                onRedirectNavigate: (url: string) => {
-                    console.log("TEST ON REDIRECT NAVIGATE, URL:", url);
-                },
             };
-
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REDIRECT_REQUEST}`,
                 base64Encode(JSON.stringify(testRedirectRequest))
             );
-
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
@@ -2358,7 +2334,6 @@ describe("RedirectClient", () => {
                     error: "invalid_grant",
                     error_description: "invalid_grant",
                     error_codes: ["invalid_grant"],
-                    suberror: "first_server_error",
                 },
                 status: 200,
             };
@@ -2385,9 +2360,7 @@ describe("RedirectClient", () => {
                 .handleRedirectPromise("", rootMeasurement)
                 .catch((err) => {
                     expect(err instanceof AuthError).toBeTruthy();
-                    expect(err.errorCode).toEqual(
-                        "no_redirect_request_config_error"
-                    );
+                    expect(err.errorCode).toEqual("no_auto_retry_error");
                     expect(acquireTokenSpy).toHaveBeenCalledTimes(0);
 
                     expect(
@@ -2805,9 +2778,7 @@ describe("RedirectClient", () => {
                 nonce: "",
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-                onRedirectNavigate: (url: string) => {
-                    console.log("TEST ON REDIRECT NAVIGATE", url);
-                },
+                onRedirectNavigate: (url: string) => {},
             };
 
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
