@@ -56,4 +56,4 @@ export const uninitializedPublicClientApplication =
 export const nativePromptNotSupported = "native_prompt_not_supported";
 export const invalidBase64String = "invalid_base64_string";
 export const invalidPopTokenRequest = "invalid_pop_token_request";
-export const noAutoRetry = "no_auto_retry_error";
+export const failedToRetry = "failed_to_retry";

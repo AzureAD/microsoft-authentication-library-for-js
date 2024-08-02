@@ -373,10 +373,9 @@ export class RedirectClient extends StandardInteractionClient {
                     throw e;
                 }
 
-                const onRedirectNavigate = this.config.auth.onRedirectNavigate;
-                if (!onRedirectNavigate) {
+                if (request.onRedirectNavigate) {
                     this.logger.error(
-                        `Unable to retry redirect request without onRedirectNavigate. Please retry with redirect request and correlationId: ${this.correlationId}`
+                        `Unable to retry redirect request due to presence of onRedirectNavigate request parameter. Please retry with redirect request and correlationId: ${this.correlationId}`
                     );
                     this.browserStorage.setRequestRetried(this.correlationId);
                     throw createBrowserAuthError(

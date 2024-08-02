@@ -101,8 +101,6 @@ export type BrowserAuthOptions = {
     supportsNestedAppAuth?: boolean;
     /**
      * Callback that will be passed the url that MSAL will navigate to in redirect flows. Returning false in the callback will stop navigation.
-     *
-     * This configuration option will replace onRedirectNavigate in the RedirectRequest object in the next major version.
      */
     onRedirectNavigate?: (url: string) => boolean | void;
 };
