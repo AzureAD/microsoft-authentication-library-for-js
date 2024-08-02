@@ -225,6 +225,11 @@ export class RedirectHandler {
         this.browserStorage.removeRequestRetried(
             this.authCodeRequest.correlationId
         );
+        this.browserStorage.removeTemporaryItem(
+            this.browserStorage.generateCacheKey(
+                TemporaryCacheKeys.REDIRECT_REQUEST
+            )
+        );
         return tokenResponse;
     }
 

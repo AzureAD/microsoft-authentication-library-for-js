@@ -1655,7 +1655,8 @@ export class BrowserCacheManager extends CacheManager {
      */
     cacheRedirectRequest(redirectRequest: RedirectRequest): void {
         this.logger.trace("BrowserCacheManager.cacheRedirectRequest called");
-        const encodedValue = base64Encode(JSON.stringify(redirectRequest));
+        const { onRedirectNavigate, ...restParams } = redirectRequest;
+        const encodedValue = base64Encode(JSON.stringify(restParams));
 
         this.setTemporaryCache(
             TemporaryCacheKeys.REDIRECT_REQUEST,

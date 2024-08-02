@@ -474,6 +474,20 @@ describe("RedirectClient", () => {
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`,
                 "123523"
             );
+            const testRedirectRequest: RedirectRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                nonce: "",
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+            };
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REDIRECT_REQUEST}`,
+                base64Encode(JSON.stringify(testRedirectRequest))
+            );
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
@@ -558,6 +572,14 @@ describe("RedirectClient", () => {
                 testTokenResponse.expiresOn.getMilliseconds() >=
                 tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
+            expect(
+                browserStorage.getTemporaryCache(
+                    TemporaryCacheKeys.REDIRECT_REQUEST
+                )
+            ).toEqual(null);
+            expect(
+                browserStorage.getRequestRetried(TEST_CONFIG.CORRELATION_ID)
+            ).toEqual(null);
         });
 
         it("gets hash from cache and calls native broker if hash contains accountId", async () => {
@@ -1835,7 +1857,7 @@ describe("RedirectClient", () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    onRedirectNavigate: (url: string) => { },
+                    onRedirectNavigate: (url: string) => {},
                 },
             });
 
@@ -2177,7 +2199,7 @@ describe("RedirectClient", () => {
                 });
         });
 
-        it("throws no_redirect_request_config_error if invalid_grant is returned from server and onRedirectNavigate is not set in config", (done) => {
+        it("throws failed_to_retry if invalid_grant is returned from server and onRedirectNavigate is not set in config", (done) => {
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(
@@ -2269,7 +2291,7 @@ describe("RedirectClient", () => {
                 .handleRedirectPromise("", rootMeasurement)
                 .catch((err) => {
                     expect(err instanceof AuthError).toBeTruthy();
-                    expect(err.errorCode).toEqual("no_auto_retry_error");
+                    expect(err.errorCode).toEqual("failed_to_retry");
                     expect(acquireTokenSpy).toHaveBeenCalledTimes(0);
 
                     expect(
@@ -2687,7 +2709,7 @@ describe("RedirectClient", () => {
                 nonce: "",
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-                onRedirectNavigate: (url: string) => { },
+                onRedirectNavigate: (url: string) => {},
             };
 
             const browserCrypto = new CryptoOps(new Logger({}));
