@@ -85,7 +85,13 @@ export class RedirectClient extends StandardInteractionClient {
      * @param request
      */
     async acquireToken(request: RedirectRequest): Promise<void> {
-        this.browserStorage.cacheRedirectRequest(request);
+        if (request.onRedirectNavigate) {
+            this.logger.warning(
+                "Unable to cache redirect request, onRedirectNavigate has been deprecated."
+            );
+        } else {
+            this.browserStorage.cacheRedirectRequest(request);
+        }
 
         const validRequest = await invokeAsync(
             this.initializeAuthorizationRequest.bind(this),
@@ -368,15 +374,7 @@ export class RedirectClient extends StandardInteractionClient {
                     this.browserStorage.getCachedRedirectRequest();
                 if (!redirectRequest) {
                     this.logger.error(
-                        "Unable to retry redirect request without cached redirect request."
-                    );
-                    throw e;
-                }
-
-                const onRedirectNavigate = this.config.auth.onRedirectNavigate;
-                if (!onRedirectNavigate) {
-                    this.logger.error(
-                        `Unable to retry redirect request without onRedirectNavigate parameter. Please retry with redirect request and correlationId: ${this.correlationId}`
+                        `Unable to retry. Please retry with redirect request and correlationId: ${this.correlationId}`
                     );
                     this.browserStorage.setRequestRetried(this.correlationId);
                     throw createBrowserAuthError(
