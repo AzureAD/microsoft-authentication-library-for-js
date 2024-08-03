@@ -1987,7 +1987,7 @@ describe("RedirectClient", () => {
             ).toEqual(null);
             expect(
                 browserStorage.getRequestRetried(TEST_CONFIG.CORRELATION_ID)
-            ).toEqual("retried");
+            ).toEqual(1);
         });
 
         it("throws invalid_grant error if already retried", (done) => {
@@ -2024,7 +2024,7 @@ describe("RedirectClient", () => {
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.CORRELATION_ID}`,
-                "retried"
+                JSON.stringify(1)
             );
             const testRedirectRequest: RedirectRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -2194,7 +2194,7 @@ describe("RedirectClient", () => {
                         browserStorage.getRequestRetried(
                             TEST_CONFIG.CORRELATION_ID
                         )
-                    ).toEqual("retried");
+                    ).toEqual(1);
                     done();
                 });
         });

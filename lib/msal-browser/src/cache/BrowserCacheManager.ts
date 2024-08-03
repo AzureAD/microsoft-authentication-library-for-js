@@ -1625,9 +1625,13 @@ export class BrowserCacheManager extends CacheManager {
      * Gets the request retry value from the cache
      * @param correlationId
      */
-    getRequestRetried(correlationId: string): string | null {
+    getRequestRetried(correlationId: string): number | null {
         const requestRetriedKey = this.generateRequestRetriedKey(correlationId);
-        return this.getTemporaryCache(requestRetriedKey);
+        const cachedRetryNumber = this.getTemporaryCache(requestRetriedKey);
+        if (!cachedRetryNumber) {
+            return null;
+        }
+        return JSON.parse(cachedRetryNumber);
     }
 
     /**
@@ -1637,7 +1641,7 @@ export class BrowserCacheManager extends CacheManager {
     setRequestRetried(correlationId: string): void {
         this.logger.trace("BrowserCacheManager.setRequestRetried called");
         const requestRetriedKey = this.generateRequestRetriedKey(correlationId);
-        this.setTemporaryCache(requestRetriedKey, "retried", false);
+        this.setTemporaryCache(requestRetriedKey, JSON.stringify(1), false);
     }
 
     /**
