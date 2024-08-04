@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Better types for EventMessage ",
+  "packageName": "@azure/msal-browser",
+  "email": "slava@knyazev.io",
+  "dependentChangeType": "patch"
+}
