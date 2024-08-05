@@ -1929,7 +1929,7 @@ describe("RedirectClient", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REDIRECT_REQUEST}`,
-                base64Encode(JSON.stringify(testRedirectRequest))
+                JSON.stringify(testRedirectRequest)
             );
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
@@ -2612,12 +2612,10 @@ describe("RedirectClient", () => {
             );
             await redirectClient.acquireToken(redirectRequest);
             const cachedRequest: RedirectRequest = JSON.parse(
-                browserCrypto.base64Decode(
-                    browserStorage.getTemporaryCache(
-                        TemporaryCacheKeys.REDIRECT_REQUEST,
-                        true
-                    ) || ""
-                )
+                browserStorage.getTemporaryCache(
+                    TemporaryCacheKeys.REDIRECT_REQUEST,
+                    true
+                ) || ""
             );
             expect(cachedRequest.scopes).toEqual(TEST_CONFIG.DEFAULT_SCOPES);
             expect(cachedRequest.authority).toEqual(
