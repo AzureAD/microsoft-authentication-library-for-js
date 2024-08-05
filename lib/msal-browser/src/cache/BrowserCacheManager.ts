@@ -1631,7 +1631,7 @@ export class BrowserCacheManager extends CacheManager {
         if (!cachedRetryNumber) {
             return null;
         }
-        return JSON.parse(cachedRetryNumber);
+        return parseInt(cachedRetryNumber);
     }
 
     /**
@@ -1641,7 +1641,7 @@ export class BrowserCacheManager extends CacheManager {
     setRequestRetried(correlationId: string): void {
         this.logger.trace("BrowserCacheManager.setRequestRetried called");
         const requestRetriedKey = this.generateRequestRetriedKey(correlationId);
-        this.setTemporaryCache(requestRetriedKey, JSON.stringify(1), false);
+        this.setTemporaryCache(requestRetriedKey, "1", false);
     }
 
     /**
@@ -1660,7 +1660,7 @@ export class BrowserCacheManager extends CacheManager {
     cacheRedirectRequest(redirectRequest: RedirectRequest): void {
         this.logger.trace("BrowserCacheManager.cacheRedirectRequest called");
         const { onRedirectNavigate, ...restParams } = redirectRequest;
-        const encodedValue = base64Encode(JSON.stringify(restParams));
+        const encodedValue = JSON.stringify(restParams);
 
         this.setTemporaryCache(
             TemporaryCacheKeys.REDIRECT_REQUEST,
@@ -1689,7 +1689,7 @@ export class BrowserCacheManager extends CacheManager {
             let parsedRequest: RedirectRequest;
             try {
                 parsedRequest = JSON.parse(
-                    base64Decode(encodedRedirectRequest)
+                  encodedRedirectRequest
                 ) as RedirectRequest;
             } catch (e) {
                 this.logger.errorPii(

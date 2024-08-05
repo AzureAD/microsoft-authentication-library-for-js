@@ -87,7 +87,7 @@ export class RedirectClient extends StandardInteractionClient {
     async acquireToken(request: RedirectRequest): Promise<void> {
         if (request.onRedirectNavigate) {
             this.logger.warning(
-                "Unable to cache redirect request, onRedirectNavigate has been deprecated."
+                "Unable to cache redirect request, onRedirectNavigate request option has been deprecated. Please set onRedirectNavigate on PublicClientApplication config instead."
             );
         } else {
             this.browserStorage.cacheRedirectRequest(request);
@@ -185,8 +185,8 @@ export class RedirectClient extends StandardInteractionClient {
                 redirectTimeout: this.config.system.redirectNavigationTimeout,
                 redirectStartPage: redirectStartPage,
                 onRedirectNavigate:
-                    this.config.auth.onRedirectNavigate ||
-                    request.onRedirectNavigate,
+                    request.onRedirectNavigate ||
+                    this.config.auth.onRedirectNavigate,
             });
         } catch (e) {
             if (e instanceof AuthError) {
