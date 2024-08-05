@@ -1661,8 +1661,8 @@ export class BrowserCacheManager extends CacheManager {
      */
     cacheRedirectRequest(redirectRequest: RedirectRequest): void {
         this.logger.trace("BrowserCacheManager.cacheRedirectRequest called");
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { onRedirectNavigate, ...restParams } = redirectRequest;
+        const { ...restParams } = redirectRequest;
+        delete restParams.onRedirectNavigate;
         const encodedValue = JSON.stringify(restParams);
 
         this.setTemporaryCache(
