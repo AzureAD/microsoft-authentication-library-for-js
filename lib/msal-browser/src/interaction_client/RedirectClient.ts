@@ -364,9 +364,7 @@ export class RedirectClient extends StandardInteractionClient {
                     this.logger.error(
                         "Retried request already detected. Throwing error."
                     );
-                    this.browserStorage.removeRequestRetried(
-                        this.correlationId
-                    );
+                    this.browserStorage.removeRequestRetried();
                     throw e;
                 }
 
@@ -388,6 +386,7 @@ export class RedirectClient extends StandardInteractionClient {
                 return null;
             }
 
+            this.browserStorage.removeRequestRetried();
             throw e;
         } finally {
             this.browserStorage.cleanRequestByInteractionType(

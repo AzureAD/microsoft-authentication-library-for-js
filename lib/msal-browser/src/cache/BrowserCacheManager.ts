@@ -1645,12 +1645,14 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * Removes the request retry value from the cache
-     * @param correlationId
+     * Removes all request retry values in the cache
      */
-    removeRequestRetried(correlationId: string): void {
-        const requestRetriedKey = this.generateRequestRetriedKey(correlationId);
-        this.removeTemporaryItem(requestRetriedKey);
+    removeRequestRetried(): void {
+        this.temporaryCacheStorage.getKeys().forEach((key) => {
+            if (key.indexOf(TemporaryCacheKeys.REQUEST_RETRY) !== -1) {
+                this.removeTemporaryItem(key);
+            }
+        });
     }
 
     /**
@@ -1659,6 +1661,7 @@ export class BrowserCacheManager extends CacheManager {
      */
     cacheRedirectRequest(redirectRequest: RedirectRequest): void {
         this.logger.trace("BrowserCacheManager.cacheRedirectRequest called");
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { onRedirectNavigate, ...restParams } = redirectRequest;
         const encodedValue = JSON.stringify(restParams);
 
@@ -1676,11 +1679,11 @@ export class BrowserCacheManager extends CacheManager {
         this.logger.trace(
             "BrowserCacheManager.getCachedRedirectRequest called"
         );
-        const encodedRedirectRequest = this.getTemporaryCache(
+        const cachedRedirectRequest = this.getTemporaryCache(
             TemporaryCacheKeys.REDIRECT_REQUEST,
             true
         );
-        if (!encodedRedirectRequest) {
+        if (!cachedRedirectRequest) {
             this.logger.error(`No cached redirect request found.`);
         } else {
             this.removeTemporaryItem(
@@ -1689,11 +1692,11 @@ export class BrowserCacheManager extends CacheManager {
             let parsedRequest: RedirectRequest;
             try {
                 parsedRequest = JSON.parse(
-                  encodedRedirectRequest
+                    cachedRedirectRequest
                 ) as RedirectRequest;
             } catch (e) {
                 this.logger.errorPii(
-                    `Attempted to parse: ${encodedRedirectRequest}`
+                    `Attempted to parse: ${cachedRedirectRequest}`
                 );
                 this.logger.error(
                     `Parsing cached redirect request threw with error: ${e}`
