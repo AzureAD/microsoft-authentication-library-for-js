@@ -389,6 +389,11 @@ export class RedirectClient extends StandardInteractionClient {
             this.browserStorage.removeRequestRetried();
             throw e;
         } finally {
+            this.browserStorage.removeTemporaryItem(
+                this.browserStorage.generateCacheKey(
+                    TemporaryCacheKeys.REDIRECT_REQUEST
+                )
+            );
             this.browserStorage.cleanRequestByInteractionType(
                 InteractionType.Redirect
             );
