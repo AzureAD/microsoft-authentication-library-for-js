@@ -180,7 +180,7 @@ async function myAcquireToken(request) {
     } catch (error) {
         if (error instanceof InteractionRequiredAuthError) {
             // check for any interactions
-            if (myGlobalState.getInteractionStatus() !== InteractionStatus.None) {
+            if (???.getInteractionStatus() !== InteractionStatus.None) {
                 // throw a new error to be handled in the caller below
                 throw new Error("interaction_in_progress");
             } else {
@@ -201,7 +201,7 @@ async function myInteractionInProgressHandler() {
      * "myWaitFor" method polls the interaction status via getInteractionStatus() from
      * the application state and resolves when it's equal to "None".
      */
-    await myWaitFor(() => myGlobalState.getInteractionStatus() === InteractionStatus.None);
+    await myWaitFor(() => ???.getInteractionStatus() === InteractionStatus.None);
 
     // wait is over, call myAcquireToken again to re-try acquireTokenSilent
     return (await myAcquireToken(tokenRequest));
