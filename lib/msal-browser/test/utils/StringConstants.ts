@@ -437,3 +437,8 @@ export const testNavUrlNoRequest = `https://login.microsoftonline.com/common/oau
 export const testLogoutUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(
     `${TEST_URIS.TEST_REDIR_URI}`
 )}`;
+
+export function calculateExpiresDate(expiresIn: number): Date {
+    const totalExpiresInSeconds = Math.round(Date.now() / 1000 + expiresIn);
+    return new Date(totalExpiresInSeconds * 1000);
+}
