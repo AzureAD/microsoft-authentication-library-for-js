@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1722462685877,
+  "lastUpdate": 1723051559369,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10418,6 +10418,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.17%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0d6b81f0e4ef143e9d42f117cbe5440d04281fd7",
+          "message": "Created MI FIC Sample (#7210)\n\nManaged Identity as a Federated Identity Credential is not a third-party\r\noffering at this time. This sample is for internal use only and will be\r\nused for internal testing.",
+          "timestamp": "2024-08-07T13:20:26-04:00",
+          "tree_id": "c34bf441e12a0268626dd44b178db14ea792fe87",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/0d6b81f0e4ef143e9d42f117cbe5440d04281fd7"
+        },
+        "date": 1723051557496,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 187371,
+            "range": "±2.01%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 199094,
+            "range": "±2.14%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
