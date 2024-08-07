@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723056649169,
+  "lastUpdate": 1723060682211,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10532,6 +10532,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.09%",
             "unit": "ops/sec",
             "extra": "237 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4cb0d1cae4b219b0f01bc59473ae21e9e2ead7eb",
+          "message": "Retry for invalid_grant errors - Popup (#7216)\n\nPR 2 of 3 addressing need for retry for backup auth service.\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-08-07T12:52:27-07:00",
+          "tree_id": "ea7fd2363bc9d3adff3d4bd736f4a75a916a6c59",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/4cb0d1cae4b219b0f01bc59473ae21e9e2ead7eb"
+        },
+        "date": 1723060680366,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 192087,
+            "range": "±2.16%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 190598,
+            "range": "±2.08%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
