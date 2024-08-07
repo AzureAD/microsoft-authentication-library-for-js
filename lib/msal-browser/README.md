@@ -117,7 +117,7 @@ To build both the `@azure/msal-browser` library and `@azure/msal-common` librari
 ```bash
 // Change to the msal-browser package directory
 cd lib/msal-browser/
-// To run build only for browser package
+// To run build for both browser and common packages
 npm run build:all
 ```
 
