@@ -827,6 +827,13 @@ export type PerformanceEvent = {
     scenarioId?: string;
 
     accountType?: "AAD" | "MSA" | "B2C";
+
+    /**
+     * Server error that triggers a request retry
+     *
+     * @type {string}
+     */
+    retryError?: string;
 };
 
 export type PerformanceEventContext = {

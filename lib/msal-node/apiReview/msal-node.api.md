@@ -732,7 +732,7 @@ export { ValidCacheType }
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "2.11.1";
+export const version = "2.12.0";
 
 // Warnings were encountered during analysis:
 //
