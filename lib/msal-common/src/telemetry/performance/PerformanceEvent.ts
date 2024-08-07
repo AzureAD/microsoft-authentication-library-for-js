@@ -835,7 +835,7 @@ export type PerformanceEvent = {
 
     /**
      * Server error that triggers a request retry
-     * 
+     *
      * @type {string}
      */
     retryError?: string;
