@@ -1,0 +1,16 @@
+{
+  "name": "fic",
+  "version": "1.0.0",
+  "description": "Managed Identity for Federated Identity Credential",
+  "scripts": {
+    "build": "npx tsc",
+    "start:app": "npm run build && node dist/index.js"
+  },
+  "dependencies": {
+    "@azure/msal-node": "^2.11.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
