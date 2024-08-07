@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723054159748,
+  "lastUpdate": 1723056649169,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10494,6 +10494,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.05%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a1d44e69da075f9d4434d9598751d232999a2bf6",
+          "message": "Remove Managed Identity Service Fabric Sample (#7204)\n\nThis sample is out of date. The instructions in the README for setting\r\nup a Service Fabric need to be reworked. We're removing this sample\r\nuntil Service Fabric is more stable and we can come up with consistent\r\ninstructions for setting one up.",
+          "timestamp": "2024-08-07T14:44:54-04:00",
+          "tree_id": "74b8677600889b20fca408ecf33799497a75969a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/a1d44e69da075f9d4434d9598751d232999a2bf6"
+        },
+        "date": 1723056647358,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 235838,
+            "range": "±1.28%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 244883,
+            "range": "±1.09%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
           }
         ]
       }
