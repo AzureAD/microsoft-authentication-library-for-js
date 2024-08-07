@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add retry error to PerformanceEvent #7231",
-  "packageName": "@azure/msal-common",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}
