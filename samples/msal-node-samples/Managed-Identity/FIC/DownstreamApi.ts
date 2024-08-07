@@ -1,11 +1,11 @@
 import https from "https";
 
-export const getSecretFromKeyVault = (
+export const getSecretFromKeyVault = async (
     accessToken: string,
     keyVaultUri: string,
     secretName: string
 ): Promise<string> => {
-    const options: https.RequestOptions = {
+    const options = {
         headers: {
             Authorization: `Bearer ${accessToken}`,
         },

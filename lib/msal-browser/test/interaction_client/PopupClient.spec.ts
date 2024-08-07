@@ -18,6 +18,7 @@ import {
     TEST_SSH_VALUES,
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
+    calculateExpiresDate,
 } from "../utils/StringConstants";
 import {
     Constants,
@@ -37,6 +38,7 @@ import {
     NetworkManager,
     ProtocolUtils,
     ProtocolMode,
+    TenantProfile,
 } from "@azure/msal-common";
 import {
     TemporaryCacheKeys,
@@ -772,6 +774,191 @@ describe("PopupClient", () => {
                 expect(failureObj.errors[0]).toEqual(testError.errorCode);
                 expect(e).toEqual(testError);
             }
+        });
+
+        it("retries on invalid_grant error and returns successful response", async () => {
+            const testServerErrorResponse = {
+                headers: {},
+                body: {
+                    error: "invalid_grant",
+                    error_description: "invalid_grant",
+                    error_codes: ["invalid_grant"],
+                    suberror: "first_server_error",
+                },
+                status: 200,
+            };
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+            };
+            const testServerResponse = {
+                headers: {},
+                body: testServerTokenResponse,
+                status: 200,
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: ID_TOKEN_CLAIMS.sub,
+                environment: "login.windows.net",
+                tenantId: ID_TOKEN_CLAIMS.tid,
+                username: ID_TOKEN_CLAIMS.preferred_username,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                name: ID_TOKEN_CLAIMS.name,
+                nativeAccountId: undefined,
+                authorityType: "MSSTS",
+                tenantProfiles: new Map<string, TenantProfile>([
+                    [
+                        ID_TOKEN_CLAIMS.tid,
+                        {
+                            isHomeTenant: false,
+                            localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                            name: ID_TOKEN_CLAIMS.name,
+                            tenantId: ID_TOKEN_CLAIMS.tid,
+                        },
+                    ],
+                ]),
+                idTokenClaims: ID_TOKEN_CLAIMS,
+                idToken: TEST_TOKENS.IDTOKEN_V2,
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: ID_TOKEN_CLAIMS.oid,
+                tenantId: ID_TOKEN_CLAIMS.tid,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: ID_TOKEN_CLAIMS,
+                accessToken: testServerTokenResponse.access_token,
+                fromCache: false,
+                fromNativeBroker: false,
+                code: undefined,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                expiresOn: calculateExpiresDate(
+                    testServerTokenResponse.expires_in
+                ),
+                extExpiresOn: calculateExpiresDate(
+                    testServerTokenResponse.expires_in +
+                        testServerTokenResponse.ext_expires_in
+                ),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+                refreshOn: undefined,
+                requestId: "",
+                familyId: "",
+                state: TEST_STATE_VALUES.USER_STATE,
+                msGraphHost: "",
+                cloudGraphHostName: "",
+            };
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "getAuthCodeUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(
+                PopupClient.prototype,
+                "initiateAuthRequest"
+            ).mockImplementation((requestUrl: string): Window => {
+                expect(requestUrl).toEqual(testNavUrl);
+                return window;
+            });
+            jest.spyOn(
+                PopupClient.prototype,
+                "monitorPopupForHash"
+            ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
+            const sendPostRequestSpy = jest
+                .spyOn(NetworkManager.prototype, "sendPostRequest")
+                .mockResolvedValueOnce(testServerErrorResponse)
+                .mockResolvedValueOnce(testServerResponse);
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
+            const result = await popupClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                nonce: "123523",
+                state: TEST_STATE_VALUES.USER_STATE,
+            });
+
+            expect(result).toEqual(testTokenResponse);
+            expect(sendPostRequestSpy).toHaveBeenCalledTimes(2);
+            expect(sendPostRequestSpy).toHaveNthReturnedWith(
+                1,
+                Promise.resolve(testServerErrorResponse)
+            );
+        });
+
+        it("retries on invalid_grant error once and throws if still error", async () => {
+            const testFirstServerErrorResponse = {
+                headers: {},
+                body: {
+                    error: "invalid_grant",
+                    error_description: "invalid_grant",
+                    error_codes: ["invalid_grant"],
+                    suberror: "first_server_error",
+                },
+                status: 200,
+            };
+            const testSecondServerErrorResponse = {
+                headers: {},
+                body: {
+                    error: "invalid_grant",
+                    error_description: "invalid_grant",
+                    error_codes: ["invalid_grant"],
+                    suberror: "second_server_error",
+                },
+                status: 200,
+            };
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "getAuthCodeUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(
+                PopupClient.prototype,
+                "initiateAuthRequest"
+            ).mockImplementation((requestUrl: string): Window => {
+                expect(requestUrl).toEqual(testNavUrl);
+                return window;
+            });
+            jest.spyOn(
+                PopupClient.prototype,
+                "monitorPopupForHash"
+            ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
+            const sendPostRequestSpy = jest
+                .spyOn(NetworkManager.prototype, "sendPostRequest")
+                .mockResolvedValueOnce(testFirstServerErrorResponse)
+                .mockResolvedValueOnce(testSecondServerErrorResponse);
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
+            await popupClient
+                .acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    state: TEST_STATE_VALUES.USER_STATE,
+                })
+                .catch((e) => {
+                    expect(e.errorCode).toEqual(
+                        BrowserConstants.INVALID_GRANT_ERROR
+                    );
+                    expect(e.subError).toEqual("second_server_error");
+                    expect(sendPostRequestSpy).toHaveBeenCalledTimes(2);
+                    expect(sendPostRequestSpy).toHaveNthReturnedWith(
+                        1,
+                        Promise.resolve(testFirstServerErrorResponse)
+                    );
+                });
         });
     });
 
