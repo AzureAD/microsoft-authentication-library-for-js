@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723051559369,
+  "lastUpdate": 1723054159748,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10456,6 +10456,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.14%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e25f9176738be11615e6d64f8f33c4b518fd9ba1",
+          "message": "Retry for invalid_grant errors - Silent Iframe (#7218)\n\nFirst of 3 PRs addressing need for retry for backup auth service.\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-08-07T11:03:55-07:00",
+          "tree_id": "7f3062f85a3c5ef6d1f9aa1835187e259676c7c1",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e25f9176738be11615e6d64f8f33c4b518fd9ba1"
+        },
+        "date": 1723054158721,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 188244,
+            "range": "±1.86%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 189759,
+            "range": "±2.05%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
