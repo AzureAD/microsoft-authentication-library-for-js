@@ -60,6 +60,18 @@ import { PublicClientApplication, InteractionType, BrowserCacheLocation } from "
 export class AppModule {}
 ```
 
+Also add the app-redirect tag in order to initialize the `PublicClientApplication`.
+
+```js
+<html>
+...
+<body>
+  <app-root></app-root>
+  <app-redirect></app-redirect>
+</body>
+</html>
+```
+
 ## Secure the routes in your application
 
 You can add authentication to secure specific routes in your application by just adding `canActivate: [MsalGuard]` to your route definition. It can be added at the parent or child routes. When a user visits these routes, the library will prompt the user to authenticate.
