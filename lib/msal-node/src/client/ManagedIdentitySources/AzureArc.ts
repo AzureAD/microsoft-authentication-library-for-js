@@ -48,10 +48,10 @@ export const DEFAULT_AZURE_ARC_IDENTITY_ENDPOINT: string =
     "http://127.0.0.1:40342/metadata/identity/oauth2/token";
 const HIMDS_EXECUTABLE_HELPER_STRING = "N/A: himds executable exists";
 
-interface FilePathMap {
+type FilePathMap = {
     win32: string;
     linux: string;
-}
+};
 
 export const SUPPORTED_AZURE_ARC_PLATFORMS: FilePathMap = {
     win32: `${process.env["ProgramData"]}\\AzureConnectedMachineAgent\\Tokens\\`,
