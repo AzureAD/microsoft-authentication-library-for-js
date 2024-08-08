@@ -12,6 +12,7 @@ module.exports = {
         url: "https://localhost:8081/index.html"
     },
     collectCoverageFrom: ["src/**/*.ts"],
+    collectCoverage: true,
     coverageReporters: [["lcov", { "projectRoot": path.join(__dirname, "../../") }]],
     setupFilesAfterEnv: [path.join(__dirname, "setupCrypto.cjs")],
 };
