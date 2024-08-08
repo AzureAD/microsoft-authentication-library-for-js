@@ -13,6 +13,6 @@ module.exports = {
     },
     collectCoverageFrom: ["src/**/*.ts"],
     collectCoverage: true,
-    coverageReporters: [["lcov", { "projectRoot": path.join(__dirname, "../../") }]],
+    coverageReporters: [["lcov", { "projectRoot": path.join(__dirname, "../../") }], "json", "html"],
     setupFilesAfterEnv: [path.join(__dirname, "setupCrypto.cjs")],
 };
