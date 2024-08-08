@@ -46,6 +46,11 @@ export type RedirectRequest = Partial<
 > & {
     scopes: Array<string>;
     redirectStartPage?: string;
+    /**
+     * @deprecated
+     * onRedirectNavigate is deprecated and will be removed in the next major version.
+     * Set onRedirectNavigate in Configuration instead.
+     */
     onRedirectNavigate?: (url: string) => boolean | void;
     tokenBodyParameters?: StringDict;
 };
