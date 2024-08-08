@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723075861987,
+  "lastUpdate": 1723135607968,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10682,6 +10682,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 188725,
             "range": "±2.17%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4592e9ff0b3ba55fe3a5e722cc4591f884be0462",
+          "message": "clientSecret can now (once again) be provided as undefined (#7209)\n\nFixed a regression accidentally introduced in [Implemented SHA2\r\nCertificate\r\nFunctionality](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/7192).\r\n`clientSecret` can now (once again) be provided as `undefined`.\r\n\r\nadded unit test",
+          "timestamp": "2024-08-08T12:41:10-04:00",
+          "tree_id": "72571002d8e292cac8d436a9b6e4d811a93952e0",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/4592e9ff0b3ba55fe3a5e722cc4591f884be0462"
+        },
+        "date": 1723135606341,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 191667,
+            "range": "±2.19%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 190227,
+            "range": "±2.13%",
             "unit": "ops/sec",
             "extra": "222 samples"
           }
