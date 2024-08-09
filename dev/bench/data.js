@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723135607968,
+  "lastUpdate": 1723225007707,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10722,6 +10722,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.13%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "630605c310a7e9f4ab2b57011af021ea34c0e418",
+          "message": "Managed Identity - Added file-based detection for Azure Arc (#7225)\n\nIf an Azure Arc Managed Identity's \"IDENTITY_ENDPOINT\" and\r\n\"IMDS_ENDPOINT\" environment variables are undefined, the Managed\r\nIdentity can still be determined to be an instance of Azure Arc if it\r\nhas a \"himds\" executable in the specified path for Windows or Linux.\r\n\r\nManual tests were successful on both Windows and Linux.",
+          "timestamp": "2024-08-09T13:31:13-04:00",
+          "tree_id": "6c7d583f5dbdd49732318ada862500a121e07ec9",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/630605c310a7e9f4ab2b57011af021ea34c0e418"
+        },
+        "date": 1723225005845,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 195369,
+            "range": "±2.06%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 207034,
+            "range": "±1.79%",
+            "unit": "ops/sec",
+            "extra": "216 samples"
           }
         ]
       }
