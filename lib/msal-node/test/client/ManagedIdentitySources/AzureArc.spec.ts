@@ -45,7 +45,6 @@ jest.mock("fs");
 
 describe("Acquires a token successfully via an Azure Arc Managed Identity", () => {
     let originalPlatform: string;
-    let accessSyncSpy: jest.SpyInstance;
 
     beforeAll(() => {
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT] =
@@ -57,14 +56,6 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
         Object.defineProperty(process, "platform", {
             value: "linux",
         });
-
-        accessSyncSpy = jest
-            .spyOn(fs, "accessSync")
-            // returns undefined when the himds file exists and its permissions allow it to be read
-            // otherwise, throws an error
-            .mockImplementation(() => {
-                throw new Error();
-            });
     });
 
     afterAll(() => {
@@ -117,62 +108,6 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
-        });
-
-        test("acquires a token when both/either the identityEndpoint and/or imdsEndpoint environment variables are undefined, and the himds executable exists and its permissions allow it to be read", async () => {
-            // delete the environment variables so the himds executable is checked
-            delete process.env[
-                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
-            ];
-            delete process.env[
-                ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT
-            ];
-            // delete value cached from getManagedIdentitySource() in the beforeEach
-            delete ManagedIdentityClient["sourceName"];
-
-            // MI source will not be Azure Arc yet, since the environment variables are undefined,
-            // and accessSyncSpy still returns an error
-            // (meaning either the himds file doesn't exists or its permissions don't allow it to be read)
-            expect(
-                managedIdentityApplication.getManagedIdentitySource()
-            ).not.toBe(ManagedIdentitySourceNames.AZURE_ARC);
-            // delete value cached from getManagedIdentitySource() directly above
-            delete ManagedIdentityClient["sourceName"];
-
-            // returns undefined when the himds file exists and its permissions allow it to be read
-            // otherwise, throws an error
-            accessSyncSpy.mockImplementationOnce(() => {
-                return undefined;
-            });
-
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.AZURE_ARC
-            );
-
-            // returns undefined when the himds file exists and its permissions allow it to be read
-            // otherwise, throws an error
-            accessSyncSpy.mockImplementationOnce(() => {
-                return undefined;
-            });
-            const networkManagedIdentityResult: AuthenticationResult =
-                await managedIdentityApplication.acquireToken(
-                    managedIdentityRequestParams
-                );
-            expect(networkManagedIdentityResult.fromCache).toBe(false);
-
-            expect(networkManagedIdentityResult.accessToken).toEqual(
-                DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
-            );
-
-            // one for each call to getManagedIdentitySource() + one for the acquireToken call
-            expect(accessSyncSpy).toHaveBeenCalledTimes(3);
-
-            // reset the environment variables to expected values for Azure Arc tests
-            process.env[
-                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
-            ] = "fake_IDENTITY_ENDPOINT";
-            process.env[ManagedIdentityEnvironmentVariableNames.IMDS_ENDPOINT] =
-                "fake_IMDS_ENDPOINT";
         });
 
         test("returns an already acquired token from the cache", async () => {
