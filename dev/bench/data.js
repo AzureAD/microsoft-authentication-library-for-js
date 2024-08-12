@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723486083530,
+  "lastUpdate": 1723494445299,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10834,6 +10834,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 190235,
             "range": "±2.09%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "me@tylerleonhardt.com",
+            "name": "Tyler James Leonhardt",
+            "username": "TylerLeonhardt"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3c8bde64f806e183bb5dbb6be1f0c3c9f0f54829",
+          "message": "Send the error template back when there's an error response (#7247)\n\nWithout this, the redirect in the browser resolves when the server is\r\nclosed which makes it unclear, in the browser, that there was an error.\r\nThis renders the errorTemplate already passed in.\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-08-12T13:22:00-07:00",
+          "tree_id": "9f177a85ab30787ddd132a51c7650d97280e780a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/3c8bde64f806e183bb5dbb6be1f0c3c9f0f54829"
+        },
+        "date": 1723494443655,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 192726,
+            "range": "±2.03%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 192411,
+            "range": "±2.21%",
             "unit": "ops/sec",
             "extra": "217 samples"
           }
