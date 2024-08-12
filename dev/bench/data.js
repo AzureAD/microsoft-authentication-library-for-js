@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723494445299,
+  "lastUpdate": 1723500869532,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10874,6 +10874,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.21%",
             "unit": "ops/sec",
             "extra": "217 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b5881854de70deded04da11f6b50cb3067e49c32",
+          "message": "Update retry for invalid_grant errors (#7249)\n\nThis PR:\r\n- Updates `RedirectClient` and `BrowserCacheManager` and tests to use\r\nthe client ID instead of the correlation ID when caching retry value.\r\n- Cleans up error logic in `SilentIframeClient` and `PopupClient`.",
+          "timestamp": "2024-08-12T15:08:54-07:00",
+          "tree_id": "30733a23cf6c086b4529ce53ef779aff7056c38a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/b5881854de70deded04da11f6b50cb3067e49c32"
+        },
+        "date": 1723500867840,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 198233,
+            "range": "±1.99%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 203157,
+            "range": "±2.15%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
           }
         ]
       }
