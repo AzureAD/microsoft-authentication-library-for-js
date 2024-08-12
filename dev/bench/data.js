@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723478173349,
+  "lastUpdate": 1723486083530,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10798,6 +10798,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.18%",
             "unit": "ops/sec",
             "extra": "215 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "82c287a87f5d99eed55a4a45a42c29dc3ce69007",
+          "message": "added collectCoverage param to jest.config.cjs (#7245)",
+          "timestamp": "2024-08-12T11:02:44-07:00",
+          "tree_id": "8d709acb011268c092f21e5a7c3f33d8ed91b3d5",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/82c287a87f5d99eed55a4a45a42c29dc3ce69007"
+        },
+        "date": 1723486081796,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 189414,
+            "range": "±2.21%",
+            "unit": "ops/sec",
+            "extra": "215 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 190235,
+            "range": "±2.09%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
           }
         ]
       }
