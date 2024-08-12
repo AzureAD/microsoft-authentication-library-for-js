@@ -65,6 +65,12 @@ export class LoopbackClient implements ILoopbackClient {
                             }); // Prevent auth code from being saved in the browser history
                             res.end();
                         }
+                        if (authCodeResponse.error) {
+                            res.end(
+                                errorTemplate ||
+                                    `Error occurred: ${authCodeResponse.error}`
+                            );
+                        }
                         resolve(authCodeResponse);
                     }
                 );

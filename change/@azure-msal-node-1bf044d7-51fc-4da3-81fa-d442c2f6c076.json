@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Send the error template back when there's an error response",
+  "packageName": "@azure/msal-node",
+  "email": "tyleonha@microsoft.com",
+  "dependentChangeType": "patch"
+}
