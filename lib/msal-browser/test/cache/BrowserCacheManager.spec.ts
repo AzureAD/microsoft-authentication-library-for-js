@@ -2980,7 +2980,8 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger
             );
-            const requestRetriedKey = browserStorage.generateRequestRetriedKey();
+            const requestRetriedKey =
+                browserStorage.generateRequestRetriedKey();
             expect(requestRetriedKey).toBe(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.MSAL_CLIENT_ID}`
             );
@@ -3000,9 +3001,7 @@ describe("BrowserCacheManager tests", () => {
 
             browserStorage.getRequestRetried();
 
-            expect(
-                browserStorage.getRequestRetried()
-            ).toEqual(1);
+            expect(browserStorage.getRequestRetried()).toEqual(1);
         });
 
         it("setRequestRetried() sets a request retry value for client Id", () => {

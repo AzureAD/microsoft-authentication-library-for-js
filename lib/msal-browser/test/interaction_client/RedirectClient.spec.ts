@@ -577,9 +577,7 @@ describe("RedirectClient", () => {
                     TemporaryCacheKeys.REDIRECT_REQUEST
                 )
             ).toEqual(null);
-            expect(
-                browserStorage.getRequestRetried()
-            ).toEqual(null);
+            expect(browserStorage.getRequestRetried()).toEqual(null);
         });
 
         it("gets hash from cache and calls native broker if hash contains accountId", async () => {
@@ -1985,9 +1983,7 @@ describe("RedirectClient", () => {
                     TemporaryCacheKeys.REDIRECT_REQUEST
                 )
             ).toEqual(null);
-            expect(
-                browserStorage.getRequestRetried()
-            ).toEqual(1);
+            expect(browserStorage.getRequestRetried()).toEqual(1);
         });
 
         it("throws invalid_grant error if already retried", (done) => {
@@ -2094,9 +2090,7 @@ describe("RedirectClient", () => {
                             TemporaryCacheKeys.REDIRECT_REQUEST
                         )
                     ).toEqual(null);
-                    expect(
-                        browserStorage.getRequestRetried()
-                    ).toEqual(null);
+                    expect(browserStorage.getRequestRetried()).toEqual(null);
 
                     done();
                 });
@@ -2188,9 +2182,7 @@ describe("RedirectClient", () => {
                             TemporaryCacheKeys.REDIRECT_REQUEST
                         )
                     ).toEqual(null);
-                    expect(
-                        browserStorage.getRequestRetried()
-                    ).toEqual(1);
+                    expect(browserStorage.getRequestRetried()).toEqual(1);
                     done();
                 });
         });
