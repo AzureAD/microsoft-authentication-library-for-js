@@ -266,46 +266,43 @@ export class PopupClient extends StandardInteractionClient {
             }
 
             if (
-                e instanceof ServerError &&
-                e.errorCode === BrowserConstants.INVALID_GRANT_ERROR
+                !authClient ||
+                !(e instanceof ServerError) ||
+                e.errorCode !== BrowserConstants.INVALID_GRANT_ERROR
             ) {
-                if (!authClient) {
-                    throw e;
-                } else {
-                    this.performanceClient.addFields(
-                        {
-                            retryError: e.errorCode,
-                        },
-                        this.correlationId
-                    );
-
-                    const retryAuthCodeRequest = await invokeAsync(
-                        this.initializeAuthorizationCodeRequest.bind(this),
-                        PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-                        this.logger,
-                        this.performanceClient,
-                        this.correlationId
-                    )(validRequest);
-
-                    return await invokeAsync(
-                        this.acquireTokenPopupAsyncHelper.bind(this),
-                        PerformanceEvents.PopupClientTokenHelper,
-                        this.logger,
-                        this.performanceClient,
-                        this.correlationId
-                    )(
-                        authClient,
-                        retryAuthCodeRequest,
-                        validRequest,
-                        request,
-                        popupName,
-                        popupWindowAttributes,
-                        popup
-                    );
-                }
+                throw e;
             }
 
-            throw e;
+            this.performanceClient.addFields(
+                {
+                    retryError: e.errorCode,
+                },
+                this.correlationId
+            );
+
+            const retryAuthCodeRequest = await invokeAsync(
+                this.initializeAuthorizationCodeRequest.bind(this),
+                PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(validRequest);
+
+            return await invokeAsync(
+                this.acquireTokenPopupAsyncHelper.bind(this),
+                PerformanceEvents.PopupClientTokenHelper,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(
+                authClient,
+                retryAuthCodeRequest,
+                validRequest,
+                request,
+                popupName,
+                popupWindowAttributes,
+                popup
+            );
         }
     }
 
