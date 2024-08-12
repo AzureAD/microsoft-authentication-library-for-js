@@ -578,7 +578,7 @@ describe("RedirectClient", () => {
                 )
             ).toEqual(null);
             expect(
-                browserStorage.getRequestRetried(TEST_CONFIG.CORRELATION_ID)
+                browserStorage.getRequestRetried()
             ).toEqual(null);
         });
 
@@ -1986,7 +1986,7 @@ describe("RedirectClient", () => {
                 )
             ).toEqual(null);
             expect(
-                browserStorage.getRequestRetried(TEST_CONFIG.CORRELATION_ID)
+                browserStorage.getRequestRetried()
             ).toEqual(1);
         });
 
@@ -2023,7 +2023,7 @@ describe("RedirectClient", () => {
                 "123523"
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.CORRELATION_ID}`,
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.MSAL_CLIENT_ID}`,
                 JSON.stringify(1)
             );
             const testRedirectRequest: RedirectRequest = {
@@ -2095,9 +2095,7 @@ describe("RedirectClient", () => {
                         )
                     ).toEqual(null);
                     expect(
-                        browserStorage.getRequestRetried(
-                            TEST_CONFIG.CORRELATION_ID
-                        )
+                        browserStorage.getRequestRetried()
                     ).toEqual(null);
 
                     done();
@@ -2191,9 +2189,7 @@ describe("RedirectClient", () => {
                         )
                     ).toEqual(null);
                     expect(
-                        browserStorage.getRequestRetried(
-                            TEST_CONFIG.CORRELATION_ID
-                        )
+                        browserStorage.getRequestRetried()
                     ).toEqual(1);
                     done();
                 });

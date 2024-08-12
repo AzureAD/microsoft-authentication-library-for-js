@@ -2980,11 +2980,9 @@ describe("BrowserCacheManager tests", () => {
                 browserCrypto,
                 logger
             );
-            const requestRetriedKey = browserStorage.generateRequestRetriedKey(
-                TEST_CONFIG.CORRELATION_ID
-            );
+            const requestRetriedKey = browserStorage.generateRequestRetriedKey();
             expect(requestRetriedKey).toBe(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.CORRELATION_ID}`
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.MSAL_CLIENT_ID}`
             );
         });
 
@@ -2996,18 +2994,18 @@ describe("BrowserCacheManager tests", () => {
                 logger
             );
             browserStorage.setTemporaryCache(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.CORRELATION_ID}`,
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.MSAL_CLIENT_ID}`,
                 "1"
             );
 
-            browserStorage.getRequestRetried(TEST_CONFIG.CORRELATION_ID);
+            browserStorage.getRequestRetried();
 
             expect(
-                browserStorage.getRequestRetried(TEST_CONFIG.CORRELATION_ID)
+                browserStorage.getRequestRetried()
             ).toEqual(1);
         });
 
-        it("setRequestRetried() sets a request retry value for correlationId", () => {
+        it("setRequestRetried() sets a request retry value for client Id", () => {
             const browserStorage = new BrowserCacheManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
@@ -3015,16 +3013,16 @@ describe("BrowserCacheManager tests", () => {
                 logger
             );
 
-            browserStorage.setRequestRetried(TEST_CONFIG.CORRELATION_ID);
+            browserStorage.setRequestRetried();
 
             expect(
                 window.sessionStorage[
-                    `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.CORRELATION_ID}`
+                    `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.MSAL_CLIENT_ID}`
                 ]
             ).toBeTruthy();
         });
 
-        it("removeRequestRetried() removes all temporary cache items with request retried value", () => {
+        it("removeRequestRetried() removes request retried value for clientId", () => {
             const browserStorage = new BrowserCacheManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
@@ -3032,18 +3030,13 @@ describe("BrowserCacheManager tests", () => {
                 logger
             );
             browserStorage.setTemporaryCache(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.111`,
-                "1"
-            );
-            browserStorage.setTemporaryCache(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.222`,
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.MSAL_CLIENT_ID}`,
                 "1"
             );
 
             browserStorage.removeRequestRetried();
 
-            expect(browserStorage.getRequestRetried("111")).toEqual(null);
-            expect(browserStorage.getRequestRetried("222")).toEqual(null);
+            expect(browserStorage.getRequestRetried()).toEqual(null);
         });
 
         it("Successfully retrieves redirect request from cache", async () => {
