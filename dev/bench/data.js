@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723225007707,
+  "lastUpdate": 1723478173349,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10760,6 +10760,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.79%",
             "unit": "ops/sec",
             "extra": "216 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "022805b1ed8b5067b3a7e850d9e867e2ce46e70c",
+          "message": "Use high precision TS for NAA message time (#7243)\n\n- Use high precision TS for NAA message time to avoid clock skew.",
+          "timestamp": "2024-08-12T11:50:45-04:00",
+          "tree_id": "3244d2348d10caa99d2c4398ee5615cf2e80dcff",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/022805b1ed8b5067b3a7e850d9e867e2ce46e70c"
+        },
+        "date": 1723478172039,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 195144,
+            "range": "±2.08%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 193388,
+            "range": "±2.18%",
+            "unit": "ops/sec",
+            "extra": "215 samples"
           }
         ]
       }
