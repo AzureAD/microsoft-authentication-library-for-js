@@ -2420,6 +2420,13 @@ describe("RedirectClient", () => {
                                 )
                             )
                         ).toEqual(null);
+                        expect(
+                            browserStorage.getTemporaryCache(
+                                browserStorage.generateCacheKey(
+                                    TemporaryCacheKeys.REDIRECT_REQUEST
+                                )
+                            )
+                        ).toEqual(null);
                         done();
                         return Promise.resolve(true);
                     }
