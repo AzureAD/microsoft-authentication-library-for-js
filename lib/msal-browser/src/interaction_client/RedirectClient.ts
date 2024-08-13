@@ -200,6 +200,11 @@ export class RedirectClient extends StandardInteractionClient {
             }
             window.removeEventListener("pageshow", handleBackButton);
             this.browserStorage.cleanRequestByState(validRequest.state);
+            this.browserStorage.removeTemporaryItem(
+                this.browserStorage.generateCacheKey(
+                    TemporaryCacheKeys.REDIRECT_REQUEST
+                )
+            );
             throw e;
         }
     }

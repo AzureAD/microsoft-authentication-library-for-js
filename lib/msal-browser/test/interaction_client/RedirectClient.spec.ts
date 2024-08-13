@@ -2747,7 +2747,7 @@ describe("RedirectClient", () => {
                 await redirectClient.acquireToken(emptyRequest);
             } catch (e) {
                 // Test that error was cached for telemetry purposes and then thrown
-                expect(window.sessionStorage).toHaveLength(2);
+                expect(window.sessionStorage).toHaveLength(1);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
                 );
@@ -3332,7 +3332,7 @@ describe("RedirectClient", () => {
                 await redirectClient.acquireToken(emptyRequest);
             } catch (e) {
                 // Test that error was cached for telemetry purposes and then thrown
-                expect(window.sessionStorage).toHaveLength(2);
+                expect(window.sessionStorage).toHaveLength(1);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
                 );
