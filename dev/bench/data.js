@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723500869532,
+  "lastUpdate": 1723591544975,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10912,6 +10912,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.15%",
             "unit": "ops/sec",
             "extra": "219 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8ad6d1d47aab7259e9bcad6b0c194fa20bf5c207",
+          "message": "onRedirectNavigate deprecation fix (#7251)\n\nThis PR has two fixes:\r\n1. Deprecating onRedirectNavigate on RedirectRequest requires additional\r\nchanges on StandardController to ensure telemetry measurements are also\r\nbeing taken when onRedirectNavigate is set on the configuration. Tests\r\nare added in PublicClientApplication.\r\n2. Temporary redirect request cache must also be cleared in the event of\r\na back button being clicked during the redirect flow. Assertion added to\r\nexisting test in RedirectClient.",
+          "timestamp": "2024-08-13T16:20:21-07:00",
+          "tree_id": "5eebc35ecd4b1bd465f74b52df1f25335fd0b686",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8ad6d1d47aab7259e9bcad6b0c194fa20bf5c207"
+        },
+        "date": 1723591544117,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 196536,
+            "range": "±2.06%",
+            "unit": "ops/sec",
+            "extra": "226 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 219328,
+            "range": "±1.98%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
