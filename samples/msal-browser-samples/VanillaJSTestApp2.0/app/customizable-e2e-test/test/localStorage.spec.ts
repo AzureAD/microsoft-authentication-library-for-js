@@ -125,6 +125,7 @@ describe("LocalStorage Tests", function () {
                     await sessionBrowserStorage.getWindowStorage();
                 const localStorage = await BrowserCache.getWindowStorage();
                 expect(Object.keys(localStorage).length).toEqual(0);
+                console.log(`sessionStorage: ${JSON.stringify(sessionStorage)}`);
                 expect(Object.keys(sessionStorage).length).toEqual(0);
             }, ONE_SECOND_IN_MS);
         });
