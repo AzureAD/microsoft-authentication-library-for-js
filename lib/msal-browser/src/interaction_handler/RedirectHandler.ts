@@ -223,11 +223,6 @@ export class RedirectHandler {
 
         this.browserStorage.cleanRequestByState(state);
         this.browserStorage.removeRequestRetried();
-        this.browserStorage.removeTemporaryItem(
-            this.browserStorage.generateCacheKey(
-                TemporaryCacheKeys.REDIRECT_REQUEST
-            )
-        );
         return tokenResponse;
     }
 

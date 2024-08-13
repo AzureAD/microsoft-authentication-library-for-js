@@ -54,6 +54,8 @@ import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions";
+import { RedirectRequest } from "../../src/request/RedirectRequest";
+import { base64Encode } from "../../src/encode/Base64Encode";
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -444,6 +446,24 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH),
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
             );
+            browserStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                JSON.stringify(1)
+            );
+            const testRedirectRequest: RedirectRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                nonce: "",
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+            };
+            browserStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REDIRECT_REQUEST}`,
+                base64Encode(JSON.stringify(testRedirectRequest))
+            );
             sinon
                 .stub(
                     AuthorizationCodeClient.prototype,
@@ -480,6 +500,14 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage.getTemporaryCache(
                     browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH)
                 )
+            ).toBe(null);
+            expect(
+                browserStorage.getTemporaryCache(
+                    browserStorage.generateCacheKey(TemporaryCacheKeys.REDIRECT_REQUEST)
+                )
+            ).toBe(null);
+            expect(
+                browserStorage.getRequestRetried()
             ).toBe(null);
         });
 

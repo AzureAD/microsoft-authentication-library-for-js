@@ -119,11 +119,6 @@ export class RedirectClient extends StandardInteractionClient {
                     "Page was restored from back/forward cache. Clearing temporary cache."
                 );
                 this.browserStorage.cleanRequestByState(validRequest.state);
-                this.browserStorage.removeTemporaryItem(
-                    this.browserStorage.generateCacheKey(
-                        TemporaryCacheKeys.REDIRECT_REQUEST
-                    )
-                );
                 this.eventHandler.emitEvent(
                     EventType.RESTORE_FROM_BFCACHE,
                     InteractionType.Redirect
@@ -200,11 +195,6 @@ export class RedirectClient extends StandardInteractionClient {
             }
             window.removeEventListener("pageshow", handleBackButton);
             this.browserStorage.cleanRequestByState(validRequest.state);
-            this.browserStorage.removeTemporaryItem(
-                this.browserStorage.generateCacheKey(
-                    TemporaryCacheKeys.REDIRECT_REQUEST
-                )
-            );
             throw e;
         }
     }
@@ -394,11 +384,6 @@ export class RedirectClient extends StandardInteractionClient {
                 return null;
             }
 
-            this.browserStorage.removeTemporaryItem(
-                this.browserStorage.generateCacheKey(
-                    TemporaryCacheKeys.REDIRECT_REQUEST
-                )
-            );
             this.browserStorage.removeRequestRetried();
             throw e;
         } finally {
