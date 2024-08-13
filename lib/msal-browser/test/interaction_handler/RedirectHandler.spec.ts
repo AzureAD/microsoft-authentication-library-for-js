@@ -502,12 +502,12 @@ describe("RedirectHandler.ts Unit Tests", () => {
             ).toBe(null);
             expect(
                 browserStorage.getTemporaryCache(
-                    browserStorage.generateCacheKey(TemporaryCacheKeys.REDIRECT_REQUEST)
+                    browserStorage.generateCacheKey(
+                        TemporaryCacheKeys.REDIRECT_REQUEST
+                    )
                 )
             ).toBe(null);
-            expect(
-                browserStorage.getRequestRetried()
-            ).toBe(null);
+            expect(browserStorage.getRequestRetried()).toBe(null);
         });
 
         it("successfully handles response adds CCS credential to auth code request", async () => {
