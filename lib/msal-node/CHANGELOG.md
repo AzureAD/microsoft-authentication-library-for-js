@@ -1,8 +1,23 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 23 Jul 2024 14:19:34 GMT and should not be manually modified.
+This log was last generated on Tue, 13 Aug 2024 23:25:05 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.13.0
+
+Tue, 13 Aug 2024 23:25:05 GMT
+
+### Minor changes
+
+- Added file-based detection for Azure Arc (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v14.14.1
+- Bump eslint-config-msal to v0.0.0
+
+### Patches
+
+- Send the error template back when there's an error response (tyleonha@microsoft.com)
+- clientSecret can now (once again) be provided as undefined #7209 (rginsburg@microsoft.com)
 
 ## 2.12.0
 
