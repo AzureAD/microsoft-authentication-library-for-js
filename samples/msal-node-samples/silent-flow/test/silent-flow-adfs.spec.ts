@@ -107,7 +107,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
 
     describe("Acquire Token", () => {
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             await page.goto(homeRoute);
@@ -207,7 +207,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
     describe("Get All Accounts", () => {
         describe("Authenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await page.goto(homeRoute);
             });
@@ -257,7 +257,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
 
         describe("Unauthenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await publicClientApplication.clearCache();
                 await page.goto(homeRoute);

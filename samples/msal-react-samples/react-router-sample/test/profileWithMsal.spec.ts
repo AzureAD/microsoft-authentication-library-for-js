@@ -72,7 +72,7 @@ describe("/profileWithMsal", () => {
     });
 
     beforeEach(async () => {
-        context = await browser.createIncognitoBrowserContext();
+        context = await browser.createBrowserContext();
         page = await context.newPage();
         page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "localStorage");
@@ -98,9 +98,12 @@ describe("/profileWithMsal", () => {
         await enterCredentials(page, screenshot, username, accountPwd);
 
         // Wait for Graph data to display
-        await page.waitForXPath("//div/ul/li[contains(., 'Name')]", {
-            timeout: 5000,
-        });
+        await page.waitForSelector(
+            "xpath/" + "//div/ul/li[contains(., 'Name')]",
+            {
+                timeout: 5000,
+            }
+        );
         await screenshot.takeScreenshot(page, "Graph data acquired");
 
         // Verify tokens are in cache

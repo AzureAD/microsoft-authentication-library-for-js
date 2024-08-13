@@ -46,7 +46,7 @@ describe("B2C user-flow tests (msa account)", () => {
     });
 
     beforeEach(async () => {
-        context = await browser.createIncognitoBrowserContext();
+        context = await browser.createBrowserContext();
         page = await context.newPage();
         page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "localStorage");
@@ -85,7 +85,9 @@ describe("B2C user-flow tests (msa account)", () => {
         );
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        await page.waitForSelector(
+            "xpath/" + "//header[contains(., 'Welcome,')]"
+        );
         await screenshot.takeScreenshot(page, "Signed in with the policy");
 
         // Verify tokens are in cache
@@ -123,8 +125,9 @@ describe("B2C user-flow tests (msa account)", () => {
                 `window.location.href.startsWith("http://localhost:${port}")`
             ),
             page.waitForSelector("#idTokenClaims"),
-            page.waitForXPath(
-                "//*[@id=\"interactionStatus\"]/center[contains(., 'ssoSilent success')]",
+            page.waitForSelector(
+                "xpath/" +
+                    "//*[@id=\"interactionStatus\"]/center[contains(., 'ssoSilent success')]",
                 { timeout: 4000 }
             ),
         ]);

@@ -67,7 +67,7 @@ describe("/ (Home Page)", () => {
     });
 
     beforeEach(async () => {
-        context = await browser.createIncognitoBrowserContext();
+        context = await browser.createBrowserContext();
         page = await context.newPage();
         page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "localStorage");
@@ -101,7 +101,9 @@ describe("/ (Home Page)", () => {
         await screenshot.takeScreenshot(page, "Returned to app");
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        await page.waitForSelector(
+            "xpath/" + "//header[contains(., 'Welcome,')]"
+        );
         const profileButton = await page.waitForSelector(
             "xpath=//header//button"
         );
@@ -143,13 +145,18 @@ describe("/ (Home Page)", () => {
 
         await enterCredentials(popupPage, screenshot, username, accountPwd);
         await popupWindowClosed;
-        await page.waitForXPath("//header[contains(., 'Welcome,')]", {
-            timeout: 3000,
-        });
+        await page.waitForSelector(
+            "xpath/" + "//header[contains(., 'Welcome,')]",
+            {
+                timeout: 3000,
+            }
+        );
         await screenshot.takeScreenshot(page, "Popup closed");
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        await page.waitForSelector(
+            "xpath/" + "//header[contains(., 'Welcome,')]"
+        );
         const profileButton = await page.waitForSelector(
             "xpath=//header//button"
         );

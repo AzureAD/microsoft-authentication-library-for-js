@@ -41,7 +41,7 @@ describe('B2C user-flow tests (local account)', () => {
   });
 
   beforeEach(async () => {
-    context = await browser.createIncognitoBrowserContext();
+    context = await browser.createBrowserContext();
     page = await context.newPage();
     page.setDefaultTimeout(5000);
     BrowserCache = new BrowserCacheUtils(page, 'localStorage');
@@ -77,8 +77,10 @@ describe('B2C user-flow tests (local account)', () => {
     );
 
     // Verify UI now displays logged in content
-    await page.waitForXPath("//p[contains(., 'Login successful!')]");
-    await page.waitForXPath("//button[contains(., 'Logout')]");
+    await page.waitForSelector(
+      'xpath/' + "//p[contains(., 'Login successful!')]"
+    );
+    await page.waitForSelector('xpath/' + "//button[contains(., 'Logout')]");
 
     await screenshot.takeScreenshot(page, 'Signed in with the policy');
 

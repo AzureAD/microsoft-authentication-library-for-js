@@ -12,6 +12,7 @@
     },
     "devDependencies": {
         "@azure/keyvault-secrets": "^4.8.0",
+        "puppeteer": "^23.0.2",
         "typescript": "^4.9.5"
     },
     "peerDependencies": {

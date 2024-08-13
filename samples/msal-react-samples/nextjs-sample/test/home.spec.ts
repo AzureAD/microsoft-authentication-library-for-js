@@ -67,7 +67,7 @@ describe("/ (Home Page)", () => {
     });
 
     beforeEach(async () => {
-        context = await browser.createIncognitoBrowserContext();
+        context = await browser.createBrowserContext();
         page = await context.newPage();
         page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
@@ -84,7 +84,9 @@ describe("/ (Home Page)", () => {
         const screenshot = new Screenshot(
             `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
         );
-        await page.waitForXPath("//a[contains(., 'MS Identity Platform')]");
+        await page.waitForSelector(
+            "xpath/" + "//a[contains(., 'MS Identity Platform')]"
+        );
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
@@ -102,7 +104,9 @@ describe("/ (Home Page)", () => {
         await screenshot.takeScreenshot(page, "Returned to app");
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(.,'Welcome,')]");
+        await page.waitForSelector(
+            "xpath/" + "//header[contains(.,'Welcome,')]"
+        );
         const profileButton = await page.waitForSelector(
             "xpath=//header//button"
         );
@@ -122,7 +126,9 @@ describe("/ (Home Page)", () => {
         const screenshot = new Screenshot(
             `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
         );
-        await page.waitForXPath("//a[contains(., 'MS Identity Platform')]");
+        await page.waitForSelector(
+            "xpath/" + "//a[contains(., 'MS Identity Platform')]"
+        );
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
@@ -145,11 +151,15 @@ describe("/ (Home Page)", () => {
 
         await enterCredentials(popupPage, screenshot, username, accountPwd);
         await popupWindowClosed;
-        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        await page.waitForSelector(
+            "xpath/" + "//header[contains(., 'Welcome,')]"
+        );
         await screenshot.takeScreenshot(page, "Popup closed");
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(.,'Welcome,')]");
+        await page.waitForSelector(
+            "xpath/" + "//header[contains(.,'Welcome,')]"
+        );
         const profileButton = await page.waitForSelector(
             "xpath=//header//button"
         );

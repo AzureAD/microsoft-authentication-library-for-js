@@ -45,7 +45,7 @@ describe("On Page Load tests", function () {
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
     beforeEach(async () => {
-        context = await browser.createIncognitoBrowserContext();
+        context = await browser.createBrowserContext();
         page = await context.newPage();
         page.setDefaultTimeout(ONE_SECOND_IN_MS * 10);
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");

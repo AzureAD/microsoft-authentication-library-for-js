@@ -10,20 +10,29 @@ function setupScreenshotDir() {
     }
 }
 
-async function takeScreenshot(page: puppeteer.Page, testName: string, screenshotName: string): Promise<void> {
-    const screenshotFolderName = `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+async function takeScreenshot(
+    page: puppeteer.Page,
+    testName: string,
+    screenshotName: string
+): Promise<void> {
+    const screenshotFolderName = `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`;
     if (!fs.existsSync(`${screenshotFolderName}`)) {
         fs.mkdirSync(screenshotFolderName);
     }
-    await page.screenshot({ path: `${screenshotFolderName}/${++SCREENSHOT_NUM}_${screenshotName}.png` });
+    await page.screenshot({
+        path: `${screenshotFolderName}/${++SCREENSHOT_NUM}_${screenshotName}.png`,
+    });
 }
 
-async function enterCredentials(page: puppeteer.Page, testName: string): Promise<void> {
-    await page.waitForNavigation({ waitUntil: "networkidle0"});
+async function enterCredentials(
+    page: puppeteer.Page,
+    testName: string
+): Promise<void> {
+    await page.waitForNavigation({ waitUntil: "networkidle0" });
     await takeScreenshot(page, testName, `loginPage`);
     await page.type("#i0116", "IDLAB@msidlab0.ccsctp.net");
     await page.click("#idSIButton9");
-    await page.waitForNavigation({ waitUntil: "networkidle0"});
+    await page.waitForNavigation({ waitUntil: "networkidle0" });
     await takeScreenshot(page, testName, `pwdInputPage`);
     await page.type("#i0118", "");
     await page.click("#idSIButton9");
@@ -35,7 +44,7 @@ describe("Browser tests", function () {
         setupScreenshotDir();
         browser = await puppeteer.launch({
             headless: true,
-            ignoreDefaultArgs: ['--no-sandbox', '–disable-setuid-sandbox']
+            ignoreDefaultArgs: ["--no-sandbox", "–disable-setuid-sandbox"],
         });
     });
 
@@ -43,9 +52,9 @@ describe("Browser tests", function () {
     let page: puppeteer.Page;
     beforeEach(async () => {
         SCREENSHOT_NUM = 0;
-        context = await browser.createIncognitoBrowserContext();
+        context = await browser.createBrowserContext();
         page = await context.newPage();
-        await page.goto('http://localhost:30662/');
+        await page.goto("http://localhost:30662/");
     });
 
     afterEach(async () => {
