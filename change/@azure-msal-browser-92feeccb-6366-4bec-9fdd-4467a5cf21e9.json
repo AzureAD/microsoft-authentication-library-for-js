@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "onRedirectNavigate deprecation fix #7251",
+  "packageName": "@azure/msal-browser",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}

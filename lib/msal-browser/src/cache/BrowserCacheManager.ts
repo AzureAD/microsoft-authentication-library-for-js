@@ -1552,6 +1552,9 @@ export class BrowserCacheManager extends CacheManager {
         this.removeTemporaryItem(
             this.generateCacheKey(TemporaryCacheKeys.NATIVE_REQUEST)
         );
+        this.removeTemporaryItem(
+            this.generateCacheKey(TemporaryCacheKeys.REDIRECT_REQUEST)
+        );
         this.setInteractionInProgress(false);
     }
 

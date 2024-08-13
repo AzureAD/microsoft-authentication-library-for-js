@@ -486,7 +486,7 @@ describe("RedirectClient", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REDIRECT_REQUEST}`,
-                base64Encode(JSON.stringify(testRedirectRequest))
+                JSON.stringify(testRedirectRequest)
             );
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
@@ -2034,7 +2034,7 @@ describe("RedirectClient", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REDIRECT_REQUEST}`,
-                base64Encode(JSON.stringify(testRedirectRequest))
+                JSON.stringify(testRedirectRequest)
             );
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
@@ -2420,6 +2420,13 @@ describe("RedirectClient", () => {
                                 )
                             )
                         ).toEqual(null);
+                        expect(
+                            browserStorage.getTemporaryCache(
+                                browserStorage.generateCacheKey(
+                                    TemporaryCacheKeys.REDIRECT_REQUEST
+                                )
+                            )
+                        ).toEqual(null);
                         done();
                         return Promise.resolve(true);
                     }
@@ -2740,7 +2747,7 @@ describe("RedirectClient", () => {
                 await redirectClient.acquireToken(emptyRequest);
             } catch (e) {
                 // Test that error was cached for telemetry purposes and then thrown
-                expect(window.sessionStorage).toHaveLength(2);
+                expect(window.sessionStorage).toHaveLength(1);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
                 );
@@ -3325,7 +3332,7 @@ describe("RedirectClient", () => {
                 await redirectClient.acquireToken(emptyRequest);
             } catch (e) {
                 // Test that error was cached for telemetry purposes and then thrown
-                expect(window.sessionStorage).toHaveLength(2);
+                expect(window.sessionStorage).toHaveLength(1);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
                 );
