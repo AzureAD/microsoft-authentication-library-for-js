@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Added file-based detection for Azure Arc",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}

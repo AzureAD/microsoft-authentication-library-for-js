@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Retry in PopupClient for invalid_grant errors #7216",
-  "packageName": "@azure/msal-browser",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}
