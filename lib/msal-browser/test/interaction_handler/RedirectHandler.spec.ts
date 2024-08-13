@@ -55,7 +55,6 @@ import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions";
 import { RedirectRequest } from "../../src/request/RedirectRequest";
-import { base64Encode } from "../../src/encode/Base64Encode";
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -462,7 +461,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             };
             browserStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REDIRECT_REQUEST}`,
-                base64Encode(JSON.stringify(testRedirectRequest))
+                JSON.stringify(testRedirectRequest)
             );
             sinon
                 .stub(
