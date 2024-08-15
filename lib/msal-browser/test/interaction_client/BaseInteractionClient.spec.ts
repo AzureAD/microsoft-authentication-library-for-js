@@ -260,5 +260,91 @@ describe("BaseInteractionClient", () => {
                     done(error);
                 });
         });
+
+        it("Does not throw error when cloud host authority is set for account", (done) => {
+            const testAccount = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.microsoftonline.us",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+                cloudInstanceAuthority:
+                    "https://login.microsoftonline.us/common",
+            };
+
+            testClient
+                // @ts-ignore
+                .getDiscoveredAuthority(
+                    undefined,
+                    undefined, // AzureCloudOptions
+                    testAccount
+                )
+                .then(() => {
+                    done();
+                })
+                .catch((error) => {
+                    done(error);
+                });
+        });
+
+        it("Throws error when cloud host authority is set for account, but environment does not match it", async () => {
+            const testAccount = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.microsoftonline.com",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+                cloudInstanceAuthority:
+                    "https://login.microsoftonline.us/common",
+            };
+
+            await testClient
+                // @ts-ignore
+                .getDiscoveredAuthority(
+                    undefined,
+                    undefined, // AzureCloudOptions
+                    testAccount
+                )
+                .then(() => {
+                    throw "This is unexpected. This call should have failed.";
+                })
+                .catch((error) => {
+                    expect(error).toStrictEqual(
+                        createClientConfigurationError(
+                            ClientConfigurationErrorCodes.authorityMismatch
+                        )
+                    );
+                });
+        });
+
+        it("Throws error when cloud host authority is set for account, but request authority is forced", async () => {
+            const testAccount = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.microsoftonline.us",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+                cloudInstanceAuthority:
+                    "https://login.microsoftonline.us/common",
+            };
+
+            await testClient
+                // @ts-ignore
+                .getDiscoveredAuthority(
+                    "https://login.microsoftonline.com/common",
+                    undefined, // AzureCloudOptions
+                    testAccount
+                )
+                .then(() => {
+                    throw "This is unexpected. This call should have failed.";
+                })
+                .catch((error) => {
+                    expect(error).toStrictEqual(
+                        createClientConfigurationError(
+                            ClientConfigurationErrorCodes.authorityMismatch
+                        )
+                    );
+                });
+        });
     });
 });

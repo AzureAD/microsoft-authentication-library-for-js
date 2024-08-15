@@ -16,6 +16,7 @@ import { TokenClaims } from "./TokenClaims";
  * - idTokenClaims          - Object contains claims from ID token
  * - nativeAccountId        - The user's native account ID
  * - tenantProfiles         - Map of tenant profile objects for each tenant that the account has authenticated with in the browser
+ * - cloudInstanceAuthority - Cloud instance authority received from the identity provider when "instance_aware" flag is enabled
  */
 export type AccountInfo = {
     homeAccountId: string;
@@ -37,6 +38,7 @@ export type AccountInfo = {
     nativeAccountId?: string;
     authorityType?: string;
     tenantProfiles?: Map<string, TenantProfile>;
+    cloudInstanceAuthority?: string;
 };
 
 /**
