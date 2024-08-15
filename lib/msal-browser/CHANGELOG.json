@@ -2,6 +2,71 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 13 Aug 2024 23:25:07 GMT",
+      "version": "3.21.0",
+      "tag": "@azure/msal-browser_v3.21.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9b44cb454bd645284362f8ad6b0d98b9bf0a717a",
+            "comment": "Retry in RedirectClient for invalid_grant errors #7231"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e25f9176738be11615e6d64f8f33c4b518fd9ba1",
+            "comment": "Retry in SilentIframeClient for invalid_grant errors #7218"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4cb0d1cae4b219b0f01bc59473ae21e9e2ead7eb",
+            "comment": "Retry in PopupClient for invalid_grant errors #7216"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.14.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b5881854de70deded04da11f6b50cb3067e49c32",
+            "comment": "Update request retry for invalid_grant #7249"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "8ad6d1d47aab7259e9bcad6b0c194fa20bf5c207",
+            "comment": "onRedirectNavigate deprecation fix #7251"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "022805b1ed8b5067b3a7e850d9e867e2ce46e70c",
+            "comment": "Use high precision TS for NAA message time #7243"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 23 Jul 2024 14:19:34 GMT",
       "version": "3.20.0",
       "tag": "@azure/msal-browser_v3.20.0",

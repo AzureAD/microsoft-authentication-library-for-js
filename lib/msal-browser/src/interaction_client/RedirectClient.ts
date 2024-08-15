@@ -22,10 +22,12 @@ import {
     ServerResponseType,
     UrlUtils,
     InProgressPerformanceEvent,
+    ServerError,
 } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import {
     ApiId,
+    BrowserConstants,
     InteractionType,
     TemporaryCacheKeys,
 } from "../utils/BrowserConstants";
@@ -83,6 +85,14 @@ export class RedirectClient extends StandardInteractionClient {
      * @param request
      */
     async acquireToken(request: RedirectRequest): Promise<void> {
+        if (request.onRedirectNavigate) {
+            this.logger.warning(
+                "Unable to cache redirect request, onRedirectNavigate request option has been deprecated. Please set onRedirectNavigate on PublicClientApplication config instead."
+            );
+        } else {
+            this.browserStorage.cacheRedirectRequest(request);
+        }
+
         const validRequest = await invokeAsync(
             this.initializeAuthorizationRequest.bind(this),
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
@@ -174,7 +184,9 @@ export class RedirectClient extends StandardInteractionClient {
                 navigationClient: this.navigationClient,
                 redirectTimeout: this.config.system.redirectNavigationTimeout,
                 redirectStartPage: redirectStartPage,
-                onRedirectNavigate: request.onRedirectNavigate,
+                onRedirectNavigate:
+                    request.onRedirectNavigate ||
+                    this.config.auth.onRedirectNavigate,
             });
         } catch (e) {
             if (e instanceof AuthError) {
@@ -201,6 +213,7 @@ export class RedirectClient extends StandardInteractionClient {
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.handleRedirectPromise
         );
+
         try {
             if (!this.browserStorage.isInteractionInProgress(true)) {
                 this.logger.info(
@@ -331,10 +344,57 @@ export class RedirectClient extends StandardInteractionClient {
                 (e as AuthError).setCorrelationId(this.correlationId);
                 serverTelemetryManager.cacheFailedRequest(e);
             }
+
+            if (
+                e instanceof ServerError &&
+                e.errorCode === BrowserConstants.INVALID_GRANT_ERROR
+            ) {
+                this.performanceClient.addFields(
+                    {
+                        retryError: e.errorCode,
+                    },
+                    this.correlationId
+                );
+
+                const requestRetried = this.browserStorage.getRequestRetried();
+
+                if (requestRetried) {
+                    this.logger.error(
+                        "Retried request already detected. Throwing error."
+                    );
+                    this.browserStorage.removeRequestRetried();
+                    throw e;
+                }
+
+                const redirectRequest =
+                    this.browserStorage.getCachedRedirectRequest();
+                if (!redirectRequest) {
+                    this.logger.error(
+                        "Unable to retry. Please retry with redirect request"
+                    );
+                    this.browserStorage.setRequestRetried();
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.failedToRetry
+                    );
+                }
+
+                this.browserStorage.setRequestRetried();
+
+                await this.acquireToken(redirectRequest);
+                return null;
+            }
+
+            this.browserStorage.removeTemporaryItem(
+                this.browserStorage.generateCacheKey(
+                    TemporaryCacheKeys.REDIRECT_REQUEST
+                )
+            );
+            this.browserStorage.removeRequestRetried();
+            throw e;
+        } finally {
             this.browserStorage.cleanRequestByInteractionType(
                 InteractionType.Redirect
             );
-            throw e;
         }
     }
 
