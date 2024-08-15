@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add optional cloud host authority to account object to handle \"instance_aware\" flow properly #7259",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
