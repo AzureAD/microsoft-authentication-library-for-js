@@ -112,8 +112,8 @@ describe('/ (Home Page)', () => {
     await page.waitForSelector(
       'xpath/' + "//button[contains(., 'Logout using')]"
     );
-    const logoutButtons = await page.$x(
-      "//button[contains(., 'Logout using')]"
+    const logoutButtons = await page.$$(
+      "xpath=//button[contains(., 'Logout using')]"
     );
     expect(logoutButtons.length).toBe(2);
     if (logoutButton) {
@@ -187,8 +187,8 @@ describe('/ (Home Page)', () => {
     if (logoutButton) {
       await logoutButton.click();
     }
-    const logoutButtons = await page.$x(
-      "//button[contains(., 'Logout using')]"
+    const logoutButtons = await page.$$(
+      "xpath=//button[contains(., 'Logout using')]"
     );
     expect(logoutButtons.length).toBe(2);
     if (logoutButton) {
