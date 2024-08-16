@@ -573,7 +573,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             ).toBe(null);
         });
 
-        it("adds cloud instance authority to account object", async () => {
+        it("adds instanceAware to account object", async () => {
             const idTokenClaims = {
                 ver: "2.0",
                 iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
@@ -670,11 +670,11 @@ describe("RedirectHandler.ts Unit Tests", () => {
 
             expect(browserStorage.getAllAccounts().length).toEqual(1);
             expect(
-                browserStorage.getAllAccounts()[0].cloudInstanceAuthority
-            ).toEqual("https://login.microsoftonline.us/common");
+                browserStorage.getAllAccounts()[0].instanceAware
+            ).toBeTruthy();
         });
 
-        it("does not add cloud instance authority to account object", async () => {
+        it("does not add instanceAware to account object", async () => {
             const idTokenClaims = {
                 ver: "2.0",
                 iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
@@ -770,7 +770,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
 
             expect(browserStorage.getAllAccounts().length).toEqual(1);
             expect(
-                browserStorage.getAllAccounts()[0].cloudInstanceAuthority
+                browserStorage.getAllAccounts()[0].instanceAware
             ).toBeUndefined();
         });
     });

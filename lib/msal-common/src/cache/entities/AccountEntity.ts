@@ -44,7 +44,7 @@ import { ProtocolMode } from "../../authority/ProtocolMode";
  *      lastModificationApp:
  *      nativeAccountId: Account identifier on the native device
  *      tenantProfiles: Array of tenant profile objects for each tenant that the account has authenticated with in the browser
- *      cloudInstanceAuthority: Cloud instance authority received from the identity provider when "instance_aware" flag is enabled
+ *      instanceAware: Instance aware flow indicator
  * }
  * @internal
  */
@@ -60,10 +60,10 @@ export class AccountEntity {
     lastModificationTime?: string;
     lastModificationApp?: string;
     cloudGraphHostName?: string;
-    cloudInstanceAuthority?: string;
     msGraphHost?: string;
     nativeAccountId?: string;
     tenantProfiles?: Array<TenantProfile>;
+    instanceAware?: boolean;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -105,7 +105,7 @@ export class AccountEntity {
                     return [tenantProfile.tenantId, tenantProfile];
                 })
             ),
-            cloudInstanceAuthority: this.cloudInstanceAuthority,
+            instanceAware: this.instanceAware,
         };
     }
 
@@ -213,8 +213,10 @@ export class AccountEntity {
         account.name = accountDetails.idTokenClaims?.name || "";
 
         account.cloudGraphHostName = accountDetails.cloudGraphHostName;
-        account.cloudInstanceAuthority = `https://${accountDetails.cloudInstanceHostName}/${authority.tenant}`;
         account.msGraphHost = accountDetails.msGraphHost;
+        if (accountDetails.cloudInstanceHostName) {
+            account.instanceAware = true;
+        }
 
         if (accountDetails.tenantProfiles) {
             account.tenantProfiles = accountDetails.tenantProfiles;

@@ -201,9 +201,14 @@ export abstract class BaseInteractionClient {
         };
 
         // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority
-        const userAuthority = requestAuthority
-            ? requestAuthority
-            : account?.cloudInstanceAuthority || this.config.auth.authority;
+        const userAuthority =
+            requestAuthority ||
+            (account?.instanceAware
+                ? this.config.auth.authority.replace(
+                      UrlString.getDomainFromUrl(this.config.auth.authority),
+                      account.environment
+                  )
+                : this.config.auth.authority);
 
         // fall back to the authority from config
         const builtAuthority = Authority.generateAuthority(
