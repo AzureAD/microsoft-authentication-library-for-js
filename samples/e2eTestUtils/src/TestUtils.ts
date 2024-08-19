@@ -224,14 +224,14 @@ export async function enterCredentials(
 ): Promise<void> {
     await Promise.all([
         page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {}), // Wait for navigation but don't throw due to timeout
-        page.waitForSelector(HtmlSelectors.USERNAME_TEXTBOX),
+        page.waitForSelector(HtmlSelectors.USERNAME_INPUT),
         page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
     await screenshot.takeScreenshot(page, "loginPage");
-    await page.type(HtmlSelectors.USERNAME_TEXTBOX, username);
+    await page.type(HtmlSelectors.USERNAME_INPUT, username);
     await screenshot.takeScreenshot(page, "loginPageUsernameFilled");
     await Promise.all([
         page.waitForNavigation({
@@ -412,14 +412,14 @@ export async function enterCredentialsADFS(
 ): Promise<void> {
     await Promise.all([
         page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {}), // Wait for navigation but don't throw due to timeout
-        page.waitForSelector(HtmlSelectors.USERNAME_TEXTBOX),
+        page.waitForSelector(HtmlSelectors.USERNAME_INPUT),
         page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
     await screenshot.takeScreenshot(page, "loginPageADFS");
-    await page.type(HtmlSelectors.USERNAME_TEXTBOX, username);
+    await page.type(HtmlSelectors.USERNAME_INPUT, username);
     await screenshot.takeScreenshot(page, "usernameEntered");
     await Promise.all([
         page.waitForNavigation({
