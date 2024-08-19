@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1723593152354,
+  "lastUpdate": 1724090045759,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -10988,6 +10988,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.06%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5477a2eec3101ef7d4da253760bf97ae639659a5",
+          "message": "Revert 'Use high precision TS for NAA message time (#7243)' (#7262)\n\nReverting because:\r\n1. Office parser for `sendTime` is expecting a whole number = mills\r\nsince epoch\r\n2. `sendTime` should be system time, and is used by native to identify\r\nhow long the request took from being initiated to being handled",
+          "timestamp": "2024-08-19T13:48:33-04:00",
+          "tree_id": "3f3225804d8ee80ca8115958466dd45f67a1517c",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/5477a2eec3101ef7d4da253760bf97ae639659a5"
+        },
+        "date": 1724090044089,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 188628,
+            "range": "±2.03%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 196481,
+            "range": "±2.14%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
