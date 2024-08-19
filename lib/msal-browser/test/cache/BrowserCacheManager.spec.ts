@@ -52,6 +52,7 @@ import { BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
 import { base64Decode } from "../../src/encode/Base64Decode";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
+import { RedirectRequest } from "../../src/request/RedirectRequest";
 
 describe("BrowserCacheManager tests", () => {
     let cacheConfig: Required<CacheOptions>;
@@ -2970,6 +2971,138 @@ describe("BrowserCacheManager tests", () => {
                     `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`
                 ]
             ).toBeUndefined();
+        });
+
+        it("generateRequestRetriedKey() creates a valid cache key for request retry", () => {
+            const browserStorage = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger
+            );
+            const requestRetriedKey =
+                browserStorage.generateRequestRetriedKey();
+            expect(requestRetriedKey).toBe(
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.MSAL_CLIENT_ID}`
+            );
+        });
+
+        it("getRequestRetried() retrieves the request retry value from cache", () => {
+            const browserStorage = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger
+            );
+            browserStorage.setTemporaryCache(
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                "1"
+            );
+
+            browserStorage.getRequestRetried();
+
+            expect(browserStorage.getRequestRetried()).toEqual(1);
+        });
+
+        it("setRequestRetried() sets a request retry value for client Id", () => {
+            const browserStorage = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger
+            );
+
+            browserStorage.setRequestRetried();
+
+            expect(
+                window.sessionStorage[
+                    `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.MSAL_CLIENT_ID}`
+                ]
+            ).toBeTruthy();
+        });
+
+        it("removeRequestRetried() removes request retried value for clientId", () => {
+            const browserStorage = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger
+            );
+            browserStorage.setTemporaryCache(
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                "1"
+            );
+
+            browserStorage.removeRequestRetried();
+
+            expect(browserStorage.getRequestRetried()).toEqual(null);
+        });
+
+        it("Successfully retrieves redirect request from cache", async () => {
+            const browserStorage = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger
+            );
+            const testRedirectRequest: RedirectRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                nonce: "",
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+            };
+
+            browserStorage.setTemporaryCache(
+                TemporaryCacheKeys.REDIRECT_REQUEST,
+                JSON.stringify(testRedirectRequest),
+                true
+            );
+
+            const cachedRequest = browserStorage.getCachedRedirectRequest();
+            expect(cachedRequest).toEqual(testRedirectRequest);
+        });
+
+        it("Returns undefined if redirect cannot be retrieved from cache", async () => {
+            const browserStorage = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger
+            );
+
+            const cachedRequest = browserStorage.getCachedRedirectRequest();
+            expect(cachedRequest).toBeUndefined();
+        });
+
+        it("Returns undefined if cached redirect request cannot be parsed correctly", async () => {
+            const browserStorage = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                browserCrypto,
+                logger
+            );
+            const testRedirectRequest: RedirectRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                nonce: "",
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+            };
+            const stringifiedRequest = JSON.stringify(testRedirectRequest);
+            browserStorage.setTemporaryCache(
+                TemporaryCacheKeys.REDIRECT_REQUEST,
+                stringifiedRequest.substring(0, stringifiedRequest.length / 2),
+                true
+            );
+            const cachedRequest = browserStorage.getCachedRedirectRequest();
+            expect(cachedRequest).toBeUndefined();
         });
 
         it("Successfully retrieves and decodes response from cache", async () => {

@@ -221,9 +221,9 @@ export class ConfidentialClientApplication
         const clientSecretNotEmpty = !!this.config.auth.clientSecret;
         const clientAssertionNotEmpty = !!this.config.auth.clientAssertion;
         const certificateNotEmpty =
-            (!!this.config.auth.clientCertificate.thumbprint ||
-                !!this.config.auth.clientCertificate.thumbprintSha256) &&
-            !!this.config.auth.clientCertificate.privateKey;
+            (!!this.config.auth.clientCertificate?.thumbprint ||
+                !!this.config.auth.clientCertificate?.thumbprintSha256) &&
+            !!this.config.auth.clientCertificate?.privateKey;
 
         /*
          * If app developer configures this callback, they don't need a credential

@@ -75,6 +75,25 @@ describe("ConfidentialClientApplication", () => {
         expect(client).toBeInstanceOf(ConfidentialClientApplication);
     });
 
+    test("optional NodeAuthOptions values that are passed in as undefined will not break the application", () => {
+        let client: ConfidentialClientApplication;
+
+        // clientCertificate is already set, by default
+        config.auth.clientSecret = undefined;
+        client = new ConfidentialClientApplication(config);
+        expect(client).toBeInstanceOf(ConfidentialClientApplication);
+
+        config.auth.clientSecret = "secret";
+        config.auth.clientCertificate = undefined;
+        client = new ConfidentialClientApplication(config);
+        expect(client).toBeInstanceOf(ConfidentialClientApplication);
+
+        // clientSecret defined above
+        config.auth.clientAssertion = undefined;
+        client = new ConfidentialClientApplication(config);
+        expect(client).toBeInstanceOf(ConfidentialClientApplication);
+    });
+
     describe("auth code flow", () => {
         test("acquireTokenByAuthorizationCode", async () => {
             const acquireTokenByCodeSpy: jest.SpyInstance = jest.spyOn(
