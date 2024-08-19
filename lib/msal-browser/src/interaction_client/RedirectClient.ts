@@ -346,7 +346,7 @@ export class RedirectClient extends StandardInteractionClient {
             }
 
             if (
-                e instanceof ServerError &&
+                e instanceof AuthError &&
                 e.errorCode === BrowserConstants.INVALID_GRANT_ERROR
             ) {
                 this.performanceClient.addFields(
@@ -379,6 +379,7 @@ export class RedirectClient extends StandardInteractionClient {
                 }
 
                 this.browserStorage.setRequestRetried();
+                this.browserStorage.setInteractionInProgress(true);
 
                 await this.acquireToken(redirectRequest);
                 return null;
