@@ -16,7 +16,6 @@ import { IBridgeProxy } from "./IBridgeProxy";
 import { InitContext } from "./InitContext";
 import { TokenRequest } from "./TokenRequest";
 import * as BrowserCrypto from "../crypto/BrowserCrypto";
-import { supportsBrowserPerformanceNow } from "../telemetry/BrowserPerformanceClient";
 
 declare global {
     interface Window {
@@ -82,9 +81,7 @@ export class BridgeProxy implements IBridgeProxy {
                         messageType: "NestedAppAuthRequest",
                         method: "GetInitContext",
                         requestId: BrowserCrypto.createNewGuid(),
-                        sendTime: supportsBrowserPerformanceNow()
-                            ? window.performance.now()
-                            : Date.now(),
+                        sendTime: Date.now(),
                     };
                     const request: BridgeRequest = {
                         requestId: message.requestId,
@@ -160,9 +157,7 @@ export class BridgeProxy implements IBridgeProxy {
             messageType: "NestedAppAuthRequest",
             method: method,
             requestId: BrowserCrypto.createNewGuid(),
-            sendTime: supportsBrowserPerformanceNow()
-                ? window.performance.now()
-                : Date.now(),
+            sendTime: Date.now(),
             ...requestParams,
         };
 

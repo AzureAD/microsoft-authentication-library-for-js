@@ -42,7 +42,7 @@ function getPerfMeasurementModule() {
 /**
  * Returns boolean, indicating whether browser supports window.performance.now() function.
  */
-export function supportsBrowserPerformanceNow(): boolean {
+function supportsBrowserPerformanceNow(): boolean {
     return (
         typeof window !== "undefined" &&
         typeof window.performance !== "undefined" &&
