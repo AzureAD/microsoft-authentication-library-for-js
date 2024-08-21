@@ -1552,6 +1552,9 @@ export class BrowserCacheManager extends CacheManager {
         this.removeTemporaryItem(
             this.generateCacheKey(TemporaryCacheKeys.NATIVE_REQUEST)
         );
+        this.removeTemporaryItem(
+            this.generateCacheKey(TemporaryCacheKeys.REDIRECT_REQUEST)
+        );
         this.setInteractionInProgress(false);
     }
 
@@ -1615,18 +1618,16 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Create request retry key to cache retry status
-     * @param correlationId
      */
-    generateRequestRetriedKey(correlationId: string): string {
-        return `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${correlationId}`;
+    generateRequestRetriedKey(): string {
+        return `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${this.clientId}`;
     }
 
     /**
      * Gets the request retry value from the cache
-     * @param correlationId
      */
-    getRequestRetried(correlationId: string): number | null {
-        const requestRetriedKey = this.generateRequestRetriedKey(correlationId);
+    getRequestRetried(): number | null {
+        const requestRetriedKey = this.generateRequestRetriedKey();
         const cachedRetryNumber = this.getTemporaryCache(requestRetriedKey);
         if (!cachedRetryNumber) {
             return null;
@@ -1636,11 +1637,10 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Sets the request retry value to "retried" in the cache
-     * @param correlationId
      */
-    setRequestRetried(correlationId: string): void {
+    setRequestRetried(): void {
         this.logger.trace("BrowserCacheManager.setRequestRetried called");
-        const requestRetriedKey = this.generateRequestRetriedKey(correlationId);
+        const requestRetriedKey = this.generateRequestRetriedKey();
         this.setTemporaryCache(requestRetriedKey, "1", false);
     }
 
@@ -1648,11 +1648,8 @@ export class BrowserCacheManager extends CacheManager {
      * Removes all request retry values in the cache
      */
     removeRequestRetried(): void {
-        this.temporaryCacheStorage.getKeys().forEach((key) => {
-            if (key.indexOf(TemporaryCacheKeys.REQUEST_RETRY) !== -1) {
-                this.removeTemporaryItem(key);
-            }
-        });
+        const requestRetriedKey = this.generateRequestRetriedKey();
+        this.removeTemporaryItem(requestRetriedKey);
     }
 
     /**

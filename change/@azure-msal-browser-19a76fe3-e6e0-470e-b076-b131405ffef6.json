@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Retry in RedirectClient for invalid_grant errors #7231",
-  "packageName": "@azure/msal-browser",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}

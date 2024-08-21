@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Tue, 23 Jul 2024 14:19:34 GMT and should not be manually modified.
+This log was last generated on Tue, 13 Aug 2024 23:25:08 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.14.1
+
+Tue, 13 Aug 2024 23:25:08 GMT
+
+### Patches
+
+- Add retryError to PerformanceEvent #7216 (joarroyo@microsoft.com)
+- Add PerformanceEvent for PopupTokenHelper #7216 (joarroyo@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
 
 ## 14.14.0
 

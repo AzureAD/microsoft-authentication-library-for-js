@@ -1,8 +1,27 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 23 Jul 2024 14:19:34 GMT and should not be manually modified.
+This log was last generated on Tue, 13 Aug 2024 23:25:07 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.21.0
+
+Tue, 13 Aug 2024 23:25:07 GMT
+
+### Minor changes
+
+- Retry in RedirectClient for invalid_grant errors #7231 (joarroyo@microsoft.com)
+- Retry in SilentIframeClient for invalid_grant errors #7218 (joarroyo@microsoft.com)
+- Retry in PopupClient for invalid_grant errors #7216 (joarroyo@microsoft.com)
+- Bump @azure/msal-common to v14.14.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- Update request retry for invalid_grant #7249 (joarroyo@microsoft.com)
+- onRedirectNavigate deprecation fix #7251 (joarroyo@microsoft.com)
+- Use high precision TS for NAA message time #7243 (kshabelko@microsoft.com)
 
 ## 3.20.0
 

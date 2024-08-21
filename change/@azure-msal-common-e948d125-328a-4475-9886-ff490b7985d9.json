@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add PerformanceEvent for PopupTokenHelper #7216",
-  "packageName": "@azure/msal-common",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}

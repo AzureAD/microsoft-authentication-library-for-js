@@ -486,7 +486,7 @@ describe("RedirectClient", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REDIRECT_REQUEST}`,
-                base64Encode(JSON.stringify(testRedirectRequest))
+                JSON.stringify(testRedirectRequest)
             );
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
@@ -577,9 +577,7 @@ describe("RedirectClient", () => {
                     TemporaryCacheKeys.REDIRECT_REQUEST
                 )
             ).toEqual(null);
-            expect(
-                browserStorage.getRequestRetried(TEST_CONFIG.CORRELATION_ID)
-            ).toEqual(null);
+            expect(browserStorage.getRequestRetried()).toEqual(null);
         });
 
         it("gets hash from cache and calls native broker if hash contains accountId", async () => {
@@ -1985,9 +1983,7 @@ describe("RedirectClient", () => {
                     TemporaryCacheKeys.REDIRECT_REQUEST
                 )
             ).toEqual(null);
-            expect(
-                browserStorage.getRequestRetried(TEST_CONFIG.CORRELATION_ID)
-            ).toEqual(1);
+            expect(browserStorage.getRequestRetried()).toEqual(1);
         });
 
         it("throws invalid_grant error if already retried", (done) => {
@@ -2023,7 +2019,7 @@ describe("RedirectClient", () => {
                 "123523"
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.CORRELATION_ID}`,
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.MSAL_CLIENT_ID}`,
                 JSON.stringify(1)
             );
             const testRedirectRequest: RedirectRequest = {
@@ -2038,7 +2034,7 @@ describe("RedirectClient", () => {
             };
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REDIRECT_REQUEST}`,
-                base64Encode(JSON.stringify(testRedirectRequest))
+                JSON.stringify(testRedirectRequest)
             );
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
@@ -2094,11 +2090,7 @@ describe("RedirectClient", () => {
                             TemporaryCacheKeys.REDIRECT_REQUEST
                         )
                     ).toEqual(null);
-                    expect(
-                        browserStorage.getRequestRetried(
-                            TEST_CONFIG.CORRELATION_ID
-                        )
-                    ).toEqual(null);
+                    expect(browserStorage.getRequestRetried()).toEqual(null);
 
                     done();
                 });
@@ -2190,11 +2182,7 @@ describe("RedirectClient", () => {
                             TemporaryCacheKeys.REDIRECT_REQUEST
                         )
                     ).toEqual(null);
-                    expect(
-                        browserStorage.getRequestRetried(
-                            TEST_CONFIG.CORRELATION_ID
-                        )
-                    ).toEqual(1);
+                    expect(browserStorage.getRequestRetried()).toEqual(1);
                     done();
                 });
         });
@@ -2429,6 +2417,13 @@ describe("RedirectClient", () => {
                             browserStorage.getTemporaryCache(
                                 browserStorage.generateAuthorityKey(
                                     TEST_STATE_VALUES.TEST_STATE_REDIRECT
+                                )
+                            )
+                        ).toEqual(null);
+                        expect(
+                            browserStorage.getTemporaryCache(
+                                browserStorage.generateCacheKey(
+                                    TemporaryCacheKeys.REDIRECT_REQUEST
                                 )
                             )
                         ).toEqual(null);
@@ -2752,7 +2747,7 @@ describe("RedirectClient", () => {
                 await redirectClient.acquireToken(emptyRequest);
             } catch (e) {
                 // Test that error was cached for telemetry purposes and then thrown
-                expect(window.sessionStorage).toHaveLength(2);
+                expect(window.sessionStorage).toHaveLength(1);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
                 );
@@ -3337,7 +3332,7 @@ describe("RedirectClient", () => {
                 await redirectClient.acquireToken(emptyRequest);
             } catch (e) {
                 // Test that error was cached for telemetry purposes and then thrown
-                expect(window.sessionStorage).toHaveLength(2);
+                expect(window.sessionStorage).toHaveLength(1);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
                 );

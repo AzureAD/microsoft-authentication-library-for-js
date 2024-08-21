@@ -584,19 +584,37 @@ export class StandardController implements IController {
             scenarioId: request.scenarioId,
         });
 
+        // Override on request only if set, as onRedirectNavigate field is deprecated
         const onRedirectNavigateCb = request.onRedirectNavigate;
-        request.onRedirectNavigate = (url: string) => {
-            const navigate =
-                typeof onRedirectNavigateCb === "function"
-                    ? onRedirectNavigateCb(url)
-                    : undefined;
-            if (navigate !== false) {
-                atrMeasurement.end({ success: true });
-            } else {
-                atrMeasurement.discard();
-            }
-            return navigate;
-        };
+        if (onRedirectNavigateCb) {
+            request.onRedirectNavigate = (url: string) => {
+                const navigate =
+                    typeof onRedirectNavigateCb === "function"
+                        ? onRedirectNavigateCb(url)
+                        : undefined;
+                if (navigate !== false) {
+                    atrMeasurement.end({ success: true });
+                } else {
+                    atrMeasurement.discard();
+                }
+                return navigate;
+            };
+        } else {
+            const configOnRedirectNavigateCb =
+                this.config.auth.onRedirectNavigate;
+            this.config.auth.onRedirectNavigate = (url: string) => {
+                const navigate =
+                    typeof configOnRedirectNavigateCb === "function"
+                        ? configOnRedirectNavigateCb(url)
+                        : undefined;
+                if (navigate !== false) {
+                    atrMeasurement.end({ success: true });
+                } else {
+                    atrMeasurement.discard();
+                }
+                return navigate;
+            };
+        }
 
         // If logged in, emit acquire token events
         const isLoggedIn = this.getAllAccounts().length > 0;
