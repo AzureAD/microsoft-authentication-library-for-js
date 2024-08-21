@@ -58,7 +58,6 @@
   ],
   "scripts": {
     "clean": "shx rm -rf dist lib",
-    "clean:coverage": "rimraf ../../.nyc_output/*",
     "lint": "eslint src --ext .ts",
     "lint:fix": "npm run lint -- --fix",
     "test": "jest",
@@ -94,7 +93,6 @@
     "jest-environment-jsdom": "^29.5.0",
     "msal-test-utils": "file:../../shared-test-utils",
     "prettier": "^2.8.7",
-    "rimraf": "^3.0.0",
     "rollup": "^3.14.0",
     "shx": "^0.3.2",
     "sinon": "^7.5.0",
