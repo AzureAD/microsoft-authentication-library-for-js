@@ -272,11 +272,17 @@ export class MsalInterceptor implements HttpInterceptor {
       relativeResources: [],
     };
 
+    const absoluteResourcesWithIndex = new Map<string, number>();
+    const relativeResourcesWithIndex = new Map<string, number>();
+
     protectedResourcesEndpoints.forEach((key) => {
       // Normalizes and adds resource to matchingResources.absoluteResources if key matches endpoint. StringUtils.matchPattern accounts for wildcards
       const normalizedKey = this.location.normalize(key);
       if (StringUtils.matchPattern(normalizedKey, endpoint)) {
-        matchingResources.absoluteResources.push(key);
+        absoluteResourcesWithIndex.set(
+          normalizedKey,
+          endpoint.indexOf(normalizedKey)
+        );
       }
 
       // Get url components for relative urls
@@ -299,9 +305,32 @@ export class MsalInterceptor implements HttpInterceptor {
         relativeNormalizedKey !== "" &&
         relativeNormalizedKey !== "/*"
       ) {
-        matchingResources.relativeResources.push(key);
+        relativeResourcesWithIndex.set(
+          relativeNormalizedKey,
+          absoluteEndpoint.indexOf(relativeNormalizedKey)
+        );
       }
     });
+    matchingResources.absoluteResources =
+      absoluteResourcesWithIndex.size > 0
+        ? Array.from(
+            new Map(
+              [...absoluteResourcesWithIndex.entries()].sort(
+                (a, b) => a[1] - b[1]
+              )
+            ).keys()
+          )
+        : [];
+    matchingResources.relativeResources =
+      relativeResourcesWithIndex.size > 0
+        ? Array.from(
+            new Map(
+              [...relativeResourcesWithIndex.entries()].sort(
+                (a, b) => a[1] - b[1]
+              )
+            ).keys()
+          )
+        : [];
 
     return matchingResources;
   }
