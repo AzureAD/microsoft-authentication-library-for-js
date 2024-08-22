@@ -259,10 +259,10 @@ export async function enterCredentials(
     }
 
     await page.waitForSelector(HtmlSelectors.FORGOT_PASSWORD_LINK);
-    await page.waitForSelector(HtmlSelectors.PASSWORD_INPUT);
+    await page.waitForSelector(HtmlSelectors.PASSWORD_INPUT_TEXTBOX);
     await page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR);
     await screenshot.takeScreenshot(page, "pwdInputPage");
-    await page.type(HtmlSelectors.PASSWORD_INPUT, accountPwd);
+    await page.type(HtmlSelectors.PASSWORD_INPUT_TEXTBOX, accountPwd);
     await screenshot.takeScreenshot(page, "loginPagePasswordFilled");
     await Promise.all([
         page.click(HtmlSelectors.BUTTON9SELECTOR),
@@ -344,12 +344,12 @@ export async function approveRemoteConnect(
     screenshot: Screenshot
 ): Promise<void> {
     try {
-        await page.waitForSelector("#remoteConnectDescription");
-        await page.waitForSelector("#remoteConnectSubmit");
+        await page.waitForSelector(HtmlSelectors.REMOTE_LOCATION_DESCRPITION);
+        await page.waitForSelector(HtmlSelectors.REMOTE_LOCATION_SUBMIT_BUTTON);
         await screenshot.takeScreenshot(page, "remoteConnectPage");
         await Promise.all([
             page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
-            page.click("#remoteConnectSubmit"),
+            page.click(HtmlSelectors.REMOTE_LOCATION_SUBMIT_BUTTON),
         ]).catch(async (e) => {
             await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
             throw e;
@@ -430,15 +430,15 @@ export async function enterCredentialsADFS(
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
-    await page.waitForSelector("#passwordInput");
-    await page.waitForSelector("#submitButton");
-    await page.type("#passwordInput", accountPwd);
+    await page.waitForSelector(HtmlSelectors.PASSWORD_INPUT_SELECTOR);
+    await page.waitForSelector(HtmlSelectors.CREDENTIALS_SUBMIT_BUTTON);
+    await page.type(HtmlSelectors.PASSWORD_INPUT_SELECTOR, accountPwd);
     await screenshot.takeScreenshot(page, "passwordEntered");
     await Promise.all([
         page.waitForNavigation({
             waitUntil: ["load", "domcontentloaded", "networkidle0"],
         }),
-        page.click("#submitButton"),
+        page.click(HtmlSelectors.CREDENTIALS_SUBMIT_BUTTON),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
@@ -455,10 +455,10 @@ export async function enterDeviceCode(
     await page.goto(deviceCodeUrl, {
         waitUntil: ["load", "domcontentloaded", "networkidle0"],
     });
-    await page.waitForSelector("#otc");
+    await page.waitForSelector(HtmlSelectors.DEVICE_OTC_INPUT_SELECTOR);
     await page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR);
     await screenshot.takeScreenshot(page, "deviceCodePage");
-    await page.type("#otc", code);
+    await page.type(HtmlSelectors.DEVICE_OTC_INPUT_SELECTOR, code);
     await Promise.all([
         page.waitForNavigation({
             waitUntil: ["load", "domcontentloaded", "networkidle0"],

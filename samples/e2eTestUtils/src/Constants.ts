@@ -99,7 +99,14 @@ export const HtmlSelectors = {
         "#MicrosoftAccountExchange, input[name='MicrosoftAccountExchange']",
     FORGOT_PASSWORD_LINK:
         "#idA_PWD_ForgotPassword, input[name='idA_PWD_ForgotPassword']",
-    PASSWORD_INPUT: "#i0118, input[name='i0118']",
+    PASSWORD_INPUT_TEXTBOX: "#i0118, input[name='i0118']",
     KMSI_PAGE: "#kmsiTitle, input[name='kmsiTitle']",
     STAY_SIGNEDIN_BUTTON: "#acceptButton, input[name='acceptButton']",
+    REMOTE_LOCATION_DESCRPITION:
+        "#remoteConnectDescription, input[name='remoteConnectDescription']",
+    REMOTE_LOCATION_SUBMIT_BUTTON:
+        "#remoteConnectSubmit, input[name='remoteConnectSubmit']",
+    PASSWORD_INPUT_SELECTOR: "#passwordInput, input[name='passwordInput']",
+    CREDENTIALS_SUBMIT_BUTTON: "#submitButton, input[name='submitButton']",
+    DEVICE_OTC_INPUT_SELECTOR: "#otc, input[name='otc']",
 };

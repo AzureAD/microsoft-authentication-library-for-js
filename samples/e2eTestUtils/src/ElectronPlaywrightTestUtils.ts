@@ -31,10 +31,10 @@ export async function enterCredentials(
     });
 
     await page.waitForSelector(HtmlSelectors.FORGOT_PASSWORD_LINK);
-    await page.waitForSelector(HtmlSelectors.PASSWORD_INPUT);
+    await page.waitForSelector(HtmlSelectors.PASSWORD_INPUT_TEXTBOX);
     await page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR);
     await screenshot.takeScreenshot(page, "pwdInputPage");
-    await page.type(HtmlSelectors.PASSWORD_INPUT, accountPwd);
+    await page.type(HtmlSelectors.PASSWORD_INPUT_TEXTBOX, accountPwd);
     await screenshot.takeScreenshot(page, "loginPagePasswordFilled");
     await page.click(HtmlSelectors.BUTTON9SELECTOR, { noWaitAfter: true });
 }
@@ -67,16 +67,16 @@ export async function enterCredentialsADFS(
         throw e;
     });
 
-    await page.waitForSelector("#passwordInput");
-    await page.waitForSelector("#submitButton");
-    await page.type("#passwordInput", accountPwd);
+    await page.waitForSelector(HtmlSelectors.PASSWORD_INPUT_SELECTOR);
+    await page.waitForSelector(HtmlSelectors.CREDENTIALS_SUBMIT_BUTTON);
+    await page.type(HtmlSelectors.PASSWORD_INPUT_SELECTOR, accountPwd);
     await screenshot.takeScreenshot(page, "passwordEntered");
 
     await Promise.all([
         page.waitForNavigation({ waitUntil: "load" }),
         page.waitForNavigation({ waitUntil: "domcontentloaded" }),
         page.waitForNavigation({ waitUntil: "networkidle" }).catch(() => {}), // Wait for navigation but don't throw due to timeout
-        page.click("#submitButton"),
+        page.click(HtmlSelectors.CREDENTIALS_SUBMIT_BUTTON),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
