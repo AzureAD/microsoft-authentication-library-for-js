@@ -10,12 +10,13 @@ import {
 import { PromptValue, CodeChallengeMethodValues } from "../utils/Constants";
 
 /**
+ * @public
  * Validates server consumable params from the "request" objects
  */
 export class RequestValidator {
     /**
      * Utility to check if the `redirectUri` in the request is a non-null value
-     * @param redirectUri
+     * @param redirectUri - a string redirect URI
      */
     static validateRedirectUri(redirectUri: string): void {
         if (!redirectUri) {
@@ -27,7 +28,7 @@ export class RequestValidator {
 
     /**
      * Utility to validate prompt sent by the user in the request
-     * @param prompt
+     * @param prompt - a string prompt sent by the user in the request
      */
     static validatePrompt(prompt: string): void {
         const promptValues = [];
@@ -43,6 +44,10 @@ export class RequestValidator {
         }
     }
 
+    /**
+     * Utility to check if the claims provided by the user can be parsed
+     * @param claims - string claims provided by the user, in the request
+     */
     static validateClaims(claims: string): void {
         try {
             JSON.parse(claims);
@@ -55,8 +60,8 @@ export class RequestValidator {
 
     /**
      * Utility to validate code_challenge and code_challenge_method
-     * @param codeChallenge
-     * @param codeChallengeMethod
+     * @param codeChallenge - a string code challenge of the code verifier
+     * @param codeChallengeMethod - a code challenge method that PKCE supports
      */
     static validateCodeChallengeParams(
         codeChallenge: string,
@@ -73,7 +78,7 @@ export class RequestValidator {
 
     /**
      * Utility to validate code_challenge_method
-     * @param codeChallengeMethod
+     * @param codeChallengeMethod- a code challenge method that PKCE supports
      */
     static validateCodeChallengeMethod(codeChallengeMethod: string): void {
         if (
