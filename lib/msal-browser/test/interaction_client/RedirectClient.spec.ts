@@ -163,7 +163,7 @@ describe("RedirectClient", () => {
             //@ts-ignore
             pca.performanceClient,
             //@ts-ignore
-            pca.nativeInternalStorage,
+            pca.nativeInternalStorage
         );
 
         rootMeasurement = new BrowserPerformanceClient(
