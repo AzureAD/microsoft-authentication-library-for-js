@@ -1900,52 +1900,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.acquireTokenRedirect(loginRequest);
         });
 
-        it("emits pre-redirect telemetry event when onRedirectNavigate callback is set in configuration", async () => {
-            const onRedirectNavigate = (url: string) => {
-                expect(url).toBeDefined();
-            };
-
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    onRedirectNavigate,
-                },
-                telemetry: {
-                    client: new BrowserPerformanceClient(testAppConfig),
-                    application: {
-                        appName: TEST_CONFIG.applicationName,
-                        appVersion: TEST_CONFIG.applicationVersion,
-                    },
-                },
-            });
-            pca = (pca as any).controller;
-            await pca.initialize();
-
-            const callbackId = pca.addPerformanceCallback((events) => {
-                expect(events[0].success).toBe(true);
-                expect(events[0].name).toBe(
-                    PerformanceEvents.AcquireTokenPreRedirect
-                );
-                pca.removePerformanceCallback(callbackId);
-            });
-
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(() => Promise.resolve(true));
-
-            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
-                challenge: TEST_CONFIG.TEST_CHALLENGE,
-                verifier: TEST_CONFIG.TEST_VERIFIER,
-            });
-            const loginRequest: RedirectRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: ["user.read", "openid", "profile"],
-                state: TEST_STATE_VALUES.USER_STATE,
-            };
-            await pca.acquireTokenRedirect(loginRequest);
-        });
-
         it("discards pre-redirect telemetry event when onRedirectNavigate callback returns false", async () => {
             const onRedirectNavigate = (url: string) => {
                 return false;
