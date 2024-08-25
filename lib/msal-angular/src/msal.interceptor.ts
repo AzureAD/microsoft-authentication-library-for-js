@@ -227,16 +227,12 @@ export class MsalInterceptor implements HttpInterceptor {
       .getLogger()
       .verbose("Interceptor - getting scopes for endpoint");
 
-    // Ensures endpoints and protected resources compared are normalized
-    const normalizedEndpoint = this.location.normalize(endpoint);
-
     const protectedResourcesArray = Array.from(
       this.msalInterceptorConfig.protectedResourceMap.keys()
     );
 
     const matchingProtectedResources = this.matchResourcesToEndpoint(
       protectedResourcesArray,
-      normalizedEndpoint,
       endpoint
     );
 
@@ -266,8 +262,7 @@ export class MsalInterceptor implements HttpInterceptor {
    */
   private matchResourcesToEndpoint(
     protectedResourcesEndpoints: string[],
-    endpoint: string,
-    endpointOrg: string
+    endpoint: string
   ): MatchingResources {
     const matchingResources: MatchingResources = {
       absoluteResources: [],
@@ -277,21 +272,22 @@ export class MsalInterceptor implements HttpInterceptor {
     const absoluteResourcesWithIndex = new Map<string, number>();
 
     protectedResourcesEndpoints.forEach((key) => {
+      // Ensures endpoints and protected resources compared are normalized
+      const normalizedEndpoint = this.location.normalize(endpoint);
+
       // Normalizes and adds resource to matchingResources.absoluteResources if key matches endpoint. StringUtils.matchPattern accounts for wildcards
       const normalizedKey = this.location.normalize(key);
-      if (StringUtils.matchPattern(normalizedKey, endpoint)) {
+      const absoluteKey = this.getAbsoluteUrl(key);
+
+      if (StringUtils.matchPattern(normalizedKey, normalizedEndpoint)) {
         const indexn = endpoint.indexOf(normalizedKey);
-        const index = endpointOrg.indexOf(key);
-        absoluteResourcesWithIndex.set(
-          key,
-          index < 0 ? (indexn < 0 ? 0 : indexn) : index
-        );
+        absoluteResourcesWithIndex.set(key, Math.max(0, indexn));
       }
 
       // Get url components for relative urls
-      const absoluteKey = this.getAbsoluteUrl(key);
+
       const keyComponents = new UrlString(absoluteKey).getUrlComponents();
-      const absoluteEndpoint = this.getAbsoluteUrl(endpoint);
+      const absoluteEndpoint = this.getAbsoluteUrl(normalizedEndpoint);
       const endpointComponents = new UrlString(
         absoluteEndpoint
       ).getUrlComponents();
@@ -308,7 +304,7 @@ export class MsalInterceptor implements HttpInterceptor {
         relativeNormalizedKey !== "" &&
         relativeNormalizedKey !== "/*"
       ) {
-        matchingResources.relativeResources.push(relativeNormalizedKey);
+        matchingResources.relativeResources.push(key);
       }
     });
     matchingResources.absoluteResources =
