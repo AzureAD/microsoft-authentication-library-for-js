@@ -236,7 +236,8 @@ export class MsalInterceptor implements HttpInterceptor {
 
     const matchingProtectedResources = this.matchResourcesToEndpoint(
       protectedResourcesArray,
-      normalizedEndpoint
+      normalizedEndpoint,
+      endpoint
     );
 
     // Check absolute urls of resources first before checking relative to prevent incorrect matching where multiple resources have similar relative urls
@@ -265,7 +266,8 @@ export class MsalInterceptor implements HttpInterceptor {
    */
   private matchResourcesToEndpoint(
     protectedResourcesEndpoints: string[],
-    endpoint: string
+    endpoint: string,
+    endpointOrg: string
   ): MatchingResources {
     const matchingResources: MatchingResources = {
       absoluteResources: [],
@@ -273,15 +275,16 @@ export class MsalInterceptor implements HttpInterceptor {
     };
 
     const absoluteResourcesWithIndex = new Map<string, number>();
-    const relativeResourcesWithIndex = new Map<string, number>();
 
     protectedResourcesEndpoints.forEach((key) => {
       // Normalizes and adds resource to matchingResources.absoluteResources if key matches endpoint. StringUtils.matchPattern accounts for wildcards
       const normalizedKey = this.location.normalize(key);
       if (StringUtils.matchPattern(normalizedKey, endpoint)) {
+        const indexn = endpoint.indexOf(normalizedKey);
+        const index = endpointOrg.indexOf(key);
         absoluteResourcesWithIndex.set(
-          normalizedKey,
-          endpoint.indexOf(normalizedKey)
+          key,
+          index < 0 ? (indexn < 0 ? 0 : indexn) : index
         );
       }
 
@@ -305,10 +308,7 @@ export class MsalInterceptor implements HttpInterceptor {
         relativeNormalizedKey !== "" &&
         relativeNormalizedKey !== "/*"
       ) {
-        relativeResourcesWithIndex.set(
-          relativeNormalizedKey,
-          absoluteEndpoint.indexOf(relativeNormalizedKey)
-        );
+        matchingResources.relativeResources.push(relativeNormalizedKey);
       }
     });
     matchingResources.absoluteResources =
@@ -316,16 +316,6 @@ export class MsalInterceptor implements HttpInterceptor {
         ? Array.from(
             new Map(
               [...absoluteResourcesWithIndex.entries()].sort(
-                (a, b) => a[1] - b[1]
-              )
-            ).keys()
-          )
-        : [];
-    matchingResources.relativeResources =
-      relativeResourcesWithIndex.size > 0
-        ? Array.from(
-            new Map(
-              [...relativeResourcesWithIndex.entries()].sort(
                 (a, b) => a[1] - b[1]
               )
             ).keys()
