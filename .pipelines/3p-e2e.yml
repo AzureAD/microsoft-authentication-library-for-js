@@ -38,7 +38,7 @@ extends:
                     parameters:
                         jobName: "validate_msal_browser"
                         targetLib: "msal-browser"
-                        poolType: "linux"
+                        poolType: "windows"
                         stage: "CI"
                         sourceRepo: ${{ variables.sourceRepo }}
                         sourceBranch: ${{ variables.sourceBranch }}
@@ -72,7 +72,7 @@ extends:
                     parameters:
                         jobName: "validate_msal_react"
                         targetLib: "msal-react"
-                        poolType: "linux"
+                        poolType: "windows"
                         stage: "CI"
                         sourceRepo: ${{ variables.sourceRepo }}
                         sourceBranch: ${{ variables.sourceBranch }}
@@ -87,7 +87,7 @@ extends:
                     parameters:
                         jobName: "validate_msal_angular"
                         targetLib: "msal-angular"
-                        poolType: "linux"
+                        poolType: "windows"
                         stage: "CI"
                         sourceRepo: ${{ variables.sourceRepo }}
                         sourceBranch: ${{ variables.sourceBranch }}
