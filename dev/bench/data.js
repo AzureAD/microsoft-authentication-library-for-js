@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724090045759,
+  "lastUpdate": 1724692636070,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -11026,6 +11026,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.14%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "me@tylerleonhardt.com",
+            "name": "Tyler James Leonhardt",
+            "username": "TylerLeonhardt"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "11e86776167826ebd789e77d873ff6ea42030b1b",
+          "message": "Use 127.0.0.1 when spinning up local loopback server (#7268)\n\n1. Security: 127.0.0.1 binds the server to the local machine only,\r\nmaking it inaccessible from external networks. 0.0.0.0 binds the server\r\nto all available network interfaces, potentially exposing it to external\r\naccess.\r\n2. Performance: Binding to 127.0.0.1 can be more efficient as it\r\nrestricts traffic to the local machine, avoiding unnecessary network\r\noverhead.\r\n3. Simplicity: Using 127.0.0.1 ensures that only local applications can\r\nconnect, simplifying debugging and reducing the risk of unintended\r\naccess.",
+          "timestamp": "2024-08-26T10:11:55-07:00",
+          "tree_id": "86f06233f4409bb430b12a3f7fc8e96ecdf2fa75",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/11e86776167826ebd789e77d873ff6ea42030b1b"
+        },
+        "date": 1724692634269,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 203360,
+            "range": "±2.15%",
+            "unit": "ops/sec",
+            "extra": "214 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 191246,
+            "range": "±2.03%",
+            "unit": "ops/sec",
+            "extra": "213 samples"
           }
         ]
       }
