@@ -1,7 +1,7 @@
 {
-  "name": "imds",
+  "name": "fic",
   "version": "1.0.0",
-  "description": "Managed Identity for Imds",
+  "description": "Managed Identity for Federated Identity Credential",
   "scripts": {
     "build": "npx tsc",
     "start:app": "npm run build && node dist/index.js"

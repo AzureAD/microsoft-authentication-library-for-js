@@ -190,6 +190,11 @@ export const PerformanceEvents = {
     InitializeClientApplication: "initializeClientApplication",
 
     /**
+     * Helper function in PopupClient class (msal-browser).
+     */
+    PopupClientTokenHelper: "popupClientTokenHelper",
+
+    /**
      * Helper function in SilentIframeClient class (msal-browser).
      */
     SilentIframeClientTokenHelper: "silentIframeClientTokenHelper",
@@ -827,6 +832,13 @@ export type PerformanceEvent = {
     scenarioId?: string;
 
     accountType?: "AAD" | "MSA" | "B2C";
+
+    /**
+     * Server error that triggers a request retry
+     *
+     * @type {string}
+     */
+    retryError?: string;
 };
 
 export type PerformanceEventContext = {

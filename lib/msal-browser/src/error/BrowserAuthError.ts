@@ -92,6 +92,8 @@ export const BrowserAuthErrorMessages = {
         "Invalid base64 encoded string.",
     [BrowserAuthErrorCodes.invalidPopTokenRequest]:
         "Invalid PoP token request. The request should not have both a popKid value and signPopToken set to true.",
+    [BrowserAuthErrorCodes.failedToRetry]:
+        "Unable to retry failed auth code redemption due to usage of the onRedirectNavigate request parameter. Please set onRedirectNavigate on the PublicClientApplication configuration instead or call loginRedirect again.",
 };
 
 /**
