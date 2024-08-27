@@ -47,81 +47,81 @@ extends:
                               #RunAsPreJob: false # boolean. Make secrets available to whole job. Default: false.
 
                         - powershell: |
-                            $kvSecretBytes = [System.Convert]::FromBase64String('$(LabAuth)')
-                            $certCollection = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2Collection
-                            $certCollection.Import($kvSecretBytes, $null, [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
+                              $kvSecretBytes = [System.Convert]::FromBase64String('$(LabAuth)')
+                              $certCollection = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2Collection
+                              $certCollection.Import($kvSecretBytes, $null, [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
 
-                            $protectedCertificateBytes = $certCollection.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pkcs12)
-                            $pfxPath = "C:\tmp\TestCert.pfx"
-                            [System.IO.File]::WriteAllBytes($pfxPath, $protectedCertificateBytes)
+                              $protectedCertificateBytes = $certCollection.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pkcs12)
+                              $pfxPath = "C:\tmp\TestCert.pfx"
+                              [System.IO.File]::WriteAllBytes($pfxPath, $protectedCertificateBytes)
 
-                            Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\LocalMachine\My
+                              Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\LocalMachine\My
 
-                        displayName: "Install Keyvault Secrets"
+                          displayName: "Install Keyvault Secrets"
 
                   - job: B
-                    - template: .pipelines/templates/e2e-tests.yml@1P
-                        parameters:
-                            jobName: "validate_msal_browser"
-                            targetLib: "msal-browser"
-                            poolType: "linux"
-                            stage: "CI"
-                            sourceRepo: ${{ variables.sourceRepo }}
-                            sourceBranch: ${{ variables.sourceBranch }}
-                            workspace: "samples/msal-browser-samples"
-                            samples:
-                                - "client-capabilities"
-                                - "onPageLoad"
-                                - "pop"
-                                - "customizable-e2e-test"
-                            debug: ${{ parameters.debug }}
-                    - template: .pipelines/templates/e2e-tests.yml@1P
-                        parameters:
-                            jobName: "validate_msal_node"
-                            targetLib: "msal-node"
-                            poolType: "windows"
-                            stage: "CI"
-                            sourceRepo: ${{ variables.sourceRepo }}
-                            sourceBranch: ${{ variables.sourceBranch }}
-                            workspace: "samples/msal-node-samples"
-                            nodeVersions: [16, 18, 20, 22]
-                            samples:
-                                - "auth-code"
-                                - "auth-code-cli-app"
-                                - "client-credentials"
-                                - "device-code"
-                                - "silent-flow"
-                                - "b2c-user-flows"
-                                # - "on-behalf-of"
-                            debug: ${{ parameters.debug }}
-                    - template: .pipelines/templates/e2e-tests.yml@1P
-                        parameters:
-                            jobName: "validate_msal_react"
-                            targetLib: "msal-react"
-                            poolType: "linux"
-                            stage: "CI"
-                            sourceRepo: ${{ variables.sourceRepo }}
-                            sourceBranch: ${{ variables.sourceBranch }}
-                            workspace: "samples/msal-react-samples"
-                            samples:
-                                - "nextjs-sample"
-                                - "react-router-sample"
-                                - "typescript-sample"
-                                - "b2c-sample"
-                            debug: ${{ parameters.debug }}
-                    - template: .pipelines/templates/e2e-tests.yml@1P
-                        parameters:
-                            jobName: "validate_msal_angular"
-                            targetLib: "msal-angular"
-                            poolType: "linux"
-                            stage: "CI"
-                            sourceRepo: ${{ variables.sourceRepo }}
-                            sourceBranch: ${{ variables.sourceBranch }}
-                            workspace: "samples/msal-angular-v3-samples"
-                            samples:
-                                - "angular15-sample-app"
-                                - "angular16-sample-app"
-                                - "angular-b2c-sample-app"
-                                - "angular-standalone-sample"
-                                - "angular17-standalone-sample"
-                            debug: ${{ parameters.debug }}
+                  - template: .pipelines/templates/e2e-tests.yml@1P
+                    parameters:
+                        jobName: "validate_msal_browser"
+                        targetLib: "msal-browser"
+                        poolType: "linux"
+                        stage: "CI"
+                        sourceRepo: ${{ variables.sourceRepo }}
+                        sourceBranch: ${{ variables.sourceBranch }}
+                        workspace: "samples/msal-browser-samples"
+                        samples:
+                            - "client-capabilities"
+                            - "onPageLoad"
+                            - "pop"
+                            - "customizable-e2e-test"
+                        debug: ${{ parameters.debug }}
+                  - template: .pipelines/templates/e2e-tests.yml@1P
+                    parameters:
+                        jobName: "validate_msal_node"
+                        targetLib: "msal-node"
+                        poolType: "windows"
+                        stage: "CI"
+                        sourceRepo: ${{ variables.sourceRepo }}
+                        sourceBranch: ${{ variables.sourceBranch }}
+                        workspace: "samples/msal-node-samples"
+                        nodeVersions: [16, 18, 20, 22]
+                        samples:
+                            - "auth-code"
+                            - "auth-code-cli-app"
+                            - "client-credentials"
+                            - "device-code"
+                            - "silent-flow"
+                            - "b2c-user-flows"
+                            # - "on-behalf-of"
+                        debug: ${{ parameters.debug }}
+                  - template: .pipelines/templates/e2e-tests.yml@1P
+                    parameters:
+                        jobName: "validate_msal_react"
+                        targetLib: "msal-react"
+                        poolType: "linux"
+                        stage: "CI"
+                        sourceRepo: ${{ variables.sourceRepo }}
+                        sourceBranch: ${{ variables.sourceBranch }}
+                        workspace: "samples/msal-react-samples"
+                        samples:
+                            - "nextjs-sample"
+                            - "react-router-sample"
+                            - "typescript-sample"
+                            - "b2c-sample"
+                        debug: ${{ parameters.debug }}
+                  - template: .pipelines/templates/e2e-tests.yml@1P
+                    parameters:
+                        jobName: "validate_msal_angular"
+                        targetLib: "msal-angular"
+                        poolType: "linux"
+                        stage: "CI"
+                        sourceRepo: ${{ variables.sourceRepo }}
+                        sourceBranch: ${{ variables.sourceBranch }}
+                        workspace: "samples/msal-angular-v3-samples"
+                        samples:
+                            - "angular15-sample-app"
+                            - "angular16-sample-app"
+                            - "angular-b2c-sample-app"
+                            - "angular-standalone-sample"
+                            - "angular17-standalone-sample"
+                        debug: ${{ parameters.debug }}
