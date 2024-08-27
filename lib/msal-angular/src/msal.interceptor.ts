@@ -269,17 +269,17 @@ export class MsalInterceptor implements HttpInterceptor {
       relativeResources: [],
     };
 
+    // Used to store the resource with the index position in the endpoint URL
     const absoluteResourcesWithIndex = new Map<string, number>();
+    // Ensures endpoints and protected resources compared are normalized
+    const normalizedEndpoint = this.location.normalize(endpoint);
 
     protectedResourcesEndpoints.forEach((key) => {
-      // Ensures endpoints and protected resources compared are normalized
-      const normalizedEndpoint = this.location.normalize(endpoint);
-
       // Normalizes and adds resource to matchingResources.absoluteResources if key matches endpoint. StringUtils.matchPattern accounts for wildcards
       const normalizedKey = this.location.normalize(key);
       const absoluteKey = this.getAbsoluteUrl(key);
 
-      // Store the resource with the index position in the endpoint URL
+      // Storing the resource with the index position in the endpoint URL
       if (StringUtils.matchPattern(normalizedKey, normalizedEndpoint)) {
         const indexn = endpoint.indexOf(normalizedKey);
         absoluteResourcesWithIndex.set(key, Math.max(0, indexn));
