@@ -211,7 +211,7 @@ export async function b2cMsaAccountEnterCredentials(
 }
 
 // Constants
-export const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
+export const SCREENSHOT_BASE_FOLDER_NAME = `${process.cwd()}/screenshots`;
 export const SAMPLE_HOME_URL = "http://localhost";
 export const SUCCESSFUL_GRAPH_CALL_ID = "graph-called-successfully";
 export const SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID = "token-acquired-silently";

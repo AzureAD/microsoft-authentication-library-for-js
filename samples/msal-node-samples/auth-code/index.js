@@ -173,7 +173,7 @@ if (argv.$0 === "index.js") {
             clientId: config.authOptions.clientId,
             authority: config.authOptions.authority,
             clientSecret: process.env.AZURE_CLIENT_SECRET,
-            knownAuthorities: [config.authOptions.knownAuthorities]
+            knownAuthorities: config.authOptions.knownAuthorities
         },
         cache: {
             cachePlugin
