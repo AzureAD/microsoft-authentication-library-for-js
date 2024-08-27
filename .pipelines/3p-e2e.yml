@@ -45,6 +45,7 @@ extends:
                         #RunAsPreJob: false # boolean. Make secrets available to whole job. Default: false.
 
                   - powershell: |
+
                         $kvSecretBytes = [System.Convert]::FromBase64String('$(LabAuth)')
                         $certCollection = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2Collection
                         $certCollection.Import($kvSecretBytes, $null, [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
