@@ -34,29 +34,6 @@ extends:
             - stage: e2e_test
               displayName: "3P E2E Tests"
               jobs:
-                  # Task to download Azure Key Vault secrets using the Azure Key Vault task version 2.
-                  - task: AzureKeyVault@2
-                    displayName: "Connect to Key Vault"
-                    inputs:
-                        azureSubscription: "AuthSdkResourceManager" # string. Workload identity service connection to use managed identity authentication
-                        KeyVaultName: "msidlabs" # string. Required. The name of the Key Vault containing the secrets.
-                        #setting secrets filter to fetch only MSIDLABCertificate cert from the vault
-                        SecretsFilter: "LabAuth" # string. Required. Specifies the secret to download. Use '*' for all secrets.
-                        #RunAsPreJob: false # boolean. Make secrets available to whole job. Default: false.
-
-                  - powershell: |
-
-                        $kvSecretBytes = [System.Convert]::FromBase64String('$(LabAuth)')
-                        $certCollection = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2Collection
-                        $certCollection.Import($kvSecretBytes, $null, [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
-
-                        $protectedCertificateBytes = $certCollection.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pkcs12)
-                        $pfxPath = "C:\tmp\TestCert.pfx"
-                        [System.IO.File]::WriteAllBytes($pfxPath, $protectedCertificateBytes)
-
-                        Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\LocalMachine\My
-
-                    displayName: "Install Keyvault Secrets"
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
                         jobName: "validate_msal_browser"
