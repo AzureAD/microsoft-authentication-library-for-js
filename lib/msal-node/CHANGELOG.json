@@ -2,6 +2,47 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 13 Aug 2024 23:25:05 GMT",
+      "version": "2.13.0",
+      "tag": "@azure/msal-node_v2.13.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "tyleonha@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "3c8bde64f806e183bb5dbb6be1f0c3c9f0f54829",
+            "comment": "Send the error template back when there's an error response"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4592e9ff0b3ba55fe3a5e722cc4591f884be0462",
+            "comment": "clientSecret can now (once again) be provided as undefined #7209"
+          }
+        ],
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "630605c310a7e9f4ab2b57011af021ea34c0e418",
+            "comment": "Added file-based detection for Azure Arc"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.14.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 23 Jul 2024 14:19:34 GMT",
       "version": "2.12.0",
       "tag": "@azure/msal-node_v2.12.0",

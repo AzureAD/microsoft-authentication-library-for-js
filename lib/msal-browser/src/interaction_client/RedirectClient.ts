@@ -356,9 +356,7 @@ export class RedirectClient extends StandardInteractionClient {
                     this.correlationId
                 );
 
-                const requestRetried = this.browserStorage.getRequestRetried(
-                    this.correlationId
-                );
+                const requestRetried = this.browserStorage.getRequestRetried();
 
                 if (requestRetried) {
                     this.logger.error(
@@ -372,15 +370,15 @@ export class RedirectClient extends StandardInteractionClient {
                     this.browserStorage.getCachedRedirectRequest();
                 if (!redirectRequest) {
                     this.logger.error(
-                        `Unable to retry. Please retry with redirect request and correlationId: ${this.correlationId}`
+                        "Unable to retry. Please retry with redirect request"
                     );
-                    this.browserStorage.setRequestRetried(this.correlationId);
+                    this.browserStorage.setRequestRetried();
                     throw createBrowserAuthError(
                         BrowserAuthErrorCodes.failedToRetry
                     );
                 }
 
-                this.browserStorage.setRequestRetried(this.correlationId);
+                this.browserStorage.setRequestRetried();
 
                 await this.acquireToken(redirectRequest);
                 return null;
