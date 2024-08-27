@@ -279,13 +279,13 @@ export class MsalInterceptor implements HttpInterceptor {
       const normalizedKey = this.location.normalize(key);
       const absoluteKey = this.getAbsoluteUrl(key);
 
+      // Store the resource with the index position in the endpoint URL
       if (StringUtils.matchPattern(normalizedKey, normalizedEndpoint)) {
         const indexn = endpoint.indexOf(normalizedKey);
         absoluteResourcesWithIndex.set(key, Math.max(0, indexn));
       }
 
       // Get url components for relative urls
-
       const keyComponents = new UrlString(absoluteKey).getUrlComponents();
       const absoluteEndpoint = this.getAbsoluteUrl(normalizedEndpoint);
       const endpointComponents = new UrlString(
@@ -307,18 +307,30 @@ export class MsalInterceptor implements HttpInterceptor {
         matchingResources.relativeResources.push(key);
       }
     });
+
     matchingResources.absoluteResources =
-      absoluteResourcesWithIndex.size > 0
-        ? Array.from(
-            new Map(
-              [...absoluteResourcesWithIndex.entries()].sort(
-                (a, b) => a[1] - b[1]
-              )
-            ).keys()
-          )
-        : [];
+      this.sequenceMatchingAbsoluteResources(absoluteResourcesWithIndex);
 
     return matchingResources;
+  }
+
+  /**
+   * Sorts Matching abosulte resources based on occurence (position index) in the endpoint URL
+   * @param absoluteResourcesWithIndex
+   * @returns Resources sorted by position index
+   */
+  private sequenceMatchingAbsoluteResources(
+    absoluteResourcesWithIndex: Map<string, number>
+  ): string[] {
+    return absoluteResourcesWithIndex.size > 0
+      ? Array.from(
+          new Map(
+            [...absoluteResourcesWithIndex.entries()].sort(
+              (a, b) => a[1] - b[1]
+            )
+          ).keys()
+        )
+      : [];
   }
 
   /**
