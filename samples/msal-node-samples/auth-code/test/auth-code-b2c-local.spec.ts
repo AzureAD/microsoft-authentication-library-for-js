@@ -148,6 +148,7 @@ describe("Auth Code B2C Tests (local account)", () => {
                 username,
                 accountPwd
             );
+            await screenshot.takeScreenshot(page, "b2cLocalAccountCredentialsSubmitted");
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
@@ -172,6 +173,7 @@ describe("Auth Code B2C Tests (local account)", () => {
                 username,
                 accountPwd
             );
+            await screenshot.takeScreenshot(page, "b2cLocalAccountCredentialsSubmitted");
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
@@ -195,6 +197,7 @@ describe("Auth Code B2C Tests (local account)", () => {
                 username,
                 accountPwd
             );
+            await screenshot.takeScreenshot(page, "b2cLocalAccountCredentialsSubmitted");
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
@@ -226,6 +229,7 @@ describe("Auth Code B2C Tests (local account)", () => {
                 username,
                 accountPwd
             );
+            await screenshot.takeScreenshot(page, "b2cLocalAccountCredentialsSubmitted");
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
