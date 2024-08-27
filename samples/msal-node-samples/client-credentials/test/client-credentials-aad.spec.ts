@@ -21,6 +21,10 @@ let authority;
 
 const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
 
+const fs = require("fs");
+const cert = fs.readFileSync("C:\\tmpTestCert.pfx");
+console.log(cert);
+
 describe("Client Credentials AAD Prod Tests", () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(90000);
@@ -53,6 +57,7 @@ describe("Client Credentials AAD Prod Tests", () => {
     describe("Acquire Token", () => {
         let confidentialClientApplication: ConfidentialClientApplication;
         let server: any;
+        console.log(cert);
 
         beforeAll(async () => {
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
@@ -67,6 +72,7 @@ describe("Client Credentials AAD Prod Tests", () => {
         });
 
         it("Performs acquire token", async () => {
+            console.log(cert);
             confidentialClientApplication = new ConfidentialClientApplication({
                 auth: config.authOptions,
                 cache: { cachePlugin },
