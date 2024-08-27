@@ -179,6 +179,7 @@ export async function b2cLocalAccountEnterCredentials(
     await screenshot.takeScreenshot(page, "b2cSignInPage");
     await page.type("#logonIdentifier", username);
     await page.type("#password", accountPwd);
+    await screenshot.takeScreenshot(page, "b2cSignInPageCredentialsEntered");
     await page.click("#next");
 }
 

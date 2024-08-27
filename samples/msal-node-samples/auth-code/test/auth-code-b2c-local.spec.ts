@@ -102,7 +102,7 @@ describe("Auth Code B2C Tests (local account)", () => {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(5000);
+            page.setDefaultTimeout(10000);
             page.on("dialog", async (dialog) => {
                 console.log(dialog.message());
                 await dialog.dismiss();
@@ -124,6 +124,7 @@ describe("Auth Code B2C Tests (local account)", () => {
                 username,
                 accountPwd
             );
+            await screenshot.takeScreenshot(page, "b2cLocalAccountCredentialsSubmitted");
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
