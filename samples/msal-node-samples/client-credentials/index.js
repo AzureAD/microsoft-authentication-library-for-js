@@ -16,6 +16,10 @@ const argv = require("../cliArgs");
 const cacheLocation = argv.c || "./data/cache.json";
 const cachePlugin = require('../cachePlugin')(cacheLocation);
 
+const fs = require("fs");
+const cert = fs.readFileSync("C:\tmp\TestCert.pfx");
+console.log(cert);
+
 /**
  * The scenario string is the name of a .json file which contains the MSAL client configuration
  * For an example of what a configuration file should look like, check out the customConfig.json file in the

@@ -34,6 +34,7 @@ extends:
             - stage: e2e_test
               displayName: "3P E2E Tests"
               jobs:
+                  - template: template-install-keyvault-secrets.yaml
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
                         jobName: "validate_msal_browser"
