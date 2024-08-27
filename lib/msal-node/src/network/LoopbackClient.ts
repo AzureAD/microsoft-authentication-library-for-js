@@ -74,7 +74,7 @@ export class LoopbackClient implements ILoopbackClient {
                         resolve(authCodeResponse);
                     }
                 );
-                this.server.listen(0); // Listen on any available port
+                this.server.listen(0, '127.0.0.1'); // Listen on any available port
             }
         );
     }
