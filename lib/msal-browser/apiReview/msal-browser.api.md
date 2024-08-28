@@ -235,8 +235,7 @@ declare namespace BrowserAuthErrorCodes {
         uninitializedPublicClientApplication,
         nativePromptNotSupported,
         invalidBase64String,
-        invalidPopTokenRequest,
-        failedToRetry
+        invalidPopTokenRequest
     }
 }
 export { BrowserAuthErrorCodes }
@@ -839,11 +838,6 @@ export { ExternalTokenResponse }
 //
 // @public (undocumented)
 const failedToParseResponse = "failed_to_parse_response";
-
-// Warning: (ae-missing-release-tag) "failedToRetry" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const failedToRetry = "failed_to_retry";
 
 // Warning: (ae-missing-release-tag) "getCurrentUri" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
