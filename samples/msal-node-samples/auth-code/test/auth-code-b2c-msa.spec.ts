@@ -127,6 +127,7 @@ describe("Auth Code B2C Tests (msa account)", () => {
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
+            await screenshot.takeScreenshot(page, "credentialsSubmitted");
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(
                 TEST_CACHE_LOCATION,
                 2000
@@ -150,7 +151,7 @@ describe("Auth Code B2C Tests (msa account)", () => {
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
-
+            await screenshot.takeScreenshot(page, "credentialsSubmitted");
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(
                 TEST_CACHE_LOCATION,
                 2000
@@ -174,6 +175,7 @@ describe("Auth Code B2C Tests (msa account)", () => {
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
+            await screenshot.takeScreenshot(page, "credentialsSubmitted");
 
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(
                 TEST_CACHE_LOCATION,
@@ -197,6 +199,7 @@ describe("Auth Code B2C Tests (msa account)", () => {
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
+            await screenshot.takeScreenshot(page, "credentialsSubmitted");
             await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
 
             // Reset the cache to prepare for the second login
@@ -228,6 +231,7 @@ describe("Auth Code B2C Tests (msa account)", () => {
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
+            await screenshot.takeScreenshot(page, "credentialsSubmitted");
             const url = page.url();
             expect(url.includes(`state=${STATE_VALUE}`)).toBe(true);
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(
