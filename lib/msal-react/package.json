@@ -15,15 +15,23 @@
   "type": "module",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "main": "lib/msal-react.cjs",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./lib/types/index.d.ts",
+        "default": "./lib/msal-react.cjs"
+      }
     },
     "./package.json": "./package.json"
   },
   "files": [
     "dist",
+    "lib",
     "src"
   ],
   "engines": {
