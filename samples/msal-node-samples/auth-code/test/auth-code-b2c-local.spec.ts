@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
+import fs from "fs";
 import * as puppeteer from "puppeteer";
 import {
     Screenshot,
@@ -20,7 +20,7 @@ import {
     UserTypes,
 } from "e2e-test-utils";
 
-import { PublicClientApplication } from "@azure/msal-node";
+import { LogLevel, PublicClientApplication } from "@azure/msal-node";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/b2c-local.cache.json`;
@@ -45,6 +45,7 @@ describe("Auth Code B2C Tests (local account)", () => {
 
     let username: string;
     let accountPwd: string;
+    const logFile = fs.createWriteStream(__dirname + '/debug.log', {flags : 'w'});
 
     const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/auth-code/b2c/local-account`;
 
@@ -87,6 +88,14 @@ describe("Auth Code B2C Tests (local account)", () => {
             publicClientApplication = new PublicClientApplication({
                 auth: config.authOptions,
                 cache: { cachePlugin },
+                system: {
+                    loggerOptions: {
+                        loggerCallback(loglevel, message, containsPii) {
+                            logFile.write(message + "\n");
+                        },
+                        logLevel: LogLevel.Verbose
+                    },
+                }
             });
 
             server = getTokenAuthCode(config, publicClientApplication, port);
