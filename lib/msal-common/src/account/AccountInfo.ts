@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { TokenClaims } from "./TokenClaims";
+import { TokenClaims } from "./TokenClaims.js";
 /**
  * Account object with the following signature:
  * - homeAccountId          - Home account identifier for this account object

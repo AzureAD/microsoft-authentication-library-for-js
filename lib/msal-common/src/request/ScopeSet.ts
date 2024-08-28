@@ -6,13 +6,13 @@
 import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
-} from "../error/ClientConfigurationError";
-import { StringUtils } from "../utils/StringUtils";
+} from "../error/ClientConfigurationError.js";
+import { StringUtils } from "../utils/StringUtils.js";
 import {
     ClientAuthErrorCodes,
     createClientAuthError,
-} from "../error/ClientAuthError";
-import { Constants, OIDC_SCOPES } from "../utils/Constants";
+} from "../error/ClientAuthError.js";
+import { Constants, OIDC_SCOPES } from "../utils/Constants.js";
 
 /**
  * The ScopeSet class creates a set of scopes. Scopes are case-insensitive, unique values, so the Set object in JS makes

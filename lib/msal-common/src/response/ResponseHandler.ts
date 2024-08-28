@@ -3,55 +3,55 @@
  * Licensed under the MIT License.
  */
 
-import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse";
-import { ICrypto } from "../crypto/ICrypto";
+import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse.js";
+import { ICrypto } from "../crypto/ICrypto.js";
 import {
     ClientAuthErrorCodes,
     createClientAuthError,
-} from "../error/ClientAuthError";
-import { ServerAuthorizationCodeResponse } from "./ServerAuthorizationCodeResponse";
-import { Logger } from "../logger/Logger";
-import { ServerError } from "../error/ServerError";
-import { ScopeSet } from "../request/ScopeSet";
-import { AuthenticationResult } from "./AuthenticationResult";
-import { AccountEntity } from "../cache/entities/AccountEntity";
-import { Authority } from "../authority/Authority";
-import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
-import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
-import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
+} from "../error/ClientAuthError.js";
+import { ServerAuthorizationCodeResponse } from "./ServerAuthorizationCodeResponse.js";
+import { Logger } from "../logger/Logger.js";
+import { ServerError } from "../error/ServerError.js";
+import { ScopeSet } from "../request/ScopeSet.js";
+import { AuthenticationResult } from "./AuthenticationResult.js";
+import { AccountEntity } from "../cache/entities/AccountEntity.js";
+import { Authority } from "../authority/Authority.js";
+import { IdTokenEntity } from "../cache/entities/IdTokenEntity.js";
+import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity.js";
+import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity.js";
 import {
     InteractionRequiredAuthError,
     isInteractionRequiredError,
-} from "../error/InteractionRequiredAuthError";
-import { CacheRecord } from "../cache/entities/CacheRecord";
-import { CacheManager } from "../cache/CacheManager";
-import { ProtocolUtils, RequestStateObject } from "../utils/ProtocolUtils";
+} from "../error/InteractionRequiredAuthError.js";
+import { CacheRecord } from "../cache/entities/CacheRecord.js";
+import { CacheManager } from "../cache/CacheManager.js";
+import { ProtocolUtils, RequestStateObject } from "../utils/ProtocolUtils.js";
 import {
     AuthenticationScheme,
     Constants,
     THE_FAMILY_ID,
     HttpStatus,
-} from "../utils/Constants";
-import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
-import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
-import { ICachePlugin } from "../cache/interface/ICachePlugin";
-import { TokenCacheContext } from "../cache/persistence/TokenCacheContext";
-import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
-import { AuthorizationCodePayload } from "./AuthorizationCodePayload";
-import { BaseAuthRequest } from "../request/BaseAuthRequest";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
-import { checkMaxAge, extractTokenClaims } from "../account/AuthToken";
+} from "../utils/Constants.js";
+import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
+import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity.js";
+import { ICachePlugin } from "../cache/interface/ICachePlugin.js";
+import { TokenCacheContext } from "../cache/persistence/TokenCacheContext.js";
+import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache.js";
+import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
+import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import { checkMaxAge, extractTokenClaims } from "../account/AuthToken.js";
 import {
     TokenClaims,
     getTenantIdFromIdTokenClaims,
-} from "../account/TokenClaims";
+} from "../account/TokenClaims.js";
 import {
     AccountInfo,
     buildTenantProfile,
     updateAccountTenantProfileData,
-} from "../account/AccountInfo";
-import * as CacheHelpers from "../cache/utils/CacheHelpers";
+} from "../account/AccountInfo.js";
+import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 
 function parseServerErrorNo(
     serverResponse: ServerAuthorizationCodeResponse
