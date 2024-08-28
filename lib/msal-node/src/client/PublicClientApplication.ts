@@ -38,7 +38,7 @@ import { SilentFlowRequest } from "../request/SilentFlowRequest.js";
 import { SignOutRequest } from "../request/SignOutRequest.js";
 import { ILoopbackClient } from "../network/ILoopbackClient.js";
 import { DeviceCodeClient } from "./DeviceCodeClient.js";
-import { version } from "../packageMetadata";
+import { version } from "../packageMetadata.js";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications

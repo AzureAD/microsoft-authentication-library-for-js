@@ -4,7 +4,7 @@
  */
 
 import { RequestParameterBuilder, UrlString } from "@azure/msal-common";
-import { HttpMethod } from "../utils/Constants";
+import { HttpMethod } from "../utils/Constants.js";
 
 export class ManagedIdentityRequestParameters {
     private _baseEndpoint: string;

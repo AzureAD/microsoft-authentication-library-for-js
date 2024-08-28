@@ -4,7 +4,7 @@
  */
 
 import { CommonClientCredentialRequest } from "@azure/msal-common";
-import { ManagedIdentityRequestParams } from "./ManagedIdentityRequestParams";
+import { ManagedIdentityRequestParams } from "./ManagedIdentityRequestParams.js";
 
 /**
  * ManagedIdentityRequest

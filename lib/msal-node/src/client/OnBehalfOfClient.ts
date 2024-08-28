@@ -33,7 +33,7 @@ import {
     ClientAssertion,
     getClientAssertion,
 } from "@azure/msal-common";
-import { EncodingUtils } from "../utils/EncodingUtils";
+import { EncodingUtils } from "../utils/EncodingUtils.js";
 
 /**
  * On-Behalf-Of client
