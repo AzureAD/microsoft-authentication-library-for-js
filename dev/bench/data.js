@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724692636070,
+  "lastUpdate": 1724871536830,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -11064,6 +11064,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.03%",
             "unit": "ops/sec",
             "extra": "213 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a7d6315a17daf27bb0887fc03a3039a7ba6f57eb",
+          "message": "Remove retries for popup and redirect (#7270)\n\nThis PR:\r\n- Fixes error condition in SilentIframeClient\r\n- Removes retries in PopupClient and associated PerformanceEvents\r\n- Removes retries in RedirectClient and associated changes in\r\nStandardController, BrowserCacheManager, and RedirectHandler",
+          "timestamp": "2024-08-28T11:53:18-07:00",
+          "tree_id": "225cfae6939c67f1ab77816124c6239d52c9f82a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/a7d6315a17daf27bb0887fc03a3039a7ba6f57eb"
+        },
+        "date": 1724871535593,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 228717,
+            "range": "±1.24%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 191046,
+            "range": "±1.95%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
