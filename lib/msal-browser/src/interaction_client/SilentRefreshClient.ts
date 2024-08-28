@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { StandardInteractionClient } from "./StandardInteractionClient";
+import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import {
     CommonSilentFlowRequest,
     ServerTelemetryManager,
@@ -14,13 +14,13 @@ import {
     invokeAsync,
     AccountInfo,
 } from "@azure/msal-common";
-import { ApiId } from "../utils/BrowserConstants";
+import { ApiId } from "../utils/BrowserConstants.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { initializeBaseRequest } from "../request/RequestHelpers";
+} from "../error/BrowserAuthError.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { initializeBaseRequest } from "../request/RequestHelpers.js";
 
 export class SilentRefreshClient extends StandardInteractionClient {
     /**

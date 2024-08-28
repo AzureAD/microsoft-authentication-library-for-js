@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { InteractionType } from "./BrowserConstants";
+import { InteractionType } from "./BrowserConstants.js";
 import {
     ICrypto,
     RequestStateObject,

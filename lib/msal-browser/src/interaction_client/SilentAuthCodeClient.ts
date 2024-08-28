@@ -12,22 +12,22 @@ import {
     PerformanceEvents,
     invokeAsync,
 } from "@azure/msal-common";
-import { StandardInteractionClient } from "./StandardInteractionClient";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { BrowserConfiguration } from "../config/Configuration";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { EventHandler } from "../event/EventHandler";
-import { INavigationClient } from "../navigation/INavigationClient";
+import { StandardInteractionClient } from "./StandardInteractionClient.js";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
+import { EventHandler } from "../event/EventHandler.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { InteractionType, ApiId } from "../utils/BrowserConstants";
-import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
-import { HybridSpaAuthorizationCodeClient } from "./HybridSpaAuthorizationCodeClient";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { InteractionHandler } from "../interaction_handler/InteractionHandler";
+} from "../error/BrowserAuthError.js";
+import { InteractionType, ApiId } from "../utils/BrowserConstants.js";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
+import { HybridSpaAuthorizationCodeClient } from "./HybridSpaAuthorizationCodeClient.js";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { InteractionHandler } from "../interaction_handler/InteractionHandler.js";
 
 export class SilentAuthCodeClient extends StandardInteractionClient {
     private apiId: ApiId;

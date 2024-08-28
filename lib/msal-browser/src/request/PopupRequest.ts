@@ -4,7 +4,7 @@
  */
 
 import { CommonAuthorizationUrlRequest, StringDict } from "@azure/msal-common";
-import { PopupWindowAttributes } from "./PopupWindowAttributes";
+import { PopupWindowAttributes } from "./PopupWindowAttributes.js";
 
 /**
  * PopupRequest: Request object passed by user to retrieve a Code from the

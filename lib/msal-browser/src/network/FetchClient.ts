@@ -12,8 +12,8 @@ import {
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
+} from "../error/BrowserAuthError.js";
+import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants.js";
 
 /**
  * This class implements the Fetch API for GET and POST requests. See more here: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API

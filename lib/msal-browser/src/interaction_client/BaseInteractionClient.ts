@@ -22,21 +22,21 @@ import {
     AzureCloudOptions,
     invokeAsync,
 } from "@azure/msal-common";
-import { BrowserConfiguration } from "../config/Configuration";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { EventHandler } from "../event/EventHandler";
-import { EndSessionRequest } from "../request/EndSessionRequest";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { PopupRequest } from "../request/PopupRequest";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { version } from "../packageMetadata";
-import { BrowserConstants } from "../utils/BrowserConstants";
-import * as BrowserUtils from "../utils/BrowserUtils";
-import { INavigationClient } from "../navigation/INavigationClient";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { ClearCacheRequest } from "../request/ClearCacheRequest";
-import { createNewGuid } from "../crypto/BrowserCrypto";
+import { BrowserConfiguration } from "../config/Configuration.js";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
+import { EventHandler } from "../event/EventHandler.js";
+import { EndSessionRequest } from "../request/EndSessionRequest.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { version } from "../packageMetadata.js";
+import { BrowserConstants } from "../utils/BrowserConstants.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
+import { createNewGuid } from "../crypto/BrowserCrypto.js";
 
 export abstract class BaseInteractionClient {
     protected config: BrowserConfiguration;

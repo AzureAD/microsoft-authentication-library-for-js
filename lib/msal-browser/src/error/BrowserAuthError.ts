@@ -4,7 +4,7 @@
  */
 
 import { AuthError } from "@azure/msal-common";
-import * as BrowserAuthErrorCodes from "./BrowserAuthErrorCodes";
+import * as BrowserAuthErrorCodes from "./BrowserAuthErrorCodes.js";
 export { BrowserAuthErrorCodes }; // Allow importing as "BrowserAuthErrorCodes"
 
 const ErrorLink = "For more visit: aka.ms/msaljs/browser-errors";

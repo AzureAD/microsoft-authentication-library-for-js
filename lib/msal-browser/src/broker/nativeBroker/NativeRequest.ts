@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { NativeExtensionMethod } from "../../utils/BrowserConstants";
+import { NativeExtensionMethod } from "../../utils/BrowserConstants.js";
 import { StoreInCache, StringDict } from "@azure/msal-common";
 
 /**

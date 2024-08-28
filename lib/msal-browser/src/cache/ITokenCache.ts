@@ -4,9 +4,9 @@
  */
 
 import { ExternalTokenResponse } from "@azure/msal-common";
-import { SilentRequest } from "../request/SilentRequest";
-import { LoadTokenOptions } from "./TokenCache";
-import { AuthenticationResult } from "../response/AuthenticationResult";
+import { SilentRequest } from "../request/SilentRequest.js";
+import { LoadTokenOptions } from "./TokenCache.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
 
 export interface ITokenCache {
     /**

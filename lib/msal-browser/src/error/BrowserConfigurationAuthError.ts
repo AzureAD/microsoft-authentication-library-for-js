@@ -4,7 +4,7 @@
  */
 
 import { AuthError } from "@azure/msal-common";
-import * as BrowserConfigurationAuthErrorCodes from "./BrowserConfigurationAuthErrorCodes";
+import * as BrowserConfigurationAuthErrorCodes from "./BrowserConfigurationAuthErrorCodes.js";
 export { BrowserConfigurationAuthErrorCodes };
 
 export const BrowserConfigurationAuthErrorMessages = {

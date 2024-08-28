@@ -19,12 +19,12 @@ import {
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { ApiId, TemporaryCacheKeys } from "../utils/BrowserConstants";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { INavigationClient } from "../navigation/INavigationClient";
-import { NavigationOptions } from "../navigation/NavigationOptions";
-import { AuthenticationResult } from "../response/AuthenticationResult";
+} from "../error/BrowserAuthError.js";
+import { ApiId, TemporaryCacheKeys } from "../utils/BrowserConstants.js";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
+import { NavigationOptions } from "../navigation/NavigationOptions.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
 
 export type RedirectParams = {
     navigationClient: INavigationClient;

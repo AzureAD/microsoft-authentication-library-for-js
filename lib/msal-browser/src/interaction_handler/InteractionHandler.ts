@@ -17,13 +17,13 @@ import {
     ServerAuthorizationCodeResponse,
 } from "@azure/msal-common";
 
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
+} from "../error/BrowserAuthError.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
 
 /**
  * Abstract class which defines operations for a browser interaction handling class.

@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { BaseOperatingContext } from "./BaseOperatingContext";
-import { IBridgeProxy } from "../naa/IBridgeProxy";
-import { BridgeProxy } from "../naa/BridgeProxy";
-import { AccountContext } from "../naa/BridgeAccountContext";
+import { BaseOperatingContext } from "./BaseOperatingContext.js";
+import { IBridgeProxy } from "../naa/IBridgeProxy.js";
+import { BridgeProxy } from "../naa/BridgeProxy.js";
+import { AccountContext } from "../naa/BridgeAccountContext.js";
 
 export class NestedAppOperatingContext extends BaseOperatingContext {
     protected bridgeProxy: IBridgeProxy | undefined = undefined;

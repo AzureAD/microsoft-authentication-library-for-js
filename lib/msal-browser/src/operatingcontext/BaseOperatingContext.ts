@@ -8,13 +8,13 @@ import {
     BrowserConfiguration,
     buildConfiguration,
     Configuration,
-} from "../config/Configuration";
-import { version, name } from "../packageMetadata";
+} from "../config/Configuration.js";
+import { version, name } from "../packageMetadata.js";
 import {
     BrowserCacheLocation,
     LOG_LEVEL_CACHE_KEY,
     LOG_PII_CACHE_KEY,
-} from "../utils/BrowserConstants";
+} from "../utils/BrowserConstants.js";
 
 /**
  * Base class for operating context
