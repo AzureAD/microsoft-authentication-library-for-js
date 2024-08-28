@@ -4,7 +4,7 @@ import { LabConfig } from "./LabConfig";
 import { LabClient } from "./LabClient";
 
 export const ONE_SECOND_IN_MS = 1000;
-export const RETRY_TIMES = 5;
+export const RETRY_TIMES = 0;
 
 const WAIT_FOR_NAVIGATION_CONFIG: WaitForOptions = {
     waitUntil: ["load", "domcontentloaded", "networkidle0"],
