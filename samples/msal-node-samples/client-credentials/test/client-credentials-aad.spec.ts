@@ -22,7 +22,7 @@ let authority;
 const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
 
 const fs = require("fs");
-const cert = fs.readFileSync("C:\\tmpTestCert.pfx");
+const cert = fs.readFileSync("LabCert.pfx");
 console.log(cert);
 
 describe("Client Credentials AAD Prod Tests", () => {
@@ -72,7 +72,6 @@ describe("Client Credentials AAD Prod Tests", () => {
         });
 
         it("Performs acquire token", async () => {
-            console.log(cert);
             confidentialClientApplication = new ConfidentialClientApplication({
                 auth: config.authOptions,
                 cache: { cachePlugin },
