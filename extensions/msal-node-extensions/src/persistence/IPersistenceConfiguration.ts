@@ -5,7 +5,7 @@
 
 import type { LoggerOptions } from "@azure/msal-common";
 
-import { DataProtectionScope } from "./DataProtectionScope";
+import { DataProtectionScope } from "./DataProtectionScope.js";
 
 export interface IPersistenceConfiguration {
     cachePath?: string;

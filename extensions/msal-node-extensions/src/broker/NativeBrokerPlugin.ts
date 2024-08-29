@@ -36,9 +36,9 @@ import {
     SignOutResult,
     LogLevel as MsalRuntimeLogLevel,
 } from "@azure/msal-node-runtime";
-import { ErrorCodes } from "../utils/Constants";
-import { NativeAuthError } from "../error/NativeAuthError";
-import { version, name } from "../packageMetadata";
+import { ErrorCodes } from "../utils/Constants.js";
+import { NativeAuthError } from "../error/NativeAuthError.js";
+import { version, name } from "../packageMetadata.js";
 
 export class NativeBrokerPlugin implements INativeBrokerPlugin {
     private logger: Logger;
