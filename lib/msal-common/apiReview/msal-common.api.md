@@ -3465,15 +3465,6 @@ export type RequestThumbprint = {
     shrOptions?: ShrOptions;
 };
 
-// @public
-export class RequestValidator {
-    static validateClaims(claims: string): void;
-    static validateCodeChallengeMethod(codeChallengeMethod: string): void;
-    static validateCodeChallengeParams(codeChallenge: string, codeChallengeMethod: string): void;
-    static validatePrompt(prompt: string): void;
-    static validateRedirectUri(redirectUri: string): void;
-}
-
 // Warning: (ae-missing-release-tag) "RESPONSE_MODE" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
