@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "eliminated sinon from device code unit tests and from package.json",
+  "comment": "Eliminated sinon from msal-node's device code unit tests and from msal-node's package.json #7285",
   "packageName": "@azure/msal-node",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "none"
