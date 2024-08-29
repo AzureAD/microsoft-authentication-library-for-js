@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "eliminated sinon from device code unit tests and from package.json",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "none"
+}
