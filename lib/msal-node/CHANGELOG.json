@@ -2,6 +2,41 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Wed, 28 Aug 2024 23:06:01 GMT",
+      "version": "2.13.1",
+      "tag": "@azure/msal-node_v2.13.1",
+      "comments": {
+        "none": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "a7d6315a17daf27bb0887fc03a3039a7ba6f57eb",
+            "comment": "Format fix #7270"
+          }
+        ],
+        "patch": [
+          {
+            "author": "tyleonha@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "11e86776167826ebd789e77d873ff6ea42030b1b",
+            "comment": "Use '127.0.0.1' for the host when spinning up local loopback server"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.14.2",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 13 Aug 2024 23:25:05 GMT",
       "version": "2.13.0",
       "tag": "@azure/msal-node_v2.13.0",

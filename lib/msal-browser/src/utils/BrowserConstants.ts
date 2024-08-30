@@ -93,8 +93,6 @@ export const TemporaryCacheKeys = {
     CORRELATION_ID: "request.correlationId",
     NATIVE_REQUEST: "request.native",
     REDIRECT_CONTEXT: "request.redirect.context",
-    REDIRECT_REQUEST: "request.redirect",
-    REQUEST_RETRY: "request.retry",
 } as const;
 export type TemporaryCacheKeys =
     (typeof TemporaryCacheKeys)[keyof typeof TemporaryCacheKeys];
