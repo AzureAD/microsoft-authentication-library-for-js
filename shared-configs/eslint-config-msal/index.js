@@ -152,7 +152,7 @@ module.exports = {
     },
     "settings": {
         "react": {
-            "version": "18.0.0"
+            "version": "18.3.1"
         },
         "import/resolver": {
             "typescript": {} // this loads <rootdir>/tsconfig.json to eslint
