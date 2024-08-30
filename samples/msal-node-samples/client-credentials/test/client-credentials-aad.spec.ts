@@ -58,7 +58,6 @@ describe("Client Credentials AAD Prod Tests", () => {
     describe("Acquire Token", () => {
         let confidentialClientApplication: ConfidentialClientApplication;
         let server: any;
-        console.log(cert);
 
         beforeAll(async () => {
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
