@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1724955033502,
+  "lastUpdate": 1725045178568,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -11140,6 +11140,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.73%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "90d4f6f0cf5ca4ca1ba695ec889761700784ffce",
+          "message": "changed UX selectors to id and name for e2e tests (#7260)\n\nMoving all their UX identifiers from id to class names. This PR\r\naddresses this change for our e2e tests to identify UX elements by ids\r\nas well as class names where applicable.",
+          "timestamp": "2024-08-30T12:07:39-07:00",
+          "tree_id": "2172481216fdc63c70be9644ebbadd78132c6cc1",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/90d4f6f0cf5ca4ca1ba695ec889761700784ffce"
+        },
+        "date": 1725045177552,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 188748,
+            "range": "±2.00%",
+            "unit": "ops/sec",
+            "extra": "214 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 186560,
+            "range": "±2.16%",
+            "unit": "ops/sec",
+            "extra": "215 samples"
           }
         ]
       }
