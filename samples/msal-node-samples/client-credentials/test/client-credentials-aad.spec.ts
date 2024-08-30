@@ -8,6 +8,7 @@ import {
 } from "e2e-test-utils";
 import { ConfidentialClientApplication } from "@azure/msal-node";
 import config from "../config/AAD.json";
+import fs from "fs";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
 
@@ -21,9 +22,9 @@ let authority;
 
 const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
 
-const fs = require("fs");
-const cert = fs.readFileSync("LabCert.pfx");
-console.log(cert);
+console.log(process.env["AZURE_CLIENT_CERT_PATH"]);
+const privateKeySource = fs.readFileSync(process.env["AZURE_CLIENT_CERT_PATH"]);
+console.log(privateKeySource);
 
 describe("Client Credentials AAD Prod Tests", () => {
     jest.retryTimes(RETRY_TIMES);
