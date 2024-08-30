@@ -2,6 +2,45 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 28 Aug 2024 23:06:01 GMT",
+      "version": "3.22.0",
+      "tag": "@azure/msal-browser_v3.22.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a7d6315a17daf27bb0887fc03a3039a7ba6f57eb",
+            "comment": "Remove retry for popup and redirect #7270"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5477a2eec3101ef7d4da253760bf97ae639659a5",
+            "comment": "Revert 'Use high precision TS for NAA message time (#7243)'"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.14.2",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 13 Aug 2024 23:25:07 GMT",
       "version": "3.21.0",
       "tag": "@azure/msal-browser_v3.21.0",

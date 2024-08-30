@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 13 Aug 2024 23:25:07 GMT and should not be manually modified.
+This log was last generated on Wed, 28 Aug 2024 23:06:01 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.22.0
+
+Wed, 28 Aug 2024 23:06:01 GMT
+
+### Minor changes
+
+- Remove retry for popup and redirect #7270 (joarroyo@microsoft.com)
+- Revert 'Use high precision TS for NAA message time (#7243)' (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.14.2
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
 
 ## 3.21.0
 

@@ -244,7 +244,6 @@ declare namespace BrowserAuthErrorCodes {
         nativePromptNotSupported,
         invalidBase64String,
         invalidPopTokenRequest,
-        failedToRetry,
     };
 }
 export { BrowserAuthErrorCodes };
@@ -887,11 +886,6 @@ export { ExternalTokenResponse };
 //
 // @public (undocumented)
 const failedToParseResponse = "failed_to_parse_response";
-
-// Warning: (ae-missing-release-tag) "failedToRetry" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const failedToRetry = "failed_to_retry";
 
 // Warning: (ae-missing-release-tag) "getCurrentUri" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1843,7 +1837,7 @@ const userCancelled = "user_cancelled";
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "3.21.0";
+export const version = "3.22.0";
 
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
