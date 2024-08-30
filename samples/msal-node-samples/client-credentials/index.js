@@ -40,10 +40,10 @@ function getClientCredentialsToken(cca, clientCredentialRequestScopes, ro) {
         .acquireTokenByClientCredential(clientCredentialRequest)
         .then((response) => {
             // Uncomment to see the successful response logged
-            // console.log("Response: ", response);
+            console.log("Response: ", response);
         }).catch((error) => {
             // Uncomment to see the errors logges
-            // console.log(JSON.stringify(error));
+            console.log(JSON.stringify(error));
         });
 }
 
