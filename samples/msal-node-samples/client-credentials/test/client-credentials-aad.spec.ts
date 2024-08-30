@@ -9,6 +9,7 @@ import {
 import { ConfidentialClientApplication } from "@azure/msal-node";
 import config from "../config/AAD.json";
 import fs from "fs";
+import crypto from "crypto";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
 
@@ -24,7 +25,16 @@ const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
 
 console.log(process.env["AZURE_CLIENT_CERT_PATH"]);
 const privateKeySource = fs.readFileSync(process.env["AZURE_CLIENT_CERT_PATH"]);
-console.log(privateKeySource);
+const privateKeyObject = crypto.createPrivateKey({
+    key: privateKeySource,
+    format: "pem",
+});
+const privateKey = privateKeyObject.export({
+    format: "pem",
+    type: "pkcs8",
+}) as string;
+
+const x509 = new crypto.X509Certificate(privateKeySource);
 
 describe("Client Credentials AAD Prod Tests", () => {
     jest.retryTimes(RETRY_TIMES);
@@ -50,9 +60,9 @@ describe("Client Credentials AAD Prod Tests", () => {
         );
 
         // Update the complete config
-        config.authOptions.clientId = clientID;
-        config.authOptions.clientSecret = clientSecret;
-        config.authOptions.authority = authority;
+        // config.authOptions.clientId = clientID;
+        // config.authOptions.clientSecret = clientSecret;
+        // config.authOptions.authority = authority;
     });
 
     describe("Acquire Token", () => {
@@ -73,7 +83,14 @@ describe("Client Credentials AAD Prod Tests", () => {
 
         it("Performs acquire token", async () => {
             confidentialClientApplication = new ConfidentialClientApplication({
-                auth: config.authOptions,
+                auth: {
+                    clientId: process.env["AZURE_CLIENT_ID"],
+                    authority: `https://login.microsoftonline.com/${process.env["AZURE_TENANT_ID"]}`,
+                    clientCertificate: {
+                        thumbprintSha256: x509.fingerprint256,
+                        privateKey: privateKey,
+                    },
+                },
                 cache: { cachePlugin },
             });
             server = await getClientCredentialsToken(
@@ -88,7 +105,14 @@ describe("Client Credentials AAD Prod Tests", () => {
 
         it("Performs acquire token through regional authorities", async () => {
             confidentialClientApplication = new ConfidentialClientApplication({
-                auth: config.authOptions,
+                auth: {
+                    clientId: process.env["AZURE_CLIENT_ID"],
+                    authority: `https://login.microsoftonline.com/${process.env["AZURE_TENANT_ID"]}`,
+                    clientCertificate: {
+                        thumbprintSha256: x509.fingerprint256,
+                        privateKey: privateKey,
+                    },
+                },
                 cache: { cachePlugin },
             });
             server = await getClientCredentialsToken(
