@@ -35,6 +35,11 @@ const privateKey = privateKeyObject.export({
 }) as string;
 
 const x509 = new crypto.X509Certificate(privateKeySource);
+console.log(x509.fingerprint256);
+console.log(process.env["AZURE_CLIENT_ID"]);
+console.log(
+    `https://login.microsoftonline.com/${process.env["AZURE_TENANT_ID"]}`
+);
 
 describe("Client Credentials AAD Prod Tests", () => {
     jest.retryTimes(RETRY_TIMES);
