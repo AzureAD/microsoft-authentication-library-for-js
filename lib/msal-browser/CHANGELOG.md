@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 03 Sep 2024 21:30:55 GMT and should not be manually modified.
+This log was last generated on Tue, 03 Sep 2024 21:57:24 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.23.0
+
+Tue, 03 Sep 2024 21:57:24 GMT
+
+### Minor changes
+
+- Bump version (hemoral@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
 
 ## 3.22.1
 
