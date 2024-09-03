@@ -62,8 +62,8 @@ export class NestedAppOperatingContext extends BaseOperatingContext {
     async initialize(): Promise<boolean> {
         try {
             if (typeof window !== "undefined") {
-                if (typeof self.__initializeNestedAppAuth === "function") {
-                    await self.__initializeNestedAppAuth();
+                if (typeof window.__initializeNestedAppAuth === "function") {
+                    await window.__initializeNestedAppAuth();
                 }
 
                 const bridgeProxy: IBridgeProxy = await BridgeProxy.create();
