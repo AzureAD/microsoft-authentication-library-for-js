@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Bump version",
+  "packageName": "@azure/msal-browser",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
