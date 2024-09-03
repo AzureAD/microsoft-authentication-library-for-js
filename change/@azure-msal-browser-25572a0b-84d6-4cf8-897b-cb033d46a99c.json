@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Revert 'Use high precision TS for NAA message time (#7243)'",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
