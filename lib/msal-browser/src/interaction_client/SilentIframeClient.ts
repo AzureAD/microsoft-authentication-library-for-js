@@ -15,7 +15,6 @@ import {
     PerformanceEvents,
     invokeAsync,
     invoke,
-    ServerError,
 } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
@@ -160,7 +159,7 @@ export class SilentIframeClient extends StandardInteractionClient {
 
             if (
                 !authClient ||
-                !(e instanceof ServerError) ||
+                !(e instanceof AuthError) ||
                 e.errorCode !== BrowserConstants.INVALID_GRANT_ERROR
             ) {
                 throw e;
