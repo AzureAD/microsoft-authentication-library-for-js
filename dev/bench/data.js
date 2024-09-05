@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1725402205105,
+  "lastUpdate": 1725564102740,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -11216,6 +11216,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.89%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dasau@microsoft.com",
+            "name": "Dan Saunders",
+            "username": "codexeon"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5cd28fe0905672556b3bc60d951ff3c8361d0d95",
+          "message": "Add __initializeNestedAppAuth function for Nested App Auth (#7289)\n\nAdd a function call to `__initializeNestedAppAuth` that can be used to\r\nsetup Nested App Auth dependencies such as the bridge. It is an optional\r\nfunction, and may only be needed in some implementations.",
+          "timestamp": "2024-09-05T12:16:06-07:00",
+          "tree_id": "2501075ae05282ad6cead26b9991b575c18718c4",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/5cd28fe0905672556b3bc60d951ff3c8361d0d95"
+        },
+        "date": 1725564101733,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 191751,
+            "range": "±2.02%",
+            "unit": "ops/sec",
+            "extra": "230 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 182471,
+            "range": "±2.11%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
