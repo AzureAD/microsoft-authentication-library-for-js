@@ -15,6 +15,7 @@ import {
     StringUtils,
     createClientConfigurationError,
     invokeAsync,
+    StringDict,
 } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { SilentRequest } from "./SilentRequest";
@@ -25,7 +26,10 @@ import { hashString } from "../crypto/BrowserCrypto";
  * @param request
  */
 export async function initializeBaseRequest(
-    request: Partial<BaseAuthRequest> & { correlationId: string },
+    request: Partial<BaseAuthRequest> & {
+        correlationId: string;
+        extraQueryParameters?: StringDict;
+    },
     config: BrowserConfiguration,
     performanceClient: IPerformanceClient,
     logger: Logger
@@ -38,7 +42,7 @@ export async function initializeBaseRequest(
 
     const scopes = [...((request && request.scopes) || [])];
 
-    const validatedRequest: BaseAuthRequest = {
+    const validatedRequest = {
         ...request,
         correlationId: request.correlationId,
         authority,
@@ -79,6 +83,19 @@ export async function initializeBaseRequest(
         !StringUtils.isEmptyObj(request.claims)
     ) {
         validatedRequest.requestedClaimsHash = await hashString(request.claims);
+    }
+
+    const hasRequestInstanceAware =
+        validatedRequest.extraQueryParameters &&
+        validatedRequest.extraQueryParameters.hasOwnProperty("instance_aware");
+
+    // Set instance_aware flag if config auth param is set
+    if (!hasRequestInstanceAware && config.auth.instanceAware) {
+        validatedRequest.extraQueryParameters =
+            validatedRequest.extraQueryParameters || {};
+        validatedRequest.extraQueryParameters["instance_aware"] = String(
+            config.auth.instanceAware
+        );
     }
 
     return validatedRequest;

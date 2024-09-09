@@ -505,7 +505,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
         }
 
         // Get the preferred_cache domain for the given authority
-        const authority = await this.getDiscoveredAuthority(request.authority);
+        const authority = await this.getDiscoveredAuthority({
+            requestAuthority: request.authority,
+        });
 
         const baseAccount = buildAccountToCache(
             this.browserStorage,
@@ -905,18 +907,19 @@ export class NativeInteractionClient extends BaseInteractionClient {
             "NativeInteractionClient - initializeNativeRequest called"
         );
 
-        const authority = request.authority || this.config.auth.authority;
+        const requestAuthority =
+            request.authority || this.config.auth.authority;
 
         if (request.account) {
             // validate authority
-            await this.getDiscoveredAuthority(
-                authority,
-                request.azureCloudOptions,
-                request.account
-            );
+            await this.getDiscoveredAuthority({
+                requestAuthority,
+                requestAzureCloudOptions: request.azureCloudOptions,
+                account: request.account,
+            });
         }
 
-        const canonicalAuthority = new UrlString(authority);
+        const canonicalAuthority = new UrlString(requestAuthority);
         canonicalAuthority.validateAsUri();
 
         // scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.

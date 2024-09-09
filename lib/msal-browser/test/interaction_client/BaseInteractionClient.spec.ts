@@ -220,11 +220,11 @@ describe("BaseInteractionClient", () => {
 
             await testClient
                 // @ts-ignore
-                .getDiscoveredAuthority(
-                    "https://login.microsoftonline.com/common",
-                    undefined, // AzureCloudOptions
-                    testAccount
-                )
+                .getDiscoveredAuthority({
+                    requestAuthority:
+                        "https://login.microsoftonline.com/common",
+                    account: testAccount,
+                })
                 .then(() => {
                     throw "This is unexpected. This call should have failed.";
                 })
@@ -248,11 +248,11 @@ describe("BaseInteractionClient", () => {
 
             testClient
                 // @ts-ignore
-                .getDiscoveredAuthority(
-                    "https://login.microsoftonline.com/common",
-                    undefined, // AzureCloudOptions
-                    testAccount
-                )
+                .getDiscoveredAuthority({
+                    requestAuthority:
+                        "https://login.microsoftonline.com/common",
+                    account: testAccount,
+                })
                 .then(() => {
                     done();
                 })
@@ -261,23 +261,40 @@ describe("BaseInteractionClient", () => {
                 });
         });
 
-        it("Does not throw error when instanceAware is set for account", (done) => {
+        it("Does not throw error when instanceAware is set in the config", (done) => {
             const testAccount = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.microsoftonline.us",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
-                instanceAware: true,
             };
 
-            testClient
+            // @ts-ignore
+            const config = { ...pca.config };
+            config.auth.instanceAware = true;
+
+            const interactionClient = new testInteractionClient(
+                config,
                 // @ts-ignore
-                .getDiscoveredAuthority(
-                    undefined,
-                    undefined, // AzureCloudOptions
-                    testAccount
-                )
+                pca.browserStorage,
+                // @ts-ignore
+                pca.browserCrypto,
+                // @ts-ignore
+                pca.logger,
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                // @ts-ignore
+                pca.performanceClient
+            );
+
+            interactionClient
+                // @ts-ignore
+                .getDiscoveredAuthority({
+                    account: testAccount,
+                })
                 .then(() => {
                     done();
                 })
@@ -286,32 +303,47 @@ describe("BaseInteractionClient", () => {
                 });
         });
 
-        it("Throws error when instanceAware is set for account, but request authority is forced", async () => {
+        it("Does not throw error when both instanceAware is set in the config and request authority is set in the request", (done) => {
             const testAccount = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.microsoftonline.us",
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com",
-                instanceAware: true,
             };
 
-            await testClient
+            // @ts-ignore
+            const config = { ...pca.config };
+            config.auth.instanceAware = true;
+
+            const interactionClient = new testInteractionClient(
+                config,
                 // @ts-ignore
-                .getDiscoveredAuthority(
-                    "https://login.microsoftonline.com/common",
-                    undefined, // AzureCloudOptions
-                    testAccount
-                )
+                pca.browserStorage,
+                // @ts-ignore
+                pca.browserCrypto,
+                // @ts-ignore
+                pca.logger,
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                // @ts-ignore
+                pca.performanceClient
+            );
+
+            interactionClient
+                // @ts-ignore
+                .getDiscoveredAuthority({
+                    account: testAccount,
+                    requestAuthority:
+                        "https://login.microsoftonline.com/common",
+                })
                 .then(() => {
-                    throw "This is unexpected. This call should have failed.";
+                    done();
                 })
                 .catch((error) => {
-                    expect(error).toStrictEqual(
-                        createClientConfigurationError(
-                            ClientConfigurationErrorCodes.authorityMismatch
-                        )
-                    );
+                    done(error);
                 });
         });
     });

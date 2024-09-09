@@ -44,7 +44,6 @@ import { ProtocolMode } from "../../authority/ProtocolMode";
  *      lastModificationApp:
  *      nativeAccountId: Account identifier on the native device
  *      tenantProfiles: Array of tenant profile objects for each tenant that the account has authenticated with in the browser
- *      instanceAware: Instance aware flow indicator
  * }
  * @internal
  */
@@ -105,7 +104,6 @@ export class AccountEntity {
                     return [tenantProfile.tenantId, tenantProfile];
                 })
             ),
-            instanceAware: this.instanceAware,
         };
     }
 
@@ -141,7 +139,6 @@ export class AccountEntity {
             idTokenClaims?: TokenClaims;
             clientInfo?: string;
             cloudGraphHostName?: string;
-            cloudInstanceHostName?: string;
             msGraphHost?: string;
             environment?: string;
             nativeAccountId?: string;
@@ -214,9 +211,6 @@ export class AccountEntity {
 
         account.cloudGraphHostName = accountDetails.cloudGraphHostName;
         account.msGraphHost = accountDetails.msGraphHost;
-        if (accountDetails.cloudInstanceHostName) {
-            account.instanceAware = true;
-        }
 
         if (accountDetails.tenantProfiles) {
             account.tenantProfiles = accountDetails.tenantProfiles;

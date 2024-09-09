@@ -736,8 +736,6 @@ export function buildAccountToCache(
                 clientInfo,
                 environment,
                 cloudGraphHostName: authCodePayload?.cloud_graph_host_name,
-                cloudInstanceHostName:
-                    authCodePayload?.cloud_instance_host_name,
                 msGraphHost: authCodePayload?.msgraph_host,
                 nativeAccountId: nativeAccountId,
             },

@@ -103,6 +103,10 @@ export type BrowserAuthOptions = {
      * Callback that will be passed the url that MSAL will navigate to in redirect flows. Returning false in the callback will stop navigation.
      */
     onRedirectNavigate?: (url: string) => boolean | void;
+    /**
+     * Flag of whether the STS will send back additional parameters to specify where the tokens should be retrieved from.
+     */
+    instanceAware?: boolean;
 };
 
 /** @internal */
@@ -288,6 +292,7 @@ export function buildConfiguration(
         },
         skipAuthorityMetadataCache: false,
         supportsNestedAppAuth: false,
+        instanceAware: false,
     };
 
     // Default cache options for browser

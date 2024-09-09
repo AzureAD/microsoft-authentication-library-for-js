@@ -21,6 +21,7 @@ import {
     PerformanceEvents,
     AzureCloudOptions,
     invokeAsync,
+    StringDict,
 } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -177,15 +178,26 @@ export abstract class BaseInteractionClient {
 
     /**
      * Used to get a discovered version of the default authority.
-     * @param requestAuthority
-     * @param requestAzureCloudOptions
-     * @param account
+     * @param params {
+     *         requestAuthority?: string;
+     *         requestAzureCloudOptions?: AzureCloudOptions;
+     *         requestExtraQueryParameters?: StringDict;
+     *         account?: AccountInfo;
+     *        }
      */
-    protected async getDiscoveredAuthority(
-        requestAuthority?: string,
-        requestAzureCloudOptions?: AzureCloudOptions,
-        account?: AccountInfo
-    ): Promise<Authority> {
+    protected async getDiscoveredAuthority(params: {
+        requestAuthority?: string;
+        requestAzureCloudOptions?: AzureCloudOptions;
+        requestExtraQueryParameters?: StringDict;
+        account?: AccountInfo;
+    }): Promise<Authority> {
+        const { account } = params;
+        const instanceAwareEQ =
+            params.requestExtraQueryParameters &&
+            params.requestExtraQueryParameters.hasOwnProperty("instance_aware")
+                ? params.requestExtraQueryParameters["instance_aware"]
+                : undefined;
+
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
             this.correlationId
@@ -201,19 +213,25 @@ export abstract class BaseInteractionClient {
         };
 
         // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority
+        const resolvedAuthority =
+            params.requestAuthority || this.config.auth.authority;
+        const resolvedInstanceAware = instanceAwareEQ?.length
+            ? instanceAwareEQ === "true"
+            : this.config.auth.instanceAware;
+
         const userAuthority =
-            requestAuthority ||
-            (account?.instanceAware
+            account && resolvedInstanceAware
                 ? this.config.auth.authority.replace(
-                      UrlString.getDomainFromUrl(this.config.auth.authority),
+                      UrlString.getDomainFromUrl(resolvedAuthority),
                       account.environment
                   )
-                : this.config.auth.authority);
+                : resolvedAuthority;
 
         // fall back to the authority from config
         const builtAuthority = Authority.generateAuthority(
             userAuthority,
-            requestAzureCloudOptions || this.config.auth.azureCloudOptions
+            params.requestAzureCloudOptions ||
+                this.config.auth.azureCloudOptions
         );
         const discoveredAuthority = await invokeAsync(
             AuthorityFactory.createDiscoveredInstance,
