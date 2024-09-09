@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1725564102740,
+  "lastUpdate": 1725917970933,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -11252,6 +11252,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 182471,
             "range": "±2.11%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dasau@microsoft.com",
+            "name": "Dan Saunders",
+            "username": "codexeon"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5c0759850335576de6ce18bd451187c5c9718799",
+          "message": "Add clientLibrary and clientLibraryVersion parameters to NAA request (#7297)\n\nAdd clientLibrary and clientLibraryVersion parameters to NAA request for\r\ndiagnostic purpose.",
+          "timestamp": "2024-09-09T14:33:56-07:00",
+          "tree_id": "ab9e7a9aa909ad60d205a5c7d21b14650094fae3",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/5c0759850335576de6ce18bd451187c5c9718799"
+        },
+        "date": 1725917969852,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 192763,
+            "range": "±2.29%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 189353,
+            "range": "±1.98%",
             "unit": "ops/sec",
             "extra": "222 samples"
           }
