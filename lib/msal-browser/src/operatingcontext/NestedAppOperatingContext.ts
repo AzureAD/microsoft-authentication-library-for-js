@@ -8,6 +8,12 @@ import { IBridgeProxy } from "../naa/IBridgeProxy.js";
 import { BridgeProxy } from "../naa/BridgeProxy.js";
 import { AccountContext } from "../naa/BridgeAccountContext.js";
 
+declare global {
+    interface Window {
+        __initializeNestedAppAuth?(): Promise<void>;
+    }
+}
+
 export class NestedAppOperatingContext extends BaseOperatingContext {
     protected bridgeProxy: IBridgeProxy | undefined = undefined;
     protected accountContext: AccountContext | null = null;
@@ -54,13 +60,12 @@ export class NestedAppOperatingContext extends BaseOperatingContext {
      * @returns Promise<boolean> indicating whether this operating context is currently available.
      */
     async initialize(): Promise<boolean> {
-        /*
-         * TODO: Add implementation to check for presence of inject Nested App Auth Bridge JavaScript interface
-         *
-         */
-
         try {
             if (typeof window !== "undefined") {
+                if (typeof window.__initializeNestedAppAuth === "function") {
+                    await window.__initializeNestedAppAuth();
+                }
+
                 const bridgeProxy: IBridgeProxy = await BridgeProxy.create();
                 /*
                  * Because we want single sign on we expect the host app to provide the account context
