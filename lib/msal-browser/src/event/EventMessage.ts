@@ -5,7 +5,10 @@
 
 import { AuthError, AccountInfo } from "@azure/msal-common";
 import { EventType } from "./EventType.js";
-import { InteractionStatus, InteractionType } from "../utils/BrowserConstants.js";
+import {
+    InteractionStatus,
+    InteractionType,
+} from "../utils/BrowserConstants.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";

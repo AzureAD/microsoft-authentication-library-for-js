@@ -7,7 +7,11 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
-import { DB_NAME, DB_TABLE_NAME, DB_VERSION } from "../utils/BrowserConstants.js";
+import {
+    DB_NAME,
+    DB_TABLE_NAME,
+    DB_VERSION,
+} from "../utils/BrowserConstants.js";
 import { IAsyncStorage } from "./IAsyncStorage.js";
 
 interface IDBOpenDBRequestEvent extends Event {

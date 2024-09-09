@@ -21,7 +21,10 @@ import {
 import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import * as ControllerFactory from "../controllers/ControllerFactory.js";
-import { BrowserConfiguration, Configuration } from "../config/Configuration.js";
+import {
+    BrowserConfiguration,
+    Configuration,
+} from "../config/Configuration.js";
 import { EventCallbackFunction } from "../event/EventMessage.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";

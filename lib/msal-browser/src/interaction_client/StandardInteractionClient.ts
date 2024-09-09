@@ -22,7 +22,10 @@ import {
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
-import { BrowserConstants, InteractionType } from "../utils/BrowserConstants.js";
+import {
+    BrowserConstants,
+    InteractionType,
+} from "../utils/BrowserConstants.js";
 import { version } from "../packageMetadata.js";
 import { BrowserStateObject } from "../utils/BrowserProtocolUtils.js";
 import { EndSessionRequest } from "../request/EndSessionRequest.js";

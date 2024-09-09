@@ -8,7 +8,10 @@ import {
     InProgressPerformanceEvent,
 } from "./IPerformanceClient.js";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement.js";
-import { PerformanceEvent, PerformanceEventStatus } from "./PerformanceEvent.js";
+import {
+    PerformanceEvent,
+    PerformanceEventStatus,
+} from "./PerformanceEvent.js";
 
 export class StubPerformanceMeasurement implements IPerformanceMeasurement {
     startMeasurement(): void {

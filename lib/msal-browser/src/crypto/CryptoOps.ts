@@ -13,7 +13,11 @@ import {
     SignedHttpRequest,
     SignedHttpRequestParameters,
 } from "@azure/msal-common";
-import { base64Encode, urlEncode, urlEncodeArr } from "../encode/Base64Encode.js";
+import {
+    base64Encode,
+    urlEncode,
+    urlEncodeArr,
+} from "../encode/Base64Encode.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import * as BrowserCrypto from "./BrowserCrypto.js";
 import {

@@ -9,7 +9,10 @@ import { BridgeCapabilities } from "./BridgeCapabilities.js";
 import { AccountContext } from "./BridgeAccountContext.js";
 import { BridgeError } from "./BridgeError.js";
 import { BridgeRequest } from "./BridgeRequest.js";
-import { BridgeRequestEnvelope, BridgeMethods } from "./BridgeRequestEnvelope.js";
+import {
+    BridgeRequestEnvelope,
+    BridgeMethods,
+} from "./BridgeRequestEnvelope.js";
 import { BridgeResponseEnvelope } from "./BridgeResponseEnvelope.js";
 import { BridgeStatusCode } from "./BridgeStatusCode.js";
 import { IBridgeProxy } from "./IBridgeProxy.js";
