@@ -58,7 +58,7 @@ jobs:
       # Create/update Pull Request
       - name: Create Pull Request
         id: pr
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v7
         with:
           commit-message: Bump package versions
           branch: release-staging
