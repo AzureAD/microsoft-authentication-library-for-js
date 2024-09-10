@@ -813,7 +813,7 @@ describe("SilentIframeClient", () => {
                 });
         });
 
-        it("sets instance_aware extra query param if set to true in the config", async () => {
+        it("updates authority hostname param if set to true in the config", async () => {
             //@ts-ignore
             const config = { ...pca.config };
             config.auth.instanceAware = true;
@@ -882,10 +882,6 @@ describe("SilentIframeClient", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
-            jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            ).mockResolvedValue(testNavUrl);
             sinon
                 .stub(SilentHandler, "monitorIframeForHash")
                 .resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
@@ -915,9 +911,6 @@ describe("SilentIframeClient", () => {
                 prompt: PromptValue.SELECT_ACCOUNT,
                 account: testAccount,
             });
-            expect(
-                handleCodeResponseSpy.mock.calls[0][1].extraQueryParameters
-            ).toEqual({ instance_aware: "true" });
             expect(generateAuthoritySpy.mock.calls[0][0]).toEqual(
                 "https://login.windows.net/common/"
             );

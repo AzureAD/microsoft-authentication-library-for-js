@@ -674,11 +674,7 @@ export class AuthorizationCodeClient extends BaseClient {
             );
         }
 
-        if (request.extraQueryParameters) {
-            parameterBuilder.addExtraQueryParameters(
-                request.extraQueryParameters
-            );
-        }
+        this.addExtraQueryParams(request, parameterBuilder);
 
         if (request.nativeBroker) {
             // signal ests that this is a WAM call
@@ -742,13 +738,28 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addLogoutHint(request.logoutHint);
         }
 
+        this.addExtraQueryParams(request, parameterBuilder);
+
+        return parameterBuilder.createQueryString();
+    }
+
+    private addExtraQueryParams(request: CommonAuthorizationUrlRequest | CommonEndSessionRequest, parameterBuilder: RequestParameterBuilder) {
+        const hasRequestInstanceAware =
+            request.extraQueryParameters &&
+            request.extraQueryParameters.hasOwnProperty("instance_aware");
+
+        // Set instance_aware flag if config auth param is set
+        if (!hasRequestInstanceAware && this.config.authOptions.instanceAware) {
+            request.extraQueryParameters =
+                request.extraQueryParameters || {};
+            request.extraQueryParameters["instance_aware"] = "true";
+        }
+
         if (request.extraQueryParameters) {
             parameterBuilder.addExtraQueryParameters(
                 request.extraQueryParameters
             );
         }
-
-        return parameterBuilder.createQueryString();
     }
 
     /**
