@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1725986540448,
+  "lastUpdate": 1725986675661,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -11330,6 +11330,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.21%",
             "unit": "ops/sec",
             "extra": "225 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "55e26e0bea0f9b4b001beb587d6bfebf5980fc9b",
+          "message": "Bump webpack from 5.93.0 to 5.94.0 (#7282)\n\nBumps [webpack](https://github.com/webpack/webpack) from 5.93.0 to\r\n5.94.0.\r\n<details>\r\n<summary>Release notes</summary>\r\n<p><em>Sourced from <a\r\nhref=\"https://github.com/webpack/webpack/releases\">webpack's\r\nreleases</a>.</em></p>\r\n<blockquote>\r\n<h2>v5.94.0</h2>\r\n<h2>Bug Fixes</h2>\r\n<ul>\r\n<li>Added runtime condition for harmony reexport checked</li>\r\n<li>Handle properly\r\n<code>data</code>/<code>http</code>/<code>https</code> protocols in\r\nsource maps</li>\r\n<li>Make <code>bigint</code> optimistic when browserslist not found</li>\r\n<li>Move <code>@​types/eslint-scope</code> to dev deps</li>\r\n<li>Related in asset stats is now always an array when no related\r\nfound</li>\r\n<li>Handle ASI for export declarations</li>\r\n<li>Mangle destruction incorrect with export named default properly</li>\r\n<li>Fixed unexpected asi generation with sequence expression</li>\r\n<li>Fixed a lot of types</li>\r\n</ul>\r\n<h2>New Features</h2>\r\n<ul>\r\n<li>Added new external type &quot;module-import&quot;</li>\r\n<li>Support <code>webpackIgnore</code> for <code>new URL()</code>\r\nconstruction</li>\r\n<li>[CSS] <code>@import</code> pathinfo support</li>\r\n</ul>\r\n<h2>Security</h2>\r\n<ul>\r\n<li>Fixed DOM clobbering in auto public path</li>\r\n</ul>\r\n</blockquote>\r\n</details>\r\n<details>\r\n<summary>Commits</summary>\r\n<ul>\r\n<li><a\r\nhref=\"https://github.com/webpack/webpack/commit/eabf85d8580dfcb876b56957ba5488222a4f7873\"><code>eabf85d</code></a>\r\nchore(release): 5.94.0</li>\r\n<li><a\r\nhref=\"https://github.com/webpack/webpack/commit/955e057abc6cc83cbc3fa1e1ef67a49758bf5a61\"><code>955e057</code></a>\r\nsecurity: fix DOM clobbering in auto public path</li>\r\n<li><a\r\nhref=\"https://github.com/webpack/webpack/commit/98223873625a029b9903d5ec6c0235b8f9fb5a66\"><code>9822387</code></a>\r\ntest: fix</li>\r\n<li><a\r\nhref=\"https://github.com/webpack/webpack/commit/cbb86ede32ab53d8eade6efee30da2463f0082ec\"><code>cbb86ed</code></a>\r\ntest: fix</li>\r\n<li><a\r\nhref=\"https://github.com/webpack/webpack/commit/5ac3d7f2cdce6da63a8dfb07e9dbbd95756bf7a2\"><code>5ac3d7f</code></a>\r\nfix: unexpected asi generation with sequence expression</li>\r\n<li><a\r\nhref=\"https://github.com/webpack/webpack/commit/2411661bd1bedf1b2efc23c76d595c189425d39f\"><code>2411661</code></a>\r\nsecurity: fix DOM clobbering in auto public path</li>\r\n<li><a\r\nhref=\"https://github.com/webpack/webpack/commit/b8c03d47726a57e0dc6ba58b4f96f0e81b168268\"><code>b8c03d4</code></a>\r\nfix: unexpected asi generation with sequence expression</li>\r\n<li><a\r\nhref=\"https://github.com/webpack/webpack/commit/f46a03ccbc2b96ff3552642fea0d7402f7880865\"><code>f46a03c</code></a>\r\nrevert: do not use heuristic fallback for &quot;module-import&quot;</li>\r\n<li><a\r\nhref=\"https://github.com/webpack/webpack/commit/60f189871a4cdc5d595663d6babadac74f2f6a7d\"><code>60f1898</code></a>\r\nfix: do not use heuristic fallback for &quot;module-import&quot;</li>\r\n<li><a\r\nhref=\"https://github.com/webpack/webpack/commit/66306aa45659ef4e8dac8226798931c228fdb204\"><code>66306aa</code></a>\r\nRevert &quot;fix: module-import get fallback from\r\nexternalsPresets&quot;</li>\r\n<li>Additional commits viewable in <a\r\nhref=\"https://github.com/webpack/webpack/compare/v5.93.0...v5.94.0\">compare\r\nview</a></li>\r\n</ul>\r\n</details>\r\n<br />\r\n\r\n\r\n[![Dependabot compatibility\r\nscore](https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=webpack&package-manager=npm_and_yarn&previous-version=5.93.0&new-version=5.94.0)](https://docs.github.com/en/github/managing-security-vulnerabilities/about-dependabot-security-updates#about-compatibility-scores)\r\n\r\nDependabot will resolve any conflicts with this PR as long as you don't\r\nalter it yourself. You can also trigger a rebase manually by commenting\r\n`@dependabot rebase`.\r\n\r\n[//]: # (dependabot-automerge-start)\r\n[//]: # (dependabot-automerge-end)\r\n\r\n---\r\n\r\n<details>\r\n<summary>Dependabot commands and options</summary>\r\n<br />\r\n\r\nYou can trigger Dependabot actions by commenting on this PR:\r\n- `@dependabot rebase` will rebase this PR\r\n- `@dependabot recreate` will recreate this PR, overwriting any edits\r\nthat have been made to it\r\n- `@dependabot merge` will merge this PR after your CI passes on it\r\n- `@dependabot squash and merge` will squash and merge this PR after\r\nyour CI passes on it\r\n- `@dependabot cancel merge` will cancel a previously requested merge\r\nand block automerging\r\n- `@dependabot reopen` will reopen this PR if it is closed\r\n- `@dependabot close` will close this PR and stop Dependabot recreating\r\nit. You can achieve the same result by closing it manually\r\n- `@dependabot show <dependency name> ignore conditions` will show all\r\nof the ignore conditions of the specified dependency\r\n- `@dependabot ignore this major version` will close this PR and stop\r\nDependabot creating any more for this major version (unless you reopen\r\nthe PR or upgrade to it yourself)\r\n- `@dependabot ignore this minor version` will close this PR and stop\r\nDependabot creating any more for this minor version (unless you reopen\r\nthe PR or upgrade to it yourself)\r\n- `@dependabot ignore this dependency` will close this PR and stop\r\nDependabot creating any more for this dependency (unless you reopen the\r\nPR or upgrade to it yourself)\r\nYou can disable automated security fix PRs for this repo from the\r\n[Security Alerts\r\npage](https://github.com/AzureAD/microsoft-authentication-library-for-js/network/alerts).\r\n\r\n</details>\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-09-10T09:39:03-07:00",
+          "tree_id": "01a90e450dfce242db2b7934fb9c0b103ca14f67",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/55e26e0bea0f9b4b001beb587d6bfebf5980fc9b"
+        },
+        "date": 1725986674585,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 196696,
+            "range": "±2.06%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 203267,
+            "range": "±2.14%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
