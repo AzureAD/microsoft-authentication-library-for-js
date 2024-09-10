@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1725917970933,
+  "lastUpdate": 1725986540448,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -11292,6 +11292,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.98%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jason8399@gmail.com",
+            "name": "JasonPan",
+            "username": "jason8399"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e07b676e9f8f54190349f94e7c40113d377781a4",
+          "message": "Fix type for vue 3 sample  (#7291)\n\nAssign type annotation to Vue 3 sample to fix #6706\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-09-10T09:36:40-07:00",
+          "tree_id": "8ba8693884ef84289550bce15d4399415d594f20",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e07b676e9f8f54190349f94e7c40113d377781a4"
+        },
+        "date": 1725986539442,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 177155,
+            "range": "±1.96%",
+            "unit": "ops/sec",
+            "extra": "218 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 184357,
+            "range": "±2.21%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
           }
         ]
       }
