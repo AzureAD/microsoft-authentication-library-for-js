@@ -743,15 +743,17 @@ export class AuthorizationCodeClient extends BaseClient {
         return parameterBuilder.createQueryString();
     }
 
-    private addExtraQueryParams(request: CommonAuthorizationUrlRequest | CommonEndSessionRequest, parameterBuilder: RequestParameterBuilder) {
+    private addExtraQueryParams(
+        request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
+        parameterBuilder: RequestParameterBuilder
+    ) {
         const hasRequestInstanceAware =
             request.extraQueryParameters &&
             request.extraQueryParameters.hasOwnProperty("instance_aware");
 
         // Set instance_aware flag if config auth param is set
         if (!hasRequestInstanceAware && this.config.authOptions.instanceAware) {
-            request.extraQueryParameters =
-                request.extraQueryParameters || {};
+            request.extraQueryParameters = request.extraQueryParameters || {};
             request.extraQueryParameters["instance_aware"] = "true";
         }
 
