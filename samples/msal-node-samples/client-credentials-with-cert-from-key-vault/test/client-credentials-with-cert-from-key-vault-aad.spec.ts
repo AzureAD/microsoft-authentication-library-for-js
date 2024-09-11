@@ -35,9 +35,8 @@ describe("Client Credentials AAD Prod Tests", () => {
             LAB_CERT_NAME
         );
 
-        // TODO // get these from Lab Client, or am I allowed to save these as constants?
-        config.authOptions.clientId = "microsoft client id";
-        config.authOptions.authority = "microsoft authority";
+        config.authOptions.clientId = process.env.AZURE_CLIENT_ID;
+        config.authOptions.authority = `https://login.microsoftonline.com/${process.env.AZURE_TENANT_ID}`;
 
         config.authOptions.clientCertificate = {
             thumbprintSha256: thumbprint,
