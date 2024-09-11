@@ -7,14 +7,13 @@
   "scripts": {
     "start": "node index.js",
     "test:e2e": "jest",
-    "test:agc": "jest --testMatch [ '**/test/**/*agc*.spec.ts' ]",
     "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-node",
     "start:build": "npm run build:package && npm start"
   },
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "^2.13.1"
+    "@azure/msal-node": "^2.0.0-beta.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",
