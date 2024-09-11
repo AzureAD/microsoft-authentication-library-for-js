@@ -16,11 +16,14 @@ export const getKeyVaultSecretClient = (
         // * AZURE_CLIENT_SECRET: The client secret for the registered application
         const keyVaultCredentials = new DefaultAzureCredential();
 
+        console.log(`keyvault url: ${keyVaultUrl}`);
+
         try {
             const client = await new SecretClient(
                 keyVaultUrl || process.env["KEY_VAULT_URL"],
                 keyVaultCredentials
             );
+            console.log("successfully created key vault SecretClient");
             return resolve(client);
         } catch (error) {
             return reject(error);
