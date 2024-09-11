@@ -23,10 +23,30 @@
   ],
   "sideEffects": false,
   "type": "module",
-  "main": "./lib/msal-common.cjs",
+  "main": "./lib/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
+    "./browser": {
+      "import": {
+        "types": "./dist/index-browser.d.ts",
+        "default": "./dist/index-browser.mjs"
+      },
+      "require": {
+        "types": "./lib/types/index-browser.d.ts",
+        "default": "./lib/index-browser.cjs"
+      }
+    },
+    "./node": {
+      "import": {
+        "types": "./dist/index-node.d.ts",
+        "default": "./dist/index-node.mjs"
+      },
+      "require": {
+        "types": "./lib/types/index-node.d.ts",
+        "default": "./lib/index-node.cjs"
+      }
+    },
     ".": {
       "import": {
         "types": "./dist/index.d.ts",
@@ -34,7 +54,7 @@
       },
       "require": {
         "types": "./lib/types/index.d.ts",
-        "default": "./lib/msal-common.cjs"
+        "default": "./lib/index.cjs"
       }
     },
     "./package.json": "./package.json"
@@ -48,7 +68,9 @@
   "files": [
     "dist",
     "lib",
-    "src"
+    "src",
+    "node",
+    "browser"
   ],
   "scripts": {
     "clean": "shx rm -rf dist lib",
