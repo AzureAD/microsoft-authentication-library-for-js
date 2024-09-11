@@ -36,7 +36,7 @@ export const getCertificateInfo = async (
             `openssl pkcs12 -in ${p12FilePath} -nocerts -nodes -passin pass: | sed -ne '/-BEGIN PRIVATE KEY-/,/-END PRIVATE KEY-/p' > ${certificateKEY}`
         );
         const privateKey: string = fs.readFileSync(certificateKEY, "utf-8");
-        // this will be used to check the private key to the x5c, which ensures the x5c is in the correct order
+        // this will be used to check if the private key matches the x5c, which ensures the x5c is in the correct order
         const privateKeyObject = createPrivateKey(privateKey);
 
         // get the x5c from the pkcs12 file through openssl, via a synchronous child process
@@ -45,7 +45,7 @@ export const getCertificateInfo = async (
         );
         let x5c: string = fs.readFileSync(certificateCER, "utf-8");
 
-        // get a string list of the certificates, where the strings will include -----BEGIN CERTIFICATE----- and -----END CERTIFICATE-----
+        // get a string list of the certificates from the x5c, where the strings will include -----BEGIN CERTIFICATE----- and -----END CERTIFICATE-----
         const certificates = x5c.split(/(?=-----BEGIN CERTIFICATE-----\n)/g);
 
         const x509FromFirstCertificate = new X509Certificate(certificates[0]);
@@ -69,7 +69,7 @@ export const getCertificateInfo = async (
                 );
             } else {
                 // if it doesn't match, the certificate is malformed
-                throw "error";
+                throw "Certificate is malformed";
             }
         } else {
             // format the thumbprint // A:B:C -> ABC

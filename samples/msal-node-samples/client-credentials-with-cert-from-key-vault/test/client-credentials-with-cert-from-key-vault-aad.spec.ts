@@ -7,7 +7,11 @@ import { ConfidentialClientApplication } from "@azure/msal-node";
 import config from "../config/AAD.json";
 import { getKeyVaultSecretClient } from "e2e-test-utils/src/KeyVaultUtils";
 import { getCertificateInfo } from "e2e-test-utils/src/CertificateUtils";
-import { LAB_CERT_NAME, LAB_KEY_VAULT_URL } from "e2e-test-utils/src/Constants";
+import {
+    ENV_VARIABLES,
+    LAB_CERT_NAME,
+    LAB_KEY_VAULT_URL,
+} from "e2e-test-utils/src/Constants";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
 
@@ -35,9 +39,10 @@ describe("Client Credentials AAD Prod Tests", () => {
             LAB_CERT_NAME
         );
 
-        config.authOptions.clientId = process.env.AZURE_CLIENT_ID;
-        config.authOptions.authority = `https://login.microsoftonline.com/${process.env.AZURE_TENANT_ID}`;
-
+        config.authOptions.clientId = process.env[ENV_VARIABLES.CLIENT_ID];
+        config.authOptions.authority = `https://login.microsoftonline.com/${
+            process.env[ENV_VARIABLES.TENANT]
+        }`;
         config.authOptions.clientCertificate = {
             thumbprintSha256: thumbprint,
             privateKey: privateKey,
