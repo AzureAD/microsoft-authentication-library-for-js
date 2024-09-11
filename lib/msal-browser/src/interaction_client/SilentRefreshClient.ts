@@ -13,6 +13,7 @@ import {
     PerformanceEvents,
     invokeAsync,
     AccountInfo,
+    StringDict,
 } from "@azure/msal-common/browser";
 import { ApiId } from "../utils/BrowserConstants.js";
 import {
@@ -58,12 +59,12 @@ export class SilentRefreshClient extends StandardInteractionClient {
             ApiId.acquireTokenSilent_silentFlow
         );
 
-        const refreshTokenClient = await this.createRefreshTokenClient(
+        const refreshTokenClient = await this.createRefreshTokenClient({
             serverTelemetryManager,
-            silentRequest.authority,
-            silentRequest.azureCloudOptions,
-            silentRequest.account
-        );
+            authorityUrl: silentRequest.authority,
+            azureCloudOptions: silentRequest.azureCloudOptions,
+            account: silentRequest.account,
+        });
         // Send request to renew token. Auth module will throw errors if token cannot be renewed.
         return invokeAsync(
             refreshTokenClient.acquireTokenByRefreshToken.bind(
@@ -94,15 +95,21 @@ export class SilentRefreshClient extends StandardInteractionClient {
 
     /**
      * Creates a Refresh Client with the given authority, or the default authority.
-     * @param serverTelemetryManager
-     * @param authorityUrl
+     * @param params {
+     *         serverTelemetryManager: ServerTelemetryManager;
+     *         authorityUrl?: string;
+     *         azureCloudOptions?: AzureCloudOptions;
+     *         extraQueryParams?: StringDict;
+     *         account?: AccountInfo;
+     *        }
      */
-    protected async createRefreshTokenClient(
-        serverTelemetryManager: ServerTelemetryManager,
-        authorityUrl?: string,
-        azureCloudOptions?: AzureCloudOptions,
-        account?: AccountInfo
-    ): Promise<RefreshTokenClient> {
+    protected async createRefreshTokenClient(params: {
+        serverTelemetryManager: ServerTelemetryManager;
+        authorityUrl?: string;
+        azureCloudOptions?: AzureCloudOptions;
+        extraQueryParameters?: StringDict;
+        account?: AccountInfo;
+    }): Promise<RefreshTokenClient> {
         // Create auth module.
         const clientConfig = await invokeAsync(
             this.getClientConfiguration.bind(this),
@@ -110,7 +117,13 @@ export class SilentRefreshClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(serverTelemetryManager, authorityUrl, azureCloudOptions, account);
+        )({
+            serverTelemetryManager: params.serverTelemetryManager,
+            requestAuthority: params.authorityUrl,
+            requestAzureCloudOptions: params.azureCloudOptions,
+            requestExtraQueryParameters: params.extraQueryParameters,
+            account: params.account,
+        });
         return new RefreshTokenClient(clientConfig, this.performanceClient);
     }
 }

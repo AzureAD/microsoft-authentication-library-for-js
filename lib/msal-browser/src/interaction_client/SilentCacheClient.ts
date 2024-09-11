@@ -41,12 +41,12 @@ export class SilentCacheClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(
+        )({
             serverTelemetryManager,
-            silentRequest.authority,
-            silentRequest.azureCloudOptions,
-            silentRequest.account
-        );
+            requestAuthority: silentRequest.authority,
+            requestAzureCloudOptions: silentRequest.azureCloudOptions,
+            account: silentRequest.account,
+        });
         const silentAuthClient = new SilentFlowClient(
             clientConfig,
             this.performanceClient

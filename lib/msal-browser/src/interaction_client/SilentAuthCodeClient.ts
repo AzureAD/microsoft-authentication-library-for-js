@@ -99,12 +99,13 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                 this.logger,
                 this.performanceClient,
                 request.correlationId
-            )(
+            )({
                 serverTelemetryManager,
-                silentRequest.authority,
-                silentRequest.azureCloudOptions,
-                silentRequest.account
-            );
+                requestAuthority: silentRequest.authority,
+                requestAzureCloudOptions: silentRequest.azureCloudOptions,
+                requestExtraQueryParameters: silentRequest.extraQueryParameters,
+                account: silentRequest.account,
+            });
             const authClient: HybridSpaAuthorizationCodeClient =
                 new HybridSpaAuthorizationCodeClient(clientConfig);
             this.logger.verbose("Auth code client created");

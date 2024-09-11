@@ -229,12 +229,13 @@ export class PopupClient extends StandardInteractionClient {
                 this.logger,
                 this.performanceClient,
                 this.correlationId
-            )(
+            )({
                 serverTelemetryManager,
-                validRequest.authority,
-                validRequest.azureCloudOptions,
-                validRequest.account
-            );
+                requestAuthority: validRequest.authority,
+                requestAzureCloudOptions: validRequest.azureCloudOptions,
+                requestExtraQueryParameters: validRequest.extraQueryParameters,
+                account: validRequest.account,
+            });
 
             const isNativeBroker = NativeMessageHandler.isNativeAvailable(
                 this.config,
@@ -408,12 +409,11 @@ export class PopupClient extends StandardInteractionClient {
                 this.logger,
                 this.performanceClient,
                 this.correlationId
-            )(
+            )({
                 serverTelemetryManager,
-                requestAuthority,
-                undefined, // AzureCloudOptions
-                validRequest.account || undefined
-            );
+                requestAuthority: requestAuthority,
+                account: validRequest.account || undefined,
+            });
 
             try {
                 authClient.authority.endSessionEndpoint;
