@@ -39,6 +39,26 @@ describe("Client Credentials AAD Prod Tests", () => {
             LAB_CERT_NAME
         );
 
+        console.log(
+            `CLIENT_ID undefined? ${
+                process.env[ENV_VARIABLES.CLIENT_ID] === undefined
+            }`
+        );
+        console.log(
+            `CLIENT_ID empty string? ${
+                process.env[ENV_VARIABLES.CLIENT_ID] === ""
+            }`
+        );
+
+        console.log(
+            `TENANT undefined? ${
+                process.env[ENV_VARIABLES.TENANT] === undefined
+            }`
+        );
+        console.log(
+            `TENANT empty string? ${process.env[ENV_VARIABLES.TENANT] === ""}`
+        );
+
         config.authOptions.clientId = process.env[ENV_VARIABLES.CLIENT_ID];
         config.authOptions.authority = `https://login.microsoftonline.com/${
             process.env[ENV_VARIABLES.TENANT]
