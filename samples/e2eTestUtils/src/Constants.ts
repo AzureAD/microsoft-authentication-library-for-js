@@ -6,6 +6,8 @@ export const ENV_VARIABLES = {
 
 export const LAB_API_ENDPOINT = "https://msidlab.com/api";
 export const LAB_SCOPE = "https://request.msidlab.com/.default";
+export const LAB_KEY_VAULT_URL = "https://msidlabs.vault.azure.net";
+export const LAB_CERT_NAME = "LabAuth";
 
 export const ParamKeys = {
     AZURE_ENVIRONMENT: "azureenvironment",

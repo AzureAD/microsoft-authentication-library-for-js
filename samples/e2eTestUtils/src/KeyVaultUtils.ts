@@ -6,7 +6,9 @@
 const { DefaultAzureCredential } = require("@azure/identity");
 const { SecretClient } = require("@azure/keyvault-secrets");
 
-export const getKeyVaultSecretClient = (): Promise<void> => {
+export const getKeyVaultSecretClient = (
+    keyVaultUrl?: string
+): Promise<void> => {
     return new Promise<void>(async (resolve, reject) => {
         // DefaultAzureCredential expects the following three environment variables:
         // * AZURE_TENANT_ID: The tenant ID in Azure Active Directory
@@ -16,14 +18,25 @@ export const getKeyVaultSecretClient = (): Promise<void> => {
 
         try {
             const client = await new SecretClient(
-                process.env["KEY_VAULT_URL"],
+                keyVaultUrl || process.env["KEY_VAULT_URL"],
                 keyVaultCredentials
             );
-            resolve(client);
+            return resolve(client);
         } catch (error) {
-            reject(error);
+            return reject(error);
         }
     });
+};
+
+export const getKeyVaultSecret = async (
+    client: any,
+    secretName: string
+): Promise<string> => {
+    try {
+        return (await client.getSecret(secretName)).value;
+    } catch (error) {
+        throw error;
+    }
 };
 
 export const getCredentials = (client: any): Promise<Array<string>> => {
@@ -35,16 +48,16 @@ export const getCredentials = (client: any): Promise<Array<string>> => {
         try {
             username = await client.getSecret(usernameSecret);
         } catch (error) {
-            reject(error);
+            return reject(error);
         }
 
         let password: any;
         try {
             password = await client.getSecret(passwordSecret);
         } catch (error) {
-            reject(error);
+            return reject(error);
         }
 
-        resolve([username.value, password.value]);
+        return resolve([username.value, password.value]);
     });
 };
