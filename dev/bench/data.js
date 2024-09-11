@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1725991732788,
+  "lastUpdate": 1726018162159,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -11444,6 +11444,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.95%",
             "unit": "ops/sec",
             "extra": "225 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1883b5e79501ada5c717923a826da72e0edcb454",
+          "message": "Add optional \"instanceAware\" config auth param (#7259)\n\nThis PR addresses a scenario when an app uses\r\n[instance_aware](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/instance-aware.md)\r\nflag to perform an additional endpoint discovery using cloud instance\r\nhost name provided by the identity provider before making a request to\r\nthe /token endpoint. This may cause a mismatch between a configured\r\nauthority and an account environment.\r\n\r\nFor example, a Gov user is authenticated with acquire token redirect\r\nAPI. User is redirected from \"https://login.microsoftonline.com/common\"\r\n(set as an authority in the config) to\r\n\"https://login.microsoftonline.us/common\" by the identity provider. The\r\nresponse account environment is then set to \"login.microsoftonline.us\"\r\nthat does not match the configured one, making MSAL.js throw an\r\n[authority_mismatch\r\nerror](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/69df8f629eb149b86479afcbf076b91c76946152/lib/msal-browser/src/interaction_client/BaseInteractionClient.ts#L229)\r\nfor any consequent API call that provides an account object.\r\n\r\nTo fix that a new `instanceAware` auth config param is introduced that\r\nenables consistent auth metadata resolution across API calls.",
+          "timestamp": "2024-09-10T21:23:54-04:00",
+          "tree_id": "1743f43f384e387fb3596311d1de284e2b3c2685",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/1883b5e79501ada5c717923a826da72e0edcb454"
+        },
+        "date": 1726018160338,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 192987,
+            "range": "±1.99%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 193973,
+            "range": "±1.94%",
+            "unit": "ops/sec",
+            "extra": "226 samples"
           }
         ]
       }
