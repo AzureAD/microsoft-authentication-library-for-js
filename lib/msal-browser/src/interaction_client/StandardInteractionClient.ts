@@ -19,6 +19,7 @@ import {
     PerformanceEvents,
     invokeAsync,
     BaseAuthRequest,
+    StringDict,
 } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
@@ -199,15 +200,21 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
     /**
      * Creates an Authorization Code Client with the given authority, or the default authority.
-     * @param serverTelemetryManager
-     * @param authorityUrl
+     * @param params {
+     *         serverTelemetryManager: ServerTelemetryManager;
+     *         authorityUrl?: string;
+     *         requestAzureCloudOptions?: AzureCloudOptions;
+     *         requestExtraQueryParameters?: StringDict;
+     *         account?: AccountInfo;
+     *        }
      */
-    protected async createAuthCodeClient(
-        serverTelemetryManager: ServerTelemetryManager,
-        authorityUrl?: string,
-        requestAzureCloudOptions?: AzureCloudOptions,
-        account?: AccountInfo
-    ): Promise<AuthorizationCodeClient> {
+    protected async createAuthCodeClient(params: {
+        serverTelemetryManager: ServerTelemetryManager;
+        requestAuthority?: string;
+        requestAzureCloudOptions?: AzureCloudOptions;
+        requestExtraQueryParameters?: StringDict;
+        account?: AccountInfo;
+    }): Promise<AuthorizationCodeClient> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
             this.correlationId
@@ -219,12 +226,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(
-            serverTelemetryManager,
-            authorityUrl,
-            requestAzureCloudOptions,
-            account
-        );
+        )(params);
+
         return new AuthorizationCodeClient(
             clientConfig,
             this.performanceClient
@@ -233,16 +236,29 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
     /**
      * Creates a Client Configuration object with the given request authority, or the default authority.
-     * @param serverTelemetryManager
-     * @param requestAuthority
-     * @param requestCorrelationId
+     * @param params {
+     *         serverTelemetryManager: ServerTelemetryManager;
+     *         requestAuthority?: string;
+     *         requestAzureCloudOptions?: AzureCloudOptions;
+     *         requestExtraQueryParameters?: boolean;
+     *         account?: AccountInfo;
+     *        }
      */
-    protected async getClientConfiguration(
-        serverTelemetryManager: ServerTelemetryManager,
-        requestAuthority?: string,
-        requestAzureCloudOptions?: AzureCloudOptions,
-        account?: AccountInfo
-    ): Promise<ClientConfiguration> {
+    protected async getClientConfiguration(params: {
+        serverTelemetryManager: ServerTelemetryManager;
+        requestAuthority?: string;
+        requestAzureCloudOptions?: AzureCloudOptions;
+        requestExtraQueryParameters?: StringDict;
+        account?: AccountInfo;
+    }): Promise<ClientConfiguration> {
+        const {
+            serverTelemetryManager,
+            requestAuthority,
+            requestAzureCloudOptions,
+            requestExtraQueryParameters,
+            account,
+        } = params;
+
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientGetClientConfiguration,
             this.correlationId
@@ -253,7 +269,12 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(requestAuthority, requestAzureCloudOptions, account);
+        )({
+            requestAuthority,
+            requestAzureCloudOptions,
+            requestExtraQueryParameters,
+            account,
+        });
         const logger = this.config.system.loggerOptions;
 
         return {
