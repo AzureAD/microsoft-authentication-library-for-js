@@ -8,7 +8,7 @@ import { FilePersistence } from "./FilePersistence.js";
 import { PersistenceError } from "../error/PersistenceError.js";
 import { Dpapi } from "../Dpapi.js";
 import { DataProtectionScope } from "./DataProtectionScope.js";
-import { Logger, LoggerOptions } from "@azure/msal-common";
+import { Logger, LoggerOptions } from "@azure/msal-common/node";
 import { dirname } from "path";
 import { BasePersistence } from "./BasePersistence.js";
 import { isNodeError } from "../utils/TypeGuards.js";

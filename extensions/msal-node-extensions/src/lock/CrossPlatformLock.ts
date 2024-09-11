@@ -8,7 +8,7 @@ import { pid } from "process";
 import { CrossPlatformLockOptions } from "./CrossPlatformLockOptions.js";
 import { Constants } from "../utils/Constants.js";
 import { PersistenceError } from "../error/PersistenceError.js";
-import { Logger } from "@azure/msal-common";
+import { Logger } from "@azure/msal-common/node";
 import { isNodeError } from "../utils/TypeGuards.js";
 
 /**

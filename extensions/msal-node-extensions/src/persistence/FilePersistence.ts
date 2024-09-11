@@ -8,7 +8,7 @@ import { dirname } from "path";
 import { IPersistence } from "./IPersistence.js";
 import { Constants, ErrorCodes } from "../utils/Constants.js";
 import { PersistenceError } from "../error/PersistenceError.js";
-import { Logger, LoggerOptions, LogLevel } from "@azure/msal-common";
+import { Logger, LoggerOptions, LogLevel } from "@azure/msal-common/node";
 import { BasePersistence } from "./BasePersistence.js";
 import { isNodeError } from "../utils/TypeGuards.js";
 

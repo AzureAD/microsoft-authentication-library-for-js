@@ -23,7 +23,7 @@ import {
     PromptValue,
     ServerError,
     ServerTelemetryManager,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import {
     msalNodeRuntime,
     Account,

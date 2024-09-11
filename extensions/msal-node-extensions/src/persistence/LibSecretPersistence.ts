@@ -7,7 +7,7 @@ import keytar from "keytar";
 import { FilePersistence } from "./FilePersistence.js";
 import { IPersistence } from "./IPersistence.js";
 import { PersistenceError } from "../error/PersistenceError.js";
-import { Logger, LoggerOptions } from "@azure/msal-common";
+import { Logger, LoggerOptions } from "@azure/msal-common/node";
 import { dirname } from "path";
 import { BasePersistence } from "./BasePersistence.js";
 import { isNodeError } from "../utils/TypeGuards.js";

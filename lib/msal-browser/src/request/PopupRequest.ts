@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { CommonAuthorizationUrlRequest, StringDict } from "@azure/msal-common/browser";
+import {
+    CommonAuthorizationUrlRequest,
+    StringDict,
+} from "@azure/msal-common/browser";
 import { PopupWindowAttributes } from "./PopupWindowAttributes.js";
 
 /**

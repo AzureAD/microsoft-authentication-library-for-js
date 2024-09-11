@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import type { LoggerOptions } from "@azure/msal-common";
+import type { LoggerOptions } from "@azure/msal-common/node";
 
 import { DataProtectionScope } from "./DataProtectionScope.js";
 
