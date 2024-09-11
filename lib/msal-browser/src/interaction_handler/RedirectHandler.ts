@@ -15,7 +15,7 @@ import {
     invokeAsync,
     PerformanceEvents,
     ServerAuthorizationCodeResponse,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,

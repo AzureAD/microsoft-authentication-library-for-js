@@ -8,7 +8,7 @@ import {
     Logger,
     ServerAuthorizationCodeResponse,
     UrlUtils,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import {
     BrowserAuthErrorCodes,
     createBrowserAuthError,

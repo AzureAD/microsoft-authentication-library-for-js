@@ -8,7 +8,7 @@ import {
     AccountInfo,
     Logger,
     PerformanceCallbackFunction,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";

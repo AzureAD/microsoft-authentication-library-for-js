@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError } from "@azure/msal-common";
+import { AuthError } from "@azure/msal-common/browser";
 import * as BrowserAuthErrorCodes from "./BrowserAuthErrorCodes.js";
 export { BrowserAuthErrorCodes }; // Allow importing as "BrowserAuthErrorCodes"
 

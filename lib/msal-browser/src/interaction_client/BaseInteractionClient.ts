@@ -21,7 +21,7 @@ import {
     PerformanceEvents,
     AzureCloudOptions,
     invokeAsync,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";

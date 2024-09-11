@@ -20,7 +20,7 @@ import {
     ServerResponseType,
     invokeAsync,
     invoke,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import { EventType } from "../event/EventType.js";
 import {

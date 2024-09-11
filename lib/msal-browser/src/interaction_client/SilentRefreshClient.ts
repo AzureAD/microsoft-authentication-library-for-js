@@ -13,7 +13,7 @@ import {
     PerformanceEvents,
     invokeAsync,
     AccountInfo,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import { ApiId } from "../utils/BrowserConstants.js";
 import {
     createBrowserAuthError,

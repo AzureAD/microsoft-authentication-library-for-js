@@ -39,7 +39,7 @@ import {
     CacheHelpers,
     StoreInCache,
     CacheError,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
     createBrowserAuthError,

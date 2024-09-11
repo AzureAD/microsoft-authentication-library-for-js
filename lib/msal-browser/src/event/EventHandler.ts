@@ -9,7 +9,7 @@ import {
     AccountEntity,
     CacheManager,
     PersistentCacheKeys,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import { InteractionType } from "../utils/BrowserConstants.js";
 import {
     EventCallbackFunction,

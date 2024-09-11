@@ -9,7 +9,7 @@ import {
     SilentFlowClient,
     PerformanceEvents,
     invokeAsync,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import { ApiId } from "../utils/BrowserConstants.js";
 import {
     BrowserAuthError,

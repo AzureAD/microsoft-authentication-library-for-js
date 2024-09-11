@@ -19,7 +19,7 @@ import {
     PerformanceEvents,
     invokeAsync,
     BaseAuthRequest,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
 import {

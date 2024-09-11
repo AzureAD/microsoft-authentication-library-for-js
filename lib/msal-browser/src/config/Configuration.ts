@@ -22,7 +22,7 @@ import {
     IPerformanceClient,
     StubPerformanceClient,
     Logger,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import {
     BrowserCacheLocation,
     BrowserConstants,

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Logger, LogLevel } from "@azure/msal-common";
+import { Logger, LogLevel } from "@azure/msal-common/browser";
 import {
     BrowserConfiguration,
     buildConfiguration,

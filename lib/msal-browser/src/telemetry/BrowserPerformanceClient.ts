@@ -13,7 +13,7 @@ import {
     PerformanceEvents,
     PreQueueEvent,
     SubMeasurement,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import { Configuration } from "../config/Configuration.js";
 import { name, version } from "../packageMetadata.js";
 import {

@@ -154,6 +154,6 @@ export {
     TenantProfile,
     IPerformanceClient,
     StubPerformanceClient,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 
 export { version } from "./packageMetadata.js";

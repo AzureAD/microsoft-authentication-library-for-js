@@ -10,7 +10,7 @@ import {
     PkceCodes,
     invoke,
     invokeAsync,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,

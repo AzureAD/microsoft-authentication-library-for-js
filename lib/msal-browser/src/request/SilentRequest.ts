@@ -7,7 +7,7 @@ import {
     AccountInfo,
     CommonSilentFlowRequest,
     StringDict,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import { CacheLookupPolicy } from "../utils/BrowserConstants.js";
 
 /**

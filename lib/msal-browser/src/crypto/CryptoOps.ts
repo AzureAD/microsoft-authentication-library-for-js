@@ -12,7 +12,7 @@ import {
     ShrOptions,
     SignedHttpRequest,
     SignedHttpRequestParameters,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import {
     base64Encode,
     urlEncode,

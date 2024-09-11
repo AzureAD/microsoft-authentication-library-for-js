@@ -22,7 +22,7 @@ import {
     ServerResponseType,
     UrlUtils,
     InProgressPerformanceEvent,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import {
     ApiId,

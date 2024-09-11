@@ -11,7 +11,7 @@ import {
     IPerformanceClient,
     Logger,
     PerformanceEvents,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants.js";
 import { urlEncodeArr } from "../encode/Base64Encode.js";
 

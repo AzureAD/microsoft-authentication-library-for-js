@@ -15,7 +15,7 @@ import {
     PerformanceEvents,
     invokeAsync,
     invoke,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
 import { BrowserConfiguration } from "../config/Configuration.js";

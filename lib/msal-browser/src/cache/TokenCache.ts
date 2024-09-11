@@ -19,7 +19,7 @@ import {
     TokenClaims,
     CacheHelpers,
     buildAccountToCache,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { BrowserCacheManager } from "./BrowserCacheManager.js";

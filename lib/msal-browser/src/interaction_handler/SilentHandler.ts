@@ -10,7 +10,7 @@ import {
     invokeAsync,
     invoke,
     ServerResponseType,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,

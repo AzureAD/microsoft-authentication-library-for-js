@@ -29,7 +29,7 @@ import {
     AccessTokenEntity,
     TenantProfile,
     buildTenantProfile,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import { isBridgeError } from "../BridgeError.js";
 import { BridgeStatusCode } from "../BridgeStatusCode.js";
 import { AuthenticationResult } from "../../response/AuthenticationResult.js";

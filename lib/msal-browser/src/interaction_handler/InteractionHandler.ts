@@ -15,7 +15,7 @@ import {
     invokeAsync,
     CcsCredentialType,
     ServerAuthorizationCodeResponse,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import {

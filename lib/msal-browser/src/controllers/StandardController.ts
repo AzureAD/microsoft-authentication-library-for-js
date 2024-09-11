@@ -28,7 +28,7 @@ import {
     AccountFilter,
     buildStaticAuthorityOptions,
     InteractionRequiredAuthErrorCodes,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import {
     BrowserCacheManager,
     DEFAULT_BROWSER_CACHE_MANAGER,

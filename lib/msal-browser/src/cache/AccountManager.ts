@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AccountFilter, Logger } from "@azure/msal-common";
+import { AccountInfo, AccountFilter, Logger } from "@azure/msal-common/browser";
 import { BrowserCacheManager } from "./BrowserCacheManager.js";
 
 /**

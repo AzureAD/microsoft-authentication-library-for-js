@@ -17,7 +17,7 @@ import {
     AccountInfo,
     AccountFilter,
     Logger,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import * as ControllerFactory from "../controllers/ControllerFactory.js";

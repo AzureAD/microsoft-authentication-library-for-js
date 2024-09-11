@@ -9,7 +9,7 @@ import {
     LoggerOptions,
     PopTokenGenerator,
     SignedHttpRequestParameters,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import { version, name } from "../packageMetadata.js";
 
 export type SignedHttpRequestOptions = {
