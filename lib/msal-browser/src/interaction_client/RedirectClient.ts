@@ -134,12 +134,13 @@ export class RedirectClient extends StandardInteractionClient {
                 this.logger,
                 this.performanceClient,
                 this.correlationId
-            )(
+            )({
                 serverTelemetryManager,
-                validRequest.authority,
-                validRequest.azureCloudOptions,
-                validRequest.account
-            );
+                requestAuthority: validRequest.authority,
+                requestAzureCloudOptions: validRequest.azureCloudOptions,
+                requestExtraQueryParameters: validRequest.extraQueryParameters,
+                account: validRequest.account,
+            });
 
             // Create redirect interaction handler.
             const interactionHandler = new RedirectHandler(
@@ -477,7 +478,7 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(serverTelemetryManager, currentAuthority);
+        )({ serverTelemetryManager, requestAuthority: currentAuthority });
 
         ThrottlingUtils.removeThrottle(
             this.browserStorage,
@@ -528,12 +529,13 @@ export class RedirectClient extends StandardInteractionClient {
                 this.logger,
                 this.performanceClient,
                 this.correlationId
-            )(
+            )({
                 serverTelemetryManager,
-                logoutRequest && logoutRequest.authority,
-                undefined, // AzureCloudOptions
-                (logoutRequest && logoutRequest.account) || undefined
-            );
+                requestAuthority: logoutRequest && logoutRequest.authority,
+                requestExtraQueryParameters:
+                    logoutRequest?.extraQueryParameters,
+                account: (logoutRequest && logoutRequest.account) || undefined,
+            });
 
             if (authClient.authority.protocolMode === ProtocolMode.OIDC) {
                 try {
