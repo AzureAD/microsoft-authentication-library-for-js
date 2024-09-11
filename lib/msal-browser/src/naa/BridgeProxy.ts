@@ -16,6 +16,8 @@ import { IBridgeProxy } from "./IBridgeProxy";
 import { InitContext } from "./InitContext";
 import { TokenRequest } from "./TokenRequest";
 import * as BrowserCrypto from "../crypto/BrowserCrypto";
+import { BrowserConstants } from "../utils/BrowserConstants";
+import { version } from "../packageMetadata";
 
 declare global {
     interface Window {
@@ -77,12 +79,8 @@ export class BridgeProxy implements IBridgeProxy {
 
             const bridgeResponse = await new Promise<BridgeResponseEnvelope>(
                 (resolve, reject) => {
-                    const message: BridgeRequestEnvelope = {
-                        messageType: "NestedAppAuthRequest",
-                        method: "GetInitContext",
-                        requestId: BrowserCrypto.createNewGuid(),
-                        sendTime: Date.now(),
-                    };
+                    const message = BridgeProxy.buildRequest("GetInitContext");
+
                     const request: BridgeRequest = {
                         requestId: message.requestId,
                         method: message.method,
@@ -144,6 +142,21 @@ export class BridgeProxy implements IBridgeProxy {
         return this.accountContext ? this.accountContext : null;
     }
 
+    private static buildRequest(
+        method: BridgeMethods,
+        requestParams?: Partial<BridgeRequestEnvelope>
+    ): BridgeRequestEnvelope {
+        return {
+            messageType: "NestedAppAuthRequest",
+            method: method,
+            requestId: BrowserCrypto.createNewGuid(),
+            sendTime: Date.now(),
+            clientLibrary: BrowserConstants.MSAL_SKU,
+            clientLibraryVersion: version,
+            ...requestParams,
+        };
+    }
+
     /**
      * A method used to send a request to the bridge
      * @param request A token request
@@ -153,13 +166,7 @@ export class BridgeProxy implements IBridgeProxy {
         method: BridgeMethods,
         requestParams?: Partial<BridgeRequestEnvelope>
     ): Promise<BridgeResponseEnvelope> {
-        const message: BridgeRequestEnvelope = {
-            messageType: "NestedAppAuthRequest",
-            method: method,
-            requestId: BrowserCrypto.createNewGuid(),
-            sendTime: Date.now(),
-            ...requestParams,
-        };
+        const message = BridgeProxy.buildRequest(method, requestParams);
 
         const promise = new Promise<BridgeResponseEnvelope>(
             (resolve, reject) => {
