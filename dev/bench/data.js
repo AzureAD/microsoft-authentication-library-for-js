@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726018162159,
+  "lastUpdate": 1726083462009,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -11482,6 +11482,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.94%",
             "unit": "ops/sec",
             "extra": "226 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "22d3070a860fc6b301589af9cefa0cecbb6f4e14",
+          "message": "msal-node Device Code flow unit test - replaced sinon with jest (#7285)\n\nAll sinon functionality in msal-node's device code flow unit test file\r\nhas been replaced with jest.\r\n\r\nSinon is no longer a dependency of msal-node.",
+          "timestamp": "2024-09-11T15:32:18-04:00",
+          "tree_id": "bdf84626c87d905a132fadceccac9639dbedef7e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/22d3070a860fc6b301589af9cefa0cecbb6f4e14"
+        },
+        "date": 1726083460732,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 191959,
+            "range": "±2.09%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 190248,
+            "range": "±2.03%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
