@@ -24,7 +24,7 @@ import {
     ServerAuthorizationCodeResponse,
     AADServerParamKeys,
     ServerTelemetryManager,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import { Configuration } from "../config/Configuration.js";
 import { ClientApplication } from "./ClientApplication.js";
 import { IPublicClientApplication } from "./IPublicClientApplication.js";

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { RequestParameterBuilder, UrlString } from "@azure/msal-common";
+import { RequestParameterBuilder, UrlString } from "@azure/msal-common/node";
 import { HttpMethod } from "../utils/Constants.js";
 
 export class ManagedIdentityRequestParameters {

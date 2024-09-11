@@ -8,7 +8,7 @@ import {
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import { IHttpRetryPolicy } from "../retry/IHttpRetryPolicy.js";
 import { HttpMethod } from "../utils/Constants.js";
 

@@ -8,7 +8,7 @@ import {
     INetworkModule,
     Logger,
     AuthenticationResult,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import { AppService } from "./ManagedIdentitySources/AppService.js";
 import { AzureArc } from "./ManagedIdentitySources/AzureArc.js";
 import { CloudShell } from "./ManagedIdentitySources/CloudShell.js";

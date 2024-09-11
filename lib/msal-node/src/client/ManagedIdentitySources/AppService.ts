@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule, Logger } from "@azure/msal-common";
+import { INetworkModule, Logger } from "@azure/msal-common/node";
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
 import {
     HttpMethod,

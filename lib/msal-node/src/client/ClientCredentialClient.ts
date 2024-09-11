@@ -34,7 +34,7 @@ import {
     createClientAuthError,
     ClientAssertion,
     getClientAssertion,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import {
     ManagedIdentityConfiguration,
     ManagedIdentityNodeConfiguration,

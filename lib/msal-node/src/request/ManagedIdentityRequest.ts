@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CommonClientCredentialRequest } from "@azure/msal-common";
+import { CommonClientCredentialRequest } from "@azure/msal-common/node";
 import { ManagedIdentityRequestParams } from "./ManagedIdentityRequestParams.js";
 
 /**

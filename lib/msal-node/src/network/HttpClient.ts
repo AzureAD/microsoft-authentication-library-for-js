@@ -8,7 +8,7 @@ import {
     NetworkRequestOptions,
     NetworkResponse,
     HttpStatus,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import { HttpMethod, Constants, ProxyStatus } from "../utils/Constants.js";
 import { NetworkUtils } from "../utils/NetworkUtils.js";
 import http from "http";

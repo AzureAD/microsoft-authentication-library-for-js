@@ -32,7 +32,7 @@ import {
     UrlString,
     ClientAssertion,
     getClientAssertion,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 
 /**

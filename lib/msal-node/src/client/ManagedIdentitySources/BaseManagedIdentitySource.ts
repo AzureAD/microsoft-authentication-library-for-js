@@ -19,7 +19,7 @@ import {
     createClientAuthError,
     AuthenticationResult,
     UrlString,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";

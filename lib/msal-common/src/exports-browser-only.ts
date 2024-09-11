@@ -4,7 +4,6 @@
  */
 
 export { SignedHttpRequest, ShrOptions } from "./crypto/SignedHttpRequest.js";
-export { IGuidGenerator } from "./crypto/IGuidGenerator.js";
 export { JoseHeader } from "./crypto/JoseHeader.js";
 export { ExternalTokenResponse } from "./response/ExternalTokenResponse.js";
 export {

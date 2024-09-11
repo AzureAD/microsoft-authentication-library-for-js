@@ -32,3 +32,4 @@ export {
     ServerDeviceCodeResponse,
 } from "./response/DeviceCodeResponse.js";
 export { getClientAssertion } from "./utils/ClientAssertionUtils.js";
+export { IGuidGenerator } from "./crypto/IGuidGenerator.js";

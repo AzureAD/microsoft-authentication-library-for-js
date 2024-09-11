@@ -13,7 +13,7 @@ import {
     NetworkRequestOptions,
     Logger,
     ServerAuthorizationTokenResponse,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
