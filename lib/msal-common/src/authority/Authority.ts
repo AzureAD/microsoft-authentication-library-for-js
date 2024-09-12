@@ -831,8 +831,6 @@ export class Authority {
             return localMetadataSource;
         }
 
-        console.log("metadataEntity", metadataEntity);  
-
         // Fallback to network as metadata source
         const metadata = await invokeAsync(
             this.getCloudDiscoveryMetadataFromNetwork.bind(this),
@@ -954,6 +952,7 @@ export class Authority {
                 this.hostnameAndPort
             );
         }
+
         // Check if network response was provided in config
         if (this.authorityOptions.cloudDiscoveryMetadata) {
             this.logger.verbose(
@@ -1114,8 +1113,6 @@ export class Authority {
      * Helper function to determine if this host is included in the knownAuthorities config option
      */
     private isInKnownAuthorities(): boolean {
-        console.log(this.authorityOptions);
-        console.log(this.authorityOptions.knownAuthorities);
         const matches = this.authorityOptions.knownAuthorities.filter(
             (authority) => {
                 return (
@@ -1125,7 +1122,6 @@ export class Authority {
                 );
             }
         );
-        console.log("Matches: ", matches);
         return matches.length > 0;
     }
 
