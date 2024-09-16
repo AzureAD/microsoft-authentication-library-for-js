@@ -23,4 +23,5 @@ export type EndSessionPopupRequest = Partial<
     authority?: string;
     mainWindowRedirectUri?: string;
     popupWindowAttributes?: PopupWindowAttributes;
+    popupWindowParent?: Window;
 };
