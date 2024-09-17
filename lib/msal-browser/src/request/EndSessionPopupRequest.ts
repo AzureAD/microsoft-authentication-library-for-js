@@ -16,6 +16,7 @@ import { PopupWindowAttributes } from "./PopupWindowAttributes";
  * - mainWindowRedirectUri  - URI to navigate the main window to after logout is complete
  * - popupWindowAttributes  - Optional popup window attributes. popupSize with height and width, and popupPosition with top and left can be set.
  * - logoutHint             - A string that specifies the account that is being logged out in order to skip the server account picker on logout
+ * - popupWindowParent      - Optional window object to use as the parent when opening popup windows. Uses global `window` if not given.
  */
 export type EndSessionPopupRequest = Partial<
     Omit<CommonEndSessionRequest, "tokenQueryParameters">
