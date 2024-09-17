@@ -15,6 +15,7 @@ export {
     PublicClientApplication,
     createNestablePublicClientApplication,
     createStandardPublicClientApplication,
+    getNestedApplicationController,
 } from "./app/PublicClientApplication";
 export { PublicClientNext } from "./app/PublicClientNext";
 export { IController } from "./controllers/IController";
