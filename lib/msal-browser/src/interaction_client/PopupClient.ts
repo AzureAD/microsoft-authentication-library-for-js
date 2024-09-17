@@ -107,10 +107,7 @@ export class PopupClient extends StandardInteractionClient {
             if (this.config.system.asyncPopups) {
                 this.logger.verbose("asyncPopups set to true, acquiring token");
                 // Passes on popup position and dimensions if in request
-                return this.acquireTokenPopupAsync(
-                    request,
-                    popupParams
-                );
+                return this.acquireTokenPopupAsync(request, popupParams);
             } else {
                 // asyncPopups flag is set to false. Opens popup before acquiring token.
                 this.logger.verbose(
@@ -120,10 +117,7 @@ export class PopupClient extends StandardInteractionClient {
                     "about:blank",
                     popupParams
                 );
-                return this.acquireTokenPopupAsync(
-                    request,
-                    popupParams
-                );
+                return this.acquireTokenPopupAsync(request, popupParams);
             }
         } catch (e) {
             return Promise.reject(e);
@@ -141,7 +135,8 @@ export class PopupClient extends StandardInteractionClient {
                 this.initializeLogoutRequest(logoutRequest);
             const popupParams: PopupParams = {
                 popupName: this.generateLogoutPopupName(validLogoutRequest),
-                popupWindowAttributes: logoutRequest?.popupWindowAttributes || {},
+                popupWindowAttributes:
+                    logoutRequest?.popupWindowAttributes || {},
                 popupWindowParent: logoutRequest?.popupWindowParent ?? window,
             };
             const authority = logoutRequest && logoutRequest.authority;
@@ -189,7 +184,7 @@ export class PopupClient extends StandardInteractionClient {
      */
     protected async acquireTokenPopupAsync(
         request: PopupRequest,
-        popupParams: PopupParams,
+        popupParams: PopupParams
     ): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenPopupAsync called");
         const serverTelemetryManager = this.initializeServerTelemetryManager(
@@ -276,7 +271,10 @@ export class PopupClient extends StandardInteractionClient {
             );
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-            const responseString = await this.monitorPopupForHash(popupWindow, popupParams.popupWindowParent);
+            const responseString = await this.monitorPopupForHash(
+                popupWindow,
+                popupParams.popupWindowParent
+            );
 
             const serverParams = invoke(
                 ResponseHandler.deserializeResponse,
@@ -460,7 +458,10 @@ export class PopupClient extends StandardInteractionClient {
                 null
             );
 
-            await this.monitorPopupForHash(popupWindow, popupParams.popupWindowParent).catch(() => {
+            await this.monitorPopupForHash(
+                popupWindow,
+                popupParams.popupWindowParent
+            ).catch(() => {
                 // Swallow any errors related to monitoring the window. Server logout is best effort
             });
 
@@ -540,7 +541,10 @@ export class PopupClient extends StandardInteractionClient {
      * @param popupWindow - window that is being monitored
      * @param timeout - timeout for processing hash once popup is redirected back to application
      */
-    monitorPopupForHash(popupWindow: Window, popupWindowParent: Window): Promise<string> {
+    monitorPopupForHash(
+        popupWindow: Window,
+        popupWindowParent: Window
+    ): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             this.logger.verbose(
                 "PopupHandler.monitorPopupForHash - polling started"
@@ -627,10 +631,7 @@ export class PopupClient extends StandardInteractionClient {
                 this.logger.verbosePii(
                     `Opening popup window to: ${urlNavigate}`
                 );
-                popupWindow = this.openSizedPopup(
-                    urlNavigate,
-                    popupParams,
-                );
+                popupWindow = this.openSizedPopup(urlNavigate, popupParams);
             }
 
             // Popup will be null if popups are blocked
@@ -643,7 +644,10 @@ export class PopupClient extends StandardInteractionClient {
                 popupWindow.focus();
             }
             this.currentWindow = popupWindow;
-            popupParams.popupWindowParent.addEventListener("beforeunload", this.unloadWindow);
+            popupParams.popupWindowParent.addEventListener(
+                "beforeunload",
+                this.unloadWindow
+            );
 
             return popupWindow;
         } catch (e) {
@@ -672,8 +676,12 @@ export class PopupClient extends StandardInteractionClient {
          * adding winLeft and winTop to account for dual monitor
          * using screenLeft and screenTop for IE8 and earlier
          */
-        const winLeft = popupWindowParent.screenLeft ? popupWindowParent.screenLeft : popupWindowParent.screenX;
-        const winTop = popupWindowParent.screenTop ? popupWindowParent.screenTop : popupWindowParent.screenY;
+        const winLeft = popupWindowParent.screenLeft
+            ? popupWindowParent.screenLeft
+            : popupWindowParent.screenX;
+        const winTop = popupWindowParent.screenTop
+            ? popupWindowParent.screenTop
+            : popupWindowParent.screenY;
         /**
          * window.innerWidth displays browser window"s height and width excluding toolbars
          * using document.documentElement.clientWidth for IE8 and earlier
@@ -756,7 +764,10 @@ export class PopupClient extends StandardInteractionClient {
         popupWindow.close();
 
         // Remove window unload function
-        popupWindowParent.removeEventListener("beforeunload", this.unloadWindow);
+        popupWindowParent.removeEventListener(
+            "beforeunload",
+            this.unloadWindow
+        );
 
         // Interaction is completed - remove interaction status.
         this.browserStorage.setInteractionInProgress(false);
