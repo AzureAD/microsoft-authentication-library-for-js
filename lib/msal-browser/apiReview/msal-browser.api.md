@@ -752,6 +752,7 @@ export type EndSessionPopupRequest = Partial<Omit<CommonEndSessionRequest, "toke
     authority?: string;
     mainWindowRedirectUri?: string;
     popupWindowAttributes?: PopupWindowAttributes;
+    popupWindowParent?: Window;
 };
 
 // Warning: (ae-missing-release-tag) "EndSessionRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1286,6 +1287,7 @@ export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "response
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
     tokenBodyParameters?: StringDict;
+    popupWindowParent?: Window;
 };
 
 // Warning: (ae-missing-release-tag) "PopupSize" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
