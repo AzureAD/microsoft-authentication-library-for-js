@@ -55,4 +55,6 @@ extends:
                         samples:
                             - "Broker_WAMTestApp"
                             - "PerformanceTelemetrySample"
+                            - "BrokerTestApp-React"
+                            - "BrokerSingleFrameTestApp"
                         debug: ${{ parameters.debug }}
