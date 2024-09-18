@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726603180741,
+  "lastUpdate": 1726681086939,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -11594,6 +11594,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.16%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6877726fa3c655824d4e44f064b4b045e64964fc",
+          "message": "Allow passing popup parent for multi-window flows (#7313) (#7317)\n\nOutlook has multi-window scenarios where MSAL code is running in the\r\nmain window, but being rendered into a popup window. This is interfering\r\nwith MSAL popup token flows, because the click/user interaction is being\r\ndone in the popup window, but the call to MSAL acquireTokenPopup is\r\nbeing done in the separate main window, and so when MSAL goes to call\r\n`window.open`, the browser is blocking the popup as the interaction did\r\nnot occur in the same window and `popup_window_error` is returned.\r\n\r\nThe proposed fix is to add a `popupWindowParent` parameter to the\r\n`PopupRequest` interface, which MSAL will use instead of `window` when\r\ninvoking `window.open`. This makes the browser happy that the popup is\r\nbeing opened and parented to the same window where the interaction\r\noccurred. It also fixes UI parenting/z-index issues with the MSAL popup.\r\n\r\nIf a `popupWindowParent` is not specified, then today's behaviour is\r\npreserved, and `window` is used.\r\n\r\ncc @Salaman\r\n\r\n---------\r\n\r\nCo-authored-by: Chris Paslawski <salaman@users.noreply.github.com>",
+          "timestamp": "2024-09-18T10:32:43-07:00",
+          "tree_id": "57ca34dfa8778a3b7f7fe82ffe07f5322a3dbe68",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/6877726fa3c655824d4e44f064b4b045e64964fc"
+        },
+        "date": 1726681085768,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 198243,
+            "range": "±2.15%",
+            "unit": "ops/sec",
+            "extra": "214 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 207186,
+            "range": "±1.91%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
           }
         ]
       }
