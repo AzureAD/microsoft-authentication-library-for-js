@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Fix type resolution when using moduleResolution node16",
-  "packageName": "@azure/msal-react",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
