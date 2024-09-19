@@ -332,7 +332,7 @@ describe("RequestParameterBuilder unit tests", () => {
                 TEST_CONFIG.TEST_CHALLENGE,
                 ""
             )
-        ).toThrowError(
+        ).toThrow(
             createClientConfigurationError(
                 ClientConfigurationErrorCodes.pkceParamsMissing
             )
@@ -346,7 +346,7 @@ describe("RequestParameterBuilder unit tests", () => {
                 "",
                 AADServerParamKeys.CODE_CHALLENGE_METHOD
             )
-        ).toThrowError(
+        ).toThrow(
             createClientConfigurationError(
                 ClientConfigurationErrorCodes.pkceParamsMissing
             )
@@ -609,7 +609,7 @@ describe("RequestParameterBuilder unit tests", () => {
                     testClaims,
                     []
                 )
-            ).toThrowError(
+            ).toThrow(
                 ClientConfigurationErrorMessage.invalidClaimsRequest.desc
             );
         });

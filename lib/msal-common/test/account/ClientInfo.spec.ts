@@ -88,20 +88,20 @@ describe("ClientInfo.ts Class Unit Tests", () => {
 
         it("Throws error if clientInfo is null or empty", () => {
             // @ts-ignore
-            expect(() => buildClientInfo(null, cryptoInterface)).toThrowError(
+            expect(() => buildClientInfo(null, cryptoInterface)).toThrow(
                 ClientAuthErrorMessage.clientInfoEmptyError.desc
             );
             // @ts-ignore
-            expect(() => buildClientInfo(null, cryptoInterface)).toThrowError(
+            expect(() => buildClientInfo(null, cryptoInterface)).toThrow(
                 ClientAuthError
             );
 
             expect(() =>
                 buildClientInfo("", cryptoInterface.base64Decode)
-            ).toThrowError(ClientAuthErrorMessage.clientInfoEmptyError.desc);
+            ).toThrow(ClientAuthErrorMessage.clientInfoEmptyError.desc);
             expect(() =>
                 buildClientInfo("", cryptoInterface.base64Decode)
-            ).toThrowError(ClientAuthError);
+            ).toThrow(ClientAuthError);
         });
 
         it("Throws error if function could not successfully decode ", () => {
@@ -110,13 +110,13 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                     "ThisCan'tbeParsed",
                     cryptoInterface.base64Decode
                 )
-            ).toThrowError(ClientAuthErrorMessage.clientInfoDecodingError.desc);
+            ).toThrow(ClientAuthErrorMessage.clientInfoDecodingError.desc);
             expect(() =>
                 buildClientInfo(
                     "ThisCan'tbeParsed",
                     cryptoInterface.base64Decode
                 )
-            ).toThrowError(ClientAuthError);
+            ).toThrow(ClientAuthError);
         });
 
         it("Succesfully returns decoded client info", () => {
@@ -132,10 +132,10 @@ describe("ClientInfo.ts Class Unit Tests", () => {
 
     describe("buildClientInfoFromHomeAccountId", () => {
         it("throws error if homeAccountId is not in the correct format", () => {
-            expect(() => buildClientInfoFromHomeAccountId("")).toThrowError(
+            expect(() => buildClientInfoFromHomeAccountId("")).toThrow(
                 ClientAuthError
             );
-            expect(() => buildClientInfoFromHomeAccountId("")).toThrowError(
+            expect(() => buildClientInfoFromHomeAccountId("")).toThrow(
                 createClientAuthError(
                     ClientAuthErrorCodes.clientInfoDecodingError
                 )

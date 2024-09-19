@@ -94,30 +94,30 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
         expect(() =>
             // @ts-ignore
             ProtocolUtils.setRequestState(null, userState)
-        ).toThrowError(ClientAuthError);
+        ).toThrow(ClientAuthError);
         expect(() =>
             // @ts-ignore
             ProtocolUtils.setRequestState(null, userState)
-        ).toThrowError(ClientAuthErrorMessage.noCryptoObj.desc);
+        ).toThrow(ClientAuthErrorMessage.noCryptoObj.desc);
     });
 
     it("parseRequestState() throws error if given state is null or empty", () => {
         expect(() =>
             ProtocolUtils.parseRequestState(cryptoInterface, "")
-        ).toThrowError(ClientAuthError);
+        ).toThrow(ClientAuthError);
         expect(() =>
             ProtocolUtils.parseRequestState(cryptoInterface, "")
-        ).toThrowError(ClientAuthErrorMessage.invalidStateError.desc);
+        ).toThrow(ClientAuthErrorMessage.invalidStateError.desc);
 
         expect(() =>
             // @ts-ignore
             ProtocolUtils.parseRequestState(cryptoInterface, null)
-        ).toThrowError(ClientAuthError);
+        ).toThrow(ClientAuthError);
 
         expect(() =>
             // @ts-ignore
             ProtocolUtils.parseRequestState(cryptoInterface, null)
-        ).toThrowError(ClientAuthErrorMessage.invalidStateError.desc);
+        ).toThrow(ClientAuthErrorMessage.invalidStateError.desc);
     });
 
     it("parseRequestState() returns empty userRequestState if no resource delimiter found in state string", () => {

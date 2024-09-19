@@ -11,7 +11,7 @@ describe("RequestValidator unit tests", () => {
         it("Throws UrlEmptyError if redirect uri is empty", () => {
             expect(function () {
                 RequestValidator.validateRedirectUri("");
-            }).toThrowError(
+            }).toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.redirectUriEmpty
                 )
@@ -38,7 +38,7 @@ describe("RequestValidator unit tests", () => {
         it("Throws InvalidPromptError if invalid prompt value passed in", () => {
             expect(function () {
                 RequestValidator.validatePrompt("");
-            }).toThrowError(
+            }).toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.invalidPromptValue
                 )
@@ -56,7 +56,7 @@ describe("RequestValidator unit tests", () => {
         it("Throws InvalidClaimsError if invalid claims value passed in", () => {
             expect(function () {
                 RequestValidator.validateClaims("invalid_claims_value");
-            }).toThrowError(
+            }).toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.invalidClaims
                 )
@@ -71,7 +71,7 @@ describe("RequestValidator unit tests", () => {
                     "",
                     TEST_CONFIG.CODE_CHALLENGE_METHOD
                 );
-            }).toThrowError(
+            }).toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.pkceParamsMissing
                 )
@@ -84,7 +84,7 @@ describe("RequestValidator unit tests", () => {
                     TEST_CONFIG.TEST_CHALLENGE,
                     "255"
                 );
-            }).toThrowError(
+            }).toThrow(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.invalidCodeChallengeMethod
                 )

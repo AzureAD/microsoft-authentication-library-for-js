@@ -168,37 +168,37 @@ describe("AuthToken.ts Class Unit Tests", () => {
         it("Throws error if rawIdToken is null or empty", () => {
             expect(() =>
                 AuthToken.extractTokenClaims("", cryptoInterface.base64Decode)
-            ).toThrowError(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            ).toThrow(ClientAuthErrorMessage.nullOrEmptyToken.desc);
             expect(() =>
                 AuthToken.extractTokenClaims("", cryptoInterface.base64Decode)
-            ).toThrowError(ClientAuthError);
+            ).toThrow(ClientAuthError);
 
             expect(() =>
                 // @ts-ignore
                 AuthToken.extractTokenClaims(null, cryptoInterface)
-            ).toThrowError(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            ).toThrow(ClientAuthErrorMessage.nullOrEmptyToken.desc);
             expect(() =>
                 // @ts-ignore
                 AuthToken.extractTokenClaims(null, cryptoInterface)
-            ).toThrowError(ClientAuthError);
+            ).toThrow(ClientAuthError);
         });
 
         it("Throws error if idToken is null or empty", () => {
             expect(() =>
                 AuthToken.extractTokenClaims("", cryptoInterface.base64Decode)
-            ).toThrowError(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            ).toThrow(ClientAuthErrorMessage.nullOrEmptyToken.desc);
             expect(() =>
                 AuthToken.extractTokenClaims("", cryptoInterface.base64Decode)
-            ).toThrowError(ClientAuthError);
+            ).toThrow(ClientAuthError);
 
             expect(() =>
                 // @ts-ignore
                 AuthToken.extractTokenClaims(null, cryptoInterface)
-            ).toThrowError(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            ).toThrow(ClientAuthErrorMessage.nullOrEmptyToken.desc);
             expect(() =>
                 // @ts-ignore
                 AuthToken.extractTokenClaims(null, cryptoInterface)
-            ).toThrowError(ClientAuthError);
+            ).toThrow(ClientAuthError);
         });
 
         it("Throws error if payload cannot be parsed", () => {
@@ -207,13 +207,13 @@ describe("AuthToken.ts Class Unit Tests", () => {
                     "not-a-real-token",
                     cryptoInterface.base64Decode
                 )
-            ).toThrowError(ClientAuthErrorMessage.tokenParsingError.desc);
+            ).toThrow(ClientAuthErrorMessage.tokenParsingError.desc);
             expect(() =>
                 AuthToken.extractTokenClaims(
                     "not-a-real-token",
                     cryptoInterface.base64Decode
                 )
-            ).toThrowError(ClientAuthError);
+            ).toThrow(ClientAuthError);
         });
 
         it("Successfully extracts the idTokenClaims from the decodedJwt", () => {

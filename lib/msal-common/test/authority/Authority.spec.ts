@@ -153,7 +153,7 @@ describe("Authority.ts Class Unit Tests", () => {
                         logger,
                         TEST_CONFIG.CORRELATION_ID
                     )
-            ).toThrowError(
+            ).toThrow(
                 ClientConfigurationErrorMessage.authorityUriInsecure.desc
             );
             expect(
@@ -166,7 +166,7 @@ describe("Authority.ts Class Unit Tests", () => {
                         logger,
                         TEST_CONFIG.CORRELATION_ID
                     )
-            ).toThrowError(ClientConfigurationErrorMessage.urlParseError.desc);
+            ).toThrow(ClientConfigurationErrorMessage.urlParseError.desc);
             expect(
                 () =>
                     new Authority(
@@ -177,7 +177,7 @@ describe("Authority.ts Class Unit Tests", () => {
                         logger,
                         TEST_CONFIG.CORRELATION_ID
                     )
-            ).toThrowError(ClientConfigurationErrorMessage.urlEmptyError.desc);
+            ).toThrow(ClientConfigurationErrorMessage.urlEmptyError.desc);
         });
     });
 
@@ -222,17 +222,17 @@ describe("Authority.ts Class Unit Tests", () => {
                 () =>
                     (authority.canonicalAuthority =
                         "http://login.microsoftonline.com/common")
-            ).toThrowError(
+            ).toThrow(
                 ClientConfigurationErrorMessage.authorityUriInsecure.desc
             );
             expect(
                 () =>
                     (authority.canonicalAuthority =
                         "https://login.microsoftonline.com/")
-            ).not.toThrowError();
+            ).not.toThrow();
             expect(
                 () => (authority.canonicalAuthority = "This is not a URI")
-            ).toThrowError(ClientConfigurationErrorMessage.urlParseError.desc);
+            ).toThrow(ClientConfigurationErrorMessage.urlParseError.desc);
 
             authority.canonicalAuthority = `${TEST_URIS.ALTERNATE_INSTANCE}/${RANDOM_TEST_GUID}`;
             expect(authority.canonicalAuthority.endsWith("/")).toBe(true);
@@ -336,32 +336,32 @@ describe("Authority.ts Class Unit Tests", () => {
                     logger,
                     TEST_CONFIG.CORRELATION_ID
                 );
-                expect(() => authority.authorizationEndpoint).toThrowError(
+                expect(() => authority.authorizationEndpoint).toThrow(
                     createClientAuthError(
                         ClientAuthErrorCodes.endpointResolutionError
                     )
                 );
-                expect(() => authority.tokenEndpoint).toThrowError(
+                expect(() => authority.tokenEndpoint).toThrow(
                     createClientAuthError(
                         ClientAuthErrorCodes.endpointResolutionError
                     )
                 );
-                expect(() => authority.endSessionEndpoint).toThrowError(
+                expect(() => authority.endSessionEndpoint).toThrow(
                     createClientAuthError(
                         ClientAuthErrorCodes.endpointResolutionError
                     )
                 );
-                expect(() => authority.deviceCodeEndpoint).toThrowError(
+                expect(() => authority.deviceCodeEndpoint).toThrow(
                     createClientAuthError(
                         ClientAuthErrorCodes.endpointResolutionError
                     )
                 );
-                expect(() => authority.selfSignedJwtAudience).toThrowError(
+                expect(() => authority.selfSignedJwtAudience).toThrow(
                     createClientAuthError(
                         ClientAuthErrorCodes.endpointResolutionError
                     )
                 );
-                expect(() => authority.jwksUri).toThrowError(
+                expect(() => authority.jwksUri).toThrow(
                     createClientAuthError(
                         ClientAuthErrorCodes.endpointResolutionError
                     )
@@ -1112,7 +1112,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 );
                 await authority.resolveEndpointsAsync();
 
-                expect(() => authority.endSessionEndpoint).toThrowError(
+                expect(() => authority.endSessionEndpoint).toThrow(
                     createClientAuthError(
                         ClientAuthErrorCodes.endSessionEndpointNotSupported
                     )
@@ -2597,7 +2597,7 @@ describe("Authority.ts Class Unit Tests", () => {
             });
 
             it("getPreferredCache throws error if discovery is not complete", () => {
-                expect(() => authority.getPreferredCache()).toThrowError(
+                expect(() => authority.getPreferredCache()).toThrow(
                     createClientAuthError(
                         ClientAuthErrorCodes.endpointResolutionError
                     )

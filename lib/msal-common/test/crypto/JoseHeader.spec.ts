@@ -41,7 +41,7 @@ describe("JoseHeader.ts Unit Tests", () => {
                     alg: TEST_CRYPTO_ALGORITHMS.rsa,
                     typ: JsonWebTokenTypes.Pop,
                 })
-            ).toThrowError(
+            ).toThrow(
                 JoseHeaderErrorMessages[JoseHeaderErrorCodes.missingKidError]
             );
         });
@@ -52,7 +52,7 @@ describe("JoseHeader.ts Unit Tests", () => {
                     kid: TEST_POP_VALUES.KID,
                     typ: JsonWebTokenTypes.Pop,
                 })
-            ).toThrowError(
+            ).toThrow(
                 JoseHeaderErrorMessages[JoseHeaderErrorCodes.missingAlgError]
             );
         });

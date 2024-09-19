@@ -31,21 +31,21 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(emptyConfig.cryptoInterface.base64Decode).not.toBeNull();
         expect(() =>
             emptyConfig.cryptoInterface.base64Decode("test input")
-        ).toThrowError(
+        ).toThrow(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
             emptyConfig.cryptoInterface.base64Decode("test input")
-        ).toThrowError(AuthError);
+        ).toThrow(AuthError);
         expect(emptyConfig.cryptoInterface.base64Encode).not.toBeNull();
         expect(() =>
             emptyConfig.cryptoInterface.base64Encode("test input")
-        ).toThrowError(
+        ).toThrow(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
             emptyConfig.cryptoInterface.base64Encode("test input")
-        ).toThrowError(AuthError);
+        ).toThrow(AuthError);
         // Storage interface checks
         expect(emptyConfig.storageInterface).not.toBeNull();
         expect(emptyConfig.storageInterface.clear).not.toBeNull();
@@ -57,37 +57,35 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(emptyConfig.storageInterface.getAccount).not.toBeNull();
         expect(() =>
             emptyConfig.storageInterface.getAccount("testKey")
-        ).toThrowError(
+        ).toThrow(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
             emptyConfig.storageInterface.getAccount("testKey")
-        ).toThrowError(AuthError);
+        ).toThrow(AuthError);
         expect(emptyConfig.storageInterface.getKeys).not.toBeNull();
-        expect(() => emptyConfig.storageInterface.getKeys()).toThrowError(
+        expect(() => emptyConfig.storageInterface.getKeys()).toThrow(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
-        expect(() => emptyConfig.storageInterface.getKeys()).toThrowError(
-            AuthError
-        );
+        expect(() => emptyConfig.storageInterface.getKeys()).toThrow(AuthError);
         expect(emptyConfig.storageInterface.removeItem).not.toBeNull();
         expect(() =>
             emptyConfig.storageInterface.removeItem("testKey")
-        ).toThrowError(
+        ).toThrow(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
             emptyConfig.storageInterface.removeItem("testKey")
-        ).toThrowError(AuthError);
+        ).toThrow(AuthError);
         expect(emptyConfig.storageInterface.setAccount).not.toBeNull();
         expect(() =>
             emptyConfig.storageInterface.setAccount(MockCache.acc)
-        ).toThrowError(
+        ).toThrow(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
             emptyConfig.storageInterface.setAccount(MockCache.acc)
-        ).toThrowError(AuthError);
+        ).toThrow(AuthError);
         // Network interface checks
         expect(emptyConfig.networkInterface).not.toBeNull();
         expect(emptyConfig.networkInterface.sendGetRequestAsync).not.toBeNull();

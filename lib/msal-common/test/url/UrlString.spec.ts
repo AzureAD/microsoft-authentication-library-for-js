@@ -15,22 +15,20 @@ describe("UrlString.ts Class Unit Tests", () => {
 
     it("constructor throws error if uri is empty or null", () => {
         // @ts-ignore
-        expect(() => new UrlString(null)).toThrowError(
+        expect(() => new UrlString(null)).toThrow(
             createClientConfigurationError(
                 ClientConfigurationErrorCodes.urlEmptyError
             )
         );
         // @ts-ignore
-        expect(() => new UrlString(null)).toThrowError(
-            ClientConfigurationError
-        );
+        expect(() => new UrlString(null)).toThrow(ClientConfigurationError);
 
-        expect(() => new UrlString("")).toThrowError(
+        expect(() => new UrlString("")).toThrow(
             createClientConfigurationError(
                 ClientConfigurationErrorCodes.urlEmptyError
             )
         );
-        expect(() => new UrlString("")).toThrowError(ClientConfigurationError);
+        expect(() => new UrlString("")).toThrow(ClientConfigurationError);
     });
 
     it("validateAsUri throws error if uri components could not be extracted", () => {
@@ -52,14 +50,12 @@ describe("UrlString.ts Class Unit Tests", () => {
     it("validateAsUri throws error if uri is not secure", () => {
         const insecureUrlString = "http://login.microsoft.com/common";
         let urlObj = new UrlString(insecureUrlString);
-        expect(() => urlObj.validateAsUri()).toThrowError(
+        expect(() => urlObj.validateAsUri()).toThrow(
             createClientConfigurationError(
                 ClientConfigurationErrorCodes.authorityUriInsecure
             )
         );
-        expect(() => urlObj.validateAsUri()).toThrowError(
-            ClientConfigurationError
-        );
+        expect(() => urlObj.validateAsUri()).toThrow(ClientConfigurationError);
     });
 
     it("validateAsUri validates any valid URI", () => {
