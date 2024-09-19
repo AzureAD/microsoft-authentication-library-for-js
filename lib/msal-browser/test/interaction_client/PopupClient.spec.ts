@@ -206,7 +206,7 @@ describe("PopupClient", () => {
             try {
                 await popupClient.acquireToken(request);
             } catch (e) {}
-            expect(popupSpy.getCall(0).args).toHaveLength(3);
+            expect(popupSpy.getCall(0).args).toHaveLength(2);
         });
 
         it("opens popups asynchronously if configured", async () => {
@@ -271,7 +271,7 @@ describe("PopupClient", () => {
                 await popupClient.acquireToken(request);
             } catch (e) {}
             expect(popupSpy.calledOnce).toBeTruthy();
-            expect(popupSpy.getCall(0).args).toHaveLength(3);
+            expect(popupSpy.getCall(0).args).toHaveLength(2);
             expect(
                 popupSpy
                     .getCall(0)
@@ -800,7 +800,7 @@ describe("PopupClient", () => {
             try {
                 await popupClient.logout();
             } catch (e) {}
-            expect(popupSpy.getCall(0).args).toHaveLength(3);
+            expect(popupSpy.getCall(0).args).toHaveLength(2);
         });
 
         it("opens popups asynchronously if configured", async () => {
@@ -840,14 +840,14 @@ describe("PopupClient", () => {
 
             sinon
                 .stub(PopupClient.prototype, "openSizedPopup")
-                .callsFake((urlNavigate, popupName) => {
+                .callsFake((urlNavigate, popupParams) => {
                     expect(
                         urlNavigate.startsWith(
                             TEST_URIS.TEST_END_SESSION_ENDPOINT
                         )
                     ).toBeTruthy();
                     expect(
-                        popupName.startsWith(
+                        popupParams.popupName.startsWith(
                             `msal.${TEST_CONFIG.MSAL_CLIENT_ID}`
                         )
                     ).toBeTruthy();
@@ -1385,8 +1385,13 @@ describe("PopupClient", () => {
 
     describe("openSizedPopup", () => {
         it("opens a popup with urlNavigate", () => {
+            const popupParams = {
+                popupName: "popup",
+                popupWindowAttributes: {},
+                popupWindowParent: window,
+            };
             const windowOpenSpy = sinon.stub(window, "open");
-            popupClient.openSizedPopup("http://localhost/", "popup", {});
+            popupClient.openSizedPopup("http://localhost/", popupParams);
 
             expect(windowOpenSpy.calledWith("http://localhost/", "popup")).toBe(
                 true
@@ -1394,8 +1399,28 @@ describe("PopupClient", () => {
         });
 
         it("opens a popup with about:blank", () => {
+            const popupParams = {
+                popupName: "popup",
+                popupWindowAttributes: {},
+                popupWindowParent: window,
+            };
             const windowOpenSpy = sinon.stub(window, "open");
-            popupClient.openSizedPopup("about:blank", "popup", {});
+            popupClient.openSizedPopup("about:blank", popupParams);
+
+            expect(windowOpenSpy.calledWith("about:blank", "popup")).toBe(true);
+        });
+
+        it("opens a popup using passed window parent", () => {
+            const windowOpenSpy = sinon.stub(window, "open");
+            const windowParent = {
+                open: windowOpenSpy,
+            };
+            const popupParams = {
+                popupName: "popup",
+                popupWindowAttributes: {},
+                popupWindowParent: windowParent as unknown as Window,
+            };
+            popupClient.openSizedPopup("about:blank", popupParams);
 
             expect(windowOpenSpy.calledWith("about:blank", "popup")).toBe(true);
         });
@@ -1411,12 +1436,13 @@ describe("PopupClient", () => {
                     left: 100,
                 },
             };
+            const popupParams = {
+                popupName: "popup",
+                popupWindowAttributes: testPopupWindowAttributes,
+                popupWindowParent: window,
+            };
             const windowOpenSpy = sinon.stub(window, "open");
-            popupClient.openSizedPopup(
-                "about:blank",
-                "popup",
-                testPopupWindowAttributes
-            );
+            popupClient.openSizedPopup("about:blank", popupParams);
 
             expect(
                 windowOpenSpy.calledWith(
@@ -1428,8 +1454,13 @@ describe("PopupClient", () => {
         });
 
         it("opens a popup with default size and position if empty object passed in for popupWindowAttributes", () => {
+            const popupParams = {
+                popupName: "popup",
+                popupWindowAttributes: {},
+                popupWindowParent: window,
+            };
             const windowOpenSpy = sinon.stub(window, "open");
-            popupClient.openSizedPopup("about:blank", "popup", {});
+            popupClient.openSizedPopup("about:blank", popupParams);
 
             expect(
                 windowOpenSpy.calledWith(
@@ -1451,12 +1482,13 @@ describe("PopupClient", () => {
                     left: 0,
                 },
             };
+            const popupParams = {
+                popupName: "popup",
+                popupWindowAttributes: testPopupWindowAttributes,
+                popupWindowParent: window,
+            };
             const windowOpenSpy = sinon.stub(window, "open");
-            popupClient.openSizedPopup(
-                "about:blank",
-                "popup",
-                testPopupWindowAttributes
-            );
+            popupClient.openSizedPopup("about:blank", popupParams);
 
             expect(
                 windowOpenSpy.calledWith(
@@ -1474,12 +1506,13 @@ describe("PopupClient", () => {
                     width: 100,
                 },
             };
+            const popupParams = {
+                popupName: "popup",
+                popupWindowAttributes: testPopupWindowAttributes,
+                popupWindowParent: window,
+            };
             const windowOpenSpy = sinon.stub(window, "open");
-            popupClient.openSizedPopup(
-                "about:blank",
-                "popup",
-                testPopupWindowAttributes
-            );
+            popupClient.openSizedPopup("about:blank", popupParams);
 
             expect(
                 windowOpenSpy.calledWith(
@@ -1497,12 +1530,13 @@ describe("PopupClient", () => {
                     left: 100,
                 },
             };
+            const popupParams = {
+                popupName: "popup",
+                popupWindowAttributes: testPopupWindowAttributes,
+                popupWindowParent: window,
+            };
             const windowOpenSpy = sinon.stub(window, "open");
-            popupClient.openSizedPopup(
-                "about:blank",
-                "popup",
-                testPopupWindowAttributes
-            );
+            popupClient.openSizedPopup("about:blank", popupParams);
 
             expect(
                 windowOpenSpy.calledWith(
@@ -1520,12 +1554,13 @@ describe("PopupClient", () => {
                     width: 99999,
                 },
             };
+            const popupParams = {
+                popupName: "popup",
+                popupWindowAttributes: testPopupWindowAttributes,
+                popupWindowParent: window,
+            };
             const windowOpenSpy = sinon.stub(window, "open");
-            popupClient.openSizedPopup(
-                "about:blank",
-                "popup",
-                testPopupWindowAttributes
-            );
+            popupClient.openSizedPopup("about:blank", popupParams);
 
             expect(
                 windowOpenSpy.calledWith(
@@ -1543,12 +1578,13 @@ describe("PopupClient", () => {
                     left: 99999,
                 },
             };
+            const popupParams = {
+                popupName: "popup",
+                popupWindowAttributes: testPopupWindowAttributes,
+                popupWindowParent: window,
+            };
             const windowOpenSpy = sinon.stub(window, "open");
-            popupClient.openSizedPopup(
-                "about:blank",
-                "popup",
-                testPopupWindowAttributes
-            );
+            popupClient.openSizedPopup("about:blank", popupParams);
 
             expect(
                 windowOpenSpy.calledWith(
@@ -1590,6 +1626,7 @@ describe("PopupClient", () => {
                 popupName: "name",
                 popupWindowAttributes: {},
                 popup: popupWindow,
+                popupWindowParent: window,
             };
             popupClient.openPopup("http://localhost", popupParams);
             popupClient.unloadWindow(new Event("test"));
@@ -1607,7 +1644,7 @@ describe("PopupClient", () => {
                 close: () => {},
                 closed: false,
             };
-            popupClient.monitorPopupForHash(popup).catch((error) => {
+            popupClient.monitorPopupForHash(popup, window).catch((error) => {
                 expect(error.errorCode).toEqual("user_cancelled");
                 done();
             });
@@ -1628,7 +1665,7 @@ describe("PopupClient", () => {
                 close: () => {},
                 closed: false,
             };
-            popupClient.monitorPopupForHash(popup).then((hash) => {
+            popupClient.monitorPopupForHash(popup, window).then((hash) => {
                 expect(hash).toEqual("code=testCode");
                 done();
             });
@@ -1685,8 +1722,7 @@ describe("PopupClient", () => {
             );
 
             const result = await popupClient
-                //@ts-ignore
-                .monitorPopupForHash(popup)
+                .monitorPopupForHash(popup as Window, window)
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
                         BrowserAuthErrorMessage.monitorPopupTimeoutError.code
@@ -1708,11 +1744,12 @@ describe("PopupClient", () => {
                 close: () => {},
             };
 
-            // @ts-ignore
-            popupClient.monitorPopupForHash(popup).then((hash: string) => {
-                expect(hash).toEqual("#code=hello");
-                done();
-            });
+            popupClient
+                .monitorPopupForHash(popup as unknown as Window, window)
+                .then((hash: string) => {
+                    expect(hash).toEqual("#code=hello");
+                    done();
+                });
         });
 
         it("returns server code response in query form when serverResponseType in OIDCOptions is query", async () => {
@@ -1763,8 +1800,10 @@ describe("PopupClient", () => {
                 close: () => {},
             };
 
-            // @ts-ignore
-            const result = await popupClient.monitorPopupForHash(popup);
+            const result = await popupClient.monitorPopupForHash(
+                popup as unknown as Window,
+                window
+            );
             expect(result).toEqual("?code=authCode");
         });
 
@@ -1778,11 +1817,12 @@ describe("PopupClient", () => {
                 closed: true,
             };
 
-            // @ts-ignore
-            popupClient.monitorPopupForHash(popup).catch((error: AuthError) => {
-                expect(error.errorCode).toEqual("user_cancelled");
-                done();
-            });
+            popupClient
+                .monitorPopupForHash(popup as unknown as Window, window)
+                .catch((error: AuthError) => {
+                    expect(error.errorCode).toEqual("user_cancelled");
+                    done();
+                });
         });
     });
 
@@ -1842,12 +1882,14 @@ describe("PopupClient", () => {
                 popupClient.initiateAuthRequest("", {
                     popupName: "name",
                     popupWindowAttributes: {},
+                    popupWindowParent: window,
                 })
             ).toThrow(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
             expect(() =>
                 popupClient.initiateAuthRequest("", {
                     popupName: "name",
                     popupWindowAttributes: {},
+                    popupWindowParent: window,
                 })
             ).toThrow(BrowserAuthError);
 
@@ -1892,11 +1934,12 @@ describe("PopupClient", () => {
             popupClient.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, {
                 popupName: "name",
                 popupWindowAttributes: {},
+                popupWindowParent: window,
             });
         });
     });
 
-    describe("openPopup", () => {
+    describe("initiateAuthRequest", () => {
         afterEach(() => {
             sinon.restore();
         });
@@ -1925,8 +1968,10 @@ describe("PopupClient", () => {
             const popupWindow = popupClient.initiateAuthRequest(
                 "http://localhost/#/code=hello",
                 {
-                    // @ts-ignore
-                    popup: windowObject,
+                    popup: windowObject as unknown as Window,
+                    popupName: "name",
+                    popupWindowAttributes: {},
+                    popupWindowParent: window,
                 }
             );
 
@@ -1955,10 +2000,41 @@ describe("PopupClient", () => {
                 {
                     popupName: "name",
                     popupWindowAttributes: {},
+                    popupWindowParent: window,
                 }
             );
 
             expect(popupWindow).toEqual(window);
+        });
+
+        it("opens popup using passed window parent", () => {
+            const popupWindowParent = {
+                open: sinon.spy((url, target) => window),
+                addEventListener: sinon.spy(),
+            };
+            const windowOpenSpy = sinon.stub(window, "open");
+            sinon.stub(window, "focus");
+
+            const popupWindow = popupClient.initiateAuthRequest(
+                "http://localhost/#/code=hello",
+                {
+                    popupName: "name",
+                    popupWindowAttributes: {},
+                    popupWindowParent: popupWindowParent as unknown as Window,
+                }
+            );
+
+            expect(popupWindow).toEqual(window);
+            expect(windowOpenSpy.called).toBe(false);
+            expect(
+                popupWindowParent.open.calledWith(
+                    "http://localhost/#/code=hello",
+                    "name"
+                )
+            ).toBe(true);
+            expect(
+                popupWindowParent.addEventListener.calledWith("beforeunload")
+            ).toBe(true);
         });
 
         it("throws error if no popup passed in but window.open returns null", () => {
@@ -1977,7 +2053,11 @@ describe("PopupClient", () => {
             expect(() =>
                 popupClient.initiateAuthRequest(
                     "http://localhost/#/code=hello",
-                    { popupName: "name", popupWindowAttributes: {} }
+                    {
+                        popupName: "name",
+                        popupWindowAttributes: {},
+                        popupWindowParent: window,
+                    }
                 )
             ).toThrow(
                 createBrowserAuthError(BrowserAuthErrorCodes.popupWindowError)
@@ -2001,6 +2081,7 @@ describe("PopupClient", () => {
                         popup: null,
                         popupName: "name",
                         popupWindowAttributes: {},
+                        popupWindowParent: window,
                     }
                 )
             ).toThrow(

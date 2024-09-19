@@ -52,6 +52,7 @@ export type PopupParams = {
     popup?: Window | null;
     popupName: string;
     popupWindowAttributes: PopupWindowAttributes;
+    popupWindowParent: Window;
 };
 
 export class PopupClient extends StandardInteractionClient {
@@ -96,33 +97,27 @@ export class PopupClient extends StandardInteractionClient {
                 request.scopes || OIDC_DEFAULT_SCOPES,
                 request.authority || this.config.auth.authority
             );
-            const popupWindowAttributes = request.popupWindowAttributes || {};
+            const popupParams: PopupParams = {
+                popupName,
+                popupWindowAttributes: request.popupWindowAttributes || {},
+                popupWindowParent: request.popupWindowParent ?? window,
+            };
 
             // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
             if (this.config.system.asyncPopups) {
                 this.logger.verbose("asyncPopups set to true, acquiring token");
                 // Passes on popup position and dimensions if in request
-                return this.acquireTokenPopupAsync(
-                    request,
-                    popupName,
-                    popupWindowAttributes
-                );
+                return this.acquireTokenPopupAsync(request, popupParams);
             } else {
                 // asyncPopups flag is set to false. Opens popup before acquiring token.
                 this.logger.verbose(
                     "asyncPopup set to false, opening popup before acquiring token"
                 );
-                const popup = this.openSizedPopup(
+                popupParams.popup = this.openSizedPopup(
                     "about:blank",
-                    popupName,
-                    popupWindowAttributes
+                    popupParams
                 );
-                return this.acquireTokenPopupAsync(
-                    request,
-                    popupName,
-                    popupWindowAttributes,
-                    popup
-                );
+                return this.acquireTokenPopupAsync(request, popupParams);
             }
         } catch (e) {
             return Promise.reject(e);
@@ -138,13 +133,15 @@ export class PopupClient extends StandardInteractionClient {
             this.logger.verbose("logoutPopup called");
             const validLogoutRequest =
                 this.initializeLogoutRequest(logoutRequest);
-
-            const popupName = this.generateLogoutPopupName(validLogoutRequest);
+            const popupParams: PopupParams = {
+                popupName: this.generateLogoutPopupName(validLogoutRequest),
+                popupWindowAttributes:
+                    logoutRequest?.popupWindowAttributes || {},
+                popupWindowParent: logoutRequest?.popupWindowParent ?? window,
+            };
             const authority = logoutRequest && logoutRequest.authority;
             const mainWindowRedirectUri =
                 logoutRequest && logoutRequest.mainWindowRedirectUri;
-            const popupWindowAttributes =
-                logoutRequest?.popupWindowAttributes || {};
 
             // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
             if (this.config.system.asyncPopups) {
@@ -152,26 +149,21 @@ export class PopupClient extends StandardInteractionClient {
                 // Passes on popup position and dimensions if in request
                 return this.logoutPopupAsync(
                     validLogoutRequest,
-                    popupName,
-                    popupWindowAttributes,
+                    popupParams,
                     authority,
-                    undefined,
                     mainWindowRedirectUri
                 );
             } else {
                 // asyncPopups flag is set to false. Opens popup before logging out.
                 this.logger.verbose("asyncPopup set to false, opening popup");
-                const popup = this.openSizedPopup(
+                popupParams.popup = this.openSizedPopup(
                     "about:blank",
-                    popupName,
-                    popupWindowAttributes
+                    popupParams
                 );
                 return this.logoutPopupAsync(
                     validLogoutRequest,
-                    popupName,
-                    popupWindowAttributes,
+                    popupParams,
                     authority,
-                    popup,
                     mainWindowRedirectUri
                 );
             }
@@ -192,9 +184,7 @@ export class PopupClient extends StandardInteractionClient {
      */
     protected async acquireTokenPopupAsync(
         request: PopupRequest,
-        popupName: string,
-        popupWindowAttributes: PopupWindowAttributes,
-        popup?: Window | null
+        popupParams: PopupParams
     ): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenPopupAsync called");
         const serverTelemetryManager = this.initializeServerTelemetryManager(
@@ -269,14 +259,9 @@ export class PopupClient extends StandardInteractionClient {
             );
 
             // Show the UI once the url has been created. Get the window handle for the popup.
-            const popupParameters: PopupParams = {
-                popup,
-                popupName,
-                popupWindowAttributes,
-            };
             const popupWindow: Window = this.initiateAuthRequest(
                 navigateUrl,
-                popupParameters
+                popupParams
             );
             this.eventHandler.emitEvent(
                 EventType.POPUP_OPENED,
@@ -286,7 +271,10 @@ export class PopupClient extends StandardInteractionClient {
             );
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-            const responseString = await this.monitorPopupForHash(popupWindow);
+            const responseString = await this.monitorPopupForHash(
+                popupWindow,
+                popupParams.popupWindowParent
+            );
 
             const serverParams = invoke(
                 ResponseHandler.deserializeResponse,
@@ -356,10 +344,8 @@ export class PopupClient extends StandardInteractionClient {
 
             return result;
         } catch (e) {
-            if (popup) {
-                // Close the synchronous popup if an error is thrown before the window unload event is registered
-                popup.close();
-            }
+            // Close the synchronous popup if an error is thrown before the window unload event is registered
+            popupParams.popup?.close();
 
             if (e instanceof AuthError) {
                 (e as AuthError).setCorrelationId(this.correlationId);
@@ -381,10 +367,8 @@ export class PopupClient extends StandardInteractionClient {
      */
     protected async logoutPopupAsync(
         validRequest: CommonEndSessionRequest,
-        popupName: string,
-        popupWindowAttributes: PopupWindowAttributes,
+        popupParams: PopupParams,
         requestAuthority?: string,
-        popup?: Window | null,
         mainWindowRedirectUri?: string
     ): Promise<void> {
         this.logger.verbose("logoutPopupAsync called");
@@ -450,9 +434,7 @@ export class PopupClient extends StandardInteractionClient {
                         );
                     }
 
-                    if (popup) {
-                        popup.close();
-                    }
+                    popupParams.popup?.close();
 
                     return;
                 }
@@ -468,11 +450,7 @@ export class PopupClient extends StandardInteractionClient {
             );
 
             // Open the popup window to requestUrl.
-            const popupWindow = this.openPopup(logoutUri, {
-                popupName,
-                popupWindowAttributes,
-                popup,
-            });
+            const popupWindow = this.openPopup(logoutUri, popupParams);
             this.eventHandler.emitEvent(
                 EventType.POPUP_OPENED,
                 InteractionType.Popup,
@@ -480,7 +458,10 @@ export class PopupClient extends StandardInteractionClient {
                 null
             );
 
-            await this.monitorPopupForHash(popupWindow).catch(() => {
+            await this.monitorPopupForHash(
+                popupWindow,
+                popupParams.popupWindowParent
+            ).catch(() => {
                 // Swallow any errors related to monitoring the window. Server logout is best effort
             });
 
@@ -509,10 +490,8 @@ export class PopupClient extends StandardInteractionClient {
                 this.logger.verbose("No main window navigation requested");
             }
         } catch (e) {
-            if (popup) {
-                // Close the synchronous popup if an error is thrown before the window unload event is registered
-                popup.close();
-            }
+            // Close the synchronous popup if an error is thrown before the window unload event is registered
+            popupParams.popup?.close();
 
             if (e instanceof AuthError) {
                 (e as AuthError).setCorrelationId(this.correlationId);
@@ -562,7 +541,10 @@ export class PopupClient extends StandardInteractionClient {
      * @param popupWindow - window that is being monitored
      * @param timeout - timeout for processing hash once popup is redirected back to application
      */
-    monitorPopupForHash(popupWindow: Window): Promise<string> {
+    monitorPopupForHash(
+        popupWindow: Window,
+        popupWindowParent: Window
+    ): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             this.logger.verbose(
                 "PopupHandler.monitorPopupForHash - polling started"
@@ -617,7 +599,7 @@ export class PopupClient extends StandardInteractionClient {
                 resolve(responseString);
             }, this.config.system.pollIntervalMilliseconds);
         }).finally(() => {
-            this.cleanPopup(popupWindow);
+            this.cleanPopup(popupWindow, popupWindowParent);
         });
     }
 
@@ -649,11 +631,7 @@ export class PopupClient extends StandardInteractionClient {
                 this.logger.verbosePii(
                     `Opening popup window to: ${urlNavigate}`
                 );
-                popupWindow = this.openSizedPopup(
-                    urlNavigate,
-                    popupParams.popupName,
-                    popupParams.popupWindowAttributes
-                );
+                popupWindow = this.openSizedPopup(urlNavigate, popupParams);
             }
 
             // Popup will be null if popups are blocked
@@ -666,7 +644,10 @@ export class PopupClient extends StandardInteractionClient {
                 popupWindow.focus();
             }
             this.currentWindow = popupWindow;
-            window.addEventListener("beforeunload", this.unloadWindow);
+            popupParams.popupWindowParent.addEventListener(
+                "beforeunload",
+                this.unloadWindow
+            );
 
             return popupWindow;
         } catch (e) {
@@ -689,25 +670,28 @@ export class PopupClient extends StandardInteractionClient {
      */
     openSizedPopup(
         urlNavigate: string,
-        popupName: string,
-        popupWindowAttributes: PopupWindowAttributes
+        { popupName, popupWindowAttributes, popupWindowParent }: PopupParams
     ): Window | null {
         /**
          * adding winLeft and winTop to account for dual monitor
          * using screenLeft and screenTop for IE8 and earlier
          */
-        const winLeft = window.screenLeft ? window.screenLeft : window.screenX;
-        const winTop = window.screenTop ? window.screenTop : window.screenY;
+        const winLeft = popupWindowParent.screenLeft
+            ? popupWindowParent.screenLeft
+            : popupWindowParent.screenX;
+        const winTop = popupWindowParent.screenTop
+            ? popupWindowParent.screenTop
+            : popupWindowParent.screenY;
         /**
          * window.innerWidth displays browser window"s height and width excluding toolbars
          * using document.documentElement.clientWidth for IE8 and earlier
          */
         const winWidth =
-            window.innerWidth ||
+            popupWindowParent.innerWidth ||
             document.documentElement.clientWidth ||
             document.body.clientWidth;
         const winHeight =
-            window.innerHeight ||
+            popupWindowParent.innerHeight ||
             document.documentElement.clientHeight ||
             document.body.clientHeight;
 
@@ -750,7 +734,7 @@ export class PopupClient extends StandardInteractionClient {
             );
         }
 
-        return window.open(
+        return popupWindowParent.open(
             urlNavigate,
             popupName,
             `width=${width}, height=${height}, top=${top}, left=${left}, scrollbars=yes`
@@ -775,13 +759,15 @@ export class PopupClient extends StandardInteractionClient {
      * Closes popup, removes any state vars created during popup calls.
      * @param popupWindow
      */
-    cleanPopup(popupWindow?: Window): void {
-        if (popupWindow) {
-            // Close window.
-            popupWindow.close();
-        }
+    cleanPopup(popupWindow: Window, popupWindowParent: Window): void {
+        // Close window.
+        popupWindow.close();
+
         // Remove window unload function
-        window.removeEventListener("beforeunload", this.unloadWindow);
+        popupWindowParent.removeEventListener(
+            "beforeunload",
+            this.unloadWindow
+        );
 
         // Interaction is completed - remove interaction status.
         this.browserStorage.setInteractionInProgress(false);
