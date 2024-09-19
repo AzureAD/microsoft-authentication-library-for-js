@@ -8,7 +8,7 @@ import {
     ServerAuthorizationCodeResponse,
     HttpStatus,
     UrlUtils,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import http from "http";
 import { NodeAuthError } from "../error/NodeAuthError.js";
 import { Constants } from "../utils/Constants.js";

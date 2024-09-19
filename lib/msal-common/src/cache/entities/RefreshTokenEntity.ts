@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CredentialEntity } from "./CredentialEntity";
+import { CredentialEntity } from "./CredentialEntity.js";
 
 /**
  * Refresh Token Cache Type

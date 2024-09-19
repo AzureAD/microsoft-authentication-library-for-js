@@ -21,7 +21,7 @@ import {
     TimeUtils,
     UrlString,
     getClientAssertion,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 
 /**
  * Oauth2.0 Password grant client

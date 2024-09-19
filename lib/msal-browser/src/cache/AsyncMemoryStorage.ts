@@ -3,14 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { Logger } from "@azure/msal-common";
+import { Logger } from "@azure/msal-common/browser";
 import {
     BrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { DatabaseStorage } from "./DatabaseStorage";
-import { IAsyncStorage } from "./IAsyncStorage";
-import { MemoryStorage } from "./MemoryStorage";
+} from "../error/BrowserAuthError.js";
+import { DatabaseStorage } from "./DatabaseStorage.js";
+import { IAsyncStorage } from "./IAsyncStorage.js";
+import { MemoryStorage } from "./MemoryStorage.js";
 
 /**
  * This class allows MSAL to store artifacts asynchronously using the DatabaseStorage IndexedDB wrapper,

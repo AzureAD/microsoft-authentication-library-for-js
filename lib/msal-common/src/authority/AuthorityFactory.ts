@@ -3,18 +3,18 @@
  * Licensed under the MIT License.
  */
 
-import { Authority, formatAuthorityUri } from "./Authority";
-import { INetworkModule } from "../network/INetworkModule";
+import { Authority, formatAuthorityUri } from "./Authority.js";
+import { INetworkModule } from "../network/INetworkModule.js";
 import {
     createClientAuthError,
     ClientAuthErrorCodes,
-} from "../error/ClientAuthError";
-import { ICacheManager } from "../cache/interface/ICacheManager";
-import { AuthorityOptions } from "./AuthorityOptions";
-import { Logger } from "../logger/Logger";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
-import { invokeAsync } from "../utils/FunctionWrappers";
+} from "../error/ClientAuthError.js";
+import { ICacheManager } from "../cache/interface/ICacheManager.js";
+import { AuthorityOptions } from "./AuthorityOptions.js";
+import { Logger } from "../logger/Logger.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import { invokeAsync } from "../utils/FunctionWrappers.js";
 
 /**
  * Create an authority object of the correct type based on the url

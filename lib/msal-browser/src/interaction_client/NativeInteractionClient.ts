@@ -37,44 +37,44 @@ import {
     buildAccountToCache,
     InProgressPerformanceEvent,
     ServerTelemetryManager,
-} from "@azure/msal-common";
-import { BaseInteractionClient } from "./BaseInteractionClient";
-import { BrowserConfiguration } from "../config/Configuration";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { EventHandler } from "../event/EventHandler";
-import { PopupRequest } from "../request/PopupRequest";
-import { SilentRequest } from "../request/SilentRequest";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+} from "@azure/msal-common/browser";
+import { BaseInteractionClient } from "./BaseInteractionClient.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
+import { EventHandler } from "../event/EventHandler.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { SilentRequest } from "../request/SilentRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import {
     NativeExtensionMethod,
     ApiId,
     TemporaryCacheKeys,
     NativeConstants,
     BrowserConstants,
-} from "../utils/BrowserConstants";
+} from "../utils/BrowserConstants.js";
 import {
     NativeExtensionRequestBody,
     NativeTokenRequest,
-} from "../broker/nativeBroker/NativeRequest";
-import { MATS, NativeResponse } from "../broker/nativeBroker/NativeResponse";
+} from "../broker/nativeBroker/NativeRequest.js";
+import { MATS, NativeResponse } from "../broker/nativeBroker/NativeResponse.js";
 import {
     NativeAuthError,
     NativeAuthErrorCodes,
     createNativeAuthError,
     isFatalNativeAuthError,
-} from "../error/NativeAuthError";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { NavigationOptions } from "../navigation/NavigationOptions";
-import { INavigationClient } from "../navigation/INavigationClient";
+} from "../error/NativeAuthError.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { NavigationOptions } from "../navigation/NavigationOptions.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { SilentCacheClient } from "./SilentCacheClient";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { base64Decode } from "../encode/Base64Decode";
-import { version } from "../packageMetadata";
+} from "../error/BrowserAuthError.js";
+import { SilentCacheClient } from "./SilentCacheClient.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { base64Decode } from "../encode/Base64Decode.js";
+import { version } from "../packageMetadata.js";
 
 const BrokerServerParamKeys = {
     BROKER_CLIENT_ID: "brk_client_id",

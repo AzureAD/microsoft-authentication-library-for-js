@@ -5,7 +5,8 @@
     "test"
   ],
   "compilerOptions": {
-    "module": "esnext",
+    "moduleResolution": "nodenext",
+    "module": "nodenext",
     "target": "es2020",
     "lib": [
       "dom",
@@ -23,7 +24,6 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "resolveJsonModule": true,
-    "moduleResolution": "node",
     "baseUrl": "./",
     "jsx": "react",
     "esModuleInterop": true,

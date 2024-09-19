@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { CredentialEntity } from "./CredentialEntity";
-import { AuthenticationScheme } from "../../utils/Constants";
+import { CredentialEntity } from "./CredentialEntity.js";
+import { AuthenticationScheme } from "../../utils/Constants.js";
 
 /**
  * Access token cache type

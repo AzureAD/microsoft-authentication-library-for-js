@@ -4,7 +4,7 @@
  */
 
 import http from "http";
-import { IHttpRetryPolicy } from "./IHttpRetryPolicy";
+import { IHttpRetryPolicy } from "./IHttpRetryPolicy.js";
 
 export class LinearRetryPolicy implements IHttpRetryPolicy {
     maxRetries: number;
