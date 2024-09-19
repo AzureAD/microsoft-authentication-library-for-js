@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726681086939,
+  "lastUpdate": 1726768598410,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -11632,6 +11632,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.91%",
             "unit": "ops/sec",
             "extra": "217 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "330e8073dc16e7a83fce0460feecb2aef24ac4a6",
+          "message": "Use windows pools for e2e tests (#7310)\n\nMakes pool type configurable at the pipeline and template level for E2E\r\ntests and changes default to windows pool",
+          "timestamp": "2024-09-19T10:51:14-07:00",
+          "tree_id": "18408b7f93ee865ba67a9bd0640b9ec099a34286",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/330e8073dc16e7a83fce0460feecb2aef24ac4a6"
+        },
+        "date": 1726768597144,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 192602,
+            "range": "±2.27%",
+            "unit": "ops/sec",
+            "extra": "207 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 186101,
+            "range": "±2.12%",
+            "unit": "ops/sec",
+            "extra": "226 samples"
           }
         ]
       }
