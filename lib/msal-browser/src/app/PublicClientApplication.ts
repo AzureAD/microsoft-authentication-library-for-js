@@ -433,15 +433,26 @@ export class PublicClientApplication implements IPublicClientApplication {
 export async function createNestablePublicClientApplication(
     configuration: Configuration
 ): Promise<IPublicClientApplication> {
+    const naaController = await getNestedApplicationController(configuration);
+
+    if (naaController) {
+        return new PublicClientApplication(configuration, naaController);
+    }
+
+    return createStandardPublicClientApplication(configuration);
+}
+
+export async function getNestedApplicationController(
+    configuration: Configuration
+): Promise<IController | undefined> {
     const nestedAppAuth = new NestedAppOperatingContext(configuration);
     await nestedAppAuth.initialize();
 
     if (nestedAppAuth.isAvailable()) {
-        const controller = new NestedAppAuthController(nestedAppAuth);
-        return new PublicClientApplication(configuration, controller);
+        return new NestedAppAuthController(nestedAppAuth);
     }
 
-    return createStandardPublicClientApplication(configuration);
+    return undefined;
 }
 
 /**
