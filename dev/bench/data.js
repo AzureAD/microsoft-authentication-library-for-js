@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726768598410,
+  "lastUpdate": 1726772320297,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -11670,6 +11670,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.12%",
             "unit": "ops/sec",
             "extra": "226 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5a68dbbcf015629316b842c1ea577718fd15dca7",
+          "message": "Fix type resolution when using moduleResolution node16 (#7284)\n\nType resolution is broken for node16 resolution type due to several\r\nissues, this PR:\r\n\r\n- Updates all relative imports to include .js file extension, as\r\nrequired by node16 resolution\r\n- Includes type declaration files from lib folder in package publish\r\n- Adds package.json file to `lib` folder to indicate contents are\r\ncommonjs\r\n- Updates package exports field to point to the appropriate type\r\ndeclaration files for ESM or CJS\r\n- Adds browser and node subpaths to msal-common export to separate\r\nnode-only and browser-only features\r\n\r\nFixes #6781 #6487 #6269\r\n\r\n---------\r\n\r\nCo-authored-by: Hector Morales <hemoral@microsoft.com>",
+          "timestamp": "2024-09-19T11:52:54-07:00",
+          "tree_id": "3bc36991163dc1ee15e1f498c0e59691330aa8d3",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/5a68dbbcf015629316b842c1ea577718fd15dca7"
+        },
+        "date": 1726772319272,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 208106,
+            "range": "±1.46%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 184643,
+            "range": "±2.23%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
