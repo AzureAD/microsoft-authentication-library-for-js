@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726772320297,
+  "lastUpdate": 1726787183724,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -11708,6 +11708,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.23%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1111b2cb77d7ae26dd0b57719953f7d1fb3c3de9",
+          "message": "Update CODEOWNERS (#7321)",
+          "timestamp": "2024-09-19T16:00:44-07:00",
+          "tree_id": "ff11d20a0a97b2b7a80b5c97720789d2ee9b5ae5",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/1111b2cb77d7ae26dd0b57719953f7d1fb3c3de9"
+        },
+        "date": 1726787182026,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 194787,
+            "range": "±1.97%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 189391,
+            "range": "±2.12%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
