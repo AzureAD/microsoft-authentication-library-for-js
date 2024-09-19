@@ -1,4 +1,3 @@
-import sinon from "sinon";
 import {
     RANDOM_TEST_GUID,
     TEST_POP_VALUES,
@@ -17,10 +16,6 @@ import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest";
 import { Logger } from "../../src/logger/Logger";
 
 describe("PopTokenGenerator Unit Tests", () => {
-    afterEach(() => {
-        sinon.restore();
-    });
-
     const cryptoInterface: ICrypto = {
         createNewGuid(): string {
             return RANDOM_TEST_GUID;
@@ -112,6 +107,7 @@ describe("PopTokenGenerator Unit Tests", () => {
     describe("signPopToken", () => {
         let currTime: number;
         let testRequest: BaseAuthRequest;
+        let timeUtilsSpy: jest.SpyInstance;
 
         beforeAll(() => {
             currTime = TimeUtils.nowSeconds();
@@ -120,7 +116,13 @@ describe("PopTokenGenerator Unit Tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
             };
-            sinon.stub(TimeUtils, "nowSeconds").returns(currTime);
+            timeUtilsSpy = jest
+                .spyOn(TimeUtils, "nowSeconds")
+                .mockReturnValue(currTime);
+        });
+
+        afterAll(() => {
+            timeUtilsSpy.mockRestore();
         });
 
         it("Signs the proof-of-possession JWT token with all PoP parameters in the request", (done) => {

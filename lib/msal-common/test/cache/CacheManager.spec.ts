@@ -11,7 +11,6 @@ import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
 import { CacheRecord } from "../../src/cache/entities/CacheRecord";
 import { AccountFilter } from "../../src/cache/utils/CacheTypes";
-import sinon from "sinon";
 import {
     TEST_CONFIG,
     TEST_TOKENS,
@@ -55,12 +54,11 @@ describe("CacheManager.ts test cases", () => {
             .metadata,
         knownAuthorities: [TEST_CONFIG.validAuthorityHost],
     });
-    let authorityMetadataStub: sinon.SinonStub;
-    beforeEach(() => {
-        mockCache.initializeCache();
-        authorityMetadataStub = sinon
-            .stub(CacheManager.prototype, "getAuthorityMetadataByAlias")
-            .callsFake((host) => {
+    let authorityMetadataSpy: jest.SpyInstance;
+    beforeAll(() => {
+        authorityMetadataSpy = jest
+            .spyOn(CacheManager.prototype, "getAuthorityMetadataByAlias")
+            .mockImplementation((host) => {
                 const authorityMetadata: AuthorityMetadataEntity = {
                     aliases: [host],
                     preferred_cache: host,
@@ -80,9 +78,23 @@ describe("CacheManager.ts test cases", () => {
             });
     });
 
+    let removeTokenBindingKeySpy: jest.SpyInstance;
+    beforeEach(() => {
+        mockCache.initializeCache();
+
+        removeTokenBindingKeySpy = jest.spyOn(
+            mockCrypto,
+            "removeTokenBindingKey"
+        );
+    });
+
     afterEach(async () => {
         await mockCache.clearCache();
-        sinon.restore();
+        removeTokenBindingKeySpy.mockRestore();
+    });
+
+    afterAll(async () => {
+        authorityMetadataSpy.mockRestore();
     });
 
     describe("saveCacheRecord tests", () => {
@@ -767,7 +779,6 @@ describe("CacheManager.ts test cases", () => {
                 mockCache.cacheManager.getAccountsFilteredBy(successFilter);
             // Both cached accounts have environments that are aliases of eachother, expect both to match
             expect(Object.keys(accounts).length).toEqual(2);
-            sinon.restore();
 
             const wrongFilter: AccountFilter = { environment: "Wrong Env" };
             accounts =
@@ -807,7 +818,7 @@ describe("CacheManager.ts test cases", () => {
     });
 
     describe("isCredentialKey", () => {
-        it("Returns false if key doesn't contain enough '-' deliniated sections", () => {
+        it('Returns false if key does not contain enough "-" deliniated sections', () => {
             expect(
                 mockCache.cacheManager.isCredentialKey(
                     "clientid-idToken-homeId"
@@ -815,7 +826,7 @@ describe("CacheManager.ts test cases", () => {
             ).toBe(false);
         });
 
-        it("Returns false if key doesn't contain a valid credential type", () => {
+        it("Returns false if key does not contain a valid credential type", () => {
             expect(
                 mockCache.cacheManager.isCredentialKey(
                     `homeAccountId-environment-credentialType-${CACHE_MOCKS.MOCK_CLIENT_ID}-realm-target-requestedClaimsHash-scheme`
@@ -823,7 +834,7 @@ describe("CacheManager.ts test cases", () => {
             ).toBe(false);
         });
 
-        it("Returns false if key doesn't contain clientId", () => {
+        it("Returns false if key does not contain clientId", () => {
             expect(
                 mockCache.cacheManager.isCredentialKey(
                     `homeAccountId-environment-accessToken-clientId-realm-target-requestedClaimsHash-scheme`
@@ -1002,7 +1013,7 @@ describe("CacheManager.ts test cases", () => {
                     ).mockReturnValueOnce(null);
                 });
 
-                it("ID token matches when filter contains it's own environment", () => {
+                it("ID token matches when filter contains its own environment", () => {
                     // filter by environment
                     expect(
                         mockCache.cacheManager.credentialMatchesFilter(
@@ -1014,7 +1025,7 @@ describe("CacheManager.ts test cases", () => {
                     ).toBe(true);
                 });
 
-                it("Access token matches when filter contains it's own enviroment", () => {
+                it("Access token matches when filter contains its own enviroment", () => {
                     expect(
                         mockCache.cacheManager.credentialMatchesFilter(
                             testAccessToken,
@@ -1025,7 +1036,7 @@ describe("CacheManager.ts test cases", () => {
                     ).toBe(true);
                 });
 
-                it("Refresh token matches when filter contains it's own environment", () => {
+                it("Refresh token matches when filter contains its own environment", () => {
                     expect(
                         mockCache.cacheManager.credentialMatchesFilter(
                             testRefreshToken,
@@ -1593,17 +1604,12 @@ describe("CacheManager.ts test cases", () => {
             tokenType: AuthenticationScheme.POP,
         };
 
-        const removeTokenBindingKeySpy = sinon.spy(
-            mockCrypto,
-            "removeTokenBindingKey"
-        );
-
         await mockCache.cacheManager.removeAccessToken(
             CacheHelpers.generateCredentialKey(atWithAuthScheme)
         );
         const atKey = CacheHelpers.generateCredentialKey(atWithAuthScheme);
         expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
-        expect(removeTokenBindingKeySpy.getCall(0).args[0]).toEqual(
+        expect(removeTokenBindingKeySpy.mock.lastCall[0]).toEqual(
             atWithAuthScheme.keyId
         );
     });
@@ -1624,20 +1630,15 @@ describe("CacheManager.ts test cases", () => {
             tokenType: AuthenticationScheme.SSH,
         };
 
-        const removeTokenBindingKeySpy = sinon.spy(
-            mockCrypto,
-            "removeTokenBindingKey"
-        );
-
         await mockCache.cacheManager.removeAccessToken(
             CacheHelpers.generateCredentialKey(atWithAuthScheme)
         );
         const atKey = CacheHelpers.generateCredentialKey(atWithAuthScheme);
         expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
-        expect(removeTokenBindingKeySpy.callCount).toEqual(0);
+        expect(removeTokenBindingKeySpy.mock.calls.length).toEqual(0);
     });
 
-    it("throws bindingKeyNotRemoved error when key isn't deleted from storage", async () => {
+    it("throws bindingKeyNotRemoved error when key is not deleted from storage", async () => {
         const atWithAuthScheme = {
             environment: "login.microsoftonline.com",
             credentialType: CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
@@ -2207,7 +2208,7 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("getRefreshToken with environment aliases", () => {
-        authorityMetadataStub.callsFake((host) => {
+        authorityMetadataSpy.mockImplementationOnce((host) => {
             const authorityMetadata: AuthorityMetadataEntity = {
                 aliases: ["login.microsoftonline.com", "login.windows.net"],
                 preferred_cache: host,

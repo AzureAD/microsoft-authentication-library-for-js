@@ -17,7 +17,6 @@ import {
     TEST_SSH_VALUES,
 } from "../test_kit/StringConstants";
 import { RequestParameterBuilder } from "../../src/request/RequestParameterBuilder";
-import sinon from "sinon";
 import {
     ClientConfigurationErrorCodes,
     ClientConfigurationErrorMessage,
@@ -367,19 +366,14 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("throws error if claims is not stringified JSON object", () => {
         const claims = "not-a-valid-JSON-object";
-        sinon
-            .stub(
-                RequestParameterBuilder.prototype,
-                "addClientCapabilitiesToClaims"
-            )
-            .returns(claims);
+        jest.spyOn(
+            RequestParameterBuilder.prototype,
+            "addClientCapabilitiesToClaims"
+        ).mockReturnValueOnce(claims);
         const requestParameterBuilder = new RequestParameterBuilder();
-        expect(() =>
-            requestParameterBuilder.addClaims(claims, [])
-        ).toThrowError(
+        expect(() => requestParameterBuilder.addClaims(claims, [])).toThrow(
             ClientConfigurationErrorMessage.invalidClaimsRequest.desc
         );
-        sinon.restore();
     });
 
     it("adds clientAssertion (string) and assertionType if they are provided by the developer", async () => {
@@ -416,7 +410,7 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
     });
 
-    it("doesn't add client assertion (string) and client assertion type if they are empty strings", async () => {
+    it("does not add client assertion (string) and client assertion type if they are empty strings", async () => {
         const clientAssertion: ClientAssertion = {
             assertion: "",
             assertionType: "",
@@ -484,7 +478,7 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
     });
 
-    it("doesn't add client assertion (ClientAssertionCallback) and client assertion type if they are empty strings", async () => {
+    it("does not add client assertion (ClientAssertionCallback) and client assertion type if they are empty strings", async () => {
         const ClientAssertionCallback: ClientAssertionCallback = (
             _config: ClientAssertionConfig
         ) => {

@@ -4,7 +4,6 @@ import { ClientTestUtils } from "./ClientTestUtils";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { DEFAULT_OPENID_CONFIG_RESPONSE } from "../test_kit/StringConstants";
 import { Authority } from "../../src/authority/Authority";
-import sinon from "sinon";
 
 class TestClient extends BaseClient {
     constructor(config: ClientConfiguration) {
@@ -37,18 +36,19 @@ class TestClient extends BaseClient {
 }
 
 describe("BaseClient.ts Class Unit Tests", () => {
-    afterEach(() => {
-        sinon.restore();
+    let getEndpointMetadataFromNetworkSpy: jest.SpyInstance;
+    beforeAll(() => {
+        getEndpointMetadataFromNetworkSpy = jest
+            .spyOn(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
+            .mockReturnValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+    });
+
+    afterAll(() => {
+        getEndpointMetadataFromNetworkSpy.mockRestore();
     });
 
     describe("Constructor", () => {
         it("Creates a valid BaseClient object", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new TestClient(config);
@@ -57,12 +57,6 @@ describe("BaseClient.ts Class Unit Tests", () => {
         });
 
         it("Sets fields on BaseClient object", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new TestClient(config);
@@ -75,19 +69,6 @@ describe("BaseClient.ts Class Unit Tests", () => {
     });
 
     describe("Header utils", () => {
-        beforeEach(() => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        });
-
-        afterEach(() => {
-            sinon.restore();
-        });
-
         it("Creates default token request headers", async () => {
             const config =
                 await ClientTestUtils.createTestClientConfiguration();

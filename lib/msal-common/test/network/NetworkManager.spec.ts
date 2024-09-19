@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import sinon from "sinon";
 import { ThrottlingUtils } from "../../src/network/ThrottlingUtils";
 import { RequestThumbprint } from "../../src/network/RequestThumbprint";
 import {
@@ -23,196 +22,140 @@ import {
     TEST_CONFIG,
 } from "../test_kit/StringConstants";
 import {
-    ClientAuthError,
     ClientAuthErrorCodes,
+    createClientAuthError,
 } from "../../src/error/ClientAuthError";
 import { Logger } from "../../src/logger/Logger";
 
+const thumbprint: RequestThumbprint = THUMBPRINT;
+
+const sendPostRequest = async (
+    cache: MockStorageClass
+): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> => {
+    const networkManager = new NetworkManager(
+        DEFAULT_NETWORK_IMPLEMENTATION,
+        cache
+    );
+
+    return await networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
+        thumbprint,
+        "tokenEndpoint",
+        NETWORK_REQUEST_OPTIONS as NetworkRequestOptions
+    );
+};
+
 describe("NetworkManager", () => {
     describe("sendPostRequest", () => {
+        let cache: MockStorageClass;
+        let sendPostRequestAsyncSpy: jest.SpyInstance;
+        let getThrottlingCacheSpy: jest.SpyInstance;
+        let setThrottlingCacheSpy: jest.SpyInstance;
+        let removeItemSpy: jest.SpyInstance;
+        let nowSpy: jest.SpyInstance;
+        beforeEach(async () => {
+            cache = new MockStorageClass(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                mockCrypto,
+                new Logger({})
+            );
+
+            sendPostRequestAsyncSpy = jest.spyOn(
+                DEFAULT_NETWORK_IMPLEMENTATION,
+                "sendPostRequestAsync"
+            );
+            getThrottlingCacheSpy = jest.spyOn(cache, "getThrottlingCache");
+            setThrottlingCacheSpy = jest.spyOn(cache, "setThrottlingCache");
+            removeItemSpy = jest.spyOn(cache, "removeItem");
+            nowSpy = jest.spyOn(Date, "now");
+        });
+
         afterEach(() => {
-            sinon.restore();
+            cache.clear();
+            jest.restoreAllMocks();
         });
 
         it("returns a response", async () => {
-            const networkInterface = DEFAULT_NETWORK_IMPLEMENTATION;
-            const cache = new MockStorageClass(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                mockCrypto,
-                new Logger({})
-            );
-            const networkManager = new NetworkManager(networkInterface, cache);
-            const thumbprint: RequestThumbprint = THUMBPRINT;
-            const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
             const mockRes: NetworkResponse<ServerAuthorizationTokenResponse> = {
                 headers: {},
                 body: AUTHENTICATION_RESULT.body,
                 status: 200,
             };
-            const networkStub = sinon
-                .stub(networkInterface, "sendPostRequestAsync")
-                .returns(Promise.resolve(mockRes));
-            const getThrottlingStub = sinon.stub(cache, "getThrottlingCache");
-            const setThrottlingStub = sinon.stub(cache, "setThrottlingCache");
-            const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(Date, "now").callsFake(() => 1);
+            sendPostRequestAsyncSpy.mockReturnValue(Promise.resolve(mockRes));
+            nowSpy.mockReturnValue(1);
 
-            const res =
-                await networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
-                    thumbprint,
-                    "tokenEndpoint",
-                    options
-                );
+            const result = await sendPostRequest(cache);
+            expect(result).toEqual(mockRes);
 
-            sinon.assert.callCount(networkStub, 1);
-            sinon.assert.callCount(getThrottlingStub, 1);
-            sinon.assert.callCount(setThrottlingStub, 0);
-            sinon.assert.callCount(removeItemStub, 0);
-            expect(res).toEqual(mockRes);
+            expect(sendPostRequestAsyncSpy.mock.calls.length === 1);
+            expect(getThrottlingCacheSpy.mock.calls.length === 1);
+            expect(setThrottlingCacheSpy.mock.calls.length === 0);
+            expect(removeItemSpy.mock.calls.length === 0);
         });
 
         it("blocks the request if item is found in the cache", async () => {
-            const networkInterface = DEFAULT_NETWORK_IMPLEMENTATION;
-            const cache = new MockStorageClass(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                mockCrypto,
-                new Logger({})
-            );
-            const networkManager = new NetworkManager(networkInterface, cache);
-            const thumbprint: RequestThumbprint = THUMBPRINT;
-            const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
             const mockThrottlingEntity = THROTTLING_ENTITY;
-            const networkStub = sinon.stub(
-                networkInterface,
-                "sendPostRequestAsync"
-            );
-            const getThrottlingStub = sinon
-                .stub(cache, "getThrottlingCache")
-                .returns(mockThrottlingEntity);
-            const setThrottlingStub = sinon.stub(cache, "setThrottlingCache");
-            const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(Date, "now").callsFake(() => 1);
+            getThrottlingCacheSpy.mockReturnValue(mockThrottlingEntity);
+            nowSpy.mockReturnValue(1);
 
             try {
-                await networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
-                    thumbprint,
-                    "tokenEndpoint",
-                    options
-                );
+                await sendPostRequest(cache);
             } catch {}
+            expect(() => ThrottlingUtils.preProcess(cache, thumbprint)).toThrow(
+                ServerError
+            );
 
-            sinon.assert.callCount(networkStub, 0);
-            sinon.assert.callCount(getThrottlingStub, 1);
-            sinon.assert.callCount(setThrottlingStub, 0);
-            sinon.assert.callCount(removeItemStub, 0);
-            expect(() =>
-                ThrottlingUtils.preProcess(cache, thumbprint)
-            ).toThrowError(ServerError);
+            expect(sendPostRequestAsyncSpy.mock.calls.length === 0);
+            expect(getThrottlingCacheSpy.mock.calls.length === 1);
+            expect(setThrottlingCacheSpy.mock.calls.length === 0);
+            expect(removeItemSpy.mock.calls.length === 0);
         });
 
         it("passes request through if expired item in cache", async () => {
-            const networkInterface = DEFAULT_NETWORK_IMPLEMENTATION;
-            const cache = new MockStorageClass(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                mockCrypto,
-                new Logger({})
-            );
-            const networkManager = new NetworkManager(networkInterface, cache);
-            const thumbprint: RequestThumbprint = THUMBPRINT;
-            const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
             const mockRes: NetworkResponse<ServerAuthorizationTokenResponse> = {
                 headers: {},
                 body: AUTHENTICATION_RESULT.body,
                 status: 200,
             };
             const mockThrottlingEntity = THROTTLING_ENTITY;
-            const networkStub = sinon
-                .stub(networkInterface, "sendPostRequestAsync")
-                .returns(Promise.resolve(mockRes));
-            const getThrottlingStub = sinon
-                .stub(cache, "getThrottlingCache")
-                .returns(mockThrottlingEntity);
-            const setThrottlingStub = sinon.stub(cache, "setThrottlingCache");
-            const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(Date, "now").callsFake(() => 10);
+            sendPostRequestAsyncSpy.mockReturnValue(Promise.resolve(mockRes));
+            getThrottlingCacheSpy.mockReturnValue(mockThrottlingEntity);
+            nowSpy.mockReturnValue(10);
 
-            const res =
-                await networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
-                    thumbprint,
-                    "tokenEndpoint",
-                    options
-                );
+            const result = await sendPostRequest(cache);
+            expect(result).toEqual(mockRes);
 
-            sinon.assert.callCount(networkStub, 1);
-            sinon.assert.callCount(getThrottlingStub, 1);
-            sinon.assert.callCount(setThrottlingStub, 0);
-            sinon.assert.callCount(removeItemStub, 1);
-            expect(res).toEqual(mockRes);
+            expect(sendPostRequestAsyncSpy.mock.calls.length === 1);
+            expect(getThrottlingCacheSpy.mock.calls.length === 1);
+            expect(setThrottlingCacheSpy.mock.calls.length === 0);
+            expect(removeItemSpy.mock.calls.length === 1);
         });
 
         it("creates cache entry on error", async () => {
-            const networkInterface = DEFAULT_NETWORK_IMPLEMENTATION;
-            const cache = new MockStorageClass(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                mockCrypto,
-                new Logger({})
-            );
-            const networkManager = new NetworkManager(networkInterface, cache);
-            const thumbprint: RequestThumbprint = THUMBPRINT;
-            const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
             const mockRes: NetworkResponse<ServerAuthorizationTokenResponse> = {
                 headers: {},
                 body: AUTHENTICATION_RESULT.body,
                 status: 500,
             };
-            const networkStub = sinon
-                .stub(networkInterface, "sendPostRequestAsync")
-                .returns(Promise.resolve(mockRes));
-            const getThrottlingStub = sinon.stub(cache, "getThrottlingCache");
-            const setThrottlingStub = sinon.stub(cache, "setThrottlingCache");
-            const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(Date, "now").callsFake(() => 1);
+            sendPostRequestAsyncSpy.mockReturnValue(Promise.resolve(mockRes));
+            nowSpy.mockReturnValue(1);
 
-            const res =
-                await networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
-                    thumbprint,
-                    "tokenEndpoint",
-                    options
-                );
+            const result = await sendPostRequest(cache);
+            expect(result).toEqual(mockRes);
 
-            sinon.assert.callCount(networkStub, 1);
-            sinon.assert.callCount(getThrottlingStub, 1);
-            sinon.assert.callCount(setThrottlingStub, 1);
-            sinon.assert.callCount(removeItemStub, 0);
-            expect(res).toEqual(mockRes);
+            expect(sendPostRequestAsyncSpy.mock.calls.length === 1);
+            expect(getThrottlingCacheSpy.mock.calls.length === 1);
+            expect(setThrottlingCacheSpy.mock.calls.length === 1);
+            expect(removeItemSpy.mock.calls.length === 0);
         });
 
-        it("throws network error if fetch client fails", (done) => {
-            const networkInterface = DEFAULT_NETWORK_IMPLEMENTATION;
-            const cache = new MockStorageClass(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                mockCrypto,
-                new Logger({})
+        it("throws network error if fetch client fails", async () => {
+            sendPostRequestAsyncSpy.mockReturnValue(
+                Promise.reject("Fetch failed")
             );
-            const networkManager = new NetworkManager(networkInterface, cache);
-            const thumbprint: RequestThumbprint = THUMBPRINT;
-            const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
 
-            sinon
-                .stub(networkInterface, "sendPostRequestAsync")
-                .returns(Promise.reject("Fetch failed"));
-
-            networkManager
-                .sendPostRequest<ServerAuthorizationTokenResponse>(
-                    thumbprint,
-                    "tokenEndpoint",
-                    options
-                )
-                .catch((e) => {
-                    expect(e).toBeInstanceOf(ClientAuthError);
-                    expect(e.errorCode).toBe(ClientAuthErrorCodes.networkError);
-                    done();
-                });
+            await expect(sendPostRequest(cache)).rejects.toMatchObject(
+                createClientAuthError(ClientAuthErrorCodes.networkError)
+            );
         });
     });
 });

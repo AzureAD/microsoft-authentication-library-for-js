@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import sinon from "sinon";
 import {
     AUTHENTICATION_RESULT,
     DEFAULT_OPENID_CONFIG_RESPONSE,
@@ -98,7 +97,7 @@ const testFamilyRefreshTokenEntity: RefreshTokenEntity = {
 
 describe("RefreshTokenClient unit tests", () => {
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     let stubPerformanceClient: StubPerformanceClient;
@@ -108,12 +107,10 @@ describe("RefreshTokenClient unit tests", () => {
 
     describe("Constructor", () => {
         it("creates a RefreshTokenClient", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(
@@ -140,12 +137,10 @@ describe("RefreshTokenClient unit tests", () => {
         };
 
         beforeEach(async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             config = await ClientTestUtils.createTestClientConfiguration();
         });
 
@@ -153,18 +148,12 @@ describe("RefreshTokenClient unit tests", () => {
             jest.restoreAllMocks();
         });
 
-        it("Adds tokenQueryParameters to the /token request", (done) => {
-            sinon
-                .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .callsFake(async (url: string) => {
-                    expect(url.includes("/token?testParam=testValue")).toBe(
-                        true
-                    );
-                    done();
-                });
+        it("Adds tokenQueryParameters to the /token request", async () => {
+            const executePostToTokenEndpointSpy: jest.SpyInstance = jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            );
+            // no implementation has been mocked, the acquireToken call will fail
 
             const client = new RefreshTokenClient(
                 config,
@@ -179,25 +168,32 @@ describe("RefreshTokenClient unit tests", () => {
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
                 tokenQueryParameters: {
-                    testParam: "testValue",
+                    testParam1: "testValue1",
+                    testParam2: "",
+                    testParam3: "testValue3",
                 },
             };
 
-            client.acquireToken(refreshTokenRequest).catch((e) => {
-                // Catch errors thrown after the function call this test is testing
-            });
+            await expect(
+                client.acquireToken(refreshTokenRequest)
+            ).rejects.toThrow();
+
+            const url: string = executePostToTokenEndpointSpy.mock
+                .lastCall[0] as string;
+            expect(
+                url.includes(
+                    "/token?testParam1=testValue1&testParam3=testValue3"
+                )
+            ).toBeTruthy();
+            expect(!url.includes("/token?testParam2=")).toBeTruthy();
         });
 
-        it("Adds tokenBodyParameters to the /token request", (done) => {
-            sinon
-                .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .callsFake(async (url: string, body: string) => {
-                    expect(body).toContain("testParam=testValue");
-                    done();
-                });
+        it("Adds tokenBodyParameters to the /token request", async () => {
+            const executePostToTokenEndpointSpy: jest.SpyInstance = jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            );
+            // no implementation has been mocked, the acquireToken call will fail
 
             const client = new RefreshTokenClient(config);
 
@@ -214,9 +210,13 @@ describe("RefreshTokenClient unit tests", () => {
                 },
             };
 
-            client.acquireToken(refreshTokenRequest).catch((error) => {
-                // Catch errors thrown after the function call this test is testing
-            });
+            await expect(
+                client.acquireToken(refreshTokenRequest)
+            ).rejects.toThrow();
+
+            const body: string = executePostToTokenEndpointSpy.mock
+                .lastCall[1] as string;
+            expect(body.includes("testParam=testValue")).toBeTruthy();
         });
 
         it("Checks whether performance telemetry startMeasurement method is called", async () => {
@@ -226,12 +226,10 @@ describe("RefreshTokenClient unit tests", () => {
                 config,
                 stubPerformanceClient
             );
-            sinon
-                .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(AUTHENTICATION_RESULT);
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT);
 
             await client.acquireToken(refreshTokenRequest);
             expect(spy).toHaveBeenCalled();
@@ -244,13 +242,11 @@ describe("RefreshTokenClient unit tests", () => {
                 config,
                 stubPerformanceClient
             );
-            sinon
-                .stub(
-                    //@ts-ignore
-                    client.networkManager,
-                    "sendPostRequest"
-                )
-                .resolves({ ...AUTHENTICATION_RESULT, headers: {} });
+            jest.spyOn(
+                //@ts-ignore
+                client.networkManager,
+                "sendPostRequest"
+            ).mockResolvedValue({ ...AUTHENTICATION_RESULT, headers: {} });
 
             let refreshTokenSize;
             await client.acquireToken(refreshTokenRequest).then(() => {
@@ -274,17 +270,14 @@ describe("RefreshTokenClient unit tests", () => {
                 config,
                 stubPerformanceClient
             );
-            sinon
-                .stub(
-                    // @ts-ignore
-                    client.networkManager,
-                    "sendPostRequest"
-                )
-                // @ts-ignore
-                .resolves({
-                    ...AUTHENTICATION_RESULT_NO_REFRESH_TOKEN,
-                    headers: { ...AUTHENTICATION_RESULT_WITH_HEADERS.headers },
-                });
+            jest.spyOn(
+                //@ts-ignore
+                client.networkManager,
+                "sendPostRequest"
+            ).mockResolvedValue({
+                ...AUTHENTICATION_RESULT_NO_REFRESH_TOKEN,
+                headers: { ...AUTHENTICATION_RESULT_WITH_HEADERS.headers },
+            });
 
             let refreshTokenSize;
             await client.acquireToken(refreshTokenRequest).then(() => {
@@ -312,20 +305,20 @@ describe("RefreshTokenClient unit tests", () => {
         testAccount.idToken = TEST_TOKENS.IDTOKEN_V2;
 
         beforeEach(async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(Authority.prototype, "getPreferredCache")
-                .returns("login.windows.net");
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getPreferredCache"
+            ).mockReturnValue("login.windows.net");
             AUTHENTICATION_RESULT.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
-            sinon
-                .stub(CacheManager.prototype, "getRefreshToken")
-                .returns(testRefreshTokenEntity);
+            jest.spyOn(
+                CacheManager.prototype,
+                <any>"getRefreshToken"
+            ).mockReturnValue(testRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
             config.storageInterface!.setAccount(testAccountEntity);
@@ -339,36 +332,13 @@ describe("RefreshTokenClient unit tests", () => {
             client = new RefreshTokenClient(config, stubPerformanceClient);
         });
 
-        afterEach(() => {
-            sinon.restore();
-        });
-
-        it("Does not add headers that do not qualify for a simple request", (done) => {
-            // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-            sinon
-                .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .callsFake(
-                    async (
-                        tokenEndpoint: string,
-                        queryString: string,
-                        headers: Record<string, string>
-                    ) => {
-                        const headerNames = Object.keys(headers);
-                        headerNames.forEach((name) => {
-                            expect(
-                                CORS_SIMPLE_REQUEST_HEADERS.includes(
-                                    name.toLowerCase()
-                                )
-                            ).toBe(true);
-                        });
-
-                        done();
-                        return AUTHENTICATION_RESULT;
-                    }
-                );
+        // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+        it("Does not add headers that do not qualify for a simple request", async () => {
+            const executePostToTokenEndpointSpy: jest.SpyInstance = jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            );
+            // no implementation has been mocked, the acquireToken call will fail
 
             const client = new RefreshTokenClient(
                 config,
@@ -384,17 +354,26 @@ describe("RefreshTokenClient unit tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
-            client.acquireToken(refreshTokenRequest);
+            await expect(
+                client.acquireToken(refreshTokenRequest)
+            ).rejects.toThrow();
+
+            const headers = executePostToTokenEndpointSpy.mock.lastCall[2];
+            const headerNames = Object.keys(headers);
+            expect(headerNames.length).toBeGreaterThanOrEqual(1);
+            headerNames.forEach((name) => {
+                expect(
+                    CORS_SIMPLE_REQUEST_HEADERS.includes(name.toLowerCase())
+                ).toBe(true);
+            });
         });
 
         it("acquires a token", async () => {
-            sinon
-                .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(AUTHENTICATION_RESULT);
-            const createTokenRequestBodySpy = sinon.spy(
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT);
+            const createTokenRequestBodySpy: jest.SpyInstance = jest.spyOn(
                 RefreshTokenClient.prototype,
                 <any>"createTokenRequestBody"
             );
@@ -434,12 +413,12 @@ describe("RefreshTokenClient unit tests", () => {
                 AUTHENTICATION_RESULT.body.access_token
             );
             expect(authResult.state).toHaveLength(0);
-            expect(
-                createTokenRequestBodySpy.calledWith(refreshTokenRequest)
-            ).toBe(true);
+            expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+                refreshTokenRequest
+            );
 
-            const result = (await createTokenRequestBodySpy
-                .returnValues[0]) as string;
+            const result: string = (await createTokenRequestBodySpy.mock
+                .results[0].value) as string;
             expect(
                 result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)
             ).toBe(true);
@@ -507,59 +486,11 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
         });
 
-        it("Adds tokenQueryParameters to the /token request", (done) => {
-            sinon
-                .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .callsFake((url: string) => {
-                    try {
-                        expect(
-                            url.includes(
-                                "/token?testParam1=testValue1&testParam3=testValue3"
-                            )
-                        ).toBeTruthy();
-                        expect(
-                            !url.includes("/token?testParam2=")
-                        ).toBeTruthy();
-                        done();
-                    } catch (error) {
-                        done(error);
-                    }
-                });
-
-            const client = new RefreshTokenClient(
-                config,
-                stubPerformanceClient
-            );
-            const refreshTokenRequest: CommonRefreshTokenRequest = {
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
-                claims: TEST_CONFIG.CLAIMS,
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-                tokenQueryParameters: {
-                    testParam1: "testValue1",
-                    testParam2: "",
-                    testParam3: "testValue3",
-                },
-            };
-
-            client.acquireToken(refreshTokenRequest).catch((error) => {
-                // Catch errors thrown after the function call this test is testing
-            });
-        });
-
         it("acquireTokenByRefreshToken refreshes a token", async () => {
-            sinon
-                .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(AUTHENTICATION_RESULT);
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT);
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 account: testAccount,
@@ -578,24 +509,22 @@ describe("RefreshTokenClient unit tests", () => {
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 },
             };
-            const refreshTokenClientSpy = sinon.spy(
+            const refreshTokenClientSpy: jest.SpyInstance = jest.spyOn(
                 RefreshTokenClient.prototype,
                 "acquireToken"
             );
 
             await client.acquireTokenByRefreshToken(silentFlowRequest);
-            expect(
-                refreshTokenClientSpy.calledWith(expectedRefreshRequest)
-            ).toBe(true);
+            expect(refreshTokenClientSpy.mock.lastCall[0]).toEqual(
+                expectedRefreshRequest
+            );
         });
 
         it("acquireTokenByRefreshToken refreshes a POP token", async () => {
-            sinon
-                .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(POP_AUTHENTICATION_RESULT);
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(POP_AUTHENTICATION_RESULT);
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 account: testAccount,
@@ -613,25 +542,23 @@ describe("RefreshTokenClient unit tests", () => {
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 },
             };
-            const refreshTokenClientSpy = sinon.spy(
+            const refreshTokenClientSpy: jest.SpyInstance = jest.spyOn(
                 RefreshTokenClient.prototype,
                 "acquireToken"
             );
 
             await client.acquireTokenByRefreshToken(silentFlowRequest);
-            expect(refreshTokenClientSpy.called).toBe(true);
-            expect(
-                refreshTokenClientSpy.calledWith(expectedRefreshRequest)
-            ).toBe(true);
+            expect(refreshTokenClientSpy.mock.calls.length).toEqual(1);
+            expect(refreshTokenClientSpy.mock.lastCall[0]).toEqual(
+                expectedRefreshRequest
+            );
         });
 
         it("acquireTokenByRefreshToken refreshes an SSH Cert", async () => {
-            sinon
-                .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(SSH_AUTHENTICATION_RESULT);
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(SSH_AUTHENTICATION_RESULT);
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 account: testAccount,
@@ -650,25 +577,23 @@ describe("RefreshTokenClient unit tests", () => {
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 },
             };
-            const refreshTokenClientSpy = sinon.spy(
+            const refreshTokenClientSpy: jest.SpyInstance = jest.spyOn(
                 RefreshTokenClient.prototype,
                 "acquireToken"
             );
 
             await client.acquireTokenByRefreshToken(silentFlowRequest);
-            expect(
-                refreshTokenClientSpy.calledWith(expectedRefreshRequest)
-            ).toBe(true);
+            expect(refreshTokenClientSpy.mock.lastCall[0]).toEqual(
+                expectedRefreshRequest
+            );
         });
 
         it("does not add claims if none are provided", async () => {
-            sinon
-                .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(AUTHENTICATION_RESULT);
-            const createTokenRequestBodySpy = sinon.spy(
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT);
+            const createTokenRequestBodySpy: jest.SpyInstance = jest.spyOn(
                 RefreshTokenClient.prototype,
                 <any>"createTokenRequestBody"
             );
@@ -707,12 +632,12 @@ describe("RefreshTokenClient unit tests", () => {
                 AUTHENTICATION_RESULT.body.access_token
             );
             expect(authResult.state).toBe("");
-            expect(
-                createTokenRequestBodySpy.calledWith(refreshTokenRequest)
-            ).toBe(true);
+            expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+                refreshTokenRequest
+            );
 
-            const result = (await createTokenRequestBodySpy
-                .returnValues[0]) as string;
+            const result: string = (await createTokenRequestBodySpy.mock
+                .results[0].value) as string;
             expect(
                 result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)
             ).toBe(true);
@@ -781,13 +706,11 @@ describe("RefreshTokenClient unit tests", () => {
         });
 
         it("does not add claims if empty object is provided", async () => {
-            sinon
-                .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(AUTHENTICATION_RESULT);
-            const createTokenRequestBodySpy = sinon.spy(
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT);
+            const createTokenRequestBodySpy: jest.SpyInstance = jest.spyOn(
                 RefreshTokenClient.prototype,
                 <any>"createTokenRequestBody"
             );
@@ -827,12 +750,12 @@ describe("RefreshTokenClient unit tests", () => {
                 AUTHENTICATION_RESULT.body.access_token
             );
             expect(authResult.state).toBe("");
-            expect(
-                createTokenRequestBodySpy.calledWith(refreshTokenRequest)
-            ).toBe(true);
+            expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+                refreshTokenRequest
+            );
 
-            const result = (await createTokenRequestBodySpy
-                .returnValues[0]) as string;
+            const result: string = (await createTokenRequestBodySpy.mock
+                .results[0].value) as string;
             expect(
                 result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)
             ).toBe(true);
@@ -901,12 +824,10 @@ describe("RefreshTokenClient unit tests", () => {
         });
 
         it("includes the requestId in the result when received in server response", async () => {
-            sinon
-                .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT_WITH_HEADERS);
             const client = new RefreshTokenClient(
                 config,
                 stubPerformanceClient
@@ -932,12 +853,10 @@ describe("RefreshTokenClient unit tests", () => {
         });
 
         it("does not include the requestId in the result when none in server response", async () => {
-            sinon
-                .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(AUTHENTICATION_RESULT);
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT);
             const client = new RefreshTokenClient(
                 config,
                 stubPerformanceClient
@@ -977,13 +896,11 @@ describe("RefreshTokenClient unit tests", () => {
                 incrementFields: jest.fn(),
             };
             const client = new RefreshTokenClient(config, performanceClient);
-            sinon
-                .stub(
-                    // @ts-ignore
-                    client.networkManager,
-                    "sendPostRequest"
-                )
-                .resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
+            jest.spyOn(
+                // @ts-ignore
+                client.networkManager,
+                "sendPostRequest"
+            ).mockResolvedValue(AUTHENTICATION_RESULT_WITH_HEADERS);
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
@@ -1023,13 +940,11 @@ describe("RefreshTokenClient unit tests", () => {
                 incrementFields: jest.fn(),
             };
             const client = new RefreshTokenClient(config, performanceClient);
-            sinon
-                .stub(
-                    // @ts-ignore
-                    client.networkManager,
-                    "sendPostRequest"
-                )
-                .resolves({ ...AUTHENTICATION_RESULT, headers: {} });
+            jest.spyOn(
+                // @ts-ignore
+                client.networkManager,
+                "sendPostRequest"
+            ).mockResolvedValue({ ...AUTHENTICATION_RESULT, headers: {} });
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
@@ -1062,26 +977,24 @@ describe("RefreshTokenClient unit tests", () => {
         testAccount.idToken = TEST_TOKENS.IDTOKEN_V2;
 
         beforeEach(async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(Authority.prototype, "getPreferredCache")
-                .returns("login.windows.net");
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                "getPreferredCache"
+            ).mockReturnValue("login.windows.net");
             AUTHENTICATION_RESULT_WITH_FOCI.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
-            sinon
-                .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(AUTHENTICATION_RESULT_WITH_FOCI);
-            sinon
-                .stub(CacheManager.prototype, "getRefreshToken")
-                .returns(testFamilyRefreshTokenEntity);
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT_WITH_FOCI);
+            jest.spyOn(
+                CacheManager.prototype,
+                "getRefreshToken"
+            ).mockReturnValue(testFamilyRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
             config.storageInterface!.setAccount(testAccountEntity);
@@ -1095,12 +1008,8 @@ describe("RefreshTokenClient unit tests", () => {
             client = new RefreshTokenClient(config, stubPerformanceClient);
         });
 
-        afterEach(() => {
-            sinon.restore();
-        });
-
         it("acquires a token (FOCI)", async () => {
-            const createTokenRequestBodySpy = sinon.spy(
+            const createTokenRequestBodySpy: jest.SpyInstance = jest.spyOn(
                 RefreshTokenClient.prototype,
                 <any>"createTokenRequestBody"
             );
@@ -1143,12 +1052,12 @@ describe("RefreshTokenClient unit tests", () => {
             );
             expect(authResult.state).toHaveLength(0);
 
-            expect(
-                createTokenRequestBodySpy.calledWith(refreshTokenRequest)
-            ).toBe(true);
+            expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+                refreshTokenRequest
+            );
 
-            const result = (await createTokenRequestBodySpy
-                .returnValues[0]) as string;
+            const result: string = (await createTokenRequestBodySpy.mock
+                .results[0].value) as string;
             expect(
                 result.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)
             ).toBe(true);
@@ -1200,26 +1109,24 @@ describe("RefreshTokenClient unit tests", () => {
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 },
             };
-            const refreshTokenClientSpy = sinon.spy(
+            const refreshTokenClientSpy: jest.SpyInstance = jest.spyOn(
                 RefreshTokenClient.prototype,
                 "acquireToken"
             );
 
             await client.acquireTokenByRefreshToken(silentFlowRequest);
-            expect(
-                refreshTokenClientSpy.calledWith(expectedRefreshRequest)
-            ).toBe(true);
+            expect(refreshTokenClientSpy.mock.lastCall[0]).toEqual(
+                expectedRefreshRequest
+            );
         });
     });
 
     describe("Error cases", () => {
         it("Throws error if account is not included in request object", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(
@@ -1243,12 +1150,10 @@ describe("RefreshTokenClient unit tests", () => {
         });
 
         it("Throws error if request object is null or undefined", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(
@@ -1293,15 +1198,14 @@ describe("RefreshTokenClient unit tests", () => {
             testAccountEntity.realm = "testTenantId";
             testAccountEntity.username = "username@contoso.com";
             testAccountEntity.authorityType = "MSSTS";
-            sinon
-                .stub(MockStorageClass.prototype, "getAccount")
-                .returns(testAccountEntity);
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                MockStorageClass.prototype,
+                "getAccount"
+            ).mockReturnValue(testAccountEntity);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: [testScope2],
                 account: testAccount,
@@ -1393,12 +1297,10 @@ describe("RefreshTokenClient unit tests", () => {
             const testAccount: AccountInfo =
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
             testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
-            sinon
-                .stub(
-                    RefreshTokenClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(BAD_TOKEN_ERROR_RESPONSE);
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(BAD_TOKEN_ERROR_RESPONSE);
 
             const serverResponse = BAD_TOKEN_ERROR_RESPONSE.body;
             const invalidGrantAuthError = new InteractionRequiredAuthError(
@@ -1452,7 +1354,7 @@ describe("RefreshTokenClient unit tests", () => {
                 TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
         };
         it("Adds telemetry headers to token request in AAD protocol mode", async () => {
-            const createTokenRequestBodySpy = sinon.spy(
+            const createTokenRequestBodySpy: jest.SpyInstance = jest.spyOn(
                 RefreshTokenClient.prototype,
                 <any>"createTokenRequestBody"
             );
@@ -1466,12 +1368,12 @@ describe("RefreshTokenClient unit tests", () => {
             try {
                 await client.acquireToken(refreshTokenRequest);
             } catch {}
-            expect(
-                createTokenRequestBodySpy.calledWith(refreshTokenRequest)
-            ).toBeTruthy();
+            expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+                refreshTokenRequest
+            );
 
-            const returnVal = (await createTokenRequestBodySpy
-                .returnValues[0]) as string;
+            const returnVal: string = (await createTokenRequestBodySpy.mock
+                .results[0].value) as string;
             expect(
                 returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`)
             ).toBe(true);
@@ -1480,7 +1382,7 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
         });
         it("Does not add telemetry headers to token request in OIDC protocol mode", async () => {
-            const createTokenRequestBodySpy = sinon.spy(
+            const createTokenRequestBodySpy: jest.SpyInstance = jest.spyOn(
                 RefreshTokenClient.prototype,
                 <any>"createTokenRequestBody"
             );
@@ -1495,12 +1397,12 @@ describe("RefreshTokenClient unit tests", () => {
             try {
                 await client.acquireToken(refreshTokenRequest);
             } catch {}
-            expect(
-                createTokenRequestBodySpy.calledWith(refreshTokenRequest)
-            ).toBeTruthy();
+            expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
+                refreshTokenRequest
+            );
 
-            const returnVal = (await createTokenRequestBodySpy
-                .returnValues[0]) as string;
+            const returnVal: string = (await createTokenRequestBodySpy.mock
+                .results[0].value) as string;
             expect(
                 returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`)
             ).toBe(false);

@@ -4,7 +4,6 @@
  */
 
 import { TEST_CONFIG } from "../test_kit/StringConstants";
-import sinon from "sinon";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
 import { ServerTelemetryRequest } from "../../src/telemetry/server/ServerTelemetryRequest";
 import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemetryManager";
@@ -32,7 +31,6 @@ const testTelemetryPayload: ServerTelemetryRequest = {
 describe("ServerTelemetryManager.ts", () => {
     afterEach(() => {
         testCacheManager.store = {};
-        sinon.restore();
     });
 
     describe("cacheFailedRequest", () => {
@@ -227,7 +225,10 @@ describe("ServerTelemetryManager.ts", () => {
         });
 
         it("Adds partial telemetry data if max size is reached and sets overflow flag to 1", () => {
-            sinon.stub(ServerTelemetryManager, "maxErrorsToSend").returns(1);
+            jest.spyOn(
+                ServerTelemetryManager,
+                "maxErrorsToSend"
+            ).mockReturnValueOnce(1);
             const testCacheHits = 3;
             const failures = {
                 failedRequests: [
@@ -278,7 +279,10 @@ describe("ServerTelemetryManager.ts", () => {
 
     describe("clear telemetry cache tests", () => {
         it("Removes telemetry cache entry if all errors were sent to server", () => {
-            sinon.stub(ServerTelemetryManager, "maxErrorsToSend").returns(1);
+            jest.spyOn(
+                ServerTelemetryManager,
+                "maxErrorsToSend"
+            ).mockReturnValueOnce(1);
             const failures = {
                 failedRequests: [testApiCode, testCorrelationId],
                 errors: [testError],
@@ -300,7 +304,10 @@ describe("ServerTelemetryManager.ts", () => {
         });
 
         it("Removes partial telemetry data from cache if partial data was sent to server", () => {
-            sinon.stub(ServerTelemetryManager, "maxErrorsToSend").returns(1);
+            jest.spyOn(
+                ServerTelemetryManager,
+                "maxErrorsToSend"
+            ).mockReturnValueOnce(1);
             const failures = {
                 failedRequests: [
                     testApiCode,
@@ -371,7 +378,7 @@ describe("ServerTelemetryManager.ts", () => {
             ).toBeLessThan(failures.errors.length);
         });
 
-        it("maxErrorsToSend doesn't break on null and undefined values", () => {
+        it("maxErrorsToSend does not break on null and undefined values", () => {
             const failures = {
                 failedRequests: [null, undefined, undefined, null],
                 errors: [null, undefined],

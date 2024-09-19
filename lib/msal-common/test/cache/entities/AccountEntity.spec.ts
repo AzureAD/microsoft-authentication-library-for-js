@@ -19,7 +19,6 @@ import {
     GUEST_ID_TOKEN_CLAIMS,
     TEST_CONFIG,
 } from "../../test_kit/StringConstants";
-import sinon from "sinon";
 import { MockStorageClass, mockCrypto } from "../../client/ClientTestUtils";
 import { AccountInfo, TenantProfile } from "../../../src/account/AccountInfo";
 import { AuthorityOptions } from "../../../src/authority/AuthorityOptions";
@@ -129,15 +128,30 @@ const authority = new Authority(
     TEST_CONFIG.CORRELATION_ID
 );
 
+const idTokenClaims = {
+    ver: "2.0",
+    iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+    sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+    exp: 1536361411,
+    name: "Abe Lincoln",
+    oid: "00000000-0000-0000-66f3-3332eca7ea81",
+    nonce: "123523",
+    upn: "testupn",
+};
+
 describe("AccountEntity.ts Unit Tests", () => {
-    beforeEach(() => {
-        sinon
-            .stub(Authority.prototype, "getPreferredCache")
-            .returns("login.windows.net");
+    beforeAll(() => {
+        jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
+            "login.windows.net"
+        );
+
+        jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+            idTokenClaims
+        );
     });
 
-    afterEach(() => {
-        sinon.restore();
+    afterAll(() => {
+        jest.restoreAllMocks();
     });
 
     it("Verify an AccountEntity", () => {
@@ -333,19 +347,6 @@ describe("AccountEntity.ts Unit Tests", () => {
             TEST_CONFIG.CORRELATION_ID
         );
 
-        // Set up stubs
-        const idTokenClaims = {
-            ver: "2.0",
-            iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-            sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            exp: 1536361411,
-            name: "Abe Lincoln",
-            oid: "00000000-0000-0000-66f3-3332eca7ea81",
-            nonce: "123523",
-            upn: "testupn",
-        };
-        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-
         const homeAccountId =
             "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
         const acc = AccountEntity.createAccount(
@@ -396,7 +397,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(accountInfo.tenantProfiles).toMatchObject(tenantProfiles);
     });
 
-    it("getAccountInfo creates a new tenantProfiles map if AccountEntity doesn't have a tenantProfiles array", () => {
+    it("getAccountInfo creates a new tenantProfiles map if AccountEntity does not have a tenantProfiles array", () => {
         const accountEntity = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         accountEntity.tenantProfiles = undefined;
 
@@ -637,14 +638,19 @@ describe("AccountEntity.ts Unit Tests", () => {
 });
 
 describe("AccountEntity.ts Unit Tests for ADFS", () => {
-    beforeEach(() => {
-        sinon
-            .stub(Authority.prototype, "getPreferredCache")
-            .returns("myadfs.com");
+    let authTokenSpy: jest.SpyInstance;
+    beforeAll(() => {
+        authTokenSpy = jest
+            .spyOn(AuthToken, "extractTokenClaims")
+            .mockReturnValue(idTokenClaims);
+
+        jest.spyOn(Authority.prototype, "getPreferredCache").mockReturnValue(
+            "myadfs.com"
+        );
     });
 
-    afterEach(() => {
-        sinon.restore();
+    afterAll(() => {
+        jest.restoreAllMocks();
     });
 
     it("creates a generic ADFS account", () => {
@@ -662,19 +668,6 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             logger,
             TEST_CONFIG.CORRELATION_ID
         );
-
-        // Set up stubs
-        const idTokenClaims = {
-            ver: "2.0",
-            iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-            sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            exp: 1536361411,
-            name: "Abe Lincoln",
-            oid: "00000000-0000-0000-66f3-3332eca7ea81",
-            nonce: "123523",
-            upn: "testupn",
-        };
-        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
 
         const homeAccountId =
             "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
@@ -717,17 +710,8 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             TEST_CONFIG.CORRELATION_ID
         );
 
-        // Set up stubs
-        const idTokenClaims = {
-            ver: "2.0",
-            iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-            sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            exp: 1536361411,
-            name: "Abe Lincoln",
-            nonce: "123523",
-            upn: "testupn",
-        };
-        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+        const { oid, ...idTokenClaimsWithoutOID } = idTokenClaims;
+        authTokenSpy.mockReturnValueOnce(idTokenClaimsWithoutOID);
 
         const homeAccountId =
             "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();

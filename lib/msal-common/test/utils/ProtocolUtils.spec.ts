@@ -6,7 +6,6 @@ import {
 } from "../test_kit/StringConstants";
 import { ICrypto } from "../../src/crypto/ICrypto";
 import { Constants } from "../../src/utils/Constants";
-import sinon from "sinon";
 import {
     ClientAuthError,
     ClientAuthErrorMessage,
@@ -76,10 +75,6 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
                 return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
             },
         };
-    });
-
-    afterEach(() => {
-        sinon.restore();
     });
 
     it("setRequestState() appends library state to given state", () => {

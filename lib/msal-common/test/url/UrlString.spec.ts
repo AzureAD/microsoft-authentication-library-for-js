@@ -6,13 +6,8 @@ import {
     createClientConfigurationError,
 } from "../../src/error/ClientConfigurationError";
 import { IUri } from "../../src/url/IUri";
-import sinon from "sinon";
 
 describe("UrlString.ts Class Unit Tests", () => {
-    afterEach(() => {
-        sinon.restore();
-    });
-
     it("Creates a valid UrlString object", () => {
         let urlObj = new UrlString(TEST_URIS.TEST_REDIR_URI.toUpperCase());
         expect(urlObj.urlString).toBe(TEST_URIS.TEST_REDIR_URI + "/");
@@ -39,19 +34,19 @@ describe("UrlString.ts Class Unit Tests", () => {
     });
 
     it("validateAsUri throws error if uri components could not be extracted", () => {
-        const urlComponentError = "Error getting url components";
-        sinon
-            .stub(UrlString.prototype, "getUrlComponents")
-            .throws(urlComponentError);
+        const getUrlComponentsSpy: jest.SpyInstance = jest
+            .spyOn(UrlString.prototype, "getUrlComponents")
+            .mockImplementation(() => {
+                throw new Error("Error getting url components");
+            });
         let urlObj = new UrlString(TEST_URIS.TEST_REDIR_URI);
-        expect(() => urlObj.validateAsUri()).toThrowError(
+        expect(() => urlObj.validateAsUri()).toThrow(
             createClientConfigurationError(
                 ClientConfigurationErrorCodes.urlParseError
             )
         );
-        expect(() => urlObj.validateAsUri()).toThrowError(
-            ClientConfigurationError
-        );
+        expect(() => urlObj.validateAsUri()).toThrow(ClientConfigurationError);
+        getUrlComponentsSpy.mockRestore();
     });
 
     it("validateAsUri throws error if uri is not secure", () => {
@@ -235,7 +230,7 @@ describe("UrlString.ts Class Unit Tests", () => {
     });
 
     describe("getAbsoluteUrl tests", () => {
-        it("Returns url provided if it's already absolute", () => {
+        it("Returns url provided if it is already absolute", () => {
             const absoluteUrl = "https://localhost:30662";
             expect(
                 UrlString.getAbsoluteUrl(absoluteUrl, absoluteUrl + "/testPath")
