@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Logger } from "@azure/msal-common";
+import { Logger } from "@azure/msal-common/node";
 
 export interface IPersistence {
     save(contents: string): Promise<void>;

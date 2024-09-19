@@ -20,33 +20,33 @@ import {
     ServerResponseType,
     invokeAsync,
     invoke,
-} from "@azure/msal-common";
-import { StandardInteractionClient } from "./StandardInteractionClient";
-import { EventType } from "../event/EventType";
+} from "@azure/msal-common/browser";
+import { StandardInteractionClient } from "./StandardInteractionClient.js";
+import { EventType } from "../event/EventType.js";
 import {
     InteractionType,
     ApiId,
     BrowserConstants,
-} from "../utils/BrowserConstants";
-import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
-import { NavigationOptions } from "../navigation/NavigationOptions";
-import * as BrowserUtils from "../utils/BrowserUtils";
-import { PopupRequest } from "../request/PopupRequest";
-import { NativeInteractionClient } from "./NativeInteractionClient";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+} from "../utils/BrowserConstants.js";
+import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
+import { NavigationOptions } from "../navigation/NavigationOptions.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { NativeInteractionClient } from "./NativeInteractionClient.js";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { INavigationClient } from "../navigation/INavigationClient";
-import { EventHandler } from "../event/EventHandler";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { BrowserConfiguration } from "../config/Configuration";
-import { InteractionHandler } from "../interaction_handler/InteractionHandler";
-import { PopupWindowAttributes } from "../request/PopupWindowAttributes";
-import { EventError } from "../event/EventMessage";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import * as ResponseHandler from "../response/ResponseHandler";
+} from "../error/BrowserAuthError.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
+import { EventHandler } from "../event/EventHandler.js";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
+import { InteractionHandler } from "../interaction_handler/InteractionHandler.js";
+import { PopupWindowAttributes } from "../request/PopupWindowAttributes.js";
+import { EventError } from "../event/EventMessage.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import * as ResponseHandler from "../response/ResponseHandler.js";
 
 export type PopupParams = {
     popup?: Window | null;

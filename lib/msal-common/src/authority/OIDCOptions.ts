@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ServerResponseType } from "../utils/Constants";
+import { ServerResponseType } from "../utils/Constants.js";
 
 /**
  * Options for the OIDC protocol mode.

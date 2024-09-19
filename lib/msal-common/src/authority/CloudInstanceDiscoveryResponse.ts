@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
+import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata.js";
 
 /**
  * The OpenID Configuration Endpoint Response type. Used by the authority class to get relevant OAuth endpoints.

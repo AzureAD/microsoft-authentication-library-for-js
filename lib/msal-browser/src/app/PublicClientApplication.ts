@@ -3,34 +3,37 @@
  * Licensed under the MIT License.
  */
 
-import { ITokenCache } from "../cache/ITokenCache";
-import { INavigationClient } from "../navigation/INavigationClient";
-import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
-import { PopupRequest } from "../request/PopupRequest";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { SilentRequest } from "../request/SilentRequest";
-import { WrapperSKU } from "../utils/BrowserConstants";
-import { IPublicClientApplication } from "./IPublicClientApplication";
-import { IController } from "../controllers/IController";
+import { ITokenCache } from "../cache/ITokenCache.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { SilentRequest } from "../request/SilentRequest.js";
+import { WrapperSKU } from "../utils/BrowserConstants.js";
+import { IPublicClientApplication } from "./IPublicClientApplication.js";
+import { IController } from "../controllers/IController.js";
 import {
     PerformanceCallbackFunction,
     AccountInfo,
     AccountFilter,
     Logger,
-} from "@azure/msal-common";
-import { EndSessionRequest } from "../request/EndSessionRequest";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import * as ControllerFactory from "../controllers/ControllerFactory";
-import { StandardController } from "../controllers/StandardController";
-import { BrowserConfiguration, Configuration } from "../config/Configuration";
-import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { EventCallbackFunction } from "../event/EventMessage";
-import { ClearCacheRequest } from "../request/ClearCacheRequest";
-import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
-import { NestedAppAuthController } from "../controllers/NestedAppAuthController";
-import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext";
-import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest";
+} from "@azure/msal-common/browser";
+import { EndSessionRequest } from "../request/EndSessionRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import * as ControllerFactory from "../controllers/ControllerFactory.js";
+import { StandardController } from "../controllers/StandardController.js";
+import {
+    BrowserConfiguration,
+    Configuration,
+} from "../config/Configuration.js";
+import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { EventCallbackFunction } from "../event/EventMessage.js";
+import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
+import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
+import { NestedAppAuthController } from "../controllers/NestedAppAuthController.js";
+import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
+import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications

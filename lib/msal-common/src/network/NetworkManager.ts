@@ -3,16 +3,16 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule, NetworkRequestOptions } from "./INetworkModule";
-import { RequestThumbprint } from "./RequestThumbprint";
-import { ThrottlingUtils } from "./ThrottlingUtils";
-import { CacheManager } from "../cache/CacheManager";
-import { AuthError } from "../error/AuthError";
+import { INetworkModule, NetworkRequestOptions } from "./INetworkModule.js";
+import { RequestThumbprint } from "./RequestThumbprint.js";
+import { ThrottlingUtils } from "./ThrottlingUtils.js";
+import { CacheManager } from "../cache/CacheManager.js";
+import { AuthError } from "../error/AuthError.js";
 import {
     ClientAuthErrorCodes,
     createClientAuthError,
-} from "../error/ClientAuthError";
-import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
+} from "../error/ClientAuthError.js";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
 
 export type NetworkResponse<T> = {
     headers: Record<string, string>;

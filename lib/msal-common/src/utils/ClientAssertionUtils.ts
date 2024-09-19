@@ -6,7 +6,7 @@
 import {
     ClientAssertionCallback,
     ClientAssertionConfig,
-} from "../account/ClientCredentials";
+} from "../account/ClientCredentials.js";
 
 export async function getClientAssertion(
     clientAssertion: string | ClientAssertionCallback,

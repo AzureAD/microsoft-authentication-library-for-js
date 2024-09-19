@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { CommonEndSessionRequest } from "@azure/msal-common";
-import { PopupWindowAttributes } from "./PopupWindowAttributes";
+import { CommonEndSessionRequest } from "@azure/msal-common/browser";
+import { PopupWindowAttributes } from "./PopupWindowAttributes.js";
 
 /**
  * EndSessionPopupRequest

@@ -8,22 +8,22 @@ import {
     INetworkModule,
     Logger,
     AuthenticationResult,
-} from "@azure/msal-common";
-import { AppService } from "./ManagedIdentitySources/AppService";
-import { AzureArc } from "./ManagedIdentitySources/AzureArc";
-import { CloudShell } from "./ManagedIdentitySources/CloudShell";
-import { Imds } from "./ManagedIdentitySources/Imds";
-import { ServiceFabric } from "./ManagedIdentitySources/ServiceFabric";
-import { CryptoProvider } from "../crypto/CryptoProvider";
+} from "@azure/msal-common/node";
+import { AppService } from "./ManagedIdentitySources/AppService.js";
+import { AzureArc } from "./ManagedIdentitySources/AzureArc.js";
+import { CloudShell } from "./ManagedIdentitySources/CloudShell.js";
+import { Imds } from "./ManagedIdentitySources/Imds.js";
+import { ServiceFabric } from "./ManagedIdentitySources/ServiceFabric.js";
+import { CryptoProvider } from "../crypto/CryptoProvider.js";
 import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
-} from "../error/ManagedIdentityError";
-import { ManagedIdentityRequest } from "../request/ManagedIdentityRequest";
-import { ManagedIdentityId } from "../config/ManagedIdentityId";
-import { NodeStorage } from "../cache/NodeStorage";
-import { BaseManagedIdentitySource } from "./ManagedIdentitySources/BaseManagedIdentitySource";
-import { ManagedIdentitySourceNames } from "../utils/Constants";
+} from "../error/ManagedIdentityError.js";
+import { ManagedIdentityRequest } from "../request/ManagedIdentityRequest.js";
+import { ManagedIdentityId } from "../config/ManagedIdentityId.js";
+import { NodeStorage } from "../cache/NodeStorage.js";
+import { BaseManagedIdentitySource } from "./ManagedIdentitySources/BaseManagedIdentitySource.js";
+import { ManagedIdentitySourceNames } from "../utils/Constants.js";
 
 /*
  * Class to initialize a managed identity and identify the service.

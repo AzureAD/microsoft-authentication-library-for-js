@@ -9,16 +9,16 @@ import {
     AccountEntity,
     CacheManager,
     PersistentCacheKeys,
-} from "@azure/msal-common";
-import { InteractionType } from "../utils/BrowserConstants";
+} from "@azure/msal-common/browser";
+import { InteractionType } from "../utils/BrowserConstants.js";
 import {
     EventCallbackFunction,
     EventError,
     EventMessage,
     EventPayload,
-} from "./EventMessage";
-import { EventType } from "./EventType";
-import { createNewGuid } from "../crypto/BrowserCrypto";
+} from "./EventMessage.js";
+import { EventType } from "./EventType.js";
+import { createNewGuid } from "../crypto/BrowserCrypto.js";
 
 export class EventHandler {
     // Callback for subscribing to events

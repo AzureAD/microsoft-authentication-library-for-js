@@ -19,18 +19,18 @@ import {
     createClientAuthError,
     AuthenticationResult,
     UrlString,
-} from "@azure/msal-common";
-import { ManagedIdentityId } from "../../config/ManagedIdentityId";
-import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
-import { CryptoProvider } from "../../crypto/CryptoProvider";
-import { ManagedIdentityRequest } from "../../request/ManagedIdentityRequest";
-import { HttpMethod, ManagedIdentityIdType } from "../../utils/Constants";
-import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse";
-import { NodeStorage } from "../../cache/NodeStorage";
+} from "@azure/msal-common/node";
+import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
+import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
+import { CryptoProvider } from "../../crypto/CryptoProvider.js";
+import { ManagedIdentityRequest } from "../../request/ManagedIdentityRequest.js";
+import { HttpMethod, ManagedIdentityIdType } from "../../utils/Constants.js";
+import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse.js";
+import { NodeStorage } from "../../cache/NodeStorage.js";
 import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
-} from "../../error/ManagedIdentityError";
+} from "../../error/ManagedIdentityError.js";
 
 /**
  * Managed Identity User Assigned Id Query Parameter Names

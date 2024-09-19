@@ -3,6 +3,13 @@ parameters:
       displayName: "Debug Variables"
       type: boolean
       default: false
+    - name: "poolType"
+      displayName: "Pool Type"
+      type: string
+      default: "windows"
+      values:
+        - "windows"
+        - "linux"
 variables:
     CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
     LinuxContainerImage: "mcr.microsoft.com/onebranch/cbl-mariner/build:2.0" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
@@ -40,7 +47,7 @@ extends:
                     parameters:
                         jobName: "msal_browser_1p_3p_e2e_tests"
                         targetLib: "msal-browser-1p"
-                        poolType: "linux"
+                        poolType: ${{ parameters.poolType }}
                         stage: "CI"
                         sourceRepo: ${{ variables.sourceRepo }}
                         sourceBranch: ${{ variables.sourceBranch }}
@@ -48,4 +55,6 @@ extends:
                         samples:
                             - "Broker_WAMTestApp"
                             - "PerformanceTelemetrySample"
+                            - "BrokerTestApp-React"
+                            - "BrokerSingleFrameTestApp"
                         debug: ${{ parameters.debug }}

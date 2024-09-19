@@ -4,7 +4,7 @@
  */
 
 import { useContext } from "react";
-import { IMsalContext, MsalContext } from "../MsalContext";
+import { IMsalContext, MsalContext } from "../MsalContext.js";
 
 /**
  * Returns Msal Context values

@@ -6,8 +6,8 @@
 import {
     createClientAuthError,
     ClientAuthErrorCodes,
-} from "../error/ClientAuthError";
-import { Separators, Constants } from "../utils/Constants";
+} from "../error/ClientAuthError.js";
+import { Separators, Constants } from "../utils/Constants.js";
 
 /**
  * Client info object which consists of two IDs. Need to add more info here.

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CommonAuthorizationCodeRequest } from "@azure/msal-common";
+import { CommonAuthorizationCodeRequest } from "@azure/msal-common/browser";
 
 export type AuthorizationCodeRequest = Partial<
     Omit<

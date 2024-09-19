@@ -15,10 +15,10 @@ import {
     StringUtils,
     createClientConfigurationError,
     invokeAsync,
-} from "@azure/msal-common";
-import { BrowserConfiguration } from "../config/Configuration";
-import { SilentRequest } from "./SilentRequest";
-import { hashString } from "../crypto/BrowserCrypto";
+} from "@azure/msal-common/browser";
+import { BrowserConfiguration } from "../config/Configuration.js";
+import { SilentRequest } from "./SilentRequest.js";
+import { hashString } from "../crypto/BrowserCrypto.js";
 
 /**
  * Initializer function for all request APIs
