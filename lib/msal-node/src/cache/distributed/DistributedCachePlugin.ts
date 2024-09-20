@@ -32,24 +32,26 @@ export class DistributedCachePlugin implements ICachePlugin {
     public async afterCacheAccess(
         cacheContext: TokenCacheContext
     ): Promise<void> {
-        if (cacheContext.cacheHasChanged) {
-            const kvStore = (
-                cacheContext.tokenCache as TokenCache
-            ).getKVStore();
+        const { cacheHasChanged, tokenCache } = cacheContext;
+
+        if (cacheHasChanged) {
+            const kvStore = (tokenCache as TokenCache).getKVStore();
+
             const accountEntities = Object.values(kvStore).filter((value) =>
                 AccountEntity.isAccountEntity(value as object)
             );
 
-            if (accountEntities.length > 0) {
-                const accountEntity = accountEntities[0] as AccountEntity;
-                const partitionKey = await this.partitionManager.extractKey(
-                    accountEntity
-                );
+            const partitionKey =
+                accountEntities.length > 0
+                    ? await this.partitionManager.extractKey(
+                          accountEntities[0] as AccountEntity
+                      )
+                    : await this.partitionManager.getKey();
 
-                await this.client.set(
-                    partitionKey,
-                    cacheContext.tokenCache.serialize()
-                );
+            if (partitionKey) {
+                const serializedCache = tokenCache.serialize();
+
+                await this.client.set(partitionKey, serializedCache);
             }
         }
     }
