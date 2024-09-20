@@ -115,7 +115,7 @@ export class UnknownOperatingContextController implements IController {
                   this.logger
               );
 
-        this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
+        this.eventHandler = new EventHandler(this.logger);
     }
     getBrowserStorage(): BrowserCacheManager {
         return this.browserStorage;

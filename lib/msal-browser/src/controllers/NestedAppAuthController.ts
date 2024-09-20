@@ -118,7 +118,7 @@ export class NestedAppAuthController implements IController {
                   this.logger
               );
 
-        this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
+        this.eventHandler = new EventHandler(this.logger);
 
         this.nestedAppAuthAdapter = new NestedAppAuthAdapter(
             this.config.auth.clientId,
@@ -588,9 +588,10 @@ export class NestedAppAuthController implements IController {
     /**
      * Adds event callbacks to array
      * @param callback
+     * @param eventTypes
      */
-    addEventCallback(callback: EventCallbackFunction): string | null {
-        return this.eventHandler.addEventCallback(callback);
+    addEventCallback(callback: EventCallbackFunction, eventTypes?: Array<EventType>): string | null {
+        return this.eventHandler.addEventCallback(callback, eventTypes);
     }
 
     /**
