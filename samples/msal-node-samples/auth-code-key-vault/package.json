@@ -16,6 +16,6 @@
     "@azure/identity": "^3.4.2",
     "@azure/keyvault-certificates": "^4.1.0",
     "@azure/keyvault-secrets": "^4.1.0",
-    "express": "^4.19.2"
+    "express": "^4.20.0"
   }
 }
