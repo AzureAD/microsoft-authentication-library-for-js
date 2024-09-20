@@ -34,25 +34,32 @@ export class DistributedCachePlugin implements ICachePlugin {
     ): Promise<void> {
         const { cacheHasChanged, tokenCache } = cacheContext;
 
-        if (cacheHasChanged) {
-            const kvStore = (tokenCache as TokenCache).getKVStore();
+        if (!cacheHasChanged) return;
 
-            const accountEntities = Object.values(kvStore).filter((value) =>
-                AccountEntity.isAccountEntity(value as object)
-            );
+        const kvStore = (tokenCache as TokenCache).getKVStore();
 
-            const partitionKey =
-                accountEntities.length > 0
-                    ? await this.partitionManager.extractKey(
-                          accountEntities[0] as AccountEntity
-                      )
-                    : await this.partitionManager.getKey();
+        const accountEntities = Object.values(kvStore).filter((value) =>
+            AccountEntity.isAccountEntity(value as object)
+        );
 
-            if (partitionKey) {
-                const serializedCache = tokenCache.serialize();
+        const partitionKey = await this.getPartitionKey(
+            accountEntities as AccountEntity[]
+        );
 
-                await this.client.set(partitionKey, serializedCache);
-            }
+        if (partitionKey) {
+            const serializedTokenCache = tokenCache.serialize();
+
+            await this.client.set(partitionKey, serializedTokenCache);
         }
+    }
+
+    private async getPartitionKey(
+        accountEntities: AccountEntity[]
+    ): Promise<string> {
+        if (accountEntities.length) {
+            return this.partitionManager.extractKey(accountEntities[0]);
+        }
+
+        return this.partitionManager.getKey();
     }
 }
