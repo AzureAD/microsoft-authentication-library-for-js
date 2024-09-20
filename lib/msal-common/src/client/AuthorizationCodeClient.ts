@@ -3,55 +3,55 @@
  * Licensed under the MIT License.
  */
 
-import { BaseClient } from "./BaseClient";
-import { CommonAuthorizationUrlRequest } from "../request/CommonAuthorizationUrlRequest";
-import { CommonAuthorizationCodeRequest } from "../request/CommonAuthorizationCodeRequest";
-import { Authority } from "../authority/Authority";
-import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
+import { BaseClient } from "./BaseClient.js";
+import { CommonAuthorizationUrlRequest } from "../request/CommonAuthorizationUrlRequest.js";
+import { CommonAuthorizationCodeRequest } from "../request/CommonAuthorizationCodeRequest.js";
+import { Authority } from "../authority/Authority.js";
+import { RequestParameterBuilder } from "../request/RequestParameterBuilder.js";
 import {
     GrantType,
     AuthenticationScheme,
     PromptValue,
     Separators,
     HeaderNames,
-} from "../utils/Constants";
-import * as AADServerParamKeys from "../constants/AADServerParamKeys";
+} from "../utils/Constants.js";
+import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import {
     ClientConfiguration,
     isOidcProtocolMode,
-} from "../config/ClientConfiguration";
-import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
-import { NetworkResponse } from "../network/NetworkManager";
-import { ResponseHandler } from "../response/ResponseHandler";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { StringUtils } from "../utils/StringUtils";
+} from "../config/ClientConfiguration.js";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
+import { NetworkResponse } from "../network/NetworkManager.js";
+import { ResponseHandler } from "../response/ResponseHandler.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { StringUtils } from "../utils/StringUtils.js";
 import {
     ClientAuthErrorCodes,
     createClientAuthError,
-} from "../error/ClientAuthError";
-import { UrlString } from "../url/UrlString";
-import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse";
-import { CommonEndSessionRequest } from "../request/CommonEndSessionRequest";
-import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
-import { RequestThumbprint } from "../network/RequestThumbprint";
-import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload";
-import * as TimeUtils from "../utils/TimeUtils";
-import { AccountInfo } from "../account/AccountInfo";
+} from "../error/ClientAuthError.js";
+import { UrlString } from "../url/UrlString.js";
+import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse.js";
+import { CommonEndSessionRequest } from "../request/CommonEndSessionRequest.js";
+import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
+import { RequestThumbprint } from "../network/RequestThumbprint.js";
+import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload.js";
+import * as TimeUtils from "../utils/TimeUtils.js";
+import { AccountInfo } from "../account/AccountInfo.js";
 import {
     buildClientInfoFromHomeAccountId,
     buildClientInfo,
-} from "../account/ClientInfo";
-import { CcsCredentialType, CcsCredential } from "../account/CcsCredential";
+} from "../account/ClientInfo.js";
+import { CcsCredentialType, CcsCredential } from "../account/CcsCredential.js";
 import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
-} from "../error/ClientConfigurationError";
-import { RequestValidator } from "../request/RequestValidator";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
-import { invokeAsync } from "../utils/FunctionWrappers";
-import { ClientAssertion } from "../account/ClientCredentials";
-import { getClientAssertion } from "../utils/ClientAssertionUtils";
+} from "../error/ClientConfigurationError.js";
+import { RequestValidator } from "../request/RequestValidator.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import { invokeAsync } from "../utils/FunctionWrappers.js";
+import { ClientAssertion } from "../account/ClientCredentials.js";
+import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -674,11 +674,7 @@ export class AuthorizationCodeClient extends BaseClient {
             );
         }
 
-        if (request.extraQueryParameters) {
-            parameterBuilder.addExtraQueryParameters(
-                request.extraQueryParameters
-            );
-        }
+        this.addExtraQueryParams(request, parameterBuilder);
 
         if (request.nativeBroker) {
             // signal ests that this is a WAM call
@@ -742,13 +738,30 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addLogoutHint(request.logoutHint);
         }
 
+        this.addExtraQueryParams(request, parameterBuilder);
+
+        return parameterBuilder.createQueryString();
+    }
+
+    private addExtraQueryParams(
+        request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
+        parameterBuilder: RequestParameterBuilder
+    ) {
+        const hasRequestInstanceAware =
+            request.extraQueryParameters &&
+            request.extraQueryParameters.hasOwnProperty("instance_aware");
+
+        // Set instance_aware flag if config auth param is set
+        if (!hasRequestInstanceAware && this.config.authOptions.instanceAware) {
+            request.extraQueryParameters = request.extraQueryParameters || {};
+            request.extraQueryParameters["instance_aware"] = "true";
+        }
+
         if (request.extraQueryParameters) {
             parameterBuilder.addExtraQueryParameters(
                 request.extraQueryParameters
             );
         }
-
-        return parameterBuilder.createQueryString();
     }
 
     /**

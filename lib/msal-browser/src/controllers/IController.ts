@@ -9,23 +9,23 @@ import {
     PerformanceCallbackFunction,
     IPerformanceClient,
     AccountFilter,
-} from "@azure/msal-common";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { PopupRequest } from "../request/PopupRequest";
-import { SilentRequest } from "../request/SilentRequest";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { EndSessionRequest } from "../request/EndSessionRequest";
-import { ApiId, WrapperSKU } from "../utils/BrowserConstants";
-import { INavigationClient } from "../navigation/INavigationClient";
-import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
-import { ITokenCache } from "../cache/ITokenCache";
-import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
-import { BrowserConfiguration } from "../config/Configuration";
-import { EventHandler } from "../event/EventHandler";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { EventCallbackFunction } from "../event/EventMessage";
-import { ClearCacheRequest } from "../request/ClearCacheRequest";
-import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest";
+} from "@azure/msal-common/browser";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { SilentRequest } from "../request/SilentRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { EndSessionRequest } from "../request/EndSessionRequest.js";
+import { ApiId, WrapperSKU } from "../utils/BrowserConstants.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
+import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
+import { ITokenCache } from "../cache/ITokenCache.js";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
+import { EventHandler } from "../event/EventHandler.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { EventCallbackFunction } from "../event/EventMessage.js";
+import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
+import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 
 export interface IController {
     // TODO: Make request mandatory in the next major version?

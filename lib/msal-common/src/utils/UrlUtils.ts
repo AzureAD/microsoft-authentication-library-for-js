@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse";
+import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse.js";
 import {
     ClientAuthErrorCodes,
     createClientAuthError,
-} from "../error/ClientAuthError";
+} from "../error/ClientAuthError.js";
 
 /**
  * Parses hash string from given string. Returns empty string if no hash symbol is found.

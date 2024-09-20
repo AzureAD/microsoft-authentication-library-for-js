@@ -90,6 +90,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `azureCloudOptions`          | A defined set of azure cloud options for developers to default to their specific cloud authorities, for specific clouds supported please refer to the [AzureCloudInstance](https://aka.ms/msaljs/azure_cloud_instance)                                                  | [AzureCloudOptions](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#azurecloudoptions) | [AzureCloudInstance.None](msaljs/azure_cloud_instance)                      |
 | `skipAuthorityMetadataCache` | A flag to choose whether to use the local metadata cache during authority initialization. Metadata cache would be used if no authority metadata is provided and before a network call for metadata has been made (see [Authority](../../msal-common/docs/authority.md)) | boolean                                                                                                                                      | `false`                                                                     |
 | `onRedirectNavigate`         | A callback that will be passed the url that MSAL will navigate to in redirect flows. Returning false in the callback will stop navigation.
+| `instanceAware`              | A flag of whether the STS will send back additional parameters to specify where the tokens should be retrieved from. | boolean | `false` |
 
 ### Cache Config Options
 

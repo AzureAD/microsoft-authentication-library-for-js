@@ -3,18 +3,18 @@
  * Licensed under the MIT License.
  */
 
-import { NetworkResponse } from "./NetworkManager";
-import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
+import { NetworkResponse } from "./NetworkManager.js";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
 import {
     HeaderNames,
     ThrottlingConstants,
     Constants,
-} from "../utils/Constants";
-import { CacheManager } from "../cache/CacheManager";
-import { ServerError } from "../error/ServerError";
-import { RequestThumbprint } from "./RequestThumbprint";
-import { ThrottlingEntity } from "../cache/entities/ThrottlingEntity";
-import { BaseAuthRequest } from "../request/BaseAuthRequest";
+} from "../utils/Constants.js";
+import { CacheManager } from "../cache/CacheManager.js";
+import { ServerError } from "../error/ServerError.js";
+import { RequestThumbprint } from "./RequestThumbprint.js";
+import { ThrottlingEntity } from "../cache/entities/ThrottlingEntity.js";
+import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 
 /** @internal */
 export class ThrottlingUtils {

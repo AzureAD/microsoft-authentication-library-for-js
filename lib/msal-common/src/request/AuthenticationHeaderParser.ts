@@ -6,8 +6,8 @@
 import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
-} from "../error/ClientConfigurationError";
-import { Constants, HeaderNames } from "../utils/Constants";
+} from "../error/ClientConfigurationError.js";
+import { Constants, HeaderNames } from "../utils/Constants.js";
 
 type WWWAuthenticateChallenges = {
     nonce?: string;

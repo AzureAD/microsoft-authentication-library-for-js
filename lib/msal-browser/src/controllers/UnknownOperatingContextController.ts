@@ -13,33 +13,33 @@ import {
     IPerformanceClient,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     AccountFilter,
-} from "@azure/msal-common";
-import { ITokenCache } from "../cache/ITokenCache";
-import { BrowserConfiguration } from "../config/Configuration";
+} from "@azure/msal-common/browser";
+import { ITokenCache } from "../cache/ITokenCache.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
 import {
     BrowserCacheManager,
     DEFAULT_BROWSER_CACHE_MANAGER,
-} from "../cache/BrowserCacheManager";
-import { INavigationClient } from "../navigation/INavigationClient";
-import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
-import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
-import { EndSessionRequest } from "../request/EndSessionRequest";
-import { PopupRequest } from "../request/PopupRequest";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { SilentRequest } from "../request/SilentRequest";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { ApiId, WrapperSKU } from "../utils/BrowserConstants";
-import { IController } from "./IController";
-import { UnknownOperatingContext } from "../operatingcontext/UnknownOperatingContext";
-import { CryptoOps } from "../crypto/CryptoOps";
+} from "../cache/BrowserCacheManager.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
+import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
+import { EndSessionRequest } from "../request/EndSessionRequest.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { SilentRequest } from "../request/SilentRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { ApiId, WrapperSKU } from "../utils/BrowserConstants.js";
+import { IController } from "./IController.js";
+import { UnknownOperatingContext } from "../operatingcontext/UnknownOperatingContext.js";
+import { CryptoOps } from "../crypto/CryptoOps.js";
 import {
     blockAPICallsBeforeInitialize,
     blockNonBrowserEnvironment,
-} from "../utils/BrowserUtils";
-import { EventHandler } from "../event/EventHandler";
-import { EventCallbackFunction } from "../event/EventMessage";
-import { ClearCacheRequest } from "../request/ClearCacheRequest";
+} from "../utils/BrowserUtils.js";
+import { EventHandler } from "../event/EventHandler.js";
+import { EventCallbackFunction } from "../event/EventMessage.js";
+import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 
 /**
  * UnknownOperatingContextController class
