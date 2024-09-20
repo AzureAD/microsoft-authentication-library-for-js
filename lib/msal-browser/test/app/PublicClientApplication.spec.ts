@@ -6944,7 +6944,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const subscriber = (message: EventMessage) => {};
             pca.addEventCallback(subscriber);
 
-            const emitEventSpy = jest.spyOn(EventHandler.prototype, "emitEvent");
+            const emitEventSpy = jest.spyOn(
+                EventHandler.prototype,
+                "emitEvent"
+            );
             // @ts-ignore
             pca.controller.handleAccountCacheChange({
                 key: "testCacheKey",
@@ -6959,7 +6962,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const subscriber = (message: EventMessage) => {};
             pca.addEventCallback(subscriber);
 
-            const emitEventSpy = jest.spyOn(EventHandler.prototype, "emitEvent");
+            const emitEventSpy = jest.spyOn(
+                EventHandler.prototype,
+                "emitEvent"
+            );
             // @ts-ignore
             pca.controller.handleAccountCacheChange({
                 key: "testCacheKey",
@@ -6976,7 +6982,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const subscriber = (message: EventMessage) => {};
             pca.addEventCallback(subscriber);
 
-            const emitEventSpy = jest.spyOn(EventHandler.prototype, "emitEvent");
+            const emitEventSpy = jest.spyOn(
+                EventHandler.prototype,
+                "emitEvent"
+            );
             // @ts-ignore
             pca.controller.handleAccountCacheChange({
                 key: "testCacheKey",

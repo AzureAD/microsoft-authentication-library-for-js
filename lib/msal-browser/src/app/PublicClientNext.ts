@@ -177,7 +177,10 @@ export class PublicClientNext implements IPublicClientApplication {
      * Adds event callbacks to array
      * @param callback
      */
-    addEventCallback(callback: EventCallbackFunction, eventTypes?: Array<EventType>): string | null {
+    addEventCallback(
+        callback: EventCallbackFunction,
+        eventTypes?: Array<EventType>
+    ): string | null {
         return this.controller.addEventCallback(callback, eventTypes);
     }
 

@@ -590,7 +590,10 @@ export class NestedAppAuthController implements IController {
      * @param callback
      * @param eventTypes
      */
-    addEventCallback(callback: EventCallbackFunction, eventTypes?: Array<EventType>): string | null {
+    addEventCallback(
+        callback: EventCallbackFunction,
+        eventTypes?: Array<EventType>
+    ): string | null {
         return this.eventHandler.addEventCallback(callback, eventTypes);
     }
 

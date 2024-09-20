@@ -154,7 +154,10 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param callback
      * @param eventTypes
      */
-    addEventCallback(callback: EventCallbackFunction, eventTypes?: Array<EventType>): string | null {
+    addEventCallback(
+        callback: EventCallbackFunction,
+        eventTypes?: Array<EventType>
+    ): string | null {
         return this.controller.addEventCallback(callback, eventTypes);
     }
 

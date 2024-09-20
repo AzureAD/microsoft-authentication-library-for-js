@@ -50,7 +50,10 @@ export interface IController {
         accountId?: string
     ): Promise<AuthenticationResult>;
 
-    addEventCallback(callback: EventCallbackFunction, eventTypes?: Array<EventType>): string | null;
+    addEventCallback(
+        callback: EventCallbackFunction,
+        eventTypes?: Array<EventType>
+    ): string | null;
 
     removeEventCallback(callbackId: string): void;
 

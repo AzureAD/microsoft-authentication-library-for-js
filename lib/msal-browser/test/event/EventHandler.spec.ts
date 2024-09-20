@@ -123,8 +123,12 @@ describe("Event API tests", () => {
 
         const eventHandler = new EventHandler(logger);
 
-        eventHandler.addEventCallback(subscriber1, [EventType.ACQUIRE_TOKEN_START]);
-        eventHandler.addEventCallback(subscriber2, [EventType.ACQUIRE_TOKEN_SUCCESS]);
+        eventHandler.addEventCallback(subscriber1, [
+            EventType.ACQUIRE_TOKEN_START,
+        ]);
+        eventHandler.addEventCallback(subscriber2, [
+            EventType.ACQUIRE_TOKEN_SUCCESS,
+        ]);
         eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
             InteractionType.Redirect

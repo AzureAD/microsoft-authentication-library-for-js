@@ -41,7 +41,10 @@ export interface IPublicClientApplication {
     acquireTokenByCode(
         request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult>;
-    addEventCallback(callback: EventCallbackFunction, eventTypes?: Array<EventType>): string | null;
+    addEventCallback(
+        callback: EventCallbackFunction,
+        eventTypes?: Array<EventType>
+    ): string | null;
     removeEventCallback(callbackId: string): void;
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
     removePerformanceCallback(callbackId: string): boolean;

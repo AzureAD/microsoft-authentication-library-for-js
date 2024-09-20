@@ -3,13 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    ICrypto,
-    Logger,
-    AccountEntity,
-    CacheManager,
-    PersistentCacheKeys,
-} from "@azure/msal-common/browser";
+import { Logger } from "@azure/msal-common/browser";
 import { InteractionType } from "../utils/BrowserConstants.js";
 import {
     EventCallbackFunction,
@@ -22,7 +16,10 @@ import { createNewGuid } from "../crypto/BrowserCrypto.js";
 
 export class EventHandler {
     // Callback for subscribing to events
-    private eventCallbacks: Map<string, [EventCallbackFunction, Array<EventType>]>;
+    private eventCallbacks: Map<
+        string,
+        [EventCallbackFunction, Array<EventType>]
+    >;
     private logger: Logger;
 
     constructor(logger?: Logger) {
@@ -35,7 +32,10 @@ export class EventHandler {
      * @param callback - callback to be invoked when an event is raised
      * @param eventTypes - list of events that this callback will be invoked for, if not provided callback will be invoked for all events
      */
-    addEventCallback(callback: EventCallbackFunction, eventTypes?: Array<EventType>): string | null {
+    addEventCallback(
+        callback: EventCallbackFunction,
+        eventTypes?: Array<EventType>
+    ): string | null {
         if (typeof window !== "undefined") {
             const callbackId = createNewGuid();
             this.eventCallbacks.set(callbackId, [callback, eventTypes || []]);
@@ -81,8 +81,17 @@ export class EventHandler {
             };
 
             this.eventCallbacks.forEach(
-                ([callback, eventTypes]: [EventCallbackFunction, Array<EventType>], callbackId: string) => {
-                    if (eventTypes.length === 0 || eventTypes.includes(eventType)) {
+                (
+                    [callback, eventTypes]: [
+                        EventCallbackFunction,
+                        Array<EventType>
+                    ],
+                    callbackId: string
+                ) => {
+                    if (
+                        eventTypes.length === 0 ||
+                        eventTypes.includes(eventType)
+                    ) {
                         this.logger.verbose(
                             `Emitting event to callback ${callbackId}: ${eventType}`
                         );

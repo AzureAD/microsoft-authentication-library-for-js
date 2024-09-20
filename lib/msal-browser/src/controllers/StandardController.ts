@@ -1707,7 +1707,10 @@ export class StandardController implements IController {
      * Adds event callbacks to array
      * @param callback
      */
-    addEventCallback(callback: EventCallbackFunction, eventTypes?: Array<EventType>): string | null {
+    addEventCallback(
+        callback: EventCallbackFunction,
+        eventTypes?: Array<EventType>
+    ): string | null {
         return this.eventHandler.addEventCallback(callback, eventTypes);
     }
 
@@ -1808,7 +1811,11 @@ export class StandardController implements IController {
                 this.logger.info(
                     "Account was added to cache in a different window"
                 );
-                this.eventHandler.emitEvent(EventType.ACCOUNT_ADDED, undefined, accountInfo);
+                this.eventHandler.emitEvent(
+                    EventType.ACCOUNT_ADDED,
+                    undefined,
+                    accountInfo
+                );
             } else if (!e.newValue && e.oldValue) {
                 this.logger.info(
                     "Account was removed from cache in a different window"
