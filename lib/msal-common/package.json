@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "14.14.0",
+  "version": "14.15.0",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -22,16 +22,40 @@
     "oauth"
   ],
   "sideEffects": false,
-  "main": "./dist/index.cjs",
+  "type": "module",
+  "main": "./lib/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
+    "./browser": {
+      "import": {
+        "types": "./dist/index-browser.d.ts",
+        "default": "./dist/index-browser.mjs"
+      },
+      "require": {
+        "types": "./lib/types/index-browser.d.ts",
+        "default": "./lib/index-browser.cjs"
+      }
+    },
+    "./node": {
+      "import": {
+        "types": "./dist/index-node.d.ts",
+        "default": "./dist/index-node.mjs"
+      },
+      "require": {
+        "types": "./lib/types/index-node.d.ts",
+        "default": "./lib/index-node.cjs"
+      }
+    },
     ".": {
-      "types": "./dist/index.d.ts",
-      "module": "./dist/index.mjs",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
-      "default": "./dist/index.mjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./lib/types/index.d.ts",
+        "default": "./lib/index.cjs"
+      }
     },
     "./package.json": "./package.json"
   },
@@ -43,7 +67,10 @@
   },
   "files": [
     "dist",
-    "src"
+    "lib",
+    "src",
+    "node",
+    "browser"
   ],
   "scripts": {
     "clean": "shx rm -rf dist lib",
@@ -88,9 +115,11 @@
     "prettier": "2.8.7",
     "rimraf": "^3.0.2",
     "rollup": "^3.14.0",
+    "rollup-msal": "file:../../shared-configs/rollup-msal",
     "shx": "^0.3.2",
     "sinon": "^7.5.0",
     "ts-jest": "^29.1.0",
+    "ts-jest-resolver": "^2.0.1",
     "ts-node": "^10.9.1",
     "tslib": "^1.10.0",
     "typescript": "^4.9.5",

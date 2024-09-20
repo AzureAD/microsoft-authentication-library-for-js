@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationScheme } from "../utils/Constants";
+import { AuthenticationScheme } from "../utils/Constants.js";
 
 /**
  * Deserialized response object from server authorization code request.

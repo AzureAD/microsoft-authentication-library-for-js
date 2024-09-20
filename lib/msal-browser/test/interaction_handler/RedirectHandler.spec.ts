@@ -24,6 +24,8 @@ import {
     CcsCredential,
     CcsCredentialType,
     IPerformanceClient,
+    NetworkResponse,
+    ServerAuthorizationTokenResponse,
 } from "@azure/msal-common";
 import {
     Configuration,
@@ -37,16 +39,12 @@ import {
     RANDOM_TEST_GUID,
     TEST_HASHES,
     TEST_TOKEN_LIFETIMES,
-    TEST_POP_VALUES,
     TEST_STATE_VALUES,
-    TEST_CRYPTO_VALUES,
 } from "../utils/StringConstants";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import {
     BrowserAuthErrorMessage,
     BrowserAuthError,
-    createBrowserAuthError,
-    BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -54,6 +52,7 @@ import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions";
+import { RedirectRequest } from "../../src/request/RedirectRequest";
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -112,6 +111,14 @@ describe("RedirectHandler.ts Unit Tests", () => {
             piiLoggingEnabled: true,
         };
         const logger: Logger = new Logger(loggerOptions);
+        browserCrypto = new CryptoOps(logger);
+        browserStorage = new BrowserCacheManager(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            configObj.cache,
+            browserCrypto,
+            logger
+        );
+        // Initialize authority after browser storage for proper use
         authorityInstance = new Authority(
             configObj.auth.authority,
             networkInterface,
@@ -119,13 +126,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
             authorityOptions,
             logger,
             TEST_CONFIG.CORRELATION_ID
-        );
-        browserCrypto = new CryptoOps(logger);
-        browserStorage = new BrowserCacheManager(
-            TEST_CONFIG.MSAL_CLIENT_ID,
-            configObj.cache,
-            browserCrypto,
-            logger
         );
         authConfig = {
             authOptions: {
@@ -136,41 +136,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 tokenRenewalOffsetSeconds:
                     configObj.system.tokenRenewalOffsetSeconds,
             },
-            cryptoInterface: {
-                createNewGuid: (): string => {
-                    return "newGuid";
-                },
-                base64Decode: (input: string): string => {
-                    return "testDecodedString";
-                },
-                base64Encode: (input: string): string => {
-                    return "testEncodedString";
-                },
-                base64UrlEncode(input: string): string {
-                    return Buffer.from(input, "utf-8").toString("base64url");
-                },
-                encodeKid(input: string): string {
-                    return Buffer.from(
-                        JSON.stringify({ kid: input }),
-                        "utf-8"
-                    ).toString("base64url");
-                },
-                getPublicKeyThumbprint: async (): Promise<string> => {
-                    return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                },
-                signJwt: async (): Promise<string> => {
-                    return "signedJwt";
-                },
-                removeTokenBindingKey: async (): Promise<boolean> => {
-                    return Promise.resolve(true);
-                },
-                clearKeystore: async (): Promise<boolean> => {
-                    return Promise.resolve(true);
-                },
-                hashString: async (): Promise<string> => {
-                    return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-                },
-            },
+            cryptoInterface: new CryptoOps(new Logger({})),
             storageInterface: browserStorage,
             networkInterface: {
                 sendGetRequestAsync: async (
@@ -209,6 +175,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
 
     afterEach(() => {
         sinon.restore();
+        browserStorage.clear();
     });
 
     describe("Constructor", () => {

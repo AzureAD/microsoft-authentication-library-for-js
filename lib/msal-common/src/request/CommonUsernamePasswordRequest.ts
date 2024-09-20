@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest } from "./BaseAuthRequest";
+import { BaseAuthRequest } from "./BaseAuthRequest.js";
 
 /**
  * CommonUsernamePassword parameters passed by the user to retrieve credentials

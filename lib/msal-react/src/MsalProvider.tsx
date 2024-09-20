@@ -18,9 +18,9 @@ import {
     WrapperSKU,
     AccountInfo,
 } from "@azure/msal-browser";
-import { MsalContext, IMsalContext } from "./MsalContext";
-import { accountArraysAreEqual } from "./utils/utilities";
-import { name as SKU, version } from "./packageMetadata";
+import { MsalContext, IMsalContext } from "./MsalContext.js";
+import { accountArraysAreEqual } from "./utils/utilities.js";
+import { name as SKU, version } from "./packageMetadata.js";
 
 export type MsalProviderProps = PropsWithChildren<{
     instance: IPublicClientApplication;

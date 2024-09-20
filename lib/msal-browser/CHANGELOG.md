@@ -1,8 +1,78 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 23 Jul 2024 14:19:34 GMT and should not be manually modified.
+This log was last generated on Thu, 19 Sep 2024 23:48:30 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.24.0
+
+Thu, 19 Sep 2024 23:48:30 GMT
+
+### Minor changes
+
+- Fix type resolution when using moduleResolution node16 (thomas.norling@microsoft.com)
+- Allow passing popup parent for multi-window flows (chrp@microsoft.com)
+- Add 'instance_aware' auth config param #7259 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.15.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Add clientLibrary and clientLibraryVersion parameters to NAA Request (#7297) (dasau@microsoft.com)
+- Add __initializeNestedAppAuth function for Nested App Auth (#7289) (dasau@microsoft.com)
+
+## 3.23.0
+
+Tue, 03 Sep 2024 21:57:24 GMT
+
+### Minor changes
+
+- Bump version (hemoral@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.22.1
+
+Tue, 03 Sep 2024 21:30:55 GMT
+
+### Patches
+
+- Bump version (hemoral@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.22.0
+
+Wed, 28 Aug 2024 23:06:01 GMT
+
+### Minor changes
+
+- Remove retry for popup and redirect #7270 (joarroyo@microsoft.com)
+- Revert 'Use high precision TS for NAA message time (#7243)' (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.14.2
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.21.0
+
+Tue, 13 Aug 2024 23:25:07 GMT
+
+### Minor changes
+
+- Retry in RedirectClient for invalid_grant errors #7231 (joarroyo@microsoft.com)
+- Retry in SilentIframeClient for invalid_grant errors #7218 (joarroyo@microsoft.com)
+- Retry in PopupClient for invalid_grant errors #7216 (joarroyo@microsoft.com)
+- Bump @azure/msal-common to v14.14.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+### Patches
+
+- Update request retry for invalid_grant #7249 (joarroyo@microsoft.com)
+- onRedirectNavigate deprecation fix #7251 (joarroyo@microsoft.com)
+- Use high precision TS for NAA message time #7243 (kshabelko@microsoft.com)
 
 ## 3.20.0
 

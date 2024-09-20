@@ -8,7 +8,7 @@ import {
     ServerAuthorizationCodeResponse,
     HttpStatus,
     UrlUtils,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import http from "http";
 import { NodeAuthError } from "../error/NodeAuthError.js";
 import { Constants } from "../utils/Constants.js";
@@ -65,10 +65,16 @@ export class LoopbackClient implements ILoopbackClient {
                             }); // Prevent auth code from being saved in the browser history
                             res.end();
                         }
+                        if (authCodeResponse.error) {
+                            res.end(
+                                errorTemplate ||
+                                    `Error occurred: ${authCodeResponse.error}`
+                            );
+                        }
                         resolve(authCodeResponse);
                     }
                 );
-                this.server.listen(0); // Listen on any available port
+                this.server.listen(0, "127.0.0.1"); // Listen on any available port
             }
         );
     }

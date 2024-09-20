@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { IdTokenEntity } from "./IdTokenEntity";
-import { AccessTokenEntity } from "./AccessTokenEntity";
-import { RefreshTokenEntity } from "./RefreshTokenEntity";
-import { AccountEntity } from "./AccountEntity";
-import { AppMetadataEntity } from "./AppMetadataEntity";
+import { IdTokenEntity } from "./IdTokenEntity.js";
+import { AccessTokenEntity } from "./AccessTokenEntity.js";
+import { RefreshTokenEntity } from "./RefreshTokenEntity.js";
+import { AccountEntity } from "./AccountEntity.js";
+import { AppMetadataEntity } from "./AppMetadataEntity.js";
 
 /** @internal */
 export type CacheRecord = {

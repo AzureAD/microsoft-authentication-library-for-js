@@ -15,34 +15,33 @@ import {
     PerformanceEvents,
     invokeAsync,
     invoke,
-    ServerError,
-} from "@azure/msal-common";
-import { StandardInteractionClient } from "./StandardInteractionClient";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { BrowserConfiguration } from "../config/Configuration";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { EventHandler } from "../event/EventHandler";
-import { INavigationClient } from "../navigation/INavigationClient";
+} from "@azure/msal-common/browser";
+import { StandardInteractionClient } from "./StandardInteractionClient.js";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
+import { EventHandler } from "../event/EventHandler.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
+} from "../error/BrowserAuthError.js";
 import {
     InteractionType,
     ApiId,
     BrowserConstants,
-} from "../utils/BrowserConstants";
+} from "../utils/BrowserConstants.js";
 import {
     initiateAuthRequest,
     monitorIframeForHash,
-} from "../interaction_handler/SilentHandler";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { NativeInteractionClient } from "./NativeInteractionClient";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { InteractionHandler } from "../interaction_handler/InteractionHandler";
-import * as BrowserUtils from "../utils/BrowserUtils";
-import * as ResponseHandler from "../response/ResponseHandler";
+} from "../interaction_handler/SilentHandler.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
+import { NativeInteractionClient } from "./NativeInteractionClient.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { InteractionHandler } from "../interaction_handler/InteractionHandler.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
+import * as ResponseHandler from "../response/ResponseHandler.js";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
@@ -138,12 +137,13 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.logger,
                 this.performanceClient,
                 request.correlationId
-            )(
+            )({
                 serverTelemetryManager,
-                silentRequest.authority,
-                silentRequest.azureCloudOptions,
-                silentRequest.account
-            );
+                requestAuthority: silentRequest.authority,
+                requestAzureCloudOptions: silentRequest.azureCloudOptions,
+                requestExtraQueryParameters: silentRequest.extraQueryParameters,
+                account: silentRequest.account,
+            });
 
             return await invokeAsync(
                 this.silentTokenHelper.bind(this),
@@ -159,39 +159,36 @@ export class SilentIframeClient extends StandardInteractionClient {
             }
 
             if (
-                e instanceof ServerError &&
-                e.errorCode === BrowserConstants.INVALID_GRANT_ERROR
+                !authClient ||
+                !(e instanceof AuthError) ||
+                e.errorCode !== BrowserConstants.INVALID_GRANT_ERROR
             ) {
-                if (!authClient) {
-                    throw e;
-                } else {
-                    this.performanceClient.addFields(
-                        {
-                            retryError: e.errorCode,
-                        },
-                        this.correlationId
-                    );
-
-                    const retrySilentRequest: AuthorizationUrlRequest =
-                        await invokeAsync(
-                            this.initializeAuthorizationRequest.bind(this),
-                            PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
-                            this.logger,
-                            this.performanceClient,
-                            request.correlationId
-                        )(inputRequest, InteractionType.Silent);
-
-                    return await invokeAsync(
-                        this.silentTokenHelper.bind(this),
-                        PerformanceEvents.SilentIframeClientTokenHelper,
-                        this.logger,
-                        this.performanceClient,
-                        this.correlationId
-                    )(authClient, retrySilentRequest);
-                }
+                throw e;
             }
 
-            throw e;
+            this.performanceClient.addFields(
+                {
+                    retryError: e.errorCode,
+                },
+                this.correlationId
+            );
+
+            const retrySilentRequest: AuthorizationUrlRequest =
+                await invokeAsync(
+                    this.initializeAuthorizationRequest.bind(this),
+                    PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
+                    this.logger,
+                    this.performanceClient,
+                    request.correlationId
+                )(inputRequest, InteractionType.Silent);
+
+            return await invokeAsync(
+                this.silentTokenHelper.bind(this),
+                PerformanceEvents.SilentIframeClientTokenHelper,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(authClient, retrySilentRequest);
         }
     }
 

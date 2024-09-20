@@ -21,22 +21,23 @@ import {
     PerformanceEvents,
     AzureCloudOptions,
     invokeAsync,
-} from "@azure/msal-common";
-import { BrowserConfiguration } from "../config/Configuration";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { EventHandler } from "../event/EventHandler";
-import { EndSessionRequest } from "../request/EndSessionRequest";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { PopupRequest } from "../request/PopupRequest";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { version } from "../packageMetadata";
-import { BrowserConstants } from "../utils/BrowserConstants";
-import * as BrowserUtils from "../utils/BrowserUtils";
-import { INavigationClient } from "../navigation/INavigationClient";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { ClearCacheRequest } from "../request/ClearCacheRequest";
-import { createNewGuid } from "../crypto/BrowserCrypto";
+    StringDict,
+} from "@azure/msal-common/browser";
+import { BrowserConfiguration } from "../config/Configuration.js";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
+import { EventHandler } from "../event/EventHandler.js";
+import { EndSessionRequest } from "../request/EndSessionRequest.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { version } from "../packageMetadata.js";
+import { BrowserConstants } from "../utils/BrowserConstants.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
+import { createNewGuid } from "../crypto/BrowserCrypto.js";
 
 export abstract class BaseInteractionClient {
     protected config: BrowserConfiguration;
@@ -177,15 +178,26 @@ export abstract class BaseInteractionClient {
 
     /**
      * Used to get a discovered version of the default authority.
-     * @param requestAuthority
-     * @param requestAzureCloudOptions
-     * @param account
+     * @param params {
+     *         requestAuthority?: string;
+     *         requestAzureCloudOptions?: AzureCloudOptions;
+     *         requestExtraQueryParameters?: StringDict;
+     *         account?: AccountInfo;
+     *        }
      */
-    protected async getDiscoveredAuthority(
-        requestAuthority?: string,
-        requestAzureCloudOptions?: AzureCloudOptions,
-        account?: AccountInfo
-    ): Promise<Authority> {
+    protected async getDiscoveredAuthority(params: {
+        requestAuthority?: string;
+        requestAzureCloudOptions?: AzureCloudOptions;
+        requestExtraQueryParameters?: StringDict;
+        account?: AccountInfo;
+    }): Promise<Authority> {
+        const { account } = params;
+        const instanceAwareEQ =
+            params.requestExtraQueryParameters &&
+            params.requestExtraQueryParameters.hasOwnProperty("instance_aware")
+                ? params.requestExtraQueryParameters["instance_aware"]
+                : undefined;
+
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
             this.correlationId
@@ -201,14 +213,25 @@ export abstract class BaseInteractionClient {
         };
 
         // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority
-        const userAuthority = requestAuthority
-            ? requestAuthority
-            : this.config.auth.authority;
+        const resolvedAuthority =
+            params.requestAuthority || this.config.auth.authority;
+        const resolvedInstanceAware = instanceAwareEQ?.length
+            ? instanceAwareEQ === "true"
+            : this.config.auth.instanceAware;
+
+        const userAuthority =
+            account && resolvedInstanceAware
+                ? this.config.auth.authority.replace(
+                      UrlString.getDomainFromUrl(resolvedAuthority),
+                      account.environment
+                  )
+                : resolvedAuthority;
 
         // fall back to the authority from config
         const builtAuthority = Authority.generateAuthority(
             userAuthority,
-            requestAzureCloudOptions || this.config.auth.azureCloudOptions
+            params.requestAzureCloudOptions ||
+                this.config.auth.azureCloudOptions
         );
         const discoveredAuthority = await invokeAsync(
             AuthorityFactory.createDiscoveredInstance,

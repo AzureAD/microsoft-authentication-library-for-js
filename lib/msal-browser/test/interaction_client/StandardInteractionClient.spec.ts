@@ -46,14 +46,11 @@ class testStandardInteractionClient extends StandardInteractionClient {
         return super.initializeAuthorizationRequest(request, interactionType);
     }
 
-    async getDiscoveredAuthority(
-        requestAuthority?: string,
-        requestAzureCloudOptions?: AzureCloudOptions
-    ) {
-        return super.getDiscoveredAuthority(
-            requestAuthority,
-            requestAzureCloudOptions
-        );
+    async getDiscoveredAuthority(params: {
+        requestAuthority?: string;
+        requestAzureCloudOptions?: AzureCloudOptions;
+    }) {
+        return super.getDiscoveredAuthority(params);
     }
 
     logout(request: EndSessionRequest): Promise<void> {
@@ -195,23 +192,25 @@ describe("StandardInteractionClient", () => {
     });
 
     it("getDiscoveredAuthority - request authority only", async () => {
-        const reqAuthority = TEST_CONFIG.validAuthority;
+        const requestAuthority = TEST_CONFIG.validAuthority;
 
-        const authority = await testClient.getDiscoveredAuthority(reqAuthority);
+        const authority = await testClient.getDiscoveredAuthority({
+            requestAuthority,
+        });
         expect(authority.canonicalAuthority).toBe(TEST_CONFIG.validAuthority);
     });
 
     it("getDiscoveredAuthority - azureCloudOptions set", async () => {
-        const reqAuthority = TEST_CONFIG.validAuthority;
-        const reqAzureCloudOptions: AzureCloudOptions = {
+        const requestAuthority = TEST_CONFIG.validAuthority;
+        const requestAzureCloudOptions: AzureCloudOptions = {
             azureCloudInstance: AzureCloudInstance.AzureUsGovernment,
             tenant: TEST_CONFIG.TENANT,
         };
 
-        const authority = await testClient.getDiscoveredAuthority(
-            reqAuthority,
-            reqAzureCloudOptions
-        );
+        const authority = await testClient.getDiscoveredAuthority({
+            requestAuthority,
+            requestAzureCloudOptions,
+        });
         expect(authority.canonicalAuthority).toBe(TEST_CONFIG.usGovAuthority);
     });
 
@@ -219,19 +218,18 @@ describe("StandardInteractionClient", () => {
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
 
-        const authority = await testClient.getDiscoveredAuthority();
+        const authority = await testClient.getDiscoveredAuthority({});
         expect(authority.canonicalAuthority).toBe(TEST_CONFIG.validAuthority);
     });
 
     it("getDiscoveredAuthority - Only azureCloudInstance provided ", async () => {
-        const reqAzureCloudOptions: AzureCloudOptions = {
+        const requestAzureCloudOptions: AzureCloudOptions = {
             azureCloudInstance: AzureCloudInstance.AzureGermany,
         };
 
-        const authority = await testClient.getDiscoveredAuthority(
-            undefined,
-            reqAzureCloudOptions
-        );
+        const authority = await testClient.getDiscoveredAuthority({
+            requestAzureCloudOptions,
+        });
         expect(authority.canonicalAuthority).toBe(TEST_CONFIG.germanyAuthority);
     });
 });

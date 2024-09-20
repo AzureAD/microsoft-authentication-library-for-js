@@ -10,11 +10,11 @@
   "dependencies": {
     "@azure/msal-browser": "^3.1.0",
     "@azure/msal-node": "^2.1.0",
-    "body-parser": "^1.19.0",
+    "body-parser": "^1.20.3",
     "cookie-parser": "^1.4.4",
     "debug": "^2.6.9",
     "dotenv": "^10.0.0",
-    "express": "^4.19.2",
+    "express": "^4.20.0",
     "express-session": "^1.17.2",
     "hbs": "^4.0.4",
     "http-errors": "~1.6.3",

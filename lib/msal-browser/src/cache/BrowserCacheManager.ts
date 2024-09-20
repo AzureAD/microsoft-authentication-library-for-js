@@ -39,31 +39,31 @@ import {
     CacheHelpers,
     StoreInCache,
     CacheError,
-} from "@azure/msal-common";
-import { CacheOptions } from "../config/Configuration";
+} from "@azure/msal-common/browser";
+import { CacheOptions } from "../config/Configuration.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
+} from "../error/BrowserAuthError.js";
 import {
     BrowserCacheLocation,
     InteractionType,
     TemporaryCacheKeys,
     InMemoryCacheKeys,
     StaticCacheKeys,
-} from "../utils/BrowserConstants";
-import { BrowserStorage } from "./BrowserStorage";
-import { MemoryStorage } from "./MemoryStorage";
-import { IWindowStorage } from "./IWindowStorage";
-import { extractBrowserRequestState } from "../utils/BrowserProtocolUtils";
-import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { SilentRequest } from "../request/SilentRequest";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { PopupRequest } from "../request/PopupRequest";
-import { base64Decode } from "../encode/Base64Decode";
-import { base64Encode } from "../encode/Base64Encode";
+} from "../utils/BrowserConstants.js";
+import { BrowserStorage } from "./BrowserStorage.js";
+import { MemoryStorage } from "./MemoryStorage.js";
+import { IWindowStorage } from "./IWindowStorage.js";
+import { extractBrowserRequestState } from "../utils/BrowserProtocolUtils.js";
+import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { SilentRequest } from "../request/SilentRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { base64Decode } from "../encode/Base64Decode.js";
+import { base64Encode } from "../encode/Base64Encode.js";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.

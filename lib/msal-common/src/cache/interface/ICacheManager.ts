@@ -3,18 +3,18 @@
  * Licensed under the MIT License.
  */
 
-import { AccountFilter } from "../utils/CacheTypes";
-import { CacheRecord } from "../entities/CacheRecord";
-import { AccountEntity } from "../entities/AccountEntity";
-import { AccountInfo } from "../../account/AccountInfo";
-import { AppMetadataEntity } from "../entities/AppMetadataEntity";
-import { ServerTelemetryEntity } from "../entities/ServerTelemetryEntity";
-import { ThrottlingEntity } from "../entities/ThrottlingEntity";
-import { IdTokenEntity } from "../entities/IdTokenEntity";
-import { AccessTokenEntity } from "../entities/AccessTokenEntity";
-import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
-import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity";
-import { StoreInCache } from "../../request/StoreInCache";
+import { AccountFilter } from "../utils/CacheTypes.js";
+import { CacheRecord } from "../entities/CacheRecord.js";
+import { AccountEntity } from "../entities/AccountEntity.js";
+import { AccountInfo } from "../../account/AccountInfo.js";
+import { AppMetadataEntity } from "../entities/AppMetadataEntity.js";
+import { ServerTelemetryEntity } from "../entities/ServerTelemetryEntity.js";
+import { ThrottlingEntity } from "../entities/ThrottlingEntity.js";
+import { IdTokenEntity } from "../entities/IdTokenEntity.js";
+import { AccessTokenEntity } from "../entities/AccessTokenEntity.js";
+import { RefreshTokenEntity } from "../entities/RefreshTokenEntity.js";
+import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity.js";
+import { StoreInCache } from "../../request/StoreInCache.js";
 
 export interface ICacheManager {
     /**

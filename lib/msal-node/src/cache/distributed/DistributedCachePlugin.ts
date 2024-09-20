@@ -7,7 +7,7 @@ import {
     AccountEntity,
     ICachePlugin,
     TokenCacheContext,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import { TokenCache } from "../TokenCache.js";
 import { IPartitionManager } from "./IPartitionManager.js";
 import { ICacheClient } from "./ICacheClient.js";

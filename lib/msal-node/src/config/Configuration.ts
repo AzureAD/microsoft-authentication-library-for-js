@@ -15,7 +15,7 @@ import {
     ApplicationTelemetry,
     INativeBrokerPlugin,
     ClientAssertionCallback,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
 import https from "https";

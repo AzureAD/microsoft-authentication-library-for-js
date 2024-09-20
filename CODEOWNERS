@@ -1,15 +1,15 @@
-* @tnorling @sameerag @jo-arroyo @hectormmg @lalimasharda @peterzenz @bgavrilMS @robbie-microsoft @konstantin-msft
+* @tnorling @sameerag @jo-arroyo @hectormmg @lalimasharda @peterzenz @bgavrilMS @robbie-microsoft @konstantin-msft @shylasummers
 
 # MSAL Angular
 /lib/msal-angular/ @jo-arroyo @tnorling @peterzenz
 /samples/msal-angular-v3-samples/ @jo-arroyo @tnorling @peterzenz
 
 # MSAL Browser
-/lib/msal-browser/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @konstantin-msft
-/samples/msal-browser-samples/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @konstantin-msft
+/lib/msal-browser/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @konstantin-msft @lalimasharda @shylasummers
+/samples/msal-browser-samples/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @konstantin-msft @lalimasharda @shylasummers
 
 # MSAL Common
-/lib/msal-common/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @robbie-microsoft @konstantin-msft
+/lib/msal-common/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @robbie-microsoft @konstantin-msft @lalimasharda @shylasummers
 
 # MSAL Node
 /lib/msal-node/ @sameerag @tnorling @hectormmg @peterzenz @bgavrilMS @robbie-microsoft @trwalke @pmaytak @gladjohn @neha-bhargava @rayluo @Avery-Dunn

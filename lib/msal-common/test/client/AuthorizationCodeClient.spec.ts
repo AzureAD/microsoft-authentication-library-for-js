@@ -3954,6 +3954,80 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             expect(queryString).toContain(`client_id=child_client_id`);
         });
+
+        it("pick up instance_aware config param when set to true", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            config.authOptions.instanceAware = true;
+            const client = new AuthorizationCodeClient(config);
+
+            const queryString =
+                // @ts-ignore
+                await client.createAuthCodeUrlQueryString({
+                    scopes: ["User.Read"],
+                    prompt: PromptValue.LOGIN,
+                    redirectUri: "localhost",
+                });
+
+            expect(queryString).toContain(`instance_aware=true`);
+        });
+
+        it("do not pick up instance_aware config param when set to false", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            config.authOptions.instanceAware = false;
+            const client = new AuthorizationCodeClient(config);
+
+            const queryString =
+                // @ts-ignore
+                await client.createAuthCodeUrlQueryString({
+                    scopes: ["User.Read"],
+                    prompt: PromptValue.LOGIN,
+                    redirectUri: "localhost",
+                });
+
+            expect(queryString.includes("instance_aware")).toBeFalsy();
+        });
+
+        it("pick up instance_aware EQ param when config is set to false", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            config.authOptions.instanceAware = false;
+            const client = new AuthorizationCodeClient(config);
+
+            const queryString =
+                // @ts-ignore
+                await client.createAuthCodeUrlQueryString({
+                    scopes: ["User.Read"],
+                    prompt: PromptValue.LOGIN,
+                    redirectUri: "localhost",
+                    extraQueryParameters: {
+                        instance_aware: "true",
+                    },
+                });
+
+            expect(queryString).toContain(`instance_aware=true`);
+        });
+
+        it("pick up instance_aware EQ param when config is set to true", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            config.authOptions.instanceAware = true;
+            const client = new AuthorizationCodeClient(config);
+
+            const queryString =
+                // @ts-ignore
+                await client.createAuthCodeUrlQueryString({
+                    scopes: ["User.Read"],
+                    prompt: PromptValue.LOGIN,
+                    redirectUri: "localhost",
+                    extraQueryParameters: {
+                        instance_aware: "false",
+                    },
+                });
+
+            expect(queryString).toContain(`instance_aware=false`);
+        });
     });
 
     describe("createTokenRequestBody tests", () => {

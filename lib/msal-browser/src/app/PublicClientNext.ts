@@ -3,30 +3,33 @@
  * Licensed under the MIT License.
  */
 
-import { ITokenCache } from "../cache/ITokenCache";
-import { INavigationClient } from "../navigation/INavigationClient";
-import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
-import { PopupRequest } from "../request/PopupRequest";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { SilentRequest } from "../request/SilentRequest";
-import { WrapperSKU } from "../utils/BrowserConstants";
-import { IPublicClientApplication } from "./IPublicClientApplication";
-import { IController } from "../controllers/IController";
+import { ITokenCache } from "../cache/ITokenCache.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { SilentRequest } from "../request/SilentRequest.js";
+import { WrapperSKU } from "../utils/BrowserConstants.js";
+import { IPublicClientApplication } from "./IPublicClientApplication.js";
+import { IController } from "../controllers/IController.js";
 import {
     PerformanceCallbackFunction,
     AccountInfo,
     AccountFilter,
     Logger,
-} from "@azure/msal-common";
-import { EndSessionRequest } from "../request/EndSessionRequest";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import * as ControllerFactory from "../controllers/ControllerFactory";
-import { BrowserConfiguration, Configuration } from "../config/Configuration";
-import { EventCallbackFunction } from "../event/EventMessage";
-import { ClearCacheRequest } from "../request/ClearCacheRequest";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { UnknownOperatingContextController } from "../controllers/UnknownOperatingContextController";
-import { UnknownOperatingContext } from "../operatingcontext/UnknownOperatingContext";
+} from "@azure/msal-common/browser";
+import { EndSessionRequest } from "../request/EndSessionRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import * as ControllerFactory from "../controllers/ControllerFactory.js";
+import {
+    BrowserConfiguration,
+    Configuration,
+} from "../config/Configuration.js";
+import { EventCallbackFunction } from "../event/EventMessage.js";
+import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { UnknownOperatingContextController } from "../controllers/UnknownOperatingContextController.js";
+import { UnknownOperatingContext } from "../operatingcontext/UnknownOperatingContext.js";
 
 /**
  * PublicClientNext is an early look at the planned implementation of PublicClientApplication in the next major version of MSAL.js.

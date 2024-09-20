@@ -24,7 +24,7 @@ import {
     AuthorityFactory,
     ProtocolMode,
     AADServerParamKeys,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import {
     Configuration,
     DeviceCodeClient,
@@ -49,14 +49,16 @@ import { version, name } from "../../package.json";
 import { MockNativeBrokerPlugin } from "../utils/MockNativeBrokerPlugin";
 import { SignOutRequest } from "../../src/request/SignOutRequest";
 import { LoopbackClient } from "../../src/network/LoopbackClient";
-import { createClientAuthError } from "@azure/msal-common";
-import { ClientAuthErrorCodes } from "@azure/msal-common";
+import { createClientAuthError } from "@azure/msal-common/node";
+import { ClientAuthErrorCodes } from "@azure/msal-common/node";
 import { TEST_CONFIG } from "../test_kit/StringConstants";
 import { HttpClient } from "../../src/network/HttpClient";
 import { MockStorageClass } from "./ClientTestUtils";
 import { Constants } from "../../src/utils/Constants";
 
-const msalCommon: MSALCommonModule = jest.requireActual("@azure/msal-common");
+const msalCommon: MSALCommonModule = jest.requireActual(
+    "@azure/msal-common/node"
+);
 
 jest.mock("../../src/client/DeviceCodeClient");
 jest.mock("../../src/client/ClientCredentialClient");

@@ -3,20 +3,20 @@
  * Licensed under the MIT License.
  */
 
-import { StandardInteractionClient } from "./StandardInteractionClient";
+import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import {
     CommonSilentFlowRequest,
     SilentFlowClient,
     PerformanceEvents,
     invokeAsync,
-} from "@azure/msal-common";
-import { ApiId } from "../utils/BrowserConstants";
+} from "@azure/msal-common/browser";
+import { ApiId } from "../utils/BrowserConstants.js";
 import {
     BrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { ClearCacheRequest } from "../request/ClearCacheRequest";
+} from "../error/BrowserAuthError.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 
 export class SilentCacheClient extends StandardInteractionClient {
     /**
@@ -41,12 +41,12 @@ export class SilentCacheClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(
+        )({
             serverTelemetryManager,
-            silentRequest.authority,
-            silentRequest.azureCloudOptions,
-            silentRequest.account
-        );
+            requestAuthority: silentRequest.authority,
+            requestAzureCloudOptions: silentRequest.azureCloudOptions,
+            account: silentRequest.account,
+        });
         const silentAuthClient = new SilentFlowClient(
             clientConfig,
             this.performanceClient
