@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726790308259,
+  "lastUpdate": 1726853699917,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -11782,6 +11782,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.38%",
             "unit": "ops/sec",
             "extra": "206 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "decb0f16eebf7c11c8f033dc936f4a271af567a6",
+          "message": "Bump vite from 3.2.10 to 3.2.11 (#7315)\n\nBumps [vite](https://github.com/vitejs/vite/tree/HEAD/packages/vite)\r\nfrom 3.2.10 to 3.2.11.\r\n<details>\r\n<summary>Changelog</summary>\r\n<p><em>Sourced from <a\r\nhref=\"https://github.com/vitejs/vite/blob/v3.2.11/packages/vite/CHANGELOG.md\">vite's\r\nchangelog</a>.</em></p>\r\n<blockquote>\r\n<h2><!-- raw HTML omitted -->3.2.11 (2024-09-17)<!-- raw HTML omitted\r\n--></h2>\r\n<ul>\r\n<li>fix: backport <a\r\nhref=\"https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/18112\">#18112</a>,\r\nfs raw query (<a\r\nhref=\"https://github.com/vitejs/vite/commit/a6da450\">a6da450</a>),\r\ncloses <a\r\nhref=\"https://redirect.github.com/vitejs/vite/issues/18112\">#18112</a></li>\r\n<li>fix: backport <a\r\nhref=\"https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/18115\">#18115</a>,\r\nDOM Clobbering in (<a\r\nhref=\"https://github.com/vitejs/vite/commit/2ddd854\">2ddd854</a>),\r\ncloses <a\r\nhref=\"https://redirect.github.com/vitejs/vite/issues/18115\">#18115</a></li>\r\n<li>fix(importAnalysis): backport <a\r\nhref=\"https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/13712\">#13712</a>,\r\nstrip url base before passing as safeModulePaths (<a\r\nhref=\"https://github.com/vitejs/vite/commit/5d1d81e\">5d1d81e</a>),\r\ncloses <a\r\nhref=\"https://redirect.github.com/vitejs/vite/issues/13712\">#13712</a></li>\r\n</ul>\r\n</blockquote>\r\n</details>\r\n<details>\r\n<summary>Commits</summary>\r\n<ul>\r\n<li><a\r\nhref=\"https://github.com/vitejs/vite/commit/45b8644543f1adfb9c02bf88461278d9f7119642\"><code>45b8644</code></a>\r\nrelease: v3.2.11</li>\r\n<li><a\r\nhref=\"https://github.com/vitejs/vite/commit/5d1d81ec839bb7070c2b4c78ed2f42bb65ca88b4\"><code>5d1d81e</code></a>\r\nfix(importAnalysis): backport <a\r\nhref=\"https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/13712\">#13712</a>,\r\nstrip url base before passing as safeMo...</li>\r\n<li><a\r\nhref=\"https://github.com/vitejs/vite/commit/2ddd8541ec3b2d2e5b698749e0f2362ef28056bd\"><code>2ddd854</code></a>\r\nfix: backport <a\r\nhref=\"https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/18115\">#18115</a>,\r\nDOM Clobbering in</li>\r\n<li><a\r\nhref=\"https://github.com/vitejs/vite/commit/a6da45082b6e73ddfdcdcc06bb5414f976a388d6\"><code>a6da450</code></a>\r\nfix: backport <a\r\nhref=\"https://github.com/vitejs/vite/tree/HEAD/packages/vite/issues/18112\">#18112</a>,\r\nfs raw query</li>\r\n<li>See full diff in <a\r\nhref=\"https://github.com/vitejs/vite/commits/v3.2.11/packages/vite\">compare\r\nview</a></li>\r\n</ul>\r\n</details>\r\n<br />\r\n\r\n\r\n[![Dependabot compatibility\r\nscore](https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=vite&package-manager=npm_and_yarn&previous-version=3.2.10&new-version=3.2.11)](https://docs.github.com/en/github/managing-security-vulnerabilities/about-dependabot-security-updates#about-compatibility-scores)\r\n\r\nDependabot will resolve any conflicts with this PR as long as you don't\r\nalter it yourself. You can also trigger a rebase manually by commenting\r\n`@dependabot rebase`.\r\n\r\n[//]: # (dependabot-automerge-start)\r\n[//]: # (dependabot-automerge-end)\r\n\r\n---\r\n\r\n<details>\r\n<summary>Dependabot commands and options</summary>\r\n<br />\r\n\r\nYou can trigger Dependabot actions by commenting on this PR:\r\n- `@dependabot rebase` will rebase this PR\r\n- `@dependabot recreate` will recreate this PR, overwriting any edits\r\nthat have been made to it\r\n- `@dependabot merge` will merge this PR after your CI passes on it\r\n- `@dependabot squash and merge` will squash and merge this PR after\r\nyour CI passes on it\r\n- `@dependabot cancel merge` will cancel a previously requested merge\r\nand block automerging\r\n- `@dependabot reopen` will reopen this PR if it is closed\r\n- `@dependabot close` will close this PR and stop Dependabot recreating\r\nit. You can achieve the same result by closing it manually\r\n- `@dependabot show <dependency name> ignore conditions` will show all\r\nof the ignore conditions of the specified dependency\r\n- `@dependabot ignore this major version` will close this PR and stop\r\nDependabot creating any more for this major version (unless you reopen\r\nthe PR or upgrade to it yourself)\r\n- `@dependabot ignore this minor version` will close this PR and stop\r\nDependabot creating any more for this minor version (unless you reopen\r\nthe PR or upgrade to it yourself)\r\n- `@dependabot ignore this dependency` will close this PR and stop\r\nDependabot creating any more for this dependency (unless you reopen the\r\nPR or upgrade to it yourself)\r\nYou can disable automated security fix PRs for this repo from the\r\n[Security Alerts\r\npage](https://github.com/AzureAD/microsoft-authentication-library-for-js/network/alerts).\r\n\r\n</details>\r\n\r\nSigned-off-by: dependabot[bot] <support@github.com>\r\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2024-09-20T10:29:41-07:00",
+          "tree_id": "ac82c1ac36dfa81e1efa478bf526efd7fe03fe22",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/decb0f16eebf7c11c8f033dc936f4a271af567a6"
+        },
+        "date": 1726853698951,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 189663,
+            "range": "±2.13%",
+            "unit": "ops/sec",
+            "extra": "215 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 188779,
+            "range": "±2.04%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
