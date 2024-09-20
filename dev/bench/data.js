@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1726866014138,
+  "lastUpdate": 1726866121453,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -11894,6 +11894,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 186923,
             "range": "±2.18%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "bill.voltmer@elationtech.us",
+            "name": "billvolt",
+            "username": "billvolt"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2e9c0d3affe5e6bd1f643caa0e3224aad7335d4a",
+          "message": "Correct cut & paste error in build instruction -- build browser & common  (#7237)\n\nThe comment inside did not match the comment above. The instructions are\r\nmeant to build both browser and common.\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-09-20T13:56:31-07:00",
+          "tree_id": "e974ef1a86d580237723f241dbb91e462c3892ca",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/2e9c0d3affe5e6bd1f643caa0e3224aad7335d4a"
+        },
+        "date": 1726866120256,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 184178,
+            "range": "±2.14%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 191823,
+            "range": "±2.14%",
             "unit": "ops/sec",
             "extra": "221 samples"
           }
