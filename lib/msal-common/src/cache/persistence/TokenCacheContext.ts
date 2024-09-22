@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ISerializableTokenCache } from "../interface/ISerializableTokenCache";
+import { ISerializableTokenCache } from "../interface/ISerializableTokenCache.js";
 
 /**
  * This class instance helps track the memory changes facilitating

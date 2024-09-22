@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { PersistenceError } from "../error/PersistenceError";
-import { Constants } from "../utils/Constants";
-import { IPersistence } from "./IPersistence";
+import { PersistenceError } from "../error/PersistenceError.js";
+import { Constants } from "../utils/Constants.js";
+import { IPersistence } from "./IPersistence.js";
 
 export abstract class BasePersistence {
     public abstract createForPersistenceValidation(): Promise<IPersistence>;

@@ -6,14 +6,14 @@
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
+} from "../error/BrowserAuthError.js";
 import {
     IPerformanceClient,
     Logger,
     PerformanceEvents,
-} from "@azure/msal-common";
-import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
-import { urlEncodeArr } from "../encode/Base64Encode";
+} from "@azure/msal-common/browser";
+import { KEY_FORMAT_JWK } from "../utils/BrowserConstants.js";
+import { urlEncodeArr } from "../encode/Base64Encode.js";
 
 /**
  * This file defines functions used by the browser library to perform cryptography operations such as

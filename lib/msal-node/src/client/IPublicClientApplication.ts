@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, Logger } from "@azure/msal-common";
+import {
+    AccountInfo,
+    AuthenticationResult,
+    Logger,
+} from "@azure/msal-common/node";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest.js";

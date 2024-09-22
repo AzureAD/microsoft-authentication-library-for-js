@@ -45,6 +45,7 @@
     },
     "workspaces": [
         "shared-configs/eslint-config-msal",
+        "shared-configs/rollup-msal",
         "lib/msal-common",
         "lib/msal-browser",
         "lib/msal-node",

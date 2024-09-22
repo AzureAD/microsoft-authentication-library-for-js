@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, CommonSilentFlowRequest } from "@azure/msal-common";
+import { AccountInfo, CommonSilentFlowRequest } from "@azure/msal-common/node";
 
 /**
  * SilentFlow parameters passed by the user to retrieve credentials silently

@@ -36,7 +36,7 @@ import {
     ClientAssertion as ClientAssertionType,
     getClientAssertion,
     ClientAssertionCallback,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import {
     Configuration,
     buildAppConfiguration,

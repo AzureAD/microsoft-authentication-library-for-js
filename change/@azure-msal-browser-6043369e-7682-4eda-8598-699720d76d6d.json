@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add clientLibrary and clientLibraryVersion parameters to NAA Request (#7297)",
-  "packageName": "@azure/msal-browser",
-  "email": "dasau@microsoft.com",
-  "dependentChangeType": "patch"
-}

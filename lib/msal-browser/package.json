@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "3.23.0",
+  "version": "3.24.0",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -28,11 +28,14 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "module": "./dist/index.mjs",
-      "import": "./dist/index.mjs",
-      "require": "./lib/msal-browser.cjs",
-      "default": "./dist/index.mjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./lib/types/index.d.ts",
+        "default": "./lib/msal-browser.cjs"
+      }
     },
     "./package.json": "./package.json"
   },
@@ -49,11 +52,7 @@
   },
   "files": [
     "dist",
-    "lib/msal-browser.js",
-    "lib/msal-browser.js.map",
-    "lib/msal-browser.cjs",
-    "lib/msal-browser.cjs.map",
-    "lib/msal-browser.min.js",
+    "lib",
     "src"
   ],
   "scripts": {
@@ -96,14 +95,16 @@
     "prettier": "^2.8.7",
     "rimraf": "^3.0.0",
     "rollup": "^3.14.0",
+    "rollup-msal": "file:../../shared-configs/rollup-msal",
     "shx": "^0.3.2",
     "sinon": "^7.5.0",
     "ssri": "^8.0.1",
-    "ts-jest": "^29.1.0",
+    "ts-jest": "^29.2.5",
+    "ts-jest-resolver": "^2.0.1",
     "tslib": "^1.10.0",
     "typescript": "^4.9.5"
   },
   "dependencies": {
-    "@azure/msal-common": "14.14.2"
+    "@azure/msal-common": "14.15.0"
   }
 }

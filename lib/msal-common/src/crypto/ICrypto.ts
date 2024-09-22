@@ -6,9 +6,9 @@
 import {
     ClientAuthErrorCodes,
     createClientAuthError,
-} from "../error/ClientAuthError";
-import { BaseAuthRequest } from "../request/BaseAuthRequest";
-import { ShrOptions, SignedHttpRequest } from "./SignedHttpRequest";
+} from "../error/ClientAuthError.js";
+import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
+import { ShrOptions, SignedHttpRequest } from "./SignedHttpRequest.js";
 
 /**
  * The PkceCodes type describes the structure

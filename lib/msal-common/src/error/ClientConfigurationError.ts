@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError } from "./AuthError";
-import * as ClientConfigurationErrorCodes from "./ClientConfigurationErrorCodes";
+import { AuthError } from "./AuthError.js";
+import * as ClientConfigurationErrorCodes from "./ClientConfigurationErrorCodes.js";
 export { ClientConfigurationErrorCodes };
 
 export const ClientConfigurationErrorMessages = {

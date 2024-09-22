@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Wed, 28 Aug 2024 23:06:01 GMT and should not be manually modified.
+This log was last generated on Thu, 19 Sep 2024 23:48:30 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.15.0
+
+Thu, 19 Sep 2024 23:48:30 GMT
+
+### Minor changes
+
+- Fix type resolution when using moduleResolution node16 (thomas.norling@microsoft.com)
+- Add optional "instanceAware" config auth param #7259 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 14.14.2
 

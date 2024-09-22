@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CryptoOps } from "../crypto/CryptoOps";
+import { CryptoOps } from "../crypto/CryptoOps.js";
 import {
     InteractionRequiredAuthError,
     AccountInfo,
@@ -28,13 +28,13 @@ import {
     AccountFilter,
     buildStaticAuthorityOptions,
     InteractionRequiredAuthErrorCodes,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import {
     BrowserCacheManager,
     DEFAULT_BROWSER_CACHE_MANAGER,
-} from "../cache/BrowserCacheManager";
-import * as AccountManager from "../cache/AccountManager";
-import { BrowserConfiguration, CacheOptions } from "../config/Configuration";
+} from "../cache/BrowserCacheManager.js";
+import * as AccountManager from "../cache/AccountManager.js";
+import { BrowserConfiguration, CacheOptions } from "../config/Configuration.js";
 import {
     InteractionType,
     ApiId,
@@ -45,46 +45,46 @@ import {
     DEFAULT_REQUEST,
     BrowserConstants,
     iFrameRenewalPolicies,
-} from "../utils/BrowserConstants";
-import * as BrowserUtils from "../utils/BrowserUtils";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { PopupRequest } from "../request/PopupRequest";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { EventCallbackFunction, EventError } from "../event/EventMessage";
-import { EventType } from "../event/EventType";
-import { EndSessionRequest } from "../request/EndSessionRequest";
-import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
-import { INavigationClient } from "../navigation/INavigationClient";
-import { EventHandler } from "../event/EventHandler";
-import { PopupClient } from "../interaction_client/PopupClient";
-import { RedirectClient } from "../interaction_client/RedirectClient";
-import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
-import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient";
-import { TokenCache } from "../cache/TokenCache";
-import { ITokenCache } from "../cache/ITokenCache";
-import { NativeInteractionClient } from "../interaction_client/NativeInteractionClient";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { SilentRequest } from "../request/SilentRequest";
+} from "../utils/BrowserConstants.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { EventCallbackFunction, EventError } from "../event/EventMessage.js";
+import { EventType } from "../event/EventType.js";
+import { EndSessionRequest } from "../request/EndSessionRequest.js";
+import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
+import { EventHandler } from "../event/EventHandler.js";
+import { PopupClient } from "../interaction_client/PopupClient.js";
+import { RedirectClient } from "../interaction_client/RedirectClient.js";
+import { SilentIframeClient } from "../interaction_client/SilentIframeClient.js";
+import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient.js";
+import { TokenCache } from "../cache/TokenCache.js";
+import { ITokenCache } from "../cache/ITokenCache.js";
+import { NativeInteractionClient } from "../interaction_client/NativeInteractionClient.js";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
+import { SilentRequest } from "../request/SilentRequest.js";
 import {
     NativeAuthError,
     isFatalNativeAuthError,
-} from "../error/NativeAuthError";
-import { SilentCacheClient } from "../interaction_client/SilentCacheClient";
-import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient";
+} from "../error/NativeAuthError.js";
+import { SilentCacheClient } from "../interaction_client/SilentCacheClient.js";
+import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
-import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
-import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
-import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext";
-import { IController } from "./IController";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { ClearCacheRequest } from "../request/ClearCacheRequest";
-import { createNewGuid } from "../crypto/BrowserCrypto";
-import { initializeSilentRequest } from "../request/RequestHelpers";
-import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest";
+} from "../error/BrowserAuthError.js";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
+import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest.js";
+import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext.js";
+import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext.js";
+import { IController } from "./IController.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
+import { createNewGuid } from "../crypto/BrowserCrypto.js";
+import { initializeSilentRequest } from "../request/RequestHelpers.js";
+import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 
 function getAccountType(
     account?: AccountInfo

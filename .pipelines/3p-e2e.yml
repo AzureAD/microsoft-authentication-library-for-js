@@ -3,6 +3,30 @@ parameters:
       displayName: "Debug Variables"
       type: boolean
       default: false
+    - name: "poolType"
+      displayName: "Pool Type"
+      type: string
+      default: "windows"
+      values:
+        - "windows"
+        - "linux"
+    - name: "runBrowserTests"
+      displayName: "Run Browser Tests"
+      type: boolean
+      default: true
+    - name: "runNodeTests"
+      displayName: "Run Node Tests"
+      type: boolean
+      default: true
+    - name: "runReactTests"
+      displayName: "Run React Tests"
+      type: boolean
+      default: true
+    - name: "runAngularTests"
+      displayName: "Run Angular Tests"
+      type: boolean
+      default: true
+
 variables:
     CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
     LinuxContainerImage: "mcr.microsoft.com/onebranch/cbl-mariner/build:2.0" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
@@ -34,11 +58,12 @@ extends:
             - stage: e2e_test
               displayName: "3P E2E Tests"
               jobs:
+                - ${{ if eq(parameters.runBrowserTests, true) }}:
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
                         jobName: "validate_msal_browser"
                         targetLib: "msal-browser"
-                        poolType: "linux"
+                        poolType: ${{ parameters.poolType }}
                         stage: "CI"
                         sourceRepo: ${{ variables.sourceRepo }}
                         sourceBranch: ${{ variables.sourceBranch }}
@@ -49,11 +74,12 @@ extends:
                             - "pop"
                             - "customizable-e2e-test"
                         debug: ${{ parameters.debug }}
+                - ${{ if eq(parameters.runNodeTests, true) }}:
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
                         jobName: "validate_msal_node"
                         targetLib: "msal-node"
-                        poolType: "windows"
+                        poolType: ${{ parameters.poolType }}
                         stage: "CI"
                         sourceRepo: ${{ variables.sourceRepo }}
                         sourceBranch: ${{ variables.sourceBranch }}
@@ -68,11 +94,12 @@ extends:
                             - "b2c-user-flows"
                             # - "on-behalf-of"
                         debug: ${{ parameters.debug }}
+                - ${{ if eq(parameters.runReactTests, true) }}:
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
                         jobName: "validate_msal_react"
                         targetLib: "msal-react"
-                        poolType: "linux"
+                        poolType: ${{ parameters.poolType }}
                         stage: "CI"
                         sourceRepo: ${{ variables.sourceRepo }}
                         sourceBranch: ${{ variables.sourceBranch }}
@@ -83,11 +110,12 @@ extends:
                             - "typescript-sample"
                             - "b2c-sample"
                         debug: ${{ parameters.debug }}
+                - ${{ if eq(parameters.runAngularTests, true) }}:
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
                         jobName: "validate_msal_angular"
                         targetLib: "msal-angular"
-                        poolType: "linux"
+                        poolType: ${{ parameters.poolType }}
                         stage: "CI"
                         sourceRepo: ${{ variables.sourceRepo }}
                         sourceBranch: ${{ variables.sourceBranch }}

@@ -32,8 +32,8 @@ import {
     UrlString,
     ClientAssertion,
     getClientAssertion,
-} from "@azure/msal-common";
-import { EncodingUtils } from "../utils/EncodingUtils";
+} from "@azure/msal-common/node";
+import { EncodingUtils } from "../utils/EncodingUtils.js";
 
 /**
  * On-Behalf-Of client
