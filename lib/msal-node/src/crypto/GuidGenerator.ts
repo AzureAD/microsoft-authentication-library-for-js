@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { IGuidGenerator } from "@azure/msal-common";
+import { IGuidGenerator } from "@azure/msal-common/node";
 import { v4 as uuidv4 } from "uuid";
 
 export class GuidGenerator implements IGuidGenerator {

@@ -22,14 +22,14 @@ import {
     IPerformanceClient,
     StubPerformanceClient,
     Logger,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import {
     BrowserCacheLocation,
     BrowserConstants,
-} from "../utils/BrowserConstants";
-import { INavigationClient } from "../navigation/INavigationClient";
-import { NavigationClient } from "../navigation/NavigationClient";
-import { FetchClient } from "../network/FetchClient";
+} from "../utils/BrowserConstants.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
+import { NavigationClient } from "../navigation/NavigationClient.js";
+import { FetchClient } from "../network/FetchClient.js";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;

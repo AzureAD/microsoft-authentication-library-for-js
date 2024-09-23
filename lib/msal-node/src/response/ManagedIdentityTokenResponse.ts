@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationScheme } from "@azure/msal-common";
+import { AuthenticationScheme } from "@azure/msal-common/node";
 
 /**
  * Deserialized response object from server managed identity request.

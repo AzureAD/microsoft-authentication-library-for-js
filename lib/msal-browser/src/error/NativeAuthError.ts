@@ -8,14 +8,14 @@ import {
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
     createInteractionRequiredAuthError,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "./BrowserAuthError";
+} from "./BrowserAuthError.js";
 
-import * as NativeAuthErrorCodes from "./NativeAuthErrorCodes";
-import * as NativeStatusCodes from "../broker/nativeBroker/NativeStatusCodes";
+import * as NativeAuthErrorCodes from "./NativeAuthErrorCodes.js";
+import * as NativeStatusCodes from "../broker/nativeBroker/NativeStatusCodes.js";
 export { NativeAuthErrorCodes };
 
 export type OSError = {

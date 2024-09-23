@@ -23,7 +23,7 @@ import {
     UrlString,
     createAuthError,
     createClientAuthError,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 
 /**
  * OAuth2.0 Device code client

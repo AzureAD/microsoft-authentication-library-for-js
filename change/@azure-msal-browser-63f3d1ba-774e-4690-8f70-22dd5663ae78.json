@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add __initializeNestedAppAuth function for Nested App Auth (#7289)",
-  "packageName": "@azure/msal-browser",
-  "email": "dasau@microsoft.com",
-  "dependentChangeType": "patch"
-}

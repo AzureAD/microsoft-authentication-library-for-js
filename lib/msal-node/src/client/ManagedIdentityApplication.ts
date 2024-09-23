@@ -18,23 +18,23 @@ import {
     AuthenticationResult,
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import {
     ManagedIdentityConfiguration,
     ManagedIdentityNodeConfiguration,
     buildManagedIdentityConfiguration,
-} from "../config/Configuration";
+} from "../config/Configuration.js";
 import { version, name } from "../packageMetadata.js";
-import { ManagedIdentityRequest } from "../request/ManagedIdentityRequest";
-import { CryptoProvider } from "../crypto/CryptoProvider";
-import { ClientCredentialClient } from "./ClientCredentialClient";
-import { ManagedIdentityClient } from "./ManagedIdentityClient";
-import { ManagedIdentityRequestParams } from "../request/ManagedIdentityRequestParams";
-import { NodeStorage } from "../cache/NodeStorage";
+import { ManagedIdentityRequest } from "../request/ManagedIdentityRequest.js";
+import { CryptoProvider } from "../crypto/CryptoProvider.js";
+import { ClientCredentialClient } from "./ClientCredentialClient.js";
+import { ManagedIdentityClient } from "./ManagedIdentityClient.js";
+import { ManagedIdentityRequestParams } from "../request/ManagedIdentityRequestParams.js";
+import { NodeStorage } from "../cache/NodeStorage.js";
 import {
     DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
     ManagedIdentitySourceNames,
-} from "../utils/Constants";
+} from "../utils/Constants.js";
 
 /**
  * Class to initialize a managed identity and identify the service

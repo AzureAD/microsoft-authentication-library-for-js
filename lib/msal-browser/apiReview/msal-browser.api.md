@@ -4,65 +4,65 @@
 
 ```ts
 
-import { AccountEntity } from '@azure/msal-common';
-import { AccountFilter } from '@azure/msal-common';
-import { AccountInfo } from '@azure/msal-common';
-import { ApplicationTelemetry } from '@azure/msal-common';
-import { AuthenticationHeaderParser } from '@azure/msal-common';
-import { AuthenticationResult as AuthenticationResult_2 } from '@azure/msal-common';
-import { AuthenticationScheme } from '@azure/msal-common';
-import { AuthError } from '@azure/msal-common';
-import { AuthErrorCodes } from '@azure/msal-common';
-import { AuthErrorMessage } from '@azure/msal-common';
-import { AzureCloudInstance } from '@azure/msal-common';
-import { AzureCloudOptions } from '@azure/msal-common';
-import { ClientAuthError } from '@azure/msal-common';
-import { ClientAuthErrorCodes } from '@azure/msal-common';
-import { ClientAuthErrorMessage } from '@azure/msal-common';
-import { ClientConfigurationError } from '@azure/msal-common';
-import { ClientConfigurationErrorCodes } from '@azure/msal-common';
-import { ClientConfigurationErrorMessage } from '@azure/msal-common';
-import { CommonAuthorizationCodeRequest } from '@azure/msal-common';
-import { CommonAuthorizationUrlRequest } from '@azure/msal-common';
-import { CommonEndSessionRequest } from '@azure/msal-common';
-import { CommonSilentFlowRequest } from '@azure/msal-common';
-import { ExternalTokenResponse } from '@azure/msal-common';
-import { ICrypto } from '@azure/msal-common';
-import { IdTokenClaims } from '@azure/msal-common';
-import { ILoggerCallback } from '@azure/msal-common';
-import { INetworkModule } from '@azure/msal-common';
-import { InProgressPerformanceEvent } from '@azure/msal-common';
-import { InteractionRequiredAuthError } from '@azure/msal-common';
-import { InteractionRequiredAuthErrorCodes } from '@azure/msal-common';
-import { InteractionRequiredAuthErrorMessage } from '@azure/msal-common';
-import { invoke } from '@azure/msal-common';
-import { invokeAsync } from '@azure/msal-common';
-import { IPerformanceClient } from '@azure/msal-common';
-import { IPerformanceMeasurement } from '@azure/msal-common';
-import { JsonWebTokenTypes } from '@azure/msal-common';
-import { Logger } from '@azure/msal-common';
-import { LoggerOptions } from '@azure/msal-common';
-import { LogLevel } from '@azure/msal-common';
-import { NetworkRequestOptions } from '@azure/msal-common';
-import { NetworkResponse } from '@azure/msal-common';
-import { OIDC_DEFAULT_SCOPES } from '@azure/msal-common';
-import { OIDCOptions } from '@azure/msal-common';
-import { PerformanceCallbackFunction } from '@azure/msal-common';
-import { PerformanceClient } from '@azure/msal-common';
-import { PerformanceEvent } from '@azure/msal-common';
-import { PerformanceEvents } from '@azure/msal-common';
-import { PromptValue } from '@azure/msal-common';
-import { ProtocolMode } from '@azure/msal-common';
-import { ServerError } from '@azure/msal-common';
-import { ServerResponseType } from '@azure/msal-common';
-import { SignedHttpRequestParameters } from '@azure/msal-common';
-import { StringDict } from '@azure/msal-common';
-import { StringUtils } from '@azure/msal-common';
-import { StubPerformanceClient } from '@azure/msal-common';
-import { SubMeasurement } from '@azure/msal-common';
-import { SystemOptions } from '@azure/msal-common';
-import { TenantProfile } from '@azure/msal-common';
-import { UrlString } from '@azure/msal-common';
+import { AccountEntity } from '@azure/msal-common/browser';
+import { AccountFilter } from '@azure/msal-common/browser';
+import { AccountInfo } from '@azure/msal-common/browser';
+import { ApplicationTelemetry } from '@azure/msal-common/browser';
+import { AuthenticationHeaderParser } from '@azure/msal-common/browser';
+import { AuthenticationResult as AuthenticationResult_2 } from '@azure/msal-common/browser';
+import { AuthenticationScheme } from '@azure/msal-common/browser';
+import { AuthError } from '@azure/msal-common/browser';
+import { AuthErrorCodes } from '@azure/msal-common/browser';
+import { AuthErrorMessage } from '@azure/msal-common/browser';
+import { AzureCloudInstance } from '@azure/msal-common/browser';
+import { AzureCloudOptions } from '@azure/msal-common/browser';
+import { ClientAuthError } from '@azure/msal-common/browser';
+import { ClientAuthErrorCodes } from '@azure/msal-common/browser';
+import { ClientAuthErrorMessage } from '@azure/msal-common/browser';
+import { ClientConfigurationError } from '@azure/msal-common/browser';
+import { ClientConfigurationErrorCodes } from '@azure/msal-common/browser';
+import { ClientConfigurationErrorMessage } from '@azure/msal-common/browser';
+import { CommonAuthorizationCodeRequest } from '@azure/msal-common/browser';
+import { CommonAuthorizationUrlRequest } from '@azure/msal-common/browser';
+import { CommonEndSessionRequest } from '@azure/msal-common/browser';
+import { CommonSilentFlowRequest } from '@azure/msal-common/browser';
+import { ExternalTokenResponse } from '@azure/msal-common/browser';
+import { ICrypto } from '@azure/msal-common/browser';
+import { IdTokenClaims } from '@azure/msal-common/browser';
+import { ILoggerCallback } from '@azure/msal-common/browser';
+import { INetworkModule } from '@azure/msal-common/browser';
+import { InProgressPerformanceEvent } from '@azure/msal-common/browser';
+import { InteractionRequiredAuthError } from '@azure/msal-common/browser';
+import { InteractionRequiredAuthErrorCodes } from '@azure/msal-common/browser';
+import { InteractionRequiredAuthErrorMessage } from '@azure/msal-common/browser';
+import { invoke } from '@azure/msal-common/browser';
+import { invokeAsync } from '@azure/msal-common/browser';
+import { IPerformanceClient } from '@azure/msal-common/browser';
+import { IPerformanceMeasurement } from '@azure/msal-common/browser';
+import { JsonWebTokenTypes } from '@azure/msal-common/browser';
+import { Logger } from '@azure/msal-common/browser';
+import { LoggerOptions } from '@azure/msal-common/browser';
+import { LogLevel } from '@azure/msal-common/browser';
+import { NetworkRequestOptions } from '@azure/msal-common/browser';
+import { NetworkResponse } from '@azure/msal-common/browser';
+import { OIDC_DEFAULT_SCOPES } from '@azure/msal-common/browser';
+import { OIDCOptions } from '@azure/msal-common/browser';
+import { PerformanceCallbackFunction } from '@azure/msal-common/browser';
+import { PerformanceClient } from '@azure/msal-common/browser';
+import { PerformanceEvent } from '@azure/msal-common/browser';
+import { PerformanceEvents } from '@azure/msal-common/browser';
+import { PromptValue } from '@azure/msal-common/browser';
+import { ProtocolMode } from '@azure/msal-common/browser';
+import { ServerError } from '@azure/msal-common/browser';
+import { ServerResponseType } from '@azure/msal-common/browser';
+import { SignedHttpRequestParameters } from '@azure/msal-common/browser';
+import { StringDict } from '@azure/msal-common/browser';
+import { StringUtils } from '@azure/msal-common/browser';
+import { StubPerformanceClient } from '@azure/msal-common/browser';
+import { SubMeasurement } from '@azure/msal-common/browser';
+import { SystemOptions } from '@azure/msal-common/browser';
+import { TenantProfile } from '@azure/msal-common/browser';
+import { UrlString } from '@azure/msal-common/browser';
 
 export { AccountEntity }
 
@@ -752,6 +752,7 @@ export type EndSessionPopupRequest = Partial<Omit<CommonEndSessionRequest, "toke
     authority?: string;
     mainWindowRedirectUri?: string;
     popupWindowAttributes?: PopupWindowAttributes;
+    popupWindowParent?: Window;
 };
 
 // Warning: (ae-missing-release-tag) "EndSessionRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1286,6 +1287,7 @@ export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "response
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
     tokenBodyParameters?: StringDict;
+    popupWindowParent?: Window;
 };
 
 // Warning: (ae-missing-release-tag) "PopupSize" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1674,7 +1676,7 @@ const userCancelled = "user_cancelled";
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "3.23.0";
+export const version = "3.24.0";
 
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1690,17 +1692,17 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 
 // Warnings were encountered during analysis:
 //
-// src/app/PublicClientNext.ts:66:8 - (tsdoc-undefined-tag) The TSDoc tag "@constructor" is not defined in this configuration
-// src/app/PublicClientNext.ts:75:87 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/app/PublicClientNext.ts:75:60 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/app/PublicClientNext.ts:81:64 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/app/PublicClientNext.ts:81:77 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/app/PublicClientNext.ts:81:90 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/app/PublicClientNext.ts:81:55 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/app/PublicClientNext.ts:81:70 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/app/PublicClientNext.ts:81:79 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// src/app/PublicClientNext.ts:84:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/app/PublicClientNext.ts:85:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/app/PublicClientNext.ts:69:8 - (tsdoc-undefined-tag) The TSDoc tag "@constructor" is not defined in this configuration
+// src/app/PublicClientNext.ts:78:87 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/app/PublicClientNext.ts:78:60 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/app/PublicClientNext.ts:84:64 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/app/PublicClientNext.ts:84:77 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/app/PublicClientNext.ts:84:90 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/app/PublicClientNext.ts:84:55 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/app/PublicClientNext.ts:84:70 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/app/PublicClientNext.ts:84:79 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/app/PublicClientNext.ts:87:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/app/PublicClientNext.ts:88:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/config/Configuration.ts:245:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
 // src/index.ts:8:4 - (tsdoc-undefined-tag) The TSDoc tag "@module" is not defined in this configuration

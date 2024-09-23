@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule, Logger } from "@azure/msal-common";
-import { ManagedIdentityId } from "../../config/ManagedIdentityId";
-import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
-import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource";
-import { CryptoProvider } from "../../crypto/CryptoProvider";
+import { INetworkModule, Logger } from "@azure/msal-common/node";
+import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
+import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
+import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
+import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import {
     API_VERSION_QUERY_PARAMETER_NAME,
     HttpMethod,
@@ -16,8 +16,8 @@ import {
     ManagedIdentityIdType,
     ManagedIdentitySourceNames,
     RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
-} from "../../utils/Constants";
-import { NodeStorage } from "../../cache/NodeStorage";
+} from "../../utils/Constants.js";
+import { NodeStorage } from "../../cache/NodeStorage.js";
 
 // IMDS constants. Docs for IMDS are available here https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http
 const IMDS_TOKEN_PATH: string = "/metadata/identity/oauth2/token";

@@ -3,13 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, SignedHttpRequestParameters } from "./ICrypto";
-import * as TimeUtils from "../utils/TimeUtils";
-import { UrlString } from "../url/UrlString";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
-import { invokeAsync } from "../utils/FunctionWrappers";
-import { Logger } from "../logger/Logger";
+import { ICrypto, SignedHttpRequestParameters } from "./ICrypto.js";
+import * as TimeUtils from "../utils/TimeUtils.js";
+import { UrlString } from "../url/UrlString.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import { invokeAsync } from "../utils/FunctionWrappers.js";
+import { Logger } from "../logger/Logger.js";
 
 /**
  * See eSTS docs for more info.

@@ -6,6 +6,7 @@
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import pkg from "./package.json";
+import { createPackageJson } from "rollup-msal";
 
 const libraryHeader = `/*! ${pkg.name} v${pkg.version} ${new Date().toISOString().split("T")[0]} */`;
 const useStrictHeader = "'use strict';";
@@ -16,11 +17,9 @@ export default [
         // for cjs build
         input: "src/index.ts",
         output: {
-            dir: "dist",
+            dir: "lib",
             format: "cjs",
-            preserveModules: true,
-            preserveModulesRoot: "src",
-            entryFileNames: "[name].cjs",
+            entryFileNames: "msal-node-extensions.cjs",
             banner: fileHeader,
             sourcemap: true
         },
@@ -36,11 +35,13 @@ export default [
         plugins: [
             typescript({
                 typescript: require("typescript"),
-                tsconfig: "tsconfig.build.json"
+                tsconfig: "tsconfig.build.json",
+                compilerOptions: { outDir: "lib/types" }
             }),
             nodeResolve({
                 preferBuiltins: true
-            })
+            }),
+            createPackageJson({libPath: __dirname})
         ]
     },
     {

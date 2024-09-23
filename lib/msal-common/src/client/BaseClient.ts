@@ -7,25 +7,25 @@ import {
     ClientConfiguration,
     buildClientConfiguration,
     CommonClientConfiguration,
-} from "../config/ClientConfiguration";
-import { INetworkModule } from "../network/INetworkModule";
-import { NetworkManager, NetworkResponse } from "../network/NetworkManager";
-import { ICrypto } from "../crypto/ICrypto";
-import { Authority } from "../authority/Authority";
-import { Logger } from "../logger/Logger";
-import { Constants, HeaderNames } from "../utils/Constants";
-import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
-import { CacheManager } from "../cache/CacheManager";
-import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
-import { RequestThumbprint } from "../network/RequestThumbprint";
-import { version, name } from "../packageMetadata";
-import { CcsCredential, CcsCredentialType } from "../account/CcsCredential";
-import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
-import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { BaseAuthRequest } from "../request/BaseAuthRequest";
-import { createDiscoveredInstance } from "../authority/AuthorityFactory";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
+} from "../config/ClientConfiguration.js";
+import { INetworkModule } from "../network/INetworkModule.js";
+import { NetworkManager, NetworkResponse } from "../network/NetworkManager.js";
+import { ICrypto } from "../crypto/ICrypto.js";
+import { Authority } from "../authority/Authority.js";
+import { Logger } from "../logger/Logger.js";
+import { Constants, HeaderNames } from "../utils/Constants.js";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
+import { CacheManager } from "../cache/CacheManager.js";
+import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
+import { RequestThumbprint } from "../network/RequestThumbprint.js";
+import { version, name } from "../packageMetadata.js";
+import { CcsCredential, CcsCredentialType } from "../account/CcsCredential.js";
+import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import { RequestParameterBuilder } from "../request/RequestParameterBuilder.js";
+import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
+import { createDiscoveredInstance } from "../authority/AuthorityFactory.js";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.

@@ -5,6 +5,7 @@
 /node_modules
 .cache
 /dist
+/lib
 
 # Type docs
 ref/
