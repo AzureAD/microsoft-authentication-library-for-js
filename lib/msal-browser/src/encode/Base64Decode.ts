@@ -6,7 +6,7 @@
 import {
     BrowserAuthErrorCodes,
     createBrowserAuthError,
-} from "../error/BrowserAuthError";
+} from "../error/BrowserAuthError.js";
 
 /**
  * Class which exposes APIs to decode base64 strings to plaintext. See here for implementation details:

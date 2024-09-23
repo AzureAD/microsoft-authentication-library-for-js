@@ -3,18 +3,18 @@
  * Licensed under the MIT License.
  */
 
-import { UrlString, invoke, invokeAsync } from "@azure/msal-common";
+import { UrlString, invoke, invokeAsync } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { BrowserConstants, BrowserCacheLocation } from "./BrowserConstants";
-import * as BrowserCrypto from "../crypto/BrowserCrypto";
+} from "../error/BrowserAuthError.js";
+import { BrowserConstants, BrowserCacheLocation } from "./BrowserConstants.js";
+import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 import {
     BrowserConfigurationAuthErrorCodes,
     createBrowserConfigurationAuthError,
-} from "../error/BrowserConfigurationAuthError";
-import { BrowserConfiguration } from "../config/Configuration";
+} from "../error/BrowserConfigurationAuthError.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
 
 /**
  * Clears hash from window url.

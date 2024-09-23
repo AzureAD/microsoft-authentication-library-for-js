@@ -22,32 +22,32 @@ import {
     ServerResponseType,
     UrlUtils,
     InProgressPerformanceEvent,
-} from "@azure/msal-common";
-import { StandardInteractionClient } from "./StandardInteractionClient";
+} from "@azure/msal-common/browser";
+import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import {
     ApiId,
     InteractionType,
     TemporaryCacheKeys,
-} from "../utils/BrowserConstants";
-import { RedirectHandler } from "../interaction_handler/RedirectHandler";
-import * as BrowserUtils from "../utils/BrowserUtils";
-import { EndSessionRequest } from "../request/EndSessionRequest";
-import { EventType } from "../event/EventType";
-import { NavigationOptions } from "../navigation/NavigationOptions";
+} from "../utils/BrowserConstants.js";
+import { RedirectHandler } from "../interaction_handler/RedirectHandler.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
+import { EndSessionRequest } from "../request/EndSessionRequest.js";
+import { EventType } from "../event/EventType.js";
+import { NavigationOptions } from "../navigation/NavigationOptions.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { NativeInteractionClient } from "./NativeInteractionClient";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { BrowserConfiguration } from "../config/Configuration";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { EventHandler } from "../event/EventHandler";
-import { INavigationClient } from "../navigation/INavigationClient";
-import { EventError } from "../event/EventMessage";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import * as ResponseHandler from "../response/ResponseHandler";
+} from "../error/BrowserAuthError.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { NativeInteractionClient } from "./NativeInteractionClient.js";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
+import { EventHandler } from "../event/EventHandler.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
+import { EventError } from "../event/EventMessage.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import * as ResponseHandler from "../response/ResponseHandler.js";
 
 export class RedirectClient extends StandardInteractionClient {
     protected nativeStorage: BrowserCacheManager;

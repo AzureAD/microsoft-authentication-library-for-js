@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CredentialEntity } from "./CredentialEntity";
+import { CredentialEntity } from "./CredentialEntity.js";
 
 /**
  * Id Token Cache Type

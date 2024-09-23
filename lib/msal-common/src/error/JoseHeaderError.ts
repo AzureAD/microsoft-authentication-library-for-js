@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError } from "./AuthError";
-import * as JoseHeaderErrorCodes from "./JoseHeaderErrorCodes";
+import { AuthError } from "./AuthError.js";
+import * as JoseHeaderErrorCodes from "./JoseHeaderErrorCodes.js";
 export { JoseHeaderErrorCodes };
 
 export const JoseHeaderErrorMessages = {
