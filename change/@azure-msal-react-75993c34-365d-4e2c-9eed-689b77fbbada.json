@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Update react peer depedency version",
+  "packageName": "@azure/msal-react",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none"
+}
