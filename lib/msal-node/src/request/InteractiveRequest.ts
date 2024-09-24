@@ -18,13 +18,10 @@ import { ILoopbackClient } from "../network/ILoopbackClient.js";
  * @public
  */
 export type InteractiveRequest = Partial<
-Omit<
-    CommonAuthorizationUrlRequest,
-    | "scopes"
-    | "redirectUri"
-    | "requestedClaimsHash"
-    | "storeInCache"
->
+    Omit<
+        CommonAuthorizationUrlRequest,
+        "scopes" | "redirectUri" | "requestedClaimsHash" | "storeInCache"
+    >
 > & {
     openBrowser: (url: string) => Promise<void>;
     scopes?: Array<string>;
