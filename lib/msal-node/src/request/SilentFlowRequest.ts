@@ -21,8 +21,6 @@ export type SilentFlowRequest = Partial<
         CommonSilentFlowRequest,
         | "account"
         | "scopes"
-        | "resourceRequestMethod"
-        | "resourceRequestUri"
         | "requestedClaimsHash"
         | "storeInCache"
     >
