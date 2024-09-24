@@ -4,8 +4,8 @@
  */
 
 import { PerformanceEvents } from "@azure/msal-common";
-import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
-import { TEST_CONFIG } from "../utils/StringConstants";
+import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
+import { TEST_CONFIG } from "../utils/StringConstants.js";
 
 const correlationId = "correlation-id";
 const perfTimeNow = 1234567890;
@@ -17,8 +17,7 @@ let testAppConfig = {
 };
 
 describe("BrowserPerformanceClient.ts", () => {
-    afterAll(() => {
-        jest.resetAllMocks();
+    afterEach(() => {
         jest.restoreAllMocks();
     });
 
@@ -92,8 +91,6 @@ describe("BrowserPerformanceClient.ts", () => {
 
             expect(result?.startPageVisibility).toBe("visible");
             expect(result?.endPageVisibility).toBe("visible");
-
-            spy.mockClear();
         });
     });
 
