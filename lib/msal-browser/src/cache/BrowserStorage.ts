@@ -6,9 +6,9 @@
 import {
     BrowserConfigurationAuthErrorCodes,
     createBrowserConfigurationAuthError,
-} from "../error/BrowserConfigurationAuthError";
-import { BrowserCacheLocation } from "../utils/BrowserConstants";
-import { IWindowStorage } from "./IWindowStorage";
+} from "../error/BrowserConfigurationAuthError.js";
+import { BrowserCacheLocation } from "../utils/BrowserConstants.js";
+import { IWindowStorage } from "./IWindowStorage.js";
 
 export class BrowserStorage implements IWindowStorage<string> {
     private windowStorage: Storage;

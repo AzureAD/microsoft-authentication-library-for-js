@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountIdentifiers } from "../types/AccountIdentifiers";
+import { AccountIdentifiers } from "../types/AccountIdentifiers.js";
 import { AccountInfo } from "@azure/msal-browser";
 
 type FaaCFunction = <T>(args: T) => React.ReactNode;

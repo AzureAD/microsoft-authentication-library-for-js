@@ -10,12 +10,12 @@ import {
     invokeAsync,
     invoke,
     ServerResponseType,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration";
+} from "../error/BrowserAuthError.js";
+import { DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration.js";
 
 /**
  * Creates a hidden iframe to given URL using user-requested scopes as an id.

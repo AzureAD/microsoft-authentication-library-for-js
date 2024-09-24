@@ -9,7 +9,7 @@ import {
     Constants,
     createClientAuthError,
     ClientAuthErrorCodes,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import { CryptoProvider } from "../crypto/CryptoProvider.js";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { JwtConstants } from "../utils/Constants.js";

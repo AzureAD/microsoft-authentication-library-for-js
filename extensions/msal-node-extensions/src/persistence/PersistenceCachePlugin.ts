@@ -3,11 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { IPersistence } from "./IPersistence";
-import { CrossPlatformLock } from "../lock/CrossPlatformLock";
-import { CrossPlatformLockOptions } from "../lock/CrossPlatformLockOptions";
+import { IPersistence } from "./IPersistence.js";
+import { CrossPlatformLock } from "../lock/CrossPlatformLock.js";
+import { CrossPlatformLockOptions } from "../lock/CrossPlatformLockOptions.js";
 import { pid } from "process";
-import { TokenCacheContext, ICachePlugin, Logger } from "@azure/msal-common";
+import {
+    TokenCacheContext,
+    ICachePlugin,
+    Logger,
+} from "@azure/msal-common/node";
 
 /**
  * MSAL cache plugin which enables callers to write the MSAL cache to disk on Windows,

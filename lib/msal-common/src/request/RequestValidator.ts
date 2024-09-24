@@ -6,8 +6,8 @@
 import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
-} from "../error/ClientConfigurationError";
-import { PromptValue, CodeChallengeMethodValues } from "../utils/Constants";
+} from "../error/ClientConfigurationError.js";
+import { PromptValue, CodeChallengeMethodValues } from "../utils/Constants.js";
 
 /**
  * Validates server consumable params from the "request" objects

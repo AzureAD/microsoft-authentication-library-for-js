@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "../utils/Constants";
-import * as AuthErrorCodes from "./AuthErrorCodes";
+import { Constants } from "../utils/Constants.js";
+import * as AuthErrorCodes from "./AuthErrorCodes.js";
 export { AuthErrorCodes };
 
 export const AuthErrorMessages = {

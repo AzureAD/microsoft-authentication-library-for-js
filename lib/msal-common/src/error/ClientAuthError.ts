@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError } from "./AuthError";
-import * as ClientAuthErrorCodes from "./ClientAuthErrorCodes";
+import { AuthError } from "./AuthError.js";
+import * as ClientAuthErrorCodes from "./ClientAuthErrorCodes.js";
 export { ClientAuthErrorCodes }; // Allow importing as "ClientAuthErrorCodes";
 
 /**

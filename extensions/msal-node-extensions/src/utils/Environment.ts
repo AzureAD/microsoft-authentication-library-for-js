@@ -4,8 +4,8 @@
  */
 
 import path from "path";
-import { Constants, Platform } from "./Constants";
-import { PersistenceError } from "../error/PersistenceError";
+import { Constants, Platform } from "./Constants.js";
+import { PersistenceError } from "../error/PersistenceError.js";
 
 export class Environment {
     static get homeEnvVar(): string {

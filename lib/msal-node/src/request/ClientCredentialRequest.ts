@@ -6,7 +6,7 @@
 import {
     ClientAssertionCallback,
     CommonClientCredentialRequest,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 
 /**
  * CommonClientCredentialRequest
