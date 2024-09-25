@@ -34,10 +34,6 @@ describe("ThrottlingUtils", () => {
     });
 
     describe("preProcess", () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
-
         it("checks the cache and throws an error", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const thumbprintValue: ThrottlingEntity = THROTTLING_ENTITY;
@@ -110,10 +106,6 @@ describe("ThrottlingUtils", () => {
     });
 
     describe("postProcess", () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
-
         it("sets an item in the cache", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {

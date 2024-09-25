@@ -936,9 +936,6 @@ describe("CacheManager.ts test cases", () => {
         });
 
         describe("environment filter", () => {
-            afterEach(() => {
-                jest.restoreAllMocks();
-            });
             it("with configured static cloud discovery metadata", () => {
                 // filter by environment
                 expect(

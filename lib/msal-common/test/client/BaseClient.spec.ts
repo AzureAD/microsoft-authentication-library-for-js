@@ -77,10 +77,6 @@ describe("BaseClient.ts Class Unit Tests", () => {
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         });
 
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
-
         it("Creates default token request headers", async () => {
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
