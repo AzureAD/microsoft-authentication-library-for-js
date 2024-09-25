@@ -1955,7 +1955,6 @@ describe("PopupClient", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
             };
-            // sinon.stub(window, "open").returns(window);
             window.focus = (): void => {
                 return;
             };

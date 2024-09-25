@@ -1615,9 +1615,7 @@ describe("BrowserCacheManager tests", () => {
                     jest.spyOn(
                         CacheManager.prototype,
                         "saveCacheRecord"
-                    ).mockImplementation(() => {
-                        throw cacheError;
-                    });
+                    ).mockRejectedValue(cacheError);
 
                     // @ts-ignore
                     const callbackId = perfClient.addPerformanceCallback(
