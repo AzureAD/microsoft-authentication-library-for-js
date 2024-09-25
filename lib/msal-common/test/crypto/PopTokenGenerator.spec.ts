@@ -1,4 +1,3 @@
-import sinon from "sinon";
 import {
     RANDOM_TEST_GUID,
     TEST_POP_VALUES,
@@ -6,19 +5,19 @@ import {
     TEST_CONFIG,
     TEST_URIS,
     TEST_CRYPTO_VALUES,
-} from "../test_kit/StringConstants";
-import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
-import { ICrypto } from "../../src/crypto/ICrypto";
-import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
-import * as TimeUtils from "../../src/utils/TimeUtils";
-import { UrlString } from "../../src/url/UrlString";
-import { AuthenticationScheme } from "../../src/utils/Constants";
-import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest";
-import { Logger } from "../../src/logger/Logger";
+} from "../test_kit/StringConstants.js";
+import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator.js";
+import { ICrypto } from "../../src/crypto/ICrypto.js";
+import { BaseAuthRequest } from "../../src/request/BaseAuthRequest.js";
+import * as TimeUtils from "../../src/utils/TimeUtils.js";
+import { UrlString } from "../../src/url/UrlString.js";
+import { AuthenticationScheme } from "../../src/utils/Constants.js";
+import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest.js";
+import { Logger } from "../../src/logger/Logger.js";
 
 describe("PopTokenGenerator Unit Tests", () => {
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     const cryptoInterface: ICrypto = {
@@ -120,7 +119,7 @@ describe("PopTokenGenerator Unit Tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
             };
-            sinon.stub(TimeUtils, "nowSeconds").returns(currTime);
+            jest.spyOn(TimeUtils, "nowSeconds").mockReturnValue(currTime);
         });
 
         it("Signs the proof-of-possession JWT token with all PoP parameters in the request", (done) => {

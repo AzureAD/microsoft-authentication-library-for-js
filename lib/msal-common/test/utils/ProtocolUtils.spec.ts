@@ -1,16 +1,15 @@
-import { ProtocolUtils } from "../../src/utils/ProtocolUtils";
+import { ProtocolUtils } from "../../src/utils/ProtocolUtils.js";
 import {
     RANDOM_TEST_GUID,
     TEST_CRYPTO_VALUES,
     TEST_POP_VALUES,
-} from "../test_kit/StringConstants";
-import { ICrypto } from "../../src/crypto/ICrypto";
-import { Constants } from "../../src/utils/Constants";
-import sinon from "sinon";
+} from "../test_kit/StringConstants.js";
+import { ICrypto } from "../../src/crypto/ICrypto.js";
+import { Constants } from "../../src/utils/Constants.js";
 import {
     ClientAuthError,
     ClientAuthErrorMessage,
-} from "../../src/error/ClientAuthError";
+} from "../../src/error/ClientAuthError.js";
 
 describe("ProtocolUtils.ts Class Unit Tests", () => {
     const userState = "userState";
@@ -79,7 +78,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
     });
 
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     it("setRequestState() appends library state to given state", () => {
