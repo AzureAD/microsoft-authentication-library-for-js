@@ -172,7 +172,6 @@ describe("TokenCache tests", () => {
 
         afterEach(() => {
             browserStorage.clear();
-            jest.restoreAllMocks();
         });
 
         it("loads id token with a request account", () => {

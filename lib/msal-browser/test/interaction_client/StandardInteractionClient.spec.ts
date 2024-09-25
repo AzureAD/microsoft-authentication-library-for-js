@@ -291,10 +291,6 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
         });
     });
 
-    afterEach(() => {
-        jest.restoreAllMocks();
-    });
-
     it("initializeAuthorizationRequest calls for a query response when OIDCOptions.serverResponseType is set to query", async () => {
         const request: RedirectRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
