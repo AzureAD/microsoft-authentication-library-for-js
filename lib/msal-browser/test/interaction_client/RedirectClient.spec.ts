@@ -225,7 +225,7 @@ describe("RedirectClient", () => {
                 });
         });
 
-        it("If response hash is not a Redirect response cleans temporary cache, return null and don't remove hash", (done) => {
+        it("If response hash is not a Redirect response cleans temporary cache, return null and do not remove hash", (done) => {
             browserStorage.setInteractionInProgress(true);
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
@@ -3311,7 +3311,7 @@ describe("RedirectClient", () => {
             redirectClient.logout();
         });
 
-        it("doesn't include postLogoutRedirectUri if null is configured", async () => {
+        it("does not include postLogoutRedirectUri if null is configured", async () => {
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateExternal"
@@ -3360,7 +3360,7 @@ describe("RedirectClient", () => {
             redirectClient.logout();
         });
 
-        it("doesn't include postLogoutRedirectUri if null is set on request", (done) => {
+        it("does not include postLogoutRedirectUri if null is set on request", (done) => {
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateExternal"
