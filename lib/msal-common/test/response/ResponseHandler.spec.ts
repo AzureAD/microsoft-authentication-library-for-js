@@ -1,6 +1,5 @@
-import sinon from "sinon";
-import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
-import { ResponseHandler } from "../../src/response/ResponseHandler";
+import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse.js";
+import { ResponseHandler } from "../../src/response/ResponseHandler.js";
 import {
     AUTHENTICATION_RESULT,
     ID_TOKEN_CLAIMS,
@@ -14,40 +13,40 @@ import {
     TEST_TOKEN_LIFETIMES,
     TEST_TOKENS,
     TEST_URIS,
-} from "../test_kit/StringConstants";
-import { Authority } from "../../src/authority/Authority";
+} from "../test_kit/StringConstants.js";
+import { Authority } from "../../src/authority/Authority.js";
 import {
     INetworkModule,
     NetworkRequestOptions,
-} from "../../src/network/INetworkModule";
-import { ICrypto } from "../../src/crypto/ICrypto";
-import { ServerAuthorizationCodeResponse } from "../../src/response/ServerAuthorizationCodeResponse";
-import { MockStorageClass } from "../client/ClientTestUtils";
-import { TokenClaims } from "../../src/account/TokenClaims";
-import { AccountInfo } from "../../src/account/AccountInfo";
-import { AuthenticationResult } from "../../src/response/AuthenticationResult";
-import { AuthenticationScheme } from "../../src/utils/Constants";
-import { AuthorityOptions } from "../../src/authority/AuthorityOptions";
-import { ProtocolMode } from "../../src/authority/ProtocolMode";
-import { Logger, LogLevel } from "../../src/logger/Logger";
-import * as AuthToken from "../../src/account/AuthToken";
-import { AccountEntity } from "../../src/cache/entities/AccountEntity";
-import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
-import * as TimeUtils from "../../src/utils/TimeUtils";
-import { AuthError } from "../../src/error/AuthError";
+} from "../../src/network/INetworkModule.js";
+import { ICrypto } from "../../src/crypto/ICrypto.js";
+import { ServerAuthorizationCodeResponse } from "../../src/response/ServerAuthorizationCodeResponse.js";
+import { MockStorageClass } from "../client/ClientTestUtils.js";
+import { TokenClaims } from "../../src/account/TokenClaims.js";
+import { AccountInfo } from "../../src/account/AccountInfo.js";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
+import { AuthenticationScheme } from "../../src/utils/Constants.js";
+import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
+import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
+import { Logger, LogLevel } from "../../src/logger/Logger.js";
+import * as AuthToken from "../../src/account/AuthToken.js";
+import { AccountEntity } from "../../src/cache/entities/AccountEntity.js";
+import { BaseAuthRequest } from "../../src/request/BaseAuthRequest.js";
+import * as TimeUtils from "../../src/utils/TimeUtils.js";
+import { AuthError } from "../../src/error/AuthError.js";
 import {
     ClientAuthError,
     ClientAuthErrorCodes,
-} from "../../src/error/ClientAuthError";
-import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError";
-import { ServerError } from "../../src/error/ServerError";
+} from "../../src/error/ClientAuthError.js";
+import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError.js";
+import { ServerError } from "../../src/error/ServerError.js";
 import {
     CacheError,
     CacheErrorCodes,
     CacheErrorMessages,
-} from "../../src/error/CacheError";
-import { CacheManager } from "../../src/cache/CacheManager";
-import { cacheQuotaExceededErrorCode } from "../../src/error/CacheErrorCodes";
+} from "../../src/error/CacheError.js";
+import { CacheManager } from "../../src/cache/CacheManager.js";
+import { cacheQuotaExceededErrorCode } from "../../src/error/CacheErrorCodes.js";
 
 const networkInterface: INetworkModule = {
     sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
@@ -189,18 +188,18 @@ const testAuthority = new Authority(
 );
 
 describe("ResponseHandler.ts", () => {
-    let preferredCacheStub: sinon.SinonStub;
-    let claimsStub: sinon.SinonStub;
+    let preferredCacheStub: jest.SpyInstance;
+    let claimsStub: jest.SpyInstance;
     beforeEach(() => {
-        preferredCacheStub = sinon
-            .stub(Authority.prototype, "getPreferredCache")
-            .returns("login.microsoftonline.com");
-        claimsStub = sinon
-            .stub(AuthToken, "extractTokenClaims")
-            .callsFake((encodedIdToken, crypto) => {
+        preferredCacheStub = jest
+            .spyOn(Authority.prototype, "getPreferredCache")
+            .mockReturnValue("login.microsoftonline.com");
+        claimsStub = jest
+            .spyOn(AuthToken, "extractTokenClaims")
+            .mockImplementation((encodedIdToken, crypto) => {
                 return ID_TOKEN_CLAIMS as TokenClaims;
             });
-        sinon.stub(AccountEntity.prototype, "getAccountInfo").returns({
+        jest.spyOn(AccountEntity.prototype, "getAccountInfo").mockReturnValue({
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
             localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
             environment: "login.windows.net",
@@ -210,12 +209,12 @@ describe("ResponseHandler.ts", () => {
     });
 
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     describe("generateCacheRecord", () => {
         it("throws invalid cache environment error", async () => {
-            preferredCacheStub.returns("");
+            preferredCacheStub.mockReturnValue("");
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,
                 correlationId: "CORRELATION_ID",
@@ -254,7 +253,7 @@ describe("ResponseHandler.ts", () => {
             }
         });
 
-        it("doesn't create AccessTokenEntity if access_token not in response", (done) => {
+        it("does not create AccessTokenEntity if access_token not in response", (done) => {
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,
                 correlationId: "CORRELATION_ID",
@@ -291,26 +290,27 @@ describe("ResponseHandler.ts", () => {
                 null
             );
 
-            sinon
-                .stub(ResponseHandler, "generateAuthenticationResult")
-                .callsFake(
-                    async (
-                        cryptoObj,
-                        authority,
-                        cacheRecord,
-                        request,
-                        idTokenObj,
-                        fromTokenCache,
-                        stateString
-                    ) => {
-                        expect(authority).toBe(testAuthority);
-                        expect(cacheRecord.idToken).not.toBeNull();
-                        expect(cacheRecord.accessToken).toBeNull();
-                        expect(cacheRecord.refreshToken).not.toBeNull();
-                        done();
-                        return testTokenResponse;
-                    }
-                );
+            jest.spyOn(
+                ResponseHandler,
+                "generateAuthenticationResult"
+            ).mockImplementation(
+                async (
+                    cryptoObj,
+                    authority,
+                    cacheRecord,
+                    request,
+                    idTokenObj,
+                    fromTokenCache,
+                    stateString
+                ) => {
+                    expect(authority).toBe(testAuthority);
+                    expect(cacheRecord.idToken).not.toBeNull();
+                    expect(cacheRecord.accessToken).toBeNull();
+                    expect(cacheRecord.refreshToken).not.toBeNull();
+                    done();
+                    return testTokenResponse;
+                }
+            );
             const timestamp = TimeUtils.nowSeconds();
             responseHandler.handleServerTokenResponse(
                 testResponse,
@@ -320,7 +320,7 @@ describe("ResponseHandler.ts", () => {
             );
         });
 
-        it("doesn't create RefreshTokenEntity if refresh_token not in response", (done) => {
+        it("does not create RefreshTokenEntity if refresh_token not in response", (done) => {
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,
                 correlationId: "CORRELATION_ID",
@@ -357,26 +357,27 @@ describe("ResponseHandler.ts", () => {
                 null
             );
 
-            sinon
-                .stub(ResponseHandler, "generateAuthenticationResult")
-                .callsFake(
-                    async (
-                        cryptoObj,
-                        authority,
-                        cacheRecord,
-                        request,
-                        idTokenObj,
-                        fromTokenCache,
-                        stateString
-                    ) => {
-                        expect(authority).toBe(testAuthority);
-                        expect(cacheRecord.idToken).not.toBeNull();
-                        expect(cacheRecord.accessToken).not.toBeNull();
-                        expect(cacheRecord.refreshToken).toBeNull();
-                        done();
-                        return testTokenResponse;
-                    }
-                );
+            jest.spyOn(
+                ResponseHandler,
+                "generateAuthenticationResult"
+            ).mockImplementation(
+                async (
+                    cryptoObj,
+                    authority,
+                    cacheRecord,
+                    request,
+                    idTokenObj,
+                    fromTokenCache,
+                    stateString
+                ) => {
+                    expect(authority).toBe(testAuthority);
+                    expect(cacheRecord.idToken).not.toBeNull();
+                    expect(cacheRecord.accessToken).not.toBeNull();
+                    expect(cacheRecord.refreshToken).toBeNull();
+                    done();
+                    return testTokenResponse;
+                }
+            );
 
             const timestamp = TimeUtils.nowSeconds();
             responseHandler.handleServerTokenResponse(
@@ -422,26 +423,27 @@ describe("ResponseHandler.ts", () => {
                 null
             );
 
-            sinon
-                .stub(ResponseHandler, "generateAuthenticationResult")
-                .callsFake(
-                    async (
-                        cryptoObj,
-                        authority,
-                        cacheRecord,
-                        request,
-                        idTokenObj,
-                        fromTokenCache,
-                        stateString
-                    ) => {
-                        expect(authority).toBe(testAuthority);
-                        expect(cacheRecord.idToken).not.toBeNull();
-                        expect(cacheRecord.accessToken).not.toBeNull();
-                        expect(cacheRecord.refreshToken).not.toBeNull();
-                        done();
-                        return testTokenResponse;
-                    }
-                );
+            jest.spyOn(
+                ResponseHandler,
+                "generateAuthenticationResult"
+            ).mockImplementation(
+                async (
+                    cryptoObj,
+                    authority,
+                    cacheRecord,
+                    request,
+                    idTokenObj,
+                    fromTokenCache,
+                    stateString
+                ) => {
+                    expect(authority).toBe(testAuthority);
+                    expect(cacheRecord.idToken).not.toBeNull();
+                    expect(cacheRecord.accessToken).not.toBeNull();
+                    expect(cacheRecord.refreshToken).not.toBeNull();
+                    done();
+                    return testTokenResponse;
+                }
+            );
 
             const timestamp = TimeUtils.nowSeconds();
             responseHandler.handleServerTokenResponse(
@@ -487,13 +489,9 @@ describe("ResponseHandler.ts", () => {
         it("should ensure realm property in cached access token if no tenant id is available via claim or authority (OIDC scenario)", (done) => {
             const { tid, ...tokenClaims } = ID_TOKEN_CLAIMS;
 
-            claimsStub.restore();
-
-            claimsStub = sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .callsFake((_encodedIdToken, _crypto) => {
-                    return tokenClaims as TokenClaims;
-                });
+            claimsStub = jest
+                .spyOn(AuthToken, "extractTokenClaims")
+                .mockReturnValue(tokenClaims);
 
             const testResponse: ServerAuthorizationTokenResponse = {
                 token_type: AuthenticationScheme.BEARER,
@@ -537,27 +535,28 @@ describe("ResponseHandler.ts", () => {
                 null
             );
 
-            sinon
-                .stub(ResponseHandler, "generateAuthenticationResult")
-                .callsFake(
-                    async (
-                        _cryptoObj,
-                        _authority,
-                        cacheRecord,
-                        _fromTokenCache,
-                        _request,
-                        _idTokenClaims,
-                        _requestState,
-                        _serverTokenResponse,
-                        _requestId
-                    ) => {
-                        expect(cacheRecord.accessToken?.realm).toBeDefined();
+            jest.spyOn(
+                ResponseHandler,
+                "generateAuthenticationResult"
+            ).mockImplementation(
+                async (
+                    _cryptoObj,
+                    _authority,
+                    cacheRecord,
+                    _fromTokenCache,
+                    _request,
+                    _idTokenClaims,
+                    _requestState,
+                    _serverTokenResponse,
+                    _requestId
+                ) => {
+                    expect(cacheRecord.accessToken?.realm).toBeDefined();
 
-                        done();
+                    done();
 
-                        return {} as AuthenticationResult;
-                    }
-                );
+                    return {} as AuthenticationResult;
+                }
+            );
 
             responseHandler.handleServerTokenResponse(
                 testResponse,
@@ -610,7 +609,7 @@ describe("ResponseHandler.ts", () => {
             const testResponse: ServerAuthorizationTokenResponse = {
                 ...POP_AUTHENTICATION_RESULT.body,
             };
-            claimsStub.callsFake(
+            claimsStub.mockImplementation(
                 (encodedToken: string, crypto: ICrypto): TokenClaims | null => {
                     switch (encodedToken) {
                         case testResponse.id_token:
@@ -657,7 +656,7 @@ describe("ResponseHandler.ts", () => {
             const testResponse: ServerAuthorizationTokenResponse = {
                 ...POP_AUTHENTICATION_RESULT.body,
             };
-            claimsStub.callsFake(
+            claimsStub.mockImplementation(
                 (encodedToken: string, crypto: ICrypto): TokenClaims | null => {
                     switch (encodedToken) {
                         case testResponse.id_token:
@@ -726,10 +725,6 @@ describe("ResponseHandler.ts", () => {
     });
 
     describe("validateServerAuthorizationCodeResponse", () => {
-        afterEach(() => {
-            sinon.restore();
-        });
-
         it("throws state mismatch error", (done) => {
             const testServerCodeResponse: ServerAuthorizationCodeResponse = {
                 code: "testCode",
@@ -917,7 +912,7 @@ describe("ResponseHandler.ts", () => {
                 state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
             };
             // Can't spy on buildClientInfo, spy on one of its function calls instead
-            const buildClientInfoSpy = sinon.spy(
+            const buildClientInfoSpy = jest.spyOn(
                 cryptoInterface,
                 "base64Decode"
             );
@@ -934,7 +929,7 @@ describe("ResponseHandler.ts", () => {
                 testServerCodeResponse,
                 TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
             );
-            expect(buildClientInfoSpy.notCalled).toBe(true);
+            expect(buildClientInfoSpy).not.toHaveBeenCalled();
         });
 
         it("throws invalid state error", (done) => {
@@ -1120,10 +1115,6 @@ describe("ResponseHandler.ts", () => {
     });
 
     describe("validateTokenResponse", () => {
-        afterEach(() => {
-            sinon.restore();
-        });
-
         it("captures server error no", (done) => {
             const testTokenResponse: ServerAuthorizationTokenResponse = {
                 error: "test error",
@@ -1252,10 +1243,6 @@ describe("ResponseHandler.ts", () => {
     });
 
     describe("captures cache error", () => {
-        afterEach(() => {
-            sinon.restore();
-        });
-
         it("captures cache quota error by checking error code", async () => {
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,
@@ -1269,10 +1256,10 @@ describe("ResponseHandler.ts", () => {
             const quotaExceededError = new Error(errorMessage);
             quotaExceededError.name = "QuotaExceededError";
 
-            sinon
-                // @ts-ignore
-                .stub(CacheManager.prototype, "saveAccessToken")
-                .throws(quotaExceededError);
+            jest.spyOn(
+                CacheManager.prototype,
+                <any>"saveAccessToken"
+            ).mockRejectedValue(quotaExceededError);
 
             const responseHandler = new ResponseHandler(
                 "this-is-a-client-id",
@@ -1315,10 +1302,10 @@ describe("ResponseHandler.ts", () => {
                 "Failed to run localstorage.setItem(). Local storage exceeded the quota.";
             const quotaExceededError = new Error(errorMessage);
 
-            sinon
-                // @ts-ignore
-                .stub(CacheManager.prototype, "saveAccessToken")
-                .throws(quotaExceededError);
+            jest.spyOn(
+                CacheManager.prototype,
+                <any>"saveAccessToken"
+            ).mockRejectedValue(quotaExceededError);
 
             const responseHandler = new ResponseHandler(
                 "this-is-a-client-id",
@@ -1361,10 +1348,10 @@ describe("ResponseHandler.ts", () => {
             const error = new Error(errorMessage);
             error.name = "DummyError";
 
-            sinon
-                // @ts-ignore
-                .stub(CacheManager.prototype, "saveAccessToken")
-                .throws(error);
+            jest.spyOn(
+                CacheManager.prototype,
+                <any>"saveAccessToken"
+            ).mockRejectedValue(error);
 
             const responseHandler = new ResponseHandler(
                 "this-is-a-client-id",
@@ -1404,10 +1391,10 @@ describe("ResponseHandler.ts", () => {
             const errorMessage = "Dummy cache error";
             const error = new DOMException(errorMessage);
 
-            sinon
-                // @ts-ignore
-                .stub(CacheManager.prototype, "saveAccessToken")
-                .throws(error);
+            jest.spyOn(
+                CacheManager.prototype,
+                <any>"saveAccessToken"
+            ).mockRejectedValue(error);
 
             const responseHandler = new ResponseHandler(
                 "this-is-a-client-id",
