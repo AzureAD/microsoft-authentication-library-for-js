@@ -114,7 +114,7 @@
     "msal-test-utils": "file:../../shared-test-utils",
     "prettier": "2.8.7",
     "rimraf": "^3.0.2",
-    "rollup": "^3.14.0",
+    "rollup": "^3.29.5",
     "rollup-msal": "file:../../shared-configs/rollup-msal",
     "shx": "^0.3.2",
     "sinon": "^7.5.0",
