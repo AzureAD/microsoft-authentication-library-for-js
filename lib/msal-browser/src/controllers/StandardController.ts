@@ -1893,13 +1893,6 @@ export class StandardController implements IController {
     }
 
     /**
-     * Returns the event handler
-     */
-    getEventHandler(): EventHandler {
-        return this.eventHandler;
-    }
-
-    /**
      * Generates a correlation id for a request if none is provided.
      *
      * @protected

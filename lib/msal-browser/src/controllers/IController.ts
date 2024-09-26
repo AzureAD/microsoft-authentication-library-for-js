@@ -122,7 +122,4 @@ export interface IController {
 
     /** @internal */
     getPerformanceClient(): IPerformanceClient;
-
-    /** @internal */
-    getEventHandler(): EventHandler;
 }

@@ -141,14 +141,6 @@ export class NestedAppAuthController implements IController {
     }
 
     /**
-     * Returns the event handler instance
-     * @returns EventHandler
-     */
-    getEventHandler(): EventHandler {
-        return this.eventHandler;
-    }
-
-    /**
      * Factory function to create a new instance of NestedAppAuthController
      * @param operatingContext
      * @returns Promise<IController>

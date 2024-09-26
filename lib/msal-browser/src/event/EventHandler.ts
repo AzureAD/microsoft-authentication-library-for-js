@@ -12,7 +12,7 @@ import {
     EventPayload,
 } from "./EventMessage.js";
 import { EventType } from "./EventType.js";
-import { createNewGuid } from "../crypto/BrowserCrypto.js";
+import { createGuid } from "../utils/BrowserUtils.js";
 
 export class EventHandler {
     // Callback for subscribing to events
@@ -31,19 +31,25 @@ export class EventHandler {
      * Adds event callbacks to array
      * @param callback - callback to be invoked when an event is raised
      * @param eventTypes - list of events that this callback will be invoked for, if not provided callback will be invoked for all events
+     * @param callbackId - Identifier for the callback, used to locate and remove the callback when no longer required
      */
     addEventCallback(
         callback: EventCallbackFunction,
-        eventTypes?: Array<EventType>
+        eventTypes?: Array<EventType>,
+        callbackId?: string,
     ): string | null {
         if (typeof window !== "undefined") {
-            const callbackId = createNewGuid();
-            this.eventCallbacks.set(callbackId, [callback, eventTypes || []]);
+            const id = callbackId || createGuid();
+            if (this.eventCallbacks.has(id)) {
+                this.logger.error(`Event callback with id: ${id} is already registered. Please provide a unique id or remove the existing callback and try again.`);
+                return null;
+            }
+            this.eventCallbacks.set(id, [callback, eventTypes || []]);
             this.logger.verbose(
-                `Event callback registered with id: ${callbackId}`
+                `Event callback registered with id: ${id}`
             );
 
-            return callbackId;
+            return id;
         }
 
         return null;
