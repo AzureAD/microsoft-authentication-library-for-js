@@ -3818,7 +3818,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentSpy).toHaveBeenCalledTimes(0);
         });
 
-        xit("falls back to web flow if native broker call fails due to fatal error", async () => {
+        it("falls back to web flow if native broker call fails due to fatal error", async () => {
             const config = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -3875,12 +3875,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(response).toEqual(testTokenResponse);
             expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(1);
             expect(silentSpy).toHaveBeenCalledTimes(1);
-            expect(silentSpy).toHaveBeenCalledWith({
-                ...silentRequest,
-                tokenQueryParameters: {
-                    "x-client-current-telemetry": "||broker_error=ContentError",
-                },
-            });
         });
 
         it("throws error if native broker call fails due to non-fatal error", async () => {

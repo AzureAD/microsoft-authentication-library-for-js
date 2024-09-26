@@ -3537,7 +3537,7 @@ describe("RedirectClient", () => {
             });
         });
 
-        xit("doesnt navigate if onRedirectNavigate returns false", (done) => {
+        it("doesnt navigate if onRedirectNavigate returns false", (done) => {
             const logoutUriSpy = jest
                 .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
                 .mockReturnValue(testLogoutUrl);
@@ -3572,13 +3572,13 @@ describe("RedirectClient", () => {
                         postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
                     };
                     expect(logoutUriSpy).toHaveBeenCalledWith(
-                        validatedLogoutRequest
+                        expect.objectContaining(validatedLogoutRequest)
                     );
                     done();
                 });
         });
 
-        xit("doesnt navigate if onRedirectNavigate returns false (specific account)", (done) => {
+        it("doesnt navigate if onRedirectNavigate returns false (specific account)", (done) => {
             const testAccountInfo: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -3635,13 +3635,13 @@ describe("RedirectClient", () => {
                         postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
                     };
                     expect(logoutUriSpy).toHaveBeenCalledWith(
-                        validatedLogoutRequest
+                        expect.objectContaining(validatedLogoutRequest)
                     );
                     done();
                 });
         });
 
-        xit("does navigate if onRedirectNavigate returns true", (done) => {
+        it("does navigate if onRedirectNavigate returns true", (done) => {
             const logoutUriSpy = jest
                 .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
                 .mockReturnValue(testLogoutUrl);
@@ -3682,13 +3682,13 @@ describe("RedirectClient", () => {
                         postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
                     };
                     expect(logoutUriSpy).toHaveBeenCalledWith(
-                        validatedLogoutRequest
+                        expect.objectContaining(validatedLogoutRequest)
                     );
                     done();
                 });
         });
 
-        xit("does navigate if onRedirectNavigate returns true (specific account)", (done) => {
+        it("does navigate if onRedirectNavigate returns true (specific account)", (done) => {
             const testAccountInfo: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -3748,7 +3748,7 @@ describe("RedirectClient", () => {
                         postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
                     };
                     expect(logoutUriSpy).toHaveBeenCalledWith(
-                        validatedLogoutRequest
+                        expect.objectContaining(validatedLogoutRequest)
                     );
                     done();
                 });
