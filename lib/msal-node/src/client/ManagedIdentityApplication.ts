@@ -130,7 +130,6 @@ export class ManagedIdentityApplication {
         }
 
         const managedIdentityRequest: ManagedIdentityRequest = {
-            claims: managedIdentityRequestParams.claims,
             forceRefresh: managedIdentityRequestParams.forceRefresh,
             resource: managedIdentityRequestParams.resource.replace(
                 "/.default",
@@ -144,7 +143,7 @@ export class ManagedIdentityApplication {
         };
 
         if (
-            managedIdentityRequest.claims ||
+            managedIdentityRequestParams.claims ||
             managedIdentityRequest.forceRefresh
         ) {
             // make a network call to the managed identity source

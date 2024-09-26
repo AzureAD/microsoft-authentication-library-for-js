@@ -11,8 +11,7 @@ import {
 export async function getClientAssertion(
     clientAssertion: string | ClientAssertionCallback,
     clientId: string,
-    tokenEndpoint?: string,
-    claims?: string
+    tokenEndpoint?: string
 ): Promise<string> {
     if (typeof clientAssertion === "string") {
         return clientAssertion;
@@ -20,7 +19,6 @@ export async function getClientAssertion(
         const config: ClientAssertionConfig = {
             clientId: clientId,
             tokenEndpoint: tokenEndpoint,
-            claims: claims,
         };
         return clientAssertion(config);
     }

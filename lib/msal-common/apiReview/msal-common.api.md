@@ -1073,7 +1073,6 @@ export type ClientAssertionCallback = (config: ClientAssertionConfig) => Promise
 export type ClientAssertionConfig = {
     clientId: string;
     tokenEndpoint?: string;
-    claims?: string;
 };
 
 declare namespace ClientAssertionUtils {
@@ -1997,7 +1996,7 @@ function generateCredentialKey(credentialEntity: CredentialEntity): string;
 // Warning: (ae-missing-release-tag) "getClientAssertion" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export function getClientAssertion(clientAssertion: string | ClientAssertionCallback, clientId: string, tokenEndpoint?: string, claims?: string): Promise<string>;
+export function getClientAssertion(clientAssertion: string | ClientAssertionCallback, clientId: string, tokenEndpoint?: string): Promise<string>;
 
 // Warning: (ae-missing-release-tag) "getDeserializedResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

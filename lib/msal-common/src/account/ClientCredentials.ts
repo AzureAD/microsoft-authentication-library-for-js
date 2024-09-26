@@ -6,7 +6,6 @@
 export type ClientAssertionConfig = {
     clientId: string;
     tokenEndpoint?: string;
-    claims?: string;
 };
 
 export type ClientAssertionCallback = (

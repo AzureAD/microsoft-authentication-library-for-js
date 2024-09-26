@@ -32,7 +32,6 @@ import {
     ManagedIdentitySourceNames,
 } from "../../../src/utils/Constants";
 import {
-    AADServerParamKeys,
     AccessTokenEntity,
     AuthenticationResult,
     CacheHelpers,
@@ -551,11 +550,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         });
 
         test("ignores a cached token when claims are provided", async () => {
-            const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
-                networkClient,
-                <any>"sendGetRequestAsync"
-            );
-
             let networkManagedIdentityResult: AuthenticationResult =
                 await systemAssignedManagedIdentityApplication.acquireToken({
                     resource: MANAGED_IDENTITY_RESOURCE,
@@ -581,15 +575,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
             expect(networkManagedIdentityResult.fromCache).toBe(false);
-
-            expect(
-                sendGetRequestAsyncSpy.mock.lastCall[1].body.includes(
-                    `${AADServerParamKeys.CLAIMS}=${encodeURIComponent(
-                        TEST_CONFIG.CLAIMS
-                    )}`
-                )
-            ).toBe(true);
-
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );

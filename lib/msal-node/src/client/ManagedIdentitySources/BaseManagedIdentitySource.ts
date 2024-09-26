@@ -19,7 +19,6 @@ import {
     createClientAuthError,
     AuthenticationResult,
     UrlString,
-    AADServerParamKeys,
 } from "@azure/msal-common/node";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
@@ -138,11 +137,6 @@ export abstract class BaseManagedIdentitySource {
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
 
         const networkRequestOptions: NetworkRequestOptions = { headers };
-
-        if (managedIdentityRequest.claims) {
-            networkRequest.bodyParameters[AADServerParamKeys.CLAIMS] =
-                encodeURIComponent(managedIdentityRequest.claims);
-        }
 
         if (Object.keys(networkRequest.bodyParameters).length) {
             networkRequestOptions.body =
