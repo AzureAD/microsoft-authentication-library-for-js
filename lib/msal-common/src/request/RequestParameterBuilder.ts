@@ -28,13 +28,17 @@ import {
 } from "../config/ClientConfiguration.js";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
 import { ClientInfo } from "../account/ClientInfo.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import { BrokerParameters } from "./BrokerParameters.js";
 
 /** @internal */
 export class RequestParameterBuilder {
     private parameters: Map<string, string>;
+    private readonly performanceClient?: IPerformanceClient;
 
-    constructor() {
+    constructor(performanceClient?: IPerformanceClient) {
         this.parameters = new Map<string, string>();
+        this.performanceClient = performanceClient;
     }
 
     /**
@@ -608,6 +612,35 @@ export class RequestParameterBuilder {
             queryParameterArray.push(`${key}=${value}`);
         });
 
+        const correlationId = this.parameters.get(
+            AADServerParamKeys.CLIENT_REQUEST_ID
+        );
+        const clientId = this.parameters.get(AADServerParamKeys.CLIENT_ID);
+
+        if (
+            this.parameters.has(AADServerParamKeys.BROKER_CLIENT_ID) &&
+            clientId &&
+            correlationId
+        ) {
+            this.performanceClient?.addFields(
+                {
+                    embeddedClientId: clientId,
+                },
+                correlationId
+            );
+        }
+
         return queryParameterArray.join("&");
+    }
+
+    addBrokerParameters(params: BrokerParameters): void {
+        const brokerParams: StringDict = {};
+        brokerParams[AADServerParamKeys.BROKER_CLIENT_ID] =
+            params.brokerClientId;
+        brokerParams[AADServerParamKeys.BROKER_REDIRECT_URI] =
+            params.brokerRedirectUri;
+
+        this.addClientId(params.embeddedClientId);
+        this.addExtraQueryParameters(brokerParams);
     }
 }

@@ -8,6 +8,7 @@ import { AzureCloudOptions } from "../config/ClientConfiguration.js";
 import { StringDict } from "../utils/MsalTypes.js";
 import { StoreInCache } from "./StoreInCache.js";
 import { ShrOptions } from "../crypto/SignedHttpRequest.js";
+import { BrokerParameters } from "./BrokerParameters.js";
 
 /**
  * BaseAuthRequest
@@ -29,6 +30,7 @@ import { ShrOptions } from "../crypto/SignedHttpRequest.js";
  * - storeInCache            - Object containing boolean values indicating whether to store tokens in the cache or not (default is true)
  * - scenarioId              - Scenario id to track custom user prompts
  * - popKid                  - Key ID to identify the public key for PoP token request
+ * - brokerParameters        - Broker parameters
  */
 export type BaseAuthRequest = {
     authority: string;
@@ -50,4 +52,5 @@ export type BaseAuthRequest = {
     storeInCache?: StoreInCache;
     scenarioId?: string;
     popKid?: string;
+    brokerParameters?: BrokerParameters;
 };

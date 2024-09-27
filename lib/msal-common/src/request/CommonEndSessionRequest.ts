@@ -5,6 +5,7 @@
 
 import { AccountInfo } from "../account/AccountInfo.js";
 import { StringDict } from "../utils/MsalTypes.js";
+import { BrokerParameters } from "./BrokerParameters.js";
 
 /**
  * CommonEndSessionRequest
@@ -15,6 +16,7 @@ import { StringDict } from "../utils/MsalTypes.js";
  * - state                  - A value included in the request to the logout endpoint which will be returned in the query string upon post logout redirection
  * - logoutHint             - A string that specifies the account that is being logged out in order to skip the server account picker on logout
  * - extraQueryParameters   - String to string map of custom query parameters added to the /authorize call
+ * - brokerParameters       - Broker parameters
  */
 export type CommonEndSessionRequest = {
     correlationId: string;
@@ -24,4 +26,5 @@ export type CommonEndSessionRequest = {
     state?: string;
     logoutHint?: string;
     extraQueryParameters?: StringDict;
+    brokerParameters?: BrokerParameters;
 };

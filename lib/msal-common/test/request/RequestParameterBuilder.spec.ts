@@ -25,6 +25,7 @@ import {
 import { ClientAssertion, ClientAssertionCallback } from "../../src/index.js";
 import { getClientAssertion } from "../../src/utils/ClientAssertionUtils.js";
 import { ClientAssertionConfig } from "../../src/account/ClientCredentials.js";
+import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 
 describe("RequestParameterBuilder unit tests", () => {
     afterEach(() => {
@@ -691,6 +692,83 @@ describe("RequestParameterBuilder unit tests", () => {
                 "testVal2",
                 "some-other-client-id",
             ]);
+        });
+    });
+
+    describe("broker parameters tests", () => {
+        it("adds broker params to query string", () => {
+            const requestParameterBuilder = new RequestParameterBuilder();
+            requestParameterBuilder.addBrokerParameters({
+                embeddedClientId: "embedded-client-id",
+                brokerClientId: "broker-client-id",
+                brokerRedirectUri: "broker-redirect-uri",
+            });
+            const queryString = requestParameterBuilder.createQueryString();
+            expect(queryString).toContain(`client_id=embedded-client-id`);
+            expect(queryString).toContain(`brk_client_id=broker-client-id`);
+            expect(queryString).toContain(
+                `brk_redirect_uri=broker-redirect-uri`
+            );
+        });
+
+        it("instruments embedded client id", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const requestParameterBuilder = new RequestParameterBuilder(
+                mockPerfClient
+            );
+
+            const measurement = mockPerfClient.startMeasurement(
+                "test-measurement",
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            requestParameterBuilder.addCorrelationId(
+                TEST_CONFIG.CORRELATION_ID
+            );
+            requestParameterBuilder.addBrokerParameters({
+                embeddedClientId: "embedded-client-id",
+                brokerClientId: "broker-client-id",
+                brokerRedirectUri: "broker-redirect-uri",
+            });
+            requestParameterBuilder.createQueryString();
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                expect(events[0].embeddedClientId).toEqual(
+                    "embedded-client-id"
+                );
+                done();
+            });
+
+            measurement.end({ success: true });
+        });
+
+        it("does not instrument embedded client id", (done) => {
+            const mockPerfClient = new MockPerformanceClient();
+            const requestParameterBuilder = new RequestParameterBuilder(
+                mockPerfClient
+            );
+
+            const measurement = mockPerfClient.startMeasurement(
+                "test-measurement",
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            requestParameterBuilder.addCorrelationId(
+                TEST_CONFIG.CORRELATION_ID
+            );
+            requestParameterBuilder.addExtraQueryParameters({
+                client_id: "embedded-client-id",
+            });
+            requestParameterBuilder.createQueryString();
+
+            mockPerfClient.addPerformanceCallback((events) => {
+                expect(events.length).toBe(1);
+                expect(events[0].embeddedClientId).toBeUndefined();
+                done();
+            });
+
+            measurement.end({ success: true });
         });
     });
 });

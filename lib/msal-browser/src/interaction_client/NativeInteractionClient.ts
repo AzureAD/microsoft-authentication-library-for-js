@@ -76,11 +76,6 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import { version } from "../packageMetadata.js";
 
-const BrokerServerParamKeys = {
-    BROKER_CLIENT_ID: "brk_client_id",
-    BROKER_REDIRECT_URI: "brk_redirect_uri",
-};
-
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
     protected accountId: string;
@@ -1050,10 +1045,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         if (
             request.extraParameters.hasOwnProperty(
-                BrokerServerParamKeys.BROKER_CLIENT_ID
+                AADServerParamKeys.BROKER_CLIENT_ID
             ) &&
             request.extraParameters.hasOwnProperty(
-                BrokerServerParamKeys.BROKER_REDIRECT_URI
+                AADServerParamKeys.BROKER_REDIRECT_URI
             ) &&
             request.extraParameters.hasOwnProperty(AADServerParamKeys.CLIENT_ID)
         ) {
@@ -1061,9 +1056,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 request.extraParameters[AADServerParamKeys.CLIENT_ID];
             const child_redirect_uri = request.redirectUri;
             const brk_redirect_uri =
-                request.extraParameters[
-                    BrokerServerParamKeys.BROKER_REDIRECT_URI
-                ];
+                request.extraParameters[AADServerParamKeys.BROKER_REDIRECT_URI];
             request.extraParameters = {
                 child_client_id,
                 child_redirect_uri,

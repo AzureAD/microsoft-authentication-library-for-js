@@ -314,10 +314,13 @@ export class AuthorizationCodeClient extends BaseClient {
             request.correlationId
         );
 
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameterBuilder = new RequestParameterBuilder(
+            this.performanceClient
+        );
 
         parameterBuilder.addClientId(
-            request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
+            request.brokerParameters?.embeddedClientId ||
+                request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
                 this.config.authOptions.clientId
         );
 
@@ -493,6 +496,10 @@ export class AuthorizationCodeClient extends BaseClient {
             });
         }
 
+        if (request.brokerParameters) {
+            parameterBuilder.addBrokerParameters(request.brokerParameters);
+        }
+
         return parameterBuilder.createQueryString();
     }
 
@@ -508,10 +515,13 @@ export class AuthorizationCodeClient extends BaseClient {
             request.correlationId
         );
 
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameterBuilder = new RequestParameterBuilder(
+            this.performanceClient
+        );
 
         parameterBuilder.addClientId(
-            request.extraQueryParameters?.[AADServerParamKeys.CLIENT_ID] ||
+            request.brokerParameters?.embeddedClientId ||
+                request.extraQueryParameters?.[AADServerParamKeys.CLIENT_ID] ||
                 this.config.authOptions.clientId
         );
 
@@ -674,6 +684,10 @@ export class AuthorizationCodeClient extends BaseClient {
             );
         }
 
+        if (request.brokerParameters) {
+            parameterBuilder.addBrokerParameters(request.brokerParameters);
+        }
+
         this.addExtraQueryParams(request, parameterBuilder);
 
         if (request.nativeBroker) {
@@ -714,7 +728,9 @@ export class AuthorizationCodeClient extends BaseClient {
     private createLogoutUrlQueryString(
         request: CommonEndSessionRequest
     ): string {
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameterBuilder = new RequestParameterBuilder(
+            this.performanceClient
+        );
 
         if (request.postLogoutRedirectUri) {
             parameterBuilder.addPostLogoutRedirectUri(
@@ -736,6 +752,10 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if (request.logoutHint) {
             parameterBuilder.addLogoutHint(request.logoutHint);
+        }
+
+        if (request.brokerParameters) {
+            parameterBuilder.addBrokerParameters(request.brokerParameters);
         }
 
         this.addExtraQueryParams(request, parameterBuilder);

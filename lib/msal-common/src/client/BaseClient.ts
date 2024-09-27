@@ -208,7 +208,13 @@ export abstract class BaseClient {
      * @param request
      */
     createTokenQueryParameters(request: BaseAuthRequest): string {
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameterBuilder = new RequestParameterBuilder(
+            this.performanceClient
+        );
+
+        if (request.brokerParameters) {
+            parameterBuilder.addBrokerParameters(request.brokerParameters);
+        }
 
         if (request.tokenQueryParameters) {
             parameterBuilder.addExtraQueryParameters(

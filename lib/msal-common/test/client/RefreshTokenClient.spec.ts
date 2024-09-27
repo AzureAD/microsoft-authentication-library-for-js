@@ -1448,4 +1448,33 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(false);
         });
     });
+
+    describe("createTokenRequestBody tests", () => {
+        it("pick up broker params", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new RefreshTokenClient(config);
+
+            const queryString =
+                // @ts-ignore
+                await client.createTokenRequestBody({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    brokerParameters: {
+                        embeddedClientId: "child_client_id_1",
+                        brokerClientId: "broker_client_id",
+                        brokerRedirectUri: "broker_redirect_uri",
+                    },
+                    tokenBodyParameters: {
+                        client_id: "child_client_id_2",
+                    },
+                });
+
+            expect(queryString).toContain(`client_id=child_client_id_1`);
+            expect(queryString).toContain(`brk_client_id=broker_client_id`);
+            expect(queryString).toContain(
+                `brk_redirect_uri=broker_redirect_uri`
+            );
+        });
+    });
 });
