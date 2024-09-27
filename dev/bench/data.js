@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1727461803399,
+  "lastUpdate": 1727464219385,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12048,6 +12048,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.08%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b29b5b156948a750258b485f060c1068ff6cf80f",
+          "message": "Hackathon: msal-common - Replaced sinon with jest (#7341)\n\nI used automated tooling to replace sinon with jest in all the\r\nmsal-common tests. I re-ran every test in msal-common and confirmed that\r\nthey all still run successfully.",
+          "timestamp": "2024-09-27T15:05:01-04:00",
+          "tree_id": "81969cd747253414767fd8615345f54c95ead01d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/b29b5b156948a750258b485f060c1068ff6cf80f"
+        },
+        "date": 1727464218320,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 190809,
+            "range": "±2.22%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 192762,
+            "range": "±2.23%",
+            "unit": "ops/sec",
+            "extra": "205 samples"
           }
         ]
       }
