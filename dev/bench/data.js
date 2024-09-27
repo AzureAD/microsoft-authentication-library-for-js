@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1727195762180,
+  "lastUpdate": 1727438417055,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -11970,6 +11970,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 187715,
             "range": "±2.17%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "471ea55bc801ee5ddd8c85c6c7c69c2e5d669a24",
+          "message": "Mute no_server_response error when back navigation is detected (#7342)\n\n- Mute no_server_response error when back navigation is detected. This\r\nchange addresses an issue with `handleRedirectPromise` that instruments\r\n\"no_server_response\" error code when user navigates back to the app page\r\nfrom account picker UX.",
+          "timestamp": "2024-09-27T07:54:38-04:00",
+          "tree_id": "e2257eab994b41ff5c51043be9434c35c61b2399",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/471ea55bc801ee5ddd8c85c6c7c69c2e5d669a24"
+        },
+        "date": 1727438414872,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 184853,
+            "range": "±2.25%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 194189,
+            "range": "±2.26%",
             "unit": "ops/sec",
             "extra": "221 samples"
           }
