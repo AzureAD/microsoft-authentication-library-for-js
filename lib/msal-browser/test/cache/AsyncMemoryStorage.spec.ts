@@ -175,7 +175,7 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                 expect(item).toBe(TEST_CACHE_ITEMS.TestItem.value);
             });
 
-            it("should get item from persistent cache when in-memory cache doesn't contain item", async () => {
+            it("should get item from persistent cache when in-memory cache does not contain item", async () => {
                 mockDatabase[TEST_DB_TABLE_NAME][
                     TEST_CACHE_ITEMS.TestItem.key
                 ] = TEST_CACHE_ITEMS.TestItem.value;

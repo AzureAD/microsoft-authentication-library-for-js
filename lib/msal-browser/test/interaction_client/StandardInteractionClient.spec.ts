@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import sinon from "sinon";
 import {
     ResponseMode,
     AuthenticationScheme,
@@ -13,9 +12,9 @@ import {
     ProtocolMode,
     ServerResponseType,
 } from "@azure/msal-common";
-import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { StandardInteractionClient } from "../../src/interaction_client/StandardInteractionClient";
-import { EndSessionRequest } from "../../src/request/EndSessionRequest";
+import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
+import { StandardInteractionClient } from "../../src/interaction_client/StandardInteractionClient.js";
+import { EndSessionRequest } from "../../src/request/EndSessionRequest.js";
 import {
     TEST_CONFIG,
     TEST_STATE_VALUES,
@@ -23,12 +22,12 @@ import {
     DEFAULT_TENANT_DISCOVERY_RESPONSE,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_REQ_CNF_DATA,
-} from "../utils/StringConstants";
-import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
-import { RedirectRequest } from "../../src/request/RedirectRequest";
-import * as PkceGenerator from "../../src/crypto/PkceGenerator";
-import { FetchClient } from "../../src/network/FetchClient";
-import { InteractionType } from "../../src/utils/BrowserConstants";
+} from "../utils/StringConstants.js";
+import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest.js";
+import { RedirectRequest } from "../../src/request/RedirectRequest.js";
+import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
+import { FetchClient } from "../../src/network/FetchClient.js";
+import { InteractionType } from "../../src/utils/BrowserConstants.js";
 
 class testStandardInteractionClient extends StandardInteractionClient {
     acquireToken(): Promise<void> {
@@ -89,31 +88,32 @@ describe("StandardInteractionClient", () => {
             //@ts-ignore
             pca.performanceClient
         );
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        sinon
-            .stub(FetchClient.prototype, "sendGetRequestAsync")
-            .callsFake((url) => {
-                if (
-                    url.startsWith(
-                        "https://login.microsoftonline.com/common/discovery/instance?"
-                    )
-                ) {
-                    return Promise.resolve(DEFAULT_TENANT_DISCOVERY_RESPONSE);
-                } else {
-                    return Promise.reject({
-                        headers: {},
-                        status: 404,
-                        body: {},
-                    });
-                }
-            });
+        jest.spyOn(
+            Authority.prototype,
+            <any>"getEndpointMetadataFromNetwork"
+        ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        jest.spyOn(
+            FetchClient.prototype,
+            "sendGetRequestAsync"
+        ).mockImplementation((url) => {
+            if (
+                url.startsWith(
+                    "https://login.microsoftonline.com/common/discovery/instance?"
+                )
+            ) {
+                return Promise.resolve(DEFAULT_TENANT_DISCOVERY_RESPONSE);
+            } else {
+                return Promise.reject({
+                    headers: {},
+                    status: 404,
+                    body: {},
+                });
+            }
+        });
     });
 
     afterEach(() => {
         jest.restoreAllMocks();
-        sinon.restore();
     });
 
     it("initializeAuthorizationCodeRequest", async () => {
@@ -267,30 +267,28 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
             //@ts-ignore
             pca.performanceClient
         );
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .returns(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        sinon
-            .stub(FetchClient.prototype, "sendGetRequestAsync")
-            .callsFake((url) => {
-                if (
-                    url.startsWith(
-                        "https://login.microsoftonline.com/common/discovery/instance?"
-                    )
-                ) {
-                    return Promise.resolve(DEFAULT_TENANT_DISCOVERY_RESPONSE);
-                } else {
-                    return Promise.reject({
-                        headers: {},
-                        status: 404,
-                        body: {},
-                    });
-                }
-            });
-    });
-
-    afterEach(() => {
-        sinon.restore();
+        jest.spyOn(
+            Authority.prototype,
+            <any>"getEndpointMetadataFromNetwork"
+        ).mockReturnValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        jest.spyOn(
+            FetchClient.prototype,
+            "sendGetRequestAsync"
+        ).mockImplementation((url) => {
+            if (
+                url.startsWith(
+                    "https://login.microsoftonline.com/common/discovery/instance?"
+                )
+            ) {
+                return Promise.resolve(DEFAULT_TENANT_DISCOVERY_RESPONSE);
+            } else {
+                return Promise.reject({
+                    headers: {},
+                    status: 404,
+                    body: {},
+                });
+            }
+        });
     });
 
     it("initializeAuthorizationRequest calls for a query response when OIDCOptions.serverResponseType is set to query", async () => {
