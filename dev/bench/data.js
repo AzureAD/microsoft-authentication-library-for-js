@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1727438417055,
+  "lastUpdate": 1727461803399,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12010,6 +12010,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.26%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2c0ac76ffa1de5de9fbb499e2fc4585bcde11bf9",
+          "message": "Hackathon: msal-browser - Replaced sinon with jest (#7337)\n\nI used automated tooling to replace sinon with jest in all the\r\nmsal-browser tests. The tooling did not work for\r\n`PublicClientApplication.ts`, I had to do that one by hand. I re-ran\r\nevery test in msal-browser and confirmed that they all still run\r\nsuccessfully.",
+          "timestamp": "2024-09-27T14:24:27-04:00",
+          "tree_id": "19e2c6269ce3013f48fcbbae08caf97f64d19a1e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/2c0ac76ffa1de5de9fbb499e2fc4585bcde11bf9"
+        },
+        "date": 1727461802431,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 213052,
+            "range": "±1.03%",
+            "unit": "ops/sec",
+            "extra": "213 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 209359,
+            "range": "±1.08%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
