@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
+import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
 import {
     PkceCodes,
     NetworkRequestOptions,
@@ -26,7 +26,7 @@ import {
 import {
     Configuration,
     buildConfiguration,
-} from "../../src/config/Configuration";
+} from "../../src/config/Configuration.js";
 import {
     TEST_CONFIG,
     TEST_URIS,
@@ -38,19 +38,18 @@ import {
     TEST_STATE_VALUES,
     RANDOM_TEST_GUID,
     TEST_CRYPTO_VALUES,
-} from "../utils/StringConstants";
+} from "../utils/StringConstants.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../../src/error/BrowserAuthError";
-import sinon from "sinon";
-import { CryptoOps } from "../../src/crypto/CryptoOps";
-import { TestStorageManager } from "../cache/TestStorageManager";
-import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
+} from "../../src/error/BrowserAuthError.js";
+import { CryptoOps } from "../../src/crypto/CryptoOps.js";
+import { TestStorageManager } from "../cache/TestStorageManager.js";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import {
     TemporaryCacheKeys,
     BrowserConstants,
-} from "../../src/utils/BrowserConstants";
+} from "../../src/utils/BrowserConstants.js";
 
 class TestInteractionHandler extends InteractionHandler {
     constructor(
@@ -249,7 +248,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
     });
 
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     it("Constructor", () => {
@@ -325,9 +324,9 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 TemporaryCacheKeys.CCS_CREDENTIAL,
                 CcsCredentialType.UPN
             );
-            const acquireTokenSpy = sinon
-                .stub(AuthorizationCodeClient.prototype, "acquireToken")
-                .resolves(testTokenResponse);
+            const acquireTokenSpy = jest
+                .spyOn(AuthorizationCodeClient.prototype, "acquireToken")
+                .mockResolvedValue(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(
                 authCodeModule,
                 browserStorage
@@ -349,13 +348,11 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 );
 
             expect(tokenResponse).toEqual(testTokenResponse);
-            expect(
-                acquireTokenSpy.calledWith(
-                    testAuthCodeRequest,
-                    testCodeResponse
-                )
-            ).toBe(true);
-            expect(acquireTokenSpy.threw()).toBe(false);
+            expect(acquireTokenSpy).toHaveBeenCalledWith(
+                testAuthCodeRequest,
+                testCodeResponse
+            );
+            expect(acquireTokenSpy).not.toThrow();
         });
     });
 
@@ -415,19 +412,17 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 ),
                 idTokenClaims.nonce
             );
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    "handleFragmentResponse"
-                )
-                .returns(testCodeResponse);
-            const updateAuthoritySpy = sinon.spy(
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "handleFragmentResponse"
+            ).mockReturnValue(testCodeResponse);
+            const updateAuthoritySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
                 "updateAuthority"
             );
-            const acquireTokenSpy = sinon
-                .stub(AuthorizationCodeClient.prototype, "acquireToken")
-                .resolves(testTokenResponse);
+            const acquireTokenSpy = jest
+                .spyOn(AuthorizationCodeClient.prototype, "acquireToken")
+                .mockResolvedValue(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(
                 authCodeModule,
                 browserStorage
@@ -448,20 +443,16 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 }
             );
-            expect(
-                updateAuthoritySpy.calledWith(
-                    testCodeResponse.cloud_instance_host_name,
-                    TEST_CONFIG.CORRELATION_ID
-                )
-            ).toBe(true);
+            expect(updateAuthoritySpy).toHaveBeenCalledWith(
+                testCodeResponse.cloud_instance_host_name,
+                TEST_CONFIG.CORRELATION_ID
+            );
             expect(tokenResponse).toEqual(testTokenResponse);
-            expect(
-                acquireTokenSpy.calledWith(
-                    testAuthCodeRequest,
-                    testCodeResponse
-                )
-            ).toBe(true);
-            expect(acquireTokenSpy.threw()).toBe(false);
+            expect(acquireTokenSpy).toHaveBeenCalledWith(
+                testAuthCodeRequest,
+                testCodeResponse
+            );
+            expect(acquireTokenSpy).not.toThrow();
         });
 
         it("successfully adds login_hint as CCS credential to auth code request", async () => {
@@ -526,15 +517,13 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 TemporaryCacheKeys.CCS_CREDENTIAL,
                 CcsCredentialType.UPN
             );
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    "handleFragmentResponse"
-                )
-                .returns(testCodeResponse);
-            const acquireTokenSpy = sinon
-                .stub(AuthorizationCodeClient.prototype, "acquireToken")
-                .resolves(testTokenResponse);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "handleFragmentResponse"
+            ).mockReturnValue(testCodeResponse);
+            const acquireTokenSpy = jest
+                .spyOn(AuthorizationCodeClient.prototype, "acquireToken")
+                .mockResolvedValue(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(
                 authCodeModule,
                 browserStorage
@@ -556,13 +545,11 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 }
             );
             expect(tokenResponse).toEqual(testTokenResponse);
-            expect(
-                acquireTokenSpy.calledWith(
-                    testAuthCodeRequest,
-                    testCodeResponse
-                )
-            ).toBe(true);
-            expect(acquireTokenSpy.threw()).toBe(false);
+            expect(acquireTokenSpy).toHaveBeenCalledWith(
+                testAuthCodeRequest,
+                testCodeResponse
+            );
+            expect(acquireTokenSpy).not.toThrow();
         });
     });
 });

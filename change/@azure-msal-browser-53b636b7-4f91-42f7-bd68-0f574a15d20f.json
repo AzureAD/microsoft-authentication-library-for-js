@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Allow passing popup parent for multi-window flows",
-  "packageName": "@azure/msal-browser",
-  "email": "chrp@microsoft.com",
-  "dependentChangeType": "patch"
-}

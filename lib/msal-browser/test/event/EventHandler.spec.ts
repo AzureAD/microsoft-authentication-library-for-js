@@ -1,11 +1,17 @@
-import { EventMessage } from "../../src/event/EventMessage";
-import { EventType } from "../../src/event/EventType";
-import { InteractionType } from "../../src/utils/BrowserConstants";
-import sinon from "sinon";
-import { EventHandler } from "../../src/event/EventHandler";
-import { Logger, LogLevel } from "../../src";
+import { EventMessage } from "../../src/event/EventMessage.js";
+import { EventType } from "../../src/event/EventType.js";
+import { InteractionType } from "../../src/utils/BrowserConstants.js";
+import { EventHandler } from "../../src/event/EventHandler.js";
+import {
+    Logger,
+    LogLevel,
+} from "../../src/index.js";
 
 describe("Event API tests", () => {
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     const loggerOptions = {
         loggerCallback: (
             level: LogLevel,
@@ -39,7 +45,7 @@ describe("Event API tests", () => {
             expect(message.interactionType).toEqual(InteractionType.Popup);
         };
 
-        const callbackSpy = sinon.spy(subscriber);
+        const callbackSpy = jest.fn(subscriber);
 
         const eventHandler = new EventHandler(logger);
 
@@ -47,7 +53,7 @@ describe("Event API tests", () => {
         eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
         eventHandler.removeEventCallback(callbackId || "");
         eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
-        expect(callbackSpy.calledOnce).toBeTruthy();
+        expect(callbackSpy).toHaveBeenCalledTimes(1);
         done();
     });
 

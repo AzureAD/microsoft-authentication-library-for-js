@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add optional \"instanceAware\" config auth param #7259",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

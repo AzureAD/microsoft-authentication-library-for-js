@@ -49,6 +49,22 @@ import { EventError } from "../event/EventMessage.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 
+function getNavigationType(): NavigationTimingType | undefined {
+    if (
+        typeof window === "undefined" ||
+        typeof window.performance === "undefined" ||
+        typeof window.performance.getEntriesByType !== "function"
+    ) {
+        return undefined;
+    }
+
+    const navigationEntries = window.performance.getEntriesByType("navigation");
+    const navigation = navigationEntries.length
+        ? (navigationEntries[0] as PerformanceNavigationTiming)
+        : undefined;
+    return navigation?.type;
+}
+
 export class RedirectClient extends StandardInteractionClient {
     protected nativeStorage: BrowserCacheManager;
 
@@ -223,7 +239,15 @@ export class RedirectClient extends StandardInteractionClient {
                 this.browserStorage.cleanRequestByInteractionType(
                     InteractionType.Redirect
                 );
-                parentMeasurement.event.errorCode = "no_server_response";
+
+                // Do not instrument "no_server_response" if user clicked back button
+                if (getNavigationType() !== "back_forward") {
+                    parentMeasurement.event.errorCode = "no_server_response";
+                } else {
+                    this.logger.verbose(
+                        "Back navigation event detected. Muting no_server_response error"
+                    );
+                }
                 return null;
             }
 

@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add 'instance_aware' auth config param #7259",
+  "comment": "Mute no_server_response error when back navigation is detected #7342",
   "packageName": "@azure/msal-browser",
   "email": "kshabelko@microsoft.com",
   "dependentChangeType": "patch"
