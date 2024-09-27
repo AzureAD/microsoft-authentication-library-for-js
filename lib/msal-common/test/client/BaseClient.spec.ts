@@ -1,10 +1,9 @@
-import { BaseClient } from "../../src/client/BaseClient";
-import { HeaderNames, Constants } from "../../src/utils/Constants";
-import { ClientTestUtils } from "./ClientTestUtils";
-import { ClientConfiguration } from "../../src/config/ClientConfiguration";
-import { DEFAULT_OPENID_CONFIG_RESPONSE } from "../test_kit/StringConstants";
-import { Authority } from "../../src/authority/Authority";
-import sinon from "sinon";
+import { BaseClient } from "../../src/client/BaseClient.js";
+import { HeaderNames, Constants } from "../../src/utils/Constants.js";
+import { ClientTestUtils } from "./ClientTestUtils.js";
+import { ClientConfiguration } from "../../src/config/ClientConfiguration.js";
+import { DEFAULT_OPENID_CONFIG_RESPONSE } from "../test_kit/StringConstants.js";
+import { Authority } from "../../src/authority/Authority.js";
 
 class TestClient extends BaseClient {
     constructor(config: ClientConfiguration) {
@@ -38,17 +37,15 @@ class TestClient extends BaseClient {
 
 describe("BaseClient.ts Class Unit Tests", () => {
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     describe("Constructor", () => {
         it("Creates a valid BaseClient object", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new TestClient(config);
@@ -57,12 +54,10 @@ describe("BaseClient.ts Class Unit Tests", () => {
         });
 
         it("Sets fields on BaseClient object", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new TestClient(config);
@@ -76,16 +71,10 @@ describe("BaseClient.ts Class Unit Tests", () => {
 
     describe("Header utils", () => {
         beforeEach(() => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        });
-
-        afterEach(() => {
-            sinon.restore();
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         });
 
         it("Creates default token request headers", async () => {

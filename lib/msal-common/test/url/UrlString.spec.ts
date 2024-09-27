@@ -1,16 +1,15 @@
-import { TEST_URIS, TEST_HASHES } from "../test_kit/StringConstants";
-import { UrlString } from "../../src/url/UrlString";
+import { TEST_URIS, TEST_HASHES } from "../test_kit/StringConstants.js";
+import { UrlString } from "../../src/url/UrlString.js";
 import {
     ClientConfigurationError,
     ClientConfigurationErrorCodes,
     createClientConfigurationError,
-} from "../../src/error/ClientConfigurationError";
-import { IUri } from "../../src/url/IUri";
-import sinon from "sinon";
+} from "../../src/error/ClientConfigurationError.js";
+import { IUri } from "../../src/url/IUri.js";
 
 describe("UrlString.ts Class Unit Tests", () => {
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     it("Creates a valid UrlString object", () => {
@@ -40,9 +39,11 @@ describe("UrlString.ts Class Unit Tests", () => {
 
     it("validateAsUri throws error if uri components could not be extracted", () => {
         const urlComponentError = "Error getting url components";
-        sinon
-            .stub(UrlString.prototype, "getUrlComponents")
-            .throws(urlComponentError);
+        jest.spyOn(UrlString.prototype, "getUrlComponents").mockImplementation(
+            () => {
+                throw urlComponentError;
+            }
+        );
         let urlObj = new UrlString(TEST_URIS.TEST_REDIR_URI);
         expect(() => urlObj.validateAsUri()).toThrowError(
             createClientConfigurationError(
@@ -235,7 +236,7 @@ describe("UrlString.ts Class Unit Tests", () => {
     });
 
     describe("getAbsoluteUrl tests", () => {
-        it("Returns url provided if it's already absolute", () => {
+        it("Returns url provided if it is already absolute", () => {
             const absoluteUrl = "https://localhost:30662";
             expect(
                 UrlString.getAbsoluteUrl(absoluteUrl, absoluteUrl + "/testPath")

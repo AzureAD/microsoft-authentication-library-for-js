@@ -1,20 +1,23 @@
-import { ScopeSet } from "../../src/request/ScopeSet";
-import sinon from "sinon";
+import { ScopeSet } from "../../src/request/ScopeSet.js";
 import {
     OIDC_DEFAULT_SCOPES,
     OIDC_SCOPES,
     Constants,
-} from "../../src/utils/Constants";
+} from "../../src/utils/Constants.js";
 import {
     ClientConfigurationErrorMessage,
     ClientConfigurationError,
-} from "../../src/error/ClientConfigurationError";
+} from "../../src/error/ClientConfigurationError.js";
 import {
     ClientAuthErrorMessage,
     ClientAuthError,
-} from "../../src/error/ClientAuthError";
+} from "../../src/error/ClientAuthError.js";
 
 describe("ScopeSet.ts", () => {
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     describe("Constructor and scope validation", () => {
         it("Throws error if scopes are null or empty and required", () => {
             // @ts-ignore
@@ -142,10 +145,6 @@ describe("ScopeSet.ts", () => {
             scopes = new ScopeSet([testScope]);
         });
 
-        afterEach(() => {
-            sinon.restore();
-        });
-
         it("containsScope() checks if a given scope is present in the set of scopes", () => {
             expect(scopes.containsScope(Constants.OPENID_SCOPE)).toBe(false);
             expect(scopes.containsScope("notinset")).toBe(false);
@@ -198,19 +197,19 @@ describe("ScopeSet.ts", () => {
 
         it("appendScope() does nothing if given scope is empty, null or undefined", () => {
             const testScopes = [testScope];
-            const setAddSpy = sinon.spy(Set.prototype, "add");
+            const setAddSpy = jest.spyOn(Set.prototype, "add");
             scopes.appendScope("");
-            expect(setAddSpy.called).toBe(false);
+            expect(setAddSpy).not.toHaveBeenCalled();
             expect(scopes.asArray()).toEqual(testScopes);
 
             // @ts-ignore
             scopes.appendScope(null);
-            expect(setAddSpy.called).toBe(false);
+            expect(setAddSpy).not.toHaveBeenCalled();
             expect(scopes.asArray()).toEqual(testScopes);
 
             // @ts-ignore
             scopes.appendScope(undefined);
-            expect(setAddSpy.called).toBe(false);
+            expect(setAddSpy).not.toHaveBeenCalled();
             expect(scopes.asArray()).toEqual(testScopes);
         });
 
@@ -435,10 +434,6 @@ describe("ScopeSet.ts", () => {
             nonRequiredScopeSet = new ScopeSet([testScope]);
             uppercaseScopeSet = new ScopeSet([testScope2]);
             lowercaseScopeSet = new ScopeSet([testScope]);
-        });
-
-        afterEach(() => {
-            sinon.restore();
         });
 
         it("asArray() returns ScopeSet as an array", () => {

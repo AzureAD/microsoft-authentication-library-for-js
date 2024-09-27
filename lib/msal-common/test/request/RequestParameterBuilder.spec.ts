@@ -5,8 +5,8 @@ import {
     GrantType,
     AuthenticationScheme,
     HeaderNames,
-} from "../../src/utils/Constants";
-import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys";
+} from "../../src/utils/Constants.js";
+import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
 import {
     TEST_CONFIG,
     TEST_URIS,
@@ -15,19 +15,22 @@ import {
     TEST_POP_VALUES,
     TEST_DATA_CLIENT_INFO,
     TEST_SSH_VALUES,
-} from "../test_kit/StringConstants";
-import { RequestParameterBuilder } from "../../src/request/RequestParameterBuilder";
-import sinon from "sinon";
+} from "../test_kit/StringConstants.js";
+import { RequestParameterBuilder } from "../../src/request/RequestParameterBuilder.js";
 import {
     ClientConfigurationErrorCodes,
     ClientConfigurationErrorMessage,
     createClientConfigurationError,
-} from "../../src/error/ClientConfigurationError";
-import { ClientAssertion, ClientAssertionCallback } from "../../src";
-import { getClientAssertion } from "../../src/utils/ClientAssertionUtils";
-import { ClientAssertionConfig } from "../../src/account/ClientCredentials";
+} from "../../src/error/ClientConfigurationError.js";
+import { ClientAssertion, ClientAssertionCallback } from "../../src/index.js";
+import { getClientAssertion } from "../../src/utils/ClientAssertionUtils.js";
+import { ClientAssertionConfig } from "../../src/account/ClientCredentials.js";
 
 describe("RequestParameterBuilder unit tests", () => {
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     it("constructor", () => {
         const requestParameterBuilder = new RequestParameterBuilder();
         expect(requestParameterBuilder).toBeInstanceOf(RequestParameterBuilder);
@@ -367,19 +370,14 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("throws error if claims is not stringified JSON object", () => {
         const claims = "not-a-valid-JSON-object";
-        sinon
-            .stub(
-                RequestParameterBuilder.prototype,
-                "addClientCapabilitiesToClaims"
-            )
-            .returns(claims);
+        jest.spyOn(
+            RequestParameterBuilder.prototype,
+            "addClientCapabilitiesToClaims"
+        ).mockReturnValue(claims);
         const requestParameterBuilder = new RequestParameterBuilder();
-        expect(() =>
-            requestParameterBuilder.addClaims(claims, [])
-        ).toThrowError(
+        expect(() => requestParameterBuilder.addClaims(claims, [])).toThrow(
             ClientConfigurationErrorMessage.invalidClaimsRequest.desc
         );
-        sinon.restore();
     });
 
     it("adds clientAssertion (string) and assertionType if they are provided by the developer", async () => {
@@ -416,7 +414,7 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
     });
 
-    it("doesn't add client assertion (string) and client assertion type if they are empty strings", async () => {
+    it("does not add client assertion (string) and client assertion type if they are empty strings", async () => {
         const clientAssertion: ClientAssertion = {
             assertion: "",
             assertionType: "",
@@ -484,7 +482,7 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
     });
 
-    it("doesn't add client assertion (ClientAssertionCallback) and client assertion type if they are empty strings", async () => {
+    it("does not add client assertion (ClientAssertionCallback) and client assertion type if they are empty strings", async () => {
         const ClientAssertionCallback: ClientAssertionCallback = (
             _config: ClientAssertionConfig
         ) => {
