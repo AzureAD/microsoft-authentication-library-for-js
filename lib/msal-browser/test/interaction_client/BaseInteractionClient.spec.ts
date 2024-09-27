@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import sinon from "sinon";
 import {
     AccountInfo,
     AccountEntity,
@@ -22,10 +21,10 @@ import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     ID_TOKEN_CLAIMS,
     ID_TOKEN_ALT_CLAIMS,
-} from "../utils/StringConstants";
-import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient";
-import { EndSessionRequest, PublicClientApplication } from "../../src";
-import { OpenIdConfigResponse } from "@azure/msal-common/dist/authority/OpenIdConfigResponse";
+} from "../utils/StringConstants.js";
+import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient.js";
+import { EndSessionRequest, PublicClientApplication } from "../../src/index.js";
+import { OpenIdConfigResponse } from "../../../msal-common/src/authority/OpenIdConfigResponse.js";
 
 class testInteractionClient extends BaseInteractionClient {
     acquireToken(): Promise<void> {
@@ -72,7 +71,7 @@ describe("BaseInteractionClient", () => {
     });
 
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     describe("clearCacheOnLogout", () => {
@@ -180,7 +179,6 @@ describe("BaseInteractionClient", () => {
 
         afterEach(() => {
             window.sessionStorage.clear();
-            jest.restoreAllMocks();
         });
 
         it("Removes all accounts from cache if no account provided", async () => {

@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import sinon from "sinon";
 import {
     PkceCodes,
     NetworkRequestOptions,
@@ -30,7 +29,7 @@ import {
 import {
     Configuration,
     buildConfiguration,
-} from "../../src/config/Configuration";
+} from "../../src/config/Configuration.js";
 import {
     TEST_CONFIG,
     TEST_URIS,
@@ -40,19 +39,19 @@ import {
     TEST_HASHES,
     TEST_TOKEN_LIFETIMES,
     TEST_STATE_VALUES,
-} from "../utils/StringConstants";
-import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
+} from "../utils/StringConstants.js";
+import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler.js";
 import {
     BrowserAuthErrorMessage,
     BrowserAuthError,
-} from "../../src/error/BrowserAuthError";
-import { TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
-import { CryptoOps } from "../../src/crypto/CryptoOps";
-import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
-import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import { NavigationClient } from "../../src/navigation/NavigationClient";
-import { NavigationOptions } from "../../src/navigation/NavigationOptions";
-import { RedirectRequest } from "../../src/request/RedirectRequest";
+} from "../../src/error/BrowserAuthError.js";
+import { TemporaryCacheKeys } from "../../src/utils/BrowserConstants.js";
+import { CryptoOps } from "../../src/crypto/CryptoOps.js";
+import { DatabaseStorage } from "../../src/cache/DatabaseStorage.js";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
+import { NavigationClient } from "../../src/navigation/NavigationClient.js";
+import { NavigationOptions } from "../../src/navigation/NavigationOptions.js";
+import { RedirectRequest } from "../../src/request/RedirectRequest.js";
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -174,7 +173,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
     });
 
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
         browserStorage.clear();
     });
 
@@ -222,11 +221,11 @@ describe("RedirectHandler.ts Unit Tests", () => {
 
         it("navigates browser window to given window location", (done) => {
             let dbStorage = {};
-            sinon
-                .stub(DatabaseStorage.prototype, "open")
-                .callsFake(async (): Promise<void> => {
+            jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
+                async (): Promise<void> => {
                     dbStorage = {};
-                });
+                }
+            );
             const navigationClient = new NavigationClient();
             navigationClient.navigateExternal = (
                 requestUrl: string,
@@ -256,11 +255,11 @@ describe("RedirectHandler.ts Unit Tests", () => {
 
         it("doesnt navigate if onRedirectNavigate returns false", (done) => {
             let dbStorage = {};
-            sinon
-                .stub(DatabaseStorage.prototype, "open")
-                .callsFake(async (): Promise<void> => {
+            jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
+                async (): Promise<void> => {
                     dbStorage = {};
-                });
+                }
+            );
             const navigationClient = new NavigationClient();
             navigationClient.navigateExternal = (
                 urlNavigate: string,
@@ -297,11 +296,11 @@ describe("RedirectHandler.ts Unit Tests", () => {
 
         it("navigates if onRedirectNavigate doesnt return false", (done) => {
             let dbStorage = {};
-            sinon
-                .stub(DatabaseStorage.prototype, "open")
-                .callsFake(async (): Promise<void> => {
+            jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
+                async (): Promise<void> => {
                     dbStorage = {};
-                });
+                }
+            );
 
             const navigationClient = new NavigationClient();
             navigationClient.navigateExternal = (
@@ -377,11 +376,11 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
             let dbStorage = {};
-            sinon
-                .stub(DatabaseStorage.prototype, "open")
-                .callsFake(async (): Promise<void> => {
+            jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
+                async (): Promise<void> => {
                     dbStorage = {};
-                });
+                }
+            );
 
             const testAuthCodeRequest: CommonAuthorizationCodeRequest = {
                 authenticationScheme: AuthenticationScheme.BEARER,
@@ -411,15 +410,14 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH),
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
             );
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    "handleFragmentResponse"
-                )
-                .returns(testCodeResponse);
-            sinon
-                .stub(AuthorizationCodeClient.prototype, "acquireToken")
-                .resolves(testTokenResponse);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "handleFragmentResponse"
+            ).mockReturnValue(testCodeResponse);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
 
             const redirectHandler = new RedirectHandler(
                 authCodeModule,
@@ -495,11 +493,11 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
             let dbStorage = {};
-            sinon
-                .stub(DatabaseStorage.prototype, "open")
-                .callsFake(async (): Promise<void> => {
+            jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
+                async (): Promise<void> => {
                     dbStorage = {};
-                });
+                }
+            );
 
             const testAuthCodeRequest: CommonAuthorizationCodeRequest = {
                 authenticationScheme: AuthenticationScheme.BEARER,
@@ -534,15 +532,14 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 TemporaryCacheKeys.CCS_CREDENTIAL,
                 JSON.stringify(testCcsCred)
             );
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    "handleFragmentResponse"
-                )
-                .returns(testCodeResponse);
-            sinon
-                .stub(AuthorizationCodeClient.prototype, "acquireToken")
-                .resolves(testTokenResponse);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "handleFragmentResponse"
+            ).mockReturnValue(testCodeResponse);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
 
             const redirectHandler = new RedirectHandler(
                 authCodeModule,

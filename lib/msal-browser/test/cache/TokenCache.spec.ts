@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import sinon from "sinon";
 import {
     Logger,
     LogLevel,
@@ -19,15 +18,15 @@ import {
     CacheHelpers,
     Authority,
 } from "@azure/msal-common";
-import { TokenCache, LoadTokenOptions } from "../../src/cache/TokenCache";
-import { CryptoOps } from "../../src/crypto/CryptoOps";
-import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
+import { TokenCache, LoadTokenOptions } from "../../src/cache/TokenCache.js";
+import { CryptoOps } from "../../src/crypto/CryptoOps.js";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import {
     BrowserConfiguration,
     buildConfiguration,
     CacheOptions,
-} from "../../src/config/Configuration";
-import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
+} from "../../src/config/Configuration.js";
+import { BrowserCacheLocation } from "../../src/utils/BrowserConstants.js";
 import {
     ID_TOKEN_CLAIMS,
     TEST_CONFIG,
@@ -35,15 +34,15 @@ import {
     TEST_TOKENS,
     TEST_TOKEN_LIFETIMES,
     TEST_URIS,
-} from "../utils/StringConstants";
+} from "../utils/StringConstants.js";
 import {
     BrowserAuthError,
     BrowserAuthErrorCodes,
     BrowserAuthErrorMessage,
     PublicClientApplication,
     SilentRequest,
-} from "../../src";
-import { base64Decode } from "../../src/encode/Base64Decode";
+} from "../../src/index.js";
+import { base64Decode } from "../../src/encode/Base64Decode.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 
 describe("TokenCache tests", () => {
@@ -89,7 +88,6 @@ describe("TokenCache tests", () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
-        sinon.restore();
         window.sessionStorage.clear();
         window.localStorage.clear();
     });
@@ -174,7 +172,6 @@ describe("TokenCache tests", () => {
 
         afterEach(() => {
             browserStorage.clear();
-            jest.restoreAllMocks();
         });
 
         it("loads id token with a request account", () => {
