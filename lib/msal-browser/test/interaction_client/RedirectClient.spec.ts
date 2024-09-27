@@ -1831,6 +1831,50 @@ describe("RedirectClient", () => {
             });
             redirectClient.handleRedirectPromise("", rootMeasurement);
         });
+
+        it("mutes no_server_response error when back navigation is detected", async () => {
+            // @ts-ignore
+            window.performance.getEntriesByType = () => {
+                return [{ type: "back_forward" }];
+            };
+
+            browserStorage.setInteractionInProgress(true);
+            const loginRequestUrl = window.location.href;
+            window.location.hash = "";
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                loginRequestUrl
+            );
+            const res = await redirectClient.handleRedirectPromise(
+                "",
+                rootMeasurement
+            );
+            expect(res).toBeNull();
+            expect(rootMeasurement.event.errorCode).toBeUndefined();
+        });
+
+        it("does not mute no_server_response error when back navigation is not detected", async () => {
+            // @ts-ignore
+            window.performance.getEntriesByType = () => {
+                return [];
+            };
+
+            browserStorage.setInteractionInProgress(true);
+            const loginRequestUrl = window.location.href;
+            window.location.hash = "";
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                loginRequestUrl
+            );
+            const res = await redirectClient.handleRedirectPromise(
+                "",
+                rootMeasurement
+            );
+            expect(res).toBeNull();
+            expect(rootMeasurement.event.errorCode).toEqual(
+                "no_server_response"
+            );
+        });
     });
 
     describe("acquireToken", () => {
