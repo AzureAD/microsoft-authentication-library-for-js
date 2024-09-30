@@ -142,7 +142,10 @@ export class ManagedIdentityApplication {
             correlationId: this.cryptoProvider.createNewGuid(),
         };
 
-        if (managedIdentityRequest.forceRefresh) {
+        if (
+            managedIdentityRequestParams.claims ||
+            managedIdentityRequest.forceRefresh
+        ) {
             // make a network call to the managed identity source
             return this.managedIdentityClient.sendManagedIdentityTokenRequest(
                 managedIdentityRequest,
