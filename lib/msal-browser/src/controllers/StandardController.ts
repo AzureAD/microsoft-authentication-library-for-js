@@ -74,6 +74,7 @@ import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
+    BrowserAuthError,
 } from "../error/BrowserAuthError.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest.js";
@@ -1745,6 +1746,11 @@ export class StandardController implements IController {
      * @returns {string}
      */
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
+        if(typeof window === "undefined"){
+            throw new BrowserAuthError(
+                BrowserAuthErrorCodes.nonBrowserEnvironment
+            );
+        }
         return this.performanceClient.addPerformanceCallback(callback);
     }
 
