@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1727464219385,
+  "lastUpdate": 1727731235955,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12086,6 +12086,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.23%",
             "unit": "ops/sec",
             "extra": "205 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "68d29bbe660d6c637aad035ef2b321f793997480",
+          "message": "Implemented functionality to skip the cache for MI when claims are provided (#7207)\n\nRe-used functionality from ClientCredential flow.\r\n\r\nThis PR originally contained code to deprecate client assertion strings.\r\nThat will now be a separate PR.",
+          "timestamp": "2024-09-30T17:15:04-04:00",
+          "tree_id": "c7b77768b14d4e4af8b4591517cca8ce0afabc17",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/68d29bbe660d6c637aad035ef2b321f793997480"
+        },
+        "date": 1727731234687,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 201000,
+            "range": "±2.13%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 188494,
+            "range": "±2.24%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
