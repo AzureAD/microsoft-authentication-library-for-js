@@ -205,8 +205,7 @@ export class UnknownOperatingContextController implements IController {
     addEventCallback(callback: EventCallbackFunction): string | null {
         return null;
     }
-    removeEventCallback(callbackId: string): void {
-    }
+    removeEventCallback(callbackId: string): void {}
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
         blockAPICallsBeforeInitialize(this.initialized);

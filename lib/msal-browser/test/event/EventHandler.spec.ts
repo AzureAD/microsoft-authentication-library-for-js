@@ -2,10 +2,7 @@ import { EventMessage } from "../../src/event/EventMessage.js";
 import { EventType } from "../../src/event/EventType.js";
 import { InteractionType } from "../../src/utils/BrowserConstants.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
-import {
-    Logger,
-    LogLevel,
-} from "../../src/index.js";
+import { Logger, LogLevel } from "../../src/index.js";
 
 describe("Event API tests", () => {
     afterEach(() => {

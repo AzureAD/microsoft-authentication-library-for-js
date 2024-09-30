@@ -36,18 +36,18 @@ export class EventHandler {
     addEventCallback(
         callback: EventCallbackFunction,
         eventTypes?: Array<EventType>,
-        callbackId?: string,
+        callbackId?: string
     ): string | null {
         if (typeof window !== "undefined") {
             const id = callbackId || createGuid();
             if (this.eventCallbacks.has(id)) {
-                this.logger.error(`Event callback with id: ${id} is already registered. Please provide a unique id or remove the existing callback and try again.`);
+                this.logger.error(
+                    `Event callback with id: ${id} is already registered. Please provide a unique id or remove the existing callback and try again.`
+                );
                 return null;
             }
             this.eventCallbacks.set(id, [callback, eventTypes || []]);
-            this.logger.verbose(
-                `Event callback registered with id: ${id}`
-            );
+            this.logger.verbose(`Event callback registered with id: ${id}`);
 
             return id;
         }
