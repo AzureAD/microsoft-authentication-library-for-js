@@ -316,11 +316,15 @@ export class StandardController implements IController {
 
         const initCorrelationId =
             request?.correlationId || this.getRequestCorrelationId();
-        const allowNativeBroker = this.config.system.allowNativeBroker;
-        const initMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.InitializeClientApplication,
-            initCorrelationId
-        );
+        let allowNativeBroker = false;
+        let initMeasurement;
+        if(this.isBrowserEnvironment) {
+            initMeasurement = this.performanceClient.startMeasurement(
+                PerformanceEvents.InitializeClientApplication,
+                initCorrelationId
+            );
+            allowNativeBroker = this.config.system.allowNativeBroker;
+        }
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
 
         if (allowNativeBroker) {
@@ -336,7 +340,7 @@ export class StandardController implements IController {
             }
         }
 
-        if (!this.config.cache.claimsBasedCachingEnabled) {
+        if (!this.config.cache.claimsBasedCachingEnabled && this.isBrowserEnvironment) {
             this.logger.verbose(
                 "Claims-based caching is disabled. Clearing the previous cache with claims"
             );
@@ -354,8 +358,10 @@ export class StandardController implements IController {
 
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
-
-        initMeasurement.end({ allowNativeBroker, success: true });
+        if(this.isBrowserEnvironment) {
+            //@ts-ignore
+            initMeasurement.end({ allowNativeBroker, success: true });
+        }
     }
 
     // #region Redirect Flow
@@ -572,6 +578,11 @@ export class StandardController implements IController {
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
+        if(!this.isBrowserEnvironment){
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.nonBrowserEnvironment
+            );
+        }
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.verbose("acquireTokenRedirect called", correlationId);
 
@@ -714,6 +725,11 @@ export class StandardController implements IController {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
+        if(!this.isBrowserEnvironment){
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.nonBrowserEnvironment
+            );
+        }
         const correlationId = this.getRequestCorrelationId(request);
         const atPopupMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.AcquireTokenPopup,
@@ -890,6 +906,11 @@ export class StandardController implements IController {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
+        if(!this.isBrowserEnvironment){
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.nonBrowserEnvironment
+            );
+        }
         const correlationId = this.getRequestCorrelationId(request);
         const validRequest = {
             ...request,
@@ -998,6 +1019,11 @@ export class StandardController implements IController {
     async acquireTokenByCode(
         request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult> {
+        if(!this.isBrowserEnvironment){
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.nonBrowserEnvironment
+            );
+        }
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.trace("acquireTokenByCode called", correlationId);
         const atbcMeasurement = this.performanceClient.startMeasurement(
@@ -1336,6 +1362,9 @@ export class StandardController implements IController {
      * @param logoutRequest
      */
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
+        if (!(this.isBrowserEnvironment)){
+            return;
+        }
         const correlationId = this.getRequestCorrelationId(logoutRequest);
         const cacheClient = this.createSilentCacheClient(correlationId);
         return cacheClient.logout(logoutRequest);
@@ -1881,6 +1910,11 @@ export class StandardController implements IController {
     async acquireTokenSilent(
         request: SilentRequest
     ): Promise<AuthenticationResult> {
+        if(!this.isBrowserEnvironment){
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.nonBrowserEnvironment
+            );
+        }
         const correlationId = this.getRequestCorrelationId(request);
         const atsMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.AcquireTokenSilent,

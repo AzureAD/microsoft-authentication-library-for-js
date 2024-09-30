@@ -474,7 +474,7 @@ describe("Non-browser environment", () => {
         const request: SilentRequest = {
             scopes: ["openid", "profile"],
             account: testAccount,
-            cacheLookupPolicy: CacheLookupPolicy.AccessToken, // Only perform cache lookup during validation
+            cacheLookupPolicy: CacheLookupPolicy.AccessToken,
         };
         
         const instance = new PublicClientApplication({
