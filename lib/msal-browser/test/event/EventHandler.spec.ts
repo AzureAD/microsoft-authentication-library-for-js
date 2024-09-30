@@ -1,19 +1,27 @@
-import { EventMessage } from "../../src/event/EventMessage";
-import { EventType } from "../../src/event/EventType";
-import { InteractionType } from "../../src/utils/BrowserConstants";
-import sinon from "sinon";
-import { EventHandler } from "../../src/event/EventHandler";
-import { Logger, LogLevel, AccountInfo, AccountEntity } from "../../src";
-import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { EventMessage } from "../../src/event/EventMessage.js";
+import { EventType } from "../../src/event/EventType.js";
+import { InteractionType } from "../../src/utils/BrowserConstants.js";
+import { EventHandler } from "../../src/event/EventHandler.js";
+import {
+    Logger,
+    LogLevel,
+    AccountInfo,
+    AccountEntity,
+} from "../../src/index.js";
+import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import {
     ID_TOKEN_ALT_CLAIMS,
     ID_TOKEN_CLAIMS,
     TEST_CONFIG,
-} from "../utils/StringConstants";
+} from "../utils/StringConstants.js";
 import { Constants, PersistentCacheKeys } from "@azure/msal-common";
 
 describe("Event API tests", () => {
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     const loggerOptions = {
         loggerCallback: (
             level: LogLevel,
@@ -48,7 +56,7 @@ describe("Event API tests", () => {
             expect(message.interactionType).toEqual(InteractionType.Popup);
         };
 
-        const callbackSpy = sinon.spy(subscriber);
+        const callbackSpy = jest.fn(subscriber);
 
         const eventHandler = new EventHandler(logger, browserCrypto);
 
@@ -56,7 +64,7 @@ describe("Event API tests", () => {
         eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
         eventHandler.removeEventCallback(callbackId || "");
         eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
-        expect(callbackSpy.calledOnce).toBeTruthy();
+        expect(callbackSpy).toHaveBeenCalledTimes(1);
         done();
     });
 
@@ -181,7 +189,7 @@ describe("Event API tests", () => {
             const eventHandler = new EventHandler(logger, browserCrypto);
             eventHandler.addEventCallback(subscriber);
 
-            const emitEventSpy = sinon.spy(eventHandler, "emitEvent");
+            const emitEventSpy = jest.spyOn(eventHandler, "emitEvent");
             // @ts-ignore
             eventHandler.handleAccountCacheChange({
                 key: "testCacheKey",
@@ -189,7 +197,7 @@ describe("Event API tests", () => {
                 newValue: null,
             });
 
-            expect(emitEventSpy.getCalls().length).toBe(0);
+            expect(emitEventSpy).toHaveBeenCalledTimes(0);
         });
 
         it("No event raised if cache value is not an account", () => {
@@ -197,7 +205,7 @@ describe("Event API tests", () => {
             const eventHandler = new EventHandler(logger, browserCrypto);
             eventHandler.addEventCallback(subscriber);
 
-            const emitEventSpy = sinon.spy(eventHandler, "emitEvent");
+            const emitEventSpy = jest.spyOn(eventHandler, "emitEvent");
             // @ts-ignore
             eventHandler.handleAccountCacheChange({
                 key: "testCacheKey",
@@ -207,7 +215,7 @@ describe("Event API tests", () => {
                 newValue: null,
             });
 
-            expect(emitEventSpy.getCalls().length).toBe(0);
+            expect(emitEventSpy).toHaveBeenCalledTimes(0);
         });
 
         it("No event raised if both oldValue and newValue are falsey", () => {
@@ -215,7 +223,7 @@ describe("Event API tests", () => {
             const eventHandler = new EventHandler(logger, browserCrypto);
             eventHandler.addEventCallback(subscriber);
 
-            const emitEventSpy = sinon.spy(eventHandler, "emitEvent");
+            const emitEventSpy = jest.spyOn(eventHandler, "emitEvent");
             // @ts-ignore
             eventHandler.handleAccountCacheChange({
                 key: "testCacheKey",
@@ -223,7 +231,7 @@ describe("Event API tests", () => {
                 newValue: null,
             });
 
-            expect(emitEventSpy.getCalls().length).toBe(0);
+            expect(emitEventSpy).toHaveBeenCalledTimes(0);
         });
 
         it("ACTIVE_ACCOUNT_CHANGED event raised when active account is changed in another tab", (done) => {

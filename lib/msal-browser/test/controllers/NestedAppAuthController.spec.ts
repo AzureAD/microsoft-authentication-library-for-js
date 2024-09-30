@@ -1,9 +1,8 @@
-import sinon from "sinon";
-import { NestedAppAuthController } from "../../src/controllers/NestedAppAuthController";
+import { NestedAppAuthController } from "../../src/controllers/NestedAppAuthController.js";
 import {
     PublicClientApplication,
     createNestablePublicClientApplication,
-} from "../../src/app/PublicClientApplication";
+} from "../../src/app/PublicClientApplication.js";
 import {
     AccountInfo,
     AuthorityMetadataEntity,
@@ -17,17 +16,17 @@ import {
     Configuration,
     IPublicClientApplication,
     SilentRequest,
-} from "../../src";
-import { buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG } from "../utils/StringConstants";
-import { IBridgeProxy } from "../../src/naa/IBridgeProxy";
-import MockBridge from "../naa/MockBridge";
+} from "../../src/index.js";
+import { buildConfiguration } from "../../src/config/Configuration.js";
+import { TEST_CONFIG } from "../utils/StringConstants.js";
+import { IBridgeProxy } from "../../src/naa/IBridgeProxy.js";
+import MockBridge from "../naa/MockBridge.js";
 import {
     INIT_CONTEXT_RESPONSE,
     SILENT_TOKEN_REQUEST,
     SILENT_TOKEN_RESPONSE,
-} from "../naa/BridgeProxyConstants";
-import BridgeProxy from "../../src/naa/BridgeProxy";
+} from "../naa/BridgeProxyConstants.js";
+import BridgeProxy from "../../src/naa/BridgeProxy.js";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -67,7 +66,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
         );
         bridgeProxy = await BridgeProxy.create();
 
-        sinon.stub(BridgeProxy, "create").resolves(bridgeProxy);
+        jest.spyOn(BridgeProxy, "create").mockResolvedValue(bridgeProxy);
 
         config = {
             auth: {
@@ -105,7 +104,6 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
     });
 
     afterEach(() => {
-        sinon.restore();
         jest.restoreAllMocks();
         windowSpy.mockRestore();
         window.sessionStorage.clear();

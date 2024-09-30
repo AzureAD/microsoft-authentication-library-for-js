@@ -1,4 +1,3 @@
-import sinon from "sinon";
 import {
     ALTERNATE_OPENID_CONFIG_RESPONSE,
     AUTHENTICATION_RESULT,
@@ -16,9 +15,9 @@ import {
     TEST_SSH_VALUES,
     AUTHENTICATION_RESULT_WITH_HEADERS,
     CORS_RESPONSE_HEADERS,
-} from "../test_kit/StringConstants";
-import { ClientConfiguration } from "../../src/config/ClientConfiguration";
-import { BaseClient } from "../../src/client/BaseClient";
+} from "../test_kit/StringConstants.js";
+import { ClientConfiguration } from "../../src/config/ClientConfiguration.js";
+import { BaseClient } from "../../src/client/BaseClient.js";
 import {
     PromptValue,
     ResponseMode,
@@ -27,42 +26,40 @@ import {
     Constants,
     HeaderNames,
     ONE_DAY_IN_MS,
-} from "../../src/utils/Constants";
-import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys";
-import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
-import { TestError } from "../test_kit/TestErrors";
-import { Authority } from "../../src/authority/Authority";
-import { AuthorizationCodeClient } from "../../src/client/AuthorizationCodeClient";
-import { CommonAuthorizationUrlRequest } from "../../src/request/CommonAuthorizationUrlRequest";
-import { TokenClaims } from "../../src/account/TokenClaims";
-import { ServerError } from "../../src/error/ServerError";
-import { CommonAuthorizationCodeRequest } from "../../src/request/CommonAuthorizationCodeRequest";
-import * as AuthToken from "../../src/account/AuthToken";
+} from "../../src/utils/Constants.js";
+import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
+import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils.js";
+import { TestError } from "../test_kit/TestErrors.js";
+import { Authority } from "../../src/authority/Authority.js";
+import { AuthorizationCodeClient } from "../../src/client/AuthorizationCodeClient.js";
+import { CommonAuthorizationUrlRequest } from "../../src/request/CommonAuthorizationUrlRequest.js";
+import { TokenClaims } from "../../src/account/TokenClaims.js";
+import { ServerError } from "../../src/error/ServerError.js";
+import { CommonAuthorizationCodeRequest } from "../../src/request/CommonAuthorizationCodeRequest.js";
+import * as AuthToken from "../../src/account/AuthToken.js";
 import {
     ClientAuthErrorCodes,
     createClientAuthError,
-} from "../../src/error/ClientAuthError";
+} from "../../src/error/ClientAuthError.js";
 import {
     AuthError,
     CcsCredentialType,
     ClientConfigurationErrorCodes,
     createClientConfigurationError,
-} from "../../src";
-import { ProtocolMode } from "../../src/authority/ProtocolMode";
+} from "../../src/index.js";
+import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
 
 describe("AuthorizationCodeClient unit tests", () => {
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     describe("Constructor", () => {
         it("creates a AuthorizationCodeClient that extends BaseClient", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
@@ -74,12 +71,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
     describe("Authorization url creation", () => {
         it("Creates an authorization url with default parameters", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
@@ -163,12 +158,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Creates an authorization url passing in optional parameters", async () => {
             // Override with alternate authority openid_config
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -300,12 +293,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Adds CCS entry if loginHint is provided", async () => {
             // Override with alternate authority openid_config
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -343,12 +334,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Adds CCS entry if account is provided", async () => {
             // Override with alternate authority openid_config
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -412,12 +401,10 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("prefers login_hint claim over sid/upn if both provided", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -488,12 +475,10 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("skips login_hint claim if domainHint param is set", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -571,12 +556,10 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("picks up both loginHint and domainHint params", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -649,12 +632,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Prefers sid over loginHint if both provided and prompt=None", async () => {
             // Override with alternate authority openid_config
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -691,12 +672,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Prefers loginHint over sid if both provided and prompt!=None", async () => {
             // Override with alternate authority openid_config
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -729,12 +708,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Ignores sid if prompt!=None", async () => {
             // Override with alternate authority openid_config
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -762,12 +739,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Prefers loginHint over Account if both provided and account does not have token claims", async () => {
             // Override with alternate authority openid_config
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -806,12 +781,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Uses sid from account if not provided in request and prompt=None, overrides login_hint", async () => {
             // Override with alternate authority openid_config
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -872,12 +845,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Uses loginHint instead of sid from account prompt!=None", async () => {
             // Override with alternate authority openid_config
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -953,12 +924,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Uses login_hint instead of username if sid is not present in token claims for account or request", async () => {
             // Override with alternate authority openid_config
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -1033,12 +1002,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Sets login_hint to Account.username if login_hint and sid are not provided", async () => {
             // Override with alternate authority openid_config
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -1069,12 +1036,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Ignores Account if prompt is select_account", async () => {
             // Override with alternate authority openid_config
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -1102,12 +1067,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Ignores loginHint if prompt is select_account", async () => {
             // Override with alternate authority openid_config
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -1135,12 +1098,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Ignores sid if prompt is select_account", async () => {
             // Override with alternate authority openid_config
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -1168,12 +1129,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Creates a login URL with scopes from given token request", async () => {
             // Override with alternate authority openid_config
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -1204,22 +1163,19 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Does not append an extra '?' when the authorization endpoint already contains a query string", async () => {
             // Override with alternate authority openid_config
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromHardcodedValues"
-                )
-                .returns({
-                    token_endpoint:
-                        "https://login.windows.net/common/oauth2/v2.0/token?param1=value1",
-                    issuer: "https://login.windows.net/{tenantid}/v2.0",
-                    userinfo_endpoint:
-                        "https://graph.microsoft.com/oidc/userinfo",
-                    authorization_endpoint:
-                        "https://login.windows.net/common/oauth2/v2.0/authorize?param1=value1",
-                    end_session_endpoint:
-                        "https://login.windows.net/common/oauth2/v2.0/logout?param1=value1",
-                });
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromHardcodedValues"
+            ).mockReturnValue({
+                token_endpoint:
+                    "https://login.windows.net/common/oauth2/v2.0/token?param1=value1",
+                issuer: "https://login.windows.net/{tenantid}/v2.0",
+                userinfo_endpoint: "https://graph.microsoft.com/oidc/userinfo",
+                authorization_endpoint:
+                    "https://login.windows.net/common/oauth2/v2.0/authorize?param1=value1",
+                end_session_endpoint:
+                    "https://login.windows.net/common/oauth2/v2.0/logout?param1=value1",
+            });
 
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -1296,9 +1252,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
     it("Adds req-cnf as needed", async () => {
         // Override with alternate authority openid_config
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        jest.spyOn(
+            Authority.prototype,
+            <any>"getEndpointMetadataFromNetwork"
+        ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
 
         const config: ClientConfiguration =
             await ClientTestUtils.createTestClientConfiguration();
@@ -1368,12 +1325,10 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("throws server error when error is in hash", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
             const client: AuthorizationCodeClient = new AuthorizationCodeClient(
@@ -1410,12 +1365,10 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("Throws error if null code request is passed", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
 
             const client = new AuthorizationCodeClient(config);
 
@@ -1435,12 +1388,10 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("Throws error if code response does not contain authorization code", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
 
             if (!config.storageInterface) {
                 throw TestError.createTestSetupError(
@@ -1474,19 +1425,17 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("preventCorsPreflight=true does not add headers other than simpleRequest headers", async () => {
             // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-            let stubCalled = false;
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            const executePostToTokenEndpointSpy: jest.SpyInstance = jest
+                .spyOn(
                     AuthorizationCodeClient.prototype,
                     <any>"executePostToTokenEndpoint"
                 )
-                .callsFake(
+                .mockImplementation(
+                    // @ts-expect-error
                     (
                         tokenEndpoint: string,
                         queryString: string,
@@ -1499,7 +1448,6 @@ describe("AuthorizationCodeClient unit tests", () => {
                             );
                         });
 
-                        stubCalled = true;
                         return Promise.resolve(AUTHENTICATION_RESULT);
                     }
                 );
@@ -1515,37 +1463,39 @@ describe("AuthorizationCodeClient unit tests", () => {
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
-            sinon
-                .stub(config.cryptoInterface, "base64Decode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                            return TEST_POP_VALUES.DECODED_REQ_CNF;
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
-                            return decodedLibState;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Decode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
+                        return decodedLibState;
+                    default:
+                        return input;
+                }
+            });
 
-            sinon
-                .stub(config.cryptoInterface, "base64Encode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.DECODED_REQ_CNF:
-                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                        case "123-test-uid":
-                            return "MTIzLXRlc3QtdWlk";
-                        case "456-test-utid":
-                            return "NDU2LXRlc3QtdXRpZA==";
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Encode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-utid":
+                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            });
 
             // Set up stubs
             const idTokenClaims = {
@@ -1559,7 +1509,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                idTokenClaims
+            );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -1585,28 +1537,26 @@ describe("AuthorizationCodeClient unit tests", () => {
                 state: testState,
             });
 
-            expect(stubCalled).toBe(true);
+            expect(executePostToTokenEndpointSpy).toHaveBeenCalled();
         });
 
         it("preventCorsPreflight=false adds headers to request", async () => {
             // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-            let stubCalled = false;
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const reqHeaders = [
                 ...CORS_SIMPLE_REQUEST_HEADERS,
                 HeaderNames.CCS_HEADER.toLowerCase(),
             ];
-            sinon
-                .stub(
+            const executePostToTokenEndpointSpy: jest.SpyInstance = jest
+                .spyOn(
                     AuthorizationCodeClient.prototype,
                     <any>"executePostToTokenEndpoint"
                 )
-                .callsFake(
+                .mockImplementation(
+                    // @ts-expect-error
                     (
                         tokenEndpoint: string,
                         queryString: string,
@@ -1619,7 +1569,6 @@ describe("AuthorizationCodeClient unit tests", () => {
                             );
                         });
 
-                        stubCalled = true;
                         return Promise.resolve(AUTHENTICATION_RESULT);
                     }
                 );
@@ -1635,37 +1584,39 @@ describe("AuthorizationCodeClient unit tests", () => {
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
-            sinon
-                .stub(config.cryptoInterface, "base64Decode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                            return TEST_POP_VALUES.DECODED_REQ_CNF;
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
-                            return decodedLibState;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Decode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
+                        return decodedLibState;
+                    default:
+                        return input;
+                }
+            });
 
-            sinon
-                .stub(config.cryptoInterface, "base64Encode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.DECODED_REQ_CNF:
-                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                        case "123-test-uid":
-                            return "MTIzLXRlc3QtdWlk";
-                        case "456-test-utid":
-                            return "NDU2LXRlc3QtdXRpZA==";
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Encode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-utid":
+                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            });
 
             // Set up stubs
             const idTokenClaims = {
@@ -1679,7 +1630,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                idTokenClaims
+            );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -1705,24 +1658,22 @@ describe("AuthorizationCodeClient unit tests", () => {
                 state: testState,
             });
 
-            expect(stubCalled).toBe(true);
+            expect(executePostToTokenEndpointSpy).toHaveBeenCalled();
         });
 
         it("Does not add headers that do not qualify for a simple request", async () => {
             // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-            let stubCalled = false;
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            const executePostToTokenEndpointSpy: jest.SpyInstance = jest
+                .spyOn(
                     AuthorizationCodeClient.prototype,
                     <any>"executePostToTokenEndpoint"
                 )
-                .callsFake(
+                .mockImplementation(
+                    // @ts-expect-error
                     (
                         tokenEndpoint: string,
                         queryString: string,
@@ -1735,7 +1686,6 @@ describe("AuthorizationCodeClient unit tests", () => {
                             );
                         });
 
-                        stubCalled = true;
                         return Promise.resolve(AUTHENTICATION_RESULT);
                     }
                 );
@@ -1750,37 +1700,39 @@ describe("AuthorizationCodeClient unit tests", () => {
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
-            sinon
-                .stub(config.cryptoInterface, "base64Decode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                            return TEST_POP_VALUES.DECODED_REQ_CNF;
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
-                            return decodedLibState;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Decode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
+                        return decodedLibState;
+                    default:
+                        return input;
+                }
+            });
 
-            sinon
-                .stub(config.cryptoInterface, "base64Encode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.DECODED_REQ_CNF:
-                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                        case "123-test-uid":
-                            return "MTIzLXRlc3QtdWlk";
-                        case "456-test-utid":
-                            return "NDU2LXRlc3QtdXRpZA==";
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Encode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-utid":
+                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            });
 
             // Set up stubs
             const idTokenClaims = {
@@ -1794,7 +1746,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                idTokenClaims
+            );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -1816,22 +1770,18 @@ describe("AuthorizationCodeClient unit tests", () => {
                 state: testState,
             });
 
-            expect(stubCalled).toBe(true);
+            expect(executePostToTokenEndpointSpy).toHaveBeenCalled();
         });
 
         it("Throws error if max age is equal to 0 or has transpired since the last end-user authentication", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(AUTHENTICATION_RESULT);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT);
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
@@ -1843,37 +1793,39 @@ describe("AuthorizationCodeClient unit tests", () => {
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
-            sinon
-                .stub(config.cryptoInterface, "base64Decode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                            return TEST_POP_VALUES.DECODED_REQ_CNF;
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
-                            return decodedLibState;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Decode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
+                        return decodedLibState;
+                    default:
+                        return input;
+                }
+            });
 
-            sinon
-                .stub(config.cryptoInterface, "base64Encode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.DECODED_REQ_CNF:
-                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                        case "123-test-uid":
-                            return "MTIzLXRlc3QtdWlk";
-                        case "456-test-utid":
-                            return "NDU2LXRlc3QtdXRpZA==";
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Encode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-utid":
+                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            });
 
             // Set up stubs
             const idTokenClaims = {
@@ -1888,7 +1840,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
                 auth_time: Date.now() - ONE_DAY_IN_MS * 2,
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                idTokenClaims
+            );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -1917,18 +1871,14 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("Throws error if max age is requested and auth time is not included in the token claims", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(AUTHENTICATION_RESULT);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT);
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
@@ -1940,37 +1890,39 @@ describe("AuthorizationCodeClient unit tests", () => {
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
-            sinon
-                .stub(config.cryptoInterface, "base64Decode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                            return TEST_POP_VALUES.DECODED_REQ_CNF;
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
-                            return decodedLibState;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Decode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
+                        return decodedLibState;
+                    default:
+                        return input;
+                }
+            });
 
-            sinon
-                .stub(config.cryptoInterface, "base64Encode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.DECODED_REQ_CNF:
-                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                        case "123-test-uid":
-                            return "MTIzLXRlc3QtdWlk";
-                        case "456-test-utid":
-                            return "NDU2LXRlc3QtdXRpZA==";
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Encode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-utid":
+                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            });
 
             // Set up stubs
             const idTokenClaims = {
@@ -1985,7 +1937,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
                 // "auth_time" is missing for the purpose of this test
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                idTokenClaims
+            );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -2014,23 +1968,18 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("Acquires a token successfully", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(AUTHENTICATION_RESULT);
-            const createTokenRequestBodySpy = sinon.spy(
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT);
+            const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
                 <any>"createTokenRequestBody"
             );
-
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
                     "configuration cryptoInterface not initialized correctly."
@@ -2041,37 +1990,39 @@ describe("AuthorizationCodeClient unit tests", () => {
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
-            sinon
-                .stub(config.cryptoInterface, "base64Decode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                            return TEST_POP_VALUES.DECODED_REQ_CNF;
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
-                            return decodedLibState;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Decode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
+                        return decodedLibState;
+                    default:
+                        return input;
+                }
+            });
 
-            sinon
-                .stub(config.cryptoInterface, "base64Encode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.DECODED_REQ_CNF:
-                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                        case "123-test-uid":
-                            return "MTIzLXRlc3QtdWlk";
-                        case "456-test-utid":
-                            return "NDU2LXRlc3QtdXRpZA==";
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Encode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-utid":
+                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            });
 
             // Set up stubs
             const idTokenClaims = {
@@ -2085,7 +2036,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                idTokenClaims
+            );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -2123,12 +2076,12 @@ describe("AuthorizationCodeClient unit tests", () => {
                 Date.now() + AUTHENTICATION_RESULT.body.expires_in * 1000 >=
                     authenticationResult.expiresOn.getMilliseconds()
             ).toBe(true);
-            expect(
-                createTokenRequestBodySpy.calledWith(authCodeRequest)
-            ).toBeTruthy();
+            expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
+                authCodeRequest
+            );
 
-            const returnVal = (await createTokenRequestBodySpy
-                .returnValues[0]) as string;
+            const returnVal = (await createTokenRequestBodySpy.mock.results[0]
+                .value) as string;
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
@@ -2194,23 +2147,18 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("Acquires a token successfully when max age is provided and has not transpired yet", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(AUTHENTICATION_RESULT);
-            const createTokenRequestBodySpy = sinon.spy(
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT);
+            const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
                 <any>"createTokenRequestBody"
             );
-
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
                     "configuration cryptoInterface not initialized correctly."
@@ -2221,37 +2169,39 @@ describe("AuthorizationCodeClient unit tests", () => {
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
-            sinon
-                .stub(config.cryptoInterface, "base64Decode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                            return TEST_POP_VALUES.DECODED_REQ_CNF;
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
-                            return decodedLibState;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Decode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
+                        return decodedLibState;
+                    default:
+                        return input;
+                }
+            });
 
-            sinon
-                .stub(config.cryptoInterface, "base64Encode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.DECODED_REQ_CNF:
-                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                        case "123-test-uid":
-                            return "MTIzLXRlc3QtdWlk";
-                        case "456-test-utid":
-                            return "NDU2LXRlc3QtdXRpZA==";
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Encode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-utid":
+                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            });
 
             // Set up stubs
             const idTokenClaims = {
@@ -2266,7 +2216,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
                 auth_time: Date.now() - ONE_DAY_IN_MS * 2,
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                idTokenClaims
+            );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -2305,12 +2257,12 @@ describe("AuthorizationCodeClient unit tests", () => {
                 Date.now() + AUTHENTICATION_RESULT.body.expires_in * 1000 >=
                     authenticationResult.expiresOn.getMilliseconds()
             ).toBe(true);
-            expect(
-                createTokenRequestBodySpy.calledWith(authCodeRequest)
-            ).toBeTruthy();
+            expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
+                authCodeRequest
+            );
 
-            const returnVal = (await createTokenRequestBodySpy
-                .returnValues[0]) as string;
+            const returnVal = (await createTokenRequestBodySpy.mock.results[0]
+                .value) as string;
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
@@ -2376,32 +2328,27 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("Adds tokenQueryParameters to the /token request", (done) => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .callsFake((url: string) => {
-                    try {
-                        expect(
-                            url.includes(
-                                "/token?testParam1=testValue1&testParam3=testValue3"
-                            )
-                        ).toBeTruthy();
-                        expect(
-                            !url.includes("/token?testParam2=")
-                        ).toBeTruthy();
-                        done();
-                    } catch (error) {
-                        done(error);
-                    }
-                });
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                <any>"executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string) => {
+                try {
+                    expect(
+                        url.includes(
+                            "/token?testParam1=testValue1&testParam3=testValue3"
+                        )
+                    ).toBeTruthy();
+                    expect(!url.includes("/token?testParam2=")).toBeTruthy();
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
 
             const client = new AuthorizationCodeClient(config);
             const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
@@ -2429,21 +2376,18 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("Adds tokenBodyParameters to the /token request", (done) => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .callsFake((url: string, body: string) => {
-                    expect(body).toContain("extra_body_parameter=true");
-                    done();
-                });
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                <any>"executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string, body: string) => {
+                expect(body).toContain("extra_body_parameter=true");
+                done();
+            });
 
             if (!config.cryptoInterface || !config.systemOptions) {
                 throw TestError.createTestSetupError(
@@ -2475,21 +2419,18 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("Adds return_spa_code=1 to body when enableSpaAuthCode is set", (done) => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .callsFake((url: string, body: string) => {
-                    expect(body).toContain("return_spa_code=1");
-                    done();
-                });
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                <any>"executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string, body: string) => {
+                expect(body).toContain("return_spa_code=1");
+                done();
+            });
 
             if (!config.cryptoInterface || !config.systemOptions) {
                 throw TestError.createTestSetupError(
@@ -2525,21 +2466,18 @@ describe("AuthorizationCodeClient unit tests", () => {
                     this.includeRedirectUri = false;
                 }
             }
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
-                    TestAuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .callsFake((url: string, body: string) => {
-                    expect(body).not.toContain("redirect_uri=");
-                    done();
-                });
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                TestAuthorizationCodeClient.prototype,
+                <any>"executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string, body: string) => {
+                expect(body).not.toContain("redirect_uri=");
+                done();
+            });
 
             if (!config.cryptoInterface || !config.systemOptions) {
                 throw TestError.createTestSetupError(
@@ -2571,23 +2509,18 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("Sends the required parameters when a pop token is requested", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(POP_AUTHENTICATION_RESULT);
-            const createTokenRequestBodySpy = sinon.spy(
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(POP_AUTHENTICATION_RESULT);
+            const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
                 <any>"createTokenRequestBody"
             );
-
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
                     "configuration cryptoInterface not initialized correctly."
@@ -2598,37 +2531,39 @@ describe("AuthorizationCodeClient unit tests", () => {
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
-            sinon
-                .stub(config.cryptoInterface, "base64Decode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                            return TEST_POP_VALUES.DECODED_REQ_CNF;
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
-                            return decodedLibState;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Decode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
+                        return decodedLibState;
+                    default:
+                        return input;
+                }
+            });
 
-            sinon
-                .stub(config.cryptoInterface, "base64Encode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.DECODED_REQ_CNF:
-                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                        case "123-test-uid":
-                            return "MTIzLXRlc3QtdWlk";
-                        case "456-test-utid":
-                            return "NDU2LXRlc3QtdXRpZA==";
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Encode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-utid":
+                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            });
 
             const signedJwt =
                 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsia2lkIjoiTnpiTHNYaDh1RENjZC02TU53WEY0V183bm9XWEZaQWZIa3hac1JHQzlYcyJ9fQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
@@ -2655,27 +2590,25 @@ describe("AuthorizationCodeClient unit tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
             };
-            sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .callsFake(
-                    (
-                        encodedToken: string,
-                        base64Decode: (val: string) => string
-                    ): TokenClaims => {
-                        switch (encodedToken) {
-                            case POP_AUTHENTICATION_RESULT.body.id_token:
-                                return idTokenClaims as TokenClaims;
-                            case POP_AUTHENTICATION_RESULT.body.access_token:
-                                return {
-                                    cnf: {
-                                        kid: TEST_POP_VALUES.KID,
-                                    },
-                                };
-                            default:
-                                return {};
-                        }
+            jest.spyOn(AuthToken, "extractTokenClaims").mockImplementation(
+                (
+                    encodedToken: string,
+                    base64Decode: (val: string) => string
+                ): TokenClaims => {
+                    switch (encodedToken) {
+                        case POP_AUTHENTICATION_RESULT.body.id_token:
+                            return idTokenClaims as TokenClaims;
+                        case POP_AUTHENTICATION_RESULT.body.access_token:
+                            return {
+                                cnf: {
+                                    kid: TEST_POP_VALUES.KID,
+                                },
+                            };
+                        default:
+                            return {};
                     }
-                );
+                }
+            );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authenticationScheme: AuthenticationScheme.POP,
@@ -2709,11 +2642,11 @@ describe("AuthorizationCodeClient unit tests", () => {
                     // @ts-ignore
                     authenticationResult.expiresOn.getMilliseconds()
             ).toBe(true);
-            expect(
-                createTokenRequestBodySpy.calledWith(authCodeRequest)
-            ).toBeTruthy();
-            const returnVal = (await createTokenRequestBodySpy
-                .returnValues[0]) as string;
+            expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
+                authCodeRequest
+            );
+            const returnVal = (await createTokenRequestBodySpy.mock.results[0]
+                .value) as string;
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
@@ -2771,23 +2704,18 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("Sends the required parameters when a SSH certificate is requested", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(POP_AUTHENTICATION_RESULT);
-            const createTokenRequestBodySpy = sinon.spy(
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(POP_AUTHENTICATION_RESULT);
+            const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
                 <any>"createTokenRequestBody"
             );
-
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
                     "configuration cryptoInterface not initialized correctly."
@@ -2851,27 +2779,25 @@ describe("AuthorizationCodeClient unit tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
             };
-            sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .callsFake(
-                    (
-                        encodedToken: string,
-                        base64Decode: (val: string) => string
-                    ): TokenClaims => {
-                        switch (encodedToken) {
-                            case POP_AUTHENTICATION_RESULT.body.id_token:
-                                return idTokenClaims as TokenClaims;
-                            case POP_AUTHENTICATION_RESULT.body.access_token:
-                                return {
-                                    cnf: {
-                                        kid: TEST_POP_VALUES.KID,
-                                    },
-                                };
-                            default:
-                                return {};
-                        }
+            jest.spyOn(AuthToken, "extractTokenClaims").mockImplementation(
+                (
+                    encodedToken: string,
+                    base64Decode: (val: string) => string
+                ): TokenClaims => {
+                    switch (encodedToken) {
+                        case POP_AUTHENTICATION_RESULT.body.id_token:
+                            return idTokenClaims as TokenClaims;
+                        case POP_AUTHENTICATION_RESULT.body.access_token:
+                            return {
+                                cnf: {
+                                    kid: TEST_POP_VALUES.KID,
+                                },
+                            };
+                        default:
+                            return {};
                     }
-                );
+                }
+            );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authenticationScheme: AuthenticationScheme.SSH,
@@ -2904,11 +2830,11 @@ describe("AuthorizationCodeClient unit tests", () => {
                     // @ts-ignore
                     authenticationResult.expiresOn.getMilliseconds()
             ).toBe(true);
-            expect(
-                createTokenRequestBodySpy.calledWith(authCodeRequest)
-            ).toBeTruthy();
-            const returnVal = (await createTokenRequestBodySpy
-                .returnValues[0]) as string;
+            expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
+                authCodeRequest
+            );
+            const returnVal = (await createTokenRequestBodySpy.mock.results[0]
+                .value) as string;
             expect(
                 returnVal.includes(
                     `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
@@ -2966,18 +2892,14 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("Throws missing SSH JWK error when the token request has Authentication Scheme set to SSH and SSH JWK is missing", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(POP_AUTHENTICATION_RESULT);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(POP_AUTHENTICATION_RESULT);
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
@@ -3041,27 +2963,25 @@ describe("AuthorizationCodeClient unit tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
             };
-            sinon
-                .stub(AuthToken, "extractTokenClaims")
-                .callsFake(
-                    (
-                        encodedToken: string,
-                        base64Decode: (val: string) => string
-                    ): TokenClaims => {
-                        switch (encodedToken) {
-                            case POP_AUTHENTICATION_RESULT.body.id_token:
-                                return idTokenClaims as TokenClaims;
-                            case POP_AUTHENTICATION_RESULT.body.access_token:
-                                return {
-                                    cnf: {
-                                        kid: TEST_POP_VALUES.KID,
-                                    },
-                                };
-                            default:
-                                return {};
-                        }
+            jest.spyOn(AuthToken, "extractTokenClaims").mockImplementation(
+                (
+                    encodedToken: string,
+                    base64Decode: (val: string) => string
+                ): TokenClaims => {
+                    switch (encodedToken) {
+                        case POP_AUTHENTICATION_RESULT.body.id_token:
+                            return idTokenClaims as TokenClaims;
+                        case POP_AUTHENTICATION_RESULT.body.access_token:
+                            return {
+                                cnf: {
+                                    kid: TEST_POP_VALUES.KID,
+                                },
+                            };
+                        default:
+                            return {};
                     }
-                );
+                }
+            );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authenticationScheme: AuthenticationScheme.SSH,
@@ -3091,26 +3011,22 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("properly handles expiration timestamps as strings", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves({
-                    ...AUTHENTICATION_RESULT,
-                    body: {
-                        ...AUTHENTICATION_RESULT.body,
-                        expires_in: "3599",
-                        ext_expires_in: "3599",
-                    },
-                });
-            sinon.spy(
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue({
+                ...AUTHENTICATION_RESULT,
+                body: {
+                    ...AUTHENTICATION_RESULT.body,
+                    expires_in: "3599",
+                    ext_expires_in: "3599",
+                },
+            });
+            jest.spyOn(
                 AuthorizationCodeClient.prototype,
                 <any>"createTokenRequestBody"
             );
@@ -3124,37 +3040,39 @@ describe("AuthorizationCodeClient unit tests", () => {
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
-            sinon
-                .stub(config.cryptoInterface, "base64Decode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                            return TEST_POP_VALUES.DECODED_REQ_CNF;
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
-                            return decodedLibState;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Decode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
+                        return decodedLibState;
+                    default:
+                        return input;
+                }
+            });
 
-            sinon
-                .stub(config.cryptoInterface, "base64Encode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.DECODED_REQ_CNF:
-                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                        case "123-test-uid":
-                            return "MTIzLXRlc3QtdWlk";
-                        case "456-test-utid":
-                            return "NDU2LXRlc3QtdXRpZA==";
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Encode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-utid":
+                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            });
 
             // Set up stubs
             const idTokenClaims = {
@@ -3168,7 +3086,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                idTokenClaims
+            );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -3199,12 +3119,10 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("Saves refresh_in correctly to the cache", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const authResult = {
                 ...AUTHENTICATION_RESULT,
                 body: {
@@ -3212,17 +3130,14 @@ describe("AuthorizationCodeClient unit tests", () => {
                     refresh_in: 1000,
                 },
             };
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(authResult);
-            const createTokenRequestBodySpy = sinon.spy(
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(authResult);
+            const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
                 <any>"createTokenRequestBody"
             );
-
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
                     "configuration cryptoInterface not initialized correctly."
@@ -3232,37 +3147,39 @@ describe("AuthorizationCodeClient unit tests", () => {
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
-            sinon
-                .stub(config.cryptoInterface, "base64Decode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                            return TEST_POP_VALUES.DECODED_REQ_CNF;
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
-                            return decodedLibState;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Decode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
+                        return decodedLibState;
+                    default:
+                        return input;
+                }
+            });
 
-            sinon
-                .stub(config.cryptoInterface, "base64Encode")
-                .callsFake((input) => {
-                    switch (input) {
-                        case TEST_POP_VALUES.DECODED_REQ_CNF:
-                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                        case "123-test-uid":
-                            return "MTIzLXRlc3QtdWlk";
-                        case "456-test-utid":
-                            return "NDU2LXRlc3QtdXRpZA==";
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        default:
-                            return input;
-                    }
-                });
+            jest.spyOn(
+                config.cryptoInterface,
+                "base64Encode"
+            ).mockImplementation((input) => {
+                switch (input) {
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-utid":
+                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            });
 
             // Set up stubs
             const idTokenClaims = {
@@ -3276,7 +3193,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                idTokenClaims
+            );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -3317,9 +3236,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                     Date.now() + AUTHENTICATION_RESULT.body.expires_in * 1000 >=
                         authenticationResult.expiresOn.getMilliseconds()
             ).toBe(true);
-            expect(
-                createTokenRequestBodySpy.calledWith(authCodeRequest)
-            ).toBeTruthy();
+            expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
+                authCodeRequest
+            );
             expect(
                 accessTokenCacheItem &&
                     accessTokenCacheItem.refreshOn &&
@@ -3330,18 +3249,14 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("includes the requestId in the result when received in server response", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT_WITH_HEADERS);
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
@@ -3361,7 +3276,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                idTokenClaims
+            );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -3397,18 +3314,14 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("does not include the requestId in the result when none in server response", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
-                    AuthorizationCodeClient.prototype,
-                    <any>"executePostToTokenEndpoint"
-                )
-                .resolves(AUTHENTICATION_RESULT);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT);
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
@@ -3427,7 +3340,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                idTokenClaims
+            );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -3481,19 +3396,15 @@ describe("AuthorizationCodeClient unit tests", () => {
                 config,
                 performanceClient
             );
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
-                    // @ts-ignore
-                    client.networkManager,
-                    "sendPostRequest"
-                )
-                .resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                // @ts-ignore
+                client.networkManager,
+                "sendPostRequest"
+            ).mockResolvedValue(AUTHENTICATION_RESULT_WITH_HEADERS);
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
@@ -3512,7 +3423,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                idTokenClaims
+            );
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -3532,7 +3445,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: idTokenClaims.nonce,
             });
 
-            expect(performanceClient.addFields).toBeCalledWith(
+            expect(performanceClient.addFields).toHaveBeenCalledWith(
                 {
                     httpVerToken: "xMsHttpVer",
                     refreshTokenSize:
@@ -3563,19 +3476,15 @@ describe("AuthorizationCodeClient unit tests", () => {
                 config,
                 performanceClient
             );
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon
-                .stub(
-                    // @ts-ignore
-                    client.networkManager,
-                    "sendPostRequest"
-                )
-                .resolves({ ...AUTHENTICATION_RESULT, headers: {} });
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                // @ts-ignore
+                client.networkManager,
+                "sendPostRequest"
+            ).mockResolvedValue({ ...AUTHENTICATION_RESULT, headers: {} });
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
@@ -3594,7 +3503,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                idTokenClaims
+            );
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -3630,13 +3541,11 @@ describe("AuthorizationCodeClient unit tests", () => {
             let config = await ClientTestUtils.createTestClientConfiguration(
                 true
             );
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            const createTokenRequestBodySpy = sinon.spy(
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
                 <any>"createTokenRequestBody"
             );
@@ -3657,7 +3566,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                idTokenClaims
+            );
             const performanceClient = {
                 startMeasurement: jest.fn(),
                 endMeasurement: jest.fn(),
@@ -3707,12 +3618,12 @@ describe("AuthorizationCodeClient unit tests", () => {
                     nonce: idTokenClaims.nonce,
                 });
             } catch {}
-            expect(
-                createTokenRequestBodySpy.calledWith(authCodeRequest)
-            ).toBeTruthy();
+            expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
+                authCodeRequest
+            );
 
-            const returnVal = (await createTokenRequestBodySpy
-                .returnValues[0]) as string;
+            const returnVal = (await createTokenRequestBodySpy.mock.results[0]
+                .value) as string;
             expect(
                 returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`)
             ).toBe(true);
@@ -3725,13 +3636,11 @@ describe("AuthorizationCodeClient unit tests", () => {
                 true,
                 ProtocolMode.OIDC
             );
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            const createTokenRequestBodySpy = sinon.spy(
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            const createTokenRequestBodySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
                 <any>"createTokenRequestBody"
             );
@@ -3752,7 +3661,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                idTokenClaims
+            );
             const performanceClient = {
                 startMeasurement: jest.fn(),
                 endMeasurement: jest.fn(),
@@ -3802,12 +3713,12 @@ describe("AuthorizationCodeClient unit tests", () => {
                     nonce: idTokenClaims.nonce,
                 });
             } catch {}
-            expect(
-                createTokenRequestBodySpy.calledWith(authCodeRequest)
-            ).toBeTruthy();
+            expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
+                authCodeRequest
+            );
 
-            const returnVal = (await createTokenRequestBodySpy
-                .returnValues[0]) as string;
+            const returnVal = (await createTokenRequestBodySpy.mock.results[0]
+                .value) as string;
             expect(
                 returnVal.includes(`${AADServerParamKeys.X_CLIENT_CURR_TELEM}`)
             ).toBe(false);
@@ -3819,12 +3730,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
     describe("getLogoutUri()", () => {
         it("Returns a uri", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
@@ -3843,12 +3752,10 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("Returns a uri with given parameters", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromNetwork"
-                )
-                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
@@ -3874,22 +3781,19 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("Does not append an extra '?' when the end session endpoint already contains a query string", async () => {
-            sinon
-                .stub(
-                    Authority.prototype,
-                    <any>"getEndpointMetadataFromHardcodedValues"
-                )
-                .returns({
-                    token_endpoint:
-                        "https://login.windows.net/common/oauth2/v2.0/token?param1=value1",
-                    issuer: "https://login.windows.net/{tenantid}/v2.0",
-                    userinfo_endpoint:
-                        "https://graph.microsoft.com/oidc/userinfo",
-                    authorization_endpoint:
-                        "https://login.windows.net/common/oauth2/v2.0/authorize?param1=value1",
-                    end_session_endpoint:
-                        "https://login.windows.net/common/oauth2/v2.0/logout?param1=value1",
-                });
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromHardcodedValues"
+            ).mockReturnValue({
+                token_endpoint:
+                    "https://login.windows.net/common/oauth2/v2.0/token?param1=value1",
+                issuer: "https://login.windows.net/{tenantid}/v2.0",
+                userinfo_endpoint: "https://graph.microsoft.com/oidc/userinfo",
+                authorization_endpoint:
+                    "https://login.windows.net/common/oauth2/v2.0/authorize?param1=value1",
+                end_session_endpoint:
+                    "https://login.windows.net/common/oauth2/v2.0/logout?param1=value1",
+            });
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
