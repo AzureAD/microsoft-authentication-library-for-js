@@ -12,6 +12,7 @@ import {
     Constants as NodeConstants,
     ApiId,
     REGION_ENVIRONMENT_VARIABLE,
+    MSAL_FORCE_REGION,
 } from "../utils/Constants.js";
 import {
     CommonClientCredentialRequest,
@@ -27,6 +28,7 @@ import {
     ClientAuthErrorCodes,
     ClientAssertion as ClientAssertionType,
     getClientAssertion,
+    AzureRegion,
 } from "@azure/msal-common/node";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication.js";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest.js";
@@ -136,8 +138,17 @@ export class ConfidentialClientApplication
             );
         }
 
+        // if this env variable is set, MSAL shall opt-in to ESTS-R with the value of this variable
+        const ENV_MSAL_FORCE_REGION: AzureRegion | undefined =
+            process.env[MSAL_FORCE_REGION];
+        const region: AzureRegion | undefined =
+            !validRequest.azureRegion &&
+            ENV_MSAL_FORCE_REGION &&
+            ENV_MSAL_FORCE_REGION !== "DisableMsalForceRegion"
+                ? ENV_MSAL_FORCE_REGION
+                : validRequest.azureRegion;
         const azureRegionConfiguration: AzureRegionConfiguration = {
-            azureRegion: validRequest.azureRegion,
+            azureRegion: region,
             environmentRegion: process.env[REGION_ENVIRONMENT_VARIABLE],
         };
 
