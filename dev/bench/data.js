@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1727731235955,
+  "lastUpdate": 1727814312344,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12124,6 +12124,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.24%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "704a8de9cc2d622534dee1a79dc19b0a8a52fe91",
+          "message": "Allow pop params for brokered flows (#7335)\n\nAdds POP params in request types to allow acquisition of POP tokens from\r\nMSAL Runtime brokered flows",
+          "timestamp": "2024-10-01T13:19:43-07:00",
+          "tree_id": "a6ea529f1fb10858cf4c8a5a3051bc200300b882",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/704a8de9cc2d622534dee1a79dc19b0a8a52fe91"
+        },
+        "date": 1727814311274,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 197172,
+            "range": "±2.17%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 186462,
+            "range": "±2.14%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
