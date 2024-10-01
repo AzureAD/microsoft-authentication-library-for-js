@@ -351,7 +351,7 @@ export { InteractionRequiredAuthErrorCodes }
 export { InteractionRequiredAuthErrorMessage }
 
 // @public
-export type InteractiveRequest = Pick<AuthorizationUrlRequest, "authority" | "correlationId" | "claims" | "azureCloudOptions" | "account" | "extraQueryParameters" | "tokenQueryParameters" | "extraScopesToConsent" | "loginHint" | "prompt"> & {
+export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "requestedClaimsHash" | "storeInCache">> & {
     openBrowser: (url: string) => Promise<void>;
     scopes?: Array<string>;
     successTemplate?: string;
@@ -692,7 +692,7 @@ export type SignOutRequest = {
 };
 
 // @public
-export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
+export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "requestedClaimsHash" | "storeInCache">> & {
     account: AccountInfo;
     scopes: Array<string>;
 };
