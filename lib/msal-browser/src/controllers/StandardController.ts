@@ -579,11 +579,6 @@ export class StandardController implements IController {
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
-        if(!this.isBrowserEnvironment){
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.nonBrowserEnvironment
-            );
-        }
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.verbose("acquireTokenRedirect called", correlationId);
 
@@ -726,11 +721,6 @@ export class StandardController implements IController {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
-        if(!this.isBrowserEnvironment){
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.nonBrowserEnvironment
-            );
-        }
         const correlationId = this.getRequestCorrelationId(request);
         const atPopupMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.AcquireTokenPopup,
@@ -907,11 +897,6 @@ export class StandardController implements IController {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
-        if(!this.isBrowserEnvironment){
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.nonBrowserEnvironment
-            );
-        }
         const correlationId = this.getRequestCorrelationId(request);
         const validRequest = {
             ...request,
@@ -1020,11 +1005,6 @@ export class StandardController implements IController {
     async acquireTokenByCode(
         request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult> {
-        if(!this.isBrowserEnvironment){
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.nonBrowserEnvironment
-            );
-        }
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.trace("acquireTokenByCode called", correlationId);
         const atbcMeasurement = this.performanceClient.startMeasurement(
@@ -1916,11 +1896,6 @@ export class StandardController implements IController {
     async acquireTokenSilent(
         request: SilentRequest
     ): Promise<AuthenticationResult> {
-        if(!this.isBrowserEnvironment){
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.nonBrowserEnvironment
-            );
-        }
         const correlationId = this.getRequestCorrelationId(request);
         const atsMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.AcquireTokenSilent,
