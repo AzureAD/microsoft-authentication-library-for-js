@@ -136,15 +136,23 @@ describe("Non-browser environment", () => {
         instance.removeEventCallback("");
     });
 
-    it("addPerformanceCallback does not throw", async () => {
-        const instance = new PublicClientApplication({
-            auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    it("addPerformanceCallback throws", async () => {
+        const instance = new PublicClientApplication(
+            {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
             },
-        });
+        );
 
         await instance.initialize();
-        expect(() => instance.addPerformanceCallback(() => {})).not.toThrow();
+        try {
+            instance.addPerformanceCallback(() => {});
+        } catch (error: any) {
+            expect(error.errorCode).toEqual(
+                BrowserAuthErrorMessage.notInBrowserEnvironment.code
+            );
+        }
     });
 
     it("removePerformanceCallback does not throw", async () => {
