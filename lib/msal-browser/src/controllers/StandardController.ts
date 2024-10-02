@@ -323,8 +323,8 @@ export class StandardController implements IController {
 
         const initCorrelationId =
             request?.correlationId || this.getRequestCorrelationId();
-        let allowNativeBroker = this.config.system.allowNativeBroker;
-        let initMeasurement = this.performanceClient.startMeasurement(
+        const allowNativeBroker = this.config.system.allowNativeBroker;
+        const initMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.InitializeClientApplication,
             initCorrelationId
         );
@@ -343,7 +343,7 @@ export class StandardController implements IController {
             }
         }
 
-        if (!this.config.cache.claimsBasedCachingEnabled && this.isBrowserEnvironment) {
+        if (!this.config.cache.claimsBasedCachingEnabled) {
             this.logger.verbose(
                 "Claims-based caching is disabled. Clearing the previous cache with claims"
             );
@@ -361,10 +361,8 @@ export class StandardController implements IController {
 
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
-        if(this.isBrowserEnvironment) {
-            //@ts-ignore
-            initMeasurement.end({ allowNativeBroker, success: true });
-        }
+        //@ts-ignore
+        initMeasurement.end({ allowNativeBroker, success: true });
     }
 
     // #region Redirect Flow
