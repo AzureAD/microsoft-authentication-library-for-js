@@ -35,6 +35,11 @@ console.log(
     }`
 );
 
+console.log(
+    `AZURE_CLIENT_SEND_CERTIFICATE_CHAIN: ${process.env.AZURE_CLIENT_SEND_CERTIFICATE_CHAIN}`
+);
+process.env.AZURE_CLIENT_SEND_CERTIFICATE_CHAIN = "true";
+
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
 
 const getClientCredentialsToken = require("../index");
