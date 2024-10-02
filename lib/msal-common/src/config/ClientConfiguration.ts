@@ -82,16 +82,17 @@ export type CommonClientConfiguration = {
  * - protocolMode                - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  * - skipAuthorityMetadataCache  - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
  * - instanceAware               - A flag of whether the STS will send back additional parameters to specify where the tokens should be retrieved from.
+ * - redirectUri                 - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.
  * @internal
  */
 export type AuthOptions = {
     clientId: string;
     authority: Authority;
+    redirectUri: string;
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
     skipAuthorityMetadataCache?: boolean;
     instanceAware?: boolean;
-    redirectUri?: string;
 };
 
 /**
@@ -275,7 +276,6 @@ function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
         azureCloudOptions: DEFAULT_AZURE_CLOUD_OPTIONS,
         skipAuthorityMetadataCache: false,
         instanceAware: false,
-        redirectUri: "https://localhost",
         ...authOptions,
     };
 }

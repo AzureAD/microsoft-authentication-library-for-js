@@ -357,11 +357,11 @@ export const AuthErrorMessage: {
 export type AuthOptions = {
     clientId: string;
     authority: Authority;
+    redirectUri: string;
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
     skipAuthorityMetadataCache?: boolean;
     instanceAware?: boolean;
-    redirectUri?: string;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "Authority" should be prefixed with an underscore because the declaration is marked as @internal
