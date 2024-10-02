@@ -346,11 +346,12 @@ export class RefreshTokenClient extends BaseClient {
 
         const correlationId = request.correlationId;
         const parameterBuilder = new RequestParameterBuilder(
+            correlationId,
             this.performanceClient
         );
 
         parameterBuilder.addClientId(
-            request.brokerParameters?.embeddedClientId ||
+            request.embeddedClientId ||
                 request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
                 this.config.authOptions.clientId
         );
@@ -475,14 +476,17 @@ export class RefreshTokenClient extends BaseClient {
             }
         }
 
+        if (request.embeddedClientId) {
+            parameterBuilder.addBrokerParameters({
+                brokerClientId: this.config.authOptions.clientId,
+                brokerRedirectUri: this.config.authOptions.redirectUri,
+            });
+        }
+
         if (request.tokenBodyParameters) {
             parameterBuilder.addExtraQueryParameters(
                 request.tokenBodyParameters
             );
-        }
-
-        if (request.brokerParameters) {
-            parameterBuilder.addBrokerParameters(request.brokerParameters);
         }
 
         return parameterBuilder.createQueryString();

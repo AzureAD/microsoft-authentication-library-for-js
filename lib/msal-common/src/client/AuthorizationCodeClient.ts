@@ -315,11 +315,12 @@ export class AuthorizationCodeClient extends BaseClient {
         );
 
         const parameterBuilder = new RequestParameterBuilder(
+            request.correlationId,
             this.performanceClient
         );
 
         parameterBuilder.addClientId(
-            request.brokerParameters?.embeddedClientId ||
+            request.embeddedClientId ||
                 request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
                 this.config.authOptions.clientId
         );
@@ -477,6 +478,13 @@ export class AuthorizationCodeClient extends BaseClient {
             }
         }
 
+        if (request.embeddedClientId) {
+            parameterBuilder.addBrokerParameters({
+                brokerClientId: this.config.authOptions.clientId,
+                brokerRedirectUri: this.config.authOptions.redirectUri,
+            });
+        }
+
         if (request.tokenBodyParameters) {
             parameterBuilder.addExtraQueryParameters(
                 request.tokenBodyParameters
@@ -496,10 +504,6 @@ export class AuthorizationCodeClient extends BaseClient {
             });
         }
 
-        if (request.brokerParameters) {
-            parameterBuilder.addBrokerParameters(request.brokerParameters);
-        }
-
         return parameterBuilder.createQueryString();
     }
 
@@ -510,17 +514,23 @@ export class AuthorizationCodeClient extends BaseClient {
     private async createAuthCodeUrlQueryString(
         request: CommonAuthorizationUrlRequest
     ): Promise<string> {
+        // generate the correlationId if not set by the user and add
+        const correlationId =
+            request.correlationId ||
+            this.config.cryptoInterface.createNewGuid();
+
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.AuthClientCreateQueryString,
-            request.correlationId
+            correlationId
         );
 
         const parameterBuilder = new RequestParameterBuilder(
+            correlationId,
             this.performanceClient
         );
 
         parameterBuilder.addClientId(
-            request.brokerParameters?.embeddedClientId ||
+            request.embeddedClientId ||
                 request.extraQueryParameters?.[AADServerParamKeys.CLIENT_ID] ||
                 this.config.authOptions.clientId
         );
@@ -534,10 +544,6 @@ export class AuthorizationCodeClient extends BaseClient {
         // validate the redirectUri (to be a non null value)
         parameterBuilder.addRedirectUri(request.redirectUri);
 
-        // generate the correlationId if not set by the user and add
-        const correlationId =
-            request.correlationId ||
-            this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
 
         // add response_mode. If not passed in it defaults to query.
@@ -684,8 +690,11 @@ export class AuthorizationCodeClient extends BaseClient {
             );
         }
 
-        if (request.brokerParameters) {
-            parameterBuilder.addBrokerParameters(request.brokerParameters);
+        if (request.embeddedClientId) {
+            parameterBuilder.addBrokerParameters({
+                brokerClientId: this.config.authOptions.clientId,
+                brokerRedirectUri: this.config.authOptions.redirectUri,
+            });
         }
 
         this.addExtraQueryParams(request, parameterBuilder);
@@ -729,6 +738,7 @@ export class AuthorizationCodeClient extends BaseClient {
         request: CommonEndSessionRequest
     ): string {
         const parameterBuilder = new RequestParameterBuilder(
+            request.correlationId,
             this.performanceClient
         );
 
@@ -752,10 +762,6 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if (request.logoutHint) {
             parameterBuilder.addLogoutHint(request.logoutHint);
-        }
-
-        if (request.brokerParameters) {
-            parameterBuilder.addBrokerParameters(request.brokerParameters);
         }
 
         this.addExtraQueryParams(request, parameterBuilder);

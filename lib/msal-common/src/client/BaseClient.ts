@@ -209,11 +209,15 @@ export abstract class BaseClient {
      */
     createTokenQueryParameters(request: BaseAuthRequest): string {
         const parameterBuilder = new RequestParameterBuilder(
+            request.correlationId,
             this.performanceClient
         );
 
-        if (request.brokerParameters) {
-            parameterBuilder.addBrokerParameters(request.brokerParameters);
+        if (request.embeddedClientId) {
+            parameterBuilder.addBrokerParameters({
+                brokerClientId: this.config.authOptions.clientId,
+                brokerRedirectUri: this.config.authOptions.redirectUri,
+            });
         }
 
         if (request.tokenQueryParameters) {

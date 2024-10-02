@@ -91,6 +91,7 @@ export type AuthOptions = {
     azureCloudOptions?: AzureCloudOptions;
     skipAuthorityMetadataCache?: boolean;
     instanceAware?: boolean;
+    redirectUri?: string;
 };
 
 /**
@@ -274,6 +275,7 @@ function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
         azureCloudOptions: DEFAULT_AZURE_CLOUD_OPTIONS,
         skipAuthorityMetadataCache: false,
         instanceAware: false,
+        redirectUri: "https://localhost",
         ...authOptions,
     };
 }
