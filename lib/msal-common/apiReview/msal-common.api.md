@@ -3369,7 +3369,7 @@ const REQUESTED_TOKEN_USE = "requested_token_use";
 //
 // @internal (undocumented)
 export class RequestParameterBuilder {
-    constructor(correlationId: string, performanceClient?: IPerformanceClient);
+    constructor(correlationId?: string, performanceClient?: IPerformanceClient);
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     addApplicationTelemetry(appTelemetry: ApplicationTelemetry): void;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

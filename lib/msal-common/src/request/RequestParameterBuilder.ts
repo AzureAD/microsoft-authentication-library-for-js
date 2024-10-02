@@ -32,9 +32,13 @@ import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.
 
 function instrumentBrokerParams(
     parameters: Map<string, string>,
-    correlationId: string,
+    correlationId?: string,
     performanceClient?: IPerformanceClient
 ) {
+    if (!correlationId) {
+        return;
+    }
+
     const clientId = parameters.get(AADServerParamKeys.CLIENT_ID);
     if (clientId && parameters.has(AADServerParamKeys.BROKER_CLIENT_ID)) {
         performanceClient?.addFields(
@@ -53,9 +57,12 @@ function instrumentBrokerParams(
 export class RequestParameterBuilder {
     private parameters: Map<string, string>;
     private readonly performanceClient?: IPerformanceClient;
-    private readonly correlationId: string;
+    private readonly correlationId?: string;
 
-    constructor(correlationId: string, performanceClient?: IPerformanceClient) {
+    constructor(
+        correlationId?: string,
+        performanceClient?: IPerformanceClient
+    ) {
         this.parameters = new Map<string, string>();
         this.performanceClient = performanceClient;
         this.correlationId = correlationId;
