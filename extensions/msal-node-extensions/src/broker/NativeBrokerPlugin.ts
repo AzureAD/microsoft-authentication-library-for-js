@@ -466,11 +466,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             if (request.authenticationScheme === AuthenticationScheme.POP) {
                 if (
                     !request.resourceRequestMethod ||
-                    !request.resourceRequestUri ||
-                    !request.shrNonce
+                    !request.resourceRequestUri
                 ) {
                     throw new Error(
-                        "Authentication Scheme set to POP but one or more of the following parameters are missing: resourceRequestMethod, resourceRequestUri, shrNonce"
+                        "Authentication Scheme set to POP but one or more of the following parameters are missing: resourceRequestMethod, resourceRequestUri"
                     );
                 }
                 const resourceUrl = new URL(request.resourceRequestUri);
@@ -478,7 +477,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     request.resourceRequestMethod,
                     resourceUrl.host,
                     resourceUrl.pathname,
-                    request.shrNonce
+                    request.shrNonce || ""
                 );
             }
 
