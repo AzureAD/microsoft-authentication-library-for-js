@@ -13,33 +13,6 @@ import {
     LAB_KEY_VAULT_URL,
 } from "e2e-test-utils/src/Constants";
 
-console.log(
-    `${ENV_VARIABLES.CLIENT_ID} undefined? ${
-        process.env[ENV_VARIABLES.CLIENT_ID] === undefined
-    }`
-);
-console.log(
-    `${ENV_VARIABLES.CLIENT_ID} empty string? ${
-        process.env[ENV_VARIABLES.CLIENT_ID] === ""
-    }`
-);
-
-console.log(
-    `${ENV_VARIABLES.TENANT} undefined? ${
-        process.env[ENV_VARIABLES.TENANT] === undefined
-    }`
-);
-console.log(
-    `${ENV_VARIABLES.TENANT} empty string? ${
-        process.env[ENV_VARIABLES.TENANT] === ""
-    }`
-);
-
-console.log(
-    `AZURE_CLIENT_SEND_CERTIFICATE_CHAIN: ${process.env.AZURE_CLIENT_SEND_CERTIFICATE_CHAIN}`
-);
-// process.env.AZURE_CLIENT_SEND_CERTIFICATE_CHAIN = "true";
-
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
 
 const getClientCredentialsToken = require("../index");
@@ -58,18 +31,13 @@ describe("Client Credentials AAD Prod Tests", () => {
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
 
-        console.log("starting getKeyVaultSecretClient");
         const keyVaultSecretClient = await getKeyVaultSecretClient(
             LAB_KEY_VAULT_URL
-        );
-        console.log(
-            "finished getKeyVaultSecretClient, starting getCertificateInfo"
         );
         [thumbprint, privateKey, x5c] = await getCertificateInfo(
             keyVaultSecretClient,
             LAB_CERT_NAME
         );
-        console.log("finished getCertificateInfo");
 
         config.authOptions.clientId = process.env[ENV_VARIABLES.CLIENT_ID];
         config.authOptions.authority = `https://login.microsoftonline.com/${

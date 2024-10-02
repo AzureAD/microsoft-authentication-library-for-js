@@ -19,25 +19,16 @@ export const getCertificateInfo = async (
     client: any,
     secretName: string
 ): Promise<Array<string>> => {
-    console.log("starting getKeyVaultSecret");
     const PKCS12CertificateBase64: string = await getKeyVaultSecret(
         client,
         secretName
     );
 
-    console.log("PKCS12CertificateBase64 received from key vault");
-
     // get the private key and the public certificate, in PKCS 12 format
     const pkcs12Certificate = Buffer.from(PKCS12CertificateBase64, "base64");
 
-    console.log("pkcs12Certificate calculated from PKCS12CertificateBase64");
-
     // write the PKCS#12 certificate to a temporary file
     fs.writeFileSync(p12FilePath, pkcs12Certificate);
-
-    console.log("wrote pkcs12Certificate to a temp file");
-
-    console.log("about to try the openssl commands");
 
     try {
         // get the private key from the pkcs12 file through openssl, via a synchronous child process
