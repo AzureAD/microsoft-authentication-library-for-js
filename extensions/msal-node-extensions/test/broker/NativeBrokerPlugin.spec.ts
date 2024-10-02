@@ -23,6 +23,7 @@ import {
     NativeSignOutRequest,
     PromptValue,
     ServerError,
+    AuthenticationScheme,
 } from "@azure/msal-common";
 import { randomUUID } from "crypto";
 import { NativeAuthError } from "../../src/error/NativeAuthError";
@@ -292,6 +293,7 @@ if (process.platform === "win32") {
                                 testAuthenticationResult.idTokenClaims
                             ),
                             accessToken: testAuthenticationResult.accessToken,
+                            authorizationHeader: "",
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
@@ -322,6 +324,66 @@ if (process.platform === "win32") {
                 );
                 expect(response).toStrictEqual<AuthenticationResult>(
                     testAuthenticationResult
+                );
+            });
+
+            it("Signs user in and returns PoP token", async () => {
+                const testCorrelationId = generateCorrelationId();
+                const testAuthenticationResult =
+                    getTestAuthenticationResult(testCorrelationId);
+                const popAT = "shr.access.token";
+                jest.spyOn(
+                    msalNodeRuntime,
+                    "SignInSilentlyAsync"
+                ).mockImplementation(
+                    (
+                        authParams: AuthParameters,
+                        correlationId: string,
+                        callback: (result: AuthResult) => void
+                    ) => {
+                        const result: AuthResult = {
+                            idToken: JSON.stringify(
+                                testAuthenticationResult.idTokenClaims
+                            ),
+                            accessToken: testAuthenticationResult.accessToken,
+                            authorizationHeader: `pop ${popAT}`,
+                            rawIdToken: testAuthenticationResult.idToken,
+                            grantedScopes:
+                                testAuthenticationResult.scopes.join(" "),
+                            expiresOn:
+                                testAuthenticationResult.expiresOn!.getTime(),
+                            isPopAuthorization: true,
+                            account: testMsalRuntimeAccount,
+                            CheckError: () => {},
+                            telemetryData: "",
+                        };
+                        expect(correlationId).toEqual(testCorrelationId);
+                        callback(result);
+
+                        return asyncHandle;
+                    }
+                );
+
+                const nativeBrokerPlugin = new NativeBrokerPlugin();
+                const request: NativeRequest = {
+                    clientId: TEST_CLIENT_ID,
+                    scopes: testAuthenticationResult.scopes,
+                    correlationId: testCorrelationId,
+                    authority: testAuthenticationResult.authority,
+                    redirectUri: TEST_REDIRECTURI,
+                    authenticationScheme: AuthenticationScheme.POP,
+                    resourceRequestMethod: "POST",
+                    resourceRequestUri: "https://contoso.com/resource",
+                    shrNonce: "some-random-nonce"
+                };
+                const response = await nativeBrokerPlugin.acquireTokenSilent(
+                    request
+                );
+                expect(response).toStrictEqual<AuthenticationResult>(
+                    {...testAuthenticationResult,
+                        accessToken: popAT,
+                        tokenType: AuthenticationScheme.POP
+                    }
                 );
             });
 
@@ -365,6 +427,7 @@ if (process.platform === "win32") {
                                 testAuthenticationResult.idTokenClaims
                             ),
                             accessToken: testAuthenticationResult.accessToken,
+                            authorizationHeader: "",
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
@@ -494,6 +557,7 @@ if (process.platform === "win32") {
                         const result: AuthResult = {
                             idToken: "",
                             accessToken: "",
+                            authorizationHeader: "",
                             rawIdToken: "",
                             grantedScopes: "",
                             expiresOn: 0,
@@ -549,6 +613,7 @@ if (process.platform === "win32") {
                                 testAuthenticationResult.idTokenClaims
                             ),
                             accessToken: testAuthenticationResult.accessToken,
+                            authorizationHeader: "",
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
@@ -578,6 +643,65 @@ if (process.platform === "win32") {
                     await nativeBrokerPlugin.acquireTokenInteractive(request);
                 expect(response).toStrictEqual<AuthenticationResult>(
                     testAuthenticationResult
+                );
+            });
+
+            it("Calls SignInAsync and returns successful response if user is not already signed in", async () => {
+                const testCorrelationId = generateCorrelationId();
+                const testAuthenticationResult =
+                    getTestAuthenticationResult(testCorrelationId);
+                const popAT = "shr.access.token";
+
+                jest.spyOn(msalNodeRuntime, "SignInAsync").mockImplementation(
+                    (
+                        windowHandle: Buffer,
+                        authParams: AuthParameters,
+                        correlationId: string,
+                        accountHint: string,
+                        callback: (result: AuthResult) => void
+                    ) => {
+                        const result: AuthResult = {
+                            idToken: JSON.stringify(
+                                testAuthenticationResult.idTokenClaims
+                            ),
+                            accessToken: testAuthenticationResult.accessToken,
+                            authorizationHeader: `pop ${popAT}`,
+                            rawIdToken: testAuthenticationResult.idToken,
+                            grantedScopes:
+                                testAuthenticationResult.scopes.join(" "),
+                            expiresOn:
+                                testAuthenticationResult.expiresOn!.getTime(),
+                            isPopAuthorization: true,
+                            account: testMsalRuntimeAccount,
+                            CheckError: () => {},
+                            telemetryData: "",
+                        };
+                        expect(correlationId).toEqual(testCorrelationId);
+                        callback(result);
+
+                        return asyncHandle;
+                    }
+                );
+
+                const nativeBrokerPlugin = new NativeBrokerPlugin();
+                const request: NativeRequest = {
+                    clientId: TEST_CLIENT_ID,
+                    scopes: testAuthenticationResult.scopes,
+                    correlationId: testCorrelationId,
+                    authority: testAuthenticationResult.authority,
+                    redirectUri: TEST_REDIRECTURI,
+                    authenticationScheme: AuthenticationScheme.POP,
+                    resourceRequestMethod: "POST",
+                    resourceRequestUri: "https://contoso.com/resource",
+                    shrNonce: "some-random-nonce"
+                };
+                const response =
+                    await nativeBrokerPlugin.acquireTokenInteractive(request);
+                expect(response).toStrictEqual<AuthenticationResult>(
+                    {...testAuthenticationResult,
+                        accessToken: popAT,
+                        tokenType: AuthenticationScheme.POP
+                    }
                 );
             });
 
@@ -622,6 +746,7 @@ if (process.platform === "win32") {
                                 testAuthenticationResult.idTokenClaims
                             ),
                             accessToken: testAuthenticationResult.accessToken,
+                            authorizationHeader: "",
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
@@ -696,6 +821,7 @@ if (process.platform === "win32") {
                                 testAuthenticationResult.idTokenClaims
                             ),
                             accessToken: testAuthenticationResult.accessToken,
+                            authorizationHeader: "",
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
@@ -750,6 +876,7 @@ if (process.platform === "win32") {
                                 testAuthenticationResult.idTokenClaims
                             ),
                             accessToken: testAuthenticationResult.accessToken,
+                            authorizationHeader: "",
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
@@ -804,6 +931,7 @@ if (process.platform === "win32") {
                                 testAuthenticationResult.idTokenClaims
                             ),
                             accessToken: testAuthenticationResult.accessToken,
+                            authorizationHeader: "",
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
@@ -858,6 +986,7 @@ if (process.platform === "win32") {
                                 testAuthenticationResult.idTokenClaims
                             ),
                             accessToken: testAuthenticationResult.accessToken,
+                            authorizationHeader: "",
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
@@ -912,6 +1041,7 @@ if (process.platform === "win32") {
                                 testAuthenticationResult.idTokenClaims
                             ),
                             accessToken: testAuthenticationResult.accessToken,
+                            authorizationHeader: "",
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
@@ -962,6 +1092,7 @@ if (process.platform === "win32") {
                         const result: AuthResult = {
                             idToken: "",
                             accessToken: "",
+                            authorizationHeader: "",
                             rawIdToken: "",
                             grantedScopes: "",
                             expiresOn: 0,
@@ -1030,6 +1161,7 @@ if (process.platform === "win32") {
                         const result: AuthResult = {
                             idToken: "",
                             accessToken: "",
+                            authorizationHeader: "",
                             rawIdToken: "",
                             grantedScopes: "",
                             expiresOn: 0,
@@ -1076,6 +1208,7 @@ if (process.platform === "win32") {
                         const result: AuthResult = {
                             idToken: "",
                             accessToken: "",
+                            authorizationHeader: "",
                             rawIdToken: "",
                             grantedScopes: "",
                             expiresOn: 0,
@@ -1142,6 +1275,7 @@ if (process.platform === "win32") {
                         const result: AuthResult = {
                             idToken: "",
                             accessToken: "",
+                            authorizationHeader: "",
                             rawIdToken: "",
                             grantedScopes: "",
                             expiresOn: 0,
@@ -1189,6 +1323,7 @@ if (process.platform === "win32") {
                         const result: AuthResult = {
                             idToken: "",
                             accessToken: "",
+                            authorizationHeader: "",
                             rawIdToken: "",
                             grantedScopes: "",
                             expiresOn: 0,
@@ -1450,6 +1585,7 @@ if (process.platform === "win32") {
                         const result: AuthResult = {
                             idToken: "",
                             accessToken: "",
+                            authorizationHeader: "",
                             rawIdToken: "",
                             grantedScopes: "",
                             expiresOn: 0,
@@ -1507,6 +1643,7 @@ if (process.platform === "win32") {
                         const result: AuthResult = {
                             idToken: "",
                             accessToken: "",
+                            authorizationHeader: "",
                             rawIdToken: "",
                             grantedScopes: "",
                             expiresOn: 0,
@@ -1563,6 +1700,7 @@ if (process.platform === "win32") {
                         const result: AuthResult = {
                             idToken: "",
                             accessToken: "",
+                            authorizationHeader: "",
                             rawIdToken: "",
                             grantedScopes: "",
                             expiresOn: 0,
@@ -1621,6 +1759,7 @@ if (process.platform === "win32") {
                         const result: AuthResult = {
                             idToken: "",
                             accessToken: "",
+                            authorizationHeader: "",
                             rawIdToken: "",
                             grantedScopes: "",
                             expiresOn: 0,
@@ -1680,6 +1819,7 @@ if (process.platform === "win32") {
                         const result: AuthResult = {
                             idToken: "",
                             accessToken: "",
+                            authorizationHeader: "",
                             rawIdToken: "",
                             grantedScopes: "",
                             expiresOn: 0,
@@ -1735,6 +1875,7 @@ if (process.platform === "win32") {
                         const result: AuthResult = {
                             idToken: "",
                             accessToken: "",
+                            authorizationHeader: "",
                             rawIdToken: "",
                             grantedScopes: "",
                             expiresOn: 0,
@@ -1793,6 +1934,7 @@ if (process.platform === "win32") {
                         const result: AuthResult = {
                             idToken: "",
                             accessToken: "",
+                            authorizationHeader: "",
                             rawIdToken: "",
                             grantedScopes: "",
                             expiresOn: 0,
@@ -1855,6 +1997,7 @@ if (process.platform === "win32") {
                                 testAuthenticationResult.idTokenClaims
                             ),
                             accessToken: testAuthenticationResult.accessToken,
+                            authorizationHeader: "",
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
@@ -1913,6 +2056,7 @@ if (process.platform === "win32") {
                         const result: AuthResult = {
                             idToken: "",
                             accessToken: "",
+                            authorizationHeader: "",
                             rawIdToken: "",
                             grantedScopes: "",
                             expiresOn: 0,

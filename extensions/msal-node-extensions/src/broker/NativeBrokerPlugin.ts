@@ -548,6 +548,17 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             idTokenClaims
         );
 
+        let accessToken;
+        let tokenType;
+        if (authResult.isPopAuthorization) {
+            // Header includes 'pop ' prefix
+            accessToken = authResult.authorizationHeader.split(" ")[1]
+            tokenType = AuthenticationScheme.POP;
+        } else {
+            accessToken = authResult.accessToken;
+            tokenType = AuthenticationScheme.BEARER;
+        }
+
         const result: AuthenticationResult = {
             authority: request.authority,
             uniqueId: idTokenClaims.oid || idTokenClaims.sub || "",
@@ -556,12 +567,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             account: accountInfo,
             idToken: authResult.rawIdToken,
             idTokenClaims: idTokenClaims,
-            accessToken: authResult.accessToken,
+            accessToken: accessToken,
             fromCache: fromCache,
             expiresOn: new Date(authResult.expiresOn),
-            tokenType: authResult.isPopAuthorization
-                ? AuthenticationScheme.POP
-                : AuthenticationScheme.BEARER,
+            tokenType: tokenType,
             correlationId: request.correlationId,
             fromNativeBroker: true,
         };
