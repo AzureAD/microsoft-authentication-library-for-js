@@ -8,8 +8,8 @@ parameters:
       type: string
       default: "windows"
       values:
-        - "windows"
-        - "linux"
+          - "windows"
+          - "linux"
     - name: "runBrowserTests"
       displayName: "Run Browser Tests"
       type: boolean
@@ -46,7 +46,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: master
+          ref: keyvault_cert_sample
 extends:
     template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
     parameters:
@@ -58,72 +58,72 @@ extends:
             - stage: e2e_test
               displayName: "3P E2E Tests"
               jobs:
-                - ${{ if eq(parameters.runBrowserTests, true) }}:
-                  - template: .pipelines/templates/e2e-tests.yml@1P
-                    parameters:
-                        jobName: "validate_msal_browser"
-                        targetLib: "msal-browser"
-                        poolType: ${{ parameters.poolType }}
-                        stage: "CI"
-                        sourceRepo: ${{ variables.sourceRepo }}
-                        sourceBranch: ${{ variables.sourceBranch }}
-                        workspace: "samples/msal-browser-samples"
-                        samples:
-                            - "client-capabilities"
-                            - "onPageLoad"
-                            - "pop"
-                            - "customizable-e2e-test"
-                        debug: ${{ parameters.debug }}
-                - ${{ if eq(parameters.runNodeTests, true) }}:
-                  - template: .pipelines/templates/e2e-tests.yml@1P
-                    parameters:
-                        jobName: "validate_msal_node"
-                        targetLib: "msal-node"
-                        poolType: ${{ parameters.poolType }}
-                        stage: "CI"
-                        sourceRepo: ${{ variables.sourceRepo }}
-                        sourceBranch: ${{ variables.sourceBranch }}
-                        workspace: "samples/msal-node-samples"
-                        nodeVersions: [16, 18, 20, 22]
-                        samples:
-                            - "auth-code"
-                            - "auth-code-cli-app"
-                            - "client-credentials"
-                            - "device-code"
-                            - "silent-flow"
-                            - "b2c-user-flows"
-                            # - "on-behalf-of"
-                        debug: ${{ parameters.debug }}
-                - ${{ if eq(parameters.runReactTests, true) }}:
-                  - template: .pipelines/templates/e2e-tests.yml@1P
-                    parameters:
-                        jobName: "validate_msal_react"
-                        targetLib: "msal-react"
-                        poolType: ${{ parameters.poolType }}
-                        stage: "CI"
-                        sourceRepo: ${{ variables.sourceRepo }}
-                        sourceBranch: ${{ variables.sourceBranch }}
-                        workspace: "samples/msal-react-samples"
-                        samples:
-                            - "nextjs-sample"
-                            - "react-router-sample"
-                            - "typescript-sample"
-                            - "b2c-sample"
-                        debug: ${{ parameters.debug }}
-                - ${{ if eq(parameters.runAngularTests, true) }}:
-                  - template: .pipelines/templates/e2e-tests.yml@1P
-                    parameters:
-                        jobName: "validate_msal_angular"
-                        targetLib: "msal-angular"
-                        poolType: ${{ parameters.poolType }}
-                        stage: "CI"
-                        sourceRepo: ${{ variables.sourceRepo }}
-                        sourceBranch: ${{ variables.sourceBranch }}
-                        workspace: "samples/msal-angular-v3-samples"
-                        samples:
-                            - "angular15-sample-app"
-                            - "angular16-sample-app"
-                            - "angular-b2c-sample-app"
-                            - "angular-standalone-sample"
-                            - "angular17-standalone-sample"
-                        debug: ${{ parameters.debug }}
+                  - ${{ if eq(parameters.runBrowserTests, true) }}:
+                        - template: .pipelines/templates/e2e-tests.yml@1P
+                          parameters:
+                              jobName: "validate_msal_browser"
+                              targetLib: "msal-browser"
+                              poolType: ${{ parameters.poolType }}
+                              stage: "CI"
+                              sourceRepo: ${{ variables.sourceRepo }}
+                              sourceBranch: ${{ variables.sourceBranch }}
+                              workspace: "samples/msal-browser-samples"
+                              samples:
+                                  - "client-capabilities"
+                                  - "onPageLoad"
+                                  - "pop"
+                                  - "customizable-e2e-test"
+                              debug: ${{ parameters.debug }}
+                  - ${{ if eq(parameters.runNodeTests, true) }}:
+                        - template: .pipelines/templates/e2e-tests.yml@1P
+                          parameters:
+                              jobName: "validate_msal_node"
+                              targetLib: "msal-node"
+                              poolType: ${{ parameters.poolType }}
+                              stage: "CI"
+                              sourceRepo: ${{ variables.sourceRepo }}
+                              sourceBranch: ${{ variables.sourceBranch }}
+                              workspace: "samples/msal-node-samples"
+                              nodeVersions: [16, 18, 20, 22]
+                              samples:
+                                  - "auth-code"
+                                  - "auth-code-cli-app"
+                                  - "client-credentials"
+                                  - "device-code"
+                                  - "silent-flow"
+                                  - "b2c-user-flows"
+                                  # - "on-behalf-of"
+                              debug: ${{ parameters.debug }}
+                  - ${{ if eq(parameters.runReactTests, true) }}:
+                        - template: .pipelines/templates/e2e-tests.yml@1P
+                          parameters:
+                              jobName: "validate_msal_react"
+                              targetLib: "msal-react"
+                              poolType: ${{ parameters.poolType }}
+                              stage: "CI"
+                              sourceRepo: ${{ variables.sourceRepo }}
+                              sourceBranch: ${{ variables.sourceBranch }}
+                              workspace: "samples/msal-react-samples"
+                              samples:
+                                  - "nextjs-sample"
+                                  - "react-router-sample"
+                                  - "typescript-sample"
+                                  - "b2c-sample"
+                              debug: ${{ parameters.debug }}
+                  - ${{ if eq(parameters.runAngularTests, true) }}:
+                        - template: .pipelines/templates/e2e-tests.yml@1P
+                          parameters:
+                              jobName: "validate_msal_angular"
+                              targetLib: "msal-angular"
+                              poolType: ${{ parameters.poolType }}
+                              stage: "CI"
+                              sourceRepo: ${{ variables.sourceRepo }}
+                              sourceBranch: ${{ variables.sourceBranch }}
+                              workspace: "samples/msal-angular-v3-samples"
+                              samples:
+                                  - "angular15-sample-app"
+                                  - "angular16-sample-app"
+                                  - "angular-b2c-sample-app"
+                                  - "angular-standalone-sample"
+                                  - "angular17-standalone-sample"
+                              debug: ${{ parameters.debug }}
