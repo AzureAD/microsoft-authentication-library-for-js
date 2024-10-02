@@ -381,7 +381,7 @@ describe("Non-browser environment", () => {
         expect(typeof tokenCache.loadExternalTokens).toBe('function');
     });
 
-    it("getLogger should throw", async () => {
+    it("getLogger should not throw", async () => {
         const instance = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -389,13 +389,7 @@ describe("Non-browser environment", () => {
         });
 
         await instance.initialize();
-        try {
-            await instance.getLogger();
-        } catch (error: any) {
-            expect(error.errorCode).toEqual(
-                BrowserAuthErrorMessage.notInBrowserEnvironment.code
-            );
-        }
+        await instance.getLogger();
     });
 
     it("setLogger should not throw", async () => {

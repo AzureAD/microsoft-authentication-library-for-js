@@ -315,17 +315,19 @@ export class StandardController implements IController {
             return;
         }
 
+        if(!this.isBrowserEnvironment) {
+            this.initialized = true;
+            this.eventHandler.emitEvent(EventType.INITIALIZE_END);
+            return;
+        }
+
         const initCorrelationId =
             request?.correlationId || this.getRequestCorrelationId();
-        let allowNativeBroker = false;
-        let initMeasurement;
-        if(this.isBrowserEnvironment) {
-            initMeasurement = this.performanceClient.startMeasurement(
-                PerformanceEvents.InitializeClientApplication,
-                initCorrelationId
-            );
-            allowNativeBroker = this.config.system.allowNativeBroker;
-        }
+        let allowNativeBroker = this.config.system.allowNativeBroker;
+        let initMeasurement = this.performanceClient.startMeasurement(
+            PerformanceEvents.InitializeClientApplication,
+            initCorrelationId
+        );
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
 
         if (allowNativeBroker) {
@@ -1726,11 +1728,7 @@ export class StandardController implements IController {
      * @returns {string}
      */
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
-        if(typeof window === "undefined"){
-            throw new BrowserAuthError(
-                BrowserAuthErrorCodes.nonBrowserEnvironment
-            );
-        }
+        BrowserUtils.blockNonBrowserEnvironment();
         return this.performanceClient.addPerformanceCallback(callback);
     }
 
