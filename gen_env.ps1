@@ -2,7 +2,7 @@
 $dotEnvFileName = ".env"
 $tenantIdInfo = 'AZURE_TENANT_ID="72f988bf-86f1-41af-91ab-2d7cd011db47"'
 $clientIdName = "AZURE_CLIENT_ID="
-$clientCertPathName = "AZURE_CLIENT_CERT_PATH="
+$clientCertPathName = "AZURE_CLIENT_CERTIFICATE_PATH="
 $sessionSecretName = "SESSION_SECRET="
 
 # Create file if it doesn't exist
