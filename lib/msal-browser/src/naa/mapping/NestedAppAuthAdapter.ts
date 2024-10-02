@@ -42,15 +42,18 @@ export class NestedAppAuthAdapter {
     protected crypto: ICrypto;
     protected logger: Logger;
     protected clientId: string;
+    protected authority: string;
     protected clientCapabilities: string[];
 
     constructor(
         clientId: string,
+        authority: string,
         clientCapabilities: string[],
         crypto: ICrypto,
         logger: Logger
     ) {
         this.clientId = clientId;
+        this.authority = authority;
         this.clientCapabilities = clientCapabilities;
         this.crypto = crypto;
         this.logger = logger;
@@ -81,7 +84,7 @@ export class NestedAppAuthAdapter {
         const tokenRequest: TokenRequest = {
             platformBrokerId: request.account?.homeAccountId,
             clientId: this.clientId,
-            authority: request.authority,
+            authority: request.authority || this.authority,
             scope: scopes.join(" "),
             correlationId:
                 request.correlationId !== undefined
