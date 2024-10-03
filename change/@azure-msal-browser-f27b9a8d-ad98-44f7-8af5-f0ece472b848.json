@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Mute no_server_response error when back navigation is detected #7342",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -31,7 +31,7 @@ describe("B2C user-flow tests (msa account)", () => {
 
         const labApiParams: LabApiQueryParams = {
             userType: UserTypes.B2C,
-            b2cProvider: B2cProviders.TWITTER,
+            b2cProvider: B2cProviders.MICROSOFT,
         };
 
         const labClient = new LabClient();
