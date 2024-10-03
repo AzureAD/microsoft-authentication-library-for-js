@@ -1039,10 +1039,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @private
      */
     private handleExtraBrokerParams(request: NativeTokenRequest): void {
-        if (!request.extraParameters) {
-            return;
-        }
-
         const hasExtraBrokerParams =
             request.extraParameters &&
             request.extraParameters.hasOwnProperty(
@@ -1059,15 +1055,17 @@ export class NativeInteractionClient extends BaseInteractionClient {
             return;
         }
 
-        const child_client_id =
-            request.extraParameters[AADServerParamKeys.CLIENT_ID];
+        let child_client_id: string = "";
         const child_redirect_uri = request.redirectUri;
 
         if (request.embeddedClientId) {
             request.redirectUri = this.config.auth.redirectUri;
-        } else if (hasExtraBrokerParams) {
+            child_client_id = request.embeddedClientId;
+        } else if (request.extraParameters) {
             request.redirectUri =
                 request.extraParameters[AADServerParamKeys.BROKER_REDIRECT_URI];
+            child_client_id =
+                request.extraParameters[AADServerParamKeys.CLIENT_ID];
         }
 
         request.extraParameters = {
