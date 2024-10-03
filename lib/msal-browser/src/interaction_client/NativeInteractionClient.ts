@@ -1064,23 +1064,16 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const child_redirect_uri = request.redirectUri;
 
         if (request.embeddedClientId) {
-            request.extraParameters = {
-                [AADServerParamKeys.BROKER_CLIENT_ID]:
-                    this.config.auth.clientId,
-                [AADServerParamKeys.BROKER_REDIRECT_URI]:
-                    this.config.auth.redirectUri,
-                child_client_id,
-                child_redirect_uri,
-            };
+            request.redirectUri = this.config.auth.redirectUri;
         } else if (hasExtraBrokerParams) {
-            const brk_redirect_uri =
+            request.redirectUri =
                 request.extraParameters[AADServerParamKeys.BROKER_REDIRECT_URI];
-            request.extraParameters = {
-                child_client_id,
-                child_redirect_uri,
-            };
-            request.redirectUri = brk_redirect_uri;
         }
+
+        request.extraParameters = {
+            child_client_id,
+            child_redirect_uri,
+        };
 
         this.performanceClient?.addFields(
             {
