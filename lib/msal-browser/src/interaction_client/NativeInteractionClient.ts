@@ -979,6 +979,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             },
             extendedExpiryToken: false, // Make this configurable?
             keyId: request.popKid,
+            embeddedClientId: request.embeddedClientId,
         };
 
         // Check for PoP token requests: signPopToken should only be set to true if popKid is not set
