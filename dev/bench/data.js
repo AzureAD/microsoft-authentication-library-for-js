@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1727916596036,
+  "lastUpdate": 1727988810879,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12198,6 +12198,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.10%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ed4e1f393fe7ee39d23d8d4d135e59da81e99dcd",
+          "message": "Replace E2E test MSA account (#7358)",
+          "timestamp": "2024-10-03T13:47:44-07:00",
+          "tree_id": "990b0d4dc68ad8047688414587f1e666f704427d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/ed4e1f393fe7ee39d23d8d4d135e59da81e99dcd"
+        },
+        "date": 1727988809190,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 184045,
+            "range": "±2.14%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 183042,
+            "range": "±2.27%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
