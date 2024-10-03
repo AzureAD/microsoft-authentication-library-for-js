@@ -75,6 +75,7 @@ import { SilentCacheClient } from "./SilentCacheClient.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import { version } from "../packageMetadata.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -979,7 +980,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
             },
             extendedExpiryToken: false, // Make this configurable?
             keyId: request.popKid,
-            embeddedClientId: request.embeddedClientId,
         };
 
         // Check for PoP token requests: signPopToken should only be set to true if popKid is not set
@@ -1060,7 +1060,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const child_redirect_uri = request.redirectUri;
 
         if (request.embeddedClientId) {
-            request.redirectUri = this.config.auth.redirectUri;
+            request.redirectUri =
+                this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
             child_client_id = request.embeddedClientId;
         } else if (request.extraParameters) {
             request.redirectUri =
