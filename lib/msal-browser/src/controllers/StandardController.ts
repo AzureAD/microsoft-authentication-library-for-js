@@ -361,7 +361,6 @@ export class StandardController implements IController {
 
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
-        //@ts-ignore
         initMeasurement.end({ allowNativeBroker, success: true });
     }
 
