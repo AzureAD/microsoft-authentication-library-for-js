@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Allow POP Params for brokered requests",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
