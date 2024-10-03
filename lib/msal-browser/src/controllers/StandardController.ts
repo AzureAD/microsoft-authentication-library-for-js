@@ -74,7 +74,6 @@ import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-    BrowserAuthError,
 } from "../error/BrowserAuthError.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest.js";
