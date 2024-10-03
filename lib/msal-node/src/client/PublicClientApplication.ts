@@ -116,6 +116,7 @@ export class PublicClientApplication
             const deviceCodeConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
                 validRequest.correlationId,
+                "",
                 serverTelemetryManager,
                 undefined,
                 request.azureCloudOptions
