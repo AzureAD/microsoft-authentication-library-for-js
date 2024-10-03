@@ -1043,18 +1043,36 @@ export class NativeInteractionClient extends BaseInteractionClient {
             return;
         }
 
-        if (
+        const hasExtraBrokerParams =
+            request.extraParameters &&
             request.extraParameters.hasOwnProperty(
                 AADServerParamKeys.BROKER_CLIENT_ID
             ) &&
             request.extraParameters.hasOwnProperty(
                 AADServerParamKeys.BROKER_REDIRECT_URI
             ) &&
-            request.extraParameters.hasOwnProperty(AADServerParamKeys.CLIENT_ID)
-        ) {
-            const child_client_id =
-                request.extraParameters[AADServerParamKeys.CLIENT_ID];
-            const child_redirect_uri = request.redirectUri;
+            request.extraParameters.hasOwnProperty(
+                AADServerParamKeys.CLIENT_ID
+            );
+
+        if (!request.embeddedClientId && !hasExtraBrokerParams) {
+            return;
+        }
+
+        const child_client_id =
+            request.extraParameters[AADServerParamKeys.CLIENT_ID];
+        const child_redirect_uri = request.redirectUri;
+
+        if (request.embeddedClientId) {
+            request.extraParameters = {
+                [AADServerParamKeys.BROKER_CLIENT_ID]:
+                    this.config.auth.clientId,
+                [AADServerParamKeys.BROKER_REDIRECT_URI]:
+                    this.config.auth.redirectUri,
+                child_client_id,
+                child_redirect_uri,
+            };
+        } else if (hasExtraBrokerParams) {
             const brk_redirect_uri =
                 request.extraParameters[AADServerParamKeys.BROKER_REDIRECT_URI];
             request.extraParameters = {
@@ -1063,5 +1081,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
             };
             request.redirectUri = brk_redirect_uri;
         }
+
+        this.performanceClient?.addFields(
+            {
+                embeddedClientId: child_client_id,
+                embeddedRedirectUri: child_redirect_uri,
+            },
+            request.correlationId
+        );
     }
 }
