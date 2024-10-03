@@ -351,7 +351,7 @@ export { InteractionRequiredAuthErrorCodes }
 export { InteractionRequiredAuthErrorMessage }
 
 // @public
-export type InteractiveRequest = Pick<AuthorizationUrlRequest, "authority" | "correlationId" | "claims" | "azureCloudOptions" | "account" | "extraQueryParameters" | "tokenQueryParameters" | "extraScopesToConsent" | "loginHint" | "prompt"> & {
+export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "requestedClaimsHash" | "storeInCache">> & {
     openBrowser: (url: string) => Promise<void>;
     scopes?: Array<string>;
     successTemplate?: string;
@@ -449,6 +449,7 @@ export type ManagedIdentityIdParams = {
 //
 // @public
 export type ManagedIdentityRequestParams = {
+    claims?: string;
     forceRefresh?: boolean;
     resource: string;
 };
@@ -691,7 +692,7 @@ export type SignOutRequest = {
 };
 
 // @public
-export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
+export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "requestedClaimsHash" | "storeInCache">> & {
     account: AccountInfo;
     scopes: Array<string>;
 };
@@ -732,7 +733,7 @@ export { ValidCacheType }
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "2.14.0";
+export const version = "2.15.0";
 
 // Warnings were encountered during analysis:
 //
