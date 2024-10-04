@@ -29,7 +29,7 @@ extends:
             - stage: restore
               displayName: "Install Dependencies"
               jobs:
-                  - template: .pipelines/templates/isntall-dependencies.yml@1P
+                  - template: .pipelines/templates/install-dependencies.yml@1P
 
             - stage: build_and_test
               displayName: "MSAL JS Build and Test"
