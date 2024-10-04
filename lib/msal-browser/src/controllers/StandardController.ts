@@ -1343,6 +1343,7 @@ export class StandardController implements IController {
      */
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
         if (!this.isBrowserEnvironment) {
+            this.logger.info("in non-browser environment, returning early.")
             return;
         }
         const correlationId = this.getRequestCorrelationId(logoutRequest);
