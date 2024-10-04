@@ -315,6 +315,7 @@ export class StandardController implements IController {
         }
 
         if (!this.isBrowserEnvironment) {
+            this.logger.info("in non-browser environment, exiting early.");
             this.initialized = true;
             this.eventHandler.emitEvent(EventType.INITIALIZE_END);
             return;
