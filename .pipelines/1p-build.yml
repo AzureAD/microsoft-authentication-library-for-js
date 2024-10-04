@@ -17,7 +17,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: windowlessConstructor
+          ref: update-ci-template
 
 extends:
     template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
@@ -26,6 +26,11 @@ extends:
             policheck:
                 break: true
         stages:
+            - stage: restore
+              displayName: "Install Dependencies"
+              jobs:
+                  - template: .pipelines/templates/restore-template.yml@1P
+
             - stage: build_and_test
               displayName: "MSAL JS Build and Test"
               variables:
