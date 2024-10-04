@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1727988810879,
+  "lastUpdate": 1728075083425,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12236,6 +12236,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.27%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f85b567557737e965f30a5a961bafdb177b0dfa2",
+          "message": "msal-node e2e tests: cert_path -> certificate_path (#7357)\n\n@azure/identity's `new DefaultAzureCredential()` expects\r\n`AZURE_CLIENT_CERTIFICATE_PATH` instead of `AZURE_CLIENT_CERT_PATH`.\r\n\r\n[Corresponding 1-P\r\nPR](https://identitydivision.visualstudio.com/IDDP/_git/msal-javascript-1p/pullrequest/14791)",
+          "timestamp": "2024-10-04T16:45:54-04:00",
+          "tree_id": "928b6733ae6a2e13053d56d4af8729d00aa09be0",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/f85b567557737e965f30a5a961bafdb177b0dfa2"
+        },
+        "date": 1728075082224,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 190699,
+            "range": "±2.14%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 195364,
+            "range": "±2.12%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
