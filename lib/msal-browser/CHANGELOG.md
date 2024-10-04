@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Thu, 19 Sep 2024 23:48:30 GMT and should not be manually modified.
+This log was last generated on Thu, 03 Oct 2024 00:40:42 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.25.0
+
+Thu, 03 Oct 2024 00:40:42 GMT
+
+### Minor changes
+
+- Mute no_server_response error when back navigation is detected #7342 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 3.24.0
 

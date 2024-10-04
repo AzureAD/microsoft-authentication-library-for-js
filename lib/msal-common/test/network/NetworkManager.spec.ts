@@ -3,17 +3,16 @@
  * Licensed under the MIT License.
  */
 
-import sinon from "sinon";
-import { ThrottlingUtils } from "../../src/network/ThrottlingUtils";
-import { RequestThumbprint } from "../../src/network/RequestThumbprint";
+import { ThrottlingUtils } from "../../src/network/ThrottlingUtils.js";
+import { RequestThumbprint } from "../../src/network/RequestThumbprint.js";
 import {
     NetworkManager,
     NetworkResponse,
-} from "../../src/network/NetworkManager";
-import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
-import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
-import { NetworkRequestOptions } from "../../src/network/INetworkModule";
-import { ServerError } from "../../src/error/ServerError";
+} from "../../src/network/NetworkManager.js";
+import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse.js";
+import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils.js";
+import { NetworkRequestOptions } from "../../src/network/INetworkModule.js";
+import { ServerError } from "../../src/error/ServerError.js";
 import {
     AUTHENTICATION_RESULT,
     NETWORK_REQUEST_OPTIONS,
@@ -21,17 +20,17 @@ import {
     THROTTLING_ENTITY,
     DEFAULT_NETWORK_IMPLEMENTATION,
     TEST_CONFIG,
-} from "../test_kit/StringConstants";
+} from "../test_kit/StringConstants.js";
 import {
     ClientAuthError,
     ClientAuthErrorCodes,
-} from "../../src/error/ClientAuthError";
-import { Logger } from "../../src/logger/Logger";
+} from "../../src/error/ClientAuthError.js";
+import { Logger } from "../../src/logger/Logger.js";
 
 describe("NetworkManager", () => {
     describe("sendPostRequest", () => {
         afterEach(() => {
-            sinon.restore();
+            jest.restoreAllMocks();
         });
 
         it("returns a response", async () => {
@@ -49,13 +48,19 @@ describe("NetworkManager", () => {
                 body: AUTHENTICATION_RESULT.body,
                 status: 200,
             };
-            const networkStub = sinon
-                .stub(networkInterface, "sendPostRequestAsync")
-                .returns(Promise.resolve(mockRes));
-            const getThrottlingStub = sinon.stub(cache, "getThrottlingCache");
-            const setThrottlingStub = sinon.stub(cache, "setThrottlingCache");
-            const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(Date, "now").callsFake(() => 1);
+            const networkStub = jest
+                .spyOn(networkInterface, "sendPostRequestAsync")
+                .mockResolvedValue(mockRes);
+            const getThrottlingStub = jest
+                .spyOn(cache, "getThrottlingCache")
+                .mockImplementation();
+            const setThrottlingStub = jest
+                .spyOn(cache, "setThrottlingCache")
+                .mockImplementation();
+            const removeItemStub = jest
+                .spyOn(cache, "removeItem")
+                .mockImplementation();
+            jest.spyOn(Date, "now").mockReturnValue(1);
 
             const res =
                 await networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
@@ -64,10 +69,10 @@ describe("NetworkManager", () => {
                     options
                 );
 
-            sinon.assert.callCount(networkStub, 1);
-            sinon.assert.callCount(getThrottlingStub, 1);
-            sinon.assert.callCount(setThrottlingStub, 0);
-            sinon.assert.callCount(removeItemStub, 0);
+            expect(networkStub).toHaveBeenCalledTimes(1);
+            expect(getThrottlingStub).toHaveBeenCalledTimes(1);
+            expect(setThrottlingStub).toHaveBeenCalledTimes(0);
+            expect(removeItemStub).toHaveBeenCalledTimes(0);
             expect(res).toEqual(mockRes);
         });
 
@@ -82,16 +87,19 @@ describe("NetworkManager", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
             const mockThrottlingEntity = THROTTLING_ENTITY;
-            const networkStub = sinon.stub(
-                networkInterface,
-                "sendPostRequestAsync"
-            );
-            const getThrottlingStub = sinon
-                .stub(cache, "getThrottlingCache")
-                .returns(mockThrottlingEntity);
-            const setThrottlingStub = sinon.stub(cache, "setThrottlingCache");
-            const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(Date, "now").callsFake(() => 1);
+            const networkStub = jest
+                .spyOn(networkInterface, "sendPostRequestAsync")
+                .mockImplementation();
+            const getThrottlingStub = jest
+                .spyOn(cache, "getThrottlingCache")
+                .mockReturnValue(mockThrottlingEntity);
+            const setThrottlingStub = jest
+                .spyOn(cache, "setThrottlingCache")
+                .mockImplementation();
+            const removeItemStub = jest
+                .spyOn(cache, "removeItem")
+                .mockImplementation();
+            jest.spyOn(Date, "now").mockReturnValue(1);
 
             try {
                 await networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
@@ -101,10 +109,10 @@ describe("NetworkManager", () => {
                 );
             } catch {}
 
-            sinon.assert.callCount(networkStub, 0);
-            sinon.assert.callCount(getThrottlingStub, 1);
-            sinon.assert.callCount(setThrottlingStub, 0);
-            sinon.assert.callCount(removeItemStub, 0);
+            expect(networkStub).toHaveBeenCalledTimes(0);
+            expect(getThrottlingStub).toHaveBeenCalledTimes(1);
+            expect(setThrottlingStub).toHaveBeenCalledTimes(0);
+            expect(removeItemStub).toHaveBeenCalledTimes(0);
             expect(() =>
                 ThrottlingUtils.preProcess(cache, thumbprint)
             ).toThrowError(ServerError);
@@ -126,15 +134,19 @@ describe("NetworkManager", () => {
                 status: 200,
             };
             const mockThrottlingEntity = THROTTLING_ENTITY;
-            const networkStub = sinon
-                .stub(networkInterface, "sendPostRequestAsync")
-                .returns(Promise.resolve(mockRes));
-            const getThrottlingStub = sinon
-                .stub(cache, "getThrottlingCache")
-                .returns(mockThrottlingEntity);
-            const setThrottlingStub = sinon.stub(cache, "setThrottlingCache");
-            const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(Date, "now").callsFake(() => 10);
+            const networkStub = jest
+                .spyOn(networkInterface, "sendPostRequestAsync")
+                .mockResolvedValue(mockRes);
+            const getThrottlingStub = jest
+                .spyOn(cache, "getThrottlingCache")
+                .mockReturnValue(mockThrottlingEntity);
+            const setThrottlingStub = jest
+                .spyOn(cache, "setThrottlingCache")
+                .mockImplementation();
+            const removeItemStub = jest
+                .spyOn(cache, "removeItem")
+                .mockImplementation();
+            jest.spyOn(Date, "now").mockReturnValue(10);
 
             const res =
                 await networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
@@ -143,10 +155,10 @@ describe("NetworkManager", () => {
                     options
                 );
 
-            sinon.assert.callCount(networkStub, 1);
-            sinon.assert.callCount(getThrottlingStub, 1);
-            sinon.assert.callCount(setThrottlingStub, 0);
-            sinon.assert.callCount(removeItemStub, 1);
+            expect(networkStub).toHaveBeenCalledTimes(1);
+            expect(getThrottlingStub).toHaveBeenCalledTimes(1);
+            expect(setThrottlingStub).toHaveBeenCalledTimes(0);
+            expect(removeItemStub).toHaveBeenCalledTimes(1);
             expect(res).toEqual(mockRes);
         });
 
@@ -165,13 +177,19 @@ describe("NetworkManager", () => {
                 body: AUTHENTICATION_RESULT.body,
                 status: 500,
             };
-            const networkStub = sinon
-                .stub(networkInterface, "sendPostRequestAsync")
-                .returns(Promise.resolve(mockRes));
-            const getThrottlingStub = sinon.stub(cache, "getThrottlingCache");
-            const setThrottlingStub = sinon.stub(cache, "setThrottlingCache");
-            const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(Date, "now").callsFake(() => 1);
+            const networkStub = jest
+                .spyOn(networkInterface, "sendPostRequestAsync")
+                .mockResolvedValue(mockRes);
+            const getThrottlingStub = jest
+                .spyOn(cache, "getThrottlingCache")
+                .mockImplementation();
+            const setThrottlingStub = jest
+                .spyOn(cache, "setThrottlingCache")
+                .mockImplementation();
+            const removeItemStub = jest
+                .spyOn(cache, "removeItem")
+                .mockImplementation();
+            jest.spyOn(Date, "now").mockReturnValue(1);
 
             const res =
                 await networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
@@ -180,10 +198,10 @@ describe("NetworkManager", () => {
                     options
                 );
 
-            sinon.assert.callCount(networkStub, 1);
-            sinon.assert.callCount(getThrottlingStub, 1);
-            sinon.assert.callCount(setThrottlingStub, 1);
-            sinon.assert.callCount(removeItemStub, 0);
+            expect(networkStub).toHaveBeenCalledTimes(1);
+            expect(getThrottlingStub).toHaveBeenCalledTimes(1);
+            expect(setThrottlingStub).toHaveBeenCalledTimes(1);
+            expect(removeItemStub).toHaveBeenCalledTimes(0);
             expect(res).toEqual(mockRes);
         });
 
@@ -198,9 +216,10 @@ describe("NetworkManager", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
 
-            sinon
-                .stub(networkInterface, "sendPostRequestAsync")
-                .returns(Promise.reject("Fetch failed"));
+            jest.spyOn(
+                networkInterface,
+                "sendPostRequestAsync"
+            ).mockRejectedValue(new Error("Fetch failed"));
 
             networkManager
                 .sendPostRequest<ServerAuthorizationTokenResponse>(
