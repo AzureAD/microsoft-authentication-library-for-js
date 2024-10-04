@@ -5,8 +5,16 @@ import { TEST_CONFIG } from "../utils/StringConstants";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { AccountInfo, AuthenticationScheme, Logger } from "@azure/msal-common";
-import { ID_TOKEN_CLAIMS, RANDOM_TEST_GUID, TEST_DATA_CLIENT_INFO, TEST_TOKENS } from "../utils/StringConstants.js";
-import { CacheLookupPolicy, WrapperSKU } from "../../src/utils/BrowserConstants.js";
+import {
+    ID_TOKEN_CLAIMS,
+    RANDOM_TEST_GUID,
+    TEST_DATA_CLIENT_INFO,
+    TEST_TOKENS,
+} from "../utils/StringConstants.js";
+import {
+    CacheLookupPolicy,
+    WrapperSKU,
+} from "../../src/utils/BrowserConstants.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { SilentRequest } from "../../src/request/SilentRequest.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
@@ -104,7 +112,7 @@ describe("Non-browser environment", () => {
         await instance.initialize();
         try {
             await instance.acquireTokenByCode({
-                scopes: ["openid"], 
+                scopes: ["openid"],
                 code: "auth-code",
             });
         } catch (error: any) {
@@ -137,13 +145,11 @@ describe("Non-browser environment", () => {
     });
 
     it("addPerformanceCallback throws", async () => {
-        const instance = new PublicClientApplication(
-            {
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
+        const instance = new PublicClientApplication({
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
-        );
+        });
 
         await instance.initialize();
         try {
@@ -187,7 +193,7 @@ describe("Non-browser environment", () => {
         await instance.initialize();
         instance.disableAccountStorageEvents();
     });
-    
+
     it("getAccount returns null", async () => {
         const testAccount: AccountInfo = {
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -196,7 +202,7 @@ describe("Non-browser environment", () => {
             tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
             username: "AbeLi@microsoft.com",
         };
-        
+
         const instance = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -214,7 +220,9 @@ describe("Non-browser environment", () => {
             },
         });
         await instance.initialize();
-        const account = instance.getAccountByHomeId(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID);
+        const account = instance.getAccountByHomeId(
+            TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
+        );
         expect(account).toEqual(null);
     });
 
@@ -225,7 +233,9 @@ describe("Non-browser environment", () => {
             },
         });
         await instance.initialize();
-        const account = instance.getAccountByLocalId(TEST_DATA_CLIENT_INFO.TEST_UID);
+        const account = instance.getAccountByLocalId(
+            TEST_DATA_CLIENT_INFO.TEST_UID
+        );
         expect(account).toEqual(null);
     });
 
@@ -378,7 +388,7 @@ describe("Non-browser environment", () => {
 
         await instance.initialize();
         const tokenCache = instance.getTokenCache();
-        expect(typeof tokenCache.loadExternalTokens).toBe('function');
+        expect(typeof tokenCache.loadExternalTokens).toBe("function");
     });
 
     it("getLogger should not throw", async () => {
@@ -478,7 +488,7 @@ describe("Non-browser environment", () => {
             account: testAccount,
             cacheLookupPolicy: CacheLookupPolicy.AccessToken,
         };
-        
+
         const instance = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -488,7 +498,7 @@ describe("Non-browser environment", () => {
         await instance.initialize();
         instance.hydrateCache(testAuthenticationResult, request);
     });
-    
+
     it("clearCache should not throw", async () => {
         const instance = new PublicClientApplication({
             auth: {

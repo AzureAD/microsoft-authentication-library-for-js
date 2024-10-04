@@ -314,7 +314,7 @@ export class StandardController implements IController {
             return;
         }
 
-        if(!this.isBrowserEnvironment) {
+        if (!this.isBrowserEnvironment) {
             this.initialized = true;
             this.eventHandler.emitEvent(EventType.INITIALIZE_END);
             return;
@@ -1341,7 +1341,7 @@ export class StandardController implements IController {
      * @param logoutRequest
      */
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
-        if (!(this.isBrowserEnvironment)){
+        if (!this.isBrowserEnvironment) {
             return;
         }
         const correlationId = this.getRequestCorrelationId(logoutRequest);
