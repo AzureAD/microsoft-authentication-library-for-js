@@ -22,7 +22,7 @@ export class LabClient {
     constructor() {
         const tenant = process.env[ENV_VARIABLES.TENANT];
         const clientId = process.env[ENV_VARIABLES.CLIENT_ID];
-        const client_cert_path = process.env[ENV_VARIABLES.CERT_PATH];
+        const client_cert_path = process.env[ENV_VARIABLES.CERTIFICATE_PATH];
         this.currentToken = null;
         if (!tenant || !clientId || !client_cert_path) {
             throw "Environment variables not set!";
