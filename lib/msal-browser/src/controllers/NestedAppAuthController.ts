@@ -220,7 +220,6 @@ export class NestedAppAuthController implements IController {
                     response,
                     reqTimestamp
                 ),
-                fromCache: false, // Ensure fromCache is set to false when not retrieved from cache
             };
 
             // cache the tokens in the response
