@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728075083425,
+  "lastUpdate": 1728334263508,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12274,6 +12274,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.12%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shylasummers@users.noreply.github.com",
+            "name": "shylasummers",
+            "username": "shylasummers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "243b68bcb1d9fb90adbfcfe4c17773a32881ed3c",
+          "message": "Fixing window unavailable bugs for PCA and PBA (#7355)\n\nCurrently, the PCA constructor in 1P and some functions for PCA (both 1P\r\nand 3P) and PBA throw when the window is unavailable. This creates\r\nproblems with server-side rendering. Additionally, some functions that\r\nshould throw a non_browser_environment error when the window is\r\nunavailable (such as the acquireToken functions) throw a different\r\nerror.\r\n\r\nThis PR makes changes to prevent the PCA and PBA constructor and certain\r\nfunctions from throwing solely due to the window being unavailable and\r\nto ensure that the non_browser_environment error is thrown when\r\nappropriate. It also adds corresponding unit tests.\r\n\r\n---------\r\n\r\nCo-authored-by: Hector Morales <hemoral@microsoft.com>",
+          "timestamp": "2024-10-07T13:45:26-07:00",
+          "tree_id": "b92dfe8b916d6951a411d3baa21c9b5e3b9a13c4",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/243b68bcb1d9fb90adbfcfe4c17773a32881ed3c"
+        },
+        "date": 1728334262368,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 207608,
+            "range": "±1.68%",
+            "unit": "ops/sec",
+            "extra": "227 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 189600,
+            "range": "±2.15%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
           }
         ]
       }
