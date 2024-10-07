@@ -252,6 +252,25 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             expect(response.accessToken).toEqual(testResponse.accessToken);
         });
 
+        it("acquireTokenSilent sends the request to bridge if request has claims", async () => {
+            mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+
+            const testRequest = {
+                scopes: [NAA_SCOPE],
+                account: testAccount,
+                claims: JSON.stringify({ token_claims: "testClaims" }),
+                correlationId: NAA_CORRELATION_ID,
+            };
+
+            const testResponse = nestedAppAuthAdapter.fromNaaTokenResponse(
+                nestedAppAuthAdapter.toNaaTokenRequest(testRequest),
+                SILENT_TOKEN_RESPONSE,
+                0
+            );
+            const response = await pca.acquireTokenSilent(testRequest);
+            expect(response.accessToken).toEqual(testResponse.accessToken);
+        });
+
         afterEach(() => {
             jest.restoreAllMocks();
         });

@@ -369,6 +369,14 @@ export class NestedAppAuthController implements IController {
             nestedAppAuthRequest: true,
         });
 
+        // if the request has claims, we cannot look up in the cache
+        if (request.claims) {
+            this.logger.verbose(
+                "Claims are present in the request, skipping cache lookup"
+            );
+            return null;
+        }
+
         // respect cache lookup policy
         let result: AuthenticationResult | null = null;
         switch (request.cacheLookupPolicy) {
