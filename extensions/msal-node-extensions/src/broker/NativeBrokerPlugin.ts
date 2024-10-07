@@ -551,7 +551,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         let tokenType;
         if (authResult.isPopAuthorization) {
             // Header includes 'pop ' prefix
-            accessToken = authResult.authorizationHeader.split(" ")[1]
+            accessToken = authResult.authorizationHeader.split(" ")[1];
             tokenType = AuthenticationScheme.POP;
         } else {
             accessToken = authResult.accessToken;

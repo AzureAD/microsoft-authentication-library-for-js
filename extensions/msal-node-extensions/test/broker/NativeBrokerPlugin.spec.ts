@@ -374,17 +374,16 @@ if (process.platform === "win32") {
                     authenticationScheme: AuthenticationScheme.POP,
                     resourceRequestMethod: "POST",
                     resourceRequestUri: "https://contoso.com/resource",
-                    shrNonce: "some-random-nonce"
+                    shrNonce: "some-random-nonce",
                 };
                 const response = await nativeBrokerPlugin.acquireTokenSilent(
                     request
                 );
-                expect(response).toStrictEqual<AuthenticationResult>(
-                    {...testAuthenticationResult,
-                        accessToken: popAT,
-                        tokenType: AuthenticationScheme.POP
-                    }
-                );
+                expect(response).toStrictEqual<AuthenticationResult>({
+                    ...testAuthenticationResult,
+                    accessToken: popAT,
+                    tokenType: AuthenticationScheme.POP,
+                });
             });
 
             it("Returns successful response if user is already signed in", async () => {
@@ -693,16 +692,15 @@ if (process.platform === "win32") {
                     authenticationScheme: AuthenticationScheme.POP,
                     resourceRequestMethod: "POST",
                     resourceRequestUri: "https://contoso.com/resource",
-                    shrNonce: "some-random-nonce"
+                    shrNonce: "some-random-nonce",
                 };
                 const response =
                     await nativeBrokerPlugin.acquireTokenInteractive(request);
-                expect(response).toStrictEqual<AuthenticationResult>(
-                    {...testAuthenticationResult,
-                        accessToken: popAT,
-                        tokenType: AuthenticationScheme.POP
-                    }
-                );
+                expect(response).toStrictEqual<AuthenticationResult>({
+                    ...testAuthenticationResult,
+                    accessToken: popAT,
+                    tokenType: AuthenticationScheme.POP,
+                });
             });
 
             it("Calls AcquireTokenInteractivelyAsync and returns successful response if user is already signed in", async () => {
