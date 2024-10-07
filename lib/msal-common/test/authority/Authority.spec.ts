@@ -1314,7 +1314,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(getEndpointMetadataFromConfigSpy).toHaveBeenCalled();
                 expect(
                     getEndpointMetadataFromHarcodedValuesSpy
-                ).;
+                ).toHaveBeenCalled();
                 expect(
                     getEndpointMetadataFromNetworkSpy
                 ).not.toHaveBeenCalled();
