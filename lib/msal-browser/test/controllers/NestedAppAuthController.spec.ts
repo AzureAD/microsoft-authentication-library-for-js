@@ -45,7 +45,6 @@ import BridgeProxy from "../../src/naa/BridgeProxy.js";
 import { NestedAppAuthAdapter } from "../../src/naa/mapping/NestedAppAuthAdapter.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 
-
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -182,7 +181,6 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
         it("acquireTokenSilent calls acquireTokenFromCach with no cache policy set", async () => {
             jest.spyOn(
                 NestedAppAuthController.prototype as any,
-                // @ts-ignore
                 "acquireTokenFromCache"
             ).mockResolvedValue(testTokenResponse);
 
@@ -198,7 +196,6 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
         it("acquireTokenSilent looks for cache first if cache policy prefers it", async () => {
             jest.spyOn(
                 NestedAppAuthController.prototype as any,
-                // @ts-ignore
                 "acquireTokenFromCache"
             ).mockResolvedValue(testTokenResponse);
 
@@ -219,6 +216,29 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 scopes: [NAA_SCOPE],
                 account: testAccount,
                 cacheLookupPolicy: CacheLookupPolicy.AccessTokenAndRefreshToken,
+                correlationId: NAA_CORRELATION_ID,
+            };
+
+            const testResponse = nestedAppAuthAdapter.fromNaaTokenResponse(
+                nestedAppAuthAdapter.toNaaTokenRequest(testRequest),
+                SILENT_TOKEN_RESPONSE,
+                0
+            );
+            const response = await pca.acquireTokenSilent(testRequest);
+
+            expect(response.accessToken).toEqual(testResponse.accessToken);
+        });
+
+        it("acquireTokenSilent sends the request to bridge if cache misses", async () => {
+            mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+            jest.spyOn(
+                NestedAppAuthController.prototype as any,
+                "acquireTokenFromCache"
+            ).mockResolvedValue(null);
+
+            const testRequest = {
+                scopes: [NAA_SCOPE],
+                account: testAccount,
                 correlationId: NAA_CORRELATION_ID,
             };
 
