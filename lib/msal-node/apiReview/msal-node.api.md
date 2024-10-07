@@ -496,7 +496,7 @@ export type NodeAuthOptions = {
 export class NodeStorage extends CacheManager {
     constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto, staticAuthorityOptions?: StaticAuthorityOptions);
     cacheToInMemoryCache(cache: CacheKVStore): InMemoryCache;
-    clear(): Promise<void>;
+    clear(): void;
     containsKey(key: string): boolean;
     emitChange(): void;
     static generateInMemoryCache(cache: string): InMemoryCache;

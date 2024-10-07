@@ -1,7 +1,7 @@
 {
-  "type": "patch",
+  "type": "minor",
   "comment": "Make clear synchronous for msal.node",
   "packageName": "@azure/msal-common",
   "email": "shylasummers@microsoft.com",
-  "dependentChangeType": "patch"
+  "dependentChangeType": "minor"
 }
