@@ -374,6 +374,7 @@ export class NestedAppAuthController implements IController {
         switch (request.cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessToken:
+            case CacheLookupPolicy.AccessTokenAndRefreshToken:
                 result = await this.acquireTokenFromCacheInternal(request);
                 break;
             default:
