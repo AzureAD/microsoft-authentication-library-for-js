@@ -62,7 +62,7 @@ describe("Auth Code B2C Tests (msa account)", () => {
 
         const labApiParms: LabApiQueryParams = {
             userType: UserTypes.B2C,
-            b2cProvider: B2cProviders.TWITTER,
+            b2cProvider: B2cProviders.MICROSOFT,
         };
 
         const labClient = new LabClient();

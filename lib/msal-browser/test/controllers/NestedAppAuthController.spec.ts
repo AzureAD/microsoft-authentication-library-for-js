@@ -1,4 +1,3 @@
-import sinon from "sinon";
 import { NestedAppAuthController } from "../../src/controllers/NestedAppAuthController.js";
 import {
     PublicClientApplication,
@@ -43,6 +42,7 @@ import {
 import BridgeProxy from "../../src/naa/BridgeProxy.js";
 import { NestedAppAuthAdapter } from "../../src/naa/mapping/NestedAppAuthAdapter.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
+
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -120,7 +120,6 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
     });
 
     afterEach(() => {
-        sinon.restore();
         jest.restoreAllMocks();
         windowSpy.mockRestore();
         window.sessionStorage.clear();
