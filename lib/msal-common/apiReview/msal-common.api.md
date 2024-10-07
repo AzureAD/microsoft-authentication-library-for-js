@@ -1804,8 +1804,6 @@ export const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
 // @internal (undocumented)
 export class DefaultStorageClass extends CacheManager {
     // (undocumented)
-    clear(): Promise<void>;
-    // (undocumented)
     getAccessTokenCredential(): AccessTokenEntity;
     // (undocumented)
     getAccount(): AccountEntity;
