@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728334263508,
+  "lastUpdate": 1728338293483,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12312,6 +12312,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.15%",
             "unit": "ops/sec",
             "extra": "225 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "367915c86375e27d7aad8ecf777d2c0573a25b58",
+          "message": "Add filters to the event callbacks (#7351)\n\nAdds optional filter param to event callbacks to allow invoking\r\ncallbacks only for given event types. This is important for Pairwise\r\nbrokering scenarios to ensure we don't raise events twice or incorrectly",
+          "timestamp": "2024-10-07T14:52:40-07:00",
+          "tree_id": "99cd44fea0b2fb86710ffe5a1c51c5fa431b8363",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/367915c86375e27d7aad8ecf777d2c0573a25b58"
+        },
+        "date": 1728338291895,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 189721,
+            "range": "±2.13%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 193602,
+            "range": "±2.14%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
