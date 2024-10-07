@@ -138,15 +138,21 @@ export class ConfidentialClientApplication
             );
         }
 
-        // if this env variable is set, MSAL shall opt-in to ESTS-R with the value of this variable
+        /*
+         * if this env variable is set, and the developer provided region isn't defined or is "DisableMsalForceRegion",
+         * MSAL shall opt-in to ESTS-R with the value of this variable
+         */
         const ENV_MSAL_FORCE_REGION: AzureRegion | undefined =
             process.env[MSAL_FORCE_REGION];
-        const region: AzureRegion | undefined =
-            !validRequest.azureRegion &&
-            ENV_MSAL_FORCE_REGION &&
-            ENV_MSAL_FORCE_REGION !== "DisableMsalForceRegion"
-                ? ENV_MSAL_FORCE_REGION
-                : validRequest.azureRegion;
+
+        let region: AzureRegion | undefined;
+        if (validRequest.azureRegion !== "DisableMsalForceRegion") {
+            region =
+                !validRequest.azureRegion && ENV_MSAL_FORCE_REGION
+                    ? ENV_MSAL_FORCE_REGION
+                    : validRequest.azureRegion;
+        }
+
         const azureRegionConfiguration: AzureRegionConfiguration = {
             azureRegion: region,
             environmentRegion: process.env[REGION_ENVIRONMENT_VARIABLE],

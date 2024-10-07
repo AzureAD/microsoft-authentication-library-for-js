@@ -408,10 +408,8 @@ describe("ConfidentialClientApplication", () => {
             });
 
             test('region is not passed in through the request, the MSAL_FORCE_REGION environment variable is set to "DisableMsalForceRegion"', async () => {
-                process.env[MSAL_FORCE_REGION] = "DisableMsalForceRegion";
-
                 const authResult = (await client.acquireTokenByClientCredential(
-                    request
+                    { ...request, azureRegion: "DisableMsalForceRegion" }
                 )) as AuthenticationResult;
                 expect(authResult.accessToken).toEqual(
                     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
