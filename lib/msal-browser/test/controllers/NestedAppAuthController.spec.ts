@@ -215,7 +215,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             const testRequest = {
                 scopes: [NAA_SCOPE],
                 account: testAccount,
-                cacheLookupPolicy: CacheLookupPolicy.AccessTokenAndRefreshToken,
+                cacheLookupPolicy: CacheLookupPolicy.Skip,
                 correlationId: NAA_CORRELATION_ID,
             };
 
