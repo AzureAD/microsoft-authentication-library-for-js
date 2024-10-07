@@ -610,16 +610,8 @@ export abstract class ClientApplication {
 
     /**
      * Clear the cache
-     * @deprecated Use clearCacheAsync instead
      */
     clearCache(): void {
         void this.storage.clear();
-    }
-
-    /**
-     * Clear the cache
-     */
-    async clearCacheAsync(): Promise<void> {
-        await this.storage.clear();
     }
 }
