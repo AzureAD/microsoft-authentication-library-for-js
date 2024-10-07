@@ -1,4 +1,3 @@
-import sinon from "sinon";
 import { NestedAppAuthController } from "../../src/controllers/NestedAppAuthController.js";
 import {
     PublicClientApplication,
@@ -17,6 +16,7 @@ import {
 import {
     AuthenticationScheme,
     BrowserCacheLocation,
+    CacheLookupPolicy,
     Configuration,
     IPublicClientApplication,
     SilentRequest,
@@ -36,6 +36,7 @@ import {
     NAA_AUTHORITY,
     NAA_CLIENT_CAPABILITIES,
     NAA_CLIENT_ID,
+    NAA_CORRELATION_ID,
     NAA_SCOPE,
     SILENT_TOKEN_REQUEST,
     SILENT_TOKEN_RESPONSE,
@@ -81,7 +82,6 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             INIT_CONTEXT_RESPONSE
         );
         bridgeProxy = await BridgeProxy.create();
-
         jest.spyOn(BridgeProxy, "create").mockResolvedValue(bridgeProxy);
 
         config = {
@@ -120,7 +120,6 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
     });
 
     afterEach(() => {
-        sinon.restore();
         jest.restoreAllMocks();
         windowSpy.mockRestore();
         window.sessionStorage.clear();
@@ -139,8 +138,11 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
     });
 
     describe("acquireTokenSilent tests", () => {
-        it("acquireTokenSilent calls acquireTokenFromCache", async () => {
-            const testAccount: AccountInfo = {
+        let testAccount: AccountInfo;
+        let testTokenResponse: AuthenticationResult;
+        let nestedAppAuthAdapter: NestedAppAuthAdapter;
+        beforeEach(() => {
+            testAccount = {
                 homeAccountId: NAA_APP_CONSTANTS.homeAccountId,
                 localAccountId: NAA_APP_CONSTANTS.localAccountId,
                 environment: NAA_APP_CONSTANTS.environment,
@@ -148,7 +150,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 username: NAA_APP_CONSTANTS.username,
             };
 
-            const testTokenResponse: AuthenticationResult = {
+            testTokenResponse = {
                 authority: NAA_AUTHORITY,
                 uniqueId: NAA_APP_CONSTANTS.localAccountId,
                 tenantId: NAA_APP_CONSTANTS.tenantId,
@@ -164,6 +166,19 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 state: "test-state",
             };
 
+            // All logger options properties are optional... so passing empty object
+            const logger = new Logger({});
+            const crypto: ICrypto = new CryptoOps(logger);
+            nestedAppAuthAdapter = new NestedAppAuthAdapter(
+                NAA_CLIENT_ID,
+                "https://login.microsoftonline.com/common",
+                NAA_CLIENT_CAPABILITIES,
+                crypto,
+                logger
+            );
+        });
+
+        it("acquireTokenSilent calls acquireTokenFromCach with no cache policy set", async () => {
             jest.spyOn(
                 NestedAppAuthController.prototype as any,
                 // @ts-ignore
@@ -178,19 +193,46 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             expect(response?.idToken).not.toBeNull();
             expect(response).toEqual(testTokenResponse);
         });
+
+        it("acquireTokenSilent looks for cache first if cache policy prefers it", async () => {
+            jest.spyOn(
+                NestedAppAuthController.prototype as any,
+                // @ts-ignore
+                "acquireTokenFromCache"
+            ).mockResolvedValue(testTokenResponse);
+
+            const response = await pca.acquireTokenSilent({
+                scopes: [NAA_SCOPE],
+                account: testAccount,
+                state: "test-state",
+                cacheLookupPolicy: CacheLookupPolicy.AccessToken,
+            });
+            expect(response?.idToken).not.toBeNull();
+            expect(response).toEqual(testTokenResponse);
+        });
+
+        it("acquireTokenSilent sends the request to bridge if cache policy prefers it", async () => {
+            mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+
+            const testRequest = {
+                scopes: [NAA_SCOPE],
+                account: testAccount,
+                cacheLookupPolicy: CacheLookupPolicy.AccessTokenAndRefreshToken,
+                correlationId: NAA_CORRELATION_ID,
+            };
+
+            const testResponse = nestedAppAuthAdapter.fromNaaTokenResponse(
+                nestedAppAuthAdapter.toNaaTokenRequest(testRequest),
+                SILENT_TOKEN_RESPONSE,
+                0
+            );
+            const response = await pca.acquireTokenSilent(testRequest);
+
+            expect(response.accessToken).toEqual(testResponse.accessToken);
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
     });
-
-    it("acquireTokenSilent sends the request to bridge if cache errors", async () => {});
-
-    it("acquireTokenSilent prefers bridge account context", async () => {});
-
-    it("acquireTokenSilent fails cache lookup if request", async () => {});
-
-    it("acquireTokenSilent sends the request to bridge if access_token is expired", async () => {});
-
-    it("acquireTokenSilent sends the request to bridge if access_token is not found in the cache", async () => {});
-
-    it("acquireTokenSilent looks for cache first if cache policy prefers it", async () => {});
-
-    it("acquireTokenSilent sends the request to bridge if cache policy prefers it", async () => {});
 });
