@@ -37,9 +37,9 @@ import {
     blockAPICallsBeforeInitialize,
     blockNonBrowserEnvironment,
 } from "../utils/BrowserUtils.js";
-import { EventHandler } from "../event/EventHandler.js";
 import { EventCallbackFunction } from "../event/EventMessage.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
+import { EventType } from "../event/EventType.js";
 
 /**
  * UnknownOperatingContextController class
@@ -202,10 +202,18 @@ export class UnknownOperatingContextController implements IController {
         blockNonBrowserEnvironment();
         return {} as Promise<AuthenticationResult>;
     }
-    addEventCallback(callback: EventCallbackFunction): string | null {
+    addEventCallback(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        callback: EventCallbackFunction,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        eventTypes?: Array<EventType>
+    ): string | null {
         return null;
     }
-    removeEventCallback(callbackId: string): void {}
+    removeEventCallback(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        callbackId: string
+    ): void {}
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
         blockAPICallsBeforeInitialize(this.initialized);

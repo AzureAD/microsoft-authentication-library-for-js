@@ -21,7 +21,6 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
 import { ITokenCache } from "../cache/ITokenCache.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
-import { EventHandler } from "../event/EventHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { EventCallbackFunction } from "../event/EventMessage.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
