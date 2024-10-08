@@ -3,13 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo } from "../../src/naa/AccountInfo";
-import { AuthBridge } from "../../src/naa/AuthBridge";
-import { AuthResult } from "../../src/naa/AuthResult";
-import { BridgeError, isBridgeError } from "../../src/naa/BridgeError";
-import { isBridgeRequestEnvelope } from "../../src/naa/BridgeRequestEnvelope";
-import { BridgeResponseEnvelope } from "../../src/naa/BridgeResponseEnvelope";
-import { InitContext } from "../../src/naa/InitContext";
+import { AccountInfo } from "../../src/naa/AccountInfo.js";
+import { AuthBridge } from "../../src/naa/AuthBridge.js";
+import { AuthResult } from "../../src/naa/AuthResult.js";
+import { BridgeError, isBridgeError } from "../../src/naa/BridgeError.js";
+import { isBridgeRequestEnvelope } from "../../src/naa/BridgeRequestEnvelope.js";
+import { BridgeResponseEnvelope } from "../../src/naa/BridgeResponseEnvelope.js";
+import { InitContext } from "../../src/naa/InitContext.js";
 
 export class MockBridge implements AuthBridge {
     private listeners: { [key: string]: ((response: string) => void)[] } = {};

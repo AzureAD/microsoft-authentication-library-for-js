@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Bug fixes for windowless PCA",
-  "packageName": "@azure/msal-browser",
-  "email": "shylasummers@microsoft.com",
-  "dependentChangeType": "patch"
-}
