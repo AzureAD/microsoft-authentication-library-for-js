@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Respect cache policy and claims set in the request #7363",
-  "packageName": "@azure/msal-browser",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch"
-}
