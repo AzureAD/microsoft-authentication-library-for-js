@@ -30,7 +30,10 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build --workspace=lib/** --workspace=extensions/**
+        run: npm run build --workspace=lib/**
+
+      - name: Build extensions
+        run: npm run build:js --workspace=extensions/**
 
       - name: Generate
         run: npm run doc:generate
