@@ -42,7 +42,6 @@ describe("NestedAppAuthAdapter tests", () => {
         const crypto: ICrypto = new CryptoOps(logger);
         nestedAppAuthAdapter = new NestedAppAuthAdapter(
             NAA_CLIENT_ID,
-            "https://login.microsoftonline.com/common",
             NAA_CLIENT_CAPABILITIES,
             crypto,
             logger

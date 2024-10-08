@@ -123,7 +123,6 @@ export class NestedAppAuthController implements IController {
 
         this.nestedAppAuthAdapter = new NestedAppAuthAdapter(
             this.config.auth.clientId,
-            this.config.auth.authority,
             this.config.auth.clientCapabilities,
             this.browserCrypto,
             this.logger
