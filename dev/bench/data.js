@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728406707711,
+  "lastUpdate": 1728419134337,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12424,6 +12424,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.18%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sameera.gajjarapu@microsoft.com",
+            "name": "Sameera Gajjarapu",
+            "username": "sameerag"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9ff67274116c0509b9d9eaa956c4a35617a6cb38",
+          "message": "Cache fixes for NAA flow (#7363)\n\nThis PR should respect cache policy if set on the request and add tests\r\nfor cache pull NAA requests\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-10-08T13:20:02-07:00",
+          "tree_id": "35061c276148dba6202b1f3a458287c6d35f5692",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/9ff67274116c0509b9d9eaa956c4a35617a6cb38"
+        },
+        "date": 1728419133055,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 212717,
+            "range": "±2.01%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 190258,
+            "range": "±2.14%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
