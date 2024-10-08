@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728338293483,
+  "lastUpdate": 1728346181213,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12350,6 +12350,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.14%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "34c39709d1eedf3e051d80a978e94fe8f75b44cf",
+          "message": "PoP Support for Node when brokered (#7360)\n\nFixes PoP support for Node when using the native broker",
+          "timestamp": "2024-10-07T17:04:14-07:00",
+          "tree_id": "ac2effaa29d32777f29f641eabfcaa994c758b8f",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/34c39709d1eedf3e051d80a978e94fe8f75b44cf"
+        },
+        "date": 1728346179575,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 192036,
+            "range": "±2.18%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 191457,
+            "range": "±2.20%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
           }
         ]
       }
