@@ -25,9 +25,9 @@
 <section class="tsd-panel">
 <h4>Implements</h4>
 <ul class="tsd-hierarchy">
-<li><a href="../interfaces/_azure_msal_common.IPerformanceClient.html" class="tsd-signature-type tsd-kind-interface">IPerformanceClient</a></li></ul></section><aside class="tsd-sources">
+<li><a href="../interfaces/_azure_msal_browser.IPerformanceClient.html" class="tsd-signature-type tsd-kind-interface">IPerformanceClient</a></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-browser/src/telemetry/BrowserPerformanceClient.ts#L22">msal-browser/src/telemetry/BrowserPerformanceClient.ts:22</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-browser/src/telemetry/BrowserPerformanceClient.ts#L68">msal-browser/src/telemetry/BrowserPerformanceClient.ts:68</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -52,15 +52,14 @@
 <a href="_azure_msal_browser.BrowserPerformanceClient.html#removePerformanceCallback" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>remove<wbr/>Performance<wbr/>Callback</span></a>
 <a href="_azure_msal_browser.BrowserPerformanceClient.html#setPreQueueTime" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>set<wbr/>Pre<wbr/>Queue<wbr/>Time</span></a>
 <a href="_azure_msal_browser.BrowserPerformanceClient.html#startMeasurement" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>start<wbr/>Measurement</span></a>
-<a href="_azure_msal_browser.BrowserPerformanceClient.html#startPerformanceMeasurement" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>start<wbr/>Performance<wbr/>Measurement</span></a>
-<a href="_azure_msal_browser.BrowserPerformanceClient.html#supportsBrowserPerformanceNow" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>supports<wbr/>Browser<wbr/>Performance<wbr/>Now</span></a>
+<a href="_azure_msal_browser.BrowserPerformanceClient.html#startPerformanceMeasurement" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>start<wbr/>Performance<wbr/>Measurement</span></a>
 </div></section></div></details></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Constructors</h2>
 <section class="tsd-panel tsd-member"><a id="constructor" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="constructor.new_BrowserPerformanceClient"><span class="tsd-kind-constructor-signature">new <wbr/>Browser<wbr/>Performance<wbr/>Client</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">configuration</span>, <span class="tsd-kind-parameter">intFields</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_azure_msal_browser.BrowserPerformanceClient.html" class="tsd-signature-type tsd-kind-class">BrowserPerformanceClient</a><a href="#constructor.new_BrowserPerformanceClient" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="constructor.new_BrowserPerformanceClient"><span class="tsd-kind-constructor-signature">new <wbr/>Browser<wbr/>Performance<wbr/>Client</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">configuration</span>, <span class="tsd-kind-parameter">intFields</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">abbreviations</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_azure_msal_browser.BrowserPerformanceClient.html" class="tsd-signature-type tsd-kind-class">BrowserPerformanceClient</a><a href="#constructor.new_BrowserPerformanceClient" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -68,11 +67,13 @@
 <li>
 <h5><span class="tsd-kind-parameter">configuration</span>: <a href="../types/_azure_msal_browser.Configuration.html" class="tsd-signature-type tsd-kind-type-alias">Configuration</a></h5></li>
 <li>
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">intFields</span>: <span class="tsd-signature-type ">Set</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">intFields</span>: <span class="tsd-signature-type ">Set</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h5></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">abbreviations</span>: <span class="tsd-signature-type ">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="_azure_msal_browser.BrowserPerformanceClient.html" class="tsd-signature-type tsd-kind-class">BrowserPerformanceClient</a></h4><aside class="tsd-sources">
 <p>Overrides <a href="_azure_msal_common.PerformanceClient.html">PerformanceClient</a>.<a href="_azure_msal_common.PerformanceClient.html#constructor">constructor</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-browser/src/telemetry/BrowserPerformanceClient.ts#L26">msal-browser/src/telemetry/BrowserPerformanceClient.ts:26</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-browser/src/telemetry/BrowserPerformanceClient.ts#L72">msal-browser/src/telemetry/BrowserPerformanceClient.ts:72</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="addFields" class="tsd-anchor"></a>
@@ -94,10 +95,10 @@
 <h5><span class="tsd-kind-parameter">correlationId</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Implementation of <a href="../interfaces/_azure_msal_common.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_common.IPerformanceClient.html#addFields">addFields</a></p>
+<p>Implementation of <a href="../interfaces/_azure_msal_browser.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_browser.IPerformanceClient.html#addFields">addFields</a></p>
 <p>Inherited from <a href="_azure_msal_common.PerformanceClient.html">PerformanceClient</a>.<a href="_azure_msal_common.PerformanceClient.html#addFields">addFields</a></p>
 <ul>
-<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:130</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:182</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="addPerformanceCallback" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>add<wbr/>Performance<wbr/>Callback</span><a href="#addPerformanceCallback" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -112,10 +113,10 @@
 <h5><span class="tsd-kind-parameter">callback</span>: <a href="../types/_azure_msal_browser.PerformanceCallbackFunction.html" class="tsd-signature-type tsd-kind-type-alias">PerformanceCallbackFunction</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Implementation of <a href="../interfaces/_azure_msal_common.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_common.IPerformanceClient.html#addPerformanceCallback">addPerformanceCallback</a></p>
+<p>Implementation of <a href="../interfaces/_azure_msal_browser.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_browser.IPerformanceClient.html#addPerformanceCallback">addPerformanceCallback</a></p>
 <p>Inherited from <a href="_azure_msal_common.PerformanceClient.html">PerformanceClient</a>.<a href="_azure_msal_common.PerformanceClient.html#addPerformanceCallback">addPerformanceCallback</a></p>
 <ul>
-<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:170</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:216</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="addQueueMeasurement" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>add<wbr/>Queue<wbr/>Measurement</span><a href="#addQueueMeasurement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -139,10 +140,10 @@
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Implementation of <a href="../interfaces/_azure_msal_common.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_common.IPerformanceClient.html#addQueueMeasurement">addQueueMeasurement</a></p>
+<p>Implementation of <a href="../interfaces/_azure_msal_browser.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_browser.IPerformanceClient.html#addQueueMeasurement">addQueueMeasurement</a></p>
 <p>Overrides <a href="_azure_msal_common.PerformanceClient.html">PerformanceClient</a>.<a href="_azure_msal_common.PerformanceClient.html#addQueueMeasurement">addQueueMeasurement</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-browser/src/telemetry/BrowserPerformanceClient.ts#L190">msal-browser/src/telemetry/BrowserPerformanceClient.ts:190</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-browser/src/telemetry/BrowserPerformanceClient.ts#L253">msal-browser/src/telemetry/BrowserPerformanceClient.ts:253</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="calculateQueuedTime" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>calculate<wbr/>Queued<wbr/>Time</span><a href="#calculateQueuedTime" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -160,16 +161,16 @@ Note: It is possible to have 0 as the queue time if the current time and the que
 <h5><span class="tsd-kind-parameter">currentTime</span>: <span class="tsd-signature-type">number</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Implementation of <a href="../interfaces/_azure_msal_common.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_common.IPerformanceClient.html#calculateQueuedTime">calculateQueuedTime</a></p>
+<p>Implementation of <a href="../interfaces/_azure_msal_browser.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_browser.IPerformanceClient.html#calculateQueuedTime">calculateQueuedTime</a></p>
 <p>Inherited from <a href="_azure_msal_common.PerformanceClient.html">PerformanceClient</a>.<a href="_azure_msal_common.PerformanceClient.html#calculateQueuedTime">calculateQueuedTime</a></p>
 <ul>
-<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:95</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:147</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="discardMeasurements" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>discard<wbr/>Measurements</span><a href="#discardMeasurements" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="discardMeasurements.discardMeasurements-1"><span class="tsd-kind-call-signature">discard<wbr/>Measurements</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">correlationId</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#discardMeasurements.discardMeasurements-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Removes measurements for a given correlation id.</p>
+<div class="tsd-comment tsd-typography"><p>Removes measurements and aux data for a given correlation id.</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -178,10 +179,10 @@ Note: It is possible to have 0 as the queue time if the current time and the que
 <h5><span class="tsd-kind-parameter">correlationId</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Implementation of <a href="../interfaces/_azure_msal_common.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_common.IPerformanceClient.html#discardMeasurements">discardMeasurements</a></p>
+<p>Implementation of <a href="../interfaces/_azure_msal_browser.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_browser.IPerformanceClient.html#discardMeasurements">discardMeasurements</a></p>
 <p>Inherited from <a href="_azure_msal_common.PerformanceClient.html">PerformanceClient</a>.<a href="_azure_msal_common.PerformanceClient.html#discardMeasurements">discardMeasurements</a></p>
 <ul>
-<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:157</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:209</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="emitEvents" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>emit<wbr/>Events</span><a href="#emitEvents" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -198,14 +199,14 @@ Note: It is possible to have 0 as the queue time if the current time and the que
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">correlationId</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Implementation of <a href="../interfaces/_azure_msal_common.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_common.IPerformanceClient.html#emitEvents">emitEvents</a></p>
+<p>Implementation of <a href="../interfaces/_azure_msal_browser.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_browser.IPerformanceClient.html#emitEvents">emitEvents</a></p>
 <p>Inherited from <a href="_azure_msal_common.PerformanceClient.html">PerformanceClient</a>.<a href="_azure_msal_common.PerformanceClient.html#emitEvents">emitEvents</a></p>
 <ul>
-<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:184</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:230</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="endMeasurement" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>end<wbr/>Measurement</span><a href="#endMeasurement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-signature tsd-anchor-link" id="endMeasurement.endMeasurement-1"><span class="tsd-kind-call-signature">end<wbr/>Measurement</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">event</span>, <span class="tsd-kind-parameter">measurement</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_browser.PerformanceEvent.html" class="tsd-signature-type tsd-kind-type-alias">PerformanceEvent</a><a href="#endMeasurement.endMeasurement-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="endMeasurement.endMeasurement-1"><span class="tsd-kind-call-signature">end<wbr/>Measurement</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">event</span>, <span class="tsd-kind-parameter">error</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_browser.PerformanceEvent.html" class="tsd-signature-type tsd-kind-type-alias">PerformanceEvent</a><a href="#endMeasurement.endMeasurement-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Stops measuring the performance for an operation. Should only be called directly by PerformanceClient classes,
 as consumers should instead use the function returned by startMeasurement.
@@ -218,13 +219,13 @@ otherwise.</p>
 <li>
 <h5><span class="tsd-kind-parameter">event</span>: <a href="../types/_azure_msal_browser.PerformanceEvent.html" class="tsd-signature-type tsd-kind-type-alias">PerformanceEvent</a></h5></li>
 <li>
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">measurement</span>: <a href="../interfaces/_azure_msal_common.IPerformanceMeasurement.html" class="tsd-signature-type tsd-kind-interface">IPerformanceMeasurement</a></h5></li></ul></div>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">error</span>: <span class="tsd-signature-type">unknown</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_browser.PerformanceEvent.html" class="tsd-signature-type tsd-kind-type-alias">PerformanceEvent</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Implementation of <a href="../interfaces/_azure_msal_common.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_common.IPerformanceClient.html#endMeasurement">endMeasurement</a></p>
+<p>Implementation of <a href="../interfaces/_azure_msal_browser.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_browser.IPerformanceClient.html#endMeasurement">endMeasurement</a></p>
 <p>Inherited from <a href="_azure_msal_common.PerformanceClient.html">PerformanceClient</a>.<a href="_azure_msal_common.PerformanceClient.html#endMeasurement">endMeasurement</a></p>
 <ul>
-<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:124</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:176</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="generateId" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>generate<wbr/>Id</span><a href="#generateId" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -235,10 +236,10 @@ otherwise.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
 <div class="tsd-comment tsd-typography">
 <h4>Abstract</h4></div><aside class="tsd-sources">
-<p>Implementation of <a href="../interfaces/_azure_msal_common.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_common.IPerformanceClient.html#generateId">generateId</a></p>
+<p>Implementation of <a href="../interfaces/_azure_msal_browser.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_browser.IPerformanceClient.html#generateId">generateId</a></p>
 <p>Overrides <a href="_azure_msal_common.PerformanceClient.html">PerformanceClient</a>.<a href="_azure_msal_common.PerformanceClient.html#generateId">generateId</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-browser/src/telemetry/BrowserPerformanceClient.ts#L52">msal-browser/src/telemetry/BrowserPerformanceClient.ts:52</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-browser/src/telemetry/BrowserPerformanceClient.ts#L96">msal-browser/src/telemetry/BrowserPerformanceClient.ts:96</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="getPreQueueTime" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Pre<wbr/>Queue<wbr/>Time</span><a href="#getPreQueueTime" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -257,7 +258,7 @@ otherwise.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="_azure_msal_common.PerformanceClient.html">PerformanceClient</a>.<a href="_azure_msal_common.PerformanceClient.html#getPreQueueTime">getPreQueueTime</a></p>
 <ul>
-<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:86</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:138</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="incrementFields" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>increment<wbr/>Fields</span><a href="#incrementFields" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -283,10 +284,10 @@ otherwise.</p>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Implementation of <a href="../interfaces/_azure_msal_common.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_common.IPerformanceClient.html#incrementFields">incrementFields</a></p>
+<p>Implementation of <a href="../interfaces/_azure_msal_browser.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_browser.IPerformanceClient.html#incrementFields">incrementFields</a></p>
 <p>Inherited from <a href="_azure_msal_common.PerformanceClient.html">PerformanceClient</a>.<a href="_azure_msal_common.PerformanceClient.html#incrementFields">incrementFields</a></p>
 <ul>
-<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:138</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:190</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="removePerformanceCallback" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>remove<wbr/>Performance<wbr/>Callback</span><a href="#removePerformanceCallback" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -301,10 +302,10 @@ otherwise.</p>
 <h5><span class="tsd-kind-parameter">callbackId</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Implementation of <a href="../interfaces/_azure_msal_common.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_common.IPerformanceClient.html#removePerformanceCallback">removePerformanceCallback</a></p>
+<p>Implementation of <a href="../interfaces/_azure_msal_browser.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_browser.IPerformanceClient.html#removePerformanceCallback">removePerformanceCallback</a></p>
 <p>Inherited from <a href="_azure_msal_common.PerformanceClient.html">PerformanceClient</a>.<a href="_azure_msal_common.PerformanceClient.html#removePerformanceCallback">removePerformanceCallback</a></p>
 <ul>
-<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:177</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:223</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="setPreQueueTime" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Pre<wbr/>Queue<wbr/>Time</span><a href="#setPreQueueTime" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -321,10 +322,10 @@ otherwise.</p>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">correlationId</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Implementation of <a href="../interfaces/_azure_msal_common.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_common.IPerformanceClient.html#setPreQueueTime">setPreQueueTime</a></p>
+<p>Implementation of <a href="../interfaces/_azure_msal_browser.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_browser.IPerformanceClient.html#setPreQueueTime">setPreQueueTime</a></p>
 <p>Overrides <a href="_azure_msal_common.PerformanceClient.html">PerformanceClient</a>.<a href="_azure_msal_common.PerformanceClient.html#setPreQueueTime">setPreQueueTime</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-browser/src/telemetry/BrowserPerformanceClient.ts#L139">msal-browser/src/telemetry/BrowserPerformanceClient.ts:139</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-browser/src/telemetry/BrowserPerformanceClient.ts#L202">msal-browser/src/telemetry/BrowserPerformanceClient.ts:202</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="startMeasurement" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>start<wbr/>Measurement</span><a href="#startMeasurement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -342,13 +343,13 @@ Also captures browser page visibilityState.</p>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">correlationId</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../types/_azure_msal_browser.InProgressPerformanceEvent.html" class="tsd-signature-type tsd-kind-type-alias">InProgressPerformanceEvent</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Implementation of <a href="../interfaces/_azure_msal_common.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_common.IPerformanceClient.html#startMeasurement">startMeasurement</a></p>
+<p>Implementation of <a href="../interfaces/_azure_msal_browser.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_browser.IPerformanceClient.html#startMeasurement">startMeasurement</a></p>
 <p>Overrides <a href="_azure_msal_common.PerformanceClient.html">PerformanceClient</a>.<a href="_azure_msal_common.PerformanceClient.html#startMeasurement">startMeasurement</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-browser/src/telemetry/BrowserPerformanceClient.ts#L99">msal-browser/src/telemetry/BrowserPerformanceClient.ts:99</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="startPerformanceMeasurement" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-browser/src/telemetry/BrowserPerformanceClient.ts#L138">msal-browser/src/telemetry/BrowserPerformanceClient.ts:138</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="startPerformanceMeasurement" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>start<wbr/>Performance<wbr/>Measurement</span><a href="#startPerformanceMeasurement" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="startPerformanceMeasurement.startPerformanceMeasurement-1"><span class="tsd-kind-call-signature">start<wbr/>Performance<wbr/>Measurement</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">measureName</span>, <span class="tsd-kind-parameter">correlationId</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/_azure_msal_common.IPerformanceMeasurement.html" class="tsd-signature-type tsd-kind-interface">IPerformanceMeasurement</a><a href="#startPerformanceMeasurement.startPerformanceMeasurement-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Starts and returns an platform-specific implementation of IPerformanceMeasurement.
@@ -362,19 +363,13 @@ Note: this function can be changed to abstract at the next major version bump.</
 <li>
 <h5><span class="tsd-kind-parameter">correlationId</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/_azure_msal_common.IPerformanceMeasurement.html" class="tsd-signature-type tsd-kind-interface">IPerformanceMeasurement</a></h4>
-<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Implementation of <a href="../interfaces/_azure_msal_common.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_common.IPerformanceClient.html#startPerformanceMeasurement">startPerformanceMeasurement</a></p>
-<p>Overrides <a href="_azure_msal_common.PerformanceClient.html">PerformanceClient</a>.<a href="_azure_msal_common.PerformanceClient.html#startPerformanceMeasurement">startPerformanceMeasurement</a></p>
+<div class="tsd-comment tsd-typography">
+<h4>Deprecated</h4><p>This method will be removed in the next major version</p>
+</div><aside class="tsd-sources">
+<p>Implementation of <a href="../interfaces/_azure_msal_browser.IPerformanceClient.html">IPerformanceClient</a>.<a href="../interfaces/_azure_msal_browser.IPerformanceClient.html#startPerformanceMeasurement">startPerformanceMeasurement</a></p>
+<p>Inherited from <a href="_azure_msal_common.PerformanceClient.html">PerformanceClient</a>.<a href="_azure_msal_common.PerformanceClient.html#startPerformanceMeasurement">startPerformanceMeasurement</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-browser/src/telemetry/BrowserPerformanceClient.ts#L45">msal-browser/src/telemetry/BrowserPerformanceClient.ts:45</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="supportsBrowserPerformanceNow" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><span>supports<wbr/>Browser<wbr/>Performance<wbr/>Now</span><a href="#supportsBrowserPerformanceNow" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="supportsBrowserPerformanceNow.supportsBrowserPerformanceNow-1"><span class="tsd-kind-call-signature">supports<wbr/>Browser<wbr/>Performance<wbr/>Now</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><a href="#supportsBrowserPerformanceNow.supportsBrowserPerformanceNow-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
-<li class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-browser/src/telemetry/BrowserPerformanceClient.ts#L83">msal-browser/src/telemetry/BrowserPerformanceClient.ts:83</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in msal-common/dist/telemetry/performance/PerformanceClient.d.ts:120</li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -408,19 +403,19 @@ Note: this function can be changed to abstract at the next major version bump.</
 <li><a href="#removePerformanceCallback" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>remove<wbr/>Performance<wbr/>Callback</span></a></li>
 <li><a href="#setPreQueueTime" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>set<wbr/>Pre<wbr/>Queue<wbr/>Time</span></a></li>
 <li><a href="#startMeasurement" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>start<wbr/>Measurement</span></a></li>
-<li><a href="#startPerformanceMeasurement" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>start<wbr/>Performance<wbr/>Measurement</span></a></li>
-<li><a href="#supportsBrowserPerformanceNow" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>supports<wbr/>Browser<wbr/>Performance<wbr/>Now</span></a></li></ul></div></details></div>
+<li><a href="#startPerformanceMeasurement" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>start<wbr/>Performance<wbr/>Measurement</span></a></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-namespace)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.33 16V7.24H10.77L13.446 14.74C13.43 14.54 13.41 14.296 13.386 14.008C13.37 13.712 13.354 13.404 13.338 13.084C13.33 12.756 13.326 12.448 13.326 12.16V7.24H14.37V16H12.93L10.266 8.5C10.282 8.692 10.298 8.936 10.314 9.232C10.33 9.52 10.342 9.828 10.35 10.156C10.366 10.476 10.374 10.784 10.374 11.08V16H9.33Z" fill="var(--color-text)"></path></g></svg><span>Documentation</span></a>
 <ul class="tsd-small-nested-navigation">
-<li><a href="../modules/_azure_msal_angular.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>angular -<wbr/> v3.0.4</span></a></li>
+<li><a href="../modules/_azure_msal_angular.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>angular -<wbr/> v3.0.25</span></a></li>
 <li>
-<details class="tsd-index-accordion" open data-key="@azure/msal-browser"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg><a href="../modules/_azure_msal_browser.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>browser -<wbr/> v3.1.0</span></a></summary>
+<details class="tsd-index-accordion" open data-key="@azure/msal-browser"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg><a href="../modules/_azure_msal_browser.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>browser -<wbr/> v3.26.1</span></a></summary>
 <div class="tsd-accordion-details">
 <ul class="tsd-nested-navigation">
 <li><a href="../modules/_azure_msal_browser.AuthErrorCodes.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Auth<wbr/>Error<wbr/>Codes</span></a></li>
 <li><a href="../modules/_azure_msal_browser.BrowserAuthErrorCodes.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Browser<wbr/>Auth<wbr/>Error<wbr/>Codes</span></a></li>
 <li><a href="../modules/_azure_msal_browser.BrowserConfigurationAuthErrorCodes.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Browser<wbr/>Configuration<wbr/>Auth<wbr/>Error<wbr/>Codes</span></a></li>
+<li><a href="../modules/_azure_msal_browser.BrowserUtils.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Browser<wbr/>Utils</span></a></li>
 <li><a href="../modules/_azure_msal_browser.ClientAuthErrorCodes.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Client<wbr/>Auth<wbr/>Error<wbr/>Codes</span></a></li>
 <li><a href="../modules/_azure_msal_browser.ClientConfigurationErrorCodes.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Client<wbr/>Configuration<wbr/>Error<wbr/>Codes</span></a></li>
 <li><a href="../modules/_azure_msal_browser.InteractionRequiredAuthErrorCodes.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Interaction<wbr/>Required<wbr/>Auth<wbr/>Error<wbr/>Codes</span></a></li>
@@ -434,22 +429,25 @@ Note: this function can be changed to abstract at the next major version bump.</
 <li><a href="_azure_msal_browser.BrowserPerformanceClient.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Browser<wbr/>Performance<wbr/>Client</span></a></li>
 <li><a href="_azure_msal_browser.BrowserPerformanceMeasurement.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Browser<wbr/>Performance<wbr/>Measurement</span></a></li>
 <li><a href="_azure_msal_browser.BrowserStorage.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Browser<wbr/>Storage</span></a></li>
-<li><a href="_azure_msal_browser.BrowserUtils.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Browser<wbr/>Utils</span></a></li>
 <li><a href="_azure_msal_browser.ClientAuthError.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Client<wbr/>Auth<wbr/>Error</span></a></li>
 <li><a href="_azure_msal_browser.ClientConfigurationError.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Client<wbr/>Configuration<wbr/>Error</span></a></li>
+<li><a href="_azure_msal_browser.EventHandler.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Event<wbr/>Handler</span></a></li>
 <li><a href="_azure_msal_browser.EventMessageUtils.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Event<wbr/>Message<wbr/>Utils</span></a></li>
 <li><a href="_azure_msal_browser.InteractionRequiredAuthError.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Interaction<wbr/>Required<wbr/>Auth<wbr/>Error</span></a></li>
 <li><a href="_azure_msal_browser.Logger.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Logger</span></a></li>
 <li><a href="_azure_msal_browser.MemoryStorage.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Memory<wbr/>Storage</span></a></li>
 <li><a href="_azure_msal_browser.NavigationClient.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Navigation<wbr/>Client</span></a></li>
 <li><a href="_azure_msal_browser.PublicClientApplication.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Public<wbr/>Client<wbr/>Application</span></a></li>
+<li><a href="_azure_msal_browser.PublicClientNext.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Public<wbr/>Client<wbr/>Next</span></a></li>
 <li><a href="_azure_msal_browser.ServerError.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Server<wbr/>Error</span></a></li>
 <li><a href="_azure_msal_browser.SignedHttpRequest.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Signed<wbr/>Http<wbr/>Request</span></a></li>
+<li><a href="_azure_msal_browser.StubPerformanceClient.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Stub<wbr/>Performance<wbr/>Client</span></a></li>
 <li><a href="_azure_msal_browser.UrlString.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Url<wbr/>String</span></a></li>
 <li><a href="../interfaces/_azure_msal_browser.IController.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-256"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-interface)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.51 16V15.016H11.298V8.224H9.51V7.24H14.19V8.224H12.402V15.016H14.19V16H9.51Z" fill="var(--color-text)"></path></g></svg><span>IController</span></a></li>
 <li><a href="../interfaces/_azure_msal_browser.ILoggerCallback.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>ILogger<wbr/>Callback</span></a></li>
 <li><a href="../interfaces/_azure_msal_browser.INavigationClient.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>INavigation<wbr/>Client</span></a></li>
 <li><a href="../interfaces/_azure_msal_browser.INetworkModule.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>INetwork<wbr/>Module</span></a></li>
+<li><a href="../interfaces/_azure_msal_browser.IPerformanceClient.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>IPerformance<wbr/>Client</span></a></li>
 <li><a href="../interfaces/_azure_msal_browser.IPublicClientApplication.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>IPublic<wbr/>Client<wbr/>Application</span></a></li>
 <li><a href="../interfaces/_azure_msal_browser.ITokenCache.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>IToken<wbr/>Cache</span></a></li>
 <li><a href="../types/_azure_msal_browser.AccountInfo.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4194304"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-type-alias)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M11.31 16V8.224H8.91V7.24H14.79V8.224H12.39V16H11.31Z" fill="var(--color-text)"></path></g></svg><span>Account<wbr/>Info</span></a></li>
@@ -478,7 +476,9 @@ Note: this function can be changed to abstract at the next major version bump.</
 <li><a href="../types/_azure_msal_browser.ExternalTokenResponse.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>External<wbr/>Token<wbr/>Response</span></a></li>
 <li><a href="../types/_azure_msal_browser.IdTokenClaims.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Id<wbr/>Token<wbr/>Claims</span></a></li>
 <li><a href="../types/_azure_msal_browser.InProgressPerformanceEvent.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>In<wbr/>Progress<wbr/>Performance<wbr/>Event</span></a></li>
+<li><a href="../types/_azure_msal_browser.InitializeApplicationRequest.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Initialize<wbr/>Application<wbr/>Request</span></a></li>
 <li><a href="../types/_azure_msal_browser.InteractionStatus.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Interaction<wbr/>Status</span></a></li>
+<li><a href="../types/_azure_msal_browser.JsonWebTokenTypes.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Json<wbr/>Web<wbr/>Token<wbr/>Types</span></a></li>
 <li><a href="../types/_azure_msal_browser.LoadTokenOptions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Load<wbr/>Token<wbr/>Options</span></a></li>
 <li><a href="../types/_azure_msal_browser.NavigationOptions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Navigation<wbr/>Options</span></a></li>
 <li><a href="../types/_azure_msal_browser.NetworkRequestOptions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Network<wbr/>Request<wbr/>Options</span></a></li>
@@ -496,6 +496,7 @@ Note: this function can be changed to abstract at the next major version bump.</
 <li><a href="../types/_azure_msal_browser.SignedHttpRequestOptions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Signed<wbr/>Http<wbr/>Request<wbr/>Options</span></a></li>
 <li><a href="../types/_azure_msal_browser.SilentRequest.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Silent<wbr/>Request</span></a></li>
 <li><a href="../types/_azure_msal_browser.SsoSilentRequest.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Sso<wbr/>Silent<wbr/>Request</span></a></li>
+<li><a href="../types/_azure_msal_browser.TenantProfile.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Tenant<wbr/>Profile</span></a></li>
 <li><a href="../types/_azure_msal_browser.WrapperSKU.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>WrapperSKU</span></a></li>
 <li><a href="../variables/_azure_msal_browser.ApiId-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-32"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-variable)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M11.106 16L8.85 7.24H9.966L11.454 13.192C11.558 13.608 11.646 13.996 11.718 14.356C11.79 14.708 11.842 14.976 11.874 15.16C11.906 14.976 11.954 14.708 12.018 14.356C12.09 13.996 12.178 13.608 12.282 13.192L13.758 7.24H14.85L12.582 16H11.106Z" fill="var(--color-text)"></path></g></svg><span>Api<wbr/>Id</span></a></li>
 <li><a href="../variables/_azure_msal_browser.AuthErrorMessage.html" class="deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Auth<wbr/>Error<wbr/>Message</span></a></li>
@@ -511,17 +512,20 @@ Note: this function can be changed to abstract at the next major version bump.</
 <li><a href="../variables/_azure_msal_browser.EventType-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Event<wbr/>Type</span></a></li>
 <li><a href="../variables/_azure_msal_browser.InteractionRequiredAuthErrorMessage.html" class="deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Interaction<wbr/>Required<wbr/>Auth<wbr/>Error<wbr/>Message</span></a></li>
 <li><a href="../variables/_azure_msal_browser.InteractionStatus-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Interaction<wbr/>Status</span></a></li>
+<li><a href="../variables/_azure_msal_browser.JsonWebTokenTypes-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Json<wbr/>Web<wbr/>Token<wbr/>Types</span></a></li>
 <li><a href="../variables/_azure_msal_browser.OIDC_DEFAULT_SCOPES.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>OIDC_<wbr/>DEFAULT_<wbr/>SCOPES</span></a></li>
 <li><a href="../variables/_azure_msal_browser.PromptValue.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Prompt<wbr/>Value</span></a></li>
 <li><a href="../variables/_azure_msal_browser.ProtocolMode-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Protocol<wbr/>Mode</span></a></li>
 <li><a href="../variables/_azure_msal_browser.ServerResponseType-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Server<wbr/>Response<wbr/>Type</span></a></li>
 <li><a href="../variables/_azure_msal_browser.WrapperSKU-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>WrapperSKU</span></a></li>
 <li><a href="../variables/_azure_msal_browser.stubbedPublicClientApplication.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>stubbed<wbr/>Public<wbr/>Client<wbr/>Application</span></a></li>
-<li><a href="../variables/_azure_msal_browser.version.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>version</span></a></li></ul></div></details></li>
-<li><a href="../modules/_azure_msal_common.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>common -<wbr/> v14.0.3</span></a></li>
-<li><a href="../modules/_azure_msal_node.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node -<wbr/> v2.1.0</span></a></li>
-<li><a href="../modules/_azure_msal_react.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>react -<wbr/> v2.0.3</span></a></li>
-<li><a href="../modules/_azure_msal_node_extensions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node-<wbr/>extensions -<wbr/> v1.0.3</span></a></li></ul></nav></div></div></div>
+<li><a href="../variables/_azure_msal_browser.version.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>version</span></a></li>
+<li><a href="../functions/_azure_msal_browser.createNestablePublicClientApplication.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-64"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-function)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.39 16V7.24H14.55V8.224H10.446V11.128H14.238V12.112H10.47V16H9.39Z" fill="var(--color-text)"></path></g></svg><span>create<wbr/>Nestable<wbr/>Public<wbr/>Client<wbr/>Application</span></a></li>
+<li><a href="../functions/_azure_msal_browser.createStandardPublicClientApplication.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-64"></use></svg><span>create<wbr/>Standard<wbr/>Public<wbr/>Client<wbr/>Application</span></a></li></ul></div></details></li>
+<li><a href="../modules/_azure_msal_common.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>common -<wbr/> v14.15.0</span></a></li>
+<li><a href="../modules/_azure_msal_node.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node -<wbr/> v2.15.0</span></a></li>
+<li><a href="../modules/_azure_msal_react.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>react -<wbr/> v2.1.1</span></a></li>
+<li><a href="../modules/_azure_msal_node_extensions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node-<wbr/>extensions -<wbr/> v1.3.0</span></a></li></ul></nav></div></div></div>
 <div class="tsd-generator">
 <p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
 <div class="overlay"></div></body></html>

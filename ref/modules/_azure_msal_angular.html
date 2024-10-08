@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@azure/msal-angular - v3.0.4 | Documentation</title><meta name="description" content="Documentation for Documentation"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>@azure/msal-angular - v3.0.25 | Documentation</title><meta name="description" content="Documentation for Documentation"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container">
 <div class="table-cell" id="tsd-search" data-base="..">
 <div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
@@ -14,7 +14,7 @@
 <ul class="tsd-breadcrumb">
 <li><a href="../index.html">Documentation</a></li>
 <li><a href="_azure_msal_angular.html">@azure/msal-angular</a></li></ul>
-<h1>Module @azure/msal-angular - v3.0.4</h1></div>
+<h1>Module @azure/msal-angular - v3.0.25</h1></div>
 <section class="tsd-panel tsd-typography"><a id="md:microsoft-authentication-library-for-angular" class="tsd-anchor"></a><h1><a href="#md:microsoft-authentication-library-for-angular">Microsoft Authentication Library for Angular</a></h1><p><img src="https://img.shields.io/npm/v/@azure/msal-angular" alt="npm (scoped)">
 <img src="https://img.shields.io/npm/dw/@azure/msal-angular" alt="npm">
 <a href="https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js"><img src="https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js/branch/dev/graph/badge.svg?flag=msal-angular" alt="codecov"></a></p>
@@ -68,7 +68,7 @@
 <tbody><tr>
 <td>MSAL Angular v3</td>
 <td>Active development</td>
-<td>15, 16</td>
+<td>15, 16, 17, 18</td>
 </tr>
 <tr>
 <td>MSAL Angular v2</td>
@@ -87,6 +87,7 @@
 </tr>
 </tbody></table>
 <a id="md:prerequisites" class="tsd-anchor"></a><h2><a href="#md:prerequisites">Prerequisites</a></h2><p>Before using <code>@azure/msal-angular</code>, <a href="https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app">register an application in Azure AD</a> to get your <code>clientId</code>.</p>
+<p>For local development, please see the <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md"><code>contributing.md</code></a> file for more information.</p>
 <a id="md:installation" class="tsd-anchor"></a><h2><a href="#md:installation">Installation</a></h2><p>The <code>@azure/msal-angular</code> package is available on NPM:</p>
 <pre><code><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-0">install</span><span class="hl-1"> @</span><span class="hl-0">azure</span><span class="hl-1">/</span><span class="hl-0">msal</span><span class="hl-1">-</span><span class="hl-0">browser</span><span class="hl-1"> @</span><span class="hl-0">azure</span><span class="hl-1">/</span><span class="hl-0">msal</span><span class="hl-1">-</span><span class="hl-0">angular</span><span class="hl-1">@</span><span class="hl-0">latest</span>
 </code><button>Copy</button></pre>
@@ -115,6 +116,8 @@ Documentation specifically for MSAL Angular v1 can be found <a href="https://git
 <li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular16-sample-app">Angular v16</a></li>
 <li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular-b2c-sample-app">Angular v16 B2C Sample</a></li>
 <li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular-standalone-sample">Angular Standalone Sample</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular17-standalone-sample">Angular v17 Standalone Sample</a></li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular18-standalone-sample">Angular v18 Standalone Sample</a></li>
 </ul>
 <a id="md:msal-angular-v2-samples" class="tsd-anchor"></a><h3><a href="#md:msal-angular-v2-samples">MSAL Angular v2 Samples</a></h3><ul>
 <li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular9-v2-sample-app">Angular v9</a></li>
@@ -141,19 +144,22 @@ Documentation specifically for MSAL Angular v1 can be found <a href="https://git
 <li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-angular-v1/samples/msal-angular-samples/angular8-sample-app">Angular v8</a></li>
 <li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-angular-v1/samples/msal-angular-samples/angular9-sample-app">Angular v9</a></li>
 </ul>
-<a id="md:build-and-running-tests" class="tsd-anchor"></a><h2><a href="#md:build-and-running-tests">Build and running tests</a></h2><p>If you want to build the library and run all the unit tests, you can do the following.</p>
-<p>First navigate to the root directory of the library(msal-angular) and install the dependencies:</p>
-<pre><code><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-0">install</span>
+<a id="md:build-and-running-tests" class="tsd-anchor"></a><h2><a href="#md:build-and-running-tests">Build and running tests</a></h2><p>See the <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md"><code>contributing.md</code></a> file for more information.</p>
+<a id="md:building-the-package-locally" class="tsd-anchor"></a><h3><a href="#md:building-the-package-locally">Building the package locally</a></h3><p>To build the <code>@azure/msal-angular</code> library, you can do the following:</p>
+<pre><code class="language-bash"><span class="hl-2">//</span><span class="hl-1"> </span><span class="hl-3">Install</span><span class="hl-1"> </span><span class="hl-3">dev</span><span class="hl-1"> </span><span class="hl-3">dependencies</span><span class="hl-1"> </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-3">root</span><span class="hl-1"> </span><span class="hl-3">of</span><span class="hl-1"> </span><span class="hl-3">repo</span><br/><span class="hl-2">npm</span><span class="hl-1"> </span><span class="hl-3">install</span><br/><span class="hl-2">//</span><span class="hl-1"> </span><span class="hl-3">Change</span><span class="hl-1"> </span><span class="hl-3">to</span><span class="hl-1"> </span><span class="hl-3">the</span><span class="hl-1"> </span><span class="hl-3">msal-angular</span><span class="hl-1"> </span><span class="hl-3">package</span><span class="hl-1"> </span><span class="hl-3">directory</span><br/><span class="hl-2">cd</span><span class="hl-1"> </span><span class="hl-3">lib/msal-angular/</span><br/><span class="hl-2">//</span><span class="hl-1"> </span><span class="hl-3">To</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">build</span><span class="hl-1"> </span><span class="hl-3">only</span><span class="hl-1"> </span><span class="hl-3">for</span><span class="hl-1"> </span><span class="hl-3">angular</span><span class="hl-1"> </span><span class="hl-3">package</span><br/><span class="hl-2">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">build</span>
 </code><button>Copy</button></pre>
-<p>Then use the following command to build the library and run all the unit tests:</p>
-<pre><code><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-0">run</span><span class="hl-1"> </span><span class="hl-0">build</span><br/><br/><span class="hl-0">npm</span><span class="hl-1"> </span><span class="hl-0">run</span><span class="hl-1"> </span><span class="hl-0">test</span>
+<p>To build both the <code>@azure/msal-angular</code> library and <code>@azure/msal-browser</code> libraries, you can do the following:</p>
+<pre><code class="language-bash"><span class="hl-2">//</span><span class="hl-1"> </span><span class="hl-3">Install</span><span class="hl-1"> </span><span class="hl-3">dev</span><span class="hl-1"> </span><span class="hl-3">dependencies</span><span class="hl-1"> </span><span class="hl-3">from</span><span class="hl-1"> </span><span class="hl-3">root</span><span class="hl-1"> </span><span class="hl-3">of</span><span class="hl-1"> </span><span class="hl-3">repo</span><br/><span class="hl-2">npm</span><span class="hl-1"> </span><span class="hl-3">install</span><br/><span class="hl-2">//</span><span class="hl-1"> </span><span class="hl-3">Change</span><span class="hl-1"> </span><span class="hl-3">to</span><span class="hl-1"> </span><span class="hl-3">the</span><span class="hl-1"> </span><span class="hl-3">msal-angular</span><span class="hl-1"> </span><span class="hl-3">package</span><span class="hl-1"> </span><span class="hl-3">directory</span><br/><span class="hl-2">cd</span><span class="hl-1"> </span><span class="hl-3">lib/msal-angular/</span><br/><span class="hl-2">//</span><span class="hl-1"> </span><span class="hl-3">To</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">build</span><span class="hl-1"> </span><span class="hl-3">for</span><span class="hl-1"> </span><span class="hl-3">angular</span><span class="hl-1"> </span><span class="hl-3">and</span><span class="hl-1"> </span><span class="hl-3">browser</span><span class="hl-1"> </span><span class="hl-3">packages</span><br/><span class="hl-2">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">build:all</span>
+</code><button>Copy</button></pre>
+<a id="md:running-tests" class="tsd-anchor"></a><h3><a href="#md:running-tests">Running Tests</a></h3><p><code>@azure/msal-angular</code> uses <a href="https://jestjs.io/">jest</a> to run unit tests and coverage.</p>
+<pre><code class="language-bash"><span class="hl-2">//</span><span class="hl-1"> </span><span class="hl-3">To</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">tests</span><br/><span class="hl-2">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">test</span><br/><span class="hl-2">//</span><span class="hl-1"> </span><span class="hl-3">To</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">tests</span><span class="hl-1"> </span><span class="hl-3">with</span><span class="hl-1"> </span><span class="hl-3">code</span><span class="hl-1"> </span><span class="hl-3">coverage</span><br/><span class="hl-2">npm</span><span class="hl-1"> </span><span class="hl-3">run</span><span class="hl-1"> </span><span class="hl-3">test:coverage</span>
 </code><button>Copy</button></pre>
 <a id="md:versioning" class="tsd-anchor"></a><h2><a href="#md:versioning">Versioning</a></h2><p>This library controls how users sign-in and access services. We recommend you always take the latest version of our library in your app when possible. We use <a href="http://semver.org">semantic versioning</a> so you can control the risk associated with updating your app. As an example, always downloading the latest minor version number (e.g. x.<em>y</em>.x) ensures you get the latest security and feature enhanements but our API surface remains the same. You can always see the latest version and release notes under the Releases tab of GitHub.</p>
 <a id="md:community-help-and-support" class="tsd-anchor"></a><h2><a href="#md:community-help-and-support">Community Help and Support</a></h2><ul>
 <li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md">Msal Browser FAQ</a> for access to our frequently asked questions</li>
 <li><a href="http://stackoverflow.com/questions/tagged/msal">Stack Overflow</a> using tag &quot;msal&quot;.
 We highly recommend you ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before.</li>
-<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/templates/edit">GitHub Issues</a> for reporting a bug or feature requests</li>
+<li><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/new/choose">GitHub Issues</a> for reporting a bug or feature requests</li>
 <li><a href="https://feedback.azure.com/forums/169401-azure-active-directory">User Voice page</a> to provide recommendations and/or feedback</li>
 </ul>
 <a id="md:contribute" class="tsd-anchor"></a><h2><a href="#md:contribute">Contribute</a></h2><p>We enthusiastically welcome contributions and feedback. Please read the <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md">contributing guide</a> before you begin.</p>
@@ -233,6 +239,10 @@ We highly recommend you ask your questions on Stack Overflow first and browse ex
 <li><a href="#md:advanced-msal-angular-v2-samples"><span>Advanced MSAL <wbr/>Angular v2 <wbr/>Samples</span></a></li>
 <li><a href="#md:msal-angular-v1-samples"><span>MSAL <wbr/>Angular v1 <wbr/>Samples</span></a></li></ul></li>
 <li><a href="#md:build-and-running-tests"><span>Build and running tests</span></a></li>
+<li>
+<ul>
+<li><a href="#md:building-the-package-locally"><span>Building the package locally</span></a></li>
+<li><a href="#md:running-tests"><span>Running <wbr/>Tests</span></a></li></ul></li>
 <li><a href="#md:versioning"><span>Versioning</span></a></li>
 <li><a href="#md:community-help-and-support"><span>Community <wbr/>Help and <wbr/>Support</span></a></li>
 <li><a href="#md:contribute"><span>Contribute</span></a></li>
@@ -243,7 +253,7 @@ We highly recommend you ask your questions on Stack Overflow first and browse ex
 <nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-namespace)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.33 16V7.24H10.77L13.446 14.74C13.43 14.54 13.41 14.296 13.386 14.008C13.37 13.712 13.354 13.404 13.338 13.084C13.33 12.756 13.326 12.448 13.326 12.16V7.24H14.37V16H12.93L10.266 8.5C10.282 8.692 10.298 8.936 10.314 9.232C10.33 9.52 10.342 9.828 10.35 10.156C10.366 10.476 10.374 10.784 10.374 11.08V16H9.33Z" fill="var(--color-text)"></path></g></svg><span>Documentation</span></a>
 <ul class="tsd-small-nested-navigation">
 <li>
-<details class="tsd-index-accordion" open data-key="@azure/msal-angular"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg><a href="_azure_msal_angular.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>angular -<wbr/> v3.0.4</span></a></summary>
+<details class="tsd-index-accordion" open data-key="@azure/msal-angular"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg><a href="_azure_msal_angular.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>angular -<wbr/> v3.0.25</span></a></summary>
 <div class="tsd-accordion-details">
 <ul class="tsd-nested-navigation">
 <li><a href="../classes/_azure_msal_angular.MsalBroadcastService.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Msal<wbr/>Broadcast<wbr/>Service</span></a></li>
@@ -265,11 +275,11 @@ We highly recommend you ask your questions on Stack Overflow first and browse ex
 <li><a href="../variables/_azure_msal_angular.MSAL_INSTANCE.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>MSAL_<wbr/>INSTANCE</span></a></li>
 <li><a href="../variables/_azure_msal_angular.MSAL_INTERCEPTOR_CONFIG.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>MSAL_<wbr/>INTERCEPTOR_<wbr/>CONFIG</span></a></li>
 <li><a href="../variables/_azure_msal_angular.version.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>version</span></a></li></ul></div></details></li>
-<li><a href="_azure_msal_browser.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>browser -<wbr/> v3.1.0</span></a></li>
-<li><a href="_azure_msal_common.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>common -<wbr/> v14.0.3</span></a></li>
-<li><a href="_azure_msal_node.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node -<wbr/> v2.1.0</span></a></li>
-<li><a href="_azure_msal_react.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>react -<wbr/> v2.0.3</span></a></li>
-<li><a href="_azure_msal_node_extensions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node-<wbr/>extensions -<wbr/> v1.0.3</span></a></li></ul></nav></div></div></div>
+<li><a href="_azure_msal_browser.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>browser -<wbr/> v3.26.1</span></a></li>
+<li><a href="_azure_msal_common.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>common -<wbr/> v14.15.0</span></a></li>
+<li><a href="_azure_msal_node.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node -<wbr/> v2.15.0</span></a></li>
+<li><a href="_azure_msal_react.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>react -<wbr/> v2.1.1</span></a></li>
+<li><a href="_azure_msal_node_extensions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node-<wbr/>extensions -<wbr/> v1.3.0</span></a></li></ul></nav></div></div></div>
 <div class="tsd-generator">
 <p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
 <div class="overlay"></div></body></html>

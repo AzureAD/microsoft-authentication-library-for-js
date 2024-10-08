@@ -27,7 +27,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">NodeStorage</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L35">msal-node/src/cache/NodeStorage.ts:35</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L37">msal-node/src/cache/NodeStorage.ts:37</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -59,7 +59,9 @@
 <a href="_azure_msal_node.NodeStorage.html#getAuthorityMetadata" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Authority<wbr/>Metadata</span></a>
 <a href="_azure_msal_node.NodeStorage.html#getAuthorityMetadataByAlias" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Authority<wbr/>Metadata<wbr/>By<wbr/>Alias</span></a>
 <a href="_azure_msal_node.NodeStorage.html#getAuthorityMetadataKeys" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Authority<wbr/>Metadata<wbr/>Keys</span></a>
+<a href="_azure_msal_node.NodeStorage.html#getBaseAccountInfo" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Base<wbr/>Account<wbr/>Info</span></a>
 <a href="_azure_msal_node.NodeStorage.html#getCache" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Cache</span></a>
+<a href="_azure_msal_node.NodeStorage.html#getCachedAccountEntity" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Cached<wbr/>Account<wbr/>Entity</span></a>
 <a href="_azure_msal_node.NodeStorage.html#getIdToken" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Id<wbr/>Token</span></a>
 <a href="_azure_msal_node.NodeStorage.html#getIdTokenCredential" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Id<wbr/>Token<wbr/>Credential</span></a>
 <a href="_azure_msal_node.NodeStorage.html#getIdTokensByFilter" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Id<wbr/>Tokens<wbr/>By<wbr/>Filter</span></a>
@@ -78,7 +80,6 @@
 <a href="_azure_msal_node.NodeStorage.html#isCredentialKey" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>is<wbr/>Credential<wbr/>Key</span></a>
 <a href="_azure_msal_node.NodeStorage.html#readAccountFromCache" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>read<wbr/>Account<wbr/>From<wbr/>Cache</span></a>
 <a href="_azure_msal_node.NodeStorage.html#readAppMetadataFromCache" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>read<wbr/>App<wbr/>Metadata<wbr/>From<wbr/>Cache</span></a>
-<a href="_azure_msal_node.NodeStorage.html#readCacheRecord" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>read<wbr/>Cache<wbr/>Record</span></a>
 <a href="_azure_msal_node.NodeStorage.html#refreshTokenKeyMatchesFilter" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>refresh<wbr/>Token<wbr/>Key<wbr/>Matches<wbr/>Filter</span></a>
 <a href="_azure_msal_node.NodeStorage.html#registerChangeEmitter" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>register<wbr/>Change<wbr/>Emitter</span></a>
 <a href="_azure_msal_node.NodeStorage.html#removeAccessToken" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>remove<wbr/>Access<wbr/>Token</span></a>
@@ -88,6 +89,7 @@
 <a href="_azure_msal_node.NodeStorage.html#removeAppMetadata" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>remove<wbr/>App<wbr/>Metadata</span></a>
 <a href="_azure_msal_node.NodeStorage.html#removeIdToken" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>remove<wbr/>Id<wbr/>Token</span></a>
 <a href="_azure_msal_node.NodeStorage.html#removeItem" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>remove<wbr/>Item</span></a>
+<a href="_azure_msal_node.NodeStorage.html#removeOutdatedAccount" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>remove<wbr/>Outdated<wbr/>Account</span></a>
 <a href="_azure_msal_node.NodeStorage.html#removeRefreshToken" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>remove<wbr/>Refresh<wbr/>Token</span></a>
 <a href="_azure_msal_node.NodeStorage.html#saveCacheRecord" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>save<wbr/>Cache<wbr/>Record</span></a>
 <a href="_azure_msal_node.NodeStorage.html#setAccessTokenCredential" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>set<wbr/>Access<wbr/>Token<wbr/>Credential</span></a>
@@ -111,7 +113,7 @@
 <section class="tsd-panel tsd-member"><a id="constructor" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><g stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" id="icon-anchor"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5"></path><path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5"></path></g></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="constructor.new_NodeStorage"><span class="tsd-kind-constructor-signature">new <wbr/>Node<wbr/>Storage</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">logger</span>, <span class="tsd-kind-parameter">clientId</span>, <span class="tsd-kind-parameter">cryptoImpl</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_azure_msal_node.NodeStorage.html" class="tsd-signature-type tsd-kind-class">NodeStorage</a><a href="#constructor.new_NodeStorage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="constructor.new_NodeStorage"><span class="tsd-kind-constructor-signature">new <wbr/>Node<wbr/>Storage</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">logger</span>, <span class="tsd-kind-parameter">clientId</span>, <span class="tsd-kind-parameter">cryptoImpl</span>, <span class="tsd-kind-parameter">staticAuthorityOptions</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_azure_msal_node.NodeStorage.html" class="tsd-signature-type tsd-kind-class">NodeStorage</a><a href="#constructor.new_NodeStorage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -121,11 +123,13 @@
 <li>
 <h5><span class="tsd-kind-parameter">clientId</span>: <span class="tsd-signature-type">string</span></h5></li>
 <li>
-<h5><span class="tsd-kind-parameter">cryptoImpl</span>: <a href="../interfaces/_azure_msal_common.ICrypto.html" class="tsd-signature-type tsd-kind-interface">ICrypto</a></h5></li></ul></div>
+<h5><span class="tsd-kind-parameter">cryptoImpl</span>: <a href="../interfaces/_azure_msal_common.ICrypto.html" class="tsd-signature-type tsd-kind-interface">ICrypto</a></h5></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">staticAuthorityOptions</span>: <a href="../types/_azure_msal_common.StaticAuthorityOptions.html" class="tsd-signature-type tsd-kind-type-alias">StaticAuthorityOptions</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="_azure_msal_node.NodeStorage.html" class="tsd-signature-type tsd-kind-class">NodeStorage</a></h4><aside class="tsd-sources">
 <p>Overrides CacheManager.constructor</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L41">msal-node/src/cache/NodeStorage.ts:41</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L43">msal-node/src/cache/NodeStorage.ts:43</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="accessTokenKeyMatchesFilter" class="tsd-anchor"></a>
@@ -148,7 +152,7 @@
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.accessTokenKeyMatchesFilter</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:288</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:310</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="cacheToInMemoryCache" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>cache<wbr/>To<wbr/>In<wbr/>Memory<wbr/>Cache</span><a href="#cacheToInMemoryCache" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -167,7 +171,7 @@
 <h4 class="tsd-returns-title">Returns <a href="../types/_azure_msal_node.InMemoryCache.html" class="tsd-signature-type tsd-kind-type-alias">InMemoryCache</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L65">msal-node/src/cache/NodeStorage.ts:65</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L72">msal-node/src/cache/NodeStorage.ts:72</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="clear" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>clear</span><a href="#clear" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -179,7 +183,7 @@
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.clear</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L475">msal-node/src/cache/NodeStorage.ts:475</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L493">msal-node/src/cache/NodeStorage.ts:493</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="containsKey" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>contains<wbr/>Key</span><a href="#containsKey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -197,9 +201,8 @@
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides CacheManager.containsKey</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L457">msal-node/src/cache/NodeStorage.ts:457</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L475">msal-node/src/cache/NodeStorage.ts:475</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="credentialMatchesFilter" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>credential<wbr/>Matches<wbr/>Filter</span><a href="#credentialMatchesFilter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -218,7 +221,7 @@
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.credentialMatchesFilter</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:189</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:214</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="emitChange" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>emit<wbr/>Change</span><a href="#emitChange" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -229,7 +232,7 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L57">msal-node/src/cache/NodeStorage.ts:57</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L64">msal-node/src/cache/NodeStorage.ts:64</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="generateAuthorityMetadataCacheKey" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>generate<wbr/>Authority<wbr/>Metadata<wbr/>Cache<wbr/>Key</span><a href="#generateAuthorityMetadataCacheKey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -246,11 +249,11 @@
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.generateAuthorityMetadataCacheKey</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:412</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:462</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="getAccessToken" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Access<wbr/>Token</span><a href="#getAccessToken" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-signature tsd-anchor-link" id="getAccessToken.getAccessToken-1"><span class="tsd-kind-call-signature">get<wbr/>Access<wbr/>Token</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">account</span>, <span class="tsd-kind-parameter">request</span>, <span class="tsd-kind-parameter">tokenKeys</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.AccessTokenEntity.html" class="tsd-signature-type tsd-kind-class">AccessTokenEntity</a><a href="#getAccessToken.getAccessToken-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="getAccessToken.getAccessToken-1"><span class="tsd-kind-call-signature">get<wbr/>Access<wbr/>Token</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">account</span>, <span class="tsd-kind-parameter">request</span>, <span class="tsd-kind-parameter">tokenKeys</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">targetRealm</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">performanceClient</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">correlationId</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.AccessTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">AccessTokenEntity</a><a href="#getAccessToken.getAccessToken-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Retrieve AccessTokenEntity from cache</p>
 </div>
@@ -258,20 +261,41 @@
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">account</span>: <a href="../types/_azure_msal_node.AccountInfo.html" class="tsd-signature-type tsd-kind-type-alias">AccountInfo</a></h5></li>
+<h5><span class="tsd-kind-parameter">account</span>: <a href="../types/_azure_msal_node.AccountInfo.html" class="tsd-signature-type tsd-kind-type-alias">AccountInfo</a></h5>
+<div class="tsd-comment tsd-typography"><p>{AccountInfo}</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
 <li>
-<h5><span class="tsd-kind-parameter">request</span>: <a href="../types/_azure_msal_common.BaseAuthRequest.html" class="tsd-signature-type tsd-kind-type-alias">BaseAuthRequest</a></h5></li>
+<h5><span class="tsd-kind-parameter">request</span>: <a href="../types/_azure_msal_common.BaseAuthRequest.html" class="tsd-signature-type tsd-kind-type-alias">BaseAuthRequest</a></h5>
+<div class="tsd-comment tsd-typography"><p>{BaseAuthRequest}</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
 <li>
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">tokenKeys</span>: <a href="../types/_azure_msal_common.TokenKeys.html" class="tsd-signature-type tsd-kind-type-alias">TokenKeys</a></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.AccessTokenEntity.html" class="tsd-signature-type tsd-kind-class">AccessTokenEntity</a></h4>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">tokenKeys</span>: <a href="../types/_azure_msal_common.TokenKeys.html" class="tsd-signature-type tsd-kind-type-alias">TokenKeys</a></h5>
+<div class="tsd-comment tsd-typography"><p>{?TokenKeys}</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">targetRealm</span>: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">performanceClient</span>: <a href="../interfaces/_azure_msal_browser.IPerformanceClient.html" class="tsd-signature-type tsd-kind-interface">IPerformanceClient</a></h5>
+<div class="tsd-comment tsd-typography"><p>{?IPerformanceClient}</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">correlationId</span>: <span class="tsd-signature-type">string</span></h5>
+<div class="tsd-comment tsd-typography"><p>{?string}</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.AccessTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">AccessTokenEntity</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.getAccessToken</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:280</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:302</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getAccessTokenCredential" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Access<wbr/>Token<wbr/>Credential</span><a href="#getAccessTokenCredential" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="getAccessTokenCredential.getAccessTokenCredential-1"><span class="tsd-kind-call-signature">get<wbr/>Access<wbr/>Token<wbr/>Credential</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">accessTokenKey</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.AccessTokenEntity.html" class="tsd-signature-type tsd-kind-class">AccessTokenEntity</a><a href="#getAccessTokenCredential.getAccessTokenCredential-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="getAccessTokenCredential.getAccessTokenCredential-1"><span class="tsd-kind-call-signature">get<wbr/>Access<wbr/>Token<wbr/>Credential</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">accessTokenKey</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.AccessTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">AccessTokenEntity</a><a href="#getAccessTokenCredential.getAccessTokenCredential-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>fetch the accessToken credential</p>
 </div>
@@ -283,15 +307,15 @@
 <div class="tsd-comment tsd-typography"><p>lookup key to fetch cache type AccessTokenEntity</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.AccessTokenEntity.html" class="tsd-signature-type tsd-kind-class">AccessTokenEntity</a></h4>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.AccessTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">AccessTokenEntity</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.getAccessTokenCredential</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L257">msal-node/src/cache/NodeStorage.ts:257</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L274">msal-node/src/cache/NodeStorage.ts:274</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="getAccessTokensByFilter" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Access<wbr/>Tokens<wbr/>By<wbr/>Filter</span><a href="#getAccessTokensByFilter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-signature tsd-anchor-link" id="getAccessTokensByFilter.getAccessTokensByFilter-1"><span class="tsd-kind-call-signature">get<wbr/>Access<wbr/>Tokens<wbr/>By<wbr/>Filter</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">filter</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_azure_msal_common.AccessTokenEntity.html" class="tsd-signature-type tsd-kind-class">AccessTokenEntity</a><span class="tsd-signature-symbol">[]</span><a href="#getAccessTokensByFilter.getAccessTokensByFilter-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="getAccessTokensByFilter.getAccessTokensByFilter-1"><span class="tsd-kind-call-signature">get<wbr/>Access<wbr/>Tokens<wbr/>By<wbr/>Filter</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">filter</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../types/_azure_msal_common.AccessTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">AccessTokenEntity</a><span class="tsd-signature-symbol">[]</span><a href="#getAccessTokensByFilter.getAccessTokensByFilter-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Gets all access tokens matching the filter</p>
 </div>
@@ -300,11 +324,11 @@
 <ul class="tsd-parameter-list">
 <li>
 <h5><span class="tsd-kind-parameter">filter</span>: <a href="../types/_azure_msal_common.CredentialFilter.html" class="tsd-signature-type tsd-kind-type-alias">CredentialFilter</a></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="_azure_msal_common.AccessTokenEntity.html" class="tsd-signature-type tsd-kind-class">AccessTokenEntity</a><span class="tsd-signature-symbol">[]</span></h4>
+<h4 class="tsd-returns-title">Returns <a href="../types/_azure_msal_common.AccessTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">AccessTokenEntity</a><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.getAccessTokensByFilter</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:294</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:316</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getAccount" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Account</span><a href="#getAccount" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -324,24 +348,24 @@
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.getAccount</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L215">msal-node/src/cache/NodeStorage.ts:215</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L220">msal-node/src/cache/NodeStorage.ts:220</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="getAccountInfoFilteredBy" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Account<wbr/>Info<wbr/>Filtered<wbr/>By</span><a href="#getAccountInfoFilteredBy" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="getAccountInfoFilteredBy.getAccountInfoFilteredBy-1"><span class="tsd-kind-call-signature">get<wbr/>Account<wbr/>Info<wbr/>Filtered<wbr/>By</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">accountFilter</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_node.AccountInfo.html" class="tsd-signature-type tsd-kind-type-alias">AccountInfo</a><a href="#getAccountInfoFilteredBy.getAccountInfoFilteredBy-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Gets accountInfo object based on provided filters</p>
+<div class="tsd-comment tsd-typography"><p>Gets first tenanted AccountInfo object found based on provided filters</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">accountFilter</span>: <span class="tsd-signature-type ">AccountFilter</span></h5></li></ul></div>
+<h5><span class="tsd-kind-parameter">accountFilter</span>: <a href="../types/_azure_msal_common.AccountFilter.html" class="tsd-signature-type tsd-kind-type-alias">AccountFilter</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_node.AccountInfo.html" class="tsd-signature-type tsd-kind-type-alias">AccountInfo</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.getAccountInfoFilteredBy</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:150</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:158</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getAccountKeys" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Account<wbr/>Keys</span><a href="#getAccountKeys" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -350,41 +374,53 @@
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4><aside class="tsd-sources">
 <p>Overrides CacheManager.getAccountKeys</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L193">msal-node/src/cache/NodeStorage.ts:193</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L198">msal-node/src/cache/NodeStorage.ts:198</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="getAccountsFilteredBy" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Accounts<wbr/>Filtered<wbr/>By</span><a href="#getAccountsFilteredBy" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="getAccountsFilteredBy.getAccountsFilteredBy-1"><span class="tsd-kind-call-signature">get<wbr/>Accounts<wbr/>Filtered<wbr/>By</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">accountFilter</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">AccountEntity</span><span class="tsd-signature-symbol">[]</span><a href="#getAccountsFilteredBy.getAccountsFilteredBy-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>retrieve accounts matching all provided filters; if no filter is set, get all accounts
-not checking for casing as keys are all generated in lower case, remember to convert to lower case if object properties are compared</p>
+<div class="tsd-comment tsd-typography"><p>Retrieve account entities matching all provided tenant-agnostic filters; if no filter is set, get all account entities in the cache
+Not checking for casing as keys are all generated in lower case, remember to convert to lower case if object properties are compared</p>
 </div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">accountFilter</span>: <span class="tsd-signature-type ">AccountFilter</span></h5></li></ul></div>
+<h5><span class="tsd-kind-parameter">accountFilter</span>: <a href="../types/_azure_msal_common.AccountFilter.html" class="tsd-signature-type tsd-kind-type-alias">AccountFilter</a></h5>
+<div class="tsd-comment tsd-typography"><p>An object containing Account properties to filter by</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">AccountEntity</span><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.getAccountsFilteredBy</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:169</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:194</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="getAllAccounts" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>All<wbr/>Accounts</span><a href="#getAllAccounts" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-signature tsd-anchor-link" id="getAllAccounts.getAllAccounts-1"><span class="tsd-kind-call-signature">get<wbr/>All<wbr/>Accounts</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../types/_azure_msal_node.AccountInfo.html" class="tsd-signature-type tsd-kind-type-alias">AccountInfo</a><span class="tsd-signature-symbol">[]</span><a href="#getAllAccounts.getAllAccounts-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="getAllAccounts.getAllAccounts-1"><span class="tsd-kind-call-signature">get<wbr/>All<wbr/>Accounts</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">accountFilter</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../types/_azure_msal_node.AccountInfo.html" class="tsd-signature-type tsd-kind-type-alias">AccountInfo</a><span class="tsd-signature-symbol">[]</span><a href="#getAllAccounts.getAllAccounts-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Returns all accounts in cache</p>
+<div class="tsd-comment tsd-typography"><p>Returns all the accounts in the cache that match the optional filter. If no filter is provided, all accounts are returned.</p>
 </div>
-<h4 class="tsd-returns-title">Returns <a href="../types/_azure_msal_node.AccountInfo.html" class="tsd-signature-type tsd-kind-type-alias">AccountInfo</a><span class="tsd-signature-symbol">[]</span></h4>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">accountFilter</span>: <a href="../types/_azure_msal_common.AccountFilter.html" class="tsd-signature-type tsd-kind-type-alias">AccountFilter</a></h5>
+<div class="tsd-comment tsd-typography"><p>(Optional) filter to narrow down the accounts returned</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../types/_azure_msal_node.AccountInfo.html" class="tsd-signature-type tsd-kind-type-alias">AccountInfo</a><span class="tsd-signature-symbol">[]</span></h4><p>Array of AccountInfo objects in cache</p>
+
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.getAllAccounts</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:146</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:154</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getAppMetadata" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>App<wbr/>Metadata</span><a href="#getAppMetadata" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="getAppMetadata.getAppMetadata-1"><span class="tsd-kind-call-signature">get<wbr/>App<wbr/>Metadata</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">appMetadataKey</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.AppMetadataEntity.html" class="tsd-signature-type tsd-kind-class">AppMetadataEntity</a><a href="#getAppMetadata.getAppMetadata-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="getAppMetadata.getAppMetadata-1"><span class="tsd-kind-call-signature">get<wbr/>App<wbr/>Metadata</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">appMetadataKey</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.AppMetadataEntity.html" class="tsd-signature-type tsd-kind-type-alias">AppMetadataEntity</a><a href="#getAppMetadata.getAppMetadata-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>fetch appMetadata entity from the platform cache</p>
 </div>
@@ -396,11 +432,11 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"><p>lookup key to fetch cache type AppMetadataEntity</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.AppMetadataEntity.html" class="tsd-signature-type tsd-kind-class">AppMetadataEntity</a></h4>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.AppMetadataEntity.html" class="tsd-signature-type tsd-kind-type-alias">AppMetadataEntity</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.getAppMetadata</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L303">msal-node/src/cache/NodeStorage.ts:303</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L321">msal-node/src/cache/NodeStorage.ts:321</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="getAppMetadataFilteredBy" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>App<wbr/>Metadata<wbr/>Filtered<wbr/>By</span><a href="#getAppMetadataFilteredBy" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -417,7 +453,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.getAppMetadataFilteredBy</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:194</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:219</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getAuthorityMetadata" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Authority<wbr/>Metadata</span><a href="#getAuthorityMetadata" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -437,7 +473,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.getAuthorityMetadata</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L362">msal-node/src/cache/NodeStorage.ts:362</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L378">msal-node/src/cache/NodeStorage.ts:378</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="getAuthorityMetadataByAlias" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Authority<wbr/>Metadata<wbr/>By<wbr/>Alias</span><a href="#getAuthorityMetadataByAlias" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -454,7 +490,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.getAuthorityMetadataByAlias</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:205</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:224</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getAuthorityMetadataKeys" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Authority<wbr/>Metadata<wbr/>Keys</span><a href="#getAuthorityMetadataKeys" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -466,7 +502,24 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.getAuthorityMetadataKeys</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L381">msal-node/src/cache/NodeStorage.ts:381</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L394">msal-node/src/cache/NodeStorage.ts:394</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="getBaseAccountInfo" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>get<wbr/>Base<wbr/>Account<wbr/>Info</span><a href="#getBaseAccountInfo" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="getBaseAccountInfo.getBaseAccountInfo-1"><span class="tsd-kind-call-signature">get<wbr/>Base<wbr/>Account<wbr/>Info</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">accountFilter</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_node.AccountInfo.html" class="tsd-signature-type tsd-kind-type-alias">AccountInfo</a><a href="#getBaseAccountInfo.getBaseAccountInfo-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Returns a single matching</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">accountFilter</span>: <a href="../types/_azure_msal_common.AccountFilter.html" class="tsd-signature-type tsd-kind-type-alias">AccountFilter</a></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_node.AccountInfo.html" class="tsd-signature-type tsd-kind-type-alias">AccountInfo</a></h4>
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<p>Inherited from CacheManager.getBaseAccountInfo</p>
+<ul>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:164</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getCache" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Cache</span><a href="#getCache" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -477,11 +530,28 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h4 class="tsd-returns-title">Returns <a href="../types/_azure_msal_node.CacheKVStore.html" class="tsd-signature-type tsd-kind-type-alias">CacheKVStore</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L148">msal-node/src/cache/NodeStorage.ts:148</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L153">msal-node/src/cache/NodeStorage.ts:153</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member"><a id="getCachedAccountEntity" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>get<wbr/>Cached<wbr/>Account<wbr/>Entity</span><a href="#getCachedAccountEntity" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="tsd-signature tsd-anchor-link" id="getCachedAccountEntity.getCachedAccountEntity-1"><span class="tsd-kind-call-signature">get<wbr/>Cached<wbr/>Account<wbr/>Entity</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">accountKey</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">AccountEntity</span><a href="#getCachedAccountEntity.getCachedAccountEntity-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Reads account from cache, builds it into an account entity and returns it.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">accountKey</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">AccountEntity</span></h4>
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<p>Overrides CacheManager.getCachedAccountEntity</p>
+<ul>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L233">msal-node/src/cache/NodeStorage.ts:233</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="getIdToken" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Id<wbr/>Token</span><a href="#getIdToken" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-signature tsd-anchor-link" id="getIdToken.getIdToken-1"><span class="tsd-kind-call-signature">get<wbr/>Id<wbr/>Token</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">account</span>, <span class="tsd-kind-parameter">tokenKeys</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.IdTokenEntity.html" class="tsd-signature-type tsd-kind-class">IdTokenEntity</a><a href="#getIdToken.getIdToken-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="getIdToken.getIdToken-1"><span class="tsd-kind-call-signature">get<wbr/>Id<wbr/>Token</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">account</span>, <span class="tsd-kind-parameter">tokenKeys</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">targetRealm</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">performanceClient</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">correlationId</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.IdTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">IdTokenEntity</a><a href="#getIdToken.getIdToken-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Retrieve IdTokenEntity from cache</p>
 </div>
@@ -489,18 +559,39 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">account</span>: <a href="../types/_azure_msal_node.AccountInfo.html" class="tsd-signature-type tsd-kind-type-alias">AccountInfo</a></h5></li>
+<h5><span class="tsd-kind-parameter">account</span>: <a href="../types/_azure_msal_node.AccountInfo.html" class="tsd-signature-type tsd-kind-type-alias">AccountInfo</a></h5>
+<div class="tsd-comment tsd-typography"><p>{AccountInfo}</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
 <li>
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">tokenKeys</span>: <a href="../types/_azure_msal_common.TokenKeys.html" class="tsd-signature-type tsd-kind-type-alias">TokenKeys</a></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.IdTokenEntity.html" class="tsd-signature-type tsd-kind-class">IdTokenEntity</a></h4>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">tokenKeys</span>: <a href="../types/_azure_msal_common.TokenKeys.html" class="tsd-signature-type tsd-kind-type-alias">TokenKeys</a></h5>
+<div class="tsd-comment tsd-typography"><p>{?TokenKeys}</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">targetRealm</span>: <span class="tsd-signature-type">string</span></h5>
+<div class="tsd-comment tsd-typography"><p>{?string}</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">performanceClient</span>: <a href="../interfaces/_azure_msal_browser.IPerformanceClient.html" class="tsd-signature-type tsd-kind-interface">IPerformanceClient</a></h5>
+<div class="tsd-comment tsd-typography"><p>{?IPerformanceClient}</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">correlationId</span>: <span class="tsd-signature-type">string</span></h5>
+<div class="tsd-comment tsd-typography"><p>{?string}</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.IdTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">IdTokenEntity</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.getIdToken</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:249</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:270</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getIdTokenCredential" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Id<wbr/>Token<wbr/>Credential</span><a href="#getIdTokenCredential" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="getIdTokenCredential.getIdTokenCredential-1"><span class="tsd-kind-call-signature">get<wbr/>Id<wbr/>Token<wbr/>Credential</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">idTokenKey</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.IdTokenEntity.html" class="tsd-signature-type tsd-kind-class">IdTokenEntity</a><a href="#getIdTokenCredential.getIdTokenCredential-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="getIdTokenCredential.getIdTokenCredential-1"><span class="tsd-kind-call-signature">get<wbr/>Id<wbr/>Token<wbr/>Credential</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">idTokenKey</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.IdTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">IdTokenEntity</a><a href="#getIdTokenCredential.getIdTokenCredential-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>fetch the idToken credential</p>
 </div>
@@ -512,15 +603,15 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"><p>lookup key to fetch cache type IdTokenEntity</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.IdTokenEntity.html" class="tsd-signature-type tsd-kind-class">IdTokenEntity</a></h4>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.IdTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">IdTokenEntity</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.getIdTokenCredential</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L236">msal-node/src/cache/NodeStorage.ts:236</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L253">msal-node/src/cache/NodeStorage.ts:253</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="getIdTokensByFilter" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Id<wbr/>Tokens<wbr/>By<wbr/>Filter</span><a href="#getIdTokensByFilter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-signature tsd-anchor-link" id="getIdTokensByFilter.getIdTokensByFilter-1"><span class="tsd-kind-call-signature">get<wbr/>Id<wbr/>Tokens<wbr/>By<wbr/>Filter</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">filter</span>, <span class="tsd-kind-parameter">tokenKeys</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="_azure_msal_common.IdTokenEntity.html" class="tsd-signature-type tsd-kind-class">IdTokenEntity</a><span class="tsd-signature-symbol">[]</span><a href="#getIdTokensByFilter.getIdTokensByFilter-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="getIdTokensByFilter.getIdTokensByFilter-1"><span class="tsd-kind-call-signature">get<wbr/>Id<wbr/>Tokens<wbr/>By<wbr/>Filter</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">filter</span>, <span class="tsd-kind-parameter">tokenKeys</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="../types/_azure_msal_common.IdTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">IdTokenEntity</a><span class="tsd-signature-symbol">&gt;</span><a href="#getIdTokensByFilter.getIdTokensByFilter-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Gets all idTokens matching the given filter</p>
 </div>
@@ -531,11 +622,11 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h5><span class="tsd-kind-parameter">filter</span>: <a href="../types/_azure_msal_common.CredentialFilter.html" class="tsd-signature-type tsd-kind-type-alias">CredentialFilter</a></h5></li>
 <li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">tokenKeys</span>: <a href="../types/_azure_msal_common.TokenKeys.html" class="tsd-signature-type tsd-kind-type-alias">TokenKeys</a></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="_azure_msal_common.IdTokenEntity.html" class="tsd-signature-type tsd-kind-class">IdTokenEntity</a><span class="tsd-signature-symbol">[]</span></h4>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="../types/_azure_msal_common.IdTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">IdTokenEntity</a><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.getIdTokensByFilter</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:255</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:276</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getInMemoryCache" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>In<wbr/>Memory<wbr/>Cache</span><a href="#getInMemoryCache" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -546,7 +637,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h4 class="tsd-returns-title">Returns <a href="../types/_azure_msal_node.InMemoryCache.html" class="tsd-signature-type tsd-kind-type-alias">InMemoryCache</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L123">msal-node/src/cache/NodeStorage.ts:123</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L128">msal-node/src/cache/NodeStorage.ts:128</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getItem" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Item</span><a href="#getItem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -565,7 +656,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">ValidCacheType</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L169">msal-node/src/cache/NodeStorage.ts:169</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L174">msal-node/src/cache/NodeStorage.ts:174</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getKeys" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Keys</span><a href="#getKeys" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -577,11 +668,11 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.getKeys</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L464">msal-node/src/cache/NodeStorage.ts:464</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L482">msal-node/src/cache/NodeStorage.ts:482</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="getRefreshToken" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Refresh<wbr/>Token</span><a href="#getRefreshToken" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-signature tsd-anchor-link" id="getRefreshToken.getRefreshToken-1"><span class="tsd-kind-call-signature">get<wbr/>Refresh<wbr/>Token</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">account</span>, <span class="tsd-kind-parameter">familyRT</span>, <span class="tsd-kind-parameter">tokenKeys</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.RefreshTokenEntity.html" class="tsd-signature-type tsd-kind-class">RefreshTokenEntity</a><a href="#getRefreshToken.getRefreshToken-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="getRefreshToken.getRefreshToken-1"><span class="tsd-kind-call-signature">get<wbr/>Refresh<wbr/>Token</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">account</span>, <span class="tsd-kind-parameter">familyRT</span>, <span class="tsd-kind-parameter">tokenKeys</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">performanceClient</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">correlationId</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.RefreshTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">RefreshTokenEntity</a><a href="#getRefreshToken.getRefreshToken-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Helper to retrieve the appropriate refresh token from cache</p>
 </div>
@@ -589,20 +680,39 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">account</span>: <a href="../types/_azure_msal_node.AccountInfo.html" class="tsd-signature-type tsd-kind-type-alias">AccountInfo</a></h5></li>
+<h5><span class="tsd-kind-parameter">account</span>: <a href="../types/_azure_msal_node.AccountInfo.html" class="tsd-signature-type tsd-kind-type-alias">AccountInfo</a></h5>
+<div class="tsd-comment tsd-typography"><p>{AccountInfo}</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
 <li>
-<h5><span class="tsd-kind-parameter">familyRT</span>: <span class="tsd-signature-type">boolean</span></h5></li>
+<h5><span class="tsd-kind-parameter">familyRT</span>: <span class="tsd-signature-type">boolean</span></h5>
+<div class="tsd-comment tsd-typography"><p>{boolean}</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
 <li>
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">tokenKeys</span>: <a href="../types/_azure_msal_common.TokenKeys.html" class="tsd-signature-type tsd-kind-type-alias">TokenKeys</a></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.RefreshTokenEntity.html" class="tsd-signature-type tsd-kind-class">RefreshTokenEntity</a></h4>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">tokenKeys</span>: <a href="../types/_azure_msal_common.TokenKeys.html" class="tsd-signature-type tsd-kind-type-alias">TokenKeys</a></h5>
+<div class="tsd-comment tsd-typography"><p>{?TokenKeys}</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">performanceClient</span>: <a href="../interfaces/_azure_msal_browser.IPerformanceClient.html" class="tsd-signature-type tsd-kind-interface">IPerformanceClient</a></h5>
+<div class="tsd-comment tsd-typography"><p>{?IPerformanceClient}</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">correlationId</span>: <span class="tsd-signature-type">string</span></h5>
+<div class="tsd-comment tsd-typography"><p>{?string}</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.RefreshTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">RefreshTokenEntity</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.getRefreshToken</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:301</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:325</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getRefreshTokenCredential" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Refresh<wbr/>Token<wbr/>Credential</span><a href="#getRefreshTokenCredential" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="getRefreshTokenCredential.getRefreshTokenCredential-1"><span class="tsd-kind-call-signature">get<wbr/>Refresh<wbr/>Token<wbr/>Credential</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">refreshTokenKey</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.RefreshTokenEntity.html" class="tsd-signature-type tsd-kind-class">RefreshTokenEntity</a><a href="#getRefreshTokenCredential.getRefreshTokenCredential-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="getRefreshTokenCredential.getRefreshTokenCredential-1"><span class="tsd-kind-call-signature">get<wbr/>Refresh<wbr/>Token<wbr/>Credential</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">refreshTokenKey</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.RefreshTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">RefreshTokenEntity</a><a href="#getRefreshTokenCredential.getRefreshTokenCredential-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>fetch the refreshToken credential</p>
 </div>
@@ -614,15 +724,15 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"><p>lookup key to fetch cache type RefreshTokenEntity</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.RefreshTokenEntity.html" class="tsd-signature-type tsd-kind-class">RefreshTokenEntity</a></h4>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.RefreshTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">RefreshTokenEntity</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.getRefreshTokenCredential</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L278">msal-node/src/cache/NodeStorage.ts:278</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L295">msal-node/src/cache/NodeStorage.ts:295</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getServerTelemetry" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Server<wbr/>Telemetry</span><a href="#getServerTelemetry" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="getServerTelemetry.getServerTelemetry-1"><span class="tsd-kind-call-signature">get<wbr/>Server<wbr/>Telemetry</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">serverTelemetrykey</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.ServerTelemetryEntity.html" class="tsd-signature-type tsd-kind-class">ServerTelemetryEntity</a><a href="#getServerTelemetry.getServerTelemetry-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="getServerTelemetry.getServerTelemetry-1"><span class="tsd-kind-call-signature">get<wbr/>Server<wbr/>Telemetry</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">serverTelemetrykey</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.ServerTelemetryEntity.html" class="tsd-signature-type tsd-kind-type-alias">ServerTelemetryEntity</a><a href="#getServerTelemetry.getServerTelemetry-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>fetch server telemetry entity from the platform cache</p>
 </div>
@@ -634,15 +744,15 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"><p>lookup key to fetch cache type ServerTelemetryEntity</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.ServerTelemetryEntity.html" class="tsd-signature-type tsd-kind-class">ServerTelemetryEntity</a></h4>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.ServerTelemetryEntity.html" class="tsd-signature-type tsd-kind-type-alias">ServerTelemetryEntity</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.getServerTelemetry</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L328">msal-node/src/cache/NodeStorage.ts:328</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L344">msal-node/src/cache/NodeStorage.ts:344</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getThrottlingCache" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Throttling<wbr/>Cache</span><a href="#getThrottlingCache" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="getThrottlingCache.getThrottlingCache-1"><span class="tsd-kind-call-signature">get<wbr/>Throttling<wbr/>Cache</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">throttlingCacheKey</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.ThrottlingEntity.html" class="tsd-signature-type tsd-kind-class">ThrottlingEntity</a><a href="#getThrottlingCache.getThrottlingCache-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="getThrottlingCache.getThrottlingCache-1"><span class="tsd-kind-call-signature">get<wbr/>Throttling<wbr/>Cache</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">throttlingCacheKey</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.ThrottlingEntity.html" class="tsd-signature-type tsd-kind-type-alias">ThrottlingEntity</a><a href="#getThrottlingCache.getThrottlingCache-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>fetch throttling entity from the platform cache</p>
 </div>
@@ -654,11 +764,11 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"><p>lookup key to fetch cache type ThrottlingEntity</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.ThrottlingEntity.html" class="tsd-signature-type tsd-kind-class">ThrottlingEntity</a></h4>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.ThrottlingEntity.html" class="tsd-signature-type tsd-kind-type-alias">ThrottlingEntity</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.getThrottlingCache</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L400">msal-node/src/cache/NodeStorage.ts:400</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L413">msal-node/src/cache/NodeStorage.ts:413</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="getTokenKeys" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Token<wbr/>Keys</span><a href="#getTokenKeys" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -667,7 +777,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h4 class="tsd-returns-title">Returns <a href="../types/_azure_msal_common.TokenKeys.html" class="tsd-signature-type tsd-kind-type-alias">TokenKeys</a></h4><aside class="tsd-sources">
 <p>Overrides CacheManager.getTokenKeys</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L200">msal-node/src/cache/NodeStorage.ts:200</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L205">msal-node/src/cache/NodeStorage.ts:205</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="idTokenKeyMatchesFilter" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>id<wbr/>Token<wbr/>Key<wbr/>Matches<wbr/>Filter</span><a href="#idTokenKeyMatchesFilter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -686,7 +796,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.idTokenKeyMatchesFilter</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:262</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:283</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="inMemoryCacheToCache" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>in<wbr/>Memory<wbr/>Cache<wbr/>To<wbr/>Cache</span><a href="#inMemoryCacheToCache" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -705,7 +815,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h4 class="tsd-returns-title">Returns <a href="../types/_azure_msal_node.CacheKVStore.html" class="tsd-signature-type tsd-kind-type-alias">CacheKVStore</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L103">msal-node/src/cache/NodeStorage.ts:103</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L108">msal-node/src/cache/NodeStorage.ts:108</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="isAccountKey" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>is<wbr/>Account<wbr/>Key</span><a href="#isAccountKey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -726,7 +836,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.isAccountKey</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:177</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:202</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="isAppMetadataFOCI" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>is<wbr/>App<wbr/>MetadataFOCI</span><a href="#isAppMetadataFOCI" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -743,7 +853,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.isAppMetadataFOCI</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:317</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:341</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="isCredentialKey" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>is<wbr/>Credential<wbr/>Key</span><a href="#isCredentialKey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -760,7 +870,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.isCredentialKey</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:182</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:207</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="readAccountFromCache" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>read<wbr/>Account<wbr/>From<wbr/>Cache</span><a href="#readAccountFromCache" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -777,11 +887,11 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.readAccountFromCache</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:242</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:261</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="readAppMetadataFromCache" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>read<wbr/>App<wbr/>Metadata<wbr/>From<wbr/>Cache</span><a href="#readAppMetadataFromCache" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-signature tsd-anchor-link" id="readAppMetadataFromCache.readAppMetadataFromCache-1"><span class="tsd-kind-call-signature">read<wbr/>App<wbr/>Metadata<wbr/>From<wbr/>Cache</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">environment</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.AppMetadataEntity.html" class="tsd-signature-type tsd-kind-class">AppMetadataEntity</a><a href="#readAppMetadataFromCache.readAppMetadataFromCache-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="readAppMetadataFromCache.readAppMetadataFromCache-1"><span class="tsd-kind-call-signature">read<wbr/>App<wbr/>Metadata<wbr/>From<wbr/>Cache</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">environment</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.AppMetadataEntity.html" class="tsd-signature-type tsd-kind-type-alias">AppMetadataEntity</a><a href="#readAppMetadataFromCache.readAppMetadataFromCache-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Retrieve AppMetadataEntity from cache</p>
 </div>
@@ -790,32 +900,11 @@ not checking for casing as keys are all generated in lower case, remember to con
 <ul class="tsd-parameter-list">
 <li>
 <h5><span class="tsd-kind-parameter">environment</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="_azure_msal_common.AppMetadataEntity.html" class="tsd-signature-type tsd-kind-class">AppMetadataEntity</a></h4>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_common.AppMetadataEntity.html" class="tsd-signature-type tsd-kind-type-alias">AppMetadataEntity</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.readAppMetadataFromCache</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:311</li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member tsd-is-inherited"><a id="readCacheRecord" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><span>read<wbr/>Cache<wbr/>Record</span><a href="#readCacheRecord" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-signature tsd-anchor-link" id="readCacheRecord.readCacheRecord-1"><span class="tsd-kind-call-signature">read<wbr/>Cache<wbr/>Record</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">account</span>, <span class="tsd-kind-parameter">request</span>, <span class="tsd-kind-parameter">environment</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">CacheRecord</span><a href="#readCacheRecord.readCacheRecord-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
-<li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Retrieve the cached credentials into a cacherecord</p>
-</div>
-<div class="tsd-parameters">
-<h4 class="tsd-parameters-title">Parameters</h4>
-<ul class="tsd-parameter-list">
-<li>
-<h5><span class="tsd-kind-parameter">account</span>: <a href="../types/_azure_msal_node.AccountInfo.html" class="tsd-signature-type tsd-kind-type-alias">AccountInfo</a></h5></li>
-<li>
-<h5><span class="tsd-kind-parameter">request</span>: <a href="../types/_azure_msal_common.BaseAuthRequest.html" class="tsd-signature-type tsd-kind-type-alias">BaseAuthRequest</a></h5></li>
-<li>
-<h5><span class="tsd-kind-parameter">environment</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">CacheRecord</span></h4>
-<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Inherited from CacheManager.readCacheRecord</p>
-<ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:237</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:335</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="refreshTokenKeyMatchesFilter" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>refresh<wbr/>Token<wbr/>Key<wbr/>Matches<wbr/>Filter</span><a href="#refreshTokenKeyMatchesFilter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -834,7 +923,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.refreshTokenKeyMatchesFilter</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:307</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:331</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="registerChangeEmitter" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>register<wbr/>Change<wbr/>Emitter</span><a href="#registerChangeEmitter" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -859,7 +948,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L50">msal-node/src/cache/NodeStorage.ts:50</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L57">msal-node/src/cache/NodeStorage.ts:57</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="removeAccessToken" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>remove<wbr/>Access<wbr/>Token</span><a href="#removeAccessToken" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -876,7 +965,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.removeAccessToken</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:224</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:252</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="removeAccount" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>remove<wbr/>Account</span><a href="#removeAccount" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -893,7 +982,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.removeAccount</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:214</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:233</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="removeAccountContext" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>remove<wbr/>Account<wbr/>Context</span><a href="#removeAccountContext" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -910,7 +999,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.removeAccountContext</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:219</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:238</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="removeAllAccounts" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>remove<wbr/>All<wbr/>Accounts</span><a href="#removeAllAccounts" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -922,7 +1011,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.removeAllAccounts</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:209</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:228</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="removeAppMetadata" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>remove<wbr/>App<wbr/>Metadata</span><a href="#removeAppMetadata" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -934,7 +1023,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.removeAppMetadata</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:228</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:256</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="removeIdToken" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>remove<wbr/>Id<wbr/>Token</span><a href="#removeIdToken" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -951,7 +1040,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.removeIdToken</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:267</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:288</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="removeItem" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>remove<wbr/>Item</span><a href="#removeItem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -971,7 +1060,24 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.removeItem</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L433">msal-node/src/cache/NodeStorage.ts:433</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L443">msal-node/src/cache/NodeStorage.ts:443</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member"><a id="removeOutdatedAccount" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>remove<wbr/>Outdated<wbr/>Account</span><a href="#removeOutdatedAccount" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="tsd-signature tsd-anchor-link" id="removeOutdatedAccount.removeOutdatedAccount-1"><span class="tsd-kind-call-signature">remove<wbr/>Outdated<wbr/>Account</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">accountKey</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#removeOutdatedAccount.removeOutdatedAccount-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Remove account entity from the platform cache if it&#39;s outdated</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">accountKey</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<p>Overrides CacheManager.removeOutdatedAccount</p>
+<ul>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L467">msal-node/src/cache/NodeStorage.ts:467</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="removeRefreshToken" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>remove<wbr/>Refresh<wbr/>Token</span><a href="#removeRefreshToken" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -988,11 +1094,11 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.removeRefreshToken</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:272</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:293</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="saveCacheRecord" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>save<wbr/>Cache<wbr/>Record</span><a href="#saveCacheRecord" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-signature tsd-anchor-link" id="saveCacheRecord.saveCacheRecord-1"><span class="tsd-kind-call-signature">save<wbr/>Cache<wbr/>Record</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">cacheRecord</span>, <span class="tsd-kind-parameter">storeInCache</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#saveCacheRecord.saveCacheRecord-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="saveCacheRecord.saveCacheRecord-1"><span class="tsd-kind-call-signature">save<wbr/>Cache<wbr/>Record</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">cacheRecord</span>, <span class="tsd-kind-parameter">storeInCache</span><span class="tsd-signature-symbol">?</span>, <span class="tsd-kind-parameter">correlationId</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#saveCacheRecord.saveCacheRecord-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>saves a cache record</p>
 </div>
@@ -1000,14 +1106,25 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">cacheRecord</span>: <span class="tsd-signature-type ">CacheRecord</span></h5></li>
+<h5><span class="tsd-kind-parameter">cacheRecord</span>: <span class="tsd-signature-type ">CacheRecord</span></h5>
+<div class="tsd-comment tsd-typography"><p>{CacheRecord}</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
 <li>
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">storeInCache</span>: <a href="../types/_azure_msal_common.StoreInCache.html" class="tsd-signature-type tsd-kind-type-alias">StoreInCache</a></h5></li></ul></div>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">storeInCache</span>: <a href="../types/_azure_msal_common.StoreInCache.html" class="tsd-signature-type tsd-kind-type-alias">StoreInCache</a></h5>
+<div class="tsd-comment tsd-typography"><p>{?StoreInCache}</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li>
+<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">correlationId</span>: <span class="tsd-signature-type">string</span></h5>
+<div class="tsd-comment tsd-typography"><p>{?string} correlation id</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.saveCacheRecord</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:156</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:183</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="setAccessTokenCredential" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Access<wbr/>Token<wbr/>Credential</span><a href="#setAccessTokenCredential" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1019,7 +1136,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">accessToken</span>: <a href="_azure_msal_common.AccessTokenEntity.html" class="tsd-signature-type tsd-kind-class">AccessTokenEntity</a></h5>
+<h5><span class="tsd-kind-parameter">accessToken</span>: <a href="../types/_azure_msal_common.AccessTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">AccessTokenEntity</a></h5>
 <div class="tsd-comment tsd-typography"><p>cache value to be set of type AccessTokenEntity</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
@@ -1027,7 +1144,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.setAccessTokenCredential</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L269">msal-node/src/cache/NodeStorage.ts:269</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L286">msal-node/src/cache/NodeStorage.ts:286</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="setAccount" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Account</span><a href="#setAccount" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1047,7 +1164,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.setAccount</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L227">msal-node/src/cache/NodeStorage.ts:227</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L244">msal-node/src/cache/NodeStorage.ts:244</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="setAppMetadata" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>App<wbr/>Metadata</span><a href="#setAppMetadata" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1059,7 +1176,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">appMetadata</span>: <a href="_azure_msal_common.AppMetadataEntity.html" class="tsd-signature-type tsd-kind-class">AppMetadataEntity</a></h5>
+<h5><span class="tsd-kind-parameter">appMetadata</span>: <a href="../types/_azure_msal_common.AppMetadataEntity.html" class="tsd-signature-type tsd-kind-type-alias">AppMetadataEntity</a></h5>
 <div class="tsd-comment tsd-typography"><p>cache value to be set of type AppMetadataEntity</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
@@ -1067,7 +1184,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.setAppMetadata</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L319">msal-node/src/cache/NodeStorage.ts:319</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L335">msal-node/src/cache/NodeStorage.ts:335</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="setAuthorityMetadata" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Authority<wbr/>Metadata</span><a href="#setAuthorityMetadata" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1092,7 +1209,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.setAuthorityMetadata</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L392">msal-node/src/cache/NodeStorage.ts:392</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L405">msal-node/src/cache/NodeStorage.ts:405</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="setCache" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Cache</span><a href="#setCache" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1108,7 +1225,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L157">msal-node/src/cache/NodeStorage.ts:157</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L162">msal-node/src/cache/NodeStorage.ts:162</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="setIdTokenCredential" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Id<wbr/>Token<wbr/>Credential</span><a href="#setIdTokenCredential" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1120,7 +1237,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">idToken</span>: <a href="_azure_msal_common.IdTokenEntity.html" class="tsd-signature-type tsd-kind-class">IdTokenEntity</a></h5>
+<h5><span class="tsd-kind-parameter">idToken</span>: <a href="../types/_azure_msal_common.IdTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">IdTokenEntity</a></h5>
 <div class="tsd-comment tsd-typography"><p>cache value to be set of type IdTokenEntity</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
@@ -1128,7 +1245,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.setIdTokenCredential</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L248">msal-node/src/cache/NodeStorage.ts:248</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L265">msal-node/src/cache/NodeStorage.ts:265</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="setInMemoryCache" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>In<wbr/>Memory<wbr/>Cache</span><a href="#setInMemoryCache" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1147,7 +1264,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L135">msal-node/src/cache/NodeStorage.ts:135</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L140">msal-node/src/cache/NodeStorage.ts:140</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="setItem" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Item</span><a href="#setItem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1171,7 +1288,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L182">msal-node/src/cache/NodeStorage.ts:182</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L187">msal-node/src/cache/NodeStorage.ts:187</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="setRefreshTokenCredential" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Refresh<wbr/>Token<wbr/>Credential</span><a href="#setRefreshTokenCredential" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1183,7 +1300,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">refreshToken</span>: <a href="_azure_msal_common.RefreshTokenEntity.html" class="tsd-signature-type tsd-kind-class">RefreshTokenEntity</a></h5>
+<h5><span class="tsd-kind-parameter">refreshToken</span>: <a href="../types/_azure_msal_common.RefreshTokenEntity.html" class="tsd-signature-type tsd-kind-type-alias">RefreshTokenEntity</a></h5>
 <div class="tsd-comment tsd-typography"><p>cache value to be set of type RefreshTokenEntity</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
@@ -1191,7 +1308,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.setRefreshTokenCredential</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L294">msal-node/src/cache/NodeStorage.ts:294</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L311">msal-node/src/cache/NodeStorage.ts:311</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="setServerTelemetry" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Server<wbr/>Telemetry</span><a href="#setServerTelemetry" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1208,7 +1325,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 </div>
 <div class="tsd-comment tsd-typography"></div></li>
 <li>
-<h5><span class="tsd-kind-parameter">serverTelemetry</span>: <a href="_azure_msal_common.ServerTelemetryEntity.html" class="tsd-signature-type tsd-kind-class">ServerTelemetryEntity</a></h5>
+<h5><span class="tsd-kind-parameter">serverTelemetry</span>: <a href="../types/_azure_msal_common.ServerTelemetryEntity.html" class="tsd-signature-type tsd-kind-type-alias">ServerTelemetryEntity</a></h5>
 <div class="tsd-comment tsd-typography"><p>cache value to be set of type ServerTelemetryEntity</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
@@ -1216,7 +1333,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.setServerTelemetry</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L351">msal-node/src/cache/NodeStorage.ts:351</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L367">msal-node/src/cache/NodeStorage.ts:367</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="setThrottlingCache" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>set<wbr/>Throttling<wbr/>Cache</span><a href="#setThrottlingCache" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1233,7 +1350,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 </div>
 <div class="tsd-comment tsd-typography"></div></li>
 <li>
-<h5><span class="tsd-kind-parameter">throttlingCache</span>: <a href="_azure_msal_common.ThrottlingEntity.html" class="tsd-signature-type tsd-kind-class">ThrottlingEntity</a></h5>
+<h5><span class="tsd-kind-parameter">throttlingCache</span>: <a href="../types/_azure_msal_common.ThrottlingEntity.html" class="tsd-signature-type tsd-kind-type-alias">ThrottlingEntity</a></h5>
 <div class="tsd-comment tsd-typography"><p>cache value to be set of type ThrottlingEntity</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></li></ul></div>
@@ -1241,7 +1358,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.setThrottlingCache</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L421">msal-node/src/cache/NodeStorage.ts:421</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L431">msal-node/src/cache/NodeStorage.ts:431</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="updateCredentialCacheKey" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>update<wbr/>Credential<wbr/>Cache<wbr/>Key</span><a href="#updateCredentialCacheKey" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1260,7 +1377,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides CacheManager.updateCredentialCacheKey</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L509">msal-node/src/cache/NodeStorage.ts:509</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L527">msal-node/src/cache/NodeStorage.ts:527</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="generateInMemoryCache" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>generate<wbr/>In<wbr/>Memory<wbr/>Cache</span><a href="#generateInMemoryCache" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1279,7 +1396,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h4 class="tsd-returns-title">Returns <a href="../types/_azure_msal_node.InMemoryCache.html" class="tsd-signature-type tsd-kind-type-alias">InMemoryCache</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L492">msal-node/src/cache/NodeStorage.ts:492</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L510">msal-node/src/cache/NodeStorage.ts:510</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="generateJsonCache" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>generate<wbr/>Json<wbr/>Cache</span><a href="#generateJsonCache" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -1298,7 +1415,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <h4 class="tsd-returns-title">Returns <a href="../types/_azure_msal_node.JsonCache.html" class="tsd-signature-type tsd-kind-type-alias">JsonCache</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4392a636c/lib/msal-node/src/cache/NodeStorage.ts#L502">msal-node/src/cache/NodeStorage.ts:502</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/cache/NodeStorage.ts#L520">msal-node/src/cache/NodeStorage.ts:520</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="toObject" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>to<wbr/>Object</span><a href="#toObject" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -1322,7 +1439,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from CacheManager.toObject</p>
 <ul>
-<li>Defined in msal-common/dist/cache/CacheManager.d.ts:418</li></ul></aside></li></ul></section></section></div>
+<li>Defined in msal-common/dist/cache/CacheManager.d.ts:468</li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -1363,7 +1480,9 @@ not checking for casing as keys are all generated in lower case, remember to con
 <li><a href="#getAuthorityMetadata" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Authority<wbr/>Metadata</span></a></li>
 <li><a href="#getAuthorityMetadataByAlias" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Authority<wbr/>Metadata<wbr/>By<wbr/>Alias</span></a></li>
 <li><a href="#getAuthorityMetadataKeys" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Authority<wbr/>Metadata<wbr/>Keys</span></a></li>
+<li><a href="#getBaseAccountInfo" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Base<wbr/>Account<wbr/>Info</span></a></li>
 <li><a href="#getCache" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Cache</span></a></li>
+<li><a href="#getCachedAccountEntity" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Cached<wbr/>Account<wbr/>Entity</span></a></li>
 <li><a href="#getIdToken" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Id<wbr/>Token</span></a></li>
 <li><a href="#getIdTokenCredential" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Id<wbr/>Token<wbr/>Credential</span></a></li>
 <li><a href="#getIdTokensByFilter" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Id<wbr/>Tokens<wbr/>By<wbr/>Filter</span></a></li>
@@ -1382,7 +1501,6 @@ not checking for casing as keys are all generated in lower case, remember to con
 <li><a href="#isCredentialKey" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>is<wbr/>Credential<wbr/>Key</span></a></li>
 <li><a href="#readAccountFromCache" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>read<wbr/>Account<wbr/>From<wbr/>Cache</span></a></li>
 <li><a href="#readAppMetadataFromCache" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>read<wbr/>App<wbr/>Metadata<wbr/>From<wbr/>Cache</span></a></li>
-<li><a href="#readCacheRecord" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>read<wbr/>Cache<wbr/>Record</span></a></li>
 <li><a href="#refreshTokenKeyMatchesFilter" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>refresh<wbr/>Token<wbr/>Key<wbr/>Matches<wbr/>Filter</span></a></li>
 <li><a href="#registerChangeEmitter" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>register<wbr/>Change<wbr/>Emitter</span></a></li>
 <li><a href="#removeAccessToken" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>remove<wbr/>Access<wbr/>Token</span></a></li>
@@ -1392,6 +1510,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <li><a href="#removeAppMetadata" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>remove<wbr/>App<wbr/>Metadata</span></a></li>
 <li><a href="#removeIdToken" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>remove<wbr/>Id<wbr/>Token</span></a></li>
 <li><a href="#removeItem" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>remove<wbr/>Item</span></a></li>
+<li><a href="#removeOutdatedAccount" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>remove<wbr/>Outdated<wbr/>Account</span></a></li>
 <li><a href="#removeRefreshToken" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>remove<wbr/>Refresh<wbr/>Token</span></a></li>
 <li><a href="#saveCacheRecord" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>save<wbr/>Cache<wbr/>Record</span></a></li>
 <li><a href="#setAccessTokenCredential" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>set<wbr/>Access<wbr/>Token<wbr/>Credential</span></a></li>
@@ -1412,11 +1531,11 @@ not checking for casing as keys are all generated in lower case, remember to con
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-namespace)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.33 16V7.24H10.77L13.446 14.74C13.43 14.54 13.41 14.296 13.386 14.008C13.37 13.712 13.354 13.404 13.338 13.084C13.33 12.756 13.326 12.448 13.326 12.16V7.24H14.37V16H12.93L10.266 8.5C10.282 8.692 10.298 8.936 10.314 9.232C10.33 9.52 10.342 9.828 10.35 10.156C10.366 10.476 10.374 10.784 10.374 11.08V16H9.33Z" fill="var(--color-text)"></path></g></svg><span>Documentation</span></a>
 <ul class="tsd-small-nested-navigation">
-<li><a href="../modules/_azure_msal_angular.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>angular -<wbr/> v3.0.4</span></a></li>
-<li><a href="../modules/_azure_msal_browser.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>browser -<wbr/> v3.1.0</span></a></li>
-<li><a href="../modules/_azure_msal_common.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>common -<wbr/> v14.0.3</span></a></li>
+<li><a href="../modules/_azure_msal_angular.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>angular -<wbr/> v3.0.25</span></a></li>
+<li><a href="../modules/_azure_msal_browser.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>browser -<wbr/> v3.26.1</span></a></li>
+<li><a href="../modules/_azure_msal_common.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>common -<wbr/> v14.15.0</span></a></li>
 <li>
-<details class="tsd-index-accordion" open data-key="@azure/msal-node"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg><a href="../modules/_azure_msal_node.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node -<wbr/> v2.1.0</span></a></summary>
+<details class="tsd-index-accordion" open data-key="@azure/msal-node"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg><a href="../modules/_azure_msal_node.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node -<wbr/> v2.15.0</span></a></summary>
 <div class="tsd-accordion-details">
 <ul class="tsd-nested-navigation">
 <li><a href="../modules/_azure_msal_node.AuthErrorCodes.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Auth<wbr/>Error<wbr/>Codes</span></a></li>
@@ -1437,6 +1556,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <li><a href="_azure_msal_node.DistributedCachePlugin.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Distributed<wbr/>Cache<wbr/>Plugin</span></a></li>
 <li><a href="_azure_msal_node.InteractionRequiredAuthError.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Interaction<wbr/>Required<wbr/>Auth<wbr/>Error</span></a></li>
 <li><a href="_azure_msal_node.Logger.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Logger</span></a></li>
+<li><a href="_azure_msal_node.ManagedIdentityApplication.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Managed<wbr/>Identity<wbr/>Application</span></a></li>
 <li><a href="_azure_msal_node.NodeStorage.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Node<wbr/>Storage</span></a></li>
 <li><a href="_azure_msal_node.OnBehalfOfClient.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>On<wbr/>Behalf<wbr/>Of<wbr/>Client</span></a></li>
 <li><a href="_azure_msal_node.PublicClientApplication.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Public<wbr/>Client<wbr/>Application</span></a></li>
@@ -1449,6 +1569,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <li><a href="../interfaces/_azure_msal_node.ICachePlugin.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>ICache<wbr/>Plugin</span></a></li>
 <li><a href="../interfaces/_azure_msal_node.IConfidentialClientApplication.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>IConfidential<wbr/>Client<wbr/>Application</span></a></li>
 <li><a href="../interfaces/_azure_msal_node.ILoopbackClient.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>ILoopback<wbr/>Client</span></a></li>
+<li><a href="../interfaces/_azure_msal_node.INativeBrokerPlugin.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>INative<wbr/>Broker<wbr/>Plugin</span></a></li>
 <li><a href="../interfaces/_azure_msal_node.INetworkModule.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>INetwork<wbr/>Module</span></a></li>
 <li><a href="../interfaces/_azure_msal_node.IPartitionManager.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>IPartition<wbr/>Manager</span></a></li>
 <li><a href="../interfaces/_azure_msal_node.IPublicClientApplication.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>IPublic<wbr/>Client<wbr/>Application</span></a></li>
@@ -1466,6 +1587,7 @@ not checking for casing as keys are all generated in lower case, remember to con
 <li><a href="../types/_azure_msal_node.BrokerOptions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Broker<wbr/>Options</span></a></li>
 <li><a href="../types/_azure_msal_node.CacheKVStore.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>CacheKVStore</span></a></li>
 <li><a href="../types/_azure_msal_node.CacheOptions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Cache<wbr/>Options</span></a></li>
+<li><a href="../types/_azure_msal_node.ClientAssertionCallback.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Client<wbr/>Assertion<wbr/>Callback</span></a></li>
 <li><a href="../types/_azure_msal_node.ClientCredentialRequest.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Client<wbr/>Credential<wbr/>Request</span></a></li>
 <li><a href="../types/_azure_msal_node.Configuration.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Configuration</span></a></li>
 <li><a href="../types/_azure_msal_node.DeviceCodeRequest.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Device<wbr/>Code<wbr/>Request</span></a></li>
@@ -1473,6 +1595,10 @@ not checking for casing as keys are all generated in lower case, remember to con
 <li><a href="../types/_azure_msal_node.InMemoryCache.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>In<wbr/>Memory<wbr/>Cache</span></a></li>
 <li><a href="../types/_azure_msal_node.InteractiveRequest.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Interactive<wbr/>Request</span></a></li>
 <li><a href="../types/_azure_msal_node.JsonCache.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Json<wbr/>Cache</span></a></li>
+<li><a href="../types/_azure_msal_node.ManagedIdentityConfiguration.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Managed<wbr/>Identity<wbr/>Configuration</span></a></li>
+<li><a href="../types/_azure_msal_node.ManagedIdentityIdParams.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Managed<wbr/>Identity<wbr/>Id<wbr/>Params</span></a></li>
+<li><a href="../types/_azure_msal_node.ManagedIdentityRequestParams.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Managed<wbr/>Identity<wbr/>Request<wbr/>Params</span></a></li>
+<li><a href="../types/_azure_msal_node.ManagedIdentitySourceNames.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Managed<wbr/>Identity<wbr/>Source<wbr/>Names</span></a></li>
 <li><a href="../types/_azure_msal_node.NetworkRequestOptions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Network<wbr/>Request<wbr/>Options</span></a></li>
 <li><a href="../types/_azure_msal_node.NetworkResponse.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Network<wbr/>Response</span></a></li>
 <li><a href="../types/_azure_msal_node.NodeAuthOptions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Node<wbr/>Auth<wbr/>Options</span></a></li>
@@ -1496,12 +1622,13 @@ not checking for casing as keys are all generated in lower case, remember to con
 <li><a href="../variables/_azure_msal_node.ClientAuthErrorMessage.html" class="deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Client<wbr/>Auth<wbr/>Error<wbr/>Message</span></a></li>
 <li><a href="../variables/_azure_msal_node.ClientConfigurationErrorMessage.html" class="deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Client<wbr/>Configuration<wbr/>Error<wbr/>Message</span></a></li>
 <li><a href="../variables/_azure_msal_node.InteractionRequiredAuthErrorMessage.html" class="deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Interaction<wbr/>Required<wbr/>Auth<wbr/>Error<wbr/>Message</span></a></li>
+<li><a href="../variables/_azure_msal_node.ManagedIdentitySourceNames-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Managed<wbr/>Identity<wbr/>Source<wbr/>Names</span></a></li>
 <li><a href="../variables/_azure_msal_node.PromptValue.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Prompt<wbr/>Value</span></a></li>
 <li><a href="../variables/_azure_msal_node.ProtocolMode-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Protocol<wbr/>Mode</span></a></li>
 <li><a href="../variables/_azure_msal_node.ResponseMode-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Response<wbr/>Mode</span></a></li>
 <li><a href="../variables/_azure_msal_node.version.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>version</span></a></li></ul></div></details></li>
-<li><a href="../modules/_azure_msal_react.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>react -<wbr/> v2.0.3</span></a></li>
-<li><a href="../modules/_azure_msal_node_extensions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node-<wbr/>extensions -<wbr/> v1.0.3</span></a></li></ul></nav></div></div></div>
+<li><a href="../modules/_azure_msal_react.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>react -<wbr/> v2.1.1</span></a></li>
+<li><a href="../modules/_azure_msal_node_extensions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node-<wbr/>extensions -<wbr/> v1.3.0</span></a></li></ul></nav></div></div></div>
 <div class="tsd-generator">
 <p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
 <div class="overlay"></div></body></html>
