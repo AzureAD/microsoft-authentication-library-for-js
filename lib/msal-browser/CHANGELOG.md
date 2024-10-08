@@ -1,8 +1,23 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Thu, 03 Oct 2024 00:40:42 GMT and should not be manually modified.
+This log was last generated on Tue, 08 Oct 2024 16:51:05 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.26.0
+
+Tue, 08 Oct 2024 16:51:05 GMT
+
+### Minor changes
+
+- Add optional event type filter to addEventCallback #7351 (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Bug fixes for windowless PCA (shylasummers@microsoft.com)
 
 ## 3.25.0
 
