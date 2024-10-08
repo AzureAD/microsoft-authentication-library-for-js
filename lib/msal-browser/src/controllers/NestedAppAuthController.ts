@@ -35,6 +35,7 @@ import {
     WrapperSKU,
     InteractionType,
     DEFAULT_REQUEST,
+    CacheLookupPolicy,
 } from "../utils/BrowserConstants.js";
 import { IController } from "./IController.js";
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
@@ -212,12 +213,13 @@ export class NestedAppAuthController implements IController {
             const response = await this.bridgeProxy.getTokenInteractive(
                 naaRequest
             );
-            const result: AuthenticationResult =
-                this.nestedAppAuthAdapter.fromNaaTokenResponse(
+            const result: AuthenticationResult = {
+                ...this.nestedAppAuthAdapter.fromNaaTokenResponse(
                     naaRequest,
                     response,
                     reqTimestamp
-                );
+                ),
+            };
 
             // cache the tokens in the response
             await this.hydrateCache(result, request);
@@ -277,7 +279,6 @@ export class NestedAppAuthController implements IController {
 
         // Look for tokens in the cache first
         const result = await this.acquireTokenFromCache(validRequest);
-
         if (result) {
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
@@ -367,7 +368,25 @@ export class NestedAppAuthController implements IController {
             nestedAppAuthRequest: true,
         });
 
-        const result = await this.acquireTokenFromCacheInternal(request);
+        // if the request has claims, we cannot look up in the cache
+        if (request.claims) {
+            this.logger.verbose(
+                "Claims are present in the request, skipping cache lookup"
+            );
+            return null;
+        }
+
+        // respect cache lookup policy
+        let result: AuthenticationResult | null = null;
+        switch (request.cacheLookupPolicy) {
+            case CacheLookupPolicy.Default:
+            case CacheLookupPolicy.AccessToken:
+            case CacheLookupPolicy.AccessTokenAndRefreshToken:
+                result = await this.acquireTokenFromCacheInternal(request);
+                break;
+            default:
+                return null;
+        }
 
         if (result) {
             this.eventHandler.emitEvent(
@@ -458,7 +477,6 @@ export class NestedAppAuthController implements IController {
         if (!cachedAccessToken) {
             this.logger.verbose("No cached access token found");
             return Promise.resolve(null);
-            // If access token has expired, remove the token from cache and return null
         } else if (
             TimeUtils.wasClockTurnedBack(cachedAccessToken.cachedAt) ||
             TimeUtils.isTokenExpired(
@@ -466,12 +484,7 @@ export class NestedAppAuthController implements IController {
                 this.config.system.tokenRenewalOffsetSeconds
             )
         ) {
-            this.logger.verbose(
-                "Cached access token has expired, deleting all related tokens from cache"
-            );
-            const accountEntity =
-                AccountEntity.createFromAccountInfo(currentAccount);
-            await this.browserStorage.removeAccountContext(accountEntity);
+            this.logger.verbose("Cached access token has expired");
             return Promise.resolve(null);
         }
 
