@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Fix POP token acquisition via MsalRuntime",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
