@@ -1,16 +1,9 @@
 name: Typedoc
 
-on:
-  workflow_dispatch:
-  
-  pull_request:
-    types: [closed]
-    branches:
-      - dev
+on: workflow_dispatch
 
 jobs:
   deploy:
-    if: ((github.event.pull_request.merged == true && contains(github.head_ref,'post-release')) || github.event_name == 'workflow_dispatch')
     runs-on: windows-latest
     permissions:
       contents: write
@@ -24,7 +17,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
 
       - name: Install
         run: npm ci
