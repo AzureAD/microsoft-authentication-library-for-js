@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728594397371,
+  "lastUpdate": 1728594496663,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12650,6 +12650,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.03%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "2772161+bvwidt@users.noreply.github.com",
+            "name": "bvwidt",
+            "username": "bvwidt"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "63da4e5a3a27d9b647c467637a573919c6603f84",
+          "message": "Add types to logging callback function (#7333)\n\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-10-10T14:02:54-07:00",
+          "tree_id": "b1984ec7190ec07c64771bd5555f6f884b286bc6",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/63da4e5a3a27d9b647c467637a573919c6603f84"
+        },
+        "date": 1728594495455,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 186885,
+            "range": "±2.11%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 191286,
+            "range": "±2.13%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
