@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728594073182,
+  "lastUpdate": 1728594203185,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12574,6 +12574,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.48%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "bill.voltmer@elationtech.us",
+            "name": "billvolt",
+            "username": "billvolt"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "eee013a3914ccde39c5c27ded4ae5bf6c511a0f0",
+          "message": "Update MSAL.js ADFS documentation to describe requirement for Cross Origin Resource Sharing (CORS) headers (#7235)\n\nMSAL.js requires CORS. AAD provides CORS headers, but ADFS 2019 does not\r\ndo so by default. Describe CORS requirement for use with ADFS.\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-10-10T13:58:11-07:00",
+          "tree_id": "3c0b69c1279c5144e85ed6654c7c7469a603e3e5",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/eee013a3914ccde39c5c27ded4ae5bf6c511a0f0"
+        },
+        "date": 1728594202009,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 191729,
+            "range": "±1.93%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 191124,
+            "range": "±2.14%",
+            "unit": "ops/sec",
+            "extra": "207 samples"
           }
         ]
       }
