@@ -3,14 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { ApplicationTelemetry } from "../../config/ClientConfiguration";
-import { Logger } from "../../logger/Logger";
+import { ApplicationTelemetry } from "../../config/ClientConfiguration.js";
+import { Logger } from "../../logger/Logger.js";
 import {
     InProgressPerformanceEvent,
     IPerformanceClient,
     PerformanceCallbackFunction,
     QueueMeasurement,
-} from "./IPerformanceClient";
+} from "./IPerformanceClient.js";
 import {
     IntFields,
     PerformanceEvent,
@@ -19,13 +19,13 @@ import {
     PerformanceEvents,
     PerformanceEventStackedContext,
     PerformanceEventStatus,
-} from "./PerformanceEvent";
-import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
-import { StubPerformanceMeasurement } from "./StubPerformanceClient";
-import { AuthError } from "../../error/AuthError";
-import { CacheError } from "../../error/CacheError";
-import { ServerError } from "../../error/ServerError";
-import { InteractionRequiredAuthError } from "../../error/InteractionRequiredAuthError";
+} from "./PerformanceEvent.js";
+import { IPerformanceMeasurement } from "./IPerformanceMeasurement.js";
+import { StubPerformanceMeasurement } from "./StubPerformanceClient.js";
+import { AuthError } from "../../error/AuthError.js";
+import { CacheError } from "../../error/CacheError.js";
+import { ServerError } from "../../error/ServerError.js";
+import { InteractionRequiredAuthError } from "../../error/InteractionRequiredAuthError.js";
 
 export interface PreQueueEvent {
     name: PerformanceEvents;

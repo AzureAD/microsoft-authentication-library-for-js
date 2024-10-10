@@ -6,8 +6,8 @@
 import {
     ClientAuthErrorCodes,
     createClientAuthError,
-} from "../error/ClientAuthError";
-import { NetworkResponse } from "./NetworkManager";
+} from "../error/ClientAuthError.js";
+import { NetworkResponse } from "./NetworkManager.js";
 
 /**
  * Options allowed by network request APIs.

@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationScheme } from "../utils/Constants";
-import { AzureCloudOptions } from "../config/ClientConfiguration";
-import { StringDict } from "../utils/MsalTypes";
-import { StoreInCache } from "./StoreInCache";
-import { ShrOptions } from "../crypto/SignedHttpRequest";
+import { AuthenticationScheme } from "../utils/Constants.js";
+import { AzureCloudOptions } from "../config/ClientConfiguration.js";
+import { StringDict } from "../utils/MsalTypes.js";
+import { StoreInCache } from "./StoreInCache.js";
+import { ShrOptions } from "../crypto/SignedHttpRequest.js";
 
 /**
  * BaseAuthRequest

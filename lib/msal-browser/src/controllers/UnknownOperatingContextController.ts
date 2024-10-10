@@ -13,33 +13,33 @@ import {
     IPerformanceClient,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     AccountFilter,
-} from "@azure/msal-common";
-import { ITokenCache } from "../cache/ITokenCache";
-import { BrowserConfiguration } from "../config/Configuration";
+} from "@azure/msal-common/browser";
+import { ITokenCache } from "../cache/ITokenCache.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
 import {
     BrowserCacheManager,
     DEFAULT_BROWSER_CACHE_MANAGER,
-} from "../cache/BrowserCacheManager";
-import { INavigationClient } from "../navigation/INavigationClient";
-import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
-import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
-import { EndSessionRequest } from "../request/EndSessionRequest";
-import { PopupRequest } from "../request/PopupRequest";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { SilentRequest } from "../request/SilentRequest";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { ApiId, WrapperSKU } from "../utils/BrowserConstants";
-import { IController } from "./IController";
-import { UnknownOperatingContext } from "../operatingcontext/UnknownOperatingContext";
-import { CryptoOps } from "../crypto/CryptoOps";
+} from "../cache/BrowserCacheManager.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
+import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
+import { EndSessionRequest } from "../request/EndSessionRequest.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { SilentRequest } from "../request/SilentRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { ApiId, WrapperSKU } from "../utils/BrowserConstants.js";
+import { IController } from "./IController.js";
+import { UnknownOperatingContext } from "../operatingcontext/UnknownOperatingContext.js";
+import { CryptoOps } from "../crypto/CryptoOps.js";
 import {
     blockAPICallsBeforeInitialize,
     blockNonBrowserEnvironment,
-} from "../utils/BrowserUtils";
-import { EventHandler } from "../event/EventHandler";
-import { EventCallbackFunction } from "../event/EventMessage";
-import { ClearCacheRequest } from "../request/ClearCacheRequest";
+} from "../utils/BrowserUtils.js";
+import { EventCallbackFunction } from "../event/EventMessage.js";
+import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
+import { EventType } from "../event/EventType.js";
 
 /**
  * UnknownOperatingContextController class
@@ -80,8 +80,6 @@ export class UnknownOperatingContextController implements IController {
     // Flag representing whether or not the initialize API has been called and completed
     protected initialized: boolean = false;
 
-    protected readonly eventHandler: EventHandler;
-
     constructor(operatingContext: UnknownOperatingContext) {
         this.operatingContext = operatingContext;
 
@@ -114,15 +112,9 @@ export class UnknownOperatingContextController implements IController {
                   this.config.auth.clientId,
                   this.logger
               );
-
-        this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
     }
     getBrowserStorage(): BrowserCacheManager {
         return this.browserStorage;
-    }
-
-    getEventHandler(): EventHandler {
-        return this.eventHandler;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -210,12 +202,18 @@ export class UnknownOperatingContextController implements IController {
         blockNonBrowserEnvironment();
         return {} as Promise<AuthenticationResult>;
     }
-    addEventCallback(callback: EventCallbackFunction): string | null {
-        return this.eventHandler.addEventCallback(callback);
+    addEventCallback(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        callback: EventCallbackFunction,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        eventTypes?: Array<EventType>
+    ): string | null {
+        return null;
     }
-    removeEventCallback(callbackId: string): void {
-        this.eventHandler.removeEventCallback(callbackId);
-    }
+    removeEventCallback(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        callbackId: string
+    ): void {}
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
         blockAPICallsBeforeInitialize(this.initialized);

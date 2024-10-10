@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError } from "./AuthError";
+import { AuthError } from "./AuthError.js";
 
 /**
  * Error thrown when there is an error with the server code, for example, unavailability.

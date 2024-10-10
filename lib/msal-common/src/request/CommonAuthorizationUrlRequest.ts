@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { ResponseMode } from "../utils/Constants";
-import { StringDict } from "../utils/MsalTypes";
-import { BaseAuthRequest } from "./BaseAuthRequest";
-import { AccountInfo } from "../account/AccountInfo";
+import { ResponseMode } from "../utils/Constants.js";
+import { StringDict } from "../utils/MsalTypes.js";
+import { BaseAuthRequest } from "./BaseAuthRequest.js";
+import { AccountInfo } from "../account/AccountInfo.js";
 
 /**
  * Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)

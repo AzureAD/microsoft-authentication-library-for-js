@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest } from "./BaseAuthRequest";
-import { StringDict } from "../utils/MsalTypes";
-import { CcsCredential } from "../account/CcsCredential";
+import { BaseAuthRequest } from "./BaseAuthRequest.js";
+import { StringDict } from "../utils/MsalTypes.js";
+import { CcsCredential } from "../account/CcsCredential.js";
 
 /**
  * Request object passed by user to acquire a token from the server exchanging a valid authorization code (second leg of OAuth2.0 Authorization Code flow)

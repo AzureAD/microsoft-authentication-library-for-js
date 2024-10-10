@@ -163,8 +163,8 @@ if (argv.$0 === "index.js") {
         loggerCallback(loglevel, message, containsPii) {
             console.log(message);
         },
-        piiLoggingEnabled: false,
-        logLevel: msal.LogLevel.Verbose,
+        piiLoggingEnabled: true,
+        logLevel: msal.LogLevel.Trace,
     }
 
     // Build MSAL ClientApplication Configuration object
@@ -173,17 +173,16 @@ if (argv.$0 === "index.js") {
             clientId: config.authOptions.clientId,
             authority: config.authOptions.authority,
             clientSecret: process.env.AZURE_CLIENT_SECRET,
-            knownAuthorities: [config.authOptions.knownAuthorities]
+            knownAuthorities: config.authOptions.knownAuthorities
         },
         cache: {
             cachePlugin
         },
         // Uncomment the code below to enable the MSAL logger
-        /*
-         *   system: {
-         *    loggerOptions: loggerOptions
-         *   }
-         */
+        system: {
+            loggerOptions: loggerOptions
+        }
+         
     };
 
     // Create an MSAL PublicClientApplication object

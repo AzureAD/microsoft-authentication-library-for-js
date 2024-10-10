@@ -3,8 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { CommonAuthorizationUrlRequest, StringDict } from "@azure/msal-common";
-import { PopupWindowAttributes } from "./PopupWindowAttributes";
+import {
+    CommonAuthorizationUrlRequest,
+    StringDict,
+} from "@azure/msal-common/browser";
+import { PopupWindowAttributes } from "./PopupWindowAttributes.js";
 
 /**
  * PopupRequest: Request object passed by user to retrieve a Code from the
@@ -32,6 +35,7 @@ import { PopupWindowAttributes } from "./PopupWindowAttributes";
  * - claims                     - In cases where Azure AD tenant admin has enabled conditional access policies, and the policy has not been met, exceptions will contain claims that need to be consented to.
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  * - popupWindowAttributes      - Optional popup window attributes. popupSize with height and width, and popupPosition with top and left can be set.
+ * - popupWindowParent          - Optional window object to use as the parent when opening popup windows. Uses global `window` if not given.
  */
 
 export type PopupRequest = Partial<
@@ -48,4 +52,5 @@ export type PopupRequest = Partial<
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
     tokenBodyParameters?: StringDict;
+    popupWindowParent?: Window;
 };

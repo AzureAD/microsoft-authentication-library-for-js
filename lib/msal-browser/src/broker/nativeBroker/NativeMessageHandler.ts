@@ -6,7 +6,7 @@
 import {
     NativeConstants,
     NativeExtensionMethod,
-} from "../../utils/BrowserConstants";
+} from "../../utils/BrowserConstants.js";
 import {
     Logger,
     AuthError,
@@ -16,18 +16,18 @@ import {
     InProgressPerformanceEvent,
     PerformanceEvents,
     IPerformanceClient,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import {
     NativeExtensionRequest,
     NativeExtensionRequestBody,
-} from "./NativeRequest";
-import { createNativeAuthError } from "../../error/NativeAuthError";
+} from "./NativeRequest.js";
+import { createNativeAuthError } from "../../error/NativeAuthError.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../../error/BrowserAuthError";
-import { BrowserConfiguration } from "../../config/Configuration";
-import { createNewGuid } from "../../crypto/BrowserCrypto";
+} from "../../error/BrowserAuthError.js";
+import { BrowserConfiguration } from "../../config/Configuration.js";
+import { createNewGuid } from "../../crypto/BrowserCrypto.js";
 
 type ResponseResolvers<T> = {
     resolve: (value: T | PromiseLike<T>) => void;

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "@azure/msal-common";
+import { Constants } from "@azure/msal-common/node";
 
 export class EncodingUtils {
     /**

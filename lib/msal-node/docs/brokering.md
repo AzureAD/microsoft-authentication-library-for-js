@@ -55,6 +55,48 @@ pca.acquireTokenInteractive({
 });
 ```
 
+## Proof of Possession
+
+Access token proof of possession is supported when acquiring tokens through the native broker. To request a PoP token you will need to add a couple additional properties to the request object provided to `acquireTokenInteractive` or `acquireTokenSilent`
+
+### AT PoP Request Parameters
+
+|           Name          |                      Description                            | Required |
+|-------------------------| ----------------------------------------------------------- | -------- |
+|  `authenticationScheme` | Indicates whether MSAL should acquire a `Bearer` or `PoP` token. Default is `Bearer`. | **Required** |
+| `resourceRequestMethod` | The all-caps name of the HTTP method of the request that will use the signed token (`GET`, `POST`, `PUT`, etc.) | **Required** |
+| `resourceRequestUri`    | The URL of the protected resource for which the access token is being issued | **Required** |
+|      `shrNonce`         | A server-generated, signed timestamp that is Base64URL encoded as a string. This nonce is used to mitigate clock-skew and time-travel attacks meant to enable PoP token pre-generation. | *Optional* |
+
+### Usage Example
+
+```javascript
+import { PublicClientApplication, Configuration } from "@azure/msal-node";
+import { NativeBrokerPlugin } from "@azure/msal-node-extensions";
+
+const msalConfig: Configuration = {
+    auth: {
+        clientId: "your-client-id",
+    },
+    broker: {
+        nativeBrokerPlugin: new NativeBrokerPlugin(),
+    },
+};
+
+const pca = new PublicClientApplication(msalConfig);
+
+const popTokenRequest = {
+    scopes: ["User.Read"],
+    authenticationScheme: msal.AuthenticationScheme.POP,
+    resourceRequestMethod: "POST",
+    resourceRequestUri: "YOUR_RESOURCE_ENDPOINT",
+    shrNonce: "NONCE_ACQUIRED_FROM_RESOURCE_SERVER"
+}
+
+pca.acquireTokenInteractive(popTokenRequest);
+pca.acquireTokenSilent(popTokenRequest);
+```
+
 ## Differences when using the broker to acquire tokens
 
 There are a few things that may behave a little differently when acquiring tokens through the native broker.

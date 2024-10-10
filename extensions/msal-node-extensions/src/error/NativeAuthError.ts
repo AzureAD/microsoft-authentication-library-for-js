@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError } from "@azure/msal-common";
+import { AuthError } from "@azure/msal-common/node";
 
 export class NativeAuthError extends AuthError {
     public statusCode: number;

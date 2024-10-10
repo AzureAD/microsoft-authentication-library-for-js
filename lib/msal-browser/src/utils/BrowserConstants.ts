@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
-import { PopupRequest } from "../request/PopupRequest";
-import { RedirectRequest } from "../request/RedirectRequest";
+import { OIDC_DEFAULT_SCOPES } from "@azure/msal-common/browser";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
 
 /**
  * Constants
@@ -93,8 +93,6 @@ export const TemporaryCacheKeys = {
     CORRELATION_ID: "request.correlationId",
     NATIVE_REQUEST: "request.native",
     REDIRECT_CONTEXT: "request.redirect.context",
-    REDIRECT_REQUEST: "request.redirect",
-    REQUEST_RETRY: "request.retry",
 } as const;
 export type TemporaryCacheKeys =
     (typeof TemporaryCacheKeys)[keyof typeof TemporaryCacheKeys];

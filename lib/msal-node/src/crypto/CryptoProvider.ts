@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, PkceCodes } from "@azure/msal-common";
+import { ICrypto, PkceCodes } from "@azure/msal-common/node";
 import { GuidGenerator } from "./GuidGenerator.js";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { PkceGenerator } from "./PkceGenerator.js";

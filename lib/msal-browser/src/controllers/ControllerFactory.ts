@@ -3,13 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext";
-import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
-import { IController } from "./IController";
-import { Configuration } from "../config/Configuration";
-import { StandardController } from "./StandardController";
-import { NestedAppAuthController } from "./NestedAppAuthController";
-import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest";
+import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
+import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext.js";
+import { IController } from "./IController.js";
+import { Configuration } from "../config/Configuration.js";
+import { StandardController } from "./StandardController.js";
+import { NestedAppAuthController } from "./NestedAppAuthController.js";
+import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 
 export async function createV3Controller(
     config: Configuration,

@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError } from "@azure/msal-common";
-import * as ManagedIdentityErrorCodes from "./ManagedIdentityErrorCodes";
-import { ManagedIdentityEnvironmentVariableNames } from "../utils/Constants";
+import { AuthError } from "@azure/msal-common/node";
+import * as ManagedIdentityErrorCodes from "./ManagedIdentityErrorCodes.js";
+import { ManagedIdentityEnvironmentVariableNames } from "../utils/Constants.js";
 export { ManagedIdentityErrorCodes };
 
 /**

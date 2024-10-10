@@ -10,13 +10,13 @@ import {
     PkceCodes,
     invoke,
     invokeAsync,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { urlEncodeArr } from "../encode/Base64Encode";
-import { getRandomValues, sha256Digest } from "./BrowserCrypto";
+} from "../error/BrowserAuthError.js";
+import { urlEncodeArr } from "../encode/Base64Encode.js";
+import { getRandomValues, sha256Digest } from "./BrowserCrypto.js";
 
 // Constant byte array length
 const RANDOM_BYTE_ARR_LENGTH = 32;

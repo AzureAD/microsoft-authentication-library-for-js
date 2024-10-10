@@ -3,61 +3,61 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorityType } from "./AuthorityType";
+import { AuthorityType } from "./AuthorityType.js";
 import {
     isOpenIdConfigResponse,
     OpenIdConfigResponse,
-} from "./OpenIdConfigResponse";
-import { UrlString } from "../url/UrlString";
-import { IUri } from "../url/IUri";
+} from "./OpenIdConfigResponse.js";
+import { UrlString } from "../url/UrlString.js";
+import { IUri } from "../url/IUri.js";
 import {
     createClientAuthError,
     ClientAuthErrorCodes,
-} from "../error/ClientAuthError";
-import { INetworkModule } from "../network/INetworkModule";
+} from "../error/ClientAuthError.js";
+import { INetworkModule } from "../network/INetworkModule.js";
 import {
     AADAuthorityConstants,
     AuthorityMetadataSource,
     Constants,
     RegionDiscoveryOutcomes,
-} from "../utils/Constants";
+} from "../utils/Constants.js";
 import {
     EndpointMetadata,
     getCloudDiscoveryMetadataFromHardcodedValues,
     getCloudDiscoveryMetadataFromNetworkResponse,
     InstanceDiscoveryMetadataAliases,
-} from "./AuthorityMetadata";
+} from "./AuthorityMetadata.js";
 import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
-} from "../error/ClientConfigurationError";
-import { ProtocolMode } from "./ProtocolMode";
-import { ICacheManager } from "../cache/interface/ICacheManager";
-import { AuthorityMetadataEntity } from "../cache/entities/AuthorityMetadataEntity";
+} from "../error/ClientConfigurationError.js";
+import { ProtocolMode } from "./ProtocolMode.js";
+import { ICacheManager } from "../cache/interface/ICacheManager.js";
+import { AuthorityMetadataEntity } from "../cache/entities/AuthorityMetadataEntity.js";
 import {
     AuthorityOptions,
     AzureCloudInstance,
     StaticAuthorityOptions,
-} from "./AuthorityOptions";
+} from "./AuthorityOptions.js";
 import {
     CloudInstanceDiscoveryResponse,
     isCloudInstanceDiscoveryResponse,
-} from "./CloudInstanceDiscoveryResponse";
+} from "./CloudInstanceDiscoveryResponse.js";
 import {
     CloudInstanceDiscoveryErrorResponse,
     isCloudInstanceDiscoveryErrorResponse,
-} from "./CloudInstanceDiscoveryErrorResponse";
-import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
-import { RegionDiscovery } from "./RegionDiscovery";
-import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
-import { ImdsOptions } from "./ImdsOptions";
-import { AzureCloudOptions } from "../config/ClientConfiguration";
-import { Logger } from "../logger/Logger";
-import { AuthError } from "../error/AuthError";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
-import { invokeAsync } from "../utils/FunctionWrappers";
-import * as CacheHelpers from "../cache/utils/CacheHelpers";
+} from "./CloudInstanceDiscoveryErrorResponse.js";
+import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata.js";
+import { RegionDiscovery } from "./RegionDiscovery.js";
+import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata.js";
+import { ImdsOptions } from "./ImdsOptions.js";
+import { AzureCloudOptions } from "../config/ClientConfiguration.js";
+import { Logger } from "../logger/Logger.js";
+import { AuthError } from "../error/AuthError.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import { invokeAsync } from "../utils/FunctionWrappers.js";
+import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the

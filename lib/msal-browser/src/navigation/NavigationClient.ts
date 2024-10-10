@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { INavigationClient } from "./INavigationClient";
-import { NavigationOptions } from "./NavigationOptions";
+import { INavigationClient } from "./INavigationClient.js";
+import { NavigationOptions } from "./NavigationOptions.js";
 
 export class NavigationClient implements INavigationClient {
     /**

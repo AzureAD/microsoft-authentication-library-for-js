@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BridgeResponseEnvelope } from "./BridgeResponseEnvelope";
+import { BridgeResponseEnvelope } from "./BridgeResponseEnvelope.js";
 
 export type BridgeRequest = {
     requestId: string;

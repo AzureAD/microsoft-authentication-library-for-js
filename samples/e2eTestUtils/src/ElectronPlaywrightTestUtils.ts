@@ -1,90 +1,107 @@
 import { ElectronApplication, Page } from "playwright-core";
 import * as fs from "fs";
+import { HtmlSelectors } from "./Constants";
 
-export async function enterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+export async function enterCredentials(
+    page: Page,
+    screenshot: Screenshot,
+    username: string,
+    accountPwd: string
+): Promise<void> {
     await Promise.all([
-        page.waitForSelector("#i0116"),
-        page.waitForSelector("#idSIButton9")
+        page.waitForSelector(HtmlSelectors.USERNAME_INPUT),
+        page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR),
     ]).catch(async (e) => {
-        await screenshot.takeScreenshot(page, "errorPage").catch(() => { });
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
 
     await screenshot.takeScreenshot(page, "loginPage");
-    await page.type("#i0116", username);
-    await screenshot.takeScreenshot(page, "loginPageUsernameFilled")
-
-    await Promise.all([
-        page.waitForNavigation({ waitUntil: "load" }),
-        page.waitForNavigation({ waitUntil: "domcontentloaded" }),
-        page.waitForNavigation({ waitUntil: "networkidle" }).catch(() => { }),  // Wait for navigation but don't throw due to timeout
-        page.click("#idSIButton9")
-    ]).catch(async (e) => {
-        await screenshot.takeScreenshot(page, "errorPage").catch(() => { });
-        throw e;
-    });
-
-    await page.waitForSelector("#idA_PWD_ForgotPassword");
-    await page.waitForSelector("#i0118");
-    await page.waitForSelector("#idSIButton9");
-    await screenshot.takeScreenshot(page, "pwdInputPage");
-    await page.type("#i0118", accountPwd);
-    await screenshot.takeScreenshot(page, "loginPagePasswordFilled");
-    await page.click("#idSIButton9", { noWaitAfter: true });
-}
-
-export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
-    await Promise.all([
-        page.waitForSelector("#i0116"),
-        page.waitForSelector("#idSIButton9")
-    ]).catch(async (e) => {
-        await screenshot.takeScreenshot(page, "errorPage").catch(() => { });
-        throw e;
-    });
-
-    await screenshot.takeScreenshot(page, "loginPageADFS");
-    await page.type("#i0116", username);
+    await page.type(HtmlSelectors.USERNAME_INPUT, username);
     await screenshot.takeScreenshot(page, "loginPageUsernameFilled");
 
     await Promise.all([
         page.waitForNavigation({ waitUntil: "load" }),
         page.waitForNavigation({ waitUntil: "domcontentloaded" }),
-        page.waitForNavigation({ waitUntil: "networkidle" }).catch(() => { }),  // Wait for navigation but don't throw due to timeout
-        page.click("#idSIButton9")
+        page.waitForNavigation({ waitUntil: "networkidle" }).catch(() => {}), // Wait for navigation but don't throw due to timeout
+        page.click(HtmlSelectors.BUTTON9SELECTOR),
     ]).catch(async (e) => {
-        await screenshot.takeScreenshot(page, "errorPage").catch(() => { });
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
 
-    await page.waitForSelector("#passwordInput");
-    await page.waitForSelector("#submitButton");
-    await page.type("#passwordInput", accountPwd);
+    await page.waitForSelector(HtmlSelectors.FORGOT_PASSWORD_LINK);
+    await page.waitForSelector(HtmlSelectors.PASSWORD_INPUT_TEXTBOX);
+    await page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR);
+    await screenshot.takeScreenshot(page, "pwdInputPage");
+    await page.type(HtmlSelectors.PASSWORD_INPUT_TEXTBOX, accountPwd);
+    await screenshot.takeScreenshot(page, "loginPagePasswordFilled");
+    await page.click(HtmlSelectors.BUTTON9SELECTOR, { noWaitAfter: true });
+}
+
+export async function enterCredentialsADFS(
+    page: Page,
+    screenshot: Screenshot,
+    username: string,
+    accountPwd: string
+): Promise<void> {
+    await Promise.all([
+        page.waitForSelector(HtmlSelectors.USERNAME_INPUT),
+        page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR),
+    ]).catch(async (e) => {
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+        throw e;
+    });
+
+    await screenshot.takeScreenshot(page, "loginPageADFS");
+    await page.type(HtmlSelectors.USERNAME_INPUT, username);
+    await screenshot.takeScreenshot(page, "loginPageUsernameFilled");
+
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: "load" }),
+        page.waitForNavigation({ waitUntil: "domcontentloaded" }),
+        page.waitForNavigation({ waitUntil: "networkidle" }).catch(() => {}), // Wait for navigation but don't throw due to timeout
+        page.click(HtmlSelectors.BUTTON9SELECTOR),
+    ]).catch(async (e) => {
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+        throw e;
+    });
+
+    await page.waitForSelector(HtmlSelectors.PASSWORD_INPUT_SELECTOR);
+    await page.waitForSelector(HtmlSelectors.CREDENTIALS_SUBMIT_BUTTON);
+    await page.type(HtmlSelectors.PASSWORD_INPUT_SELECTOR, accountPwd);
     await screenshot.takeScreenshot(page, "passwordEntered");
 
     await Promise.all([
         page.waitForNavigation({ waitUntil: "load" }),
         page.waitForNavigation({ waitUntil: "domcontentloaded" }),
-        page.waitForNavigation({ waitUntil: "networkidle" }).catch(() => { }),  // Wait for navigation but don't throw due to timeout
-        page.click("#submitButton")
+        page.waitForNavigation({ waitUntil: "networkidle" }).catch(() => {}), // Wait for navigation but don't throw due to timeout
+        page.click(HtmlSelectors.CREDENTIALS_SUBMIT_BUTTON),
     ]).catch(async (e) => {
-        await screenshot.takeScreenshot(page, "errorPage").catch(() => { });
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
 }
 
-export async function clickSignIn(electronApp: ElectronApplication, page: Page, screenshot: Screenshot): Promise<Page> {
-    await page.waitForSelector("#SignIn")
+export async function clickSignIn(
+    electronApp: ElectronApplication,
+    page: Page,
+    screenshot: Screenshot
+): Promise<Page> {
+    await page.waitForSelector("#SignIn");
     await screenshot.takeScreenshot(page, "samplePageInit");
 
     page.click("#SignIn");
-    const popupPage = await electronApp.waitForEvent('window');
+    const popupPage = await electronApp.waitForEvent("window");
 
     await Promise.all([
         popupPage.waitForNavigation({ waitUntil: "load" }),
         popupPage.waitForNavigation({ waitUntil: "domcontentloaded" }),
-        popupPage.waitForNavigation({ waitUntil: "networkidle" }).catch(() => { }), // Wait for navigation but don't throw due to timeout
+        popupPage
+            .waitForNavigation({ waitUntil: "networkidle" })
+            .catch(() => {}), // Wait for navigation but don't throw due to timeout
     ]).catch(async (e) => {
-        await screenshot.takeScreenshot(page, "errorPage").catch(() => { });
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
 
@@ -103,7 +120,10 @@ export class Screenshot {
     }
 
     async takeScreenshot(page: Page, screenshotName: string): Promise<void> {
-        await page.screenshot({ path: `${this.folderName}/${++this.screenshotNum}_${screenshotName}.png` });
+        await page.screenshot({
+            path: `${this.folderName}/${++this
+                .screenshotNum}_${screenshotName}.png`,
+        });
     }
 }
 
@@ -113,7 +133,9 @@ export function createFolder(foldername: string) {
     }
 }
 
-export async function retrieveAuthCodeUrlFromBrowserContext(page: Page): Promise<string> {
+export async function retrieveAuthCodeUrlFromBrowserContext(
+    page: Page
+): Promise<string> {
     const msgPromise = await page.waitForEvent("console", {
         predicate: async (message) => {
             const text = message.text();

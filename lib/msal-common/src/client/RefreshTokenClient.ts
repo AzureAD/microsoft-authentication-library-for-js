@@ -6,50 +6,50 @@
 import {
     ClientConfiguration,
     isOidcProtocolMode,
-} from "../config/ClientConfiguration";
-import { BaseClient } from "./BaseClient";
-import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest";
-import { Authority } from "../authority/Authority";
-import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
-import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
+} from "../config/ClientConfiguration.js";
+import { BaseClient } from "./BaseClient.js";
+import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest.js";
+import { Authority } from "../authority/Authority.js";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
+import { RequestParameterBuilder } from "../request/RequestParameterBuilder.js";
 import {
     GrantType,
     AuthenticationScheme,
     Errors,
     HeaderNames,
-} from "../utils/Constants";
-import * as AADServerParamKeys from "../constants/AADServerParamKeys";
-import { ResponseHandler } from "../response/ResponseHandler";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
-import { StringUtils } from "../utils/StringUtils";
-import { RequestThumbprint } from "../network/RequestThumbprint";
-import { NetworkResponse } from "../network/NetworkManager";
-import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest";
+} from "../utils/Constants.js";
+import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
+import { ResponseHandler } from "../response/ResponseHandler.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
+import { StringUtils } from "../utils/StringUtils.js";
+import { RequestThumbprint } from "../network/RequestThumbprint.js";
+import { NetworkResponse } from "../network/NetworkManager.js";
+import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest.js";
 import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
-} from "../error/ClientConfigurationError";
+} from "../error/ClientConfigurationError.js";
 import {
     createClientAuthError,
     ClientAuthErrorCodes,
-} from "../error/ClientAuthError";
-import { ServerError } from "../error/ServerError";
-import * as TimeUtils from "../utils/TimeUtils";
-import { UrlString } from "../url/UrlString";
-import { CcsCredentialType } from "../account/CcsCredential";
-import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
+} from "../error/ClientAuthError.js";
+import { ServerError } from "../error/ServerError.js";
+import * as TimeUtils from "../utils/TimeUtils.js";
+import { UrlString } from "../url/UrlString.js";
+import { CcsCredentialType } from "../account/CcsCredential.js";
+import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo.js";
 import {
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
     createInteractionRequiredAuthError,
-} from "../error/InteractionRequiredAuthError";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
-import { invoke, invokeAsync } from "../utils/FunctionWrappers";
-import { generateCredentialKey } from "../cache/utils/CacheHelpers";
-import { ClientAssertion } from "../account/ClientCredentials";
-import { getClientAssertion } from "../utils/ClientAssertionUtils";
+} from "../error/InteractionRequiredAuthError.js";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import { invoke, invokeAsync } from "../utils/FunctionWrappers.js";
+import { generateCredentialKey } from "../cache/utils/CacheHelpers.js";
+import { ClientAssertion } from "../account/ClientCredentials.js";
+import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
 
 const DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS = 300; // 5 Minutes
 

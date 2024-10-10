@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Use '127.0.0.1' for the host when spinning up local loopback server",
-  "packageName": "@azure/msal-node",
-  "email": "tyleonha@microsoft.com",
-  "dependentChangeType": "patch"
-}

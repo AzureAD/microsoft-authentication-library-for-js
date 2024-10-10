@@ -8,9 +8,9 @@ import {
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
-} from "@azure/msal-common";
-import { IHttpRetryPolicy } from "../retry/IHttpRetryPolicy";
-import { HttpMethod } from "../utils/Constants";
+} from "@azure/msal-common/node";
+import { IHttpRetryPolicy } from "../retry/IHttpRetryPolicy.js";
+import { HttpMethod } from "../utils/Constants.js";
 
 export class HttpClientWithRetries implements INetworkModule {
     private httpClientNoRetries: INetworkModule;

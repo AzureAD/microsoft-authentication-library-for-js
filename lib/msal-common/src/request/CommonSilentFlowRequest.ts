@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo } from "../account/AccountInfo";
-import { StringDict } from "../utils/MsalTypes";
-import { BaseAuthRequest } from "./BaseAuthRequest";
+import { AccountInfo } from "../account/AccountInfo.js";
+import { StringDict } from "../utils/MsalTypes.js";
+import { BaseAuthRequest } from "./BaseAuthRequest.js";
 
 /**
  * SilentFlow parameters passed by the user to retrieve credentials silently

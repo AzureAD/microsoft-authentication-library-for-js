@@ -13,21 +13,21 @@ import {
     OIDC_DEFAULT_SCOPES,
     ThrottlingConstants,
     HeaderNames,
-} from "../utils/Constants";
-import * as AADServerParamKeys from "../constants/AADServerParamKeys";
-import { ScopeSet } from "./ScopeSet";
+} from "../utils/Constants.js";
+import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
+import { ScopeSet } from "./ScopeSet.js";
 import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
-} from "../error/ClientConfigurationError";
-import { StringDict } from "../utils/MsalTypes";
-import { RequestValidator } from "./RequestValidator";
+} from "../error/ClientConfigurationError.js";
+import { StringDict } from "../utils/MsalTypes.js";
+import { RequestValidator } from "./RequestValidator.js";
 import {
     ApplicationTelemetry,
     LibraryInfo,
-} from "../config/ClientConfiguration";
-import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
-import { ClientInfo } from "../account/ClientInfo";
+} from "../config/ClientConfiguration.js";
+import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
+import { ClientInfo } from "../account/ClientInfo.js";
 
 /** @internal */
 export class RequestParameterBuilder {

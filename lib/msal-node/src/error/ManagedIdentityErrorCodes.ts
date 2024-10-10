@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ManagedIdentityEnvironmentVariableNames } from "../utils/Constants";
+import { ManagedIdentityEnvironmentVariableNames } from "../utils/Constants.js";
 
 export const invalidFileExtension = "invalid_file_extension";
 export const invalidFilePath = "invalid_file_path";

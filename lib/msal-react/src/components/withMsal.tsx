@@ -4,9 +4,9 @@
  */
 
 import React from "react";
-import { IMsalContext } from "../MsalContext";
-import { useMsal } from "../hooks/useMsal";
-import { Subtract } from "../utils/utilities";
+import { IMsalContext } from "../MsalContext.js";
+import { useMsal } from "../hooks/useMsal.js";
+import { Subtract } from "../utils/utilities.js";
 
 export type WithMsalProps = {
     msalContext: IMsalContext;

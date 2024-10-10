@@ -3,17 +3,18 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError, AccountInfo } from "@azure/msal-common";
-import { EventType } from "./EventType";
-import { InteractionStatus, InteractionType } from "../utils/BrowserConstants";
+import { AuthError, AccountInfo } from "@azure/msal-common/browser";
+import { EventType } from "./EventType.js";
 import {
-    PopupRequest,
-    RedirectRequest,
-    SilentRequest,
-    SsoSilentRequest,
-    EndSessionRequest,
-    AuthenticationResult,
-} from "..";
+    InteractionStatus,
+    InteractionType,
+} from "../utils/BrowserConstants.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { SilentRequest } from "../request/SilentRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { EndSessionRequest } from "../request/EndSessionRequest.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
 
 export type EventMessage = {
     eventType: EventType;

@@ -1,8 +1,27 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Tue, 23 Jul 2024 14:19:34 GMT and should not be manually modified.
+This log was last generated on Thu, 03 Oct 2024 00:40:42 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.1.1
+
+Thu, 03 Oct 2024 00:40:42 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v3.25.0
+- Bump eslint-config-msal to v0.0.0
+
+## 2.1.0
+
+Thu, 19 Sep 2024 23:48:30 GMT
+
+### Minor changes
+
+- Fix type resolution when using moduleResolution node16 (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v3.24.0
+- Bump eslint-config-msal to v0.0.0
 
 ## 2.0.22
 

@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule, Logger } from "@azure/msal-common";
-import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource";
+import { INetworkModule, Logger } from "@azure/msal-common/node";
+import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
 import {
     HttpMethod,
     APP_SERVICE_SECRET_HEADER_NAME,
@@ -13,11 +13,11 @@ import {
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentitySourceNames,
     ManagedIdentityIdType,
-} from "../../utils/Constants";
-import { CryptoProvider } from "../../crypto/CryptoProvider";
-import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
-import { ManagedIdentityId } from "../../config/ManagedIdentityId";
-import { NodeStorage } from "../../cache/NodeStorage";
+} from "../../utils/Constants.js";
+import { CryptoProvider } from "../../crypto/CryptoProvider.js";
+import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
+import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
+import { NodeStorage } from "../../cache/NodeStorage.js";
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
 const APP_SERVICE_MSI_API_VERSION: string = "2019-08-01";

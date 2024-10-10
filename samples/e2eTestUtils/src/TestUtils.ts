@@ -2,6 +2,7 @@ import * as fs from "fs";
 import { Page, HTTPResponse, Browser, WaitForOptions } from "puppeteer";
 import { LabConfig } from "./LabConfig";
 import { LabClient } from "./LabClient";
+import { HtmlSelectors } from "./Constants";
 
 export const ONE_SECOND_IN_MS = 1000;
 export const RETRY_TIMES = 5;
@@ -9,8 +10,6 @@ export const RETRY_TIMES = 5;
 const WAIT_FOR_NAVIGATION_CONFIG: WaitForOptions = {
     waitUntil: ["load", "domcontentloaded", "networkidle0"],
 };
-
-const button9Selector = "#idSIButton9, input[name='idSIButton9']";
 
 export class Screenshot {
     private folderName: string;
@@ -175,11 +174,11 @@ export async function b2cLocalAccountEnterCredentials(
     username: string,
     accountPwd: string
 ) {
-    await page.waitForSelector("#logonIdentifier");
+    await page.waitForSelector(HtmlSelectors.B2C_LOCAL_ACCOUNT_USERNAME);
     await screenshot.takeScreenshot(page, "b2cSignInPage");
-    await page.type("#logonIdentifier", username);
-    await page.type("#password", accountPwd);
-    await page.click("#next");
+    await page.type(HtmlSelectors.B2C_LOCAL_ACCOUNT_USERNAME, username);
+    await page.type(HtmlSelectors.B2C_LOCAL_ACCOUNT_PASSWORD, accountPwd);
+    await page.click(HtmlSelectors.NEXT_BUTTON);
 }
 
 export async function b2cAadPpeAccountEnterCredentials(
@@ -188,10 +187,10 @@ export async function b2cAadPpeAccountEnterCredentials(
     username: string,
     accountPwd: string
 ): Promise<void> {
-    await page.waitForSelector("#MSIDLAB4_AzureAD");
+    await page.waitForSelector(HtmlSelectors.B2C_AAD_MSIDLAB4_SIGNIN_PAGE);
     await screenshot.takeScreenshot(page, "b2cSignInPage");
     // Select Lab Provider
-    await page.click("#MSIDLAB4_AzureAD");
+    await page.click(HtmlSelectors.B2C_AAD_MSIDLAB4_SIGNIN_PAGE);
     // Enter credentials
     await enterCredentials(page, screenshot, username, accountPwd);
 }
@@ -202,10 +201,10 @@ export async function b2cMsaAccountEnterCredentials(
     username: string,
     accountPwd: string
 ): Promise<void> {
-    await page.waitForSelector("#MicrosoftAccountExchange");
+    await page.waitForSelector(HtmlSelectors.B2C_MSA_SIGNIN_PAGE);
     await screenshot.takeScreenshot(page, "b2cSignInPage");
     // Select Lab Provider
-    await page.click("#MicrosoftAccountExchange");
+    await page.click(HtmlSelectors.B2C_MSA_SIGNIN_PAGE);
     // Enter credentials
     await enterCredentials(page, screenshot, username, accountPwd);
 }
@@ -225,20 +224,20 @@ export async function enterCredentials(
 ): Promise<void> {
     await Promise.all([
         page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {}), // Wait for navigation but don't throw due to timeout
-        page.waitForSelector("#i0116"),
-        page.waitForSelector(button9Selector),
+        page.waitForSelector(HtmlSelectors.USERNAME_INPUT),
+        page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
     await screenshot.takeScreenshot(page, "loginPage");
-    await page.type("#i0116", username);
+    await page.type(HtmlSelectors.USERNAME_INPUT, username);
     await screenshot.takeScreenshot(page, "loginPageUsernameFilled");
     await Promise.all([
         page.waitForNavigation({
             waitUntil: ["load", "domcontentloaded", "networkidle0"],
         }),
-        page.click(button9Selector),
+        page.click(HtmlSelectors.BUTTON9SELECTOR),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
@@ -246,11 +245,11 @@ export async function enterCredentials(
 
     // agce: which type of account do you want to use
     try {
-        await page.waitForSelector("#aadTile", { timeout: 1000 });
+        await page.waitForSelector(HtmlSelectors.AAD_TITLE, { timeout: 1000 });
         await screenshot.takeScreenshot(page, "accountType");
         await Promise.all([
             page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
-            page.click("#aadTile"),
+            page.click(HtmlSelectors.AAD_TITLE),
         ]).catch(async (e) => {
             await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
             throw e;
@@ -259,14 +258,14 @@ export async function enterCredentials(
         //
     }
 
-    await page.waitForSelector("#idA_PWD_ForgotPassword");
-    await page.waitForSelector("#i0118");
-    await page.waitForSelector(button9Selector);
+    await page.waitForSelector(HtmlSelectors.FORGOT_PASSWORD_LINK);
+    await page.waitForSelector(HtmlSelectors.PASSWORD_INPUT_TEXTBOX);
+    await page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR);
     await screenshot.takeScreenshot(page, "pwdInputPage");
-    await page.type("#i0118", accountPwd);
+    await page.type(HtmlSelectors.PASSWORD_INPUT_TEXTBOX, accountPwd);
     await screenshot.takeScreenshot(page, "loginPagePasswordFilled");
     await Promise.all([
-        page.click(button9Selector),
+        page.click(HtmlSelectors.BUTTON9SELECTOR),
 
         // Wait either for another navigation to Keep me signed in page or back to redirectUri
         Promise.race([
@@ -300,14 +299,14 @@ export async function enterCredentials(
     // keep me signed in page
     try {
         const aadKmsi = page
-            .waitForSelector(button9Selector, { timeout: 1000 })
+            .waitForSelector(HtmlSelectors.BUTTON9SELECTOR, { timeout: 1000 })
             .then(() => {
-                return button9Selector;
+                return HtmlSelectors.BUTTON9SELECTOR;
             });
         const msaKmsi = page
-            .waitForSelector("#kmsiTitle", { timeout: 1000 })
+            .waitForSelector(HtmlSelectors.KMSI_PAGE, { timeout: 1000 })
             .then(() => {
-                return "#acceptButton";
+                return HtmlSelectors.STAY_SIGNEDIN_BUTTON;
             });
         const buttonTag = await Promise.race([aadKmsi, msaKmsi]);
         await screenshot.takeScreenshot(page, "keepMeSignedInPage");
@@ -324,11 +323,13 @@ export async function enterCredentials(
 
     // agce: private tenant sign in page
     try {
-        await page.waitForSelector(button9Selector, { timeout: 1000 });
+        await page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR, {
+            timeout: 1000,
+        });
         await screenshot.takeScreenshot(page, "privateTenantSignInPage");
         await Promise.all([
             page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
-            page.click(button9Selector),
+            page.click(HtmlSelectors.BUTTON9SELECTOR),
         ]).catch(async (e) => {
             await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
             throw e;
@@ -343,12 +344,12 @@ export async function approveRemoteConnect(
     screenshot: Screenshot
 ): Promise<void> {
     try {
-        await page.waitForSelector("#remoteConnectDescription");
-        await page.waitForSelector("#remoteConnectSubmit");
+        await page.waitForSelector(HtmlSelectors.REMOTE_LOCATION_DESCRPITION);
+        await page.waitForSelector(HtmlSelectors.REMOTE_LOCATION_SUBMIT_BUTTON);
         await screenshot.takeScreenshot(page, "remoteConnectPage");
         await Promise.all([
             page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
-            page.click("#remoteConnectSubmit"),
+            page.click(HtmlSelectors.REMOTE_LOCATION_SUBMIT_BUTTON),
         ]).catch(async (e) => {
             await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
             throw e;
@@ -372,12 +373,12 @@ export async function approveConsent(
     page: Page,
     screenshot: Screenshot
 ): Promise<void> {
-    await page.waitForSelector(button9Selector);
+    await page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR);
     await Promise.all([
         page.waitForNavigation({
             waitUntil: ["load", "domcontentloaded", "networkidle0"],
         }),
-        page.click(button9Selector),
+        page.click(HtmlSelectors.BUTTON9SELECTOR),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
@@ -411,33 +412,33 @@ export async function enterCredentialsADFS(
 ): Promise<void> {
     await Promise.all([
         page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {}), // Wait for navigation but don't throw due to timeout
-        page.waitForSelector("#i0116"),
-        page.waitForSelector(button9Selector),
+        page.waitForSelector(HtmlSelectors.USERNAME_INPUT),
+        page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
     await screenshot.takeScreenshot(page, "loginPageADFS");
-    await page.type("#i0116", username);
+    await page.type(HtmlSelectors.USERNAME_INPUT, username);
     await screenshot.takeScreenshot(page, "usernameEntered");
     await Promise.all([
         page.waitForNavigation({
             waitUntil: ["load", "domcontentloaded", "networkidle0"],
         }),
-        page.click(button9Selector),
+        page.click(HtmlSelectors.BUTTON9SELECTOR),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
-    await page.waitForSelector("#passwordInput");
-    await page.waitForSelector("#submitButton");
-    await page.type("#passwordInput", accountPwd);
+    await page.waitForSelector(HtmlSelectors.PASSWORD_INPUT_SELECTOR);
+    await page.waitForSelector(HtmlSelectors.CREDENTIALS_SUBMIT_BUTTON);
+    await page.type(HtmlSelectors.PASSWORD_INPUT_SELECTOR, accountPwd);
     await screenshot.takeScreenshot(page, "passwordEntered");
     await Promise.all([
         page.waitForNavigation({
             waitUntil: ["load", "domcontentloaded", "networkidle0"],
         }),
-        page.click("#submitButton"),
+        page.click(HtmlSelectors.CREDENTIALS_SUBMIT_BUTTON),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
@@ -454,15 +455,15 @@ export async function enterDeviceCode(
     await page.goto(deviceCodeUrl, {
         waitUntil: ["load", "domcontentloaded", "networkidle0"],
     });
-    await page.waitForSelector("#otc");
-    await page.waitForSelector(button9Selector);
+    await page.waitForSelector(HtmlSelectors.DEVICE_OTC_INPUT_SELECTOR);
+    await page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR);
     await screenshot.takeScreenshot(page, "deviceCodePage");
-    await page.type("#otc", code);
+    await page.type(HtmlSelectors.DEVICE_OTC_INPUT_SELECTOR, code);
     await Promise.all([
         page.waitForNavigation({
             waitUntil: ["load", "domcontentloaded", "networkidle0"],
         }),
-        page.click(button9Selector),
+        page.click(HtmlSelectors.BUTTON9SELECTOR),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;

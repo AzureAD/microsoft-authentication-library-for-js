@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { ShrOptions } from "../crypto/SignedHttpRequest";
-import { AuthenticationScheme } from "../utils/Constants";
+import { ShrOptions } from "../crypto/SignedHttpRequest.js";
+import { AuthenticationScheme } from "../utils/Constants.js";
 
 /**
  * Type representing a unique request thumbprint.
