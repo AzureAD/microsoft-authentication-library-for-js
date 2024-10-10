@@ -93,7 +93,7 @@
     "msal-test-utils": "file:../../shared-test-utils",
     "prettier": "^2.8.7",
     "rimraf": "^3.0.0",
-    "rollup": "^3.29.5",
+    "rollup": "^4.22.4",
     "rollup-msal": "file:../../shared-configs/rollup-msal",
     "shx": "^0.3.2",
     "ssri": "^8.0.1",
