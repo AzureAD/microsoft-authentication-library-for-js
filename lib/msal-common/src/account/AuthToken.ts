@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { TokenClaims } from "./TokenClaims";
+import { TokenClaims } from "./TokenClaims.js";
 import {
     createClientAuthError,
     ClientAuthErrorCodes,
-} from "../error/ClientAuthError";
+} from "../error/ClientAuthError.js";
 
 /**
  * Extract token by decoding the rawToken

@@ -3,14 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { InteractionType } from "./BrowserConstants";
+import { InteractionType } from "./BrowserConstants.js";
 import {
     ICrypto,
     RequestStateObject,
     ProtocolUtils,
     createClientAuthError,
     ClientAuthErrorCodes,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 
 export type BrowserStateObject = {
     interactionType: InteractionType;

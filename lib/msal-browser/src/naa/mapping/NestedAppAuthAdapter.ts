@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { TokenRequest } from "../TokenRequest";
-import { AccountInfo as NaaAccountInfo } from "../AccountInfo";
-import { RedirectRequest } from "../../request/RedirectRequest";
-import { PopupRequest } from "../../request/PopupRequest";
+import { TokenRequest } from "../TokenRequest.js";
+import { AccountInfo as NaaAccountInfo } from "../AccountInfo.js";
+import { RedirectRequest } from "../../request/RedirectRequest.js";
+import { PopupRequest } from "../../request/PopupRequest.js";
 import {
     AccountInfo as MsalAccountInfo,
     AuthError,
@@ -29,14 +29,14 @@ import {
     AccessTokenEntity,
     TenantProfile,
     buildTenantProfile,
-} from "@azure/msal-common";
-import { isBridgeError } from "../BridgeError";
-import { BridgeStatusCode } from "../BridgeStatusCode";
-import { AuthenticationResult } from "../../response/AuthenticationResult";
-import {} from "../../error/BrowserAuthErrorCodes";
-import { AuthResult } from "../AuthResult";
-import { SsoSilentRequest } from "../../request/SsoSilentRequest";
-import { SilentRequest } from "../../request/SilentRequest";
+} from "@azure/msal-common/browser";
+import { isBridgeError } from "../BridgeError.js";
+import { BridgeStatusCode } from "../BridgeStatusCode.js";
+import { AuthenticationResult } from "../../response/AuthenticationResult.js";
+import {} from "../../error/BrowserAuthErrorCodes.js";
+import { AuthResult } from "../AuthResult.js";
+import { SsoSilentRequest } from "../../request/SsoSilentRequest.js";
+import { SilentRequest } from "../../request/SilentRequest.js";
 
 export class NestedAppAuthAdapter {
     protected crypto: ICrypto;

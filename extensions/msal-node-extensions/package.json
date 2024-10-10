@@ -1,20 +1,25 @@
 {
   "name": "@azure/msal-node-extensions",
-  "version": "1.1.0",
+  "version": "1.3.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
   "license": "MIT",
+  "type": "module",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "main": "lib/msal-node-extensions.cjs",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "module": "./dist/index.mjs",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
-      "default": "./dist/index.mjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./lib/types/index.d.ts",
+        "default": "./lib/msal-node-extensions.cjs"
+      }
     },
     "./package.json": "./package.json"
   },
@@ -28,7 +33,8 @@
   ],
   "files": [
     "dist",
-    "bin"
+    "bin",
+    "lib"
   ],
   "engines": {
     "node": ">=16"
@@ -36,7 +42,7 @@
   "scripts": {
     "compile": "node-gyp rebuild",
     "install": "exit 0",
-    "clean": "shx rm -rf dist bin",
+    "clean": "shx rm -rf dist bin lib",
     "build": "npm run clean && rollup -c --strictDeprecations --bundleConfigAsCjs && node ./scripts/buildBinaries.cjs",
     "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-node-extensions",
     "test": "jest",
@@ -58,8 +64,8 @@
     ]
   },
   "dependencies": {
-    "@azure/msal-common": "14.14.1",
-    "@azure/msal-node-runtime": "^0.13.6-alpha.0",
+    "@azure/msal-common": "14.15.0",
+    "@azure/msal-node-runtime": "^0.17.1",
     "keytar": "^7.8.0"
   },
   "devDependencies": {
@@ -70,7 +76,8 @@
     "eslint-config-msal": "file:../../shared-configs/eslint-config-msal",
     "jest": "^29.5.0",
     "node-addon-api": "^6.1.0",
-    "rollup": "^3.20.2",
+    "rollup": "^3.29.5",
+    "rollup-msal": "file:../../shared-configs/rollup-msal",
     "shx": "^0.3.4",
     "ts-jest": "^29.1.0",
     "ts-jest-mock-import-meta": "^1.1.0",

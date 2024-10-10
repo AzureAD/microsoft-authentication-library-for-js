@@ -155,6 +155,9 @@ module.exports = {
             "version": "17.0.0"
         },
         "import/resolver": {
+            "node": {
+                "extensions": [".js", ".jsx", ".ts", ".tsx"]
+            },
             "typescript": {} // this loads <rootdir>/tsconfig.json to eslint
         }
     }

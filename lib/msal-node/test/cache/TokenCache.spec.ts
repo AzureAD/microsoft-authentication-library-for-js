@@ -17,7 +17,9 @@ import { Deserializer } from "../../src/cache/serializer/Deserializer";
 import { JsonCache } from "../../src";
 import { MSALCommonModule } from "../utils/MockUtils";
 
-const msalCommon: MSALCommonModule = jest.requireActual("@azure/msal-common");
+const msalCommon: MSALCommonModule = jest.requireActual(
+    "@azure/msal-common/node"
+);
 
 describe("TokenCache tests", () => {
     let logger: Logger;

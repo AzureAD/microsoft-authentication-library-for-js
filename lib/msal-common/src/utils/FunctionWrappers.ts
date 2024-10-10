@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { Logger } from "../logger/Logger";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
+import { Logger } from "../logger/Logger.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 
 /**
  * Wraps a function with a performance measurement.

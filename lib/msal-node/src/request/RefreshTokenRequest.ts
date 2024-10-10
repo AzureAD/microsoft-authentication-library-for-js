@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CommonRefreshTokenRequest } from "@azure/msal-common";
+import { CommonRefreshTokenRequest } from "@azure/msal-common/node";
 
 /**
  * CommonRefreshTokenRequest

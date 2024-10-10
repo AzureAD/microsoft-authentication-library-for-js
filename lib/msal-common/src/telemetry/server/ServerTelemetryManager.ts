@@ -10,12 +10,12 @@ import {
     Constants,
     RegionDiscoverySources,
     RegionDiscoveryOutcomes,
-} from "../../utils/Constants";
-import { CacheManager } from "../../cache/CacheManager";
-import { AuthError } from "../../error/AuthError";
-import { ServerTelemetryRequest } from "./ServerTelemetryRequest";
-import { ServerTelemetryEntity } from "../../cache/entities/ServerTelemetryEntity";
-import { RegionDiscoveryMetadata } from "../../authority/RegionDiscoveryMetadata";
+} from "../../utils/Constants.js";
+import { CacheManager } from "../../cache/CacheManager.js";
+import { AuthError } from "../../error/AuthError.js";
+import { ServerTelemetryRequest } from "./ServerTelemetryRequest.js";
+import { ServerTelemetryEntity } from "../../cache/entities/ServerTelemetryEntity.js";
+import { RegionDiscoveryMetadata } from "../../authority/RegionDiscoveryMetadata.js";
 
 const skuGroupSeparator = ",";
 const skuValueSeparator = "|";

@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "../utils/Constants";
-import { AuthError } from "./AuthError";
-import * as InteractionRequiredAuthErrorCodes from "./InteractionRequiredAuthErrorCodes";
+import { Constants } from "../utils/Constants.js";
+import { AuthError } from "./AuthError.js";
+import * as InteractionRequiredAuthErrorCodes from "./InteractionRequiredAuthErrorCodes.js";
 export { InteractionRequiredAuthErrorCodes };
 
 /**

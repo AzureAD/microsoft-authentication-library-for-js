@@ -4,13 +4,13 @@
  */
 
 import keytar from "keytar";
-import { FilePersistence } from "./FilePersistence";
-import { IPersistence } from "./IPersistence";
-import { PersistenceError } from "../error/PersistenceError";
-import { Logger, LoggerOptions } from "@azure/msal-common";
+import { FilePersistence } from "./FilePersistence.js";
+import { IPersistence } from "./IPersistence.js";
+import { PersistenceError } from "../error/PersistenceError.js";
+import { Logger, LoggerOptions } from "@azure/msal-common/node";
 import { dirname } from "path";
-import { BasePersistence } from "./BasePersistence";
-import { isNodeError } from "../utils/TypeGuards";
+import { BasePersistence } from "./BasePersistence.js";
+import { isNodeError } from "../utils/TypeGuards.js";
 
 /**
  * Uses reads and writes passwords to Secret Service API/libsecret. Requires libsecret

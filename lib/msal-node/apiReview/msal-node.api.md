@@ -6,82 +6,82 @@
 
 /// <reference types="node" />
 
-import { AccessTokenCache } from '@azure/msal-common';
-import { AccessTokenEntity } from '@azure/msal-common';
-import { AccountCache } from '@azure/msal-common';
-import { AccountEntity } from '@azure/msal-common';
-import { AccountInfo } from '@azure/msal-common';
-import { ApplicationTelemetry } from '@azure/msal-common';
-import { AppMetadataCache } from '@azure/msal-common';
-import { AppMetadataEntity } from '@azure/msal-common';
-import { AppTokenProviderParameters } from '@azure/msal-common';
-import { AppTokenProviderResult } from '@azure/msal-common';
-import { AuthenticationResult } from '@azure/msal-common';
-import { AuthError } from '@azure/msal-common';
-import { AuthErrorCodes } from '@azure/msal-common';
-import { AuthErrorMessage } from '@azure/msal-common';
-import { Authority } from '@azure/msal-common';
-import { AuthorityMetadataEntity } from '@azure/msal-common';
-import { AuthorizationCodePayload } from '@azure/msal-common';
-import { AzureCloudInstance } from '@azure/msal-common';
-import { AzureCloudOptions } from '@azure/msal-common';
-import { AzureRegionConfiguration } from '@azure/msal-common';
-import { BaseAuthRequest } from '@azure/msal-common';
-import { BaseClient } from '@azure/msal-common';
-import { CacheManager } from '@azure/msal-common';
-import { CacheOutcome } from '@azure/msal-common';
-import { ClientAssertionCallback } from '@azure/msal-common';
-import { ClientAuthError } from '@azure/msal-common';
-import { ClientAuthErrorCodes } from '@azure/msal-common';
-import { ClientAuthErrorMessage } from '@azure/msal-common';
-import { ClientConfiguration } from '@azure/msal-common';
-import { ClientConfigurationError } from '@azure/msal-common';
-import { ClientConfigurationErrorCodes } from '@azure/msal-common';
-import { ClientConfigurationErrorMessage } from '@azure/msal-common';
-import { CommonAuthorizationCodeRequest } from '@azure/msal-common';
-import { CommonAuthorizationUrlRequest } from '@azure/msal-common';
-import { CommonClientCredentialRequest } from '@azure/msal-common';
-import { CommonDeviceCodeRequest } from '@azure/msal-common';
-import { CommonOnBehalfOfRequest } from '@azure/msal-common';
-import { CommonRefreshTokenRequest } from '@azure/msal-common';
-import { CommonSilentFlowRequest } from '@azure/msal-common';
-import { CommonUsernamePasswordRequest } from '@azure/msal-common';
-import { DeviceCodeResponse } from '@azure/msal-common';
+import { AccessTokenCache } from '@azure/msal-common/node';
+import { AccessTokenEntity } from '@azure/msal-common/node';
+import { AccountCache } from '@azure/msal-common/node';
+import { AccountEntity } from '@azure/msal-common/node';
+import { AccountInfo } from '@azure/msal-common/node';
+import { ApplicationTelemetry } from '@azure/msal-common/node';
+import { AppMetadataCache } from '@azure/msal-common/node';
+import { AppMetadataEntity } from '@azure/msal-common/node';
+import { AppTokenProviderParameters } from '@azure/msal-common/node';
+import { AppTokenProviderResult } from '@azure/msal-common/node';
+import { AuthenticationResult } from '@azure/msal-common/node';
+import { AuthError } from '@azure/msal-common/node';
+import { AuthErrorCodes } from '@azure/msal-common/node';
+import { AuthErrorMessage } from '@azure/msal-common/node';
+import { Authority } from '@azure/msal-common/node';
+import { AuthorityMetadataEntity } from '@azure/msal-common/node';
+import { AuthorizationCodePayload } from '@azure/msal-common/node';
+import { AzureCloudInstance } from '@azure/msal-common/node';
+import { AzureCloudOptions } from '@azure/msal-common/node';
+import { AzureRegionConfiguration } from '@azure/msal-common/node';
+import { BaseAuthRequest } from '@azure/msal-common/node';
+import { BaseClient } from '@azure/msal-common/node';
+import { CacheManager } from '@azure/msal-common/node';
+import { CacheOutcome } from '@azure/msal-common/node';
+import { ClientAssertionCallback } from '@azure/msal-common/node';
+import { ClientAuthError } from '@azure/msal-common/node';
+import { ClientAuthErrorCodes } from '@azure/msal-common/node';
+import { ClientAuthErrorMessage } from '@azure/msal-common/node';
+import { ClientConfiguration } from '@azure/msal-common/node';
+import { ClientConfigurationError } from '@azure/msal-common/node';
+import { ClientConfigurationErrorCodes } from '@azure/msal-common/node';
+import { ClientConfigurationErrorMessage } from '@azure/msal-common/node';
+import { CommonAuthorizationCodeRequest } from '@azure/msal-common/node';
+import { CommonAuthorizationUrlRequest } from '@azure/msal-common/node';
+import { CommonClientCredentialRequest } from '@azure/msal-common/node';
+import { CommonDeviceCodeRequest } from '@azure/msal-common/node';
+import { CommonOnBehalfOfRequest } from '@azure/msal-common/node';
+import { CommonRefreshTokenRequest } from '@azure/msal-common/node';
+import { CommonSilentFlowRequest } from '@azure/msal-common/node';
+import { CommonUsernamePasswordRequest } from '@azure/msal-common/node';
+import { DeviceCodeResponse } from '@azure/msal-common/node';
 import http from 'http';
 import https from 'https';
-import { IAppTokenProvider } from '@azure/msal-common';
-import { ICachePlugin } from '@azure/msal-common';
-import { ICrypto } from '@azure/msal-common';
-import { IdTokenCache } from '@azure/msal-common';
-import { IdTokenClaims } from '@azure/msal-common';
-import { IdTokenEntity } from '@azure/msal-common';
-import { INativeBrokerPlugin } from '@azure/msal-common';
-import { INetworkModule } from '@azure/msal-common';
-import { InteractionRequiredAuthError } from '@azure/msal-common';
-import { InteractionRequiredAuthErrorCodes } from '@azure/msal-common';
-import { InteractionRequiredAuthErrorMessage } from '@azure/msal-common';
-import { ISerializableTokenCache } from '@azure/msal-common';
-import { Logger } from '@azure/msal-common';
-import { LoggerOptions } from '@azure/msal-common';
-import { LogLevel } from '@azure/msal-common';
-import { NetworkRequestOptions } from '@azure/msal-common';
-import { NetworkResponse } from '@azure/msal-common';
-import { PkceCodes } from '@azure/msal-common';
-import { PromptValue } from '@azure/msal-common';
-import { ProtocolMode } from '@azure/msal-common';
-import { RefreshTokenCache } from '@azure/msal-common';
-import { RefreshTokenEntity } from '@azure/msal-common';
-import { ResponseMode } from '@azure/msal-common';
-import { ServerAuthorizationCodeResponse } from '@azure/msal-common';
-import { ServerError } from '@azure/msal-common';
-import { ServerTelemetryEntity } from '@azure/msal-common';
-import { ServerTelemetryManager } from '@azure/msal-common';
-import { StaticAuthorityOptions } from '@azure/msal-common';
-import { ThrottlingEntity } from '@azure/msal-common';
-import { TokenCacheContext } from '@azure/msal-common';
-import { TokenKeys } from '@azure/msal-common';
-import { ValidCacheType } from '@azure/msal-common';
-import { ValidCredentialType } from '@azure/msal-common';
+import { IAppTokenProvider } from '@azure/msal-common/node';
+import { ICachePlugin } from '@azure/msal-common/node';
+import { ICrypto } from '@azure/msal-common/node';
+import { IdTokenCache } from '@azure/msal-common/node';
+import { IdTokenClaims } from '@azure/msal-common/node';
+import { IdTokenEntity } from '@azure/msal-common/node';
+import { INativeBrokerPlugin } from '@azure/msal-common/node';
+import { INetworkModule } from '@azure/msal-common/node';
+import { InteractionRequiredAuthError } from '@azure/msal-common/node';
+import { InteractionRequiredAuthErrorCodes } from '@azure/msal-common/node';
+import { InteractionRequiredAuthErrorMessage } from '@azure/msal-common/node';
+import { ISerializableTokenCache } from '@azure/msal-common/node';
+import { Logger } from '@azure/msal-common/node';
+import { LoggerOptions } from '@azure/msal-common/node';
+import { LogLevel } from '@azure/msal-common/node';
+import { NetworkRequestOptions } from '@azure/msal-common/node';
+import { NetworkResponse } from '@azure/msal-common/node';
+import { PkceCodes } from '@azure/msal-common/node';
+import { PromptValue } from '@azure/msal-common/node';
+import { ProtocolMode } from '@azure/msal-common/node';
+import { RefreshTokenCache } from '@azure/msal-common/node';
+import { RefreshTokenEntity } from '@azure/msal-common/node';
+import { ResponseMode } from '@azure/msal-common/node';
+import { ServerAuthorizationCodeResponse } from '@azure/msal-common/node';
+import { ServerError } from '@azure/msal-common/node';
+import { ServerTelemetryEntity } from '@azure/msal-common/node';
+import { ServerTelemetryManager } from '@azure/msal-common/node';
+import { StaticAuthorityOptions } from '@azure/msal-common/node';
+import { ThrottlingEntity } from '@azure/msal-common/node';
+import { TokenCacheContext } from '@azure/msal-common/node';
+import { TokenKeys } from '@azure/msal-common/node';
+import { ValidCacheType } from '@azure/msal-common/node';
+import { ValidCredentialType } from '@azure/msal-common/node';
 
 export { AccountInfo }
 
@@ -351,7 +351,7 @@ export { InteractionRequiredAuthErrorCodes }
 export { InteractionRequiredAuthErrorMessage }
 
 // @public
-export type InteractiveRequest = Pick<AuthorizationUrlRequest, "authority" | "correlationId" | "claims" | "azureCloudOptions" | "account" | "extraQueryParameters" | "tokenQueryParameters" | "extraScopesToConsent" | "loginHint" | "prompt"> & {
+export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "requestedClaimsHash" | "storeInCache">> & {
     openBrowser: (url: string) => Promise<void>;
     scopes?: Array<string>;
     successTemplate?: string;
@@ -449,6 +449,7 @@ export type ManagedIdentityIdParams = {
 //
 // @public
 export type ManagedIdentityRequestParams = {
+    claims?: string;
     forceRefresh?: boolean;
     resource: string;
 };
@@ -691,7 +692,7 @@ export type SignOutRequest = {
 };
 
 // @public
-export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
+export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "requestedClaimsHash" | "storeInCache">> & {
     account: AccountInfo;
     scopes: Array<string>;
 };
@@ -732,7 +733,7 @@ export { ValidCacheType }
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "2.12.0";
+export const version = "2.15.0";
 
 // Warnings were encountered during analysis:
 //

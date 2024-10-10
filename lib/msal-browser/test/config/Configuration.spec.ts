@@ -3,8 +3,8 @@ import {
     buildConfiguration,
     DEFAULT_POPUP_TIMEOUT_MS,
     DEFAULT_IFRAME_TIMEOUT_MS,
-} from "../../src/config/Configuration";
-import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
+} from "../../src/config/Configuration.js";
+import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants.js";
 import {
     LogLevel,
     Constants,
@@ -13,8 +13,7 @@ import {
     ServerResponseType,
     Logger,
 } from "@azure/msal-common";
-import sinon from "sinon";
-import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
+import { BrowserCacheLocation } from "../../src/utils/BrowserConstants.js";
 
 /**
  * Test values for the Configuration Options
@@ -155,10 +154,14 @@ describe("Configuration.ts Class Unit Tests", () => {
     });
 
     it("Tests logger", () => {
-        const consoleErrorSpy = sinon.stub(console, "error");
-        const consoleInfoSpy = sinon.stub(console, "info");
-        const consoleDebugSpy = sinon.stub(console, "debug");
-        const consoleWarnSpy = sinon.stub(console, "warn");
+        const consoleErrorSpy = jest
+            .spyOn(console, "error")
+            .mockImplementation();
+        const consoleInfoSpy = jest.spyOn(console, "info").mockImplementation();
+        const consoleDebugSpy = jest
+            .spyOn(console, "debug")
+            .mockImplementation();
+        const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
         const message = "log message";
         let emptyConfig: Configuration = buildConfiguration(
             {
@@ -204,31 +207,31 @@ describe("Configuration.ts Class Unit Tests", () => {
             message,
             true
         );
-        expect(consoleErrorSpy.called).toBe(false);
+        expect(consoleErrorSpy).not.toHaveBeenCalled();
         emptyConfig.system.loggerOptions.loggerCallback(
             LogLevel.Error,
             message,
             false
         );
-        expect(consoleErrorSpy.calledOnce).toBe(true);
+        expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
         emptyConfig.system.loggerOptions.loggerCallback(
             LogLevel.Info,
             message,
             false
         );
-        expect(consoleInfoSpy.calledOnce).toBe(true);
+        expect(consoleInfoSpy).toHaveBeenCalledTimes(1);
         emptyConfig.system.loggerOptions.loggerCallback(
             LogLevel.Verbose,
             message,
             false
         );
-        expect(consoleDebugSpy.calledOnce).toBe(true);
+        expect(consoleDebugSpy).toHaveBeenCalledTimes(1);
         emptyConfig.system.loggerOptions.loggerCallback(
             LogLevel.Warning,
             message,
             false
         );
-        expect(consoleWarnSpy.calledOnce).toBe(true);
+        expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
     });
 
     let testProtectedResourceMap = new Map<string, Array<string>>();

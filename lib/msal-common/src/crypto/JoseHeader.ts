@@ -6,8 +6,8 @@
 import {
     JoseHeaderErrorCodes,
     createJoseHeaderError,
-} from "../error/JoseHeaderError";
-import { JsonWebTokenTypes } from "../utils/Constants";
+} from "../error/JoseHeaderError.js";
+import { JsonWebTokenTypes } from "../utils/Constants.js";
 
 export type JoseHeaderOptions = {
     typ?: JsonWebTokenTypes;

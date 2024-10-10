@@ -12,15 +12,19 @@ import {
     ShrOptions,
     SignedHttpRequest,
     SignedHttpRequestParameters,
-} from "@azure/msal-common";
-import { base64Encode, urlEncode, urlEncodeArr } from "../encode/Base64Encode";
-import { base64Decode } from "../encode/Base64Decode";
-import * as BrowserCrypto from "./BrowserCrypto";
+} from "@azure/msal-common/browser";
+import {
+    base64Encode,
+    urlEncode,
+    urlEncodeArr,
+} from "../encode/Base64Encode.js";
+import { base64Decode } from "../encode/Base64Decode.js";
+import * as BrowserCrypto from "./BrowserCrypto.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { AsyncMemoryStorage } from "../cache/AsyncMemoryStorage";
+} from "../error/BrowserAuthError.js";
+import { AsyncMemoryStorage } from "../cache/AsyncMemoryStorage.js";
 
 export type CachedKeyPair = {
     publicKey: CryptoKey;

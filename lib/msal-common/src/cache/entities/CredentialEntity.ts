@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CredentialType, AuthenticationScheme } from "../../utils/Constants";
+import { CredentialType, AuthenticationScheme } from "../../utils/Constants.js";
 
 /**
  * Credential Cache Type

@@ -13,7 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@azure/msal-node": "^2.0.1",
-    "express": "^4.19.2",
+    "express": "^4.20.0",
     "url": "^0.11.0"
   },
   "devDependencies": {

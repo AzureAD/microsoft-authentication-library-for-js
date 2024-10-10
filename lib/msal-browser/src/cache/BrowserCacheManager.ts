@@ -39,31 +39,31 @@ import {
     CacheHelpers,
     StoreInCache,
     CacheError,
-} from "@azure/msal-common";
-import { CacheOptions } from "../config/Configuration";
+} from "@azure/msal-common/browser";
+import { CacheOptions } from "../config/Configuration.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
+} from "../error/BrowserAuthError.js";
 import {
     BrowserCacheLocation,
     InteractionType,
     TemporaryCacheKeys,
     InMemoryCacheKeys,
     StaticCacheKeys,
-} from "../utils/BrowserConstants";
-import { BrowserStorage } from "./BrowserStorage";
-import { MemoryStorage } from "./MemoryStorage";
-import { IWindowStorage } from "./IWindowStorage";
-import { extractBrowserRequestState } from "../utils/BrowserProtocolUtils";
-import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { SilentRequest } from "../request/SilentRequest";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { PopupRequest } from "../request/PopupRequest";
-import { base64Decode } from "../encode/Base64Decode";
-import { base64Encode } from "../encode/Base64Encode";
+} from "../utils/BrowserConstants.js";
+import { BrowserStorage } from "./BrowserStorage.js";
+import { MemoryStorage } from "./MemoryStorage.js";
+import { IWindowStorage } from "./IWindowStorage.js";
+import { extractBrowserRequestState } from "../utils/BrowserProtocolUtils.js";
+import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { SilentRequest } from "../request/SilentRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { base64Decode } from "../encode/Base64Decode.js";
+import { base64Encode } from "../encode/Base64Encode.js";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -1552,9 +1552,6 @@ export class BrowserCacheManager extends CacheManager {
         this.removeTemporaryItem(
             this.generateCacheKey(TemporaryCacheKeys.NATIVE_REQUEST)
         );
-        this.removeTemporaryItem(
-            this.generateCacheKey(TemporaryCacheKeys.REDIRECT_REQUEST)
-        );
         this.setInteractionInProgress(false);
     }
 
@@ -1614,98 +1611,6 @@ export class BrowserCacheManager extends CacheManager {
         });
         this.clearMsalCookies();
         this.setInteractionInProgress(false);
-    }
-
-    /**
-     * Create request retry key to cache retry status
-     */
-    generateRequestRetriedKey(): string {
-        return `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${this.clientId}`;
-    }
-
-    /**
-     * Gets the request retry value from the cache
-     */
-    getRequestRetried(): number | null {
-        const requestRetriedKey = this.generateRequestRetriedKey();
-        const cachedRetryNumber = this.getTemporaryCache(requestRetriedKey);
-        if (!cachedRetryNumber) {
-            return null;
-        }
-        return parseInt(cachedRetryNumber);
-    }
-
-    /**
-     * Sets the request retry value to "retried" in the cache
-     */
-    setRequestRetried(): void {
-        this.logger.trace("BrowserCacheManager.setRequestRetried called");
-        const requestRetriedKey = this.generateRequestRetriedKey();
-        this.setTemporaryCache(requestRetriedKey, "1", false);
-    }
-
-    /**
-     * Removes all request retry values in the cache
-     */
-    removeRequestRetried(): void {
-        const requestRetriedKey = this.generateRequestRetriedKey();
-        this.removeTemporaryItem(requestRetriedKey);
-    }
-
-    /**
-     * Caches the redirectRequest in the cache
-     * @param redirectRequest
-     */
-    cacheRedirectRequest(redirectRequest: RedirectRequest): void {
-        this.logger.trace("BrowserCacheManager.cacheRedirectRequest called");
-        const { ...restParams } = redirectRequest;
-        delete restParams.onRedirectNavigate;
-        const encodedValue = JSON.stringify(restParams);
-
-        this.setTemporaryCache(
-            TemporaryCacheKeys.REDIRECT_REQUEST,
-            encodedValue,
-            true
-        );
-    }
-
-    /**
-     * Gets redirect request from the cache. Logs an error and returns undefined if nothing is found.
-     */
-    getCachedRedirectRequest(): RedirectRequest | undefined {
-        this.logger.trace(
-            "BrowserCacheManager.getCachedRedirectRequest called"
-        );
-        const cachedRedirectRequest = this.getTemporaryCache(
-            TemporaryCacheKeys.REDIRECT_REQUEST,
-            true
-        );
-        if (!cachedRedirectRequest) {
-            this.logger.error(`No cached redirect request found.`);
-        } else {
-            this.removeTemporaryItem(
-                this.generateCacheKey(TemporaryCacheKeys.REDIRECT_REQUEST)
-            );
-            let parsedRequest: RedirectRequest;
-            try {
-                parsedRequest = JSON.parse(
-                    cachedRedirectRequest
-                ) as RedirectRequest;
-            } catch (e) {
-                this.logger.errorPii(
-                    `Attempted to parse: ${cachedRedirectRequest}`
-                );
-                this.logger.error(
-                    `Parsing cached redirect request threw with error: ${e}`
-                );
-                return;
-            }
-
-            if (parsedRequest) {
-                return parsedRequest;
-            }
-        }
-        return;
     }
 
     cacheCodeRequest(authCodeRequest: CommonAuthorizationCodeRequest): void {

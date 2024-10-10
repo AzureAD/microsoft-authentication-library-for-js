@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { TokenRequest } from "./TokenRequest";
+import { TokenRequest } from "./TokenRequest.js";
 
 export type BridgeMethods = "GetToken" | "GetInitContext" | "GetTokenPopup";
 

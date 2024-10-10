@@ -4,7 +4,7 @@
  */
 
 const process = require("process");
-const extensions = require("../../dist/index.cjs");
+const extensions = require("../../lib/msal-node-extensions.cjs");
 const fs = require("fs");
 const path = require("path");
 const msalCommon = require("@azure/msal-common");

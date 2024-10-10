@@ -20,7 +20,7 @@ import {
     ValidCredentialType,
     StaticAuthorityOptions,
     CacheHelpers,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 
 import { Deserializer } from "./serializer/Deserializer.js";
 import { Serializer } from "./serializer/Serializer.js";

@@ -6,12 +6,12 @@
 import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
-} from "../error/ManagedIdentityError";
+} from "../error/ManagedIdentityError.js";
 import {
     DEFAULT_MANAGED_IDENTITY_ID,
     ManagedIdentityIdType,
-} from "../utils/Constants";
-import { ManagedIdentityIdParams } from "./Configuration";
+} from "../utils/Constants.js";
+import { ManagedIdentityIdParams } from "./Configuration.js";
 
 export class ManagedIdentityId {
     private _id: string;

@@ -8,13 +8,13 @@ import {
     Logger,
     ServerAuthorizationCodeResponse,
     UrlUtils,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import {
     BrowserAuthErrorCodes,
     createBrowserAuthError,
-} from "../error/BrowserAuthError";
-import { extractBrowserRequestState } from "../utils/BrowserProtocolUtils";
-import { InteractionType } from "../utils/BrowserConstants";
+} from "../error/BrowserAuthError.js";
+import { extractBrowserRequestState } from "../utils/BrowserProtocolUtils.js";
+import { InteractionType } from "../utils/BrowserConstants.js";
 
 export function deserializeResponse(
     responseString: string,

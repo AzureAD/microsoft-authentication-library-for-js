@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import * as CacheErrorCodes from "./CacheErrorCodes";
+import * as CacheErrorCodes from "./CacheErrorCodes.js";
 export { CacheErrorCodes };
 
 export const CacheErrorMessages = {

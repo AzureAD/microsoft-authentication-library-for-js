@@ -3,27 +3,27 @@
  * Licensed under the MIT License.
  */
 
-import { BaseClient } from "./BaseClient";
-import { ClientConfiguration } from "../config/ClientConfiguration";
-import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import * as TimeUtils from "../utils/TimeUtils";
-import { RefreshTokenClient } from "./RefreshTokenClient";
+import { BaseClient } from "./BaseClient.js";
+import { ClientConfiguration } from "../config/ClientConfiguration.js";
+import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import * as TimeUtils from "../utils/TimeUtils.js";
+import { RefreshTokenClient } from "./RefreshTokenClient.js";
 import {
     ClientAuthError,
     ClientAuthErrorCodes,
     createClientAuthError,
-} from "../error/ClientAuthError";
-import { ResponseHandler } from "../response/ResponseHandler";
-import { CacheRecord } from "../cache/entities/CacheRecord";
-import { CacheOutcome, OIDC_DEFAULT_SCOPES } from "../utils/Constants";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
-import { StringUtils } from "../utils/StringUtils";
-import { checkMaxAge, extractTokenClaims } from "../account/AuthToken";
-import { TokenClaims } from "../account/TokenClaims";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
-import { invokeAsync } from "../utils/FunctionWrappers";
-import { getTenantFromAuthorityString } from "../authority/Authority";
+} from "../error/ClientAuthError.js";
+import { ResponseHandler } from "../response/ResponseHandler.js";
+import { CacheRecord } from "../cache/entities/CacheRecord.js";
+import { CacheOutcome, OIDC_DEFAULT_SCOPES } from "../utils/Constants.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import { StringUtils } from "../utils/StringUtils.js";
+import { checkMaxAge, extractTokenClaims } from "../account/AuthToken.js";
+import { TokenClaims } from "../account/TokenClaims.js";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import { invokeAsync } from "../utils/FunctionWrappers.js";
+import { getTenantFromAuthorityString } from "../authority/Authority.js";
 
 /** @internal */
 export class SilentFlowClient extends BaseClient {

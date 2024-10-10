@@ -27,8 +27,8 @@
         }
     },
     "compilerOptions": {
-        "moduleResolution": "node",
-        "module": "es2020",
+        "moduleResolution": "nodenext",
+        "module": "nodenext",
         "target": "es2020",
         "lib": [
             "es2020",

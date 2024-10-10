@@ -5,11 +5,11 @@
 
 import { promises as fs } from "fs";
 import { pid } from "process";
-import { CrossPlatformLockOptions } from "./CrossPlatformLockOptions";
-import { Constants } from "../utils/Constants";
-import { PersistenceError } from "../error/PersistenceError";
-import { Logger } from "@azure/msal-common";
-import { isNodeError } from "../utils/TypeGuards";
+import { CrossPlatformLockOptions } from "./CrossPlatformLockOptions.js";
+import { Constants } from "../utils/Constants.js";
+import { PersistenceError } from "../error/PersistenceError.js";
+import { Logger } from "@azure/msal-common/node";
+import { isNodeError } from "../utils/TypeGuards.js";
 
 /**
  * Cross-process lock that works on all platforms.

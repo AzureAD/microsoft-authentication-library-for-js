@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { NetworkResponse, UrlToHttpRequestOptions } from "@azure/msal-common";
+import {
+    NetworkResponse,
+    UrlToHttpRequestOptions,
+} from "@azure/msal-common/node";
 
 export class NetworkUtils {
     static getNetworkResponse<T>(

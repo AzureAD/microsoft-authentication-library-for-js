@@ -22,34 +22,48 @@ import {
     ServerResponseType,
     UrlUtils,
     InProgressPerformanceEvent,
-    ServerError,
-} from "@azure/msal-common";
-import { StandardInteractionClient } from "./StandardInteractionClient";
+} from "@azure/msal-common/browser";
+import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import {
     ApiId,
-    BrowserConstants,
     InteractionType,
     TemporaryCacheKeys,
-} from "../utils/BrowserConstants";
-import { RedirectHandler } from "../interaction_handler/RedirectHandler";
-import * as BrowserUtils from "../utils/BrowserUtils";
-import { EndSessionRequest } from "../request/EndSessionRequest";
-import { EventType } from "../event/EventType";
-import { NavigationOptions } from "../navigation/NavigationOptions";
+} from "../utils/BrowserConstants.js";
+import { RedirectHandler } from "../interaction_handler/RedirectHandler.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
+import { EndSessionRequest } from "../request/EndSessionRequest.js";
+import { EventType } from "../event/EventType.js";
+import { NavigationOptions } from "../navigation/NavigationOptions.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { NativeInteractionClient } from "./NativeInteractionClient";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { BrowserConfiguration } from "../config/Configuration";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { EventHandler } from "../event/EventHandler";
-import { INavigationClient } from "../navigation/INavigationClient";
-import { EventError } from "../event/EventMessage";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import * as ResponseHandler from "../response/ResponseHandler";
+} from "../error/BrowserAuthError.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { NativeInteractionClient } from "./NativeInteractionClient.js";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
+import { EventHandler } from "../event/EventHandler.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
+import { EventError } from "../event/EventMessage.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import * as ResponseHandler from "../response/ResponseHandler.js";
+
+function getNavigationType(): NavigationTimingType | undefined {
+    if (
+        typeof window === "undefined" ||
+        typeof window.performance === "undefined" ||
+        typeof window.performance.getEntriesByType !== "function"
+    ) {
+        return undefined;
+    }
+
+    const navigationEntries = window.performance.getEntriesByType("navigation");
+    const navigation = navigationEntries.length
+        ? (navigationEntries[0] as PerformanceNavigationTiming)
+        : undefined;
+    return navigation?.type;
+}
 
 export class RedirectClient extends StandardInteractionClient {
     protected nativeStorage: BrowserCacheManager;
@@ -85,14 +99,6 @@ export class RedirectClient extends StandardInteractionClient {
      * @param request
      */
     async acquireToken(request: RedirectRequest): Promise<void> {
-        if (request.onRedirectNavigate) {
-            this.logger.warning(
-                "Unable to cache redirect request, onRedirectNavigate request option has been deprecated. Please set onRedirectNavigate on PublicClientApplication config instead."
-            );
-        } else {
-            this.browserStorage.cacheRedirectRequest(request);
-        }
-
         const validRequest = await invokeAsync(
             this.initializeAuthorizationRequest.bind(this),
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
@@ -144,12 +150,13 @@ export class RedirectClient extends StandardInteractionClient {
                 this.logger,
                 this.performanceClient,
                 this.correlationId
-            )(
+            )({
                 serverTelemetryManager,
-                validRequest.authority,
-                validRequest.azureCloudOptions,
-                validRequest.account
-            );
+                requestAuthority: validRequest.authority,
+                requestAzureCloudOptions: validRequest.azureCloudOptions,
+                requestExtraQueryParameters: validRequest.extraQueryParameters,
+                account: validRequest.account,
+            });
 
             // Create redirect interaction handler.
             const interactionHandler = new RedirectHandler(
@@ -232,7 +239,15 @@ export class RedirectClient extends StandardInteractionClient {
                 this.browserStorage.cleanRequestByInteractionType(
                     InteractionType.Redirect
                 );
-                parentMeasurement.event.errorCode = "no_server_response";
+
+                // Do not instrument "no_server_response" if user clicked back button
+                if (getNavigationType() !== "back_forward") {
+                    parentMeasurement.event.errorCode = "no_server_response";
+                } else {
+                    this.logger.verbose(
+                        "Back navigation event detected. Muting no_server_response error"
+                    );
+                }
                 return null;
             }
 
@@ -344,57 +359,10 @@ export class RedirectClient extends StandardInteractionClient {
                 (e as AuthError).setCorrelationId(this.correlationId);
                 serverTelemetryManager.cacheFailedRequest(e);
             }
-
-            if (
-                e instanceof ServerError &&
-                e.errorCode === BrowserConstants.INVALID_GRANT_ERROR
-            ) {
-                this.performanceClient.addFields(
-                    {
-                        retryError: e.errorCode,
-                    },
-                    this.correlationId
-                );
-
-                const requestRetried = this.browserStorage.getRequestRetried();
-
-                if (requestRetried) {
-                    this.logger.error(
-                        "Retried request already detected. Throwing error."
-                    );
-                    this.browserStorage.removeRequestRetried();
-                    throw e;
-                }
-
-                const redirectRequest =
-                    this.browserStorage.getCachedRedirectRequest();
-                if (!redirectRequest) {
-                    this.logger.error(
-                        "Unable to retry. Please retry with redirect request"
-                    );
-                    this.browserStorage.setRequestRetried();
-                    throw createBrowserAuthError(
-                        BrowserAuthErrorCodes.failedToRetry
-                    );
-                }
-
-                this.browserStorage.setRequestRetried();
-
-                await this.acquireToken(redirectRequest);
-                return null;
-            }
-
-            this.browserStorage.removeTemporaryItem(
-                this.browserStorage.generateCacheKey(
-                    TemporaryCacheKeys.REDIRECT_REQUEST
-                )
-            );
-            this.browserStorage.removeRequestRetried();
-            throw e;
-        } finally {
             this.browserStorage.cleanRequestByInteractionType(
                 InteractionType.Redirect
             );
+            throw e;
         }
     }
 
@@ -534,7 +502,7 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(serverTelemetryManager, currentAuthority);
+        )({ serverTelemetryManager, requestAuthority: currentAuthority });
 
         ThrottlingUtils.removeThrottle(
             this.browserStorage,
@@ -585,12 +553,13 @@ export class RedirectClient extends StandardInteractionClient {
                 this.logger,
                 this.performanceClient,
                 this.correlationId
-            )(
+            )({
                 serverTelemetryManager,
-                logoutRequest && logoutRequest.authority,
-                undefined, // AzureCloudOptions
-                (logoutRequest && logoutRequest.account) || undefined
-            );
+                requestAuthority: logoutRequest && logoutRequest.authority,
+                requestExtraQueryParameters:
+                    logoutRequest?.extraQueryParameters,
+                account: (logoutRequest && logoutRequest.account) || undefined,
+            });
 
             if (authClient.authority.protocolMode === ProtocolMode.OIDC) {
                 try {

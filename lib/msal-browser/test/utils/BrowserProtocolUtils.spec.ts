@@ -1,13 +1,12 @@
-import sinon from "sinon";
 import {
     extractBrowserRequestState,
     BrowserStateObject,
-} from "../../src/utils/BrowserProtocolUtils";
-import { InteractionType } from "../../src/utils/BrowserConstants";
+} from "../../src/utils/BrowserProtocolUtils.js";
+import { InteractionType } from "../../src/utils/BrowserConstants.js";
 import { Logger, ProtocolUtils } from "@azure/msal-common";
-import { CryptoOps } from "../../src/crypto/CryptoOps";
-import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
-import { TEST_HASHES } from "./StringConstants";
+import { CryptoOps } from "../../src/crypto/CryptoOps.js";
+import { DatabaseStorage } from "../../src/cache/DatabaseStorage.js";
+import { TEST_HASHES } from "./StringConstants.js";
 
 describe("BrowserProtocolUtils.ts Unit Tests", () => {
     const browserRedirectRequestState: BrowserStateObject = {
@@ -20,16 +19,16 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
     let cryptoInterface: CryptoOps;
     let dbStorage = {};
     beforeEach(() => {
-        sinon
-            .stub(DatabaseStorage.prototype, "open")
-            .callsFake(async (): Promise<void> => {
+        jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
+            async (): Promise<void> => {
                 dbStorage = {};
-            });
+            }
+        );
         cryptoInterface = new CryptoOps(new Logger({}));
     });
 
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     it("extractBrowserRequestState() returns an null if given interaction type is null or empty", () => {

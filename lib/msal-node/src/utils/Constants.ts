@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { HttpStatus } from "@azure/msal-common";
+import { HttpStatus } from "@azure/msal-common/node";
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
 export const AUTHORIZATION_HEADER_NAME: string = "Authorization";

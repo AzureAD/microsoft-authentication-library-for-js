@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest } from "./BaseAuthRequest";
-import { CcsCredential } from "../account/CcsCredential";
-import { StringDict } from "../utils/MsalTypes";
+import { BaseAuthRequest } from "./BaseAuthRequest.js";
+import { CcsCredential } from "../account/CcsCredential.js";
+import { StringDict } from "../utils/MsalTypes.js";
 
 /**
  * CommonRefreshTokenRequest

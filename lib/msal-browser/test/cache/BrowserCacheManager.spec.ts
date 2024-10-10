@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import sinon from "sinon";
-import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
+import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError.js";
 import {
     TEST_CONFIG,
     TEST_TOKENS,
@@ -13,8 +12,8 @@ import {
     TEST_URIS,
     TEST_STATE_VALUES,
     DEFAULT_OPENID_CONFIG_RESPONSE,
-} from "../utils/StringConstants";
-import { CacheOptions } from "../../src/config/Configuration";
+} from "../utils/StringConstants.js";
+import { CacheOptions } from "../../src/config/Configuration.js";
 import {
     Constants,
     PersistentCacheKeys,
@@ -44,15 +43,14 @@ import {
     BrowserCacheLocation,
     InteractionType,
     TemporaryCacheKeys,
-} from "../../src/utils/BrowserConstants";
-import { CryptoOps } from "../../src/crypto/CryptoOps";
-import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
-import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import { BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
-import { base64Decode } from "../../src/encode/Base64Decode";
-import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
-import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
-import { RedirectRequest } from "../../src/request/RedirectRequest";
+} from "../../src/utils/BrowserConstants.js";
+import { CryptoOps } from "../../src/crypto/CryptoOps.js";
+import { DatabaseStorage } from "../../src/cache/DatabaseStorage.js";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
+import { BrowserStateObject } from "../../src/utils/BrowserProtocolUtils.js";
+import { base64Decode } from "../../src/encode/Base64Decode.js";
+import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
+import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
 
 describe("BrowserCacheManager tests", () => {
     let cacheConfig: Required<CacheOptions>;
@@ -80,7 +78,6 @@ describe("BrowserCacheManager tests", () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
-        sinon.restore();
         window.sessionStorage.clear();
         window.localStorage.clear();
     });
@@ -435,9 +432,10 @@ describe("BrowserCacheManager tests", () => {
                 logger,
                 TEST_CONFIG.CORRELATION_ID
             );
-            sinon
-                .stub(Authority.prototype, "getPreferredCache")
-                .returns("login.microsoftonline.com");
+            jest.spyOn(
+                Authority.prototype,
+                "getPreferredCache"
+            ).mockReturnValue("login.microsoftonline.com");
             cacheConfig.cacheLocation = BrowserCacheLocation.LocalStorage;
             browserLocalStorage = new BrowserCacheManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1614,9 +1612,10 @@ describe("BrowserCacheManager tests", () => {
                     );
                     cacheManager.setAccessTokenCredential(testAccessToken);
 
-                    sinon
-                        .stub(CacheManager.prototype, "saveCacheRecord")
-                        .throws(cacheError);
+                    jest.spyOn(
+                        CacheManager.prototype,
+                        "saveCacheRecord"
+                    ).mockRejectedValue(cacheError);
 
                     // @ts-ignore
                     const callbackId = perfClient.addPerformanceCallback(
@@ -1688,9 +1687,10 @@ describe("BrowserCacheManager tests", () => {
                 logger,
                 TEST_CONFIG.CORRELATION_ID
             );
-            sinon
-                .stub(Authority.prototype, "getPreferredCache")
-                .returns("login.microsoftonline.com");
+            jest.spyOn(
+                Authority.prototype,
+                "getPreferredCache"
+            ).mockReturnValue("login.microsoftonline.com");
             cacheConfig.cacheLocation = BrowserCacheLocation.LocalStorage;
             cacheConfig.temporaryCacheLocation =
                 BrowserCacheLocation.LocalStorage;
@@ -2592,7 +2592,7 @@ describe("BrowserCacheManager tests", () => {
         });
 
         it("getTempCache()", () => {
-            const getCookieSpy = sinon.spy(
+            const getCookieSpy = jest.spyOn(
                 BrowserCacheManager.prototype,
                 "getItemCookie"
             );
@@ -2602,27 +2602,27 @@ describe("BrowserCacheManager tests", () => {
             expect(
                 browserSessionStorage.getTemporaryCache("cacheKey", true)
             ).toBe(cacheVal);
-            expect(getCookieSpy.returned(cacheVal)).toBe(true);
-            expect(getCookieSpy.calledOnce).toBe(true);
+            expect(getCookieSpy.mock.results[0].value).toEqual(cacheVal);
+            expect(getCookieSpy).toHaveBeenCalledTimes(1);
             // localStorage
             window.localStorage.setItem(msalCacheKey, cacheVal);
             browserLocalStorage.setItemCookie(msalCacheKey, cacheVal);
             expect(
                 browserLocalStorage.getTemporaryCache("cacheKey", true)
             ).toBe(cacheVal);
-            expect(getCookieSpy.returned(cacheVal)).toBe(true);
-            expect(getCookieSpy.calledTwice).toBe(true);
+            expect(getCookieSpy.mock.results[1].value).toEqual(cacheVal);
+            expect(getCookieSpy).toHaveBeenCalledTimes(2);
             // browser memory
             browserMemoryStorage.setItem(msalCacheKey, cacheVal);
             expect(
                 browserMemoryStorage.getTemporaryCache("cacheKey", true)
             ).toBe(cacheVal);
-            expect(getCookieSpy.returned(cacheVal)).toBe(true);
-            expect(getCookieSpy.calledThrice).toBe(true);
+            expect(getCookieSpy.mock.results[2].value).toEqual(cacheVal);
+            expect(getCookieSpy).toHaveBeenCalledTimes(3);
         });
 
         it("removeTemporaryItem()", () => {
-            const clearCookieSpy = sinon.spy(
+            const clearCookieSpy = jest.spyOn(
                 BrowserCacheManager.prototype,
                 "clearItemCookie"
             );
@@ -2631,19 +2631,19 @@ describe("BrowserCacheManager tests", () => {
             browserSessionStorage.removeTemporaryItem(msalCacheKey);
             expect(window.sessionStorage.getItem(msalCacheKey)).toBeNull();
             expect(document.cookie).toHaveLength(0);
-            expect(clearCookieSpy.calledOnce).toBe(true);
+            expect(clearCookieSpy).toHaveBeenCalledTimes(1);
             // localStorage
             browserLocalStorage.setTemporaryCache("cacheKey", cacheVal, true);
             browserLocalStorage.removeTemporaryItem(msalCacheKey);
             expect(window.localStorage.getItem(msalCacheKey)).toBeNull();
             expect(document.cookie).toHaveLength(0);
-            expect(clearCookieSpy.calledTwice).toBe(true);
+            expect(clearCookieSpy).toHaveBeenCalledTimes(2);
             // browser memory
             browserMemoryStorage.setTemporaryCache("cacheKey", cacheVal, true);
             browserMemoryStorage.removeTemporaryItem(msalCacheKey);
             expect(browserMemoryStorage.getItem(msalCacheKey)).toBeNull();
             expect(document.cookie).toHaveLength(0);
-            expect(clearCookieSpy.calledThrice).toBe(true);
+            expect(clearCookieSpy).toHaveBeenCalledTimes(3);
         });
 
         it("clear()", async () => {
@@ -2693,7 +2693,7 @@ describe("BrowserCacheManager tests", () => {
 
         it("getTempCache() with item that contains ==", () => {
             msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_STATE_VALUES.ENCODED_LIB_STATE}`;
-            const getCookieSpy = sinon.spy(
+            const getCookieSpy = jest.spyOn(
                 BrowserCacheManager.prototype,
                 "getItemCookie"
             );
@@ -2703,28 +2703,28 @@ describe("BrowserCacheManager tests", () => {
             expect(browserSessionStorage.getTemporaryCache(msalCacheKey)).toBe(
                 cacheVal
             );
-            expect(getCookieSpy.returned(cacheVal)).toBe(true);
-            expect(getCookieSpy.calledOnce).toBe(true);
+            expect(getCookieSpy.mock.results[0].value).toEqual(cacheVal);
+            expect(getCookieSpy).toHaveBeenCalledTimes(1);
             // localStorage
             browserLocalStorage.setItem(msalCacheKey, cacheVal);
             browserLocalStorage.setItemCookie(msalCacheKey, cacheVal);
             expect(browserLocalStorage.getTemporaryCache(msalCacheKey)).toBe(
                 cacheVal
             );
-            expect(getCookieSpy.returned(cacheVal)).toBe(true);
-            expect(getCookieSpy.calledTwice).toBe(true);
+            expect(getCookieSpy.mock.results[1].value).toEqual(cacheVal);
+            expect(getCookieSpy).toHaveBeenCalledTimes(2);
             // browser memory
             browserMemoryStorage.setItem(msalCacheKey, cacheVal);
             expect(browserLocalStorage.getTemporaryCache(msalCacheKey)).toBe(
                 cacheVal
             );
-            expect(getCookieSpy.returned(cacheVal)).toBe(true);
-            expect(getCookieSpy.calledThrice).toBe(true);
+            expect(getCookieSpy.mock.results[2].value).toEqual(cacheVal);
+            expect(getCookieSpy).toHaveBeenCalledTimes(3);
         });
 
         it("removeTemporaryItem() with item that contains ==", () => {
             msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_STATE_VALUES.ENCODED_LIB_STATE}`;
-            const clearCookieSpy = sinon.spy(
+            const clearCookieSpy = jest.spyOn(
                 BrowserCacheManager.prototype,
                 "clearItemCookie"
             );
@@ -2733,19 +2733,19 @@ describe("BrowserCacheManager tests", () => {
             browserSessionStorage.removeTemporaryItem(msalCacheKey);
             expect(window.sessionStorage.getItem(msalCacheKey)).toBeNull();
             expect(document.cookie).toHaveLength(0);
-            expect(clearCookieSpy.calledOnce).toBe(true);
+            expect(clearCookieSpy).toHaveBeenCalledTimes(1);
             // localStorage
             browserLocalStorage.setItem(msalCacheKey, cacheVal);
             browserLocalStorage.removeTemporaryItem(msalCacheKey);
             expect(window.sessionStorage.getItem(msalCacheKey)).toBeNull();
             expect(document.cookie).toHaveLength(0);
-            expect(clearCookieSpy.calledTwice).toBe(true);
+            expect(clearCookieSpy).toHaveBeenCalledTimes(2);
             // browser memory
             browserMemoryStorage.setTemporaryCache(msalCacheKey, cacheVal);
             browserMemoryStorage.removeTemporaryItem(msalCacheKey);
             expect(browserMemoryStorage.getItem(msalCacheKey)).toBeNull();
             expect(document.cookie).toHaveLength(0);
-            expect(clearCookieSpy.calledThrice).toBe(true);
+            expect(clearCookieSpy).toHaveBeenCalledTimes(3);
         });
 
         it("clear() with item that contains ==", async () => {
@@ -2845,7 +2845,7 @@ describe("BrowserCacheManager tests", () => {
         it("getCookieExpirationTime()", () => {
             const COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
             const currentTime = new Date().getTime();
-            sinon.stub(Date.prototype, "getTime").returns(currentTime);
+            jest.spyOn(Date.prototype, "getTime").mockReturnValue(currentTime);
             const cookieLifeDays = 1;
             const expectedDate = new Date(
                 currentTime + cookieLifeDays * COOKIE_LIFE_MULTIPLIER
@@ -2973,138 +2973,6 @@ describe("BrowserCacheManager tests", () => {
             ).toBeUndefined();
         });
 
-        it("generateRequestRetriedKey() creates a valid cache key for request retry", () => {
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger
-            );
-            const requestRetriedKey =
-                browserStorage.generateRequestRetriedKey();
-            expect(requestRetriedKey).toBe(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.MSAL_CLIENT_ID}`
-            );
-        });
-
-        it("getRequestRetried() retrieves the request retry value from cache", () => {
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger
-            );
-            browserStorage.setTemporaryCache(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.MSAL_CLIENT_ID}`,
-                "1"
-            );
-
-            browserStorage.getRequestRetried();
-
-            expect(browserStorage.getRequestRetried()).toEqual(1);
-        });
-
-        it("setRequestRetried() sets a request retry value for client Id", () => {
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger
-            );
-
-            browserStorage.setRequestRetried();
-
-            expect(
-                window.sessionStorage[
-                    `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.MSAL_CLIENT_ID}`
-                ]
-            ).toBeTruthy();
-        });
-
-        it("removeRequestRetried() removes request retried value for clientId", () => {
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger
-            );
-            browserStorage.setTemporaryCache(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REQUEST_RETRY}.${TEST_CONFIG.MSAL_CLIENT_ID}`,
-                "1"
-            );
-
-            browserStorage.removeRequestRetried();
-
-            expect(browserStorage.getRequestRetried()).toEqual(null);
-        });
-
-        it("Successfully retrieves redirect request from cache", async () => {
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger
-            );
-            const testRedirectRequest: RedirectRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                state: TEST_STATE_VALUES.USER_STATE,
-                authority: TEST_CONFIG.validAuthority,
-                nonce: "",
-                authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-            };
-
-            browserStorage.setTemporaryCache(
-                TemporaryCacheKeys.REDIRECT_REQUEST,
-                JSON.stringify(testRedirectRequest),
-                true
-            );
-
-            const cachedRequest = browserStorage.getCachedRedirectRequest();
-            expect(cachedRequest).toEqual(testRedirectRequest);
-        });
-
-        it("Returns undefined if redirect cannot be retrieved from cache", async () => {
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger
-            );
-
-            const cachedRequest = browserStorage.getCachedRedirectRequest();
-            expect(cachedRequest).toBeUndefined();
-        });
-
-        it("Returns undefined if cached redirect request cannot be parsed correctly", async () => {
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger
-            );
-            const testRedirectRequest: RedirectRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                state: TEST_STATE_VALUES.USER_STATE,
-                authority: TEST_CONFIG.validAuthority,
-                nonce: "",
-                authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-            };
-            const stringifiedRequest = JSON.stringify(testRedirectRequest);
-            browserStorage.setTemporaryCache(
-                TemporaryCacheKeys.REDIRECT_REQUEST,
-                stringifiedRequest.substring(0, stringifiedRequest.length / 2),
-                true
-            );
-            const cachedRequest = browserStorage.getCachedRedirectRequest();
-            expect(cachedRequest).toBeUndefined();
-        });
-
         it("Successfully retrieves and decodes response from cache", async () => {
             const browserStorage = new BrowserCacheManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
@@ -3153,11 +3021,11 @@ describe("BrowserCacheManager tests", () => {
 
         it("Throws error if cached request cannot be parsed correctly", async () => {
             let dbStorage = {};
-            sinon
-                .stub(DatabaseStorage.prototype, "open")
-                .callsFake(async (): Promise<void> => {
+            jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
+                async (): Promise<void> => {
                     dbStorage = {};
-                });
+                }
+            );
             const browserStorage = new BrowserCacheManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
@@ -3188,11 +3056,11 @@ describe("BrowserCacheManager tests", () => {
 
         it("Uses authority from cache if not present in cached request", async () => {
             let dbStorage = {};
-            sinon
-                .stub(DatabaseStorage.prototype, "open")
-                .callsFake(async (): Promise<void> => {
+            jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
+                async (): Promise<void> => {
                     dbStorage = {};
-                });
+                }
+            );
             const browserStorage = new BrowserCacheManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
@@ -3233,11 +3101,11 @@ describe("BrowserCacheManager tests", () => {
 
         it("cleanRequestByInteractionType() returns early if state is not present", () => {
             let dbStorage = {};
-            sinon
-                .stub(DatabaseStorage.prototype, "open")
-                .callsFake(async (): Promise<void> => {
+            jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
+                async (): Promise<void> => {
                     dbStorage = {};
-                });
+                }
+            );
             const browserStorage = new BrowserCacheManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
@@ -3259,11 +3127,11 @@ describe("BrowserCacheManager tests", () => {
 
         it("cleanRequestByInteractionType() cleans cache", () => {
             let dbStorage = {};
-            sinon
-                .stub(DatabaseStorage.prototype, "open")
-                .callsFake(async (): Promise<void> => {
+            jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
+                async (): Promise<void> => {
                     dbStorage = {};
-                });
+                }
+            );
             const browserStorage = new BrowserCacheManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
@@ -3275,9 +3143,9 @@ describe("BrowserCacheManager tests", () => {
                 interactionType: InteractionType.Redirect,
             };
 
-            sinon
-                .stub(CryptoOps.prototype, "createNewGuid")
-                .returns(RANDOM_TEST_GUID);
+            jest.spyOn(CryptoOps.prototype, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
             const state = ProtocolUtils.setRequestState(
                 browserCrypto,
                 undefined,
@@ -3298,11 +3166,11 @@ describe("BrowserCacheManager tests", () => {
         });
         it("cleanRequestByInteractionType() interaction status even no request is in progress", () => {
             let dbStorage = {};
-            sinon
-                .stub(DatabaseStorage.prototype, "open")
-                .callsFake(async (): Promise<void> => {
+            jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
+                async (): Promise<void> => {
                     dbStorage = {};
-                });
+                }
+            );
             const browserStorage = new BrowserCacheManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 {

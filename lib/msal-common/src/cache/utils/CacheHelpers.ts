@@ -3,14 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { extractTokenClaims } from "../../account/AuthToken";
-import { TokenClaims } from "../../account/TokenClaims";
-import { CloudDiscoveryMetadata } from "../../authority/CloudDiscoveryMetadata";
-import { OpenIdConfigResponse } from "../../authority/OpenIdConfigResponse";
+import { extractTokenClaims } from "../../account/AuthToken.js";
+import { TokenClaims } from "../../account/TokenClaims.js";
+import { CloudDiscoveryMetadata } from "../../authority/CloudDiscoveryMetadata.js";
+import { OpenIdConfigResponse } from "../../authority/OpenIdConfigResponse.js";
 import {
     ClientAuthErrorCodes,
     createClientAuthError,
-} from "../../error/ClientAuthError";
+} from "../../error/ClientAuthError.js";
 import {
     APP_METADATA,
     AUTHORITY_METADATA_CONSTANTS,
@@ -19,14 +19,14 @@ import {
     SERVER_TELEM_CONSTANTS,
     Separators,
     ThrottlingConstants,
-} from "../../utils/Constants";
-import * as TimeUtils from "../../utils/TimeUtils";
-import { AccessTokenEntity } from "../entities/AccessTokenEntity";
-import { AppMetadataEntity } from "../entities/AppMetadataEntity";
-import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity";
-import { CredentialEntity } from "../entities/CredentialEntity";
-import { IdTokenEntity } from "../entities/IdTokenEntity";
-import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
+} from "../../utils/Constants.js";
+import * as TimeUtils from "../../utils/TimeUtils.js";
+import { AccessTokenEntity } from "../entities/AccessTokenEntity.js";
+import { AppMetadataEntity } from "../entities/AppMetadataEntity.js";
+import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity.js";
+import { CredentialEntity } from "../entities/CredentialEntity.js";
+import { IdTokenEntity } from "../entities/IdTokenEntity.js";
+import { RefreshTokenEntity } from "../entities/RefreshTokenEntity.js";
 
 /**
  * Cache Key: <home_account_id>-<environment>-<credential_type>-<client_id or familyId>-<realm>-<scopes>-<claims hash>-<scheme>

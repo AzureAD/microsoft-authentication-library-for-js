@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountEntity } from "@azure/msal-common";
+import { AccountEntity } from "@azure/msal-common/node";
 
 export interface IPartitionManager {
     /**

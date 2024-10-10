@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { IWindowStorage } from "./IWindowStorage";
+import { IWindowStorage } from "./IWindowStorage.js";
 
 export class MemoryStorage<T> implements IWindowStorage<T> {
     private cache: Map<string, T>;

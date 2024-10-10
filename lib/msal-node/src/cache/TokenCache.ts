@@ -11,7 +11,7 @@ import {
     ISerializableTokenCache,
     ICachePlugin,
     TokenCacheContext,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import {
     InMemoryCache,
     JsonCache,
