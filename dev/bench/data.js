@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728420759845,
+  "lastUpdate": 1728578564181,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12498,6 +12498,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.03%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "de0b1a5537ad1a6d863ea7b333c410dc3afe6862",
+          "message": "Update issue templates (#7372)\n\n- Adds note to issue templates asking internal folks to reach out over\r\nTeams instead\r\n- Removes deprecated libs from issue templates",
+          "timestamp": "2024-10-10T09:37:15-07:00",
+          "tree_id": "19e70caf112f26f8febb27d7de44939ce93e42dd",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/de0b1a5537ad1a6d863ea7b333c410dc3afe6862"
+        },
+        "date": 1728578562995,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 190611,
+            "range": "±2.00%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 195557,
+            "range": "±2.11%",
+            "unit": "ops/sec",
+            "extra": "227 samples"
           }
         ]
       }
