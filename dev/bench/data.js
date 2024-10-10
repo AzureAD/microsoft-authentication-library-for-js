@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728578564181,
+  "lastUpdate": 1728594073182,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12536,6 +12536,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.11%",
             "unit": "ops/sec",
             "extra": "227 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "38800918+mabeshark@users.noreply.github.com",
+            "name": "mabeshark",
+            "username": "mabeshark"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8382062cf5d660dae4f52b3d711877f016dd9973",
+          "message": "Fix typo (#7277)\n\nFix typo\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-10-10T13:55:32-07:00",
+          "tree_id": "4eac1f5bb449f8a5ac5e3a1a173c80112d7cbfa7",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8382062cf5d660dae4f52b3d711877f016dd9973"
+        },
+        "date": 1728594071378,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 211134,
+            "range": "±2.06%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 225838,
+            "range": "±1.48%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
