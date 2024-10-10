@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Fixed breaking changes from PR #7137",
+  "packageName": "@azure/msal-angular",
+  "email": "a-kj@live.com",
+  "dependentChangeType": "patch"
+}

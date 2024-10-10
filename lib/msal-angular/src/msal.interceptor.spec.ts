@@ -57,6 +57,7 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
       string,
       Array<string | ProtectedResourceScopes> | null
     >([
+      ["api/v1/*", ["my-scope"]],
       ["https://MY_API_SITE_2", ["api://MY_API_SITE_2/as_user"]],
       ["https://MY_API_SITE_1", ["api://MY_API_SITE_1/as_user"]],
       ["https://graph.microsoft.com/v1.0/me", ["user.read"]],
@@ -1159,6 +1160,39 @@ describe("MsalInterceptor", () => {
       expect(spy).toHaveBeenCalledWith({
         account: sampleAccountInfo,
         scopes: ["api://MY_API_SITE_1/as_user"],
+      });
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+
+  it("attaches authorization header with access token for relative endpoint", (done) => {
+    const spy = spyOn(
+      PublicClientApplication.prototype,
+      "acquireTokenSilent"
+    ).and.returnValue(
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve({
+          accessToken: "access-token",
+        });
+      })
+    );
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([
+      sampleAccountInfo,
+    ]);
+
+    httpClient.get("http://localhost:5555/api/v1/new").subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectOne("http://localhost:5555/api/v1/new");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toEqual(
+        "Bearer access-token"
+      );
+      expect(spy).toHaveBeenCalledWith({
+        account: sampleAccountInfo,
+        scopes: ["my-scope"],
       });
       httpMock.verify();
       done();

@@ -37,3 +37,8 @@ export type ProtectedResourceScopes = {
   httpMethod: string;
   scopes: Array<string> | null;
 };
+
+export type MatchingResources = {
+  absoluteResources: Array<string>;
+  relativeResources: Array<string>;
+};
