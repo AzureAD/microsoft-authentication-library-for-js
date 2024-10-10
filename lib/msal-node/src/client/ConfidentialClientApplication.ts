@@ -139,7 +139,7 @@ export class ConfidentialClientApplication
         }
 
         /*
-         * if this env variable is set, and the developer provided region isn't defined or is "DisableMsalForceRegion",
+         * if this env variable is set, and the developer provided region isn't defined and isn't "DisableMsalForceRegion",
          * MSAL shall opt-in to ESTS-R with the value of this variable
          */
         const ENV_MSAL_FORCE_REGION: AzureRegion | undefined =
@@ -151,6 +151,8 @@ export class ConfidentialClientApplication
                 !validRequest.azureRegion && ENV_MSAL_FORCE_REGION
                     ? ENV_MSAL_FORCE_REGION
                     : validRequest.azureRegion;
+        } else {
+            validRequest.azureRegion = undefined;
         }
 
         const azureRegionConfiguration: AzureRegionConfiguration = {
