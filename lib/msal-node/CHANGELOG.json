@@ -2,6 +2,62 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 08 Oct 2024 16:51:05 GMT",
+      "version": "2.15.0",
+      "tag": "@azure/msal-node_v2.15.0",
+      "comments": {
+        "undefined": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 03 Oct 2024 00:40:42 GMT",
+      "version": "2.15.0",
+      "tag": "@azure/msal-node_v2.15.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "704a8de9cc2d622534dee1a79dc19b0a8a52fe91",
+            "comment": "Implemented functionality to skip the cache for MI when claims are provided #7207"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "704a8de9cc2d622534dee1a79dc19b0a8a52fe91",
+            "comment": "Allow POP Params for brokered requests"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 19 Sep 2024 23:48:30 GMT",
       "version": "2.14.0",
       "tag": "@azure/msal-node_v2.14.0",

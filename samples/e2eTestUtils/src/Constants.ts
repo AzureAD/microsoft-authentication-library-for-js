@@ -1,7 +1,7 @@
 export const ENV_VARIABLES = {
     TENANT: "AZURE_TENANT_ID",
     CLIENT_ID: "AZURE_CLIENT_ID",
-    CERT_PATH: "AZURE_CLIENT_CERT_PATH",
+    CERTIFICATE_PATH: "AZURE_CLIENT_CERTIFICATE_PATH",
 };
 
 export const LAB_API_ENDPOINT = "https://msidlab.com/api";
