@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728594203185,
+  "lastUpdate": 1728594397371,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12612,6 +12612,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.14%",
             "unit": "ops/sec",
             "extra": "207 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "1012917+kendaleiv@users.noreply.github.com",
+            "name": "Ken Dale",
+            "username": "kendaleiv"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "deca3c87bf2a00c7760d2c8199e5672099e0eff4",
+          "message": "Spelling update in certificate-credentials.md (#7248)\n\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-10-10T14:01:05-07:00",
+          "tree_id": "a4b983c47e8fbfa4e29b128c83de4bf571d8450f",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/deca3c87bf2a00c7760d2c8199e5672099e0eff4"
+        },
+        "date": 1728594395304,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 208770,
+            "range": "±1.73%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 206787,
+            "range": "±2.03%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
