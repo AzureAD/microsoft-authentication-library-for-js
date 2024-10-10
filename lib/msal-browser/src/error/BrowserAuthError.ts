@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError } from "@azure/msal-common";
-import * as BrowserAuthErrorCodes from "./BrowserAuthErrorCodes";
+import { AuthError } from "@azure/msal-common/browser";
+import * as BrowserAuthErrorCodes from "./BrowserAuthErrorCodes.js";
 export { BrowserAuthErrorCodes }; // Allow importing as "BrowserAuthErrorCodes"
 
 const ErrorLink = "For more visit: aka.ms/msaljs/browser-errors";
@@ -92,8 +92,6 @@ export const BrowserAuthErrorMessages = {
         "Invalid base64 encoded string.",
     [BrowserAuthErrorCodes.invalidPopTokenRequest]:
         "Invalid PoP token request. The request should not have both a popKid value and signPopToken set to true.",
-    [BrowserAuthErrorCodes.failedToRetry]:
-        "Unable to retry failed auth code redemption due to usage of the onRedirectNavigate request parameter. Please set onRedirectNavigate on the PublicClientApplication configuration instead or call loginRedirect again.",
 };
 
 /**

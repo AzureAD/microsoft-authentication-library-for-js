@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo } from "../../account/AccountInfo";
-import { LoggerOptions } from "../../config/ClientConfiguration";
-import { NativeRequest } from "../../request/NativeRequest";
-import { NativeSignOutRequest } from "../../request/NativeSignOutRequest";
-import { AuthenticationResult } from "../../response/AuthenticationResult";
+import { AccountInfo } from "../../account/AccountInfo.js";
+import { LoggerOptions } from "../../config/ClientConfiguration.js";
+import { NativeRequest } from "../../request/NativeRequest.js";
+import { NativeSignOutRequest } from "../../request/NativeSignOutRequest.js";
+import { AuthenticationResult } from "../../response/AuthenticationResult.js";
 
 export interface INativeBrokerPlugin {
     isBrokerAvailable: boolean;

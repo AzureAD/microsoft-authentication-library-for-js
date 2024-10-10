@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@azure/msal-node",
-  "version": "2.12.0",
+  "version": "2.15.0",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -22,21 +22,25 @@
     "oauth"
   ],
   "type": "module",
-  "main": "dist/index.cjs",
+  "main": "lib/msal-node.cjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "module": "./dist/index.mjs",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
-      "default": "./dist/index.mjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./lib/types/index.d.ts",
+        "default": "./lib/msal-node.cjs"
+      }
     },
     "./package.json": "./package.json"
   },
   "files": [
     "dist",
+    "lib",
     "src"
   ],
   "scripts": {
@@ -66,20 +70,19 @@
     "@types/jest": "^29.5.0",
     "@types/jsonwebtoken": "^9.0.1",
     "@types/node": "^20.3.1",
-    "@types/sinon": "^7.5.0",
     "@types/uuid": "^7.0.0",
     "eslint-config-msal": "file:../../shared-configs/eslint-config-msal",
     "jest": "^29.5.0",
     "prettier": "2.8.7",
-    "rollup": "^3.20.1",
-    "sinon": "^7.5.0",
+    "rollup": "^3.29.5",
+    "rollup-msal": "file:../../shared-configs/rollup-msal",
     "ts-jest": "^29.1.0",
     "tslib": "^1.10.0",
     "typescript": "^4.9.5",
     "yargs": "^17.3.1"
   },
   "dependencies": {
-    "@azure/msal-common": "14.14.0",
+    "@azure/msal-common": "14.15.0",
     "jsonwebtoken": "^9.0.0",
     "uuid": "^8.3.0"
   },

@@ -9,9 +9,9 @@ import {
     IPublicClientApplication,
     AccountEntity,
 } from "@azure/msal-browser";
-import { useMsal } from "./useMsal";
-import { AccountIdentifiers } from "../types/AccountIdentifiers";
-import { getAccountByIdentifiers } from "../utils/utilities";
+import { useMsal } from "./useMsal.js";
+import { AccountIdentifiers } from "../types/AccountIdentifiers.js";
+import { getAccountByIdentifiers } from "../utils/utilities.js";
 
 function getAccount(
     instance: IPublicClientApplication,

@@ -34,11 +34,11 @@ import {
     createClientAuthError,
     ClientAssertion,
     getClientAssertion,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import {
     ManagedIdentityConfiguration,
     ManagedIdentityNodeConfiguration,
-} from "../config/Configuration";
+} from "../config/Configuration.js";
 
 /**
  * OAuth2.0 client credential grant

@@ -7,7 +7,7 @@ import {
     AuthenticationResult,
     IAppTokenProvider,
     Logger,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest.js";

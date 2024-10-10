@@ -3,20 +3,20 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule } from "../network/INetworkModule";
-import { NetworkResponse } from "../network/NetworkManager";
-import { IMDSBadResponse } from "../response/IMDSBadResponse";
+import { INetworkModule } from "../network/INetworkModule.js";
+import { NetworkResponse } from "../network/NetworkManager.js";
+import { IMDSBadResponse } from "../response/IMDSBadResponse.js";
 import {
     Constants,
     RegionDiscoverySources,
     ResponseCodes,
-} from "../utils/Constants";
-import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
-import { ImdsOptions } from "./ImdsOptions";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
-import { invokeAsync } from "../utils/FunctionWrappers";
-import { Logger } from "../logger/Logger";
+} from "../utils/Constants.js";
+import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata.js";
+import { ImdsOptions } from "./ImdsOptions.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import { invokeAsync } from "../utils/FunctionWrappers.js";
+import { Logger } from "../logger/Logger.js";
 
 export class RegionDiscovery {
     // Network interface to make requests with.

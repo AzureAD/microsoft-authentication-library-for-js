@@ -4,6 +4,7 @@
 # Generated files
 build
 dist
+lib
 
 # Logs
 test/test-logs

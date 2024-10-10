@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CryptoOps } from "../crypto/CryptoOps";
+import { CryptoOps } from "../crypto/CryptoOps.js";
 import {
     InteractionRequiredAuthError,
     AccountInfo,
@@ -28,13 +28,15 @@ import {
     AccountFilter,
     buildStaticAuthorityOptions,
     InteractionRequiredAuthErrorCodes,
-} from "@azure/msal-common";
+    PersistentCacheKeys,
+    CacheManager,
+} from "@azure/msal-common/browser";
 import {
     BrowserCacheManager,
     DEFAULT_BROWSER_CACHE_MANAGER,
-} from "../cache/BrowserCacheManager";
-import * as AccountManager from "../cache/AccountManager";
-import { BrowserConfiguration, CacheOptions } from "../config/Configuration";
+} from "../cache/BrowserCacheManager.js";
+import * as AccountManager from "../cache/AccountManager.js";
+import { BrowserConfiguration, CacheOptions } from "../config/Configuration.js";
 import {
     InteractionType,
     ApiId,
@@ -45,46 +47,46 @@ import {
     DEFAULT_REQUEST,
     BrowserConstants,
     iFrameRenewalPolicies,
-} from "../utils/BrowserConstants";
-import * as BrowserUtils from "../utils/BrowserUtils";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { PopupRequest } from "../request/PopupRequest";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { EventCallbackFunction, EventError } from "../event/EventMessage";
-import { EventType } from "../event/EventType";
-import { EndSessionRequest } from "../request/EndSessionRequest";
-import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
-import { INavigationClient } from "../navigation/INavigationClient";
-import { EventHandler } from "../event/EventHandler";
-import { PopupClient } from "../interaction_client/PopupClient";
-import { RedirectClient } from "../interaction_client/RedirectClient";
-import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
-import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient";
-import { TokenCache } from "../cache/TokenCache";
-import { ITokenCache } from "../cache/ITokenCache";
-import { NativeInteractionClient } from "../interaction_client/NativeInteractionClient";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { SilentRequest } from "../request/SilentRequest";
+} from "../utils/BrowserConstants.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
+import { RedirectRequest } from "../request/RedirectRequest.js";
+import { PopupRequest } from "../request/PopupRequest.js";
+import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { EventCallbackFunction, EventError } from "../event/EventMessage.js";
+import { EventType } from "../event/EventType.js";
+import { EndSessionRequest } from "../request/EndSessionRequest.js";
+import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
+import { INavigationClient } from "../navigation/INavigationClient.js";
+import { EventHandler } from "../event/EventHandler.js";
+import { PopupClient } from "../interaction_client/PopupClient.js";
+import { RedirectClient } from "../interaction_client/RedirectClient.js";
+import { SilentIframeClient } from "../interaction_client/SilentIframeClient.js";
+import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient.js";
+import { TokenCache } from "../cache/TokenCache.js";
+import { ITokenCache } from "../cache/ITokenCache.js";
+import { NativeInteractionClient } from "../interaction_client/NativeInteractionClient.js";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
+import { SilentRequest } from "../request/SilentRequest.js";
 import {
     NativeAuthError,
     isFatalNativeAuthError,
-} from "../error/NativeAuthError";
-import { SilentCacheClient } from "../interaction_client/SilentCacheClient";
-import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient";
+} from "../error/NativeAuthError.js";
+import { SilentCacheClient } from "../interaction_client/SilentCacheClient.js";
+import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
-import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
-import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
-import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext";
-import { IController } from "./IController";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { ClearCacheRequest } from "../request/ClearCacheRequest";
-import { createNewGuid } from "../crypto/BrowserCrypto";
-import { initializeSilentRequest } from "../request/RequestHelpers";
-import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest";
+} from "../error/BrowserAuthError.js";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
+import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest.js";
+import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext.js";
+import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext.js";
+import { IController } from "./IController.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
+import { createNewGuid } from "../crypto/BrowserCrypto.js";
+import { initializeSilentRequest } from "../request/RequestHelpers.js";
+import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 
 function getAccountType(
     account?: AccountInfo
@@ -176,6 +178,9 @@ export class StandardController implements IController {
 
     private ssoSilentMeasurement?: InProgressPerformanceEvent;
     private acquireTokenByCodeAsyncMeasurement?: InProgressPerformanceEvent;
+
+    // Flag which indicates if we're currently listening for account storage events
+    private listeningToStorageEvents: boolean;
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -228,7 +233,7 @@ export class StandardController implements IController {
             ? new CryptoOps(this.logger, this.performanceClient)
             : DEFAULT_CRYPTO_IMPLEMENTATION;
 
-        this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
+        this.eventHandler = new EventHandler(this.logger);
 
         // Initialize the browser storage class.
         this.browserStorage = this.isBrowserEnvironment
@@ -279,6 +284,11 @@ export class StandardController implements IController {
         // Register listener functions
         this.trackPageVisibilityWithMeasurement =
             this.trackPageVisibilityWithMeasurement.bind(this);
+
+        // account storage events
+        this.listeningToStorageEvents = false;
+        this.handleAccountCacheChange =
+            this.handleAccountCacheChange.bind(this);
     }
 
     static async createController(
@@ -311,6 +321,13 @@ export class StandardController implements IController {
             this.logger.info(
                 "initialize has already been called, exiting early."
             );
+            return;
+        }
+
+        if (!this.isBrowserEnvironment) {
+            this.logger.info("in non-browser environment, exiting early.");
+            this.initialized = true;
+            this.eventHandler.emitEvent(EventType.INITIALIZE_END);
             return;
         }
 
@@ -354,7 +371,6 @@ export class StandardController implements IController {
 
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
-
         initMeasurement.end({ allowNativeBroker, success: true });
     }
 
@@ -584,19 +600,37 @@ export class StandardController implements IController {
             scenarioId: request.scenarioId,
         });
 
+        // Override on request only if set, as onRedirectNavigate field is deprecated
         const onRedirectNavigateCb = request.onRedirectNavigate;
-        request.onRedirectNavigate = (url: string) => {
-            const navigate =
-                typeof onRedirectNavigateCb === "function"
-                    ? onRedirectNavigateCb(url)
-                    : undefined;
-            if (navigate !== false) {
-                atrMeasurement.end({ success: true });
-            } else {
-                atrMeasurement.discard();
-            }
-            return navigate;
-        };
+        if (onRedirectNavigateCb) {
+            request.onRedirectNavigate = (url: string) => {
+                const navigate =
+                    typeof onRedirectNavigateCb === "function"
+                        ? onRedirectNavigateCb(url)
+                        : undefined;
+                if (navigate !== false) {
+                    atrMeasurement.end({ success: true });
+                } else {
+                    atrMeasurement.discard();
+                }
+                return navigate;
+            };
+        } else {
+            const configOnRedirectNavigateCb =
+                this.config.auth.onRedirectNavigate;
+            this.config.auth.onRedirectNavigate = (url: string) => {
+                const navigate =
+                    typeof configOnRedirectNavigateCb === "function"
+                        ? configOnRedirectNavigateCb(url)
+                        : undefined;
+                if (navigate !== false) {
+                    atrMeasurement.end({ success: true });
+                } else {
+                    atrMeasurement.discard();
+                }
+                return navigate;
+            };
+        }
 
         // If logged in, emit acquire token events
         const isLoggedIn = this.getAllAccounts().length > 0;
@@ -1318,6 +1352,10 @@ export class StandardController implements IController {
      * @param logoutRequest
      */
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
+        if (!this.isBrowserEnvironment) {
+            this.logger.info("in non-browser environment, returning early.");
+            return;
+        }
         const correlationId = this.getRequestCorrelationId(logoutRequest);
         const cacheClient = this.createSilentCacheClient(correlationId);
         return cacheClient.logout(logoutRequest);
@@ -1679,8 +1717,11 @@ export class StandardController implements IController {
      * Adds event callbacks to array
      * @param callback
      */
-    addEventCallback(callback: EventCallbackFunction): string | null {
-        return this.eventHandler.addEventCallback(callback);
+    addEventCallback(
+        callback: EventCallbackFunction,
+        eventTypes?: Array<EventType>
+    ): string | null {
+        return this.eventHandler.addEventCallback(callback, eventTypes);
     }
 
     /**
@@ -1698,6 +1739,7 @@ export class StandardController implements IController {
      * @returns {string}
      */
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
+        BrowserUtils.blockNonBrowserEnvironment();
         return this.performanceClient.addPerformanceCallback(callback);
     }
 
@@ -1715,14 +1757,89 @@ export class StandardController implements IController {
      * Adds event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
      */
     enableAccountStorageEvents(): void {
-        this.eventHandler.enableAccountStorageEvents();
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        if (!this.listeningToStorageEvents) {
+            this.logger.verbose("Adding account storage listener.");
+            this.listeningToStorageEvents = true;
+            window.addEventListener("storage", this.handleAccountCacheChange);
+        } else {
+            this.logger.verbose("Account storage listener already registered.");
+        }
     }
 
     /**
      * Removes event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
      */
     disableAccountStorageEvents(): void {
-        this.eventHandler.disableAccountStorageEvents();
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        if (this.listeningToStorageEvents) {
+            this.logger.verbose("Removing account storage listener.");
+            window.removeEventListener(
+                "storage",
+                this.handleAccountCacheChange
+            );
+            this.listeningToStorageEvents = false;
+        } else {
+            this.logger.verbose("No account storage listener registered.");
+        }
+    }
+
+    /**
+     * Emit account added/removed events when cached accounts are changed in a different tab or frame
+     */
+    protected handleAccountCacheChange(e: StorageEvent): void {
+        try {
+            // Handle active account filter change
+            if (e.key?.includes(PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS)) {
+                // This event has no payload, it only signals cross-tab app instances that the results of calling getActiveAccount() will have changed
+                this.eventHandler.emitEvent(EventType.ACTIVE_ACCOUNT_CHANGED);
+            }
+
+            // Handle account object change
+            const cacheValue = e.newValue || e.oldValue;
+            if (!cacheValue) {
+                return;
+            }
+            const parsedValue = JSON.parse(cacheValue);
+            if (
+                typeof parsedValue !== "object" ||
+                !AccountEntity.isAccountEntity(parsedValue)
+            ) {
+                return;
+            }
+            const accountEntity = CacheManager.toObject<AccountEntity>(
+                new AccountEntity(),
+                parsedValue
+            );
+            const accountInfo = accountEntity.getAccountInfo();
+            if (!e.oldValue && e.newValue) {
+                this.logger.info(
+                    "Account was added to cache in a different window"
+                );
+                this.eventHandler.emitEvent(
+                    EventType.ACCOUNT_ADDED,
+                    undefined,
+                    accountInfo
+                );
+            } else if (!e.newValue && e.oldValue) {
+                this.logger.info(
+                    "Account was removed from cache in a different window"
+                );
+                this.eventHandler.emitEvent(
+                    EventType.ACCOUNT_REMOVED,
+                    undefined,
+                    accountInfo
+                );
+            }
+        } catch (e) {
+            return;
+        }
     }
 
     /**
@@ -1784,13 +1901,6 @@ export class StandardController implements IController {
      */
     public isBrowserEnv(): boolean {
         return this.isBrowserEnvironment;
-    }
-
-    /**
-     * Returns the event handler
-     */
-    getEventHandler(): EventHandler {
-        return this.eventHandler;
     }
 
     /**

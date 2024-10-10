@@ -27,7 +27,7 @@ import {
     ClientAuthErrorCodes,
     ClientAssertion as ClientAssertionType,
     getClientAssertion,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication.js";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest.js";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest.js";

@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { RequestParameterBuilder, UrlString } from "@azure/msal-common";
-import { HttpMethod } from "../utils/Constants";
+import { RequestParameterBuilder, UrlString } from "@azure/msal-common/node";
+import { HttpMethod } from "../utils/Constants.js";
 
 export class ManagedIdentityRequestParameters {
     private _baseEndpoint: string;

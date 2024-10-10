@@ -14,6 +14,7 @@ import {
     MANAGED_IDENTITY_RESOURCE_ID,
     MANAGED_IDENTITY_RESOURCE_ID_2,
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR_MESSAGE,
+    TEST_CONFIG,
     THREE_SECONDS_IN_MILLI,
     getCacheKey,
 } from "../../test_kit/StringConstants";
@@ -543,6 +544,37 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 });
             expect(networkManagedIdentityResult.fromCache).toBe(false);
 
+            expect(networkManagedIdentityResult.accessToken).toEqual(
+                DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+            );
+        });
+
+        test("ignores a cached token when claims are provided", async () => {
+            let networkManagedIdentityResult: AuthenticationResult =
+                await systemAssignedManagedIdentityApplication.acquireToken({
+                    resource: MANAGED_IDENTITY_RESOURCE,
+                });
+            expect(networkManagedIdentityResult.fromCache).toBe(false);
+
+            expect(networkManagedIdentityResult.accessToken).toEqual(
+                DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+            );
+
+            const cachedManagedIdentityResult: AuthenticationResult =
+                await systemAssignedManagedIdentityApplication.acquireToken({
+                    resource: MANAGED_IDENTITY_RESOURCE,
+                });
+            expect(cachedManagedIdentityResult.fromCache).toBe(true);
+            expect(cachedManagedIdentityResult.accessToken).toEqual(
+                DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+            );
+
+            networkManagedIdentityResult =
+                await systemAssignedManagedIdentityApplication.acquireToken({
+                    claims: TEST_CONFIG.CLAIMS,
+                    resource: MANAGED_IDENTITY_RESOURCE,
+                });
+            expect(networkManagedIdentityResult.fromCache).toBe(false);
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );

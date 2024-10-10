@@ -1,8 +1,58 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 23 Jul 2024 14:19:34 GMT and should not be manually modified.
+This log was last generated on Thu, 03 Oct 2024 00:40:42 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.15.0
+
+Thu, 03 Oct 2024 00:40:42 GMT
+
+### Minor changes
+
+- Implemented functionality to skip the cache for MI when claims are provided #7207 (rginsburg@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Allow POP Params for brokered requests (thomas.norling@microsoft.com)
+
+## 2.14.0
+
+Thu, 19 Sep 2024 23:48:30 GMT
+
+### Minor changes
+
+- Fix type resolution when using moduleResolution node16 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v14.15.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 2.13.1
+
+Wed, 28 Aug 2024 23:06:01 GMT
+
+### Patches
+
+- Use '127.0.0.1' for the host when spinning up local loopback server (tyleonha@microsoft.com)
+- Bump @azure/msal-common to v14.14.2
+- Bump eslint-config-msal to v0.0.0
+
+## 2.13.0
+
+Tue, 13 Aug 2024 23:25:05 GMT
+
+### Minor changes
+
+- Added file-based detection for Azure Arc (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v14.14.1
+- Bump eslint-config-msal to v0.0.0
+
+### Patches
+
+- Send the error template back when there's an error response (tyleonha@microsoft.com)
+- clientSecret can now (once again) be provided as undefined #7209 (rginsburg@microsoft.com)
 
 ## 2.12.0
 

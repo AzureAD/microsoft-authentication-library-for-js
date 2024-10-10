@@ -24,6 +24,6 @@
   },
   "dependencies": {
     "@azure/msal-node": "^2.1.0",
-    "axios": "^1.6.0"
+    "axios": "^1.7.4"
   }
 }

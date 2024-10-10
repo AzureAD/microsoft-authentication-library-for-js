@@ -13,14 +13,14 @@ import {
     PerformanceEvents,
     PreQueueEvent,
     SubMeasurement,
-} from "@azure/msal-common";
-import { Configuration } from "../config/Configuration";
-import { name, version } from "../packageMetadata";
+} from "@azure/msal-common/browser";
+import { Configuration } from "../config/Configuration.js";
+import { name, version } from "../packageMetadata.js";
 import {
     BROWSER_PERF_ENABLED_KEY,
     BrowserCacheLocation,
-} from "../utils/BrowserConstants";
-import * as BrowserCrypto from "../crypto/BrowserCrypto";
+} from "../utils/BrowserConstants.js";
+import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 
 /**
  * Returns browser performance measurement module if session flag is enabled. Returns undefined otherwise.
@@ -31,7 +31,7 @@ function getPerfMeasurementModule() {
         sessionStorage = window[BrowserCacheLocation.SessionStorage];
         const perfEnabled = sessionStorage?.getItem(BROWSER_PERF_ENABLED_KEY);
         if (Number(perfEnabled) === 1) {
-            return import("./BrowserPerformanceMeasurement");
+            return import("./BrowserPerformanceMeasurement.js");
         }
         // Mute errors if it's a non-browser environment or cookies are blocked.
     } catch (e) {}
@@ -42,7 +42,7 @@ function getPerfMeasurementModule() {
 /**
  * Returns boolean, indicating whether browser supports window.performance.now() function.
  */
-export function supportsBrowserPerformanceNow(): boolean {
+function supportsBrowserPerformanceNow(): boolean {
     return (
         typeof window !== "undefined" &&
         typeof window.performance !== "undefined" &&

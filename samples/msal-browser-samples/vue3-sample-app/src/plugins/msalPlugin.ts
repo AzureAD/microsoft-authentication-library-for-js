@@ -34,7 +34,11 @@ export const msalPlugin = {
         const inProgress = InteractionStatus.Startup;
         const accounts = msalInstance.getAllAccounts();
 
-        const state = reactive({
+        const state = reactive<{
+            instance: PublicClientApplication
+            inProgress: InteractionStatus
+            accounts: AccountInfo[]
+        }>({
             instance: msalInstance,
             inProgress: inProgress,
             accounts: accounts

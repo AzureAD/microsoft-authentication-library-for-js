@@ -13,14 +13,14 @@ import {
     NetworkRequestOptions,
     Logger,
     ServerAuthorizationTokenResponse,
-} from "@azure/msal-common";
-import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters";
-import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource";
-import { CryptoProvider } from "../../crypto/CryptoProvider";
+} from "@azure/msal-common/node";
+import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
+import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
+import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
-} from "../../error/ManagedIdentityError";
+} from "../../error/ManagedIdentityError.js";
 import {
     API_VERSION_QUERY_PARAMETER_NAME,
     AUTHORIZATION_HEADER_NAME,
@@ -31,16 +31,16 @@ import {
     ManagedIdentityIdType,
     ManagedIdentitySourceNames,
     RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
-} from "../../utils/Constants";
-import { NodeStorage } from "../../cache/NodeStorage";
+} from "../../utils/Constants.js";
+import { NodeStorage } from "../../cache/NodeStorage.js";
 import {
     accessSync,
     constants as fsConstants,
     readFileSync,
     statSync,
 } from "fs";
-import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse";
-import { ManagedIdentityId } from "../../config/ManagedIdentityId";
+import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse.js";
+import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import path from "path";
 
 export const ARC_API_VERSION: string = "2019-11-01";

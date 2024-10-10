@@ -3,15 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { FilePersistenceWithDataProtection } from "./FilePersistenceWithDataProtection";
-import { LibSecretPersistence } from "./LibSecretPersistence";
-import { KeychainPersistence } from "./KeychainPersistence";
-import { DataProtectionScope } from "./DataProtectionScope";
-import { Environment } from "../utils/Environment";
-import { IPersistence } from "./IPersistence";
-import { FilePersistence } from "./FilePersistence";
-import { PersistenceError } from "../error/PersistenceError";
-import { IPersistenceConfiguration } from "./IPersistenceConfiguration";
+import { FilePersistenceWithDataProtection } from "./FilePersistenceWithDataProtection.js";
+import { LibSecretPersistence } from "./LibSecretPersistence.js";
+import { KeychainPersistence } from "./KeychainPersistence.js";
+import { DataProtectionScope } from "./DataProtectionScope.js";
+import { Environment } from "../utils/Environment.js";
+import { IPersistence } from "./IPersistence.js";
+import { FilePersistence } from "./FilePersistence.js";
+import { PersistenceError } from "../error/PersistenceError.js";
+import { IPersistenceConfiguration } from "./IPersistenceConfiguration.js";
 
 export class PersistenceCreator {
     static async createPersistence(

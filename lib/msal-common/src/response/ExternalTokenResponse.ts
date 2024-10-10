@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse";
+import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse.js";
 
 /**
  * Response object used for loading external tokens to cache.

@@ -3,14 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import sinon from "sinon";
-import { PublicClientApplication } from "../../src";
+import { PublicClientApplication } from "../../src/index.js";
 import {
     TEST_CONFIG,
     ID_TOKEN_CLAIMS,
     TEST_TOKENS,
-} from "../utils/StringConstants";
-import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
+} from "../utils/StringConstants.js";
+import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient.js";
 import {
     AuthToken,
     CacheManager,
@@ -103,7 +102,6 @@ describe("SilentCacheClient", () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
-        sinon.restore();
     });
 
     describe("acquireToken", () => {
@@ -124,18 +122,21 @@ describe("SilentCacheClient", () => {
                 ),
                 tokenType: AuthenticationScheme.BEARER,
             };
-            sinon
-                .stub(CacheManager.prototype, "readAccountFromCache")
-                .returns(testAccountEntity);
-            sinon
-                .stub(CacheManager.prototype, "getIdToken")
-                .returns(testIdToken);
-            sinon
-                .stub(CacheManager.prototype, "getAccessToken")
-                .returns(testAccessTokenEntity);
-            sinon
-                .stub(CacheManager.prototype, "getRefreshToken")
-                .returns(testRefreshTokenEntity);
+            jest.spyOn(
+                CacheManager.prototype,
+                "readAccountFromCache"
+            ).mockReturnValue(testAccountEntity);
+            jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
+                testIdToken
+            );
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAccessToken"
+            ).mockReturnValue(testAccessTokenEntity);
+            jest.spyOn(
+                CacheManager.prototype,
+                "getRefreshToken"
+            ).mockReturnValue(testRefreshTokenEntity);
             await expect(
                 silentCacheClient.acquireToken({
                     authority: TEST_CONFIG.validAuthority,

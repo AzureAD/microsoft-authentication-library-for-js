@@ -3,14 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { CryptoOps } from "./CryptoOps";
+import { CryptoOps } from "./CryptoOps.js";
 import {
     Logger,
     LoggerOptions,
     PopTokenGenerator,
     SignedHttpRequestParameters,
-} from "@azure/msal-common";
-import { version, name } from "../packageMetadata";
+} from "@azure/msal-common/browser";
+import { version, name } from "../packageMetadata.js";
 
 export type SignedHttpRequestOptions = {
     loggerOptions: LoggerOptions;

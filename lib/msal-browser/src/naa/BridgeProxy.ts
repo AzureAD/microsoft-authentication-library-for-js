@@ -3,20 +3,24 @@
  * Licensed under the MIT License.
  */
 
-import { AuthBridge, AuthBridgeResponse } from "./AuthBridge";
-import { AuthResult } from "./AuthResult";
-import { BridgeCapabilities } from "./BridgeCapabilities";
-import { AccountContext } from "./BridgeAccountContext";
-import { BridgeError } from "./BridgeError";
-import { BridgeRequest } from "./BridgeRequest";
-import { BridgeRequestEnvelope, BridgeMethods } from "./BridgeRequestEnvelope";
-import { BridgeResponseEnvelope } from "./BridgeResponseEnvelope";
-import { BridgeStatusCode } from "./BridgeStatusCode";
-import { IBridgeProxy } from "./IBridgeProxy";
-import { InitContext } from "./InitContext";
-import { TokenRequest } from "./TokenRequest";
-import * as BrowserCrypto from "../crypto/BrowserCrypto";
-import { supportsBrowserPerformanceNow } from "../telemetry/BrowserPerformanceClient";
+import { AuthBridge, AuthBridgeResponse } from "./AuthBridge.js";
+import { AuthResult } from "./AuthResult.js";
+import { BridgeCapabilities } from "./BridgeCapabilities.js";
+import { AccountContext } from "./BridgeAccountContext.js";
+import { BridgeError } from "./BridgeError.js";
+import { BridgeRequest } from "./BridgeRequest.js";
+import {
+    BridgeRequestEnvelope,
+    BridgeMethods,
+} from "./BridgeRequestEnvelope.js";
+import { BridgeResponseEnvelope } from "./BridgeResponseEnvelope.js";
+import { BridgeStatusCode } from "./BridgeStatusCode.js";
+import { IBridgeProxy } from "./IBridgeProxy.js";
+import { InitContext } from "./InitContext.js";
+import { TokenRequest } from "./TokenRequest.js";
+import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
+import { BrowserConstants } from "../utils/BrowserConstants.js";
+import { version } from "../packageMetadata.js";
 
 declare global {
     interface Window {
@@ -78,14 +82,8 @@ export class BridgeProxy implements IBridgeProxy {
 
             const bridgeResponse = await new Promise<BridgeResponseEnvelope>(
                 (resolve, reject) => {
-                    const message: BridgeRequestEnvelope = {
-                        messageType: "NestedAppAuthRequest",
-                        method: "GetInitContext",
-                        requestId: BrowserCrypto.createNewGuid(),
-                        sendTime: supportsBrowserPerformanceNow()
-                            ? window.performance.now()
-                            : Date.now(),
-                    };
+                    const message = BridgeProxy.buildRequest("GetInitContext");
+
                     const request: BridgeRequest = {
                         requestId: message.requestId,
                         method: message.method,
@@ -147,6 +145,21 @@ export class BridgeProxy implements IBridgeProxy {
         return this.accountContext ? this.accountContext : null;
     }
 
+    private static buildRequest(
+        method: BridgeMethods,
+        requestParams?: Partial<BridgeRequestEnvelope>
+    ): BridgeRequestEnvelope {
+        return {
+            messageType: "NestedAppAuthRequest",
+            method: method,
+            requestId: BrowserCrypto.createNewGuid(),
+            sendTime: Date.now(),
+            clientLibrary: BrowserConstants.MSAL_SKU,
+            clientLibraryVersion: version,
+            ...requestParams,
+        };
+    }
+
     /**
      * A method used to send a request to the bridge
      * @param request A token request
@@ -156,15 +169,7 @@ export class BridgeProxy implements IBridgeProxy {
         method: BridgeMethods,
         requestParams?: Partial<BridgeRequestEnvelope>
     ): Promise<BridgeResponseEnvelope> {
-        const message: BridgeRequestEnvelope = {
-            messageType: "NestedAppAuthRequest",
-            method: method,
-            requestId: BrowserCrypto.createNewGuid(),
-            sendTime: supportsBrowserPerformanceNow()
-                ? window.performance.now()
-                : Date.now(),
-            ...requestParams,
-        };
+        const message = BridgeProxy.buildRequest(method, requestParams);
 
         const promise = new Promise<BridgeResponseEnvelope>(
             (resolve, reject) => {

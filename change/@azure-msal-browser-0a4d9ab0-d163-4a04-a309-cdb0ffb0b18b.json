@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Retry in SilentIframeClient for invalid_grant errors #7218",
-  "packageName": "@azure/msal-browser",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}

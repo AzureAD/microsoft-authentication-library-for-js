@@ -16,7 +16,7 @@ import {
     CacheManager,
     CredentialType,
     AuthenticationScheme,
-} from "@azure/msal-common";
+} from "@azure/msal-common/node";
 import {
     JsonCache,
     InMemoryCache,

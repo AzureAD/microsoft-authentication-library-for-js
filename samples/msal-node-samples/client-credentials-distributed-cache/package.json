@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@azure/msal-node": "^2.0.0-beta.0",
-    "axios": "^1.6.0",
+    "axios": "^1.7.4",
     "open": "^8.4.2",
     "redis": "^4.6.5",
     "yargs": "^17.7.1"

@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { LoggerOptions } from "../config/ClientConfiguration";
-import { Constants } from "../utils/Constants";
+import { LoggerOptions } from "../config/ClientConfiguration.js";
+import { Constants } from "../utils/Constants.js";
 
 /**
  * Options for logger messages.

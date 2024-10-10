@@ -3,26 +3,26 @@
  * Licensed under the MIT License.
  */
 
-import { CacheAccountType, Separators } from "../../utils/Constants";
-import { Authority } from "../../authority/Authority";
-import { ICrypto } from "../../crypto/ICrypto";
-import { ClientInfo, buildClientInfo } from "../../account/ClientInfo";
+import { CacheAccountType, Separators } from "../../utils/Constants.js";
+import { Authority } from "../../authority/Authority.js";
+import { ICrypto } from "../../crypto/ICrypto.js";
+import { ClientInfo, buildClientInfo } from "../../account/ClientInfo.js";
 import {
     AccountInfo,
     TenantProfile,
     buildTenantProfile,
-} from "../../account/AccountInfo";
+} from "../../account/AccountInfo.js";
 import {
     createClientAuthError,
     ClientAuthErrorCodes,
-} from "../../error/ClientAuthError";
-import { AuthorityType } from "../../authority/AuthorityType";
-import { Logger } from "../../logger/Logger";
+} from "../../error/ClientAuthError.js";
+import { AuthorityType } from "../../authority/AuthorityType.js";
+import { Logger } from "../../logger/Logger.js";
 import {
     TokenClaims,
     getTenantIdFromIdTokenClaims,
-} from "../../account/TokenClaims";
-import { ProtocolMode } from "../../authority/ProtocolMode";
+} from "../../account/TokenClaims.js";
+import { ProtocolMode } from "../../authority/ProtocolMode.js";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).

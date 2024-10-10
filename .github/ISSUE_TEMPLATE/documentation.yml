@@ -10,6 +10,9 @@ body:
       If there's a problem with the documentation or samples in this repo, please consider opening a PR with the necessary changes instead.
       
       You'll find our contributing doc [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md)
+
+      > [!IMPORTANT]
+      > If you are a Microsoft employee please post your question in our [Teams Channel](https://aka.ms/msaljs/teams) instead.
       
 - type: markdown
   attributes:
@@ -22,11 +25,7 @@ body:
     multiple: true
     options: 
       - "MSAL.js (@azure/msal-browser)"
-      - "MSAL.js v1 (@azure/msal or msal)"
       - "MSAL Node (@azure/msal-node)"
-      - "Passport Azure AD (passport-azure-ad)"
-      - "ADAL Node (adal-node)"
-      - "ADAL.js (adal.js)"
 
 - type: dropdown
   attributes:
@@ -36,7 +35,6 @@ body:
       - "MSAL Angular (@azure/msal-angular)"
       - "MSAL React (@azure/msal-react)"
       - "MSAL Node Extensions (@azure/msal-node-extensions)"
-      - "ADAL Angular (adal-angular)"
       - "Not Applicable"
   validations:
     required: true

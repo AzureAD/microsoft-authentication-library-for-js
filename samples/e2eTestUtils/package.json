@@ -6,7 +6,7 @@
     "main": "src/index.ts",
     "dependencies": {
         "@azure/identity": "^4.3.0",
-        "axios": "^1.6.0",
+        "axios": "^1.7.4",
         "dotenv": "^8.2.0",
         "find-process": "^1.4.4"
     },

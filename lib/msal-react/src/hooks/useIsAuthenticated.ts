@@ -4,10 +4,10 @@
  */
 
 import { useMemo } from "react";
-import { useMsal } from "./useMsal";
-import { AccountIdentifiers } from "../types/AccountIdentifiers";
+import { useMsal } from "./useMsal.js";
+import { AccountIdentifiers } from "../types/AccountIdentifiers.js";
 import { AccountInfo, InteractionStatus } from "@azure/msal-browser";
-import { getAccountByIdentifiers } from "../utils/utilities";
+import { getAccountByIdentifiers } from "../utils/utilities.js";
 
 function isAuthenticated(
     allAccounts: AccountInfo[],

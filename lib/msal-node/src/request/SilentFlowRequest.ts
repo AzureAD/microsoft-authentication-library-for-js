@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, CommonSilentFlowRequest } from "@azure/msal-common";
+import { AccountInfo, CommonSilentFlowRequest } from "@azure/msal-common/node";
 
 /**
  * SilentFlow parameters passed by the user to retrieve credentials silently
@@ -19,12 +19,7 @@ import { AccountInfo, CommonSilentFlowRequest } from "@azure/msal-common";
 export type SilentFlowRequest = Partial<
     Omit<
         CommonSilentFlowRequest,
-        | "account"
-        | "scopes"
-        | "resourceRequestMethod"
-        | "resourceRequestUri"
-        | "requestedClaimsHash"
-        | "storeInCache"
+        "account" | "scopes" | "requestedClaimsHash" | "storeInCache"
     >
 > & {
     account: AccountInfo;

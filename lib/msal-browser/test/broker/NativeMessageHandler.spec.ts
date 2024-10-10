@@ -9,32 +9,33 @@ import {
     AuthErrorMessage,
     IPerformanceClient,
 } from "@azure/msal-common";
-import sinon from "sinon";
-import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
-import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src";
-import { NativeExtensionMethod } from "../../src/utils/BrowserConstants";
-import { NativeAuthError } from "../../src/error/NativeAuthError";
-import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
-import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/index.js";
+import { NativeExtensionMethod } from "../../src/utils/BrowserConstants.js";
+import { NativeAuthError } from "../../src/error/NativeAuthError.js";
+import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
+import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 
 let performanceClient: IPerformanceClient;
 
 describe("NativeMessageHandler Tests", () => {
-    let postMessageSpy: sinon.SinonSpy;
+    let postMessageSpy: jest.SpyInstance;
     let mcPort: MessagePort;
     let cryptoInterface: CryptoOps;
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
 
     beforeEach(() => {
-        postMessageSpy = sinon.spy(window, "postMessage");
-        sinon.stub(MessageEvent.prototype, "source").get(() => window); // source property not set by jsdom window messaging APIs
+        postMessageSpy = jest.spyOn(window, "postMessage");
+        jest.spyOn(MessageEvent.prototype, "source", "get").mockReturnValue(
+            window
+        ); // source property not set by jsdom window messaging APIs
         performanceClient = getDefaultPerformanceClient();
         cryptoInterface = new CryptoOps(new Logger({}));
     });
 
     afterEach(() => {
         mcPort.close();
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     describe("createProvider", () => {
@@ -52,7 +53,7 @@ describe("NativeMessageHandler Tests", () => {
                     },
                 };
 
-                mcPort = postMessageSpy.args[0][2][0];
+                mcPort = postMessageSpy.mock.calls[0][2][0];
                 if (!mcPort) {
                     throw new Error("MessageChannel port was not transferred");
                 }
@@ -85,7 +86,7 @@ describe("NativeMessageHandler Tests", () => {
                     },
                 };
 
-                mcPort = postMessageSpy.args[0][2][0];
+                mcPort = postMessageSpy.mock.calls[0][2][0];
                 if (!mcPort) {
                     throw new Error("MessageChannel port was not transferred");
                 }
@@ -138,7 +139,7 @@ describe("NativeMessageHandler Tests", () => {
                     },
                 };
 
-                mcPort = postMessageSpy.args[1][2][0];
+                mcPort = postMessageSpy.mock.calls[1][2][0];
                 if (!mcPort) {
                     throw new Error("MessageChannel port was not transferred");
                 }
@@ -252,7 +253,7 @@ describe("NativeMessageHandler Tests", () => {
                     },
                 };
 
-                mcPort = postMessageSpy.args[0][2][0];
+                mcPort = postMessageSpy.mock.calls[0][2][0];
                 if (!mcPort) {
                     throw new Error("MessageChannel port was not transferred");
                 }
@@ -309,7 +310,7 @@ describe("NativeMessageHandler Tests", () => {
                     },
                 };
 
-                mcPort = postMessageSpy.args[0][2][0];
+                mcPort = postMessageSpy.mock.calls[0][2][0];
                 if (!mcPort) {
                     throw new Error("MessageChannel port was not transferred");
                 }
@@ -375,7 +376,7 @@ describe("NativeMessageHandler Tests", () => {
                     },
                 };
 
-                mcPort = postMessageSpy.args[0][2][0];
+                mcPort = postMessageSpy.mock.calls[0][2][0];
                 if (!mcPort) {
                     throw new Error("MessageChannel port was not transferred");
                 }
@@ -439,7 +440,7 @@ describe("NativeMessageHandler Tests", () => {
                     },
                 };
 
-                mcPort = postMessageSpy.args[0][2][0];
+                mcPort = postMessageSpy.mock.calls[0][2][0];
                 if (!mcPort) {
                     throw new Error("MessageChannel port was not transferred");
                 }

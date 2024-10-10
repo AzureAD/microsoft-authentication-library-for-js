@@ -13,7 +13,7 @@
     "generate:certs": "openssl.exe req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 7 -nodes -subj /CN=localhost"
   },
   "dependencies": {
-    "express": "^4.19.2",
+    "express": "^4.20.0",
     "morgan": "^1.5.2",
     "yargs": "^17.7.2"
   },

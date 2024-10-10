@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "clientSecret can now (once again) be provided as undefined #7209",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}

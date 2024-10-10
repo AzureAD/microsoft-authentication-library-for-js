@@ -3,17 +3,17 @@
  * Licensed under the MIT License.
  */
 
-import { AccountEntity } from "../entities/AccountEntity";
-import { IdTokenEntity } from "../entities/IdTokenEntity";
-import { AccessTokenEntity } from "../entities/AccessTokenEntity";
-import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
-import { AppMetadataEntity } from "../entities/AppMetadataEntity";
-import { ServerTelemetryEntity } from "../entities/ServerTelemetryEntity";
-import { ThrottlingEntity } from "../entities/ThrottlingEntity";
-import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity";
-import { AuthenticationScheme } from "../../utils/Constants";
-import { ScopeSet } from "../../request/ScopeSet";
-import { AccountInfo } from "../../account/AccountInfo";
+import { AccountEntity } from "../entities/AccountEntity.js";
+import { IdTokenEntity } from "../entities/IdTokenEntity.js";
+import { AccessTokenEntity } from "../entities/AccessTokenEntity.js";
+import { RefreshTokenEntity } from "../entities/RefreshTokenEntity.js";
+import { AppMetadataEntity } from "../entities/AppMetadataEntity.js";
+import { ServerTelemetryEntity } from "../entities/ServerTelemetryEntity.js";
+import { ThrottlingEntity } from "../entities/ThrottlingEntity.js";
+import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity.js";
+import { AuthenticationScheme } from "../../utils/Constants.js";
+import { ScopeSet } from "../../request/ScopeSet.js";
+import { AccountInfo } from "../../account/AccountInfo.js";
 
 /** @internal */
 export type AccountCache = Record<string, AccountEntity>;

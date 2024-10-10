@@ -19,18 +19,18 @@ import {
     TokenClaims,
     CacheHelpers,
     buildAccountToCache,
-} from "@azure/msal-common";
-import { BrowserConfiguration } from "../config/Configuration";
-import { SilentRequest } from "../request/SilentRequest";
-import { BrowserCacheManager } from "./BrowserCacheManager";
-import { ITokenCache } from "./ITokenCache";
+} from "@azure/msal-common/browser";
+import { BrowserConfiguration } from "../config/Configuration.js";
+import { SilentRequest } from "../request/SilentRequest.js";
+import { BrowserCacheManager } from "./BrowserCacheManager.js";
+import { ITokenCache } from "./ITokenCache.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../error/BrowserAuthError";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { base64Decode } from "../encode/Base64Decode";
-import * as BrowserCrypto from "../crypto/BrowserCrypto";
+} from "../error/BrowserAuthError.js";
+import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { base64Decode } from "../encode/Base64Decode.js";
+import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 
 export type LoadTokenOptions = {
     clientInfo?: string;
