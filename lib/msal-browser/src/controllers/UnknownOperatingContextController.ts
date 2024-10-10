@@ -37,9 +37,9 @@ import {
     blockAPICallsBeforeInitialize,
     blockNonBrowserEnvironment,
 } from "../utils/BrowserUtils.js";
-import { EventHandler } from "../event/EventHandler.js";
 import { EventCallbackFunction } from "../event/EventMessage.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
+import { EventType } from "../event/EventType.js";
 
 /**
  * UnknownOperatingContextController class
@@ -80,8 +80,6 @@ export class UnknownOperatingContextController implements IController {
     // Flag representing whether or not the initialize API has been called and completed
     protected initialized: boolean = false;
 
-    protected readonly eventHandler: EventHandler;
-
     constructor(operatingContext: UnknownOperatingContext) {
         this.operatingContext = operatingContext;
 
@@ -114,15 +112,9 @@ export class UnknownOperatingContextController implements IController {
                   this.config.auth.clientId,
                   this.logger
               );
-
-        this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
     }
     getBrowserStorage(): BrowserCacheManager {
         return this.browserStorage;
-    }
-
-    getEventHandler(): EventHandler {
-        return this.eventHandler;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -210,12 +202,18 @@ export class UnknownOperatingContextController implements IController {
         blockNonBrowserEnvironment();
         return {} as Promise<AuthenticationResult>;
     }
-    addEventCallback(callback: EventCallbackFunction): string | null {
-        return this.eventHandler.addEventCallback(callback);
+    addEventCallback(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        callback: EventCallbackFunction,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        eventTypes?: Array<EventType>
+    ): string | null {
+        return null;
     }
-    removeEventCallback(callbackId: string): void {
-        this.eventHandler.removeEventCallback(callbackId);
-    }
+    removeEventCallback(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        callbackId: string
+    ): void {}
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
         blockAPICallsBeforeInitialize(this.initialized);

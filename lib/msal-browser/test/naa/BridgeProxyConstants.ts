@@ -3,19 +3,20 @@
  * Licensed under the MIT License.
  */
 
-import { PopupRequest, RedirectRequest } from "../../src";
-import { AccountInfo } from "../../src/naa/AccountInfo";
-import { AuthResult } from "../../src/naa/AuthResult";
-import { BridgeError } from "../../src/naa/BridgeError";
-import { BridgeStatusCode } from "../../src/naa/BridgeStatusCode";
-import { InitContext } from "../../src/naa/InitContext";
+import { PopupRequest, RedirectRequest } from "../../src/index.js";
+import { AccountInfo } from "../../src/naa/AccountInfo.js";
+import { AuthResult } from "../../src/naa/AuthResult.js";
+import { BridgeError } from "../../src/naa/BridgeError.js";
+import { BridgeStatusCode } from "../../src/naa/BridgeStatusCode.js";
+import { InitContext } from "../../src/naa/InitContext.js";
 
-import { TokenRequest } from "../../src/naa/TokenRequest";
-import { TEST_TOKENS } from "../utils/StringConstants";
+import { TokenRequest } from "../../src/naa/TokenRequest.js";
+import { TEST_TOKENS } from "../utils/StringConstants.js";
 
 export const NAA_CLIENT_ID: string = "clientid";
 export const NAA_SCOPE: string = "User.Read";
 export const NAA_CORRELATION_ID: string = "1234";
+export const NAA_AUTHORITY: string = "https://login.microsoftonline.com/common";
 export const NAA_CLIENT_CAPABILITIES: string[] = [];
 export const INIT_CONTEXT_RESPONSE: InitContext = {
     sdkName: "test",
@@ -29,13 +30,13 @@ export const INIT_CONTEXT_RESPONSE: InitContext = {
 };
 
 export const POPUP_REQUEST: PopupRequest = {
-    authority: "https://login.microsoftonline.com/common",
+    authority: NAA_AUTHORITY,
     scopes: [NAA_SCOPE],
     correlationId: NAA_CORRELATION_ID,
 };
 
 export const REDIRECT_REQUEST: RedirectRequest = {
-    authority: "https://login.microsoftonline.com/common",
+    authority: NAA_AUTHORITY,
     scopes: [NAA_SCOPE],
     correlationId: NAA_CORRELATION_ID,
 };
@@ -73,6 +74,32 @@ export const SILENT_TOKEN_RESPONSE: AuthResult = {
         name: "Adele Vance",
         tenantId: "51178b70-16cc-41b5-bef1-ae1808139065",
         username: "AdeleV@vc6w6.onmicrosoft.com",
+    },
+};
+
+export const NAA_APP_CONSTANTS = {
+    homeAccountId:
+        "2995ae49-d9dd-409d-8d62-ba969ce58a81.51178b70-16cc-41b5-bef1-ae1808139065",
+    localAccountId: "2995ae49-d9dd-409d-8d62-ba969ce58a81",
+    environment: "login.microsoftonline.com",
+    tenantId: "51178b70-16cc-41b5-bef1-ae1808139065",
+    username: "AdeleV@vc6w6.onmicrosoft.com",
+    idTokenClaims: {
+        aud: "a076930c-cfc9-4ebd-9607-7963bccbf666",
+        exp: "1680557128",
+        graph_url: "https://graph.microsoft.com",
+        iat: "1680553228",
+        iss: "https://login.microsoftonline.com/51178b70-16cc-41b5-bef1-ae1808139065/v2.0",
+        name: "Adele Vance",
+        nbf: "1680553228",
+        oid: "2995ae49-d9dd-409d-8d62-ba969ce58a81",
+        preferred_username: "AdeleV@vc6w6.onmicrosoft.com",
+        rh: "0.AX0AcIsXUcwWtUG-8a4YCBOQZQyTdqDJz71Olgd5Y7zL9maaAHs.",
+        sovereignty2: "Global",
+        sub: "wtxUI1WD2C--Bl8vN1p-P-VgadGud8QSqXD4Vp5i9sc",
+        tid: "51178b70-16cc-41b5-bef1-ae1808139065",
+        uti: "39pEKQyYDU6SXjD_phaCAA",
+        ver: "2.0",
     },
 };
 
