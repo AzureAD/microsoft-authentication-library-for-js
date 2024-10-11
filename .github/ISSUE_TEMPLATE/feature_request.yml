@@ -2,17 +2,20 @@ name: Feature request
 description: Suggest a feature for one of our libraries.
 labels: [feature-unconfirmed, question]
 body:
+- type: markdown
+  attributes:
+    value: |
+      ## Before Submitting your Issue
+      > [!IMPORTANT]
+      > If you are a Microsoft employee please submit your feature request in our [Teams Channel](https://aka.ms/msaljs/teams) instead.
+      
 - type: dropdown
   attributes:
     label: Core Library
     multiple: true
     options: 
       - "MSAL.js (@azure/msal-browser)"
-      - "MSAL.js v1 (@azure/msal or msal)"
       - "MSAL Node (@azure/msal-node)"
-      - "Passport Azure AD (passport-azure-ad)"
-      - "ADAL Node (adal-node)"
-      - "ADAL.js (adal.js)"
   validations:
     required: true
 
@@ -24,7 +27,6 @@ body:
       - "MSAL Angular (@azure/msal-angular)"
       - "MSAL React (@azure/msal-react)"
       - "MSAL Node Extensions (@azure/msal-node-extensions)"
-      - "ADAL Angular (adal-angular)"
       - "Not Applicable"
   validations:
     required: true
@@ -46,13 +48,3 @@ body:
     description: "Please briefly describe the feature you are requesting."
   validations: 
     required: true
-
-- type: dropdown
-  attributes:
-    label: Source
-    description: "Are you an internal or external customer?"
-    options: 
-      - Internal (Microsoft)
-      - External (Customer)
-  validations: 
-     required: true

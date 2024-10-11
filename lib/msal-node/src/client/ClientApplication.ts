@@ -612,6 +612,6 @@ export abstract class ClientApplication {
      * Clear the cache
      */
     clearCache(): void {
-        void this.storage.clear();
+        this.storage.clear();
     }
 }

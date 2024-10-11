@@ -30,6 +30,7 @@ import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { UnknownOperatingContextController } from "../controllers/UnknownOperatingContextController.js";
 import { UnknownOperatingContext } from "../operatingcontext/UnknownOperatingContext.js";
+import { EventType } from "../event/EventType.js";
 
 /**
  * PublicClientNext is an early look at the planned implementation of PublicClientApplication in the next major version of MSAL.js.
@@ -176,8 +177,11 @@ export class PublicClientNext implements IPublicClientApplication {
      * Adds event callbacks to array
      * @param callback
      */
-    addEventCallback(callback: EventCallbackFunction): string | null {
-        return this.controller.addEventCallback(callback);
+    addEventCallback(
+        callback: EventCallbackFunction,
+        eventTypes?: Array<EventType>
+    ): string | null {
+        return this.controller.addEventCallback(callback, eventTypes);
     }
 
     /**
