@@ -104,6 +104,7 @@ export type NodeSystemOptions = {
     disableInternalRetries?: boolean;
 };
 
+/** @public */
 export type NodeTelemetryOptions = {
     application?: ApplicationTelemetry;
 };
@@ -126,12 +127,14 @@ export type Configuration = {
     telemetry?: NodeTelemetryOptions;
 };
 
+/** @public */
 export type ManagedIdentityIdParams = {
     userAssignedClientId?: string;
     userAssignedResourceId?: string;
     userAssignedObjectId?: string;
 };
 
+/** @public */
 export type ManagedIdentityConfiguration = {
     managedIdentityIdParams?: ManagedIdentityIdParams;
     system?: NodeSystemOptions;
@@ -207,7 +210,7 @@ export type NodeConfiguration = {
  * @returns Configuration
  * @internal
  */
-export function buildAppConfiguration({
+export function _buildAppConfiguration({
     auth,
     broker,
     cache,
@@ -242,6 +245,7 @@ export function buildAppConfiguration({
     };
 }
 
+/** @internal */
 export type ManagedIdentityNodeConfiguration = {
     managedIdentityId: ManagedIdentityId;
     system: Required<

@@ -37,6 +37,7 @@ import { EncodingUtils } from "../utils/EncodingUtils.js";
 
 /**
  * On-Behalf-Of client
+ * @public
  */
 export class OnBehalfOfClient extends BaseClient {
     private scopeSet: ScopeSet;
@@ -48,7 +49,7 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * Public API to acquire tokens with on behalf of flow
-     * @param request
+     * @param request - developer provided CommonOnBehalfOfRequest
      */
     public async acquireToken(
         request: CommonOnBehalfOfRequest

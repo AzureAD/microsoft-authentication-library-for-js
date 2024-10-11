@@ -42,6 +42,7 @@ import {
 
 /**
  * OAuth2.0 client credential grant
+ * @public
  */
 export class ClientCredentialClient extends BaseClient {
     private readonly appTokenProvider?: IAppTokenProvider;
@@ -56,7 +57,7 @@ export class ClientCredentialClient extends BaseClient {
 
     /**
      * Public API to acquire a token with ClientCredential Flow for Confidential clients
-     * @param request
+     * @param request - CommonClientCredentialRequest provided by the developer
      */
     public async acquireToken(
         request: CommonClientCredentialRequest

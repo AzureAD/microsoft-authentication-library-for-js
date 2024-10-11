@@ -27,6 +27,7 @@ import {
 
 /**
  * OAuth2.0 Device code client
+ * @public
  */
 export class DeviceCodeClient extends BaseClient {
     constructor(configuration: ClientConfiguration) {
@@ -36,7 +37,7 @@ export class DeviceCodeClient extends BaseClient {
     /**
      * Gets device code from device code endpoint, calls back to with device code response, and
      * polls token endpoint to exchange device code for tokens
-     * @param request
+     * @param request - developer provided CommonDeviceCodeRequest
      */
     public async acquireToken(
         request: CommonDeviceCodeRequest
@@ -70,7 +71,7 @@ export class DeviceCodeClient extends BaseClient {
 
     /**
      * Creates device code request and executes http GET
-     * @param request
+     * @param request - developer provided CommonDeviceCodeRequest
      */
     private async getDeviceCode(
         request: CommonDeviceCodeRequest
@@ -104,9 +105,11 @@ export class DeviceCodeClient extends BaseClient {
 
     /**
      * Creates query string for the device code request
-     * @param request
+     * @param request - developer provided CommonDeviceCodeRequest
      */
-    createExtraQueryParameters(request: CommonDeviceCodeRequest): string {
+    public createExtraQueryParameters(
+        request: CommonDeviceCodeRequest
+    ): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         if (request.extraQueryParameters) {
@@ -123,6 +126,7 @@ export class DeviceCodeClient extends BaseClient {
      * @param deviceCodeEndpoint
      * @param queryString
      * @param headers
+     * @param thumbprint
      */
     private async executePostRequestToDeviceCodeEndpoint(
         deviceCodeEndpoint: string,
@@ -160,6 +164,7 @@ export class DeviceCodeClient extends BaseClient {
 
     /**
      * Create device code endpoint query parameters and returns string
+     * @param request - developer provided CommonDeviceCodeRequest
      */
     private createQueryString(request: CommonDeviceCodeRequest): string {
         const parameterBuilder: RequestParameterBuilder =
@@ -189,9 +194,10 @@ export class DeviceCodeClient extends BaseClient {
     }
 
     /**
-     * Breaks the polling with specific conditions.
-     * @param request CommonDeviceCodeRequest
-     * @param deviceCodeResponse DeviceCodeResponse
+     * Breaks the polling with specific conditions
+     * @param deviceCodeExpirationTime
+     * @param userSpecifiedTimeout
+     * @param userSpecifiedCancelFlag
      */
     private continuePolling(
         deviceCodeExpirationTime: number,
@@ -231,10 +237,9 @@ export class DeviceCodeClient extends BaseClient {
     }
 
     /**
-     * Creates token request with device code response and polls token endpoint at interval set by the device code
-     * response
-     * @param request
-     * @param deviceCodeResponse
+     * Creates token request with device code response and polls token endpoint at interval set by the device code response
+     * @param request - developer provided CommonDeviceCodeRequest
+     * @param deviceCodeResponse - DeviceCodeResponse returned by the security token service device code endpoint
      */
     private async acquireTokenWithDeviceCode(
         request: CommonDeviceCodeRequest,
@@ -326,8 +331,8 @@ export class DeviceCodeClient extends BaseClient {
 
     /**
      * Creates query parameters and converts to string.
-     * @param request
-     * @param deviceCodeResponse
+     * @param request - developer provided CommonDeviceCodeRequest
+     * @param deviceCodeResponse - DeviceCodeResponse returned by the security token service device code endpoint
      */
     private createTokenRequestBody(
         request: CommonDeviceCodeRequest,

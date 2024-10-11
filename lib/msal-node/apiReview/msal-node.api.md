@@ -122,12 +122,6 @@ export type BrokerOptions = {
     nativeBrokerPlugin?: INativeBrokerPlugin;
 };
 
-// Warning: (ae-forgotten-export) The symbol "NodeConfiguration" needs to be exported by the entry point index.d.ts
-// Warning: (ae-internal-missing-underscore) The name "buildAppConfiguration" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function buildAppConfiguration({ auth, broker, cache, system, telemetry, }: Configuration): NodeConfiguration;
-
 // @public
 export type CacheKVStore = Record<string, ValidCacheType>;
 
@@ -148,6 +142,7 @@ export abstract class ClientApplication {
     clearCache(): void;
     protected clientAssertion: ClientAssertion;
     protected clientSecret: string;
+    // Warning: (ae-forgotten-export) The symbol "NodeConfiguration" needs to be exported by the entry point index.d.ts
     protected config: NodeConfiguration;
     // (undocumented)
     protected readonly cryptoProvider: CryptoProvider;
@@ -161,8 +156,6 @@ export abstract class ClientApplication {
     protected logger: Logger;
     setLogger(logger: Logger): void;
     protected storage: NodeStorage;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     protected validateState(state: string, cachedState: string): void;
 }
 
@@ -190,12 +183,9 @@ export { ClientConfigurationErrorCodes }
 
 export { ClientConfigurationErrorMessage }
 
-// Warning: (ae-missing-release-tag) "ClientCredentialClient" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export class ClientCredentialClient extends BaseClient {
     constructor(configuration: ClientConfiguration, appTokenProvider?: IAppTokenProvider);
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     acquireToken(request: CommonClientCredentialRequest): Promise<AuthenticationResult | null>;
     getCachedAuthenticationResult(request: CommonClientCredentialRequest, config: ClientConfiguration | ManagedIdentityConfiguration, cryptoUtils: ICrypto, authority: Authority, cacheManager: CacheManager, serverTelemetryManager?: ServerTelemetryManager | null): Promise<[AuthenticationResult | null, CacheOutcome]>;
 }
@@ -230,44 +220,29 @@ export class CryptoProvider implements ICrypto {
     base64UrlEncode(): string;
     clearKeystore(): Promise<boolean>;
     createNewGuid(): string;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     encodeKid(): string;
     generatePkceCodes(): Promise<PkceCodes>;
     getPublicKeyThumbprint(): Promise<string>;
     hashString(plainText: string): Promise<string>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     removeTokenBindingKey(): Promise<boolean>;
     signJwt(): Promise<string>;
 }
 
-// Warning: (ae-missing-release-tag) "Deserializer" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
+// @internal
 class Deserializer {
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static deserializeAccessTokens(accessTokens: Record<string, SerializedAccessTokenEntity>): AccessTokenCache;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static deserializeAccounts(accounts: Record<string, SerializedAccountEntity>): AccountCache;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static deserializeAllCache(jsonCache: JsonCache): InMemoryCache;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static deserializeAppMetadata(appMetadata: Record<string, SerializedAppMetadataEntity>): AppMetadataCache;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static deserializeIdTokens(idTokens: Record<string, SerializedIdTokenEntity>): IdTokenCache;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static deserializeJSONBlob(jsonFile: string): JsonCache;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static deserializeRefreshTokens(refreshTokens: Record<string, SerializedRefreshTokenEntity>): RefreshTokenCache;
 }
 
-// Warning: (ae-missing-release-tag) "DeviceCodeClient" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export class DeviceCodeClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     acquireToken(request: CommonDeviceCodeRequest): Promise<AuthenticationResult | null>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     createExtraQueryParameters(request: CommonDeviceCodeRequest): string;
 }
 
@@ -277,27 +252,18 @@ export type DeviceCodeRequest = Partial<Omit<CommonDeviceCodeRequest, "scopes" |
     deviceCodeCallback: (response: DeviceCodeResponse) => void;
 };
 
-// Warning: (ae-missing-release-tag) "DistributedCachePlugin" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 export class DistributedCachePlugin implements ICachePlugin {
     constructor(client: ICacheClient, partitionManager: IPartitionManager);
-    // (undocumented)
     afterCacheAccess(cacheContext: TokenCacheContext): Promise<void>;
-    // (undocumented)
     beforeCacheAccess(cacheContext: TokenCacheContext): Promise<void>;
 }
 
 export { IAppTokenProvider }
 
-// Warning: (ae-missing-release-tag) "ICacheClient" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 export interface ICacheClient {
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     get(key: string): Promise<string>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     set(key: string, value: string): Promise<string>;
 }
 
@@ -368,11 +334,8 @@ declare namespace internals {
 }
 export { internals }
 
-// Warning: (ae-missing-release-tag) "IPartitionManager" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @public
 export interface IPartitionManager {
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     extractKey(accountEntity: AccountEntity): Promise<string>;
     getKey(): Promise<string>;
 }
@@ -424,16 +387,12 @@ export class ManagedIdentityApplication {
     getManagedIdentitySource(): ManagedIdentitySourceNames;
 }
 
-// Warning: (ae-missing-release-tag) "ManagedIdentityConfiguration" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
 export type ManagedIdentityConfiguration = {
     managedIdentityIdParams?: ManagedIdentityIdParams;
     system?: NodeSystemOptions;
 };
 
-// Warning: (ae-missing-release-tag) "ManagedIdentityIdParams" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
 export type ManagedIdentityIdParams = {
     userAssignedClientId?: string;
@@ -441,12 +400,6 @@ export type ManagedIdentityIdParams = {
     userAssignedObjectId?: string;
 };
 
-// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// Warning: (ae-missing-release-tag) "ManagedIdentityRequestParams" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export type ManagedIdentityRequestParams = {
     claims?: string;
@@ -509,7 +462,6 @@ export class NodeStorage extends CacheManager {
     getAuthorityMetadata(key: string): AuthorityMetadataEntity | null;
     getAuthorityMetadataKeys(): Array<string>;
     getCache(): CacheKVStore;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     getCachedAccountEntity(accountKey: string): AccountEntity | null;
     getIdTokenCredential(idTokenKey: string): IdTokenEntity | null;
     getInMemoryCache(): InMemoryCache;
@@ -523,7 +475,6 @@ export class NodeStorage extends CacheManager {
     inMemoryCacheToCache(inMemoryCache: InMemoryCache): CacheKVStore;
     registerChangeEmitter(func: () => void): void;
     removeItem(key: string): boolean;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     removeOutdatedAccount(accountKey: string): void;
     setAccessTokenCredential(accessToken: AccessTokenEntity): void;
     setAccount(account: AccountEntity): void;
@@ -548,19 +499,14 @@ export type NodeSystemOptions = {
     disableInternalRetries?: boolean;
 };
 
-// Warning: (ae-missing-release-tag) "NodeTelemetryOptions" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
 export type NodeTelemetryOptions = {
     application?: ApplicationTelemetry;
 };
 
-// Warning: (ae-missing-release-tag) "OnBehalfOfClient" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export class OnBehalfOfClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     acquireToken(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult | null>;
 }
 
@@ -579,10 +525,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     constructor(configuration: Configuration);
     acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
     acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult>;
     getAllAccounts(): Promise<AccountInfo[]>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     signOut(request: SignOutRequest): Promise<void>;
 }
 
@@ -659,23 +603,14 @@ export type SerializedRefreshTokenEntity = {
     realm?: string;
 };
 
-// Warning: (ae-missing-release-tag) "Serializer" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
+// @internal
 class Serializer {
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static serializeAccessTokens(atCache: AccessTokenCache): Record<string, SerializedAccessTokenEntity>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static serializeAccounts(accCache: AccountCache): Record<string, SerializedAccountEntity>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static serializeAllCache(inMemCache: InMemoryCache): JsonCache;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static serializeAppMetadata(amdtCache: AppMetadataCache): Record<string, SerializedAppMetadataEntity>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static serializeIdTokens(idTCache: IdTokenCache): Record<string, SerializedIdTokenEntity>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static serializeJSONBlob(data: JsonCache): string;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static serializeRefreshTokens(rtCache: RefreshTokenCache): Record<string, SerializedRefreshTokenEntity>;
 }
 
@@ -737,28 +672,25 @@ export const version = "2.15.0";
 
 // Warnings were encountered during analysis:
 //
-// src/client/ClientCredentialClient.ts:235:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/ClientCredentialClient.ts:236:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/ClientCredentialClient.ts:333:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/DeviceCodeClient.ts:73:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/DeviceCodeClient.ts:123:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/DeviceCodeClient.ts:124:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/DeviceCodeClient.ts:125:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/DeviceCodeClient.ts:193:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/DeviceCodeClient.ts:194:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/DeviceCodeClient.ts:236:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/DeviceCodeClient.ts:237:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/DeviceCodeClient.ts:329:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/DeviceCodeClient.ts:330:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/OnBehalfOfClient.ts:89:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/OnBehalfOfClient.ts:175:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/OnBehalfOfClient.ts:175:31 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-// src/client/OnBehalfOfClient.ts:201:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/ClientCredentialClient.ts:237:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/ClientCredentialClient.ts:334:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/DeviceCodeClient.ts:126:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/DeviceCodeClient.ts:127:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/DeviceCodeClient.ts:128:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/DeviceCodeClient.ts:129:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/DeviceCodeClient.ts:198:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/DeviceCodeClient.ts:199:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/DeviceCodeClient.ts:200:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/OnBehalfOfClient.ts:90:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/OnBehalfOfClient.ts:176:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/OnBehalfOfClient.ts:176:31 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
 // src/client/OnBehalfOfClient.ts:202:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/OnBehalfOfClient.ts:203:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/OnBehalfOfClient.ts:249:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/OnBehalfOfClient.ts:204:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/OnBehalfOfClient.ts:250:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/OnBehalfOfClient.ts:310:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/OnBehalfOfClient.ts:251:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/OnBehalfOfClient.ts:311:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/PublicClientApplication.ts:310:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/UsernamePasswordClient.ts:74:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/UsernamePasswordClient.ts:75:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
