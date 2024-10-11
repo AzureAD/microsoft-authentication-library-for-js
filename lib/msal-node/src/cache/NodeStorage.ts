@@ -490,7 +490,7 @@ export class NodeStorage extends CacheManager {
     /**
      * Clears all cache entries created by MSAL (except tokens).
      */
-    async clear(): Promise<void> {
+    clear(): void {
         this.logger.trace("Clearing cache entries created by MSAL");
 
         // read inMemoryCache
