@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1728595241383,
+  "lastUpdate": 1728664656754,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12764,6 +12764,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.08%",
             "unit": "ops/sec",
             "extra": "206 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shylasummers@users.noreply.github.com",
+            "name": "shylasummers",
+            "username": "shylasummers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f0c5f0250741cfd673538ce51c19a345fdf9be75",
+          "message": "Make clear synchronous in msal-node (#7364)\n\nCurrently,\r\n[ClientApplication.clearCache](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/src/client/ClientApplication.ts#L615)\r\nis synchronous even though it calls\r\n[NodeStorage.clear](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/src/cache/NodeStorage.ts#L493-L504),\r\nan asynchronous function. Since `clear` does not contain any\r\nasynchronous elements, this PR:\r\n\r\n- Relabels `clear` as a synchronous function\r\n- Removes `async clear` from CacheManager (since clear is msal-browser\r\nshould be kept asynchronous)",
+          "timestamp": "2024-10-11T09:31:53-07:00",
+          "tree_id": "9133b5e26bc24f6ea8f681a2a057f4d83114a398",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/f0c5f0250741cfd673538ce51c19a345fdf9be75"
+        },
+        "date": 1728664655304,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 229953,
+            "range": "±1.25%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 191598,
+            "range": "±2.00%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
           }
         ]
       }
