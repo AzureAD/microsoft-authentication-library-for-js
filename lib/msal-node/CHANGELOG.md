@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Thu, 19 Sep 2024 23:48:30 GMT and should not be manually modified.
+This log was last generated on Thu, 03 Oct 2024 00:40:42 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.15.0
+
+Thu, 03 Oct 2024 00:40:42 GMT
+
+### Minor changes
+
+- Implemented functionality to skip the cache for MI when claims are provided #7207 (rginsburg@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Allow POP Params for brokered requests (thomas.norling@microsoft.com)
 
 ## 2.14.0
 
