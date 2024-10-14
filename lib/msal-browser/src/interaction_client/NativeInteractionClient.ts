@@ -75,7 +75,6 @@ import { SilentCacheClient } from "./SilentCacheClient.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import { version } from "../packageMetadata.js";
-import * as BrowserUtils from "../utils/BrowserUtils.js";
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
