@@ -75,6 +75,7 @@ import { SilentCacheClient } from "./SilentCacheClient.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import { version } from "../packageMetadata.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -1059,7 +1060,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const child_redirect_uri = request.redirectUri;
 
         if (request.embeddedClientId) {
-            request.redirectUri = this.config.auth.redirectUri;
+            request.redirectUri =
+                this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
             child_client_id = request.embeddedClientId;
         } else if (request.extraParameters) {
             request.redirectUri =
