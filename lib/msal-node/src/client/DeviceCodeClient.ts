@@ -123,10 +123,10 @@ export class DeviceCodeClient extends BaseClient {
 
     /**
      * Executes POST request to device code endpoint
-     * @param deviceCodeEndpoint
-     * @param queryString
-     * @param headers
-     * @param thumbprint
+     * @param deviceCodeEndpoint - token endpoint
+     * @param queryString - string to be used in the body of the request
+     * @param headers - headers for the request
+     * @param thumbprint - unique request thumbprint
      */
     private async executePostRequestToDeviceCodeEndpoint(
         deviceCodeEndpoint: string,
@@ -195,9 +195,9 @@ export class DeviceCodeClient extends BaseClient {
 
     /**
      * Breaks the polling with specific conditions
-     * @param deviceCodeExpirationTime
-     * @param userSpecifiedTimeout
-     * @param userSpecifiedCancelFlag
+     * @param deviceCodeExpirationTime - expiration time for the device code request
+     * @param userSpecifiedTimeout - developer provided timeout, to be compared against deviceCodeExpirationTime
+     * @param userSpecifiedCancelFlag - boolean indicating the developer would like to cancel the request
      */
     private continuePolling(
         deviceCodeExpirationTime: number,

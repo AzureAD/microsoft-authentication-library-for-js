@@ -233,8 +233,8 @@ export class ClientCredentialClient extends BaseClient {
 
     /**
      * Makes a network call to request the token from the service
-     * @param request
-     * @param authority
+     * @param request - CommonClientCredentialRequest provided by the developer
+     * @param authority - authority object
      */
     private async executeTokenRequest(
         request: CommonClientCredentialRequest,
@@ -331,7 +331,7 @@ export class ClientCredentialClient extends BaseClient {
 
     /**
      * generate the request to the server in the acceptable format
-     * @param request
+     * @param request - CommonClientCredentialRequest provided by the developer
      */
     private async createTokenRequestBody(
         request: CommonClientCredentialRequest

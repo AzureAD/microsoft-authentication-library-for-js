@@ -618,8 +618,6 @@ export { ServerAuthorizationCodeResponse }
 
 export { ServerError }
 
-// Warning: (ae-missing-release-tag) "SignOutRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public (undocumented)
 export type SignOutRequest = {
     account: AccountInfo;
@@ -647,12 +645,9 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
 
 export { TokenCacheContext }
 
-// Warning: (ae-missing-release-tag) "UsernamePasswordClient" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
 export class UsernamePasswordClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     acquireToken(request: CommonUsernamePasswordRequest): Promise<AuthenticationResult | null>;
 }
 
@@ -672,29 +667,6 @@ export const version = "2.15.0";
 
 // Warnings were encountered during analysis:
 //
-// src/client/ClientCredentialClient.ts:236:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/ClientCredentialClient.ts:237:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/ClientCredentialClient.ts:334:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/DeviceCodeClient.ts:126:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/DeviceCodeClient.ts:127:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/DeviceCodeClient.ts:128:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/DeviceCodeClient.ts:129:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/DeviceCodeClient.ts:198:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/DeviceCodeClient.ts:199:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/DeviceCodeClient.ts:200:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/OnBehalfOfClient.ts:90:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/OnBehalfOfClient.ts:176:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/OnBehalfOfClient.ts:176:31 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-// src/client/OnBehalfOfClient.ts:202:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/OnBehalfOfClient.ts:203:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/OnBehalfOfClient.ts:204:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/OnBehalfOfClient.ts:250:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/OnBehalfOfClient.ts:251:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/OnBehalfOfClient.ts:311:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/PublicClientApplication.ts:310:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/UsernamePasswordClient.ts:74:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/UsernamePasswordClient.ts:75:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/UsernamePasswordClient.ts:114:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
 // src/index.ts:8:4 - (tsdoc-undefined-tag) The TSDoc tag "@module" is not defined in this configuration
 

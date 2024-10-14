@@ -307,7 +307,7 @@ export class PublicClientApplication
 
     /**
      * Attempts to retrieve the redirectUri from the loopback server. If the loopback server does not start listening for requests within the timeout this will throw.
-     * @param loopbackClient
+     * @param loopbackClient - developer provided custom loopback server implementation
      * @returns
      */
     private async waitForRedirectUri(
