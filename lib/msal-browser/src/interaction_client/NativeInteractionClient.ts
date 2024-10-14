@@ -1060,8 +1060,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const child_redirect_uri = request.redirectUri;
 
         if (request.embeddedClientId) {
-            request.redirectUri =
-                this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
+            request.redirectUri = this.config.auth.redirectUri;
             child_client_id = request.embeddedClientId;
         } else if (request.extraParameters) {
             request.redirectUri =
