@@ -2,6 +2,39 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 15 Oct 2024 14:34:01 GMT",
+      "version": "2.16.0",
+      "tag": "@azure/msal-node_v2.16.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "f0c5f0250741cfd673538ce51c19a345fdf9be75",
+            "comment": "Make clear synchronous"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v14.16.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 08 Oct 2024 16:51:05 GMT",
       "version": "2.15.0",
       "tag": "@azure/msal-node_v2.15.0",

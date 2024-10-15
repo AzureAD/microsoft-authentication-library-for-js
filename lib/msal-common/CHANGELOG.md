@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Thu, 19 Sep 2024 23:48:30 GMT and should not be manually modified.
+This log was last generated on Tue, 15 Oct 2024 14:34:01 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.16.0
+
+Tue, 15 Oct 2024 14:34:01 GMT
+
+### Minor changes
+
+- Make clear synchronous for msal.node (shylasummers@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 14.15.0
 
