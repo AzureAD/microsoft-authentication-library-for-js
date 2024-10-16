@@ -32,16 +32,19 @@ var request = {
     scopes: ["User.Read"],
 };
 
-msalInstance.acquireTokenSilent(request).then(tokenResponse => {
-    // Do something with the tokenResponse
-}).catch(async (error) => {
-    if (error instanceof InteractionRequiredAuthError) {
-        // fallback to interaction when silent call fails
-        return msalInstance.acquireTokenPopup(request);
-    }
+msalInstance
+    .acquireTokenSilent(request)
+    .then((tokenResponse) => {
+        // Do something with the tokenResponse
+    })
+    .catch(async (error) => {
+        if (error instanceof InteractionRequiredAuthError) {
+            // fallback to interaction when silent call fails
+            return msalInstance.acquireTokenPopup(request);
+        }
 
-    // handle other errors
-})
+        // handle other errors
+    });
 ```
 
 #### Redirect
@@ -51,17 +54,43 @@ var request = {
     scopes: ["User.Read"],
 };
 
-msalInstance.acquireTokenSilent(request).then(tokenResponse => {
-    // Do something with the tokenResponse
-}).catch(error => {
-    if (error instanceof InteractionRequiredAuthError) {
-        // fallback to interaction when silent call fails
-        return msalInstance.acquireTokenRedirect(request)
-    }
+msalInstance
+    .acquireTokenSilent(request)
+    .then((tokenResponse) => {
+        // Do something with the tokenResponse
+    })
+    .catch((error) => {
+        if (error instanceof InteractionRequiredAuthError) {
+            // fallback to interaction when silent call fails
+            return msalInstance.acquireTokenRedirect(request);
+        }
 
-    // handle other errors
-});
+        // handle other errors
+    });
 ```
+
+Note: If you are using `msal-angular` or `msal-react`, redirects are handled differently, and you should see the [`msal-angular` redirect doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/redirects.md) and [`msal-react` FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/FAQ.md#how-do-i-handle-the-redirect-flow-in-a-react-app) for more details.
+
+The redirect APIs are asynchronous (i.e. return a promise) `void` functions which redirect the browser window after caching some basic info. If you choose to use the redirect APIs, be aware that **you MUST call `handleRedirectPromise()` to correctly handle the API**. You can use the following function to perform an action when this token exchange is completed:
+
+```javascript
+msalInstance
+    .handleRedirectPromise()
+    .then((tokenResponse) => {
+        // Check if the tokenResponse is null
+        // If the tokenResponse !== null, then you are coming back from a successful authentication redirect.
+        // If the tokenResponse === null, you are not coming back from an auth redirect.
+    })
+    .catch((error) => {
+        // handle error, either in the library or coming back from the server
+    });
+```
+
+This will also allow you to retrieve tokens on page reload. See the [onPageLoad sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0/app/onPageLoad/) for more information on usage.
+
+It is not recommended to use both interaction types in a single application.
+
+**Note:** `handleRedirectPromise` will optionally accept a hash value to be processed, defaulting to the current value of `window.location.hash`. This parameter only needs to be provided in scenarios where the current value of `window.location.hash` does not contain the redirect response that needs to be processed. **For almost all scenarios, applications should not need to provide this parameter explicitly.**
 
 ## Using the Access Token
 
@@ -109,8 +138,8 @@ You can only request access tokens for one resource at a time (see [resources an
 
 ## Next Steps
 
-- [Token lifetimes, expiration and renewal](./token-lifetimes.md).
-- [Caching in MSAL](./caching.md)
-- [Handling errors](./errors.md)
-- [Working with B2C](./working-with-b2c.md)
-- [Throttling](../../msal-common/docs/Throttling.md)
+-   [Token lifetimes, expiration and renewal](./token-lifetimes.md).
+-   [Caching in MSAL](./caching.md)
+-   [Handling errors](./errors.md)
+-   [Working with B2C](./working-with-b2c.md)
+-   [Throttling](../../msal-common/docs/Throttling.md)
