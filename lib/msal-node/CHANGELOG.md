@@ -1,19 +1,8 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 15 Oct 2024 14:34:01 GMT and should not be manually modified.
+This log was last generated on Thu, 03 Oct 2024 00:40:42 GMT and should not be manually modified.
 
 <!-- Start content -->
-
-## 2.16.0
-
-Tue, 15 Oct 2024 14:34:01 GMT
-
-### Minor changes
-
-- Make clear synchronous (shylasummers@microsoft.com)
-- Bump @azure/msal-common to v14.16.0
-- Bump eslint-config-msal to v0.0.0
-- Bump rollup-msal to v0.0.0
 
 ## 2.15.0
 
