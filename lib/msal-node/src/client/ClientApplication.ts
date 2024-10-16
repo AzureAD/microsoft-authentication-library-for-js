@@ -133,6 +133,7 @@ export abstract class ClientApplication {
         const authClientConfig = await this.buildOauthClientConfiguration(
             validRequest.authority,
             validRequest.correlationId,
+            validRequest.redirectUri,
             undefined,
             undefined,
             request.azureCloudOptions
@@ -180,6 +181,7 @@ export abstract class ClientApplication {
             const authClientConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
                 validRequest.correlationId,
+                validRequest.redirectUri,
                 serverTelemetryManager,
                 undefined,
                 request.azureCloudOptions
@@ -233,6 +235,7 @@ export abstract class ClientApplication {
                 await this.buildOauthClientConfiguration(
                     validRequest.authority,
                     validRequest.correlationId,
+                    validRequest.redirectUri || "",
                     serverTelemetryManager,
                     undefined,
                     request.azureCloudOptions
@@ -281,6 +284,7 @@ export abstract class ClientApplication {
                 await this.buildOauthClientConfiguration(
                     validRequest.authority,
                     validRequest.correlationId,
+                    validRequest.redirectUri || "",
                     serverTelemetryManager,
                     undefined,
                     request.azureCloudOptions
@@ -332,6 +336,7 @@ export abstract class ClientApplication {
                 await this.buildOauthClientConfiguration(
                     validRequest.authority,
                     validRequest.correlationId,
+                    "",
                     serverTelemetryManager,
                     undefined,
                     request.azureCloudOptions
@@ -403,6 +408,7 @@ export abstract class ClientApplication {
     protected async buildOauthClientConfiguration(
         authority: string,
         requestCorrelationId: string,
+        redirectUri: string,
         serverTelemetryManager?: ServerTelemetryManager,
         azureRegionConfiguration?: AzureRegionConfiguration,
         azureCloudOptions?: AzureCloudOptions
@@ -439,6 +445,7 @@ export abstract class ClientApplication {
                 clientId: this.config.auth.clientId,
                 authority: discoveredAuthority,
                 clientCapabilities: this.config.auth.clientCapabilities,
+                redirectUri,
             },
             loggerOptions: {
                 logLevel: this.config.system.loggerOptions.logLevel,

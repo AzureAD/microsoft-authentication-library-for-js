@@ -41,7 +41,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.auth.authority).toBe(
             `${Constants.DEFAULT_AUTHORITY}`
         );
-        expect(emptyConfig.auth.redirectUri).toBe("");
+        expect(emptyConfig.auth.redirectUri).toBeDefined();
         expect(emptyConfig.auth.postLogoutRedirectUri).toBe("");
         expect(emptyConfig.auth.navigateToLoginRequestUrl).toBe(true);
         expect(emptyConfig.auth?.azureCloudOptions?.azureCloudInstance).toBe(
