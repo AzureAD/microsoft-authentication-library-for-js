@@ -8,6 +8,7 @@ import {
   PopupRequest,
   RedirectRequest,
   InteractionType,
+  SilentRequest,
 } from "@azure/msal-browser";
 import { MsalService } from "./msal.service";
 
@@ -24,4 +25,9 @@ export type MsalGuardConfiguration = {
         state: RouterStateSnapshot
       ) => MsalGuardAuthRequest);
   loginFailedRoute?: string;
+  enableCheckForExpiredToken?: boolean;
+  minimumSecondsBeforeTokenExpiration?: number;
+  silentAuthRequest?:
+    | SilentRequest
+    | ((authService: MsalService, state: RouterStateSnapshot) => SilentRequest);
 };
