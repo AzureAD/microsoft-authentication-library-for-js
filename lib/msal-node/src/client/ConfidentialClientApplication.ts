@@ -141,6 +141,7 @@ export class ConfidentialClientApplication
             environmentRegion: process.env[REGION_ENVIRONMENT_VARIABLE],
         };
 
+        // test
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.acquireTokenByClientCredential,
             validRequest.correlationId,
