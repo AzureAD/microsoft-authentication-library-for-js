@@ -2338,9 +2338,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 // @ts-expect-error
             ).mockImplementation((url: string) => {
                 try {
-                    expect(
-                        url  
-                    ).toContain(`client-request-id=${RANDOM_TEST_GUID}`);
+                    expect(url).toContain(
+                        `client-request-id=${RANDOM_TEST_GUID}`
+                    );
                     done();
                 } catch (error) {
                     done(error);

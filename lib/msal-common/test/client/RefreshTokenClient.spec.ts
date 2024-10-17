@@ -151,9 +151,9 @@ describe("RefreshTokenClient unit tests", () => {
                 // @ts-expect-error
             ).mockImplementation((url: string) => {
                 try {
-                    expect(
-                        url  
-                    ).toContain(`client-request-id=${TEST_CONFIG.CORRELATION_ID}`);
+                    expect(url).toContain(
+                        `client-request-id=${TEST_CONFIG.CORRELATION_ID}`
+                    );
                     done();
                 } catch (error) {
                     done(error);
