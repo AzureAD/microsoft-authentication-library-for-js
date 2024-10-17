@@ -173,10 +173,10 @@ export abstract class BaseClient {
 
     /**
      * Wraps sendPostRequestAsync with necessary preflight and postflight logic
-     * @param thumbprint
-     * @param tokenEndpoint
-     * @param options
-     * @param correlationId
+     * @param thumbprint - Request thumbprint for throttling
+     * @param tokenEndpoint - Endpoint to make the POST to
+     * @param options - Body and Headers to include on the POST request
+     * @param correlationId - CorrelationId for telemetry
      */
     async sendPostRequest<T extends ServerAuthorizationTokenResponse>(
         thumbprint: RequestThumbprint,
