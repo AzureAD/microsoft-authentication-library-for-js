@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1729111315450,
+  "lastUpdate": 1729192877729,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12912,6 +12912,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 194728,
             "range": "±1.65%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8bba9f928af927f2fd90508f0caf28b554200dc5",
+          "message": "Removed warnings from msal-node.api.md (#7376)\n\nJSDocs improvements to eliminate most warnings in msal-node.api.md",
+          "timestamp": "2024-10-17T15:15:41-04:00",
+          "tree_id": "c10c7ccc17c7b0a60ed1250acf0b1366ba279e53",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8bba9f928af927f2fd90508f0caf28b554200dc5"
+        },
+        "date": 1729192875837,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 202869,
+            "range": "±1.36%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 184312,
+            "range": "±2.34%",
             "unit": "ops/sec",
             "extra": "221 samples"
           }
