@@ -98,7 +98,8 @@ export class DeviceCodeClient extends BaseClient {
             endpoint,
             queryString,
             headers,
-            thumbprint
+            thumbprint,
+            request.correlationId
         );
     }
 
@@ -123,12 +124,14 @@ export class DeviceCodeClient extends BaseClient {
      * @param deviceCodeEndpoint
      * @param queryString
      * @param headers
+     * @param correlationId
      */
     private async executePostRequestToDeviceCodeEndpoint(
         deviceCodeEndpoint: string,
         queryString: string,
         headers: Record<string, string>,
-        thumbprint: RequestThumbprint
+        thumbprint: RequestThumbprint,
+        correlationId: string
     ): Promise<DeviceCodeResponse> {
         const {
             body: {
@@ -139,13 +142,14 @@ export class DeviceCodeClient extends BaseClient {
                 interval,
                 message,
             },
-        } = await this.networkManager.sendPostRequest<ServerDeviceCodeResponse>(
+        } = await this.sendPostRequest<ServerDeviceCodeResponse>(
             thumbprint,
             deviceCodeEndpoint,
             {
                 body: queryString,
                 headers: headers,
-            }
+            },
+            correlationId
         );
 
         return {

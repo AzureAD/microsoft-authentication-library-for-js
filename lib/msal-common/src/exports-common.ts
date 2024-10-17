@@ -92,10 +92,8 @@ export {
     StubbedNetworkModule,
 } from "./network/INetworkModule.js";
 export {
-    NetworkManager,
     NetworkResponse,
-    UrlToHttpRequestOptions,
-} from "./network/NetworkManager.js";
+} from "./network/NetworkResponse.js";
 export { ThrottlingUtils } from "./network/ThrottlingUtils.js";
 export { RequestThumbprint } from "./network/RequestThumbprint.js";
 export { IUri } from "./url/IUri.js";

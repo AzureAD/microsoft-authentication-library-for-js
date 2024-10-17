@@ -24,7 +24,7 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
 import { StringUtils } from "../utils/StringUtils.js";
 import { RequestThumbprint } from "../network/RequestThumbprint.js";
-import { NetworkResponse } from "../network/NetworkManager.js";
+import { NetworkResponse } from "../network/NetworkResponse.js";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest.js";
 import {
     createClientConfigurationError,

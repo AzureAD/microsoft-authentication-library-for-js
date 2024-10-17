@@ -5,8 +5,19 @@
 
 import {
     NetworkResponse,
-    UrlToHttpRequestOptions,
 } from "@azure/msal-common/node";
+
+type UrlToHttpRequestOptions = {
+    protocol: string;
+    hostname: string;
+    hash: string;
+    search: string;
+    pathname: string;
+    path: string;
+    href: string;
+    port?: number;
+    auth?: string;
+};
 
 export class NetworkUtils {
     static getNetworkResponse<T>(
