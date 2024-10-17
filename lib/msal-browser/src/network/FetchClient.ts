@@ -4,10 +4,10 @@
  */
 
 import {
-    Constants,
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
+    createNetworkError,
 } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
@@ -29,33 +29,37 @@ export class FetchClient implements INetworkModule {
         url: string,
         options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
-        let response;
+        let response: Response;
+        let responseHeaders: Record<string, string> = {};
+        let responseStatus = 0;
+        const reqHeaders = getFetchHeaders(options);
         try {
             response = await fetch(url, {
                 method: HTTP_REQUEST_TYPE.GET,
-                headers: this.getFetchHeaders(options),
+                headers: reqHeaders,
             });
+            responseStatus = response.status
         } catch (e) {
-            if (window.navigator.onLine) {
-                throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.getRequestFailed
-                );
-            } else {
-                throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.noNetworkConnectivity
-                );
-            }
+            throw createNetworkError(
+                createBrowserAuthError(window.navigator.onLine ? BrowserAuthErrorCodes.getRequestFailed : BrowserAuthErrorCodes.noNetworkConnectivity),
+                e instanceof Error ? e : new Error(),
+                responseStatus
+            );
         }
 
         try {
+            responseHeaders = getHeaderDict(response.headers);
             return {
-                headers: this.getHeaderDict(response.headers),
+                headers: responseHeaders,
                 body: (await response.json()) as T,
-                status: response.status,
+                status: responseStatus,
             };
         } catch (e) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.failedToParseResponse
+            throw createNetworkError(
+                createBrowserAuthError(BrowserAuthErrorCodes.failedToParseResponse),
+                e instanceof Error ? e : new Error(),
+                responseStatus,
+                responseHeaders
             );
         }
     }
@@ -70,61 +74,76 @@ export class FetchClient implements INetworkModule {
         url: string,
         options?: NetworkRequestOptions
     ): Promise<NetworkResponse<T>> {
-        const reqBody = (options && options.body) || Constants.EMPTY_STRING;
+        const reqBody = (options && options.body) || "";
+        const reqHeaders = getFetchHeaders(options);
 
-        let response;
+        let response: Response;
+        let responseStatus = 0;
+        let responseHeaders: Record<string, string> = {};
         try {
             response = await fetch(url, {
                 method: HTTP_REQUEST_TYPE.POST,
-                headers: this.getFetchHeaders(options),
+                headers: reqHeaders,
                 body: reqBody,
             });
+            responseStatus = response.status;
         } catch (e) {
-            if (window.navigator.onLine) {
-                throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.postRequestFailed
-                );
-            } else {
-                throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.noNetworkConnectivity
-                );
-            }
+            throw createNetworkError(
+                createBrowserAuthError(window.navigator.onLine ? BrowserAuthErrorCodes.postRequestFailed : BrowserAuthErrorCodes.noNetworkConnectivity),
+                e instanceof Error ? e : new Error(),
+                responseStatus
+            );
         }
 
         try {
+            responseHeaders = getHeaderDict(response.headers);
             return {
-                headers: this.getHeaderDict(response.headers),
+                headers: responseHeaders,
                 body: (await response.json()) as T,
-                status: response.status,
+                status: responseStatus,
             };
         } catch (e) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.failedToParseResponse
+            throw createNetworkError(
+                createBrowserAuthError(BrowserAuthErrorCodes.failedToParseResponse),
+                e instanceof Error ? e : new Error(),
+                responseStatus,
+                responseHeaders
             );
         }
     }
 
-    /**
-     * Get Fetch API Headers object from string map
-     * @param inputHeaders
-     */
-    private getFetchHeaders(options?: NetworkRequestOptions): Headers {
+}
+
+/**
+ * Get Fetch API Headers object from string map
+ * @param inputHeaders
+ */
+function getFetchHeaders(options?: NetworkRequestOptions): Headers {
+    try {
         const headers = new Headers();
         if (!(options && options.headers)) {
             return headers;
         }
         const optionsHeaders = options.headers;
-        Object.keys(optionsHeaders).forEach((key) => {
-            headers.append(key, optionsHeaders[key]);
+        Object.entries(optionsHeaders).forEach(([key, value]) => {
+            console.log(`Appending key: ${key} and value: ${value}`)
+            headers.append(key, value);
         });
         return headers;
+    } catch (e) {
+        throw createBrowserAuthError(BrowserAuthErrorCodes.failedToBuildHeaders)
     }
+}
 
-    private getHeaderDict(headers: Headers): Record<string, string> {
-        const headerDict: Record<string, string> = {};
-        headers.forEach((value: string, key: string) => {
-            headerDict[key] = value;
-        });
-        return headerDict;
-    }
+/**
+ * Returns object representing response headers
+ * @param headers 
+ * @returns 
+ */
+function getHeaderDict(headers: Headers): Record<string, string> {
+    const headerDict: Record<string, string> = {};
+    headers.forEach((value: string, key: string) => {
+        headerDict[key] = value;
+    });
+    return headerDict;
 }

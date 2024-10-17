@@ -138,6 +138,7 @@ export {
     createAuthError,
 } from "./error/AuthError.js";
 export { ServerError } from "./error/ServerError.js";
+export { NetworkError, createNetworkError } from "./error/NetworkError.js";
 export { CacheError, CacheErrorCodes } from "./error/CacheError.js";
 export {
     ClientAuthError,
