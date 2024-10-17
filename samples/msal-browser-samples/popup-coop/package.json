@@ -1,0 +1,19 @@
+{
+  "name": "msal-browser-popup-coop",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "npx playwright test"
+  },
+  "dependencies": {
+    "@azure/msal-node": "^2.1.0",
+    "express": "^4.19.2",
+    "path": "^0.11.14"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.30.0"
+  }
+}
