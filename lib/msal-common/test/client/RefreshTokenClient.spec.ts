@@ -144,6 +144,44 @@ describe("RefreshTokenClient unit tests", () => {
             config = await ClientTestUtils.createTestClientConfiguration();
         });
 
+        it("Adds correlationId to the /token query string", (done) => {
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string) => {
+                try {
+                    expect(
+                        url  
+                    ).toContain(`client-request-id=${TEST_CONFIG.CORRELATION_ID}`);
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                tokenQueryParameters: {
+                    testParam: "testValue",
+                },
+            };
+
+            client.acquireToken(refreshTokenRequest).catch((e) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
         it("Adds tokenQueryParameters to the /token request", (done) => {
             jest.spyOn(
                 RefreshTokenClient.prototype,

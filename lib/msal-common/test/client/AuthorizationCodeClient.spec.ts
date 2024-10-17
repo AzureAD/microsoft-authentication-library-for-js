@@ -2327,6 +2327,46 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
         });
 
+        it("Adds correlationId to the /token query string", (done) => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                <any>"executePostToTokenEndpoint"
+                // @ts-expect-error
+            ).mockImplementation((url: string) => {
+                try {
+                    expect(
+                        url  
+                    ).toContain(`client-request-id=${RANDOM_TEST_GUID}`);
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+
+            const client = new AuthorizationCodeClient(config);
+            const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [
+                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...TEST_CONFIG.DEFAULT_SCOPES,
+                ],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER,
+            };
+
+            client.acquireToken(authorizationCodeRequest).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
         it("Adds tokenQueryParameters to the /token request", (done) => {
             jest.spyOn(
                 Authority.prototype,
