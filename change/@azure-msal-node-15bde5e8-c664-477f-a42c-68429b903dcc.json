@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Make clear synchronous",
+  "packageName": "@azure/msal-node",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "minor"
+}

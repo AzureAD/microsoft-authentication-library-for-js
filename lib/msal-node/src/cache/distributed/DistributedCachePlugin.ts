@@ -12,6 +12,10 @@ import { TokenCache } from "../TokenCache.js";
 import { IPartitionManager } from "./IPartitionManager.js";
 import { ICacheClient } from "./ICacheClient.js";
 
+/**
+ * Cache plugin that serializes data to the cache and deserializes data from the cache
+ * @public
+ */
 export class DistributedCachePlugin implements ICachePlugin {
     private client: ICacheClient;
     private partitionManager: IPartitionManager;
@@ -21,6 +25,10 @@ export class DistributedCachePlugin implements ICachePlugin {
         this.partitionManager = partitionManager;
     }
 
+    /**
+     * Deserializes the cache before accessing it
+     * @param cacheContext - TokenCacheContext
+     */
     public async beforeCacheAccess(
         cacheContext: TokenCacheContext
     ): Promise<void> {
@@ -29,6 +37,10 @@ export class DistributedCachePlugin implements ICachePlugin {
         cacheContext.tokenCache.deserialize(cacheData);
     }
 
+    /**
+     * Serializes the cache after accessing it
+     * @param cacheContext - TokenCacheContext
+     */
     public async afterCacheAccess(
         cacheContext: TokenCacheContext
     ): Promise<void> {

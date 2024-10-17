@@ -73,7 +73,9 @@ declare namespace AADServerParamKeys {
         SID,
         LOGIN_HINT,
         DOMAIN_HINT,
-        X_CLIENT_EXTRA_SKU
+        X_CLIENT_EXTRA_SKU,
+        BROKER_CLIENT_ID,
+        BROKER_REDIRECT_URI
     }
 }
 export { AADServerParamKeys }
@@ -355,6 +357,7 @@ export const AuthErrorMessage: {
 export type AuthOptions = {
     clientId: string;
     authority: Authority;
+    redirectUri: string;
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
     skipAuthorityMetadataCache?: boolean;
@@ -603,6 +606,7 @@ export type BaseAuthRequest = {
     storeInCache?: StoreInCache;
     scenarioId?: string;
     popKid?: string;
+    embeddedClientId?: string;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "BaseClient" should be prefixed with an underscore because the declaration is marked as @internal
@@ -646,6 +650,16 @@ export abstract class BaseClient {
 //
 // @public (undocumented)
 const bindingKeyNotRemoved = "binding_key_not_removed";
+
+// Warning: (ae-missing-release-tag) "BROKER_CLIENT_ID" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const BROKER_CLIENT_ID = "brk_client_id";
+
+// Warning: (ae-missing-release-tag) "BROKER_REDIRECT_URI" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const BROKER_REDIRECT_URI = "brk_redirect_uri";
 
 // Warning: (ae-incompatible-release-tags) The symbol "buildAccountToCache" is marked as @public, but its signature references "CacheManager" which is marked as @internal
 // Warning: (ae-incompatible-release-tags) The symbol "buildAccountToCache" is marked as @public, but its signature references "Authority" which is marked as @internal
@@ -3045,6 +3059,8 @@ export type PerformanceEvent = {
     scenarioId?: string;
     accountType?: "AAD" | "MSA" | "B2C";
     retryError?: string;
+    embeddedClientId?: string;
+    embeddedRedirectUri?: string;
 };
 
 // Warning: (tsdoc-undefined-tag) The TSDoc tag "@export" is not defined in this configuration
@@ -3353,11 +3369,16 @@ const REQUESTED_TOKEN_USE = "requested_token_use";
 //
 // @internal (undocumented)
 export class RequestParameterBuilder {
-    constructor();
+    constructor(correlationId?: string, performanceClient?: IPerformanceClient);
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     addApplicationTelemetry(appTelemetry: ApplicationTelemetry): void;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     addAuthorizationCode(code: string): void;
+    // (undocumented)
+    addBrokerParameters(params: {
+        brokerClientId: string;
+        brokerRedirectUri: string;
+    }): void;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     addCcsOid(clientInfo: ClientInfo): void;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -4144,7 +4165,7 @@ export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTok
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "14.16.0";
+export const version = "14.15.0";
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -4263,9 +4284,9 @@ const X_MS_LIB_CAPABILITY = "x-ms-lib-capability";
 // src/client/AuthorizationCodeClient.ts:228:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/AuthorizationCodeClient.ts:229:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/AuthorizationCodeClient.ts:307:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/AuthorizationCodeClient.ts:501:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/AuthorizationCodeClient.ts:712:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/AuthorizationCodeClient.ts:769:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:512:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:735:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:795:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:193:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:277:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:278:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

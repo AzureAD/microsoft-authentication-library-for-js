@@ -140,10 +140,7 @@ export abstract class BaseInteractionClient {
      */
     getRedirectUri(requestRedirectUri?: string): string {
         this.logger.verbose("getRedirectUri called");
-        const redirectUri =
-            requestRedirectUri ||
-            this.config.auth.redirectUri ||
-            BrowserUtils.getCurrentUri();
+        const redirectUri = requestRedirectUri || this.config.auth.redirectUri;
         return UrlString.getAbsoluteUrl(
             redirectUri,
             BrowserUtils.getCurrentUri()
