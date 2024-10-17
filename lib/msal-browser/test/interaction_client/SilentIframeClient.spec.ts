@@ -22,13 +22,10 @@ import {
     AccountInfo,
     TokenClaims,
     PromptValue,
-    CommonAuthorizationUrlRequest,
     AuthorizationCodeClient,
-    ResponseMode,
     AuthenticationScheme,
     ServerTelemetryManager,
     ProtocolUtils,
-    NetworkManager,
     TenantProfile,
     Authority,
 } from "@azure/msal-common";
@@ -51,6 +48,7 @@ import {
     BrowserConstants,
     InteractionType,
 } from "../../src/utils/BrowserConstants.js";
+import { FetchClient } from "../../src/network/FetchClient.js";
 
 describe("SilentIframeClient", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
@@ -736,7 +734,7 @@ describe("SilentIframeClient", () => {
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
             );
             const sendPostRequestSpy = jest
-                .spyOn(NetworkManager.prototype, "sendPostRequest")
+                .spyOn(FetchClient.prototype, "sendPostRequestAsync")
                 .mockResolvedValueOnce(testServerErrorResponse)
                 .mockResolvedValueOnce(testServerResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -788,7 +786,7 @@ describe("SilentIframeClient", () => {
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
             );
             const sendPostRequestSpy = jest
-                .spyOn(NetworkManager.prototype, "sendPostRequest")
+                .spyOn(FetchClient.prototype, "sendPostRequestAsync")
                 .mockResolvedValueOnce(testFirstServerErrorResponse)
                 .mockResolvedValueOnce(testSecondServerErrorResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -1151,8 +1149,8 @@ describe("SilentIframeClient", () => {
                     "monitorIframeForHash"
                 ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
                 jest.spyOn(
-                    NetworkManager.prototype,
-                    "sendPostRequest"
+                    FetchClient.prototype,
+                    "sendPostRequestAsync"
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
                 jest.spyOn(
                     PkceGenerator,

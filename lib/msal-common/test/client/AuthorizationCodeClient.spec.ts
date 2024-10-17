@@ -3402,8 +3402,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 // @ts-ignore
-                client.networkManager,
-                "sendPostRequest"
+                client.networkClient,
+                "sendPostRequestAsync"
             ).mockResolvedValue(AUTHENTICATION_RESULT_WITH_HEADERS);
 
             if (!config.cryptoInterface) {
@@ -3451,6 +3451,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     refreshTokenSize:
                         AUTHENTICATION_RESULT_WITH_HEADERS.body.refresh_token
                             ?.length,
+                    requestId: "xMsRequestId",
                 },
                 RANDOM_TEST_GUID
             );
@@ -3482,8 +3483,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 // @ts-ignore
-                client.networkManager,
-                "sendPostRequest"
+                client.networkClient,
+                "sendPostRequestAsync"
             ).mockResolvedValue({ ...AUTHENTICATION_RESULT, headers: {} });
 
             if (!config.cryptoInterface) {
@@ -3530,6 +3531,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     httpVerToken: "",
                     refreshTokenSize:
                         AUTHENTICATION_RESULT.body.refresh_token?.length,
+                    requestId: "",
                 },
                 RANDOM_TEST_GUID
             );
@@ -3932,6 +3934,51 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             expect(queryString).toContain(`instance_aware=false`);
         });
+
+        it("pick up broker params", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
+
+            const queryString =
+                // @ts-ignore
+                await client.createAuthCodeUrlQueryString({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    embeddedClientId: "child_client_id_1",
+                });
+
+            expect(queryString).toContain(`client_id=child_client_id_1`);
+            expect(queryString).toContain(
+                `brk_client_id=${config.authOptions.clientId}`
+            );
+            expect(queryString).toContain(`brk_redirect_uri=https://localhost`);
+        });
+
+        it("broker params take precedence over extra query params", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
+
+            const queryString =
+                // @ts-ignore
+                await client.createAuthCodeUrlQueryString({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    embeddedClientId: "child_client_id_1",
+                    extraQueryParameters: {
+                        client_id: "child_client_id_2",
+                        brk_client_id: "broker_client_id_2",
+                        brk_redirect_uri: "broker_redirect_uri_2",
+                    },
+                });
+
+            expect(queryString).toContain(`client_id=child_client_id_1`);
+            expect(queryString).toContain(
+                `brk_client_id=${config.authOptions.clientId}`
+            );
+            expect(queryString).toContain(`brk_redirect_uri=https://localhost`);
+        });
     });
 
     describe("createTokenRequestBody tests", () => {
@@ -3968,6 +4015,51 @@ describe("AuthorizationCodeClient unit tests", () => {
                 });
 
             expect(queryString).toContain(`client_id=child_client_id`);
+        });
+
+        it("pick up broker params", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
+
+            const queryString =
+                // @ts-ignore
+                await client.createTokenRequestBody({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    embeddedClientId: "child_client_id_1",
+                });
+
+            expect(queryString).toContain(`client_id=child_client_id_1`);
+            expect(queryString).toContain(
+                `brk_client_id=${config.authOptions.clientId}`
+            );
+            expect(queryString).toContain(`brk_redirect_uri=https://localhost`);
+        });
+
+        it("broker params take precedence over token body params", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
+
+            const queryString =
+                // @ts-ignore
+                await client.createTokenRequestBody({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    embeddedClientId: "child_client_id_1",
+                    tokenBodyParameters: {
+                        client_id: "child_client_id_2",
+                        brk_client_id: "broker_client_id_2",
+                        brk_redirect_uri: "broker_redirect_uri_2",
+                    },
+                });
+
+            expect(queryString).toContain(`client_id=child_client_id_1`);
+            expect(queryString).toContain(
+                `brk_client_id=${config.authOptions.clientId}`
+            );
+            expect(queryString).toContain(`brk_redirect_uri=https://localhost`);
         });
     });
 });

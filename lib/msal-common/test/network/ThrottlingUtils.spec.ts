@@ -6,7 +6,7 @@
 import { ThrottlingUtils } from "../../src/network/ThrottlingUtils.js";
 import { RequestThumbprint } from "../../src/network/RequestThumbprint.js";
 import { ThrottlingEntity } from "../../src/cache/entities/ThrottlingEntity.js";
-import { NetworkResponse } from "../../src/network/NetworkManager.js";
+import { NetworkResponse } from "../../src/network/NetworkResponse.js";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse.js";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils.js";
 import {

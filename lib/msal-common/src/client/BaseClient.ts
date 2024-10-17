@@ -8,7 +8,10 @@ import {
     buildClientConfiguration,
     CommonClientConfiguration,
 } from "../config/ClientConfiguration.js";
-import { INetworkModule, NetworkRequestOptions } from "../network/INetworkModule.js";
+import {
+    INetworkModule,
+    NetworkRequestOptions,
+} from "../network/INetworkModule.js";
 import { NetworkResponse } from "../network/NetworkResponse.js";
 import { ICrypto } from "../crypto/ICrypto.js";
 import { Authority } from "../authority/Authority.js";
@@ -28,7 +31,10 @@ import { createDiscoveredInstance } from "../authority/AuthorityFactory.js";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
 import { ThrottlingUtils } from "../network/ThrottlingUtils.js";
 import { AuthError } from "../error/AuthError.js";
-import { ClientAuthErrorCodes, createClientAuthError } from "../error/ClientAuthError.js";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError.js";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -167,10 +173,10 @@ export abstract class BaseClient {
 
     /**
      * Wraps sendPostRequestAsync with necessary preflight and postflight logic
-     * @param thumbprint
-     * @param tokenEndpoint
-     * @param options
-     * @param correlationId
+     * @param thumbprint - Request thumbprint for throttling
+     * @param tokenEndpoint - Endpoint to make the POST to
+     * @param options - Body and Headers to include on the POST request
+     * @param correlationId - CorrelationId for telemetry
      */
     async sendPostRequest<T extends ServerAuthorizationTokenResponse>(
         thumbprint: RequestThumbprint,
@@ -192,7 +198,8 @@ export abstract class BaseClient {
                     refreshTokenSize: response.body.refresh_token?.length || 0,
                     httpVerToken:
                         responseHeaders[HeaderNames.X_MS_HTTP_VERSION] || "",
-                    requestId: responseHeaders[HeaderNames.X_MS_REQUEST_ID] || ""
+                    requestId:
+                        responseHeaders[HeaderNames.X_MS_REQUEST_ID] || "",
                 },
                 correlationId
             );
@@ -239,7 +246,17 @@ export abstract class BaseClient {
      * @param request
      */
     createTokenQueryParameters(request: BaseAuthRequest): string {
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameterBuilder = new RequestParameterBuilder(
+            request.correlationId,
+            this.performanceClient
+        );
+
+        if (request.embeddedClientId) {
+            parameterBuilder.addBrokerParameters({
+                brokerClientId: this.config.authOptions.clientId,
+                brokerRedirectUri: this.config.authOptions.redirectUri,
+            });
+        }
 
         if (request.tokenQueryParameters) {
             parameterBuilder.addExtraQueryParameters(
