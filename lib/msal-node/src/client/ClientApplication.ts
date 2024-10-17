@@ -39,7 +39,7 @@ import {
 } from "@azure/msal-common/node";
 import {
     Configuration,
-    _buildAppConfiguration,
+    buildAppConfiguration,
     NodeConfiguration,
 } from "../config/Configuration.js";
 import { CryptoProvider } from "../crypto/CryptoProvider.js";
@@ -92,7 +92,7 @@ export abstract class ClientApplication {
      * Constructor for the ClientApplication
      */
     protected constructor(configuration: Configuration) {
-        this.config = _buildAppConfiguration(configuration);
+        this.config = buildAppConfiguration(configuration);
         this.cryptoProvider = new CryptoProvider();
         this.logger = new Logger(
             this.config.system.loggerOptions,

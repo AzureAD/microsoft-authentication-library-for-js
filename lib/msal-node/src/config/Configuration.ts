@@ -210,7 +210,7 @@ export type NodeConfiguration = {
  * @returns Configuration
  * @internal
  */
-export function _buildAppConfiguration({
+export function buildAppConfiguration({
     auth,
     broker,
     cache,
