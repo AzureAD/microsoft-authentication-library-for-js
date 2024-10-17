@@ -5,7 +5,7 @@
 
 import { NetworkResponse } from "@azure/msal-common/node";
 
-type UrlToHttpRequestOptions = {
+export type UrlToHttpRequestOptions = {
     protocol: string;
     hostname: string;
     hash: string;
