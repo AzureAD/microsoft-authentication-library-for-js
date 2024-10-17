@@ -4,7 +4,7 @@
  */
 
 import { INetworkModule } from "../network/INetworkModule.js";
-import { NetworkResponse } from "../network/NetworkManager.js";
+import { NetworkResponse } from "../network/NetworkResponse.js";
 import { IMDSBadResponse } from "../response/IMDSBadResponse.js";
 import {
     Constants,

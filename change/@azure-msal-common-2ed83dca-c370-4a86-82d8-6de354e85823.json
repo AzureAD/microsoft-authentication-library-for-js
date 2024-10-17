@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Remove NetworkManager class",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -33,7 +33,6 @@ import {
     ClientConfigurationErrorCodes,
     CommonAuthorizationCodeRequest,
     AuthError,
-    NetworkManager,
     ProtocolUtils,
     ProtocolMode,
 } from "@azure/msal-common";
@@ -59,6 +58,7 @@ import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { BrowserAuthErrorCodes } from "../../src/index.js";
+import { FetchClient } from "../../src/network/FetchClient.js";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
@@ -653,8 +653,8 @@ describe("PopupClient", () => {
                     "monitorPopupForHash"
                 ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
                 jest.spyOn(
-                    NetworkManager.prototype,
-                    "sendPostRequest"
+                    FetchClient.prototype,
+                    "sendPostRequestAsync"
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
                 jest.spyOn(
                     PkceGenerator,

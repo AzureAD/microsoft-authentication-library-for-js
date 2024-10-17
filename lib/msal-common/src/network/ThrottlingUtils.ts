@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { NetworkResponse } from "./NetworkManager.js";
+import { NetworkResponse } from "./NetworkResponse.js";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
 import {
     HeaderNames,

@@ -19,7 +19,6 @@ import {
     TokenClaims,
     AuthorizationCodeClient,
     AuthenticationScheme,
-    NetworkManager,
 } from "@azure/msal-common";
 import {
     createBrowserAuthError,
@@ -34,6 +33,7 @@ import {
     AuthenticationResult,
 } from "../../src/index.js";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
+import { FetchClient } from "../../src/network/FetchClient.js";
 
 describe("SilentAuthCodeClient", () => {
     let silentAuthCodeClient: SilentAuthCodeClient;
@@ -172,8 +172,8 @@ describe("SilentAuthCodeClient", () => {
         describe("storeInCache tests", () => {
             beforeEach(() => {
                 jest.spyOn(
-                    NetworkManager.prototype,
-                    "sendPostRequest"
+                    FetchClient.prototype,
+                    "sendPostRequestAsync"
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
             });
 

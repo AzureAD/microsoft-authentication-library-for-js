@@ -21,7 +21,7 @@ import {
     isOidcProtocolMode,
 } from "../config/ClientConfiguration.js";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
-import { NetworkResponse } from "../network/NetworkManager.js";
+import { NetworkResponse } from "../network/NetworkResponse.js";
 import { ResponseHandler } from "../response/ResponseHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { StringUtils } from "../utils/StringUtils.js";

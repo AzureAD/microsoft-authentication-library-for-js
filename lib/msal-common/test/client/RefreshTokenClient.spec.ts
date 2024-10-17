@@ -231,8 +231,8 @@ describe("RefreshTokenClient unit tests", () => {
             );
             jest.spyOn(
                 // @ts-ignore
-                client.networkManager,
-                "sendPostRequest"
+                client.networkClient,
+                "sendPostRequestAsync"
             ).mockResolvedValue({ ...AUTHENTICATION_RESULT, headers: {} });
 
             let refreshTokenSize;
@@ -259,8 +259,8 @@ describe("RefreshTokenClient unit tests", () => {
             );
             jest.spyOn(
                 // @ts-ignore
-                client.networkManager,
-                "sendPostRequest"
+                client.networkClient,
+                "sendPostRequestAsync"
             ).mockResolvedValue({
                 ...AUTHENTICATION_RESULT_NO_REFRESH_TOKEN,
                 headers: { ...AUTHENTICATION_RESULT_WITH_HEADERS.headers },
@@ -935,8 +935,8 @@ describe("RefreshTokenClient unit tests", () => {
             const client = new RefreshTokenClient(config, performanceClient);
             jest.spyOn(
                 // @ts-ignore
-                client.networkManager,
-                "sendPostRequest"
+                client.networkClient,
+                "sendPostRequestAsync"
             ).mockResolvedValue(AUTHENTICATION_RESULT_WITH_HEADERS);
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -955,6 +955,7 @@ describe("RefreshTokenClient unit tests", () => {
                     refreshTokenSize:
                         AUTHENTICATION_RESULT_WITH_HEADERS.body.refresh_token
                             .length,
+                    requestId: "xMsRequestId",
                 },
                 TEST_CONFIG.CORRELATION_ID
             );
@@ -979,8 +980,8 @@ describe("RefreshTokenClient unit tests", () => {
             const client = new RefreshTokenClient(config, performanceClient);
             jest.spyOn(
                 // @ts-ignore
-                client.networkManager,
-                "sendPostRequest"
+                client.networkClient,
+                "sendPostRequestAsync"
             ).mockResolvedValue({ ...AUTHENTICATION_RESULT, headers: {} });
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -998,6 +999,7 @@ describe("RefreshTokenClient unit tests", () => {
                     httpVerToken: "",
                     refreshTokenSize:
                         AUTHENTICATION_RESULT.body.refresh_token.length,
+                    requestId: "",
                 },
                 TEST_CONFIG.CORRELATION_ID
             );
