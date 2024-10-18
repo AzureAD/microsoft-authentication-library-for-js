@@ -58,7 +58,7 @@
     "dependencies": {
         "@azure/msal-node": "^2.1.0",
         "axios": "^1.7.4",
-        "bootstrap": "^5.2.3",
+        "bootstrap": "^5.0.0",
         "electron-squirrel-startup": "^1.0.0",
         "react": "^18.2.0",
         "react-bootstrap": "^2.7.2",

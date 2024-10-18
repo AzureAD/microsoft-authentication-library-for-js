@@ -56,3 +56,5 @@ export const SID = "sid";
 export const LOGIN_HINT = "login_hint";
 export const DOMAIN_HINT = "domain_hint";
 export const X_CLIENT_EXTRA_SKU = "x-client-xtra-sku";
+export const BROKER_CLIENT_ID = "brk_client_id";
+export const BROKER_REDIRECT_URI = "brk_redirect_uri";

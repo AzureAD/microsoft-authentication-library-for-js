@@ -42,7 +42,7 @@ function getClientCredentialsToken(cca, clientCredentialRequestScopes, ro) {
             // Uncomment to see the successful response logged
             // console.log("Response: ", response);
         }).catch((error) => {
-            // Uncomment to see the errors logges
+            // Uncomment to see the errors logged
             // console.log(JSON.stringify(error));
         });
 }

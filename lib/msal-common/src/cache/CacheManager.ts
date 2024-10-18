@@ -234,11 +234,6 @@ export abstract class CacheManager implements ICacheManager {
     abstract getTokenKeys(): TokenKeys;
 
     /**
-     * Function which clears cache.
-     */
-    abstract clear(): Promise<void>;
-
-    /**
      * Function which updates an outdated credential cache key
      */
     abstract updateCredentialCacheKey(
@@ -2003,9 +1998,6 @@ export class DefaultStorageClass extends CacheManager {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getTokenKeys(): TokenKeys {
-        throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
-    }
-    async clear(): Promise<void> {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     updateCredentialCacheKey(): string {

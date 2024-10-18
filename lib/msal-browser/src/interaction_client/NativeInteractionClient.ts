@@ -76,11 +76,6 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import { version } from "../packageMetadata.js";
 
-const BrokerServerParamKeys = {
-    BROKER_CLIENT_ID: "brk_client_id",
-    BROKER_REDIRECT_URI: "brk_redirect_uri",
-};
-
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
     protected accountId: string;
@@ -1044,31 +1039,46 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @private
      */
     private handleExtraBrokerParams(request: NativeTokenRequest): void {
-        if (!request.extraParameters) {
+        const hasExtraBrokerParams =
+            request.extraParameters &&
+            request.extraParameters.hasOwnProperty(
+                AADServerParamKeys.BROKER_CLIENT_ID
+            ) &&
+            request.extraParameters.hasOwnProperty(
+                AADServerParamKeys.BROKER_REDIRECT_URI
+            ) &&
+            request.extraParameters.hasOwnProperty(
+                AADServerParamKeys.CLIENT_ID
+            );
+
+        if (!request.embeddedClientId && !hasExtraBrokerParams) {
             return;
         }
 
-        if (
-            request.extraParameters.hasOwnProperty(
-                BrokerServerParamKeys.BROKER_CLIENT_ID
-            ) &&
-            request.extraParameters.hasOwnProperty(
-                BrokerServerParamKeys.BROKER_REDIRECT_URI
-            ) &&
-            request.extraParameters.hasOwnProperty(AADServerParamKeys.CLIENT_ID)
-        ) {
-            const child_client_id =
+        let child_client_id: string = "";
+        const child_redirect_uri = request.redirectUri;
+
+        if (request.embeddedClientId) {
+            request.redirectUri = this.config.auth.redirectUri;
+            child_client_id = request.embeddedClientId;
+        } else if (request.extraParameters) {
+            request.redirectUri =
+                request.extraParameters[AADServerParamKeys.BROKER_REDIRECT_URI];
+            child_client_id =
                 request.extraParameters[AADServerParamKeys.CLIENT_ID];
-            const child_redirect_uri = request.redirectUri;
-            const brk_redirect_uri =
-                request.extraParameters[
-                    BrokerServerParamKeys.BROKER_REDIRECT_URI
-                ];
-            request.extraParameters = {
-                child_client_id,
-                child_redirect_uri,
-            };
-            request.redirectUri = brk_redirect_uri;
         }
+
+        request.extraParameters = {
+            child_client_id,
+            child_redirect_uri,
+        };
+
+        this.performanceClient?.addFields(
+            {
+                embeddedClientId: child_client_id,
+                embeddedRedirectUri: child_redirect_uri,
+            },
+            request.correlationId
+        );
     }
 }

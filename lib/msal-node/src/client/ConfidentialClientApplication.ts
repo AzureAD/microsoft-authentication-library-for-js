@@ -170,6 +170,7 @@ export class ConfidentialClientApplication
                 await this.buildOauthClientConfiguration(
                     validRequest.authority,
                     validRequest.correlationId,
+                    "",
                     serverTelemetryManager,
                     azureRegionConfiguration,
                     request.azureCloudOptions
@@ -218,6 +219,7 @@ export class ConfidentialClientApplication
             const onBehalfOfConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
                 validRequest.correlationId,
+                "",
                 undefined,
                 undefined,
                 request.azureCloudOptions

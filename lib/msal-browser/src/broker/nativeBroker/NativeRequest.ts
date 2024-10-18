@@ -32,6 +32,7 @@ export type NativeTokenRequest = {
     extraParameters?: StringDict;
     storeInCache?: StoreInCache; // Object of booleans indicating whether to store tokens in the cache or not (default is true)
     signPopToken?: boolean; // Set to true only if token request deos not contain a PoP keyId
+    embeddedClientId?: string;
 };
 
 /**
