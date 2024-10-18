@@ -38,16 +38,17 @@ export class FetchClient implements INetworkModule {
                 method: HTTP_REQUEST_TYPE.GET,
                 headers: reqHeaders,
             });
-            responseStatus = response.status
         } catch (e) {
-            throw createNetworkError(
-                createBrowserAuthError(window.navigator.onLine ? BrowserAuthErrorCodes.getRequestFailed : BrowserAuthErrorCodes.noNetworkConnectivity),
-                responseStatus
+            throw createBrowserAuthError(
+                window.navigator.onLine
+                    ? BrowserAuthErrorCodes.getRequestFailed
+                    : BrowserAuthErrorCodes.noNetworkConnectivity
             );
         }
 
         responseHeaders = getHeaderDict(response.headers);
         try {
+            responseStatus = response.status;
             return {
                 headers: responseHeaders,
                 body: (await response.json()) as T,
@@ -55,7 +56,9 @@ export class FetchClient implements INetworkModule {
             };
         } catch (e) {
             throw createNetworkError(
-                createBrowserAuthError(BrowserAuthErrorCodes.failedToParseResponse),
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.failedToParseResponse
+                ),
                 responseStatus,
                 responseHeaders
             );
@@ -84,16 +87,17 @@ export class FetchClient implements INetworkModule {
                 headers: reqHeaders,
                 body: reqBody,
             });
-            responseStatus = response.status;
         } catch (e) {
-            throw createNetworkError(
-                createBrowserAuthError(window.navigator.onLine ? BrowserAuthErrorCodes.postRequestFailed : BrowserAuthErrorCodes.noNetworkConnectivity),
-                responseStatus
+            throw createBrowserAuthError(
+                window.navigator.onLine
+                    ? BrowserAuthErrorCodes.postRequestFailed
+                    : BrowserAuthErrorCodes.noNetworkConnectivity
             );
         }
 
         responseHeaders = getHeaderDict(response.headers);
         try {
+            responseStatus = response.status;
             return {
                 headers: responseHeaders,
                 body: (await response.json()) as T,
@@ -101,13 +105,14 @@ export class FetchClient implements INetworkModule {
             };
         } catch (e) {
             throw createNetworkError(
-                createBrowserAuthError(BrowserAuthErrorCodes.failedToParseResponse),
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.failedToParseResponse
+                ),
                 responseStatus,
                 responseHeaders
             );
         }
     }
-
 }
 
 /**
@@ -126,14 +131,16 @@ function getFetchHeaders(options?: NetworkRequestOptions): Headers {
         });
         return headers;
     } catch (e) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.failedToBuildHeaders)
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToBuildHeaders
+        );
     }
 }
 
 /**
  * Returns object representing response headers
- * @param headers 
- * @returns 
+ * @param headers
+ * @returns
  */
 function getHeaderDict(headers: Headers): Record<string, string> {
     try {
@@ -143,6 +150,8 @@ function getHeaderDict(headers: Headers): Record<string, string> {
         });
         return headerDict;
     } catch (e) {
-        throw createBrowserAuthError(BrowserAuthErrorCodes.failedToParseHeaders);
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToParseHeaders
+        );
     }
 }

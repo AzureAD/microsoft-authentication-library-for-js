@@ -797,7 +797,7 @@ export type PerformanceEvent = {
     matsHttpEventCount?: number;
 
     /**
-     * Http POST metadata 
+     * Http POST metadata
      */
     httpVerToken?: string;
     httpStatus?: number;

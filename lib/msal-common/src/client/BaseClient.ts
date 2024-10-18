@@ -215,12 +215,18 @@ export abstract class BaseClient {
                     this.performanceClient?.addFields(
                         {
                             httpVerToken:
-                                responseHeaders[HeaderNames.X_MS_HTTP_VERSION] ||
-                                "",
+                                responseHeaders[
+                                    HeaderNames.X_MS_HTTP_VERSION
+                                ] || "",
                             requestId:
-                                responseHeaders[HeaderNames.X_MS_REQUEST_ID] || "",
-                            contentTypeHeader: responseHeaders[HeaderNames.CONTENT_TYPE] || undefined,
-                            contentLengthHeader: responseHeaders[HeaderNames.CONTENT_LENGTH] || undefined,
+                                responseHeaders[HeaderNames.X_MS_REQUEST_ID] ||
+                                "",
+                            contentTypeHeader:
+                                responseHeaders[HeaderNames.CONTENT_TYPE] ||
+                                undefined,
+                            contentLengthHeader:
+                                responseHeaders[HeaderNames.CONTENT_LENGTH] ||
+                                undefined,
                             httpStatus: e.httpStatus,
                         },
                         correlationId

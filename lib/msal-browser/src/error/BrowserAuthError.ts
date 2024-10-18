@@ -92,8 +92,10 @@ export const BrowserAuthErrorMessages = {
         "Invalid base64 encoded string.",
     [BrowserAuthErrorCodes.invalidPopTokenRequest]:
         "Invalid PoP token request. The request should not have both a popKid value and signPopToken set to true.",
-    [BrowserAuthErrorCodes.failedToBuildHeaders]: "Failed to build request headers object.",
-    [BrowserAuthErrorCodes.failedToParseHeaders]: "Failed to parse response headers"
+    [BrowserAuthErrorCodes.failedToBuildHeaders]:
+        "Failed to build request headers object.",
+    [BrowserAuthErrorCodes.failedToParseHeaders]:
+        "Failed to parse response headers",
 };
 
 /**
