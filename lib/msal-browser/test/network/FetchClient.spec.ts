@@ -1,6 +1,6 @@
 import { FetchClient } from "../../src/network/FetchClient";
 import { HTTP_REQUEST_TYPE } from "../../src/utils/BrowserConstants";
-import { Constants, NetworkRequestOptions } from "@azure/msal-common";
+import { Constants, NetworkError, NetworkRequestOptions } from "@azure/msal-common";
 import {
     BrowserAuthErrorMessage,
     BrowserAuthError,
@@ -190,7 +190,8 @@ describe("FetchClient.ts Unit Tests", () => {
             fetchClient
                 .sendPostRequestAsync<any>(targetUri, requestOptions)
                 .catch((e) => {
-                    expect(e).toBeInstanceOf(BrowserAuthError);
+                    expect(e).toBeInstanceOf(NetworkError);
+                    expect(e.error).toBeInstanceOf(BrowserAuthError);
                     expect(e.errorCode).toBe(
                         BrowserAuthErrorMessage.failedToParseNetworkResponse
                             .code
