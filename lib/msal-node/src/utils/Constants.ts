@@ -82,6 +82,7 @@ export type ProxyStatus = (typeof ProxyStatus)[keyof typeof ProxyStatus];
  * Constants used for region discovery
  */
 export const REGION_ENVIRONMENT_VARIABLE = "REGION_NAME";
+export const MSAL_FORCE_REGION = "MSAL_FORCE_REGION";
 
 /**
  * Constant used for PKCE
