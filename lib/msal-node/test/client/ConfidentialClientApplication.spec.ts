@@ -384,7 +384,7 @@ describe("ConfidentialClientApplication", () => {
                     1
                 );
                 expect(
-                    buildOauthClientConfigurationSpy.mock.lastCall[3]
+                    buildOauthClientConfigurationSpy.mock.lastCall[4]
                         .azureRegion
                 ).toEqual(process.env[MSAL_FORCE_REGION]);
             });
@@ -402,7 +402,7 @@ describe("ConfidentialClientApplication", () => {
                     1
                 );
                 expect(
-                    buildOauthClientConfigurationSpy.mock.lastCall[3]
+                    buildOauthClientConfigurationSpy.mock.lastCall[4]
                         .azureRegion
                 ).toEqual(region);
             });
@@ -418,7 +418,7 @@ describe("ConfidentialClientApplication", () => {
                     1
                 );
                 expect(
-                    buildOauthClientConfigurationSpy.mock.lastCall[3]
+                    buildOauthClientConfigurationSpy.mock.lastCall[4]
                         .azureRegion
                 ).toBeUndefined();
             });

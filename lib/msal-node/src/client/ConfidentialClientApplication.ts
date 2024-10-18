@@ -151,8 +151,6 @@ export class ConfidentialClientApplication
                 !validRequest.azureRegion && ENV_MSAL_FORCE_REGION
                     ? ENV_MSAL_FORCE_REGION
                     : validRequest.azureRegion;
-        } else {
-            validRequest.azureRegion = undefined;
         }
 
         const azureRegionConfiguration: AzureRegionConfiguration = {
