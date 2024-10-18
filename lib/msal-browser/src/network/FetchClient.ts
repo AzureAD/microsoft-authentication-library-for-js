@@ -42,13 +42,12 @@ export class FetchClient implements INetworkModule {
         } catch (e) {
             throw createNetworkError(
                 createBrowserAuthError(window.navigator.onLine ? BrowserAuthErrorCodes.getRequestFailed : BrowserAuthErrorCodes.noNetworkConnectivity),
-                e instanceof Error ? e : new Error(),
                 responseStatus
             );
         }
 
+        responseHeaders = getHeaderDict(response.headers);
         try {
-            responseHeaders = getHeaderDict(response.headers);
             return {
                 headers: responseHeaders,
                 body: (await response.json()) as T,
@@ -57,7 +56,6 @@ export class FetchClient implements INetworkModule {
         } catch (e) {
             throw createNetworkError(
                 createBrowserAuthError(BrowserAuthErrorCodes.failedToParseResponse),
-                e instanceof Error ? e : new Error(),
                 responseStatus,
                 responseHeaders
             );
@@ -90,13 +88,12 @@ export class FetchClient implements INetworkModule {
         } catch (e) {
             throw createNetworkError(
                 createBrowserAuthError(window.navigator.onLine ? BrowserAuthErrorCodes.postRequestFailed : BrowserAuthErrorCodes.noNetworkConnectivity),
-                e instanceof Error ? e : new Error(),
                 responseStatus
             );
         }
 
+        responseHeaders = getHeaderDict(response.headers);
         try {
-            responseHeaders = getHeaderDict(response.headers);
             return {
                 headers: responseHeaders,
                 body: (await response.json()) as T,
@@ -105,7 +102,6 @@ export class FetchClient implements INetworkModule {
         } catch (e) {
             throw createNetworkError(
                 createBrowserAuthError(BrowserAuthErrorCodes.failedToParseResponse),
-                e instanceof Error ? e : new Error(),
                 responseStatus,
                 responseHeaders
             );
@@ -126,7 +122,6 @@ function getFetchHeaders(options?: NetworkRequestOptions): Headers {
         }
         const optionsHeaders = options.headers;
         Object.entries(optionsHeaders).forEach(([key, value]) => {
-            console.log(`Appending key: ${key} and value: ${value}`)
             headers.append(key, value);
         });
         return headers;
@@ -141,9 +136,13 @@ function getFetchHeaders(options?: NetworkRequestOptions): Headers {
  * @returns 
  */
 function getHeaderDict(headers: Headers): Record<string, string> {
-    const headerDict: Record<string, string> = {};
-    headers.forEach((value: string, key: string) => {
-        headerDict[key] = value;
-    });
-    return headerDict;
+    try {
+        const headerDict: Record<string, string> = {};
+        headers.forEach((value: string, key: string) => {
+            headerDict[key] = value;
+        });
+        return headerDict;
+    } catch (e) {
+        throw createBrowserAuthError(BrowserAuthErrorCodes.failedToParseHeaders);
+    }
 }

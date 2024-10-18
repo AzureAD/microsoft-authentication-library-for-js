@@ -9,18 +9,24 @@ import { AuthError } from "./AuthError.js";
  * Represents network related errors
  */
 export class NetworkError extends AuthError {
-    publicError: AuthError;
-    runtimeError: Error;
-    httpStatus: number;
+    error: AuthError;
+    httpStatus?: number;
     responseHeaders?: Record<string, string>;
 
-    constructor(publicError: AuthError, runtimeError: Error, httpStatus: number, responseHeaders?: Record<string, string>) {
-        super(publicError.errorCode, publicError.errorMessage, publicError.subError);
+    constructor(
+        error: AuthError,
+        httpStatus?: number,
+        responseHeaders?: Record<string, string>
+    ) {
+        super(
+            error.errorCode,
+            error.errorMessage,
+            error.subError
+        );
 
         Object.setPrototypeOf(this, NetworkError.prototype);
         this.name = "NetworkError";
-        this.publicError = publicError;
-        this.runtimeError = runtimeError;
+        this.error = error;
         this.httpStatus = httpStatus;
         this.responseHeaders = responseHeaders;
     }
@@ -28,12 +34,19 @@ export class NetworkError extends AuthError {
 
 /**
  * Creates NetworkError object for a failed network request
- * @param publicError - Error to be thrown back to the caller
- * @param runtimeError - Internal error that caused the public error
+ * @param error - Error to be thrown back to the caller
  * @param httpStatus - Status code of the network request
  * @param responseHeaders - Response headers of the network request, when available
  * @returns NetworkError object
  */
-export function createNetworkError(publicError: AuthError, runtimeError: Error, httpStatus: number, responseHeaders?: Record<string, string>): NetworkError {
-    return new NetworkError(publicError, runtimeError, httpStatus, responseHeaders);
+export function createNetworkError(
+    error: AuthError,
+    httpStatus?: number,
+    responseHeaders?: Record<string, string>
+): NetworkError {
+    return new NetworkError(
+        error,
+        httpStatus,
+        responseHeaders
+    );
 }

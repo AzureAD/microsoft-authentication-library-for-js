@@ -35,6 +35,8 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError.js";
+import { NetworkError } from "../error/NetworkError.js";
+import { invokeAsync } from "../utils/FunctionWrappers.js";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -188,10 +190,13 @@ export abstract class BaseClient {
 
         let response;
         try {
-            response = await this.networkClient.sendPostRequestAsync<T>(
-                tokenEndpoint,
-                options
-            );
+            response = await invokeAsync(
+                this.networkClient.sendPostRequestAsync.bind(this)<T>,
+                PerformanceEvents.NetworkClientSendPostRequestAsync,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(tokenEndpoint, options);
             const responseHeaders = response.headers || {};
             this.performanceClient?.addFields(
                 {
@@ -204,6 +209,25 @@ export abstract class BaseClient {
                 correlationId
             );
         } catch (e) {
+            if (e instanceof NetworkError) {
+                const responseHeaders = e.responseHeaders;
+                if (responseHeaders) {
+                    this.performanceClient?.addFields(
+                        {
+                            httpVerToken:
+                                responseHeaders[HeaderNames.X_MS_HTTP_VERSION] ||
+                                "",
+                            requestId:
+                                responseHeaders[HeaderNames.X_MS_REQUEST_ID] || "",
+                            contentTypeHeader: responseHeaders[HeaderNames.CONTENT_TYPE] || undefined,
+                            contentLengthHeader: responseHeaders[HeaderNames.CONTENT_LENGTH] || undefined,
+                            httpStatus: e.httpStatus,
+                        },
+                        correlationId
+                    );
+                }
+                throw e.error;
+            }
             if (e instanceof AuthError) {
                 throw e;
             } else {
