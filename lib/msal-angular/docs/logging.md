@@ -12,7 +12,7 @@ You can enable logging in your app as shown below:
 ```js
 import { LogLevel, PublicClientApplication } from '@azure/msal-browser';
 
-export function loggerCallback(logLevel, message) {
+export function loggerCallback(logLevel: LogLevel, message: string) {
     console.log(message);
 }
 
