@@ -37,6 +37,7 @@ import { EncodingUtils } from "../utils/EncodingUtils.js";
 
 /**
  * On-Behalf-Of client
+ * @public
  */
 export class OnBehalfOfClient extends BaseClient {
     private scopeSet: ScopeSet;
@@ -48,7 +49,7 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * Public API to acquire tokens with on behalf of flow
-     * @param request
+     * @param request - developer provided CommonOnBehalfOfRequest
      */
     public async acquireToken(
         request: CommonOnBehalfOfRequest
@@ -86,7 +87,7 @@ export class OnBehalfOfClient extends BaseClient {
      * Find accessToken based on user assertion and account info in the cache
      * Please note we are not yet supported OBO tokens refreshed with long lived RT. User will have to send a new assertion if the current access token expires
      * This is to prevent security issues when the assertion changes over time, however, longlived RT helps retaining the session
-     * @param request
+     * @param request - developer provided CommonOnBehalfOfRequest
      */
     private async getCachedAuthenticationResult(
         request: CommonOnBehalfOfRequest
@@ -172,7 +173,7 @@ export class OnBehalfOfClient extends BaseClient {
     /**
      * read idtoken from cache, this is a specific implementation for OBO as the requirements differ from a generic lookup in the cacheManager
      * Certain use cases of OBO flow do not expect an idToken in the cache/or from the service
-     * @param atHomeAccountId {string}
+     * @param atHomeAccountId - account id
      */
     private readIdTokenFromCacheForOBO(
         atHomeAccountId: string
@@ -198,9 +199,8 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * Fetches the cached access token based on incoming assertion
-     * @param clientId
-     * @param request
-     * @param userAssertionHash
+     * @param clientId - client id
+     * @param request - developer provided CommonOnBehalfOfRequest
      */
     private readAccessTokenFromCacheForOBO(
         clientId: string,
@@ -246,8 +246,8 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * Make a network call to the server requesting credentials
-     * @param request
-     * @param authority
+     * @param request - developer provided CommonOnBehalfOfRequest
+     * @param authority - authority object
      */
     private async executeTokenRequest(
         request: CommonOnBehalfOfRequest,
@@ -307,7 +307,7 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * generate a server request in accepable format
-     * @param request
+     * @param request - developer provided CommonOnBehalfOfRequest
      */
     private async createTokenRequestBody(
         request: CommonOnBehalfOfRequest
