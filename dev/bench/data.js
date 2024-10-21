@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1729192877729,
+  "lastUpdate": 1729528507267,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12952,6 +12952,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.34%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "aaronrogers@users.noreply.github.com",
+            "name": "aaronrogers",
+            "username": "aaronrogers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bcf66eddb323ff91c576ffd015444c61bdd26358",
+          "message": "Fix misspelling (#7383)\n\n`Note` was misspelled as `Not`.\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-10-21T09:29:34-07:00",
+          "tree_id": "4b13940d770b810004ee1eb1e31cd6d7bb364a33",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/bcf66eddb323ff91c576ffd015444c61bdd26358"
+        },
+        "date": 1729528506054,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 189094,
+            "range": "±2.01%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 196453,
+            "range": "±2.12%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
