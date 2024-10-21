@@ -56,6 +56,7 @@ Please note the below guidance before opting in for Nested app authentication:
 -   `supportsNestedAppAuth` in MSAL Browser configuration will be deprecated in the next major version. Please use `createNestablePublicClientApplication` instead.
 -   `createNestablePublicClientApplication` will fall back to `createStandardPublicClientApplication` if nested app bridge is unavailable or the Hub is not configured to support nested app authentication.
 -   If an application does not want to be Nested App, it should use `createStandardPublicClientApplication` instead.
+-   Certain account lookup APIs are not supported in NAA apps, please refer to [active accounts](./accounts.md#active-account-apis).
 
 ## Initializing the PublicClientApplication object
 
