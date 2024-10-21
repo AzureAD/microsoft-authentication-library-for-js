@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1729528507267,
+  "lastUpdate": 1729531670169,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -12990,6 +12990,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.12%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "980f0b077940119961610d375eddd2c7f72392aa",
+          "message": "Move correlationId to query string for /token calls (#7385)\n\neSTS only recognizes correlationId if it's in the QS or Headers of a\r\nrequest, we currently pass it in the body on /token calls and thus is\r\nignored.\r\n\r\nThis PR moves correlationId to the QS of /token requests (moving to\r\nHeaders would cause a CORS preflight request) to make correlating calls\r\nend to end easier.",
+          "timestamp": "2024-10-21T10:22:16-07:00",
+          "tree_id": "ce7e8586fceee73cbf8c0d751bc54d2373297050",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/980f0b077940119961610d375eddd2c7f72392aa"
+        },
+        "date": 1729531668740,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 198358,
+            "range": "±2.12%",
+            "unit": "ops/sec",
+            "extra": "225 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 188306,
+            "range": "±1.94%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
