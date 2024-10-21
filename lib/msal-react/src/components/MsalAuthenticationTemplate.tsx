@@ -45,6 +45,7 @@ export function MsalAuthenticationTemplate({
     authenticationRequest,
     loadingComponent: LoadingComponent,
     errorComponent: ErrorComponent,
+    notAuthenticatedComponent: NotAuthenticatedComponent,
     children,
 }: MsalAuthenticationProps): React.ReactElement | null {
     const accountIdentifier: AccountIdentifiers = useMemo(() => {
@@ -80,6 +81,10 @@ export function MsalAuthenticationTemplate({
 
     if (!!LoadingComponent && context.inProgress !== InteractionStatus.None) {
         return <LoadingComponent {...context} />;
+    }
+
+    if (!!NotAuthenticatedComponent) {
+        return <NotAuthenticatedComponent {...context} />;
     }
 
     return null;
