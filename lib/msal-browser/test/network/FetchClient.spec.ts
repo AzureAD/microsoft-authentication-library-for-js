@@ -1,6 +1,10 @@
 import { FetchClient } from "../../src/network/FetchClient";
 import { HTTP_REQUEST_TYPE } from "../../src/utils/BrowserConstants";
-import { Constants, NetworkError, NetworkRequestOptions } from "@azure/msal-common";
+import {
+    Constants,
+    NetworkError,
+    NetworkRequestOptions,
+} from "@azure/msal-common";
 import {
     BrowserAuthErrorMessage,
     BrowserAuthError,
