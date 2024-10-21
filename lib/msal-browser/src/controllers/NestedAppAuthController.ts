@@ -53,6 +53,7 @@ import {
 } from "../cache/BrowserCacheManager.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import * as AccountManager from "../cache/AccountManager.js";
+import { AccountContext } from "../naa/BridgeAccountContext.js";
 
 export class NestedAppAuthController implements IController {
     // OperatingContext
@@ -81,6 +82,9 @@ export class NestedAppAuthController implements IController {
 
     // NestedAppAuthAdapter
     protected readonly nestedAppAuthAdapter: NestedAppAuthAdapter;
+
+    // currentAccount for NAA apps
+    protected currentAccountContext: AccountContext | null;
 
     constructor(operatingContext: NestedAppOperatingContext) {
         this.operatingContext = operatingContext;
@@ -130,15 +134,7 @@ export class NestedAppAuthController implements IController {
 
         // Set the active account if available
         const accountContext = this.bridgeProxy.getAccountContext();
-        if (accountContext) {
-            const cachedAccount = AccountManager.getAccount(
-                accountContext,
-                this.logger,
-                this.browserStorage
-            );
-
-            AccountManager.setActiveAccount(cachedAccount, this.browserStorage);
-        }
+        this.currentAccountContext = accountContext ? accountContext : null;
     }
 
     /**
@@ -224,7 +220,13 @@ export class NestedAppAuthController implements IController {
             // cache the tokens in the response
             await this.hydrateCache(result, request);
 
-            this.browserStorage.setActiveAccount(result.account);
+            // cache the account context in memory after successful token fetch
+            this.currentAccountContext = {
+                homeAccountId: result.account.homeAccountId,
+                environment: result.account.environment,
+                tenantId: result.account.tenantId,
+            };
+
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
                 InteractionType.Popup,
@@ -318,7 +320,13 @@ export class NestedAppAuthController implements IController {
             // cache the tokens in the response
             await this.hydrateCache(result, request);
 
-            this.browserStorage.setActiveAccount(result.account);
+            // cache the account context in memory after successful token fetch
+            this.currentAccountContext = {
+                homeAccountId: result.account.homeAccountId,
+                environment: result.account.environment,
+                tenantId: result.account.tenantId,
+            };
+
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
                 InteractionType.Silent,
@@ -428,16 +436,16 @@ export class NestedAppAuthController implements IController {
     private async acquireTokenFromCacheInternal(
         request: SilentRequest
     ): Promise<AuthenticationResult | null> {
-        const accountContext = this.bridgeProxy.getAccountContext();
-        let currentAccount = null;
+        // always prioritize the account context from the bridge
+        const accountContext =
+            this.bridgeProxy.getAccountContext() || this.currentAccountContext;
+        let currentAccount: AccountInfo | null = null;
         if (accountContext) {
-            const hubAccount = AccountManager.getAccount(
+            currentAccount = AccountManager.getAccount(
                 accountContext,
                 this.logger,
                 this.browserStorage
             );
-            // always prioritize for hub account context, the reqirement of `request.account` will be removed soon
-            currentAccount = hubAccount || request.account;
         }
 
         // fall back to brokering if no cached account is found

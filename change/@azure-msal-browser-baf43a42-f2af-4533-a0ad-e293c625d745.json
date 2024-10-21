@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update current account and active account behavior in NAA apps",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
