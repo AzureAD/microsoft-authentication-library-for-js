@@ -53,7 +53,7 @@ export class CryptoOps implements ICrypto {
     constructor(logger: Logger, performanceClient?: IPerformanceClient) {
         this.logger = logger;
         // Browser crypto needs to be validated first before any other classes can be set.
-        BrowserCrypto.validateCryptoAvailable(logger);
+        BrowserCrypto.validateCryptoAvailable();
         this.cache = new AsyncMemoryStorage<CachedKeyPair>(this.logger);
         this.performanceClient = performanceClient;
     }

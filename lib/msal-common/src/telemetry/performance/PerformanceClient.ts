@@ -198,18 +198,30 @@ export function compactStack(stack: string, stackMaxSize: number): string[] {
     }
 
     const stackArr = stack.split("\n") || [];
-    if (stackArr.length < 2) {
-        return [];
-    }
 
     const res = [];
-    // Get top N stack lines
-    for (
-        // Skip first line as it may contain PII data
-        let ix = Math.max(stackArr.length - stackMaxSize - 1, 1);
-        ix < stackArr.length;
-        ix++
+
+    // Check for a handful of known, common runtime errors and log them (with redaction where applicable).
+    if (
+        stack[0].startsWith("TypeError: Cannot read property") ||
+        stack[0].endsWith("is not a function")
     ) {
+        // These types of errors are not at risk of leaking PII. They will indicate unavailable APIs
+        res.push(compactStackLine(stack[0]));
+    } else if (
+        stack[0].startsWith("SyntaxError") || stack[0].startsWith("TypeError")
+    ) {
+        // Prevent unintentional leaking of arbitrary info by redacting contents between both single and double quotes
+        res.push(
+            compactStackLine(
+                // Example: SyntaxError: Unexpected token 'e', "test" is not valid JSON -> SyntaxError: Unexpected token <redacted>, <redacted> is not valid JSON
+                stack[0].replace(/['].*[']|["].*["]/g, "<redacted>")
+            )
+        );
+    }
+
+    // Get top N stack lines
+    for (let ix = 1; ix < Math.min(stackMaxSize, stackArr.length); ix++) {
         const line = stackArr[ix];
         if (res.length >= stackMaxSize) {
             break;
