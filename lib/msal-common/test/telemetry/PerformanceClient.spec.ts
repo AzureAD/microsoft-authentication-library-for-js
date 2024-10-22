@@ -605,9 +605,9 @@ describe("PerformanceClient.spec.ts", () => {
             const result1 = compactStack(error.stack!, 3);
             expect(result1.length).toEqual(3);
             expect(result1).toEqual([
-                "at testFunction18 (testFile18.js:10:1)",
-                "at testFunction19 (testFile19.js:10:1)",
-                "at testFunction20 (testFile20.js:10:1)",
+                "at testFunction2 (testFile2.js:10:1)",
+                "at testFunction3 (testFile3.js:10:1)",
+                "at testFunction4 (testFile4.js:10:1)",
             ]);
 
             expect(compactStack(error.stack!, -2)).toEqual([]);
