@@ -259,20 +259,19 @@ describe("PerformanceClient.spec.ts", () => {
         const mockPerfClient = new MockPerformanceClient();
         const correlationId = "test-correlation-id";
 
-        const publicError = new AuthError("public_test_error", "This error will be thrown to caller");
-        const runtimeError = new TypeError("This error caused publicError")
+        const publicError = new AuthError(
+            "public_test_error",
+            "This error will be thrown to caller"
+        );
+        const runtimeError = new TypeError("This error caused publicError");
 
         mockPerfClient.addPerformanceCallback((events) => {
             expect(events.length).toEqual(1);
             const event = events[0];
-            expect(event["errorCode"]).toBe(
-                publicError.errorCode
-            );
-            expect(event["errorName"]).toBe(
-                "TypeError"
-            );
-            expect(event["errorStack"]).toBe(
-                runtimeError.stack
+            expect(event["errorCode"]).toBe(publicError.errorCode);
+            expect(event["errorName"]).toBe("TypeError");
+            expect(event["errorStack"]).toEqual(
+                compactStack(runtimeError.stack as string, 5)
             );
             done();
         });
@@ -289,18 +288,67 @@ describe("PerformanceClient.spec.ts", () => {
                 PerformanceEvents.AcquireTokenSilentAsync,
                 correlationId
             )
-            .end({ success:false }, publicError);
+            .end({ success: false }, publicError);
         mockPerfClient
             .startMeasurement(
                 PerformanceEvents.SilentIframeClientAcquireToken,
                 correlationId
             )
-            .end({ success:false }, runtimeError);
+            .end({ success: false }, runtimeError);
 
-        // End top level event without ending submeasurement
+        topLevelEvent.end(
+            {
+                success: false,
+            },
+            publicError
+        );
+    });
+
+    it("captures runtime errors from submeasurements and removes error code", (done) => {
+        const mockPerfClient = new MockPerformanceClient();
+        const correlationId = "test-correlation-id";
+
+        const publicError = new AuthError(
+            "public_test_error",
+            "This error will be thrown to caller"
+        );
+        const runtimeError = new TypeError("This error caused publicError");
+
+        mockPerfClient.addPerformanceCallback((events) => {
+            expect(events.length).toEqual(1);
+            const event = events[0];
+            expect(event["errorCode"]).toBeUndefined();
+            expect(event["subErrorCode"]).toBeUndefined();
+            expect(event["errorName"]).toBe("TypeError");
+            expect(event["errorStack"]).toEqual(
+                compactStack(runtimeError.stack as string, 5)
+            );
+            done();
+        });
+
+        // Start and end top-level measurement
+        const topLevelEvent = mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            correlationId
+        );
+
+        // Start and complete submeasurements
+        mockPerfClient
+            .startMeasurement(
+                PerformanceEvents.AcquireTokenSilentAsync,
+                correlationId
+            )
+            .end({ success: false }, publicError);
+        mockPerfClient
+            .startMeasurement(
+                PerformanceEvents.SilentIframeClientAcquireToken,
+                correlationId
+            )
+            .end({ success: false }, runtimeError);
+
         topLevelEvent.end({
-            success: false
-        }, publicError);
+            success: true,
+        });
     });
 
     it("discards incomplete submeasurements", (done) => {

@@ -213,7 +213,8 @@ export function compactStack(stack: string, stackMaxSize: number): string[] {
         // These types of errors are not at risk of leaking PII. They will indicate unavailable APIs
         res.push(compactStackLine(firstLine));
     } else if (
-        firstLine.startsWith("SyntaxError") || firstLine.startsWith("TypeError")
+        firstLine.startsWith("SyntaxError") ||
+        firstLine.startsWith("TypeError")
     ) {
         // Prevent unintentional leaking of arbitrary info by redacting contents between both single and double quotes
         res.push(
@@ -646,14 +647,27 @@ export abstract class PerformanceClient implements IPerformanceClient {
             event.correlationId
         );
 
+        if (error) {
+            addError(error, this.logger, rootEvent);
+        }
+
         // Add sub-measurement attribute to root event.
         if (!isRoot) {
             rootEvent[event.name + "DurationMs"] = Math.floor(event.durationMs);
             return { ...rootEvent };
         }
 
-        if (error) {
-            addError(error, this.logger, rootEvent);
+        if (
+            isRoot &&
+            !error &&
+            (rootEvent.errorCode || rootEvent.subErrorCode)
+        ) {
+            this.logger.trace(
+                `PerformanceClient: Remove error and sub-error codes for root event ${event.name} as intermediate error was successfully handled`,
+                event.correlationId
+            );
+            rootEvent.errorCode = undefined;
+            rootEvent.subErrorCode = undefined;
         }
 
         let finalEvent: PerformanceEvent = { ...rootEvent, ...event };
