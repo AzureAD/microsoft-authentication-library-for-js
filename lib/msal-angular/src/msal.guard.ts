@@ -19,9 +19,10 @@ import {
   PopupRequest,
   RedirectRequest,
   AuthenticationResult,
+  InteractionStatus,
 } from "@azure/msal-browser";
 import { Observable, of } from "rxjs";
-import { concatMap, catchError, map } from "rxjs/operators";
+import { concatMap, catchError, map, filter, take } from "rxjs/operators";
 import { MsalService } from "./msal.service";
 import { MsalGuardConfiguration } from "./msal.guard.config";
 import { MsalBroadcastService } from "./msal.broadcast.service";
@@ -177,7 +178,16 @@ export class MsalGuard {
         return this.authService.handleRedirectObservable();
       }),
       concatMap(() => {
-        if (!this.authService.instance.getAllAccounts().length) {
+        if (!this.msalGuardConfig.enableCheckForExpiredToken) {
+          return of(!this.authService.instance.getAllAccounts().length);
+        } else {
+          return this.isTokenStillValidForActiveAccountRefreshIfPossible(
+            state
+          ).pipe(map((validToken) => !validToken));
+        }
+      }),
+      concatMap((requireLogin) => {
+        if (requireLogin) {
           if (state) {
             this.authService
               .getLogger()
@@ -192,9 +202,19 @@ export class MsalGuard {
           return of(false);
         }
 
-        this.authService
-          .getLogger()
-          .verbose("Guard - at least 1 account exists, can activate or load");
+        if (!this.msalGuardConfig.enableCheckForExpiredToken) {
+          this.authService
+            .getLogger()
+            .verbose("Guard - at least 1 account exists, can activate or load");
+        }
+
+        if (!!this.msalGuardConfig.enableCheckForExpiredToken) {
+          this.authService
+            .getLogger()
+            .verbose(
+              "Guard - active account has a valid token, can activate or load"
+            );
+        }
 
         // Prevent navigating the app to /#code= or /code=
         if (state) {
@@ -286,5 +306,76 @@ export class MsalGuard {
   canMatch(): Observable<boolean | UrlTree> {
     this.authService.getLogger().verbose("Guard - canLoad");
     return this.activateHelper();
+  }
+
+  /*
+   * will return false if no active account or token expired and silent refresh failed
+   * will return true if we have a non expired token
+   */
+  isTokenStillValidForActiveAccountRefreshIfPossible(
+    state: RouterStateSnapshot
+  ): Observable<boolean> {
+    const activeAccount = this.authService.instance.getActiveAccount();
+
+    if (!activeAccount) {
+      return of(false);
+    }
+
+    const now = Math.round(Date.now() / 1000);
+    const expiration = <number>activeAccount.idTokenClaims?.["exp"];
+
+    const expired =
+      now + (this.msalGuardConfig.minimumSecondsBeforeTokenExpiration ?? 0) >
+      expiration;
+
+    if (!expired) {
+      return of(true);
+    } else {
+      if (!this.msalGuardConfig.silentAuthRequest) {
+        return of(false);
+      }
+      this.authService
+        .getLogger()
+        .info(
+          "Guard - token for active account is expired. Initiating silent refresh"
+        );
+      const silentRequest =
+        typeof this.msalGuardConfig.silentAuthRequest === "function"
+          ? this.msalGuardConfig.silentAuthRequest(this.authService, state)
+          : { ...this.msalGuardConfig.silentAuthRequest };
+
+      return this.msalBroadcastService.inProgress$.pipe(
+        filter(
+          (status: InteractionStatus) => status === InteractionStatus.None
+        ),
+        take(1),
+        concatMap(() => {
+          return this.authService.acquireTokenSilent(silentRequest);
+        }),
+        map((authResult) => {
+          if (!!authResult.accessToken) {
+            this.authService
+              .getLogger()
+              .info("Guard - silent refresh succeeded");
+            return true;
+          } else {
+            this.authService
+              .getLogger()
+              .warning("Guard - silent refresh did not return a token");
+            return false;
+          }
+        }),
+        catchError((err) => {
+          this.authService
+            .getLogger()
+            .warning(
+              `Guard - silent refresh failed. Reporting no valid token. error: ${JSON.stringify(
+                err
+              )}`
+            );
+          return of(false);
+        })
+      );
+    }
   }
 }
