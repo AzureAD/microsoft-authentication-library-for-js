@@ -781,7 +781,6 @@ export class StandardController implements IController {
                     atPopupMeasurement.end({
                         success: true,
                         isNativeBroker: true,
-                        requestId: response.requestId,
                         accountType: getAccountType(response.account),
                     });
                     return response;
@@ -834,7 +833,6 @@ export class StandardController implements IController {
 
                 atPopupMeasurement.end({
                     success: true,
-                    requestId: result.requestId,
                     accessTokenSize: result.accessToken.length,
                     idTokenSize: result.idToken.length,
                     accountType: getAccountType(result.account),
@@ -971,7 +969,6 @@ export class StandardController implements IController {
                 this.ssoSilentMeasurement?.end({
                     success: true,
                     isNativeBroker: response.fromNativeBroker,
-                    requestId: response.requestId,
                     accessTokenSize: response.accessToken.length,
                     idTokenSize: response.idToken.length,
                     accountType: getAccountType(response.account),
@@ -1056,7 +1053,6 @@ export class StandardController implements IController {
                             atbcMeasurement.end({
                                 success: true,
                                 isNativeBroker: result.fromNativeBroker,
-                                requestId: result.requestId,
                                 accessTokenSize: result.accessToken.length,
                                 idTokenSize: result.idToken.length,
                                 accountType: getAccountType(result.account),
@@ -1173,7 +1169,6 @@ export class StandardController implements IController {
                     success: true,
                     fromCache: response.fromCache,
                     isNativeBroker: response.fromNativeBroker,
-                    requestId: response.requestId,
                 });
                 return response;
             })
@@ -2035,7 +2030,6 @@ export class StandardController implements IController {
                         fromCache: result.fromCache,
                         isNativeBroker: result.fromNativeBroker,
                         cacheLookupPolicy: request.cacheLookupPolicy,
-                        requestId: result.requestId,
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
                     });
@@ -2223,7 +2217,6 @@ export class StandardController implements IController {
                         {
                             fromCache: response.fromCache,
                             isNativeBroker: response.fromNativeBroker,
-                            requestId: response.requestId,
                         },
                         request.correlationId
                     );

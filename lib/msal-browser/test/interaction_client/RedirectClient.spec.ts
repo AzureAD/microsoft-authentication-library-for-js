@@ -44,7 +44,6 @@ import {
     ServerTelemetryManager,
     AccountEntity,
     AuthError,
-    NetworkManager,
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
     IdTokenEntity,
@@ -3123,8 +3122,8 @@ describe("RedirectClient", () => {
                     TEST_STATE_VALUES.TEST_STATE_REDIRECT
                 );
                 jest.spyOn(
-                    NetworkManager.prototype,
-                    "sendPostRequest"
+                    FetchClient.prototype,
+                    "sendPostRequestAsync"
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
                 jest.spyOn(
                     PkceGenerator,

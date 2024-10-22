@@ -2,11 +2,11 @@ import { HttpClient } from "../../src/network/HttpClient";
 import {
     NetworkResponse,
     NetworkRequestOptions,
-    UrlToHttpRequestOptions,
     HttpStatus,
 } from "@azure/msal-common";
 import { MockedMetadataResponse } from "../utils/TestConstants";
 import { ProxyStatus } from "../../src/utils/Constants";
+import { UrlToHttpRequestOptions } from "../../src/utils/NetworkUtils.js";
 
 import http from "http";
 jest.mock("http", () => ({
