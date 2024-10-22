@@ -205,6 +205,9 @@ export function compactStack(stack: string, stackMaxSize: number): string[] {
     const firstLine = stackArr[0];
     if (
         firstLine.startsWith("TypeError: Cannot read property") ||
+        firstLine.startsWith("TypeError: Cannot read properties of") ||
+        firstLine.startsWith("TypeError: Cannot set property") ||
+        firstLine.startsWith("TypeError: Cannot set properties of") ||
         firstLine.endsWith("is not a function")
     ) {
         // These types of errors are not at risk of leaking PII. They will indicate unavailable APIs

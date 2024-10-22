@@ -620,6 +620,76 @@ describe("PerformanceClient.spec.ts", () => {
             ).toEqual(["at testFunction (testFile.js:10:1)"]);
         });
 
+        it("Includes first line if it's a property read error", () => {
+            let error: Error;
+            try {
+                // @ts-ignore
+                error.test; // This will throw Cannot access property error
+                throw new Error("This is unexpected");
+            } catch (e) {
+                error = e as Error;
+            }
+
+            const result1 = compactStack(error.stack!, 3);
+            expect(result1.length).toEqual(3);
+            expect(result1[0]).toEqual(
+                "TypeError: Cannot read properties of undefined (reading 'test')"
+            );
+        });
+
+        it("Includes first line if it's a property set error", () => {
+            let error: Error;
+            try {
+                // @ts-ignore
+                error.test = "test"; // This will throw Cannot access property error
+                throw new Error("This is unexpected");
+            } catch (e) {
+                error = e as Error;
+            }
+
+            const result1 = compactStack(error.stack!, 3);
+            expect(result1.length).toEqual(3);
+            expect(result1[0]).toEqual(
+                "TypeError: Cannot set properties of undefined (setting 'test')"
+            );
+        });
+
+        it("Includes first line and redacts if it's a TypeError", () => {
+            let error = new TypeError("Unable to access 'aribtrary field'");
+
+            const result1 = compactStack(error.stack!, 1);
+            expect(result1.length).toEqual(1);
+            expect(result1[0]).toEqual(
+                "TypeError: Unable to access <redacted>"
+            );
+
+            let error2 = new TypeError('Unable to access "aribtrary field"');
+
+            const result2 = compactStack(error2.stack!, 1);
+            expect(result2.length).toEqual(1);
+            expect(result2[0]).toEqual(
+                "TypeError: Unable to access <redacted>"
+            );
+        });
+
+        it("Includes first line and redacts if it's a SyntaxError", () => {
+            let error = new SyntaxError("Unable to access 'aribtrary field'");
+
+            const result1 = compactStack(error.stack!, 1);
+            expect(result1.length).toEqual(1);
+            expect(result1[0]).toEqual(
+                "SyntaxError: Unable to access <redacted>"
+            );
+
+            let error2 = new SyntaxError('Unable to access "aribtrary field"');
+
+            const result2 = compactStack(error2.stack!, 1);
+            expect(result2.length).toEqual(1);
+            expect(result2[0]).toEqual(
+                "SyntaxError: Unable to access <redacted>"
+            );
+        });
+
         it("handles empty error stack", () => {
             expect(compactStack("", 3)).toEqual([]);
         });
