@@ -1028,7 +1028,7 @@ export abstract class CacheManager implements ICacheManager {
             // Get keys of all accounts belonging to user
             const matchingAccountKeys = this.getAccountKeys().filter(
                 (key: string) => {
-                    return key.startsWith(accountEntity.homeAccountId);
+                    return key.startsWith(accountEntity.homeAccountId.toLowerCase());
                 }
             );
 
