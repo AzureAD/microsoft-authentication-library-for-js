@@ -5,7 +5,6 @@
 
 import {
     ApplicationTelemetry,
-    AuthError,
     IGuidGenerator,
     InteractionRequiredAuthError,
     IPerformanceClient,
@@ -21,6 +20,7 @@ import {
 } from "../../src/telemetry/performance/PerformanceClient";
 import * as PerformanceClient from "../../src/telemetry/performance/PerformanceClient";
 import { PerformanceEventAbbreviations } from "../../src/telemetry/performance/PerformanceEvent";
+import { AuthError } from "../../src/error/AuthError.js";
 
 const sampleClientId = "test-client-id";
 const authority = "https://login.microsoftonline.com/common";
@@ -253,6 +253,54 @@ describe("PerformanceClient.spec.ts", () => {
         topLevelEvent.end({
             success: true,
         });
+    });
+
+    it("captures runtime errors from submeasurements", (done) => {
+        const mockPerfClient = new MockPerformanceClient();
+        const correlationId = "test-correlation-id";
+
+        const publicError = new AuthError("public_test_error", "This error will be thrown to caller");
+        const runtimeError = new TypeError("This error caused publicError")
+
+        mockPerfClient.addPerformanceCallback((events) => {
+            expect(events.length).toEqual(1);
+            const event = events[0];
+            expect(event["errorCode"]).toBe(
+                publicError.errorCode
+            );
+            expect(event["errorName"]).toBe(
+                "TypeError"
+            );
+            expect(event["errorStack"]).toBe(
+                runtimeError.stack
+            );
+            done();
+        });
+
+        // Start and end top-level measurement
+        const topLevelEvent = mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            correlationId
+        );
+
+        // Start and complete submeasurements
+        mockPerfClient
+            .startMeasurement(
+                PerformanceEvents.AcquireTokenSilentAsync,
+                correlationId
+            )
+            .end({ success:false }, publicError);
+        mockPerfClient
+            .startMeasurement(
+                PerformanceEvents.SilentIframeClientAcquireToken,
+                correlationId
+            )
+            .end({ success:false }, runtimeError);
+
+        // End top level event without ending submeasurement
+        topLevelEvent.end({
+            success: false
+        }, publicError);
     });
 
     it("discards incomplete submeasurements", (done) => {
