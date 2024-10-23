@@ -20,7 +20,7 @@ import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     ID_TOKEN_CLAIMS,
     TEST_CONSTANTS,
-} from "../utils/TestConstants";
+} from "../utils/TestConstants.js";
 import {
     ConfidentialClientApplication,
     OnBehalfOfRequest,
@@ -32,19 +32,23 @@ import {
     RefreshTokenRequest,
     SilentFlowRequest,
     ClientApplication,
-} from "../../src";
+} from "../../src/index.js";
 import {
     CAE_CONSTANTS,
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
     TEST_CONFIG,
     TEST_TOKENS,
-} from "../test_kit/StringConstants";
-import { mockNetworkClient } from "../utils/MockNetworkClient";
-import { ClientTestUtils, getClientAssertionCallback } from "./ClientTestUtils";
+} from "../test_kit/StringConstants.js";
+import { mockNetworkClient } from "../utils/MockNetworkClient.js";
+import {
+    ClientTestUtils,
+    getClientAssertionCallback,
+} from "./ClientTestUtils.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
-import { Constants } from "../../src/utils/Constants";
+import { Constants, MSAL_FORCE_REGION } from "../../src/utils/Constants.js";
 import jwt from "jsonwebtoken";
-import { NodeAuthError } from "../../src/error/NodeAuthError";
+import { NodeAuthError } from "../../src/error/NodeAuthError.js";
+import { INetworkModule } from "../../../msal-common/lib/types/exports-common.js";
 
 jest.mock("jsonwebtoken");
 
@@ -53,15 +57,17 @@ describe("ConfidentialClientApplication", () => {
         jest.spyOn(jwt, <any>"sign").mockReturnValue("fake_jwt_string");
     });
 
+    const networkClient: INetworkModule = mockNetworkClient(
+        DEFAULT_OPENID_CONFIG_RESPONSE.body,
+        CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT
+    );
+
     let config: Configuration;
     beforeEach(async () => {
         config =
             await ClientTestUtils.createTestConfidentialClientConfiguration(
                 undefined,
-                mockNetworkClient(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body,
-                    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT
-                )
+                networkClient
             );
     });
 
@@ -338,6 +344,119 @@ describe("ConfidentialClientApplication", () => {
                     await client.acquireTokenByClientCredential(request);
                 }
             );
+        });
+
+        describe("region is determined correctly", () => {
+            const checkRegion = (
+                endpointFromSpy: string,
+                expectedRegion: string
+            ) => {
+                const endpoint: string = endpointFromSpy;
+                const regionMatch: Array<string> | null = endpoint.match(
+                    "https://(.*).login.microsoft.com/tenantid/oauth2/v2.0/token/"
+                );
+                expect(regionMatch && regionMatch.length).toEqual(2);
+                expect(regionMatch && regionMatch[1]).toEqual(expectedRegion);
+            };
+
+            let acquireTokenByClientCredentialSpy: jest.SpyInstance;
+            let buildOauthClientConfigurationSpy: jest.SpyInstance;
+            let sendPostRequestAsyncSpy: jest.SpyInstance;
+            let client: ConfidentialClientApplication;
+            let request: ClientCredentialRequest;
+            beforeEach(() => {
+                acquireTokenByClientCredentialSpy = jest.spyOn(
+                    ConfidentialClientApplication.prototype,
+                    <any>"acquireTokenByClientCredential"
+                );
+
+                buildOauthClientConfigurationSpy = jest.spyOn(
+                    ConfidentialClientApplication.prototype,
+                    <any>"buildOauthClientConfiguration"
+                );
+
+                sendPostRequestAsyncSpy = jest.spyOn(
+                    networkClient,
+                    <any>"sendPostRequestAsync"
+                );
+
+                client = new ConfidentialClientApplication(config);
+
+                request = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    skipCache: false,
+                };
+
+                process.env[MSAL_FORCE_REGION] = "eastus";
+            });
+
+            afterEach(() => {
+                delete process.env[MSAL_FORCE_REGION];
+            });
+
+            test("region is not passed in through the request, the MSAL_FORCE_REGION environment variable is used", async () => {
+                const authResult = (await client.acquireTokenByClientCredential(
+                    request
+                )) as AuthenticationResult;
+                expect(authResult.accessToken).toEqual(
+                    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+                );
+                expect(acquireTokenByClientCredentialSpy).toHaveBeenCalledTimes(
+                    1
+                );
+                expect(
+                    buildOauthClientConfigurationSpy.mock.lastCall[4]
+                        .azureRegion
+                ).toEqual(process.env[MSAL_FORCE_REGION]);
+
+                checkRegion(
+                    sendPostRequestAsyncSpy.mock.lastCall[0],
+                    process.env[MSAL_FORCE_REGION] as string
+                );
+            });
+
+            test("region is passed in through the request, the MSAL_FORCE_REGION environment variable is not used", async () => {
+                const region = "westus";
+
+                const authResult = (await client.acquireTokenByClientCredential(
+                    { ...request, azureRegion: region }
+                )) as AuthenticationResult;
+                expect(authResult.accessToken).toEqual(
+                    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+                );
+                expect(acquireTokenByClientCredentialSpy).toHaveBeenCalledTimes(
+                    1
+                );
+                expect(
+                    buildOauthClientConfigurationSpy.mock.lastCall[4]
+                        .azureRegion
+                ).toEqual(region);
+
+                checkRegion(sendPostRequestAsyncSpy.mock.lastCall[0], region);
+            });
+
+            test('region is not passed in through the request, the MSAL_FORCE_REGION environment variable is set to "DisableMsalForceRegion"', async () => {
+                const authResult = (await client.acquireTokenByClientCredential(
+                    { ...request, azureRegion: "DisableMsalForceRegion" }
+                )) as AuthenticationResult;
+                expect(authResult.accessToken).toEqual(
+                    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
+                );
+                expect(acquireTokenByClientCredentialSpy).toHaveBeenCalledTimes(
+                    1
+                );
+                expect(
+                    buildOauthClientConfigurationSpy.mock.lastCall[4]
+                        .azureRegion
+                ).toBeUndefined();
+
+                const endpoint: string =
+                    sendPostRequestAsyncSpy.mock.lastCall[0];
+                const regionMatch: Array<string> | null = endpoint.match(
+                    "https://(.*).login.microsoft.com/tenantid/oauth2/v2.0/token/"
+                );
+                expect(regionMatch).toBeNull();
+            });
         });
 
         test("acquireTokenByClientCredential request does not contain OIDC scopes", async () => {
