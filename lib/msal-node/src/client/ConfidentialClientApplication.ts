@@ -147,10 +147,11 @@ export class ConfidentialClientApplication
 
         let region: AzureRegion | undefined;
         if (validRequest.azureRegion !== "DisableMsalForceRegion") {
-            region =
-                !validRequest.azureRegion && ENV_MSAL_FORCE_REGION
-                    ? ENV_MSAL_FORCE_REGION
-                    : validRequest.azureRegion;
+            if (!validRequest.azureRegion && ENV_MSAL_FORCE_REGION) {
+                region = ENV_MSAL_FORCE_REGION;
+            } else {
+                region = validRequest.azureRegion;
+            }
         }
 
         const azureRegionConfiguration: AzureRegionConfiguration = {
