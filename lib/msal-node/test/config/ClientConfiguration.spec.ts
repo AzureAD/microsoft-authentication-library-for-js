@@ -18,6 +18,7 @@ import {
     ConfidentialClientApplication,
 } from "../../src";
 import { OnBehalfOfRequest } from "../../src/request/OnBehalfOfRequest";
+import { RANDOM_TEST_GUID } from "../test_kit/StringConstants.js";
 
 describe("ClientConfiguration tests", () => {
     test("builds configuration and assigns default functions", () => {
@@ -203,6 +204,7 @@ describe("ClientConfiguration tests", () => {
         const request: ClientCredentialRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             skipCache: true,
+            correlationId: RANDOM_TEST_GUID,
         };
 
         await new ConfidentialClientApplication(
@@ -215,7 +217,7 @@ describe("ClientConfiguration tests", () => {
             DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
                 "{tenant}",
                 "tenantid"
-            ),
+            ) + `?client-request-id=${RANDOM_TEST_GUID}`,
             expect.objectContaining({
                 body: expect.stringContaining("TEST-CAPABILITY"),
             })
@@ -227,6 +229,7 @@ describe("ClientConfiguration tests", () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             oboAssertion: "user_assertion_hash",
             skipCache: true,
+            correlationId: RANDOM_TEST_GUID,
         };
 
         const appConfig: Configuration = {
@@ -258,7 +261,7 @@ describe("ClientConfiguration tests", () => {
             DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
                 "{tenant}",
                 "tenantid"
-            ),
+            ) + `?client-request-id=${RANDOM_TEST_GUID}`,
             expect.objectContaining({
                 body: expect.stringContaining("TEST-CAPABILITY"),
             })

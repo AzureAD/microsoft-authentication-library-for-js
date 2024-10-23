@@ -380,8 +380,6 @@ export class RefreshTokenClient extends BaseClient {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
 
-        parameterBuilder.addCorrelationId(correlationId);
-
         parameterBuilder.addRefreshToken(request.refreshToken);
 
         if (this.config.clientCredentials.clientSecret) {
