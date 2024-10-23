@@ -9,7 +9,6 @@ import {
 } from "../error/BrowserAuthError.js";
 import {
     IPerformanceClient,
-    Logger,
     PerformanceEvents,
 } from "@azure/msal-common/browser";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants.js";
