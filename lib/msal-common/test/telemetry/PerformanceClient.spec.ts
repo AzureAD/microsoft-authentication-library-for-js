@@ -5,7 +5,6 @@
 
 import {
     ApplicationTelemetry,
-    AuthError,
     IGuidGenerator,
     InteractionRequiredAuthError,
     IPerformanceClient,
@@ -21,6 +20,7 @@ import {
 } from "../../src/telemetry/performance/PerformanceClient";
 import * as PerformanceClient from "../../src/telemetry/performance/PerformanceClient";
 import { PerformanceEventAbbreviations } from "../../src/telemetry/performance/PerformanceEvent";
+import { AuthError } from "../../src/error/AuthError.js";
 
 const sampleClientId = "test-client-id";
 const authority = "https://login.microsoftonline.com/common";
@@ -250,6 +250,102 @@ describe("PerformanceClient.spec.ts", () => {
             .end({ status: PerformanceEventStatus.Completed });
 
         // End top level event without ending submeasurement
+        topLevelEvent.end({
+            success: true,
+        });
+    });
+
+    it("captures runtime errors from submeasurements", (done) => {
+        const mockPerfClient = new MockPerformanceClient();
+        const correlationId = "test-correlation-id";
+
+        const publicError = new AuthError(
+            "public_test_error",
+            "This error will be thrown to caller"
+        );
+        const runtimeError = new TypeError("This error caused publicError");
+
+        mockPerfClient.addPerformanceCallback((events) => {
+            expect(events.length).toEqual(1);
+            const event = events[0];
+            expect(event["errorCode"]).toBe(publicError.errorCode);
+            expect(event["errorName"]).toBe("TypeError");
+            expect(event["errorStack"]).toEqual(
+                compactStack(runtimeError.stack as string, 5)
+            );
+            done();
+        });
+
+        // Start and end top-level measurement
+        const topLevelEvent = mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            correlationId
+        );
+
+        // Start and complete submeasurements
+        mockPerfClient
+            .startMeasurement(
+                PerformanceEvents.AcquireTokenSilentAsync,
+                correlationId
+            )
+            .end({ success: false }, publicError);
+        mockPerfClient
+            .startMeasurement(
+                PerformanceEvents.SilentIframeClientAcquireToken,
+                correlationId
+            )
+            .end({ success: false }, runtimeError);
+
+        topLevelEvent.end(
+            {
+                success: false,
+            },
+            publicError
+        );
+    });
+
+    it("captures runtime errors from submeasurements and removes error code", (done) => {
+        const mockPerfClient = new MockPerformanceClient();
+        const correlationId = "test-correlation-id";
+
+        const publicError = new AuthError(
+            "public_test_error",
+            "This error will be thrown to caller"
+        );
+        const runtimeError = new TypeError("This error caused publicError");
+
+        mockPerfClient.addPerformanceCallback((events) => {
+            expect(events.length).toEqual(1);
+            const event = events[0];
+            expect(event["errorCode"]).toBeUndefined();
+            expect(event["subErrorCode"]).toBeUndefined();
+            expect(event["errorName"]).toBe("TypeError");
+            expect(event["errorStack"]).toEqual(
+                compactStack(runtimeError.stack as string, 5)
+            );
+            done();
+        });
+
+        // Start and end top-level measurement
+        const topLevelEvent = mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            correlationId
+        );
+
+        // Start and complete submeasurements
+        mockPerfClient
+            .startMeasurement(
+                PerformanceEvents.AcquireTokenSilentAsync,
+                correlationId
+            )
+            .end({ success: false }, publicError);
+        mockPerfClient
+            .startMeasurement(
+                PerformanceEvents.SilentIframeClientAcquireToken,
+                correlationId
+            )
+            .end({ success: false }, runtimeError);
+
         topLevelEvent.end({
             success: true,
         });
@@ -605,9 +701,9 @@ describe("PerformanceClient.spec.ts", () => {
             const result1 = compactStack(error.stack!, 3);
             expect(result1.length).toEqual(3);
             expect(result1).toEqual([
-                "at testFunction18 (testFile18.js:10:1)",
-                "at testFunction19 (testFile19.js:10:1)",
-                "at testFunction20 (testFile20.js:10:1)",
+                "at testFunction2 (testFile2.js:10:1)",
+                "at testFunction3 (testFile3.js:10:1)",
+                "at testFunction4 (testFile4.js:10:1)",
             ]);
 
             expect(compactStack(error.stack!, -2)).toEqual([]);
@@ -618,6 +714,76 @@ describe("PerformanceClient.spec.ts", () => {
                     3
                 )
             ).toEqual(["at testFunction (testFile.js:10:1)"]);
+        });
+
+        it("Includes first line if it's a property read error", () => {
+            let error: Error;
+            try {
+                // @ts-ignore
+                error.test; // This will throw Cannot access property error
+                throw new Error("This is unexpected");
+            } catch (e) {
+                error = e as Error;
+            }
+
+            const result1 = compactStack(error.stack!, 3);
+            expect(result1.length).toEqual(3);
+            expect(result1[0]).toEqual(
+                "TypeError: Cannot read properties of undefined (reading 'test')"
+            );
+        });
+
+        it("Includes first line if it's a property set error", () => {
+            let error: Error;
+            try {
+                // @ts-ignore
+                error.test = "test"; // This will throw Cannot access property error
+                throw new Error("This is unexpected");
+            } catch (e) {
+                error = e as Error;
+            }
+
+            const result1 = compactStack(error.stack!, 3);
+            expect(result1.length).toEqual(3);
+            expect(result1[0]).toEqual(
+                "TypeError: Cannot set properties of undefined (setting 'test')"
+            );
+        });
+
+        it("Includes first line and redacts if it's a TypeError", () => {
+            let error = new TypeError("Unable to access 'aribtrary field'");
+
+            const result1 = compactStack(error.stack!, 1);
+            expect(result1.length).toEqual(1);
+            expect(result1[0]).toEqual(
+                "TypeError: Unable to access <redacted>"
+            );
+
+            let error2 = new TypeError('Unable to access "aribtrary field"');
+
+            const result2 = compactStack(error2.stack!, 1);
+            expect(result2.length).toEqual(1);
+            expect(result2[0]).toEqual(
+                "TypeError: Unable to access <redacted>"
+            );
+        });
+
+        it("Includes first line and redacts if it's a SyntaxError", () => {
+            let error = new SyntaxError("Unable to access 'aribtrary field'");
+
+            const result1 = compactStack(error.stack!, 1);
+            expect(result1.length).toEqual(1);
+            expect(result1[0]).toEqual(
+                "SyntaxError: Unable to access <redacted>"
+            );
+
+            let error2 = new SyntaxError('Unable to access "aribtrary field"');
+
+            const result2 = compactStack(error2.stack!, 1);
+            expect(result2.length).toEqual(1);
+            expect(result2[0]).toEqual(
+                "SyntaxError: Unable to access <redacted>"
+            );
         });
 
         it("handles empty error stack", () => {

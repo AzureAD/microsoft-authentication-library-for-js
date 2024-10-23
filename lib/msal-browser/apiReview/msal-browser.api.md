@@ -184,7 +184,7 @@ function blockReloadInHiddenIframes(): void;
 //
 // @public
 export class BrowserAuthError extends AuthError {
-    constructor(errorCode: string);
+    constructor(errorCode: string, subError?: string);
 }
 
 declare namespace BrowserAuthErrorCodes {

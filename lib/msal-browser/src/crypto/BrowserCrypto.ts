@@ -9,7 +9,6 @@ import {
 } from "../error/BrowserAuthError.js";
 import {
     IPerformanceClient,
-    Logger,
     PerformanceEvents,
 } from "@azure/msal-common/browser";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants.js";
@@ -36,6 +35,8 @@ const UUID_CHARS = "0123456789abcdef";
 // Array to store UINT32 random value
 const UINT32_ARR = new Uint32Array(1);
 
+const SUBTLE_SUBERROR = "crypto_subtle_undefined";
+
 const keygenAlgorithmOptions: RsaHashedKeyGenParams = {
     name: PKCS1_V15_KEYGEN_ALG,
     hash: S256_HASH_ALG,
@@ -46,12 +47,20 @@ const keygenAlgorithmOptions: RsaHashedKeyGenParams = {
 /**
  * Check whether browser crypto is available.
  */
-export function validateCryptoAvailable(logger: Logger): void {
-    if ("crypto" in window) {
-        logger.verbose("BrowserCrypto: modern crypto interface available");
-    } else {
-        logger.error("BrowserCrypto: crypto interface is unavailable");
+export function validateCryptoAvailable(): void {
+    if (!window) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.nonBrowserEnvironment
+        );
+    }
+    if (!window.crypto) {
         throw createBrowserAuthError(BrowserAuthErrorCodes.cryptoNonExistent);
+    }
+    if (!window.crypto.subtle) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.cryptoNonExistent,
+            SUBTLE_SUBERROR
+        );
     }
 }
 
