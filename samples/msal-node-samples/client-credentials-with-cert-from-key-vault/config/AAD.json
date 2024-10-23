@@ -1,0 +1,11 @@
+{
+    "authOptions": {
+        "clientId": "<ENTER_CLIENT_ID>",
+        "authority": "https://login.microsoftonline.com/<ENTER_TENANT_ID>",
+        "clientCertificate": {
+            "thumbprintSha256": "<ENTER_CLIENT_CERTIFICATE_THUMBPRINT_SHA_256>",
+            "privateKey": "ENTER_CLIENT_CERTIFICATE_PRIVATE_KEY",
+            "x5c": "ENTER_CLIENT_CERTIFICATE_X5C"
+        }
+    }
+}
