@@ -12,7 +12,7 @@
 /lib/msal-common/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @robbie-microsoft @konstantin-msft @lalimasharda @shylasummers
 
 # MSAL Node
-/lib/msal-node/ @sameerag @tnorling @hectormmg @peterzenz @id4s-msal-team
+/lib/msal-node/ @sameerag @tnorling @hectormmg @peterzenz @AzureAD/id4s-msal-team
 /samples/msal-node-samples/ @sameerag @tnorling @hectormmg @peterzenz @bgavrilMS @robbie-microsoft
 /extensions/msal-node-extensions/ @sameerag @tnorling @hectormmg @peterzenz
 
@@ -27,9 +27,9 @@
 /.pipelines/ @hectormmg @tnorling @peterzenz
 
 # MSAL Node Confidential Client Regression Tests
-.github/workflows/client-credential-benchmark.yml @id4s-msal-team
-.github/workflows/msal-node-confidential-client-benchmarks.yml @id4s-msal-team
-/regression-tests/msal-node/ @id4s-msal-team
+.github/workflows/client-credential-benchmark.yml @AzureAD/id4s-msal-team
+.github/workflows/msal-node-confidential-client-benchmarks.yml @AzureAD/id4s-msal-team
+/regression-tests/msal-node/ @AzureAD/id4s-msal-team
 
 # Filepaths to ignore
 /change/
