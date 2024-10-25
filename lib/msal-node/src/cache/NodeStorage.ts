@@ -227,7 +227,7 @@ export class NodeStorage extends CacheManager {
 
     /**
      * Reads account from cache, builds it into an account entity and returns it.
-     * @param accountKey
+     * @param accountKey - lookup key to fetch cache type AccountEntity
      * @returns
      */
     getCachedAccountEntity(accountKey: string): AccountEntity | null {
@@ -462,7 +462,7 @@ export class NodeStorage extends CacheManager {
 
     /**
      * Remove account entity from the platform cache if it's outdated
-     * @param accountKey
+     * @param accountKey - lookup key to fetch cache type AccountEntity
      */
     removeOutdatedAccount(accountKey: string): void {
         this.removeItem(accountKey);

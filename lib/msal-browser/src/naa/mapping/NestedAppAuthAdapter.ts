@@ -72,7 +72,9 @@ export class NestedAppAuthAdapter {
             );
         }
 
-        const requestBuilder = new RequestParameterBuilder();
+        const correlationId =
+            request.correlationId || this.crypto.createNewGuid();
+        const requestBuilder = new RequestParameterBuilder(correlationId);
         const claims = requestBuilder.addClientCapabilitiesToClaims(
             request.claims,
             this.clientCapabilities
@@ -83,10 +85,7 @@ export class NestedAppAuthAdapter {
             clientId: this.clientId,
             authority: request.authority,
             scope: scopes.join(" "),
-            correlationId:
-                request.correlationId !== undefined
-                    ? request.correlationId
-                    : this.crypto.createNewGuid(),
+            correlationId,
             claims: !StringUtils.isEmptyObj(claims) ? claims : undefined,
             state: request.state,
             authenticationScheme:

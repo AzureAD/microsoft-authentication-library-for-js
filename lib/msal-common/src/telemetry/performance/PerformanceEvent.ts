@@ -834,6 +834,9 @@ export type PerformanceEvent = {
      * @type {string}
      */
     retryError?: string;
+
+    embeddedClientId?: string;
+    embeddedRedirectUri?: string;
 };
 
 export type PerformanceEventContext = {
