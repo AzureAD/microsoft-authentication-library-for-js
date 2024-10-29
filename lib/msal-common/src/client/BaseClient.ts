@@ -294,6 +294,8 @@ export abstract class BaseClient {
             );
         }
 
+        parameterBuilder.addCorrelationId(request.correlationId);
+
         return parameterBuilder.createQueryString();
     }
 }

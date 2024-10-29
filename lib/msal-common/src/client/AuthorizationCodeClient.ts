@@ -420,11 +420,6 @@ export class AuthorizationCodeClient extends BaseClient {
             }
         }
 
-        const correlationId =
-            request.correlationId ||
-            this.config.cryptoInterface.createNewGuid();
-        parameterBuilder.addCorrelationId(correlationId);
-
         if (
             !StringUtils.isEmptyObj(request.claims) ||
             (this.config.authOptions.clientCapabilities &&
