@@ -234,7 +234,9 @@ declare namespace BrowserAuthErrorCodes {
         uninitializedPublicClientApplication,
         nativePromptNotSupported,
         invalidBase64String,
-        invalidPopTokenRequest
+        invalidPopTokenRequest,
+        failedToBuildHeaders,
+        failedToParseHeaders
     }
 }
 export { BrowserAuthErrorCodes }
@@ -849,6 +851,16 @@ export const EventType: {
 export type EventType = (typeof EventType)[keyof typeof EventType];
 
 export { ExternalTokenResponse }
+
+// Warning: (ae-missing-release-tag) "failedToBuildHeaders" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const failedToBuildHeaders = "failed_to_build_headers";
+
+// Warning: (ae-missing-release-tag) "failedToParseHeaders" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const failedToParseHeaders = "failed_to_parse_headers";
 
 // Warning: (ae-missing-release-tag) "failedToParseResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
