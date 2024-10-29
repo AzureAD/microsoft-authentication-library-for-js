@@ -191,7 +191,7 @@ export abstract class BaseClient {
         let response;
         try {
             response = await invokeAsync(
-                this.networkClient.sendPostRequestAsync.bind(this)<T>,
+                this.networkClient.sendPostRequestAsync.bind(this.networkClient)<T>,
                 PerformanceEvents.NetworkClientSendPostRequestAsync,
                 this.logger,
                 this.performanceClient,
