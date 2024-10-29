@@ -637,9 +637,8 @@ export abstract class BaseClient {
     // (undocumented)
     protected networkClient: INetworkModule;
     // (undocumented)
-    protected networkManager: NetworkManager;
-    // (undocumented)
     protected performanceClient?: IPerformanceClient;
+    sendPostRequest<T extends ServerAuthorizationTokenResponse>(thumbprint: RequestThumbprint, tokenEndpoint: string, options: NetworkRequestOptions, correlationId: string): Promise<NetworkResponse<T>>;
     // (undocumented)
     protected serverTelemetryManager: ServerTelemetryManager | null;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -2704,17 +2703,6 @@ const nestedAppAuthBridgeDisabled = "nested_app_auth_bridge_disabled";
 // @public (undocumented)
 const networkError = "network_error";
 
-// Warning: (ae-internal-missing-underscore) The name "NetworkManager" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal (undocumented)
-export class NetworkManager {
-    constructor(networkClient: INetworkModule, cacheManager: CacheManager);
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    sendPostRequest<T extends ServerAuthorizationTokenResponse>(thumbprint: RequestThumbprint, tokenEndpoint: string, options: NetworkRequestOptions): Promise<NetworkResponse<T>>;
-}
-
 // Warning: (ae-missing-release-tag) "NetworkRequestOptions" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -4118,21 +4106,6 @@ export class UrlString {
     get urlString(): string;
     validateAsUri(): void;
 }
-
-// Warning: (ae-missing-release-tag) "UrlToHttpRequestOptions" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-export type UrlToHttpRequestOptions = {
-    protocol: string;
-    hostname: string;
-    hash: string;
-    search: string;
-    pathname: string;
-    path: string;
-    href: string;
-    port?: number;
-    auth?: string;
-};
 
 declare namespace UrlUtils {
     export {
