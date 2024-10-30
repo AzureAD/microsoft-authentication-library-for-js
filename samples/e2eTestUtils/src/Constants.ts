@@ -7,6 +7,8 @@ export const ENV_VARIABLES = {
 export const LAB_API_ENDPOINT = "https://msidlab.com/api";
 export const LAB_SCOPE = "https://request.msidlab.com/.default";
 
+export const B2C_MSA_TEST_UPN = "b2cmsatest@outlook.com";
+
 export const ParamKeys = {
     AZURE_ENVIRONMENT: "azureenvironment",
     USER_TYPE: "usertype",
