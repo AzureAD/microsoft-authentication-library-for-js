@@ -13,7 +13,7 @@
 
 # MSAL Node
 /lib/msal-node/ @sameerag @tnorling @hectormmg @peterzenz @AzureAD/id4s-msal-team
-/samples/msal-node-samples/ @sameerag @tnorling @hectormmg @peterzenz @bgavrilMS @robbie-microsoft
+/samples/msal-node-samples/ @sameerag @tnorling @hectormmg @peterzenz @AzureAD/id4s-msal-team
 /extensions/msal-node-extensions/ @sameerag @tnorling @hectormmg @peterzenz
 
 # MSAL React
