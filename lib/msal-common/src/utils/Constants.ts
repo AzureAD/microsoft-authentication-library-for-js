@@ -99,6 +99,7 @@ export const OIDC_SCOPES = [...OIDC_DEFAULT_SCOPES, Constants.EMAIL_SCOPE];
  */
 export const HeaderNames = {
     CONTENT_TYPE: "Content-Type",
+    CONTENT_LENGTH: "Content-Length",
     RETRY_AFTER: "Retry-After",
     CCS_HEADER: "X-AnchorMailbox",
     WWWAuthenticate: "WWW-Authenticate",
