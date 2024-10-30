@@ -9,6 +9,8 @@ export const LAB_SCOPE = "https://request.msidlab.com/.default";
 export const LAB_KEY_VAULT_URL = "https://msidlabs.vault.azure.net";
 export const LAB_CERT_NAME = "LabAuth";
 
+export const B2C_MSA_TEST_UPN = "b2cmsatest@outlook.com";
+
 export const ParamKeys = {
     AZURE_ENVIRONMENT: "azureenvironment",
     USER_TYPE: "usertype",
