@@ -18,6 +18,7 @@ import {
     LabApiQueryParams,
     B2cProviders,
     UserTypes,
+    B2C_MSA_TEST_UPN,
 } from "e2e-test-utils";
 
 import { PublicClientApplication } from "@azure/msal-node";
@@ -73,6 +74,9 @@ describe("Auth Code B2C Tests (msa account)", () => {
             envResponse[0],
             labClient
         );
+
+        // TODO: Remove when B2C MSA account is available in the lab
+        username = B2C_MSA_TEST_UPN;
     });
 
     afterAll(async () => {
