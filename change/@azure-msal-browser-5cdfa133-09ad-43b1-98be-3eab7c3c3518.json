@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Move requestId telemetry collection",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -89,6 +89,7 @@ extends:
                             - "auth-code"
                             - "auth-code-cli-app"
                             - "client-credentials"
+                            - "client-credentials-with-cert-from-key-vault"
                             - "device-code"
                             - "silent-flow"
                             - "b2c-user-flows"

@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Validate crypto.subtle is available during initialization",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

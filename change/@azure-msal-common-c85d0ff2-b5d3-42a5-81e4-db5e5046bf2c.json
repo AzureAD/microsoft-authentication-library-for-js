@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Additional network failure telemetry",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

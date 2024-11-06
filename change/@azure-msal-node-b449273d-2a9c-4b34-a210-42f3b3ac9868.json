@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Region auto enable on env variable #7354",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}
