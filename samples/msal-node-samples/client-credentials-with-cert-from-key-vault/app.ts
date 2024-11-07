@@ -9,7 +9,7 @@ import {
     Configuration,
     LogLevel,
 } from "@azure/msal-node";
-import argv from "../cliArgs.js"; // command line arguments - see samples/msal-node-samples/cliArgs.ts
+import argv from "../cliArgs"; // command line arguments - see samples/msal-node-samples/cliArgs.ts
 
 const getClientCredentialsToken = async (
     cca: ConfidentialClientApplication,
