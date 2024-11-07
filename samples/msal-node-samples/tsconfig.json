@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "moduleResolution": "node",
+        "moduleResolution": "node16",
         "module": "commonjs",
         "target": "es6",
         "lib": [
@@ -22,6 +22,7 @@
             "node",
             "jest"
         ],
+        "outDir": "dist",
     },
     "include": [
         "**/test/*.spec.ts"

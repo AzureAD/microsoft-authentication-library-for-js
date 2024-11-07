@@ -7,13 +7,16 @@ import {
     AuthenticationResult,
     ConfidentialClientApplication,
     Configuration,
+    ICachePlugin,
     LogLevel,
 } from "@azure/msal-node";
 import argv from "../cliArgs.js"; // command line arguments - see samples/msal-node-samples/cliArgs.ts
 import cachePluginFunctionality from "../cachePlugin.js";
 
-const cacheLocation: string = argv.c;
-const cachePlugin = cachePluginFunctionality(cacheLocation);
+const args = argv.default;
+const cacheLocation: string = args.c;
+const cachePlugin: ICachePlugin =
+    cachePluginFunctionality.default(cacheLocation);
 
 const getClientCredentialsToken = async (
     cca: ConfidentialClientApplication,
@@ -44,7 +47,7 @@ const getClientCredentialsToken = async (
  * If the script was executed manually, it will initialize a ConfidentialClientApplication object
  * and execute the sample client credentials application.
  */
-if (argv.$0 === "dist/client-credentials-with-cert-from-key-vault/app.js") {
+if (args.$0 === "dist/client-credentials-with-cert-from-key-vault/app.js") {
     (async () => {
         const clientConfig: Configuration = {
             auth: {
@@ -78,7 +81,7 @@ if (argv.$0 === "dist/client-credentials-with-cert-from-key-vault/app.js") {
         await getClientCredentialsToken(
             confidentialClientApplication,
             ["https://graph.microsoft.com/.default"],
-            argv.r
+            args.r
         );
     })();
 }

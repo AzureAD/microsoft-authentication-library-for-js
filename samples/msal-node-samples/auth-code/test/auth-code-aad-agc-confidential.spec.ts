@@ -236,7 +236,7 @@ describe("Auth Code AAD AGC Confidential Tests", () => {
             await page.waitForSelector("#displayName");
             const emailInput = await page.$("#displayName");
             const email = await page.evaluate(
-                (element) => element.innerText,
+                (element) => (element as HTMLElement).innerText,
                 emailInput
             );
             expect(email).toBe(USERNAME);

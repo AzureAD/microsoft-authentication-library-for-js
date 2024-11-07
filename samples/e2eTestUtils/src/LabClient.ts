@@ -7,6 +7,7 @@ import {
     ParamKeys,
 } from "./Constants";
 import { LabApiQueryParams } from "./LabApiQueryParams";
+// @ts-ignore
 import * as dotenv from "dotenv";
 
 // Try 1p repo config first

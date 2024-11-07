@@ -1,20 +1,5 @@
 {
-    "compilerOptions": {
-      "esModuleInterop": true,
-      "target": "es6",
-      "module": "es2020",
-      "moduleResolution": "node",
-      "sourceMap": true,
-      "outDir": "dist",
-      "types": [
-        "node",
-        "express",
-        "jest"
-      ]
-    },
-    "lib": [
-      "es2015"
-    ],
+    "extends": "../tsconfig.json",
     "files": [
         "app.ts",
         "../cachePlugin.ts",

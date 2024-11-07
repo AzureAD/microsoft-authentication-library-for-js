@@ -3,19 +3,24 @@ import {
     validateCacheLocation,
     NodeCacheTestUtils,
 } from "e2e-test-utils";
-import { ConfidentialClientApplication, Configuration } from "@azure/msal-node";
-import { getKeyVaultSecretClient } from "e2e-test-utils/src/KeyVaultUtils";
-import { getCertificateInfo } from "e2e-test-utils/src/CertificateUtils";
+import {
+    ConfidentialClientApplication,
+    Configuration,
+    ICachePlugin,
+} from "@azure/msal-node";
+import { getKeyVaultSecretClient } from "../../../e2eTestUtils/src/KeyVaultUtils.js";
+import { getCertificateInfo } from "../../../e2eTestUtils/src/CertificateUtils.js";
 import {
     ENV_VARIABLES,
     LAB_CERT_NAME,
     LAB_KEY_VAULT_URL,
-} from "e2e-test-utils/src/Constants";
-import getClientCredentialsToken from "../app";
+} from "../../../e2eTestUtils/src/Constants.js";
+import getClientCredentialsToken from "../app.js";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
-import cachePluginFunctionality from "../../cachePlugin";
-const cachePlugin = cachePluginFunctionality(TEST_CACHE_LOCATION);
+import cachePluginFunctionality from "../../cachePlugin.js";
+const cachePlugin: ICachePlugin =
+    cachePluginFunctionality.default(TEST_CACHE_LOCATION);
 
 const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
 
