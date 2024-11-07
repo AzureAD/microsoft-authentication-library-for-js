@@ -1,7 +1,5 @@
 import fs from "fs";
-//@ts-ignore
 import { Deserializer } from "../../../lib/msal-node/src/cache/serializer/Deserializer";
-//@ts-ignore
 import { Serializer } from "../../../lib/msal-node/src/cache/serializer/Serializer";
 
 export type tokenMap = {
