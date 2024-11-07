@@ -3,11 +3,7 @@ import {
     validateCacheLocation,
     NodeCacheTestUtils,
 } from "e2e-test-utils";
-import {
-    ConfidentialClientApplication,
-    Configuration,
-    ICachePlugin,
-} from "@azure/msal-node";
+import { ConfidentialClientApplication, Configuration } from "@azure/msal-node";
 import { getKeyVaultSecretClient } from "../../../e2eTestUtils/src/KeyVaultUtils.js";
 import { getCertificateInfo } from "../../../e2eTestUtils/src/CertificateUtils.js";
 import {
@@ -18,10 +14,6 @@ import {
 import getClientCredentialsToken from "../app.js";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
-import cachePluginFunctionality from "../../cachePlugin.js";
-const cachePlugin: ICachePlugin =
-    cachePluginFunctionality.default(TEST_CACHE_LOCATION);
-
 const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
 
 describe("Client Credentials AAD Prod Tests", () => {
@@ -55,7 +47,6 @@ describe("Client Credentials AAD Prod Tests", () => {
                     x5c: x5c,
                 },
             },
-            cache: { cachePlugin },
         };
     });
 
