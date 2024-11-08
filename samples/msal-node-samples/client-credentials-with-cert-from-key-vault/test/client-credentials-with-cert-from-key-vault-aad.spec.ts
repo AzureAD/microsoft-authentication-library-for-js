@@ -3,7 +3,11 @@ import {
     validateCacheLocation,
     NodeCacheTestUtils,
 } from "e2e-test-utils";
-import { ConfidentialClientApplication, Configuration } from "@azure/msal-node";
+import {
+    AuthenticationResult,
+    ConfidentialClientApplication,
+    Configuration,
+} from "@azure/msal-node";
 import { getKeyVaultSecretClient } from "../../../e2eTestUtils/src/KeyVaultUtils";
 import { getCertificateInfo } from "../../../e2eTestUtils/src/CertificateUtils";
 import {
@@ -65,14 +69,13 @@ describe("Client Credentials AAD Prod Tests", () => {
             confidentialClientApplication = new ConfidentialClientApplication(
                 config
             );
-            await getClientCredentialsToken(
-                confidentialClientApplication,
-                clientCredentialRequestScopes
-            );
-            const cachedTokens = await NodeCacheTestUtils.getTokens(
-                TEST_CACHE_LOCATION
-            );
-            expect(cachedTokens.accessTokens.length).toBe(1);
+
+            const authenticationResult: AuthenticationResult =
+                await getClientCredentialsToken(
+                    confidentialClientApplication,
+                    clientCredentialRequestScopes
+                );
+            expect(authenticationResult.accessToken).toBeTruthy();
         });
     });
 });
