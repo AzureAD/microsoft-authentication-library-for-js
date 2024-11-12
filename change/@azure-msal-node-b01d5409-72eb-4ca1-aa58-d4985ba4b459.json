@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fixes bug where getAllAccounts always writes to the cache",
-  "packageName": "@azure/msal-node",
-  "email": "shylasummers@microsoft.com",
-  "dependentChangeType": "patch"
-}
