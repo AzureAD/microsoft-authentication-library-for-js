@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 05 Nov 2024 18:58:45 GMT and should not be manually modified.
+This log was last generated on Tue, 12 Nov 2024 15:32:46 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.16.1
+
+Tue, 12 Nov 2024 15:32:46 GMT
+
+### Patches
+
+- Fixes bug where getAllAccounts always writes to the cache (shylasummers@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 2.16.0
 

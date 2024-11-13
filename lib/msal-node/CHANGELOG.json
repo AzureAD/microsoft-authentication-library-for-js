@@ -2,6 +2,33 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 12 Nov 2024 15:32:46 GMT",
+      "version": "2.16.1",
+      "tag": "@azure/msal-node_v2.16.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "411d815f623a777c57444eed827b599a4f2570c4",
+            "comment": "Fixes bug where getAllAccounts always writes to the cache"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 05 Nov 2024 18:58:45 GMT",
       "version": "2.16.0",
       "tag": "@azure/msal-node_v2.16.0",
