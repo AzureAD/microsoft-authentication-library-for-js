@@ -113,7 +113,7 @@ describe("Distributed Cache Plugin Tests for msal-node", () => {
             MOCK_CACHE_STRING()
         );
     });
-
+    // Temporary comment to trigger workflow
     it("removes the specified account from the cache", async () => {
         const accounts = await tokenCache.getAllAccounts();
         await tokenCache.removeAccount(accounts[0]);
