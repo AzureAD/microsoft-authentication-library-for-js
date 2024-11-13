@@ -53,7 +53,6 @@ export class DistributedCachePlugin implements ICachePlugin {
             );
 
             let partitionKey: string;
-
             if (accountEntities.length > 0) {
                 const accountEntity = accountEntities[0] as AccountEntity;
                 partitionKey = await this.partitionManager.extractKey(
