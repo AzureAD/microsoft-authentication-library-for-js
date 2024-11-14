@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Allow requiring msal-node-extensions without Dpapi dependency",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "tyleonha@microsoft.com",
+  "dependentChangeType": "patch"
+}
