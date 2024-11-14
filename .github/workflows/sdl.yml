@@ -1,8 +1,11 @@
-trigger: none
-pr:
-    branches:
-        include:
-            - dev
+on:
+  workflow_dispatch:
+
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  
+  merge_group:
+    types: [checks_requested]
 
 variables:
     CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
