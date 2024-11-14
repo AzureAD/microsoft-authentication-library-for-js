@@ -1,3 +1,10 @@
+trigger: none
+
+pr:
+    branches:
+        include:
+            - dev
+
 parameters:
     - name: "debug"
       displayName: "Debug Variables"
