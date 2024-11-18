@@ -61,7 +61,9 @@ describe("Test DPAPI addon", () => {
     } else {
         test("Should throw on non-Windows", () => {
             const data = Buffer.from("DPAPITestString");
-            expect(() => Dpapi.protectData(data, null, DataProtectionScope.LocalMachine)).toThrow();
+            expect(() =>
+                Dpapi.protectData(data, null, DataProtectionScope.LocalMachine)
+            ).toThrow();
         });
     }
 });
