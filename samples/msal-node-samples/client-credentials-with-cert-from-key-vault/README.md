@@ -4,7 +4,9 @@ This sample demonstrates how to implement an MSAL Node [confidential client appl
 
 The **Client Credentials** flow is most commonly used for a daemon or a command-line app that calls web APIs and does not have any user interaction.
 
-MSAL Node also supports specifying a **regional authority** for acquiring tokens when using the client credentials flow. For more information on this, please refer to: [Regional Authorities](../../../lib/msal-node/docs/regional-authorities.md).
+This sample requires an [Azure Key Vault](https://docs.microsoft.com/azure/key-vault/general/basic-concepts). Key Vault and related topics are discussed in [Securing MSAL Node with Azure Key Vault and Azure Managed Identity](../../../lib/msal-node/docs/key-vault-managed-identity.md).
+
+> :information_source: While you may run this sample locally, you are expected to deploy and run it on **Azure App Service** following the [guide here](../../../lib/msal-node/docs/key-vault-managed-identity.md#using-azure-managed-identity).
 
 ## Setup
 
@@ -24,10 +26,9 @@ Locate the folder where `package.json` resides in your terminal. Then type:
 1. Select **Register** to create the application.
 1. In the app's registration screen, find and note the **Application (client) ID** and **Directory (Tenant) ID**. You use these values in your app's configuration file(s) later.
 1. In the app's registration screen, select the **Certificates & secrets** blade in the left.
-    - In the **Client secrets** section, select **New client secret**.
-    - Type a key description (for instance `app secret`),
-    - Select one of the available key durations (6 months, 12 months or Custom) as per your security posture.
-    - The generated key value will be displayed when you select the **Add** button. Copy and save the generated value for use in later steps.
+    - Click on **Upload** certificate and select the certificate file to upload.
+    - Click **Add**. Once the certificate is uploaded, the _thumbprint_, _start date_, and _expiration_ values are displayed.
+    - Upload the certificate to your key vault as well
 1. In the app's registration screen, select the API permissions blade in the left to open the page where we add access to the APIs that your application needs.
     - Select the **Add a permission** button and then,
     - Ensure that the **Microsoft APIs** tab is selected.
@@ -38,16 +39,16 @@ Locate the folder where `package.json` resides in your terminal. Then type:
 
 Before running the sample, you will need to replace the values in retrieve-cert-from-key-vault code as well as the configuration object:
 
-```javascript
+```typescript
 const keyVaultSecretClient = await getKeyVaultSecretClient(
-    "ENTER_KEY_VAULT_URL"
+    "ENTER_KEY_VAULT_URL" // optional, the "KEY_VAULT_URL" environment variable can be set instead
 );
 [thumbprint, privateKey, x5c] = await getCertificateInfo(
     keyVaultSecretClient,
     "ENTER_CERT_NAME"
 );
 
-const config = {
+config = {
     auth: {
         clientId: "ENTER_CLIENT_ID",
         authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
@@ -62,14 +63,24 @@ const config = {
 
 ## Run the app
 
-In the same folder, type:
+Before running the sample (and everytime changes are made to the sample), the TypeScript will need to be compiled. In the same folder, type:
+
+```console
+    npx tsc
+```
+
+This will compile the TypeScript into JavaScript, and put the compiled files in the `/dist` folder.
+
+The sample can now be run by typing:
+
+```console
+    node dist/client-credentials-with-cert-from-key-vault/app.js
+```
+
+An npm script, which will run the above npx and node command, has been configured in package.json. To compile and start the sample, type:
 
 ```console
     npm start
 ```
 
-After that, you should see the response from Microsoft Entra ID in your terminal.
-
-## More information
-
--   [Tutorial: Call the Microsoft Graph API in a Node.js console app](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-console)
+The token returned from Microsoft Entra ID should be immediately displayed in the terminal.
