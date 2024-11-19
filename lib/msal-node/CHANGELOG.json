@@ -2,6 +2,33 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 19 Nov 2024 17:21:57 GMT",
+      "version": "2.16.2",
+      "tag": "@azure/msal-node_v2.16.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "luccarebtoledo@gmail.com",
+            "package": "@azure/msal-node",
+            "commit": "6362e79cfff838ec5c57efbfeffc3e5262dc2513",
+            "comment": "removeAccount method now clears client cache by retrieving partitionKey when accountEntities are empty (#7329)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 12 Nov 2024 15:32:46 GMT",
       "version": "2.16.1",
       "tag": "@azure/msal-node_v2.16.1",

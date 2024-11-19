@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 12 Nov 2024 15:32:46 GMT and should not be manually modified.
+This log was last generated on Tue, 19 Nov 2024 17:21:57 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.16.2
+
+Tue, 19 Nov 2024 17:21:57 GMT
+
+### Patches
+
+- removeAccount method now clears client cache by retrieving partitionKey when accountEntities are empty (#7329) (luccarebtoledo@gmail.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 2.16.1
 

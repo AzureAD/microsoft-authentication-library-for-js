@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "removeAccount method now clears client cache by retrieving partitionKey when accountEntities are empty (#7329)",
-  "packageName": "@azure/msal-node",
-  "email": "luccarebtoledo@gmail.com",
-  "dependentChangeType": "patch"
-}
