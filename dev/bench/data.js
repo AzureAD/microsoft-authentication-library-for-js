@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1733434821198,
+  "lastUpdate": 1733434881032,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -13706,6 +13706,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.04%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "patrick@patrickmcmichael.org",
+            "name": "Patrick McMichael",
+            "username": "Saturn"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7130b1be70d22c4752e0a5e36339247bc7d40189",
+          "message": "Fix missing comma in code sample (token-lifetimes.md msal-browser) (#7443)\n\nAnd fix `CacheLookupPolicy.Default` case.\n\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2024-12-05T13:35:43-08:00",
+          "tree_id": "26f732419ca4808d4f4eb4685e87ec66131fd50f",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/7130b1be70d22c4752e0a5e36339247bc7d40189"
+        },
+        "date": 1733434879782,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 189256,
+            "range": "±1.86%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 190288,
+            "range": "±1.76%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
