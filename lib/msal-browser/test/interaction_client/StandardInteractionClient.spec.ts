@@ -309,6 +309,30 @@ describe("StandardInteractionClient", () => {
         expect(authCodeRequest.loginHint).toEqual(request.loginHint);
     });
 
+    it("initializeAuthorizationRequest sets sid when active account is set", async () => {
+        // @ts-ignore
+        pca.browserStorage.setAccount(testAccountEntity);
+        pca.setActiveAccount(testAccount);
+
+        const request: AuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            sid: "test_sid",
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            nonce: "",
+        };
+
+        const authCodeRequest = await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Silent
+        );
+        expect(authCodeRequest.account).toBeUndefined();
+        expect(authCodeRequest.sid).toEqual(request.sid);
+    });
+
     it("initializeAuthorizationRequest keeps both loginHint and account", async () => {
         const request: AuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -328,6 +352,27 @@ describe("StandardInteractionClient", () => {
         );
         expect(authCodeRequest.account).toEqual(request.account);
         expect(authCodeRequest.loginHint).toEqual(request.loginHint);
+    });
+
+    it("initializeAuthorizationRequest keeps both sid and account", async () => {
+        const request: AuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            sid: "test_sid",
+            account: testAccount,
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            nonce: "",
+        };
+
+        const authCodeRequest = await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Silent
+        );
+        expect(authCodeRequest.account).toEqual(request.account);
+        expect(authCodeRequest.sid).toEqual(request.sid);
     });
 });
 
