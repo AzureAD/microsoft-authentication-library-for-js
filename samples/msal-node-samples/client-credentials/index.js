@@ -53,12 +53,12 @@ function getClientCredentialsToken(cca, clientCredentialRequestScopes, ro) {
  * and execute the sample client credentials application.
  */
 if(argv.$0 === "index.js") {
-    const loggerOptions = {
-        loggerCallback(loglevel, message, containsPii) {
-            console.log(message);
+    const loggerOptions = {
+        loggerCallback(loglevel, message, containsPii) {
+            console.log(message);
         },
-        piiLoggingEnabled: false,
-        logLevel: msal.LogLevel.Verbose,
+        piiLoggingEnabled: false,
+        logLevel: msal.LogLevel.Verbose,
     }
     
     // Build MSAL ClientApplication Configuration object
@@ -69,8 +69,8 @@ if(argv.$0 === "index.js") {
         },
         // Uncomment or comment the code below to enable or disable the MSAL logger respectively
         // system: {
-        //    loggerOptions,
-        // }
+        //    loggerOptions,
+        // }
     };
     
     // Create msal application object
