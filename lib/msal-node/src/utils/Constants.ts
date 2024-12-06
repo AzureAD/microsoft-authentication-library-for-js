@@ -17,6 +17,16 @@ export const MANAGED_IDENTITY_DEFAULT_TENANT = "managed_identity";
 export const DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY = `https://login.microsoftonline.com/${MANAGED_IDENTITY_DEFAULT_TENANT}/`;
 
 /**
+ * Managed Identity Query Parameters
+ */
+export const ManagedIdentityQueryParameters = {
+    BYPASS_CACHE: "bypass_cache",
+    XMS_CC: "xms_cc",
+} as const;
+export type ManagedIdentityQueryParameters =
+    (typeof ManagedIdentityQueryParameters)[keyof typeof ManagedIdentityQueryParameters];
+
+/**
  * Managed Identity Environment Variable Names
  */
 export const ManagedIdentityEnvironmentVariableNames = {

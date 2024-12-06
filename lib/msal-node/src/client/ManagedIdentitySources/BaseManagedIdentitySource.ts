@@ -24,7 +24,11 @@ import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import { ManagedIdentityRequest } from "../../request/ManagedIdentityRequest.js";
-import { HttpMethod, ManagedIdentityIdType } from "../../utils/Constants.js";
+import {
+    HttpMethod,
+    ManagedIdentityIdType,
+    ManagedIdentityQueryParameters,
+} from "../../utils/Constants.js";
 import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
 import {
@@ -135,13 +139,16 @@ export abstract class BaseManagedIdentitySource {
 
         // if claims are present, the MSI will get a new token
         if (managedIdentityRequest.claims) {
-            networkRequest.queryParameters.bypass_cache = "true";
+            networkRequest.queryParameters[
+                ManagedIdentityQueryParameters.BYPASS_CACHE
+            ] = "true";
         }
 
         // if client capabilities are present, send them to the MSI
         if (managedIdentityRequest.clientCapabilities?.length) {
-            networkRequest.queryParameters.xms_cc =
-                managedIdentityRequest.clientCapabilities.toString();
+            networkRequest.queryParameters[
+                ManagedIdentityQueryParameters.XMS_CC
+            ] = managedIdentityRequest.clientCapabilities.toString();
         }
 
         const headers: Record<string, string> = networkRequest.headers;

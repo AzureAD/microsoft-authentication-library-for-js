@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication";
-import { ManagedIdentityConfiguration } from "../../../src/config/Configuration";
+import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication.js";
+import { ManagedIdentityConfiguration } from "../../../src/config/Configuration.js";
 import {
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
@@ -17,7 +17,7 @@ import {
     TEST_CONFIG,
     THREE_SECONDS_IN_MILLI,
     getCacheKey,
-} from "../../test_kit/StringConstants";
+} from "../../test_kit/StringConstants.js";
 
 import {
     ManagedIdentityNetworkClient,
@@ -26,11 +26,12 @@ import {
     userAssignedClientIdConfig,
     managedIdentityRequestParams,
     systemAssignedConfig,
-} from "../../test_kit/ManagedIdentityTestUtils";
+} from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
     DEFAULT_MANAGED_IDENTITY_ID,
+    ManagedIdentityQueryParameters,
     ManagedIdentitySourceNames,
-} from "../../../src/utils/Constants";
+} from "../../../src/utils/Constants.js";
 import {
     AccessTokenEntity,
     AuthenticationResult,
@@ -42,17 +43,17 @@ import {
     ServerError,
     TimeUtils,
 } from "@azure/msal-common";
-import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient";
+import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient.js";
 import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
-} from "../../../src/error/ManagedIdentityError";
-import { mockCrypto } from "../ClientTestUtils";
+} from "../../../src/error/ManagedIdentityError.js";
+import { mockCrypto } from "../ClientTestUtils.js";
 import {
     CacheKVStore,
     ClientCredentialClient,
     NodeStorage,
-} from "../../../src";
+} from "../../../src/index.js";
 // NodeJS 16+ provides a built-in version of setTimeout that is promise-based
 import { setTimeout } from "timers/promises";
 import { CAE_CONSTANTS } from "../../test_kit/StringConstants.js";
@@ -575,10 +576,16 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
             let tokenRequest = sendGetRequestAsyncSpy.mock.lastCall;
             let url = tokenRequest[0];
-            expect(url.includes("bypass_cache=true")).toBe(false);
             expect(
                 url.includes(
-                    `xms_cc=${CAE_CONSTANTS.CLIENT_CAPABILITIES.toString()}`
+                    `${ManagedIdentityQueryParameters.BYPASS_CACHE}=true`
+                )
+            ).toBe(false);
+            expect(
+                url.includes(
+                    `${
+                        ManagedIdentityQueryParameters.XMS_CC
+                    }=${CAE_CONSTANTS.CLIENT_CAPABILITIES.toString()}`
                 )
             ).toBe(true);
 
@@ -607,10 +614,16 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
             tokenRequest = sendGetRequestAsyncSpy.mock.lastCall;
             url = tokenRequest[0];
-            expect(url.includes("bypass_cache=true")).toBe(true);
             expect(
                 url.includes(
-                    `xms_cc=${CAE_CONSTANTS.CLIENT_CAPABILITIES.toString()}`
+                    `${ManagedIdentityQueryParameters.BYPASS_CACHE}=true`
+                )
+            ).toBe(true);
+            expect(
+                url.includes(
+                    `${
+                        ManagedIdentityQueryParameters.XMS_CC
+                    }=${CAE_CONSTANTS.CLIENT_CAPABILITIES.toString()}`
                 )
             ).toBe(true);
         });
@@ -651,7 +664,11 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
             const tokenRequest = sendGetRequestAsyncSpy.mock.lastCall;
             const url = tokenRequest[0];
-            expect(url.includes("bypass_cache=true")).toBe(true);
+            expect(
+                url.includes(
+                    `${ManagedIdentityQueryParameters.BYPASS_CACHE}=true`
+                )
+            ).toBe(true);
         });
 
         test("ignores a cached token when forceRefresh is set to true", async () => {
