@@ -50,7 +50,7 @@ function getClientCredentialsToken(cca, clientCredentialRequestScopes, ro) {
  * and execute the sample client credentials application.
  */
 if(argv.$0 === "index.js") {
-    const loggerOptions = {
+    const loggerOptions = {
         loggerCallback(loglevel, message, containsPii) {
             console.log(message);
         },
