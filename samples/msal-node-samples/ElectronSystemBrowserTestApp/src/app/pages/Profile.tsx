@@ -19,6 +19,4 @@ export const Profile = () => {
     }, []);
 
     return <>{graphData ? <ProfileData graphData={graphData} /> : null}</>;
-
-
 };

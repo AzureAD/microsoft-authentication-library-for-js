@@ -1,11 +1,11 @@
 import { PlaywrightTestConfig } from "@playwright/test";
-import * as path from 'path';
+import * as path from "path";
 
 const config: PlaywrightTestConfig = {
-    testDir: path.join(__dirname, '/test'),
+    testDir: path.join(__dirname, "/test"),
     retries: 1,
     use: {
-        trace: 'on-first-retry',
+        trace: "on-first-retry",
     },
     timeout: 30000,
     globalTimeout: 5400000,

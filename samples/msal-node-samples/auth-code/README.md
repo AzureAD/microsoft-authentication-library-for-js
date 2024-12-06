@@ -203,7 +203,7 @@ clientApplication
         res.redirect(response);
     })
     .catch((error) => {
-        consoleerror(error.errorMessage);
+        console.error(error.errorMessage);
     });
 ```
 
@@ -222,9 +222,7 @@ app.get("/", (req, res) => {
         .then((response) => {
             res.redirect(response);
         })
-        .catch((error) => {
-            consoleerror(error.errorMessage);
-        });
+        .catch((error) => console.log(JSON.stringify(error)));
 });
 ```
 
