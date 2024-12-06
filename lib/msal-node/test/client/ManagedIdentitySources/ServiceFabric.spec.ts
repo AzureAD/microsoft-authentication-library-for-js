@@ -28,6 +28,7 @@ import {
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentitySourceNames,
 } from "../../../src/utils/Constants";
+import { checkMSIV1MinimumVersion } from "../../utils/ManagedIdentity.js";
 
 describe("Acquires a token successfully via an App Service Managed Identity", () => {
     beforeAll(() => {
@@ -56,6 +57,8 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
         // reset static variables after each test
         delete ManagedIdentityClient["identitySource"];
         delete ManagedIdentityApplication["nodeStorage"];
+
+        jest.restoreAllMocks();
     });
 
     test("acquires a User Assigned Client Id token", async () => {
@@ -86,7 +89,12 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
             );
         });
 
-        test("acquires a token", async () => {
+        test("acquires a token and ensures the MSI V1 API minimum version is used", async () => {
+            const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            );
+
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams
@@ -96,6 +104,9 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
+
+            const url: string = sendGetRequestAsyncSpy.mock.lastCall[0];
+            checkMSIV1MinimumVersion(url);
         });
 
         test("returns an already acquired token from the cache", async () => {
@@ -182,8 +193,6 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
                     MANAGED_IDENTITY_SERVICE_FABRIC_NETWORK_REQUEST_400_ERROR.correlation_id as string
                 )
             ).toBe(true);
-
-            jest.restoreAllMocks();
         });
     });
 });

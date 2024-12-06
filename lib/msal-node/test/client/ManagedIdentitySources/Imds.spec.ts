@@ -57,13 +57,17 @@ import {
 // NodeJS 16+ provides a built-in version of setTimeout that is promise-based
 import { setTimeout } from "timers/promises";
 import { CAE_CONSTANTS } from "../../test_kit/StringConstants.js";
+import { checkMSIV1MinimumVersion } from "../../utils/ManagedIdentity.js";
 
 describe("Acquires a token successfully via an IMDS Managed Identity", () => {
     // IMDS doesn't need environment variables because there is a default IMDS endpoint
 
     afterEach(() => {
+        // reset static variables after each test
         delete ManagedIdentityClient["identitySource"];
         delete ManagedIdentityApplication["nodeStorage"];
+
+        jest.restoreAllMocks();
     });
 
     const managedIdentityNetworkErrorClientDefault500 =
@@ -156,7 +160,12 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             );
         });
 
-        test("acquires a token", async () => {
+        test("acquires a token and ensures the MSI V1 API minimum version is used", async () => {
+            const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            );
+
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams
@@ -166,6 +175,9 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
+
+            const url: string = sendGetRequestAsyncSpy.mock.lastCall[0];
+            checkMSIV1MinimumVersion(url);
         });
 
         test("returns an already acquired token from the cache", async () => {
@@ -221,8 +233,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 expect(networkManagedIdentityResult.accessToken).toEqual(
                     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
                 );
-
-                jest.restoreAllMocks();
             });
 
             test("returns a 500 error response from the network request permanently", async () => {
@@ -249,8 +259,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 ).toBe(true);
 
                 expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(4); // request + 3 retries
-
-                jest.restoreAllMocks();
             });
         });
 
@@ -294,8 +302,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 expect(networkManagedIdentityResult.accessToken).toEqual(
                     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
                 );
-
-                jest.restoreAllMocks();
             });
 
             test("returns a 500 error response from the network request, just the first time, with a retry-after header of 3 seconds", async () => {
@@ -333,8 +339,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 expect(networkManagedIdentityResult.accessToken).toEqual(
                     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
                 );
-
-                jest.restoreAllMocks();
             });
 
             test("returns a 500 error response from the network request, just the first time, with a retry-after header of 3 seconds (extrapolated from an http-date)", async () => {
@@ -376,8 +380,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 expect(networkManagedIdentityResult.accessToken).toEqual(
                     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
                 );
-
-                jest.restoreAllMocks();
             });
 
             test("returns a 500 error response from the network request permanently", async () => {
@@ -403,8 +405,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     )
                 ).toBe(true);
                 expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(4); // request + 3 retries
-
-                jest.restoreAllMocks();
             });
 
             test("makes three acquireToken calls on the same managed identity application (which returns a 500 error response from the network request permanently) to ensure that retry policy lifetime is per request", async () => {
@@ -438,8 +438,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 } catch (e) {
                     expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(12); // 12 total, 3 x (request + 3 retries)
                 }
-
-                jest.restoreAllMocks();
             }, 15000); // triple the timeout value for this test because there are 3 acquireToken calls (3 x 1 second in between retries)
 
             test("ensures that a retry does not happen when the http status code from a failed network response is not included in the retry policy", async () => {
@@ -465,8 +463,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     )
                 ).toBe(true);
                 expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(1);
-
-                jest.restoreAllMocks();
             });
 
             test("ensures that a retry does not happen when the http status code from a failed network response is included in the retry policy, but the retry policy has been disabled", async () => {
@@ -503,8 +499,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     )
                 ).toBe(true);
                 expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(1);
-
-                jest.restoreAllMocks();
             });
         });
     });
@@ -775,8 +769,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
                 )
             ).toBe(false);
-
-            jest.restoreAllMocks();
         }, 10000); // double the timeout value for this test because it waits two seconds in between the acquireToken call and the cache lookup
 
         test("requests three tokens with two different resources while switching between user and system assigned, then requests them again to verify they are retrieved from the cache, then verifies that their cache keys are correct", async () => {
@@ -1017,8 +1009,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     MANAGED_IDENTITY_IMDS_NETWORK_REQUEST_400_ERROR.correlation_id as string
                 )
             ).toBe(true);
-
-            jest.restoreAllMocks();
         });
     });
 });
