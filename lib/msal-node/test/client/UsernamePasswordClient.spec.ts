@@ -18,14 +18,14 @@ import {
     MOCK_USERNAME,
     RANDOM_TEST_GUID,
     TEST_CONFIG,
-} from "../test_kit/StringConstants";
-import { UsernamePasswordClient } from "../../src";
+} from "../test_kit/StringConstants.js";
+import { UsernamePasswordClient } from "../../src/index.js";
 import {
     ClientTestUtils,
     checkMockedNetworkRequest,
     getClientAssertionCallback,
-} from "./ClientTestUtils";
-import { mockNetworkClient } from "../utils/MockNetworkClient";
+} from "./ClientTestUtils.js";
+import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 
 describe("Username Password unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;

@@ -13,8 +13,8 @@ import {
 import {
     DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
     DEFAULT_MANAGED_IDENTITY_ID,
-} from "../../src/utils/Constants";
-import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse";
+} from "../../src/utils/Constants.js";
+import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse.js";
 
 // This file contains the string constants used by the test classes.
 
