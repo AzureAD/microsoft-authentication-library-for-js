@@ -54,7 +54,7 @@ For example if you'd like to ensure the user can acquire tokens silently for the
 var request = {
     scopes: ["Mail.Read"],
     account: currentAccount,
-    forceRefresh: true
+    forceRefresh: true,
     refreshTokenExpirationOffsetSeconds: 7200 // 2 hours * 60 minutes * 60 seconds = 7200 seconds
 };
 
@@ -89,7 +89,7 @@ var currentAccount = msalInstance.getAccountByUsername(username);
 var silentRequest = {
     scopes: ["Mail.Read"],
     account: currentAccount,
-    forceRefresh: false
+    forceRefresh: false,
     cacheLookupPolicy: CacheLookupPolicy.Default // will default to CacheLookupPolicy.Default if omitted
 };
 
@@ -119,8 +119,8 @@ var currentAccount = msalInstance.getAccountByUsername(username);
 var silentRequest = {
     scopes: ["Mail.Read"],
     account: currentAccount,
-    forceRefresh: false
-    cacheLookupPolicy: cacheLookupPolicy.Default // will default to CacheLookupPolicy.Default if omitted
+    forceRefresh: false,
+    cacheLookupPolicy: CacheLookupPolicy.Default // will default to CacheLookupPolicy.Default if omitted
 };
 
 var request = {
