@@ -139,6 +139,10 @@ export abstract class BaseManagedIdentitySource {
 
         // if claims are present, the MSI will get a new token
         if (managedIdentityRequest.claims) {
+            this.logger.info(
+                `[Managed Identity] The following claims are present in the request: ${managedIdentityRequest.claims}`
+            );
+
             networkRequest.queryParameters[
                 ManagedIdentityQueryParameters.BYPASS_CACHE
             ] = "true";
@@ -146,9 +150,16 @@ export abstract class BaseManagedIdentitySource {
 
         // if client capabilities are present, send them to the MSI
         if (managedIdentityRequest.clientCapabilities?.length) {
+            const clientCapabilities: string =
+                managedIdentityRequest.clientCapabilities.toString();
+
+            this.logger.info(
+                `[Managed Identity] The following claims are present in the request: ${clientCapabilities}`
+            );
+
             networkRequest.queryParameters[
                 ManagedIdentityQueryParameters.XMS_CC
-            ] = managedIdentityRequest.clientCapabilities.toString();
+            ] = clientCapabilities;
         }
 
         const headers: Record<string, string> = networkRequest.headers;
