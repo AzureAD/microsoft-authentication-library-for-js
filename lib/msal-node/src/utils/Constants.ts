@@ -10,17 +10,18 @@ export const AUTHORIZATION_HEADER_NAME: string = "Authorization";
 export const METADATA_HEADER_NAME: string = "Metadata";
 export const APP_SERVICE_SECRET_HEADER_NAME: string = "X-IDENTITY-HEADER";
 export const SERVICE_FABRIC_SECRET_HEADER_NAME: string = "secret";
-export const API_VERSION_QUERY_PARAMETER_NAME: string = "api-version";
-export const RESOURCE_BODY_OR_QUERY_PARAMETER_NAME: string = "resource";
 export const DEFAULT_MANAGED_IDENTITY_ID = "system_assigned_managed_identity";
 export const MANAGED_IDENTITY_DEFAULT_TENANT = "managed_identity";
 export const DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY = `https://login.microsoftonline.com/${MANAGED_IDENTITY_DEFAULT_TENANT}/`;
+export const MSI_V1_MIN_VERSION = "2024-09-30";
 
 /**
  * Managed Identity Query Parameters
  */
 export const ManagedIdentityQueryParameters = {
+    API_VERSION: "api-version",
     BYPASS_CACHE: "bypass_cache",
+    RESOURCE: "resource",
     XMS_CC: "xms_cc",
 } as const;
 export type ManagedIdentityQueryParameters =

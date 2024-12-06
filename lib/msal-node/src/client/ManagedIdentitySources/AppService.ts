@@ -8,19 +8,16 @@ import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
 import {
     HttpMethod,
     APP_SERVICE_SECRET_HEADER_NAME,
-    API_VERSION_QUERY_PARAMETER_NAME,
-    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
     ManagedIdentityEnvironmentVariableNames,
+    ManagedIdentityQueryParameters,
     ManagedIdentitySourceNames,
     ManagedIdentityIdType,
+    MSI_V1_MIN_VERSION,
 } from "../../utils/Constants.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
-
-// MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
-const APP_SERVICE_MSI_API_VERSION: string = "2019-08-01";
 
 /**
  * Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/AppServiceManagedIdentitySource.cs
@@ -107,9 +104,9 @@ export class AppService extends BaseManagedIdentitySource {
 
         request.headers[APP_SERVICE_SECRET_HEADER_NAME] = this.identityHeader;
 
-        request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
-            APP_SERVICE_MSI_API_VERSION;
-        request.queryParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.API_VERSION] =
+            MSI_V1_MIN_VERSION;
+        request.queryParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
         if (

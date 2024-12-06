@@ -13,8 +13,8 @@ import {
     METADATA_HEADER_NAME,
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentityIdType,
+    ManagedIdentityQueryParameters,
     ManagedIdentitySourceNames,
-    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
 } from "../../utils/Constants.js";
 import {
     ManagedIdentityErrorCodes,
@@ -102,7 +102,7 @@ export class CloudShell extends BaseManagedIdentitySource {
 
         request.headers[METADATA_HEADER_NAME] = "true";
 
-        request.bodyParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+        request.bodyParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
         return request;

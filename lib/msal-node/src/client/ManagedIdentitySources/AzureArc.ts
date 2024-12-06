@@ -22,15 +22,15 @@ import {
     createManagedIdentityError,
 } from "../../error/ManagedIdentityError.js";
 import {
-    API_VERSION_QUERY_PARAMETER_NAME,
     AUTHORIZATION_HEADER_NAME,
     AZURE_ARC_SECRET_FILE_MAX_SIZE_BYTES,
     HttpMethod,
     METADATA_HEADER_NAME,
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentityIdType,
+    ManagedIdentityQueryParameters,
     ManagedIdentitySourceNames,
-    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
+    MSI_V1_MIN_VERSION,
 } from "../../utils/Constants.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
 import {
@@ -43,7 +43,6 @@ import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityToke
 import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import path from "path";
 
-export const ARC_API_VERSION: string = "2019-11-01";
 export const DEFAULT_AZURE_ARC_IDENTITY_ENDPOINT: string =
     "http://127.0.0.1:40342/metadata/identity/oauth2/token";
 const HIMDS_EXECUTABLE_HELPER_STRING = "N/A: himds executable exists";
@@ -194,9 +193,9 @@ export class AzureArc extends BaseManagedIdentitySource {
 
         request.headers[METADATA_HEADER_NAME] = "true";
 
-        request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
-            ARC_API_VERSION;
-        request.queryParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.API_VERSION] =
+            MSI_V1_MIN_VERSION;
+        request.queryParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
         // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
