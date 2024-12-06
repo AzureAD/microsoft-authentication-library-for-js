@@ -28,7 +28,6 @@ const clientConfig: msal.Configuration = {
          */
         // networkClient: new HttpClientCurrent,
         // networkClient: new HttpClientAxios,
-
         /**
          * This is the same functionality as the networkClient lines above. Instead of importing a custom INetworkModule, one can be implemented here.
          * Uncomment the INetworkModule import statement to implement the custom INetworkModule below
@@ -57,12 +56,18 @@ app.get("/", async (req, res) => {
     console.log(`Request received - ${new Date()}`);
 
     try {
-        const confidentialClientApplication = new msal.ConfidentialClientApplication(clientConfig);
-        const response = await confidentialClientApplication.acquireTokenByClientCredential(request);
+        const confidentialClientApplication =
+            new msal.ConfidentialClientApplication(clientConfig);
+        const response =
+            await confidentialClientApplication.acquireTokenByClientCredential(
+                request
+            );
         console.log(response);
     } catch (error) {
         console.log(error);
     }
 });
 
-app.listen(SERVER_PORT, () => console.log(`Msal Node web app listening on port ${SERVER_PORT}!`))
+app.listen(SERVER_PORT, () =>
+    console.log(`Msal Node web app listening on port ${SERVER_PORT}!`)
+);
