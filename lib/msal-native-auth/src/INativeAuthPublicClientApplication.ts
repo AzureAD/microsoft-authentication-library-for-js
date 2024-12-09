@@ -4,9 +4,9 @@
  */
 
 import { GetAccountResult } from "./auth_flow/result/GetAccountResult.js";
-import { ResetPasswordStartResult } from "./auth_flow/result/ResetPasswordResult.js";
-import { SignInResult } from "./auth_flow/result/SignInResult.js";
-import { SignUpResult } from "./auth_flow/result/SignUpResult.js";
+import { ResetPasswordStartResult } from "./auth_flow/result/reset_password/ResetPasswordStartResult.js";
+import { SignInResult } from "./auth_flow/result/sign_in/SignInResult.js";
+import { SignUpResult } from "./auth_flow/result/sign_up/SignUpResult.js";
 import {
     GetAccountInputs,
     ResetPasswordInputs,

@@ -4,15 +4,11 @@
  */
 
 import { FetchClient, StandardController } from "@azure/msal-browser";
-import {
-    SignInCodeRequiredStateHandler,
-    SignInPasswordRequiredStateHandler,
-} from "../auth_flow/state_handler/SignInStateHandler.js";
 import { AccountInfo } from "../auth_flow/data/AccountInfo.js";
 import { GetAccountResult } from "../auth_flow/result/GetAccountResult.js";
-import { ResetPasswordStartResult } from "../auth_flow/result/ResetPasswordResult.js";
-import { SignInResult } from "../auth_flow/result/SignInResult.js";
-import { SignUpResult } from "../auth_flow/result/SignUpResult.js";
+import { ResetPasswordStartResult } from "../auth_flow/result/reset_password/ResetPasswordStartResult.js";
+import { SignInResult } from "../auth_flow/result/sign_in/SignInResult.js";
+import { SignUpResult } from "../auth_flow/result/sign_up/SignUpResult.js";
 import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
 import { UnexpectedError } from "../error/UnexpectedError.js";
 import {
@@ -33,6 +29,8 @@ import { NativeAuthApiClient } from "../network_client/NativeAuthApiClient.js";
 import { SignInCodeSendResponse } from "../network_client/response/SignInResponse.js";
 import { NativeAuthOperatingContext } from "../operating_context/NativeAuthOperatingContext.js";
 import { INativeAuthStardardController } from "./INativeAuthStandardController.js";
+import { SignInPasswordRequiredStateHandler } from "../auth_flow/state_handler/sign_in/SignInPasswordRequiredStateHandler.js";
+import { SignInCodeRequiredStateHandler } from "../auth_flow/state_handler/sign_in/SignInCodeRequiredStateHandler.js";
 
 /*
  * Controller for standard native auth operations.
