@@ -8,7 +8,7 @@ import { GetAccountResult } from "./auth_flow/result/GetAccountResult.js";
 import { ResetPasswordStartResult } from "./auth_flow/result/reset_password/ResetPasswordStartResult.js";
 import { SignInResult } from "./auth_flow/result/sign_in/SignInResult.js";
 import { SignUpResult } from "./auth_flow/result/sign_up/SignUpResult.js";
-import { INativeAuthStardardController } from "./controller/INativeAuthStandardController.js";
+import { INativeAuthStandardController } from "./controller/INativeAuthStandardController.js";
 import { NativeAuthStandardController } from "./controller/NativeAuthStandardController.js";
 import { INativeAuthPublicClientApplication } from "./INativeAuthPublicClientApplication.js";
 import {
@@ -24,7 +24,7 @@ export class NativeAuthPublicClientApplication
     extends PublicClientApplication
     implements INativeAuthPublicClientApplication
 {
-    private readonly nativeAuthController: NativeAuthStandardController;
+    private readonly nativeAuthController: INativeAuthStandardController;
 
     /*
      * Creates a new instance of a PublicClientApplication with the given configuration.
@@ -43,13 +43,15 @@ export class NativeAuthPublicClientApplication
      */
     constructor(
         config: NativeAuthConfiguration,
-        controller?: INativeAuthStardardController
+        controller?: INativeAuthStandardController
     ) {
-        const nativeAuthController = new NativeAuthStandardController(
-            new NativeAuthOperatingContext(config)
-        );
+        const nativeAuthController =
+            controller ||
+            new NativeAuthStandardController(
+                new NativeAuthOperatingContext(config)
+            );
 
-        super(config, controller || nativeAuthController);
+        super(config, nativeAuthController);
 
         this.nativeAuthController = nativeAuthController;
     }

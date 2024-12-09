@@ -4,13 +4,13 @@
  */
 
 import {
+    NativeAuthPublicClientApplication,
     SignInCodeRequiredStateHandler,
+    SignInInputs,
     SignInPasswordRequiredStateHandler,
     SignInState,
 } from "@azure/msal-native-auth";
-import { SignInInputs } from "@azure/msal-native-auth";
-import { NativeAuthConfiguration } from "@azure/msal-native-auth";
-import { NativeAuthPublicClientApplication } from "@azure/msal-native-auth";
+import { nativeAuthConfig } from "./nativeAuthConfig.js";
 
 // This sample demonstrates how to sign in a user using the MSAL Native Auth library.
 // Currently, this sample doesn't work and is only used to demonstrate the usage of the library.
@@ -18,12 +18,7 @@ export async function signin(
     username: string,
     password?: string
 ): Promise<void> {
-    const config: NativeAuthConfiguration = {
-        auth: { clientId: "test-client-id" },
-        nativeAuth: { challengeTypes: ["test-challenge-type"] },
-    };
-
-    const app = NativeAuthPublicClientApplication.create(config);
+    const app = NativeAuthPublicClientApplication.create(nativeAuthConfig);
 
     const signInInputs: SignInInputs = {
         username: username,

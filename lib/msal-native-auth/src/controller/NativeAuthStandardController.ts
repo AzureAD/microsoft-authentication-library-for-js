@@ -28,7 +28,7 @@ import { NativeAuthConfiguration } from "../NativeAuthConfiguration.js";
 import { NativeAuthApiClient } from "../network_client/NativeAuthApiClient.js";
 import { SignInCodeSendResponse } from "../network_client/response/SignInResponse.js";
 import { NativeAuthOperatingContext } from "../operating_context/NativeAuthOperatingContext.js";
-import { INativeAuthStardardController } from "./INativeAuthStandardController.js";
+import { INativeAuthStandardController } from "./INativeAuthStandardController.js";
 import { SignInPasswordRequiredStateHandler } from "../auth_flow/state_handler/sign_in/SignInPasswordRequiredStateHandler.js";
 import { SignInCodeRequiredStateHandler } from "../auth_flow/state_handler/sign_in/SignInCodeRequiredStateHandler.js";
 
@@ -37,7 +37,7 @@ import { SignInCodeRequiredStateHandler } from "../auth_flow/state_handler/sign_
  */
 export class NativeAuthStandardController
     extends StandardController
-    implements INativeAuthStardardController
+    implements INativeAuthStandardController
 {
     /*
      * The client to use for sign-in operations.

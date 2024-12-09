@@ -1,7 +1,7 @@
 import { signin } from "./SignInSample.js";
 
 export async function test_signin(): Promise<void> {
-    signin("test-username", "test-password");
+    signin("shen.j@outlook.com", "123456789");
 }
 
 test_signin();

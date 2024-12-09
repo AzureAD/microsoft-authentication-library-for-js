@@ -47,7 +47,7 @@ export {
     GetAccountState,
 } from "./auth_flow/result/AuthFlowState.js";
 export { AccountInfo } from "./auth_flow/data/AccountInfo.js";
-export { INativeAuthStardardController } from "./controller/INativeAuthStandardController.js";
+export { INativeAuthStandardController } from "./controller/INativeAuthStandardController.js";
 export { NativeAuthStandardController } from "./controller/NativeAuthStandardController.js";
 export { NativeAuthError } from "./error/NativeAuthError.js";
 export { InvalidArgumentError } from "./error/InvalidArgumentError.js";

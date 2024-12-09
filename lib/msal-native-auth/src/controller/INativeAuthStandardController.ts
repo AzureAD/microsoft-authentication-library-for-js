@@ -18,7 +18,7 @@ import {
 /*
  * Controller interface for standard authentication operations.
  */
-export interface INativeAuthStardardController extends IController {
+export interface INativeAuthStandardController extends IController {
     /*
      * Gets the current account from the cache.
      * @param getAccountInputs - Inputs for getting the current cached account
