@@ -1,5 +1,6 @@
 parameters:
     - name: npmDebugLevel
+      displayName: "NPM Debug Level"
       type: string
       default: "notice"
       values:
