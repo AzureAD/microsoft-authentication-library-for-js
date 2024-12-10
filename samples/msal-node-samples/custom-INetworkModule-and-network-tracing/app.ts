@@ -58,15 +58,11 @@ const request: msal.ClientCredentialRequest = {
 
 // self-executing anonymous asyc function that's needed to use "await" for acquireTokenByClientCredential
 (async () => {
-    try {
-        const confidentialClientApplication =
-            new msal.ConfidentialClientApplication(clientConfig);
-        const response =
-            await confidentialClientApplication.acquireTokenByClientCredential(
-                request
-            );
-        console.log(response);
-    } catch (error) {
-        console.error(error.errorMessage);
-    }
+    const confidentialClientApplication =
+        new msal.ConfidentialClientApplication(clientConfig);
+    const response =
+        await confidentialClientApplication.acquireTokenByClientCredential(
+            request
+        );
+    console.log(response);
 })();

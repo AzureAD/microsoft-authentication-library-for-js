@@ -29,7 +29,6 @@ const getClientCredentialsToken = async (
             await cca.acquireTokenByClientCredential(clientCredentialRequest);
         return response;
     } catch (error) {
-        console.error(error.errorMessage);
         throw error.errorMessage;
     }
 };

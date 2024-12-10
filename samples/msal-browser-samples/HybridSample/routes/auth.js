@@ -32,9 +32,6 @@ router.get('/login', (req, res) => {
     msalInstance.getAuthCodeUrl(authCodeUrlParameters)
         .then((response) => {
             res.redirect(response);
-        })
-        .catch((error) => {
-            console.error(error.errorMessage);
         });
 });
 
@@ -105,7 +102,6 @@ router.post('/server-redirect', (req, res) => {
         })
         .catch((error) => {
             console.timeEnd(timeLabel);
-            console.error(error.errorMessage);
             res.status(500).send(error);
         });
 });

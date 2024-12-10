@@ -178,49 +178,37 @@ export class AuthProvider {
             .authority!.split("/")
             .pop()!;
 
-        try {
-            let [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all(
-                [
-                    cacheClient.get(
-                        `${clientId}.${tenantId}.discovery-metadata`
-                    ),
-                    cacheClient.get(
-                        `${clientId}.${tenantId}.authority-metadata`
-                    ),
-                ]
-            );
+        let [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all([
+            cacheClient.get(`${clientId}.${tenantId}.discovery-metadata`),
+            cacheClient.get(`${clientId}.${tenantId}.authority-metadata`),
+        ]);
 
-            if (!cloudDiscoveryMetadata || !authorityMetadata) {
-                [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all(
-                    [
-                        AuthProvider.fetchCloudDiscoveryMetadata(tenantId),
-                        AuthProvider.fetchOIDCMetadata(tenantId),
-                    ]
+        if (!cloudDiscoveryMetadata || !authorityMetadata) {
+            [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all([
+                AuthProvider.fetchCloudDiscoveryMetadata(tenantId),
+                AuthProvider.fetchOIDCMetadata(tenantId),
+            ]);
+
+            if (cloudDiscoveryMetadata && authorityMetadata) {
+                await cacheClient.set(
+                    `${clientId}.${tenantId}.discovery-metadata`,
+                    JSON.stringify(cloudDiscoveryMetadata)
                 );
-
-                if (cloudDiscoveryMetadata && authorityMetadata) {
-                    await cacheClient.set(
-                        `${clientId}.${tenantId}.discovery-metadata`,
-                        JSON.stringify(cloudDiscoveryMetadata)
-                    );
-                    await cacheClient.set(
-                        `${clientId}.${tenantId}.authority-metadata`,
-                        JSON.stringify(authorityMetadata)
-                    );
-                }
+                await cacheClient.set(
+                    `${clientId}.${tenantId}.authority-metadata`,
+                    JSON.stringify(authorityMetadata)
+                );
             }
-
-            msalConfigWithMetadata.auth.cloudDiscoveryMetadata =
-                typeof cloudDiscoveryMetadata === "string"
-                    ? cloudDiscoveryMetadata
-                    : JSON.stringify(cloudDiscoveryMetadata);
-            msalConfigWithMetadata.auth.authorityMetadata =
-                typeof authorityMetadata === "string"
-                    ? authorityMetadata
-                    : JSON.stringify(authorityMetadata);
-        } catch (error) {
-            console.error(error);
         }
+
+        msalConfigWithMetadata.auth.cloudDiscoveryMetadata =
+            typeof cloudDiscoveryMetadata === "string"
+                ? cloudDiscoveryMetadata
+                : JSON.stringify(cloudDiscoveryMetadata);
+        msalConfigWithMetadata.auth.authorityMetadata =
+            typeof authorityMetadata === "string"
+                ? authorityMetadata
+                : JSON.stringify(authorityMetadata);
 
         return msalConfigWithMetadata;
     }
@@ -231,30 +219,22 @@ export class AuthProvider {
         const endpoint =
             "https://login.microsoftonline.com/common/discovery/instance";
 
-        try {
-            const response = await AxiosHelper.callDownstreamApi(
-                endpoint,
-                undefined,
-                {
-                    "api-version": "1.1",
-                    authorization_endpoint: `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`,
-                }
-            );
+        const response = await AxiosHelper.callDownstreamApi(
+            endpoint,
+            undefined,
+            {
+                "api-version": "1.1",
+                authorization_endpoint: `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`,
+            }
+        );
 
-            return response;
-        } catch (error) {
-            console.error(error);
-        }
+        return response;
     }
 
     private static async fetchOIDCMetadata(tenantId: string): Promise<any> {
         const endpoint = `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid-configuration`;
 
-        try {
-            const response = await AxiosHelper.callDownstreamApi(endpoint);
-            return response;
-        } catch (error) {
-            console.error(error);
-        }
+        const response = await AxiosHelper.callDownstreamApi(endpoint);
+        return response;
     }
 }

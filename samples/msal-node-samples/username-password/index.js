@@ -75,8 +75,6 @@ const tokenCalls = async () => {
 
         pca.acquireTokenSilent(silentRequest).then((response) => {
             console.log("\nSuccessful silent token acquisition");
-        }).catch((error) => {
-            console.error(error.errorMessage);
         });
     } else { // fall back to username password if there is no account
         const usernamePasswordRequest = {
@@ -87,8 +85,6 @@ const tokenCalls = async () => {
 
         pca.acquireTokenByUsernamePassword(usernamePasswordRequest).then((response) => {
             console.log("acquired token by password grant");
-        }).catch((error) => {
-            console.error(error.errorMessage);
         });
     }
 }

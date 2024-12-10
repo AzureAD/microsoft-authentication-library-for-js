@@ -98,22 +98,16 @@ export class AuthProvider {
 
         let tokenResponse = null;
 
-        try {
-            performance.mark("acquireTokenByClientCredential-start");
-            tokenResponse = await cca.acquireTokenByClientCredential(
-                tokenRequest
-            );
-            performance.mark("acquireTokenByClientCredential-end");
-            performance.measure(
-                tokenResponse?.fromCache
-                    ? "acquireTokenByClientCredential-fromCache"
-                    : "acquireTokenByClientCredential-fromNetwork",
-                "acquireTokenByClientCredential-start",
-                "acquireTokenByClientCredential-end"
-            );
-        } catch (error) {
-            console.error(error);
-        }
+        performance.mark("acquireTokenByClientCredential-start");
+        tokenResponse = await cca.acquireTokenByClientCredential(tokenRequest);
+        performance.mark("acquireTokenByClientCredential-end");
+        performance.measure(
+            tokenResponse?.fromCache
+                ? "acquireTokenByClientCredential-fromCache"
+                : "acquireTokenByClientCredential-fromNetwork",
+            "acquireTokenByClientCredential-start",
+            "acquireTokenByClientCredential-end"
+        );
 
         return tokenResponse;
     }
@@ -123,51 +117,40 @@ export class AuthProvider {
         cacheClient: RedisClientType,
         partitionKey: string
     ): Promise<Configuration> {
-        const msalConfigWithMetadata = msalConfig;
+        let [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all([
+            cacheClient.get(`${partitionKey}.discovery-metadata`),
+            cacheClient.get(`${partitionKey}.authority-metadata`),
+        ]);
 
-        try {
-            let [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all(
-                [
-                    cacheClient.get(`${partitionKey}.discovery-metadata`),
-                    cacheClient.get(`${partitionKey}.authority-metadata`),
-                ]
-            );
+        if (!cloudDiscoveryMetadata || !authorityMetadata) {
+            [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all([
+                AuthProvider.fetchCloudDiscoveryMetadata(
+                    partitionKey.split(".")[1]
+                ),
+                AuthProvider.fetchOIDCMetadata(partitionKey.split(".")[1]),
+            ]);
 
-            if (!cloudDiscoveryMetadata || !authorityMetadata) {
-                [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all(
-                    [
-                        AuthProvider.fetchCloudDiscoveryMetadata(
-                            partitionKey.split(".")[1]
-                        ),
-                        AuthProvider.fetchOIDCMetadata(
-                            partitionKey.split(".")[1]
-                        ),
-                    ]
+            if (cloudDiscoveryMetadata && authorityMetadata) {
+                await cacheClient.set(
+                    `${partitionKey}.discovery-metadata`,
+                    JSON.stringify(cloudDiscoveryMetadata)
                 );
-
-                if (cloudDiscoveryMetadata && authorityMetadata) {
-                    await cacheClient.set(
-                        `${partitionKey}.discovery-metadata`,
-                        JSON.stringify(cloudDiscoveryMetadata)
-                    );
-                    await cacheClient.set(
-                        `${partitionKey}.authority-metadata`,
-                        JSON.stringify(authorityMetadata)
-                    );
-                }
+                await cacheClient.set(
+                    `${partitionKey}.authority-metadata`,
+                    JSON.stringify(authorityMetadata)
+                );
             }
-
-            msalConfigWithMetadata.auth.cloudDiscoveryMetadata =
-                typeof cloudDiscoveryMetadata === "string"
-                    ? cloudDiscoveryMetadata
-                    : JSON.stringify(cloudDiscoveryMetadata);
-            msalConfigWithMetadata.auth.authorityMetadata =
-                typeof authorityMetadata === "string"
-                    ? authorityMetadata
-                    : JSON.stringify(authorityMetadata);
-        } catch (error) {
-            console.error(error);
         }
+
+        const msalConfigWithMetadata = msalConfig;
+        msalConfigWithMetadata.auth.cloudDiscoveryMetadata =
+            typeof cloudDiscoveryMetadata === "string"
+                ? cloudDiscoveryMetadata
+                : JSON.stringify(cloudDiscoveryMetadata);
+        msalConfigWithMetadata.auth.authorityMetadata =
+            typeof authorityMetadata === "string"
+                ? authorityMetadata
+                : JSON.stringify(authorityMetadata);
 
         return msalConfigWithMetadata;
     }
@@ -178,30 +161,15 @@ export class AuthProvider {
         const endpoint =
             "https://login.microsoftonline.com/common/discovery/instance";
 
-        try {
-            const response = await AxiosHelper.callDownstreamApi(
-                endpoint,
-                undefined,
-                {
-                    "api-version": "1.1",
-                    authorization_endpoint: `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`,
-                }
-            );
-
-            return response;
-        } catch (error) {
-            console.error(error);
-        }
+        return await AxiosHelper.callDownstreamApi(endpoint, undefined, {
+            "api-version": "1.1",
+            authorization_endpoint: `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`,
+        });
     }
 
     private static async fetchOIDCMetadata(tenantId: string): Promise<any> {
         const endpoint = `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid-configuration`;
 
-        try {
-            const response = await AxiosHelper.callDownstreamApi(endpoint);
-            return response;
-        } catch (error) {
-            console.error(error);
-        }
+        return await AxiosHelper.callDownstreamApi(endpoint);
     }
 }

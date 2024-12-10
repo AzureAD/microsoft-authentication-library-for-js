@@ -125,7 +125,7 @@ export default class AuthProvider {
             );
         } catch (error) {
             console.error(
-                "Silent token acquisition failed, acquiring token using pop up"
+                "Silent token acquisition failed, acquiring token interactively"
             );
             const authCodeRequest = {
                 ...this.authCodeUrlParams,

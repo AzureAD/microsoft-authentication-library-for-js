@@ -52,8 +52,6 @@ PersistenceCreator
         // get url to sign user in and consent to scopes needed for application
         pca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
             res.redirect(response);
-        }).catch((error) => {
-            console.error(error.errorMessage);
         });
     });
 

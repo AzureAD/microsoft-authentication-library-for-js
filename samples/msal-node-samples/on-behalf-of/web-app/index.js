@@ -35,8 +35,6 @@ const acquireTokenByCode = (cca, webAppPort, webApiPort, redirectUri, webApiScop
         // get url to sign user in and consent to scopes needed for application
         cca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
             res.redirect(response);
-        }).catch((error) => {
-            console.error(error.errorMessage);
         });
     });
 
@@ -54,7 +52,6 @@ const acquireTokenByCode = (cca, webAppPort, webApiPort, redirectUri, webApiScop
                 res.status(200).send(oboResponse);
             });
         }).catch((error) => {
-            console.error(error.errorMessage);
             res.status(500).send(error);
         });
     });

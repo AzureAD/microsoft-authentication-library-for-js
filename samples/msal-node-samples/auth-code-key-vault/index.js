@@ -66,8 +66,6 @@ function msalApp(thumbprint, privateKey) {
         // get url to sign user in and consent to scopes needed for application
         cca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
             res.redirect(response);
-        }).catch((error) => {
-            console.error(error.errorMessage);
         });
     });
 
@@ -81,7 +79,6 @@ function msalApp(thumbprint, privateKey) {
         cca.acquireTokenByCode(tokenRequest).then((response) => {
             res.status(200).send('Congratulations! You have signed in successfully');
         }).catch((error) => {
-            console.error(error.errorMessage);
             res.status(500).send(error);
         });
     });
@@ -92,17 +89,23 @@ function msalApp(thumbprint, privateKey) {
 }
 
 async function main() {
+    let certResponse;
+    try {
+        // Grab the certificate thumbprint
+        certResponse = await certClient.getCertificate(CERTIFICATE_NAME);
+    } catch (error) {
+        console.log(error);
+    }
 
-    // Grab the certificate thumbprint
-    const certResponse = await certClient.getCertificate(CERTIFICATE_NAME).catch((error) => {
-        console.error(error);
-    });
     const thumbprint = certResponse.properties.x509Thumbprint.toString('hex');
 
-    // When you upload a certificate to Key Vault, a secret containing your private key is automatically created
-    const secretResponse = await secretClient.getSecret(CERTIFICATE_NAME).catch((error) => {
-        console.error(error);
-    });
+    let secretResponse;
+    try {
+        // When you upload a certificate to Key Vault, a secret containing your private key is automatically created
+        secretResponse = await secretClient.getSecret(CERTIFICATE_NAME);
+    } catch (error) {
+        console.log(error);
+    }
 
     // secretResponse contains both public and private key, but we only need the private key
     const privateKey = secretResponse.value.split('-----BEGIN CERTIFICATE-----\n')[0]

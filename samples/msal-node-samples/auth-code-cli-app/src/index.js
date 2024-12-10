@@ -53,10 +53,8 @@ acquireToken().then((response) => {
         console.log(graphResponse);
         process.exit(0);
     }).catch((error) => {
-        console.error(error);
         process.exit(1);
     });
-}).catch(e => {
-    console.error(e);
+}).catch((error) => {
     process.exit(1);
 });

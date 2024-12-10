@@ -39,7 +39,6 @@ function getClientCredentialsToken(cca, clientCredentialRequestScopes, ro) {
     try {
         return cca.acquireTokenByClientCredential(clientCredentialRequest);
     } catch (error) {
-        console.error(error.errorMessage);
         throw error.errorMessage;
     }
 }

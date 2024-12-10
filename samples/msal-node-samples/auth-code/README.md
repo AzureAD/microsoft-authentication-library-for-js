@@ -197,14 +197,9 @@ Next we direct the user to authenticate. The following code block directs the us
 **auth-code/index.js:**
 
 ```javascript
-clientApplication
-    .getAuthCodeUrl(authCodeUrlParameters)
-    .then((response) => {
-        res.redirect(response);
-    })
-    .catch((error) => {
-        console.error(error.errorMessage);
-    });
+clientApplication.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
+    res.redirect(response);
+});
 ```
 
 Putting together the routing and all the logic for starting the sign in yields the following code:
@@ -217,12 +212,9 @@ app.get("/", (req, res) => {
         redirectUri: "http://localhost:3000/redirect",
     };
 
-    clientApplication
-        .getAuthCodeUrl(authCodeUrlParameters)
-        .then((response) => {
-            res.redirect(response);
-        })
-        .catch((error) => console.log(JSON.stringify(error)));
+    clientApplication.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
+        res.redirect(response);
+    });
 });
 ```
 
@@ -270,7 +262,6 @@ clientApplication
         res.sendStatus(200);
     })
     .catch((error) => {
-        console.error(error.errorMessage);
         res.status(500).send(error.errorMessage);
     });
 ```
@@ -294,7 +285,6 @@ app.get("/redirect", (req, res) => {
             res.sendStatus(200);
         })
         .catch((error) => {
-            console.error(error.errorMessage);
             res.status(500).send(error);
         });
 });

@@ -55,17 +55,13 @@ const app = express();
 app.get("/", async (req, res) => {
     console.log(`Request received - ${new Date()}`);
 
-    try {
-        const confidentialClientApplication =
-            new msal.ConfidentialClientApplication(clientConfig);
-        const response =
-            await confidentialClientApplication.acquireTokenByClientCredential(
-                request
-            );
-        console.log(response);
-    } catch (error) {
-        console.error(error.errorMessage);
-    }
+    const confidentialClientApplication =
+        new msal.ConfidentialClientApplication(clientConfig);
+    const response =
+        await confidentialClientApplication.acquireTokenByClientCredential(
+            request
+        );
+    console.log(response);
 });
 
 app.listen(SERVER_PORT, () =>
