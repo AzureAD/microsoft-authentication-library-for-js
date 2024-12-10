@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1733434881032,
+  "lastUpdate": 1733865930594,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -13744,6 +13744,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.76%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d971767f27156978265b14bb1910f5e9c67605d2",
+          "message": "Skip hanging tests (#7457)\n\n2 tests appear to be causing the CI pipeline to hang indefinitely.\nSkipping until we can determine what's happening and how to re-enable\nthem.",
+          "timestamp": "2024-12-10T13:19:56-08:00",
+          "tree_id": "19a39624dd1bf45227843047e56f4c058278f3fe",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/d971767f27156978265b14bb1910f5e9c67605d2"
+        },
+        "date": 1733865929343,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 190945,
+            "range": "±1.87%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 195918,
+            "range": "±2.15%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
           }
         ]
       }
