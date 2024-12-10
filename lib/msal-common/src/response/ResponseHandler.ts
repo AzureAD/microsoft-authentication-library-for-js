@@ -353,6 +353,7 @@ export class ResponseHandler {
             authCodePayload
         );
         let cacheContext;
+        let persistentCache
         try {
             if (this.persistencePlugin && this.serializableCache) {
                 this.logger.verbose(
@@ -363,6 +364,45 @@ export class ResponseHandler {
                     true
                 );
                 await this.persistencePlugin.beforeCacheAccess(cacheContext);
+                //@ts-ignore
+                persistentCache = (cacheContext.tokenCache.cacheSnapshot == undefined || cacheContext.tokenCache.cacheSnapshot == "") ? null : cacheContext.tokenCache.cacheSnapshot;
+            }
+            if(persistentCache && cacheRecord.account) {
+                /**
+                 * It is expected that an account that is logged in to be present in both the persistent and in-memory caches.
+                 * If the account is present in the in-memory cache but not in the persistent cache, that indicates that the account has been logged out by another entity or process.
+                 * We should not overwrite that removal.
+                 */ 
+                let jsonPersistentCache;
+                try {
+                    jsonPersistentCache = JSON.parse(persistentCache);
+                    const accountCacheKey = cacheRecord.account.generateAccountKey();
+                    if(!jsonPersistentCache.Account.hasOwnProperty(accountCacheKey)) {
+                        const key = cacheRecord.account.generateAccountKey();
+                        const account = this.cacheStorage.getAccount(key, this.logger);
+                        if(account) {
+                            this.logger.warning(
+                                "Account present in in-memory cache but not in persistence, indicates a logout by another entity or process"
+                            );
+                            await this.cacheStorage.removeAccount(account.generateAccountKey());
+                            return await ResponseHandler.generateAuthenticationResult(
+                                this.cryptoObj,
+                                authority,
+                                cacheRecord,
+                                false,
+                                request,
+                                idTokenClaims,
+                                requestStateObj,
+                                undefined,
+                                serverRequestId
+                            );
+                        }
+                    }
+                } catch {
+                    if(!jsonPersistentCache) {
+                        this.logger.warning("Persistent cache not a parseable JSON");
+                    }
+                }
             }
             /*
              * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
@@ -370,7 +410,7 @@ export class ResponseHandler {
              * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal, unless explicitly flagged by
              * the developer, as in the case of refresh token flow used in ADAL Node to MSAL Node migration.
              */
-            if (
+            else if (
                 handlingRefreshTokenResponse &&
                 !forceCacheRefreshTokenResponse &&
                 cacheRecord.account
