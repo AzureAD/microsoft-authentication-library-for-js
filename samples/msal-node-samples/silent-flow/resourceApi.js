@@ -18,8 +18,12 @@ module.exports = function(resourceApiConfig) {
 
             console.log('request made to Resource API at: ' + new Date().toString());
             
-            axios.default.get(endpoint, options)
-                .then(response => callback(response.data, endpoint));
+            try {
+                axios.default.get(endpoint, options)
+                    .then(response => callback(response.data, endpoint));
+            } catch (error) {
+                throw error;
+            }
         }
     }
 };

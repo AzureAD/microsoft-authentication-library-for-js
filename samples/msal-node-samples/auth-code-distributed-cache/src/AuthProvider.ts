@@ -219,22 +219,15 @@ export class AuthProvider {
         const endpoint =
             "https://login.microsoftonline.com/common/discovery/instance";
 
-        const response = await AxiosHelper.callDownstreamApi(
-            endpoint,
-            undefined,
-            {
-                "api-version": "1.1",
-                authorization_endpoint: `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`,
-            }
-        );
-
-        return response;
+        return await AxiosHelper.callDownstreamApi(endpoint, undefined, {
+            "api-version": "1.1",
+            authorization_endpoint: `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`,
+        });
     }
 
     private static async fetchOIDCMetadata(tenantId: string): Promise<any> {
         const endpoint = `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid-configuration`;
 
-        const response = await AxiosHelper.callDownstreamApi(endpoint);
-        return response;
+        return await AxiosHelper.callDownstreamApi(endpoint);
     }
 }

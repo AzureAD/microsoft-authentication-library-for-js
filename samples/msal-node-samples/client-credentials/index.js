@@ -36,11 +36,7 @@ function getClientCredentialsToken(cca, clientCredentialRequestScopes, ro) {
         skipCache: true, // (optional) this skips the cache and forces MSAL to get a new token from Azure AD
     };
 
-    try {
-        return cca.acquireTokenByClientCredential(clientCredentialRequest);
-    } catch (error) {
-        throw error.errorMessage;
-    }
+    return cca.acquireTokenByClientCredential(clientCredentialRequest);
 }
 
 /**

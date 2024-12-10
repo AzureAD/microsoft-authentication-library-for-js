@@ -39,7 +39,13 @@ class RedisClientWrapper implements ICacheClient {
      * @returns
      */
     public async get(key: string): Promise<string> {
-        return (await this.cacheClient.get(key)) || EMPTY_STRING;
+        try {
+            return (await this.cacheClient.get(key)) || EMPTY_STRING;
+        } catch (error) {
+            console.log(error);
+        }
+
+        return EMPTY_STRING;
     }
 
     /**
