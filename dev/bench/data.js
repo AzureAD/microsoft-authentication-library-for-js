@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1733936062988,
+  "lastUpdate": 1733944786360,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -13820,6 +13820,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.98%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b76e73dc9fca4bdbd42cf7ae494dbc5d63be1e2f",
+          "message": "Merge pull request #7446 from AzureAD/refactor-storage-impl\n\nCreating distinct classes for LocalStorage, SessionStorage and Cookies\nto prepare for upcoming changes to the LocalStorage implementation\nrelated to KMSI",
+          "timestamp": "2024-12-11T11:14:08-08:00",
+          "tree_id": "753d557622ebf8c608172f321b904e291571ab69",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/b76e73dc9fca4bdbd42cf7ae494dbc5d63be1e2f"
+        },
+        "date": 1733944785150,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 189615,
+            "range": "±2.07%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 197960,
+            "range": "±2.00%",
+            "unit": "ops/sec",
+            "extra": "218 samples"
           }
         ]
       }
