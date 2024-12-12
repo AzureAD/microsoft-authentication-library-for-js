@@ -1,0 +1,11 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+*.log
+.DS_Store
+/node_modules
+.cache
+/dist
+/lib
+
+# Type docs
+ref/
