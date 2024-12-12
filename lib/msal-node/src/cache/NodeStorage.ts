@@ -168,6 +168,18 @@ export class NodeStorage extends CacheManager {
     }
 
     /**
+     * sets the current cache (key value store) from a string
+     * @param cache - string formatted cache
+     */
+    setCacheFromString(cache: string): void {
+        this.logger.trace("Setting cache key value store");
+        const deserializedPersistentStorage = Deserializer.deserializeAllCache(
+            JSON.parse(cache)
+        );
+        this.setCache(this.inMemoryCacheToCache(deserializedPersistentStorage));
+    }
+
+    /**
      * Gets cache item with given key.
      * @param key - lookup key for the cache entry
      */

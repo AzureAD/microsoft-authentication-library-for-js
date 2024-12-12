@@ -24,6 +24,8 @@ import {
     AuthorityFactory,
     ProtocolMode,
     AADServerParamKeys,
+    CacheOutcome,
+    TokenCacheContext,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -55,6 +57,7 @@ import { TEST_CONFIG } from "../test_kit/StringConstants";
 import { HttpClient } from "../../src/network/HttpClient";
 import { MockStorageClass } from "./ClientTestUtils";
 import { Constants } from "../../src/utils/Constants";
+import { NodeStorage } from "../../src/cache/NodeStorage.js";
 
 const msalCommon: MSALCommonModule = jest.requireActual(
     "@azure/msal-common/node"
@@ -225,6 +228,13 @@ describe("PublicClientApplication", () => {
             jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
                 (config) => new silentFlowClient(config)
             );
+            jest.spyOn(
+                silentFlowClient.prototype,
+                "acquireCachedToken"
+            ).mockResolvedValue([
+                mockAuthenticationResult,
+                CacheOutcome.NOT_APPLICABLE,
+            ]);
 
             const authApp = new PublicClientApplication(appConfig);
             await authApp.acquireTokenSilent(request);
@@ -313,6 +323,55 @@ describe("PublicClientApplication", () => {
                 expect(e).toBe(testError);
                 done();
             });
+        });
+
+        test("acquireTokenSilent - looks in persistent cache if one exists and a valid token isn't present in in-memory cache", async () => {
+            const beforeCacheAccess = jest
+                .fn()
+                .mockImplementation((cacheContext: TokenCacheContext) => {
+                    //the value of the cache doesn't matter since we're mocking acquireCachedToken later on
+                    //@ts-ignore"
+                    cacheContext.cache.cacheSnapshot = "test-cache";
+                });
+            const afterCacheAccess = jest
+                .fn()
+                .mockImplementation((cacheContext: TokenCacheContext) => {
+                    //@ts-ignore
+                    cacheContext.cache.cacheSnapshot = "{}";
+                });
+
+            const authApp = new PublicClientApplication({
+                ...appConfig,
+                cache: { cachePlugin: { beforeCacheAccess, afterCacheAccess } },
+            });
+
+            const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
+            jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
+                (config) => new silentFlowClient(config)
+            );
+
+            let acquireCachedTokenSpy = jest
+                .spyOn(silentFlowClient.prototype, "acquireCachedToken")
+                .mockRejectedValueOnce(new Error("Test error"))
+                .mockResolvedValue([
+                    mockAuthenticationResult,
+                    CacheOutcome.NOT_APPLICABLE,
+                ]);
+
+            let cacheSpy = jest
+                .spyOn(NodeStorage.prototype, "setCacheFromString")
+                .mockImplementation(() => {});
+
+            const request: SilentFlowRequest = {
+                account: mockAccountInfo,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            };
+
+            const response = await authApp.acquireTokenSilent(request);
+            expect(response).toEqual(mockAuthenticationResult);
+            expect(acquireCachedTokenSpy).toHaveBeenCalledTimes(2);
+            //checks if in-memory cache was overwritten with persistent cache
+            expect(cacheSpy).toHaveBeenCalledWith("test-cache");
         });
     });
 
@@ -919,21 +978,25 @@ describe("PublicClientApplication", () => {
         jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
             (config) => new silentFlowClient(config)
         );
+        const acquireCachedTokenSpy = jest
+            .spyOn(silentFlowClient.prototype, "acquireCachedToken")
+            .mockResolvedValue([
+                mockAuthenticationResult,
+                CacheOutcome.NOT_APPLICABLE,
+            ]);
 
-        const acquireTokenSpy = jest.spyOn(
-            silentFlowClient.prototype,
-            "acquireToken"
-        );
         const authApp = new PublicClientApplication({
             ...appConfig,
             cache: { claimsBasedCachingEnabled: true },
         });
         await authApp.acquireTokenSilent(request);
-        expect(silentFlowClient.prototype.acquireToken).toHaveBeenCalledWith(
+        expect(
+            silentFlowClient.prototype.acquireCachedToken
+        ).toHaveBeenCalledWith(
             expect.objectContaining({ requestedClaimsHash: expect.any(String) })
         );
 
-        const submittedRequest = acquireTokenSpy.mock.calls[0][0];
+        const submittedRequest = acquireCachedTokenSpy.mock.calls[0][0];
         expect(
             (submittedRequest as any)?.requestedClaimsHash?.length
         ).toBeGreaterThan(0);
@@ -959,20 +1022,24 @@ describe("PublicClientApplication", () => {
         jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
             (config) => new silentFlowClient(config)
         );
+        const acquireCachedTokenSpy = jest
+            .spyOn(silentFlowClient.prototype, "acquireCachedToken")
+            .mockResolvedValue([
+                mockAuthenticationResult,
+                CacheOutcome.NOT_APPLICABLE,
+            ]);
 
-        const acquireTokenSpy = jest.spyOn(
-            silentFlowClient.prototype,
-            "acquireToken"
-        );
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenSilent(request);
-        expect(silentFlowClient.prototype.acquireToken).toHaveBeenCalledWith(
+        expect(
+            silentFlowClient.prototype.acquireCachedToken
+        ).toHaveBeenCalledWith(
             expect.not.objectContaining({
                 requestedClaimsHash: expect.any(String),
             })
         );
 
-        const submittedRequest = acquireTokenSpy.mock.calls[0][0];
+        const submittedRequest = acquireCachedTokenSpy.mock.calls[0][0];
         expect((submittedRequest as any)?.requestedClaimsHash).toBe(undefined);
     });
 

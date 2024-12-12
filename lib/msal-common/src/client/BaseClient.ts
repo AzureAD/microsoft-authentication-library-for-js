@@ -36,7 +36,7 @@ export abstract class BaseClient {
     public logger: Logger;
 
     // Application config
-    protected config: CommonClientConfiguration;
+    public config: CommonClientConfiguration;
 
     // Crypto Interface
     protected cryptoUtils: ICrypto;
@@ -57,7 +57,7 @@ export abstract class BaseClient {
     public authority: Authority;
 
     // Performance telemetry client
-    protected performanceClient?: IPerformanceClient;
+    public performanceClient?: IPerformanceClient;
 
     protected constructor(
         configuration: ClientConfiguration,

@@ -41,7 +41,7 @@ const defaultSerializedCache: JsonCache = {
 export class TokenCache implements ISerializableTokenCache, ITokenCache {
     private storage: NodeStorage;
     private cacheHasChanged: boolean;
-    private cacheSnapshot: string;
+    public cacheSnapshot: string;
     private readonly persistence: ICachePlugin;
     private logger: Logger;
 

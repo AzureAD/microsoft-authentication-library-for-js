@@ -36,6 +36,9 @@ import {
     ClientAssertion as ClientAssertionType,
     getClientAssertion,
     ClientAssertionCallback,
+    CacheOutcome,
+    ClientAuthError,
+    TokenCacheContext,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -276,30 +279,121 @@ export abstract class ClientApplication {
             validRequest.correlationId,
             validRequest.forceRefresh
         );
+        const clientConfiguration = await this.buildOauthClientConfiguration(
+            validRequest.authority,
+            validRequest.correlationId,
+            serverTelemetryManager,
+            undefined,
+            validRequest.azureCloudOptions
+        );
+        const silentFlowClient = new SilentFlowClient(clientConfiguration);
+        this.logger.verbose(
+            "Silent flow client created",
+            validRequest.correlationId
+        );
+
         try {
-            const silentFlowClientConfig =
-                await this.buildOauthClientConfiguration(
-                    validRequest.authority,
-                    validRequest.correlationId,
-                    serverTelemetryManager,
-                    undefined,
-                    request.azureCloudOptions
-                );
-            const silentFlowClient = new SilentFlowClient(
-                silentFlowClientConfig
+            return await this.acquireCachedToken(
+                validRequest,
+                silentFlowClient
             );
-            this.logger.verbose(
-                "Silent flow client created",
-                validRequest.correlationId
-            );
-            return await silentFlowClient.acquireToken(validRequest);
         } catch (e) {
-            if (e instanceof AuthError) {
+            try {
+                // If persistence exists, overwrite the in-memory cache with the persistent cache and search for the cached token again
+                let persistence = this.config.cache.cachePlugin;
+                if (persistence) {
+                    this.logger.info(
+                        "Overwriting in-memory cache with persistent cache"
+                    );
+                    this.storage.clear();
+                    let cacheContext = new TokenCacheContext(
+                        this.tokenCache,
+                        false
+                    );
+                    await persistence.beforeCacheAccess(cacheContext);
+
+                    const persistentStorage = this.tokenCache.cacheSnapshot;
+                    this.storage.setCacheFromString(persistentStorage);
+                    await persistence.afterCacheAccess(cacheContext);
+
+                    this.logger.info("Searching again for a valid token");
+                    return await this.acquireCachedToken(
+                        validRequest,
+                        silentFlowClient
+                    );
+                }
+            } catch {
+                if (
+                    e instanceof ClientAuthError &&
+                    e.errorCode === ClientAuthErrorCodes.tokenRefreshRequired
+                ) {
+                    const refreshTokenClient = new RefreshTokenClient(
+                        clientConfiguration,
+                        silentFlowClient.performanceClient
+                    );
+                    return refreshTokenClient.acquireTokenByRefreshToken(
+                        validRequest
+                    );
+                } else if (e instanceof AuthError) {
+                    e.setCorrelationId(validRequest.correlationId);
+                }
+                serverTelemetryManager.cacheFailedRequest(e as AuthError);
+                throw e;
+            }
+
+            if (
+                e instanceof ClientAuthError &&
+                e.errorCode === ClientAuthErrorCodes.tokenRefreshRequired
+            ) {
+                const refreshTokenClient = new RefreshTokenClient(
+                    clientConfiguration,
+                    silentFlowClient.performanceClient
+                );
+                return refreshTokenClient.acquireTokenByRefreshToken(
+                    validRequest
+                );
+            } else if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
             }
             serverTelemetryManager.cacheFailedRequest(e as AuthError);
             throw e;
         }
+    }
+
+    async acquireCachedToken(
+        validRequest: CommonSilentFlowRequest,
+        silentFlowClient: SilentFlowClient
+    ): Promise<AuthenticationResult> {
+        const [authResponse, cacheOutcome] =
+            await silentFlowClient.acquireCachedToken({
+                ...validRequest,
+                scopes: validRequest.scopes?.length
+                    ? validRequest.scopes
+                    : [...OIDC_DEFAULT_SCOPES],
+            });
+
+        //for testing, don't commit
+        // cacheOutcome = CacheOutcome.PROACTIVELY_REFRESHED;
+
+        if (cacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
+            this.logger.info(
+                "ClientApplication:acquireCachedToken - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
+            );
+            // refresh the access token in the background
+            const refreshTokenClient = new RefreshTokenClient(
+                silentFlowClient.config,
+                silentFlowClient.performanceClient
+            );
+
+            refreshTokenClient
+                .acquireTokenByRefreshToken(validRequest)
+                .catch(() => {
+                    // do nothing, this is running in the background and no action is to be taken upon success or failure
+                });
+        }
+
+        // return the cached token
+        return authResponse;
     }
 
     /**
