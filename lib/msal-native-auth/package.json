@@ -1,11 +1,69 @@
 {
   "name": "msal-native-auth",
   "version": "1.0.0",
-  "description": "MSAL Native Auth",
-  "main": "src/index.ts",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "author": {
+    "name": "Microsoft",
+    "email": "nugetaad@microsoft.com",
+    "url": "https://www.microsoft.com"
   },
-  "author": "",
-  "license": "ISC"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+  },
+  "description": "Microsoft Authentication Library Native Authentication",
+  "type": "module",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "main": "lib/msal-native-auth.cjs",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./lib/types/index.d.ts",
+        "default": "./lib/msal-native-auth.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "lib",
+    "src"
+  ],
+  "peerDependencies": {
+    "@azure/msal-browser": "^3.27.0"
+  },
+  "scripts": {
+    "build": "rollup -c --strictDeprecations --bundleConfigAsCjs",
+    "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts --ext .tsx",
+    "lint:fix": "npm run lint -- --fix",
+    "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=@azure/msal-native-auth",
+    "prepack": "npm run build:all",
+    "format:check": "prettier --ignore-path .gitignore --check src test",
+    "format:fix": "prettier --ignore-path .gitignore --write src test",
+    "apiExtractor": "api-extractor run"
+  },
+  "dependencies": {
+    "@microsoft/api-extractor": "^7.48.0",
+    "@rollup/plugin-typescript": "^12.1.1",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.10.2",
+    "eslint-config-msal": "file:../../shared-configs/eslint-config-msal",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "prettier": "^3.4.2",
+    "rollup": "^4.28.1",
+    "ts-jest": "^29.2.5",
+    "ts-jest-resolver": "^2.0.1",
+    "tslib": "^2.8.1",
+    "typescript": "^5.7.2"    
+  }
 }
