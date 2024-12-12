@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add first order broker parameters #7348",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -184,7 +184,7 @@ function blockReloadInHiddenIframes(): void;
 //
 // @public
 export class BrowserAuthError extends AuthError {
-    constructor(errorCode: string);
+    constructor(errorCode: string, subError?: string);
 }
 
 declare namespace BrowserAuthErrorCodes {
@@ -234,7 +234,9 @@ declare namespace BrowserAuthErrorCodes {
         uninitializedPublicClientApplication,
         nativePromptNotSupported,
         invalidBase64String,
-        invalidPopTokenRequest
+        invalidPopTokenRequest,
+        failedToBuildHeaders,
+        failedToParseHeaders
     }
 }
 export { BrowserAuthErrorCodes }
@@ -559,10 +561,9 @@ export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
     static supportsBrowserPerformance(): boolean;
 }
 
-// Warning: (ae-forgotten-export) The symbol "IWindowStorage" needs to be exported by the entry point index.d.ts
 // Warning: (ae-missing-release-tag) "BrowserStorage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export class BrowserStorage implements IWindowStorage<string> {
     constructor(cacheLocation: string);
     // (undocumented)
@@ -849,6 +850,16 @@ export const EventType: {
 export type EventType = (typeof EventType)[keyof typeof EventType];
 
 export { ExternalTokenResponse }
+
+// Warning: (ae-missing-release-tag) "failedToBuildHeaders" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const failedToBuildHeaders = "failed_to_build_headers";
+
+// Warning: (ae-missing-release-tag) "failedToParseHeaders" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const failedToParseHeaders = "failed_to_parse_headers";
 
 // Warning: (ae-missing-release-tag) "failedToParseResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1143,6 +1154,22 @@ export interface ITokenCache {
     loadExternalTokens(request: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions): AuthenticationResult;
 }
 
+// Warning: (ae-missing-release-tag) "IWindowStorage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export interface IWindowStorage<T> {
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    containsKey(key: string): boolean;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    getItem(key: string): T | null;
+    getKeys(): string[];
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    removeItem(key: string): void;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    setItem(key: string, value: T): void;
+}
+
 export { JsonWebTokenTypes }
 
 // Warning: (ae-missing-release-tag) "LoadTokenOptions" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1153,6 +1180,23 @@ export type LoadTokenOptions = {
     expiresOn?: number;
     extendedExpiresOn?: number;
 };
+
+// Warning: (ae-missing-release-tag) "LocalStorage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export class LocalStorage implements IWindowStorage<string> {
+    constructor();
+    // (undocumented)
+    containsKey(key: string): boolean;
+    // (undocumented)
+    getItem(key: string): string | null;
+    // (undocumented)
+    getKeys(): string[];
+    // (undocumented)
+    removeItem(key: string): void;
+    // (undocumented)
+    setItem(key: string, value: string): void;
+}
 
 export { Logger }
 
@@ -1567,6 +1611,23 @@ export { ServerError }
 
 export { ServerResponseType }
 
+// Warning: (ae-missing-release-tag) "SessionStorage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export class SessionStorage implements IWindowStorage<string> {
+    constructor();
+    // (undocumented)
+    containsKey(key: string): boolean;
+    // (undocumented)
+    getItem(key: string): string | null;
+    // (undocumented)
+    getKeys(): string[];
+    // (undocumented)
+    removeItem(key: string): void;
+    // (undocumented)
+    setItem(key: string, value: string): void;
+}
+
 // Warning: (ae-missing-release-tag) "SignedHttpRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -1687,7 +1748,7 @@ const userCancelled = "user_cancelled";
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "3.26.1";
+export const version = "3.27.0";
 
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)

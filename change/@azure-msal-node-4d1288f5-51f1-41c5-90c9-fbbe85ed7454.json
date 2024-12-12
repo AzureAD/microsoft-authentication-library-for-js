@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Removed warnings from msal-node-api.md #7376",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "none"
-}

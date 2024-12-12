@@ -1,8 +1,42 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Thu, 03 Oct 2024 00:40:42 GMT and should not be manually modified.
+This log was last generated on Tue, 19 Nov 2024 17:21:57 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.16.2
+
+Tue, 19 Nov 2024 17:21:57 GMT
+
+### Patches
+
+- removeAccount method now clears client cache by retrieving partitionKey when accountEntities are empty (#7329) (luccarebtoledo@gmail.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 2.16.1
+
+Tue, 12 Nov 2024 15:32:46 GMT
+
+### Patches
+
+- Fixes bug where getAllAccounts always writes to the cache (shylasummers@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 2.16.0
+
+Tue, 05 Nov 2024 18:58:45 GMT
+
+### Minor changes
+
+- Add first order broker parameters #7348 (kshabelko@microsoft.com)
+- Make clear synchronous (shylasummers@microsoft.com)
+- Remove NetworkManager class (thomas.norling@microsoft.com)
+- Region auto enable on env variable #7354 (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v14.16.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 2.15.0
 
