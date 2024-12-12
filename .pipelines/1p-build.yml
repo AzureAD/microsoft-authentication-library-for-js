@@ -53,6 +53,10 @@ extends:
                         path: "lib/"
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
+                        libName: msal-native-auth
+                        path: "lib/"                  
+                  - template: .pipelines/templates/ci-template.yml@1P
+                    parameters:
                         libName: msal-angular
                         path: "lib/"
                   - template: .pipelines/templates/ci-template.yml@1P

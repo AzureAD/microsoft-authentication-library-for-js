@@ -122,6 +122,10 @@ Once installed, you have the option to configure the jest environment for furthe
             "rootPath": "lib/msal-react"
         },
         {
+            "name": "msal-native-auth",
+            "rootPath": "lib/msal-native-auth"
+        },
+        {
             "name": "msal-node-extensions",
             "rootPath": "extensions/msal-node-extensions"
         }

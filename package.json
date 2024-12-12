@@ -51,6 +51,7 @@
         "lib/msal-node",
         "lib/msal-angular",
         "lib/msal-react",
+        "lib/msal-native-auth",
         "extensions/msal-node-extensions",
         "extensions/samples/*",
         "shared-test-utils",

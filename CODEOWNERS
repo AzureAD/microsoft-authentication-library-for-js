@@ -16,6 +16,10 @@
 /samples/msal-node-samples/ @sameerag @tnorling @hectormmg @peterzenz @AzureAD/id4s-msal-team
 /extensions/msal-node-extensions/ @sameerag @tnorling @hectormmg @peterzenz
 
+# MSAL Native Auth
+/lib/msal-native-auth/ @nguyenluan3017 @shenj
+/samples/msal-native-auth-samples/ @nguyenluan3017 @shenj
+
 # MSAL React
 /lib/msal-react/ @tnorling @jo-arroyo @peterzenz
 /samples/msal-react-samples/ @tnorling @jo-arroyo @peterzenz

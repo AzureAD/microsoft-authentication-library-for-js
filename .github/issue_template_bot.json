@@ -46,6 +46,11 @@
                         "@azure/msal-react"
                     ]
                 },
+                "msal-native-auth": {
+                    "searchStrings": [
+                        "@azure/msal-native-auth"
+                    ]
+                },
                 "msal-node-extensions": {
                     "searchStrings": [
                         "@azure/msal-node-extensions"
