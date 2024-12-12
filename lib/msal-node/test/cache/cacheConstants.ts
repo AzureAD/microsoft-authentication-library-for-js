@@ -7,9 +7,6 @@ import {
     CacheHelpers,
 } from "@azure/msal-common";
 
-export const MOCK_PARTITION_KEY = "mock_partition_key";
-export const MOCK_CACHE_STRING = "mock_cache_string";
-
 // mock tokens
 export const mockAccessTokenEntity_1: AccessTokenEntity = {
     homeAccountId: "uid.utid",
@@ -140,3 +137,30 @@ export const MockCache = {
     amdt: mockCache.createMockAmdt(),
     amdtKey: CacheHelpers.generateAppMetadataKey(mockCache.createMockAmdt()),
 };
+
+// mock cache storage
+export const MOCK_PARTITION_KEY = MockCache.acc.homeAccountId;
+export const MOCK_CACHE_STORAGE = {
+    [MOCK_PARTITION_KEY]: {
+        Account: {
+            [`${MOCK_PARTITION_KEY}-login.windows.net`]: mockAccountEntity,
+        },
+        IdToken: {
+            [`${MOCK_PARTITION_KEY}-login.windows.net-idtoken`]:
+                mockIdTokenEntity,
+        },
+        AccessToken: {
+            [`${MOCK_PARTITION_KEY}-login.windows.net-accesstoken`]:
+                mockAccessTokenEntity_1,
+        },
+        RefreshToken: {
+            [`${MOCK_PARTITION_KEY}-login.windows.net-refreshtoken`]:
+                mockRefreshTokenEntity,
+        },
+        AppMetadata: {
+            [`${MOCK_PARTITION_KEY}-login.windows.net-appmetadata`]:
+                mockAppMetaDataEntity,
+        },
+    },
+};
+export const MOCK_CACHE_STRING = () => JSON.stringify(MOCK_CACHE_STORAGE);

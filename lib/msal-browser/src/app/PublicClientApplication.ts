@@ -34,6 +34,7 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
 import { NestedAppAuthController } from "../controllers/NestedAppAuthController.js";
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
+import { EventType } from "../event/EventType.js";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -151,9 +152,13 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Adds event callbacks to array
      * @param callback
+     * @param eventTypes
      */
-    addEventCallback(callback: EventCallbackFunction): string | null {
-        return this.controller.addEventCallback(callback);
+    addEventCallback(
+        callback: EventCallbackFunction,
+        eventTypes?: Array<EventType>
+    ): string | null {
+        return this.controller.addEventCallback(callback, eventTypes);
     }
 
     /**

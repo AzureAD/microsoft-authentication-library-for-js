@@ -285,6 +285,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 clientId: this.config.auth.clientId,
                 authority: discoveredAuthority,
                 clientCapabilities: this.config.auth.clientCapabilities,
+                redirectUri: this.config.auth.redirectUri,
             },
             systemOptions: {
                 tokenRenewalOffsetSeconds:
@@ -360,6 +361,11 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             responseMode: this.config.auth.OIDCOptions
                 .serverResponseType as ResponseMode,
         };
+
+        // Skip active account lookup if either login hint or session id is set
+        if (request.loginHint || request.sid) {
+            return validatedRequest;
+        }
 
         const account =
             request.account || this.browserStorage.getActiveAccount();

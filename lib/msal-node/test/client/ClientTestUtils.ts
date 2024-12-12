@@ -342,6 +342,7 @@ export class ClientTestUtils {
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: authority,
+                redirectUri: TEST_CONFIG.REDIRECT_URI,
             },
             storageInterface: mockStorage,
             networkInterface: mockHttpClient,
@@ -635,7 +636,7 @@ export const getClientAssertionCallback = (
     const clientAssertionCallback: ClientAssertionCallback = async (
         _config: ClientAssertionConfig
     ): Promise<string> => {
-        return await Promise.resolve(clientAssertion);
+        return Promise.resolve(clientAssertion);
     };
 
     return clientAssertionCallback;

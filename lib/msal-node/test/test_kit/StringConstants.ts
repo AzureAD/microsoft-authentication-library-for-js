@@ -6,8 +6,6 @@
 import {
     AuthenticationResult,
     PasswordGrantConstants,
-} from "@azure/msal-common";
-import {
     AuthenticationScheme,
     Constants,
     ONE_DAY_IN_MS,
@@ -195,6 +193,7 @@ export const TEST_CONFIG = {
     DEFAULT_TOKEN_RENEWAL_OFFSET: 300,
     TEST_CONFIG_ASSERTION: "DefaultAssertion",
     TEST_REQUEST_ASSERTION: "RequestAssertion",
+    REDIRECT_URI: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
 };
 
 const ADDITIONAL_CLAIM = '"additional_claim":{"key":"value"}';

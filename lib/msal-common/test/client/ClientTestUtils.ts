@@ -325,6 +325,7 @@ export class ClientTestUtils {
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: authority,
+                redirectUri: "https://localhost",
             },
             storageInterface: mockStorage,
             networkInterface: mockHttpClient,

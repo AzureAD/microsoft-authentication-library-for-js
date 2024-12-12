@@ -20,10 +20,14 @@ import {
     SerializedAppMetadataEntity,
 } from "./SerializerTypes.js";
 
+/**
+ * This class serializes cache entities to be saved into in-memory object types defined internally
+ * @internal
+ */
 export class Serializer {
     /**
      * serialize the JSON blob
-     * @param data
+     * @param data - JSON blob cache
      */
     static serializeJSONBlob(data: JsonCache): string {
         return JSON.stringify(data);
@@ -31,7 +35,7 @@ export class Serializer {
 
     /**
      * Serialize Accounts
-     * @param accCache
+     * @param accCache - cache of accounts
      */
     static serializeAccounts(
         accCache: AccountCache
@@ -63,7 +67,7 @@ export class Serializer {
 
     /**
      * Serialize IdTokens
-     * @param idTCache
+     * @param idTCache - cache of ID tokens
      */
     static serializeIdTokens(
         idTCache: IdTokenCache
@@ -86,7 +90,7 @@ export class Serializer {
 
     /**
      * Serializes AccessTokens
-     * @param atCache
+     * @param atCache - cache of access tokens
      */
     static serializeAccessTokens(
         atCache: AccessTokenCache
@@ -119,7 +123,7 @@ export class Serializer {
 
     /**
      * Serialize refreshTokens
-     * @param rtCache
+     * @param rtCache - cache of refresh tokens
      */
     static serializeRefreshTokens(
         rtCache: RefreshTokenCache
@@ -144,7 +148,7 @@ export class Serializer {
 
     /**
      * Serialize amdtCache
-     * @param amdtCache
+     * @param amdtCache - cache of app metadata
      */
     static serializeAppMetadata(
         amdtCache: AppMetadataCache
@@ -164,7 +168,7 @@ export class Serializer {
 
     /**
      * Serialize the cache
-     * @param jsonContent
+     * @param inMemCache - itemised cache read from the JSON
      */
     static serializeAllCache(inMemCache: InMemoryCache): JsonCache {
         return {

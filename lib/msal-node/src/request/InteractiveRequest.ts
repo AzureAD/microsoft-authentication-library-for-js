@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { CommonAuthorizationUrlRequest } from "@azure/msal-common/node";
 import { ILoopbackClient } from "../network/ILoopbackClient.js";
-import { AuthorizationUrlRequest } from "./AuthorizationUrlRequest.js";
 
 /**
  * Request object passed by user to configure acquireTokenInteractive API
@@ -17,18 +17,11 @@ import { AuthorizationUrlRequest } from "./AuthorizationUrlRequest.js";
  * - loopbackClient          - Custom implementation for a loopback server to listen for authorization code response.
  * @public
  */
-export type InteractiveRequest = Pick<
-    AuthorizationUrlRequest,
-    | "authority"
-    | "correlationId"
-    | "claims"
-    | "azureCloudOptions"
-    | "account"
-    | "extraQueryParameters"
-    | "tokenQueryParameters"
-    | "extraScopesToConsent"
-    | "loginHint"
-    | "prompt"
+export type InteractiveRequest = Partial<
+    Omit<
+        CommonAuthorizationUrlRequest,
+        "scopes" | "redirectUri" | "requestedClaimsHash" | "storeInCache"
+    >
 > & {
     openBrowser: (url: string) => Promise<void>;
     scopes?: Array<string>;

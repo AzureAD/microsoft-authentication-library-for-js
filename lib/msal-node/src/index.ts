@@ -38,7 +38,6 @@ export {
     Configuration,
     ManagedIdentityConfiguration,
     ManagedIdentityIdParams,
-    buildAppConfiguration,
     NodeAuthOptions,
     NodeSystemOptions,
     BrokerOptions,
