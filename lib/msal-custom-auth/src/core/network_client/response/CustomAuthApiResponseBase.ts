@@ -3,6 +3,6 @@
  * Licensed under the MIT License.
  */
 
-export abstract class NativeAuthApiResponseBase {
+export abstract class CustomAuthApiResponseBase {
     protected constructor(public correlationId?: string) {}
 }

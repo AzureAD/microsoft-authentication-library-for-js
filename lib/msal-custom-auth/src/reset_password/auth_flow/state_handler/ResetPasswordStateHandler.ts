@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { NativeAuthConfiguration } from "../../../configuration/NativeAuthConfiguration.js";
+import { CustomAuthConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { AuthFlowStateHandlerBase } from "../../../core/auth_flow/AuthFlowStateHandlerBase.js";
 import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
 
@@ -21,7 +21,7 @@ export abstract class ResetPasswordStateHandler extends AuthFlowStateHandlerBase
     constructor(
         correlationId: string,
         continuationToken: string,
-        protected config: NativeAuthConfiguration,
+        protected config: CustomAuthConfiguration,
         protected username: string
     ) {
         super(correlationId, continuationToken);

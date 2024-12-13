@@ -3,13 +3,13 @@
  * Licensed under the MIT License.
  */
 
-export class NativeAuthError extends Error {
+export class CustomAuthError extends Error {
     constructor(
         public error: string,
         public errorDescription?: string,
         public correlationId?: string
     ) {
         super(`${error}: ${errorDescription ?? ""}`);
-        Object.setPrototypeOf(this, NativeAuthError.prototype);
+        Object.setPrototypeOf(this, CustomAuthError.prototype);
     }
 }

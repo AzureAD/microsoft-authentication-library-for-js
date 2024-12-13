@@ -5,7 +5,7 @@
 
 import { UserAttribute } from "./UserAttribute.js";
 
-export class NativeAuthApiError {
+export class CustomAuthApiError {
     constructor(
         public error?: string,
         public errorDescription?: string,

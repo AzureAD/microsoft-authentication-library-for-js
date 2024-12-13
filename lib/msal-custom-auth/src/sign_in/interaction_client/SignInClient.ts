@@ -3,13 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { ChallengeType } from "../../NativeAuthConstants.js";
+import { ChallengeType } from "../../CustomAuthConstants.js";
 import {
     RedirectError,
     UnknownApiError,
-} from "../../core/error/NativeAuthApiError.js";
+} from "../../core/error/CustomAuthApiError.js";
 import { InteractionClientBase } from "../../core/interaction_client/InteractionClientBase.js";
-import { INativeAuthApiClient } from "../../core/network_client/INativeAuthApiClient.js";
+import { ICustomAuthApiClient } from "../../core/network_client/ICustomAuthApiClient.js";
 import {
     SignInChallengeRequest,
     SignInInitiateRequest,
@@ -32,24 +32,24 @@ import {
 } from "./result/SignInActionResult.js";
 
 export class SigninClient extends InteractionClientBase {
-    constructor(nativeAuthApiClient: INativeAuthApiClient) {
-        super(nativeAuthApiClient);
+    constructor(customAuthApiClient: ICustomAuthApiClient) {
+        super(customAuthApiClient);
     }
 
     async start(
         parameters: SignInStartParams
     ): Promise<SignInWithContinuationTokenResult | SignInCodeSendResult> {
         /*
-         * Using the nativeAuthApiClient to make the requests to start the signin flow.
+         * Using the customAuthApiClient to make the requests to start the signin flow.
          * Based on the response, we will return the appropriate result for the different.
-         * The followings are just some sample codes to demonstrate how to use the nativeAuthApiClient.
+         * The followings are just some sample codes to demonstrate how to use the customAuthApiClient.
          */
 
         const initiateRequest = SignInInitiateRequest.create(parameters);
 
         // There is no need to catch the error here. If an error is thrown, it should be caught by the caller.
         const initiateResponse =
-            await this.nativeAuthApiClient.performSignInInitiateRequest(
+            await this.customAuthApiClient.performSignInInitiateRequest(
                 initiateRequest
             );
 
@@ -77,7 +77,7 @@ export class SigninClient extends InteractionClientBase {
 
         // Call challenge endpoint.
         const challengeResponse =
-            await this.nativeAuthApiClient.performSignInChallengeRequest(
+            await this.customAuthApiClient.performSignInChallengeRequest(
                 challengeRequest
             );
 

@@ -1,7 +1,7 @@
-import { NativeAuthConfiguration, LogLevel } from "@azure/msal-custom-auth";
+import { CustomAuthConfiguration, LogLevel } from "@azure/msal-custom-auth";
 
-export const nativeAuthConfig: NativeAuthConfiguration = {
-    nativeAuth: {
+export const customAuthConfig: CustomAuthConfiguration = {
+    customAuth: {
         challengeTypes: ["password", "oob", "redirect"],
     },
     auth: {

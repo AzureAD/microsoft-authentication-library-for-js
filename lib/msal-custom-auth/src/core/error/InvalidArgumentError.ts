@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { NativeAuthError } from "./NativeAuthError.js";
+import { CustomAuthError } from "./CustomAuthError.js";
 
-export class InvalidArgumentError extends NativeAuthError {
+export class InvalidArgumentError extends CustomAuthError {
     constructor(argName: string, correlationId?: string) {
         const errorDescription = `The argument '${argName}' is invalid.`;
 

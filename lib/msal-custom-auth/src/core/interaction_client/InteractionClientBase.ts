@@ -4,12 +4,12 @@
  */
 
 import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
-import { INativeAuthApiClient } from "../network_client/INativeAuthApiClient.js";
+import { ICustomAuthApiClient } from "../network_client/ICustomAuthApiClient.js";
 
 export abstract class InteractionClientBase {
-    constructor(protected nativeAuthApiClient: INativeAuthApiClient) {
-        if (!nativeAuthApiClient) {
-            throw new InvalidArgumentError("nativeAuthApiClient");
+    constructor(protected customAuthApiClient: ICustomAuthApiClient) {
+        if (!customAuthApiClient) {
+            throw new InvalidArgumentError("customAuthApiClient");
         }
     }
 }

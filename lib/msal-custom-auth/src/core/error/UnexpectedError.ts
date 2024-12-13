@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { NativeAuthError } from "./NativeAuthError.js";
+import { CustomAuthError } from "./CustomAuthError.js";
 
-export class UnexpectedError extends NativeAuthError {
+export class UnexpectedError extends CustomAuthError {
     constructor(errorData: unknown, correlationId?: string) {
         let errorDescription: string;
 

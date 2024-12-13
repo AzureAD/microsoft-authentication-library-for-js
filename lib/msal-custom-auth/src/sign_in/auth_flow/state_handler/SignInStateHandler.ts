@@ -4,7 +4,7 @@
  */
 
 import { SigninClient } from "../../interaction_client/SignInClient.js";
-import { NativeAuthConfiguration } from "../../../configuration/NativeAuthConfiguration.js";
+import { CustomAuthConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { AuthFlowStateHandlerBase } from "../../../core/auth_flow/AuthFlowStateHandlerBase.js";
 import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
 
@@ -24,7 +24,7 @@ export abstract class SignInStateHandler extends AuthFlowStateHandlerBase {
         protected signInClient: SigninClient,
         correlationId: string,
         continuationToken: string,
-        protected config: NativeAuthConfiguration,
+        protected config: CustomAuthConfiguration,
         protected scopes?: Array<string>
     ) {
         super(correlationId, continuationToken);

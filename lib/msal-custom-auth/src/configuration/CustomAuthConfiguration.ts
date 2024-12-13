@@ -5,10 +5,10 @@
 
 import { Configuration } from "@azure/msal-browser";
 
-export type NativeAuthOptions = {
+export type CustomAuthOptions = {
     challengeTypes?: Array<string>;
 };
 
-export type NativeAuthConfiguration = Configuration & {
-    nativeAuth: NativeAuthOptions;
+export type CustomAuthConfiguration = Configuration & {
+    customAuth: CustomAuthOptions;
 };

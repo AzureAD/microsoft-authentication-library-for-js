@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { NativeAuthError } from "../error/NativeAuthError.js";
+import { CustomAuthError } from "../error/CustomAuthError.js";
 import { UnexpectedError } from "../error/UnexpectedError.js";
 import { AuthFlowStateHandlerBase } from "./AuthFlowStateHandlerBase.js";
 
@@ -34,7 +34,7 @@ export abstract class ResultBase<
     /*
      * The error that occurred during the authentication operation.
      */
-    error?: NativeAuthError;
+    error?: CustomAuthError;
 
     /*
      * Gets current state of the authentication operation.
@@ -55,16 +55,16 @@ export abstract class ResultBase<
         TState,
         TActionResult extends ResultBase<TState, TData, TStateHandler>
     >(this: new () => TActionResult, error: unknown): TActionResult {
-        let nativeAuthError: NativeAuthError;
+        let customAuthError: CustomAuthError;
 
-        if (error instanceof NativeAuthError) {
-            nativeAuthError = error;
+        if (error instanceof CustomAuthError) {
+            customAuthError = error;
         } else {
-            nativeAuthError = new UnexpectedError(error);
+            customAuthError = new UnexpectedError(error);
         }
 
         const errorResult = new this();
-        errorResult.error = nativeAuthError;
+        errorResult.error = customAuthError;
         return errorResult;
     }
 }

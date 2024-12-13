@@ -5,7 +5,7 @@
 
 import { FetchClient } from "@azure/msal-browser";
 import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
-import { INativeAuthApiClient } from "./INativeAuthApiClient.js";
+import { ICustomAuthApiClient } from "./ICustomAuthApiClient.js";
 import {
     SignInChallengeRequest,
     SignInContinuationTokenRequest,
@@ -20,7 +20,7 @@ import {
 } from "./response/SignInResponse.js";
 import { ResponseHandler } from "./ResponseHandler.js";
 
-export class NativeAuthApiClient implements INativeAuthApiClient {
+export class CustomAuthApiClient implements ICustomAuthApiClient {
     private readonly responseHandler: ResponseHandler;
 
     constructor(private readonly httpClient: FetchClient) {

@@ -16,7 +16,7 @@ import {
     SignInTokenResponse,
 } from "./response/SignInResponse.js";
 
-export interface INativeAuthApiClient {
+export interface ICustomAuthApiClient {
     performSignInInitiateRequest(
         request: SignInInitiateRequest
     ): Promise<SignInContinuationTokenResponse>;

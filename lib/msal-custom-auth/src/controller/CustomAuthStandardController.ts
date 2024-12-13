@@ -18,13 +18,13 @@ import {
     SignInInputs,
     SignUpInputs,
     ResetPasswordInputs,
-    NativeAuthActionInputs,
-} from "../NativeAuthActionInputs.js";
-import { NativeAuthConfiguration } from "../configuration/NativeAuthConfiguration.js";
-import { NativeAuthApiClient } from "../core/network_client/NativeAuthApiClient.js";
+    CustomAuthActionInputs,
+} from "../CustomAuthActionInputs.js";
+import { CustomAuthConfiguration } from "../configuration/CustomAuthConfiguration.js";
+import { CustomAuthApiClient } from "../core/network_client/CustomAuthApiClient.js";
 import { SignInCodeSendResponse } from "../core/network_client/response/SignInResponse.js";
-import { NativeAuthOperatingContext } from "../operating_context/NativeAuthOperatingContext.js";
-import { INativeAuthStandardController } from "./INativeAuthStandardController.js";
+import { CustomAuthOperatingContext } from "../operating_context/CustomAuthOperatingContext.js";
+import { ICustomAuthStandardController } from "./ICustomAuthStandardController.js";
 import { InvalidArgumentError } from "../core/error/InvalidArgumentError.js";
 import { SignInPasswordRequiredStateHandler } from "../sign_in/auth_flow/state_handler/SignInPasswordRequiredStateHandler.js";
 import { AccountInfo } from "../account/auth_flow/model/AccountInfo.js";
@@ -35,9 +35,9 @@ import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/Res
 /*
  * Controller for standard native auth operations.
  */
-export class NativeAuthStandardController
+export class CustomAuthStandardController
     extends StandardController
-    implements INativeAuthStandardController
+    implements ICustomAuthStandardController
 {
     /*
      * The client to use for sign-in operations.
@@ -47,19 +47,19 @@ export class NativeAuthStandardController
     /*
      * The configuration for the client.
      */
-    private readonly nativeAuthConfig: NativeAuthConfiguration;
+    private readonly customAuthConfig: CustomAuthConfiguration;
 
     /*
-     * Constructor for NativeAuthStandardController.
+     * Constructor for CustomAuthStandardController.
      * @param operatingContext - The operating context for the controller.
      */
-    constructor(operatingContext: NativeAuthOperatingContext) {
+    constructor(operatingContext: CustomAuthOperatingContext) {
         super(operatingContext);
 
-        this.nativeAuthConfig = operatingContext.getNativeAuthConfig();
+        this.customAuthConfig = operatingContext.getCustomAuthConfig();
 
-        const nativeAuthApiClient = new NativeAuthApiClient(new FetchClient());
-        this.signInClient = new SigninClient(nativeAuthApiClient);
+        const customAuthApiClient = new CustomAuthApiClient(new FetchClient());
+        this.signInClient = new SigninClient(customAuthApiClient);
         // Create more interaction clients here, such as SignUpClient, ResetPasswordClient, etc.
     }
 
@@ -107,7 +107,7 @@ export class NativeAuthStandardController
                 authorityUrl,
                 this.config.auth.clientId,
                 correlationId,
-                this.nativeAuthConfig.nativeAuth.challengeTypes ?? [],
+                this.customAuthConfig.customAuth.challengeTypes ?? [],
                 signInInputs.scopes ?? [],
                 signInInputs.username,
                 signInInputs.password
@@ -126,7 +126,7 @@ export class NativeAuthStandardController
                             this.signInClient,
                             correlationId,
                             startResult.continuationToken,
-                            this.nativeAuthConfig,
+                            this.customAuthConfig,
                             signInInputs.scopes
                         )
                     );
@@ -138,7 +138,7 @@ export class NativeAuthStandardController
                         authorityUrl,
                         this.config.auth.clientId,
                         correlationId,
-                        this.nativeAuthConfig.nativeAuth.challengeTypes ?? [],
+                        this.customAuthConfig.customAuth.challengeTypes ?? [],
                         signInInputs.scopes ?? [],
                         startResult.continuationToken,
                         signInInputs.password
@@ -151,7 +151,7 @@ export class NativeAuthStandardController
                 const accountManager = new AccountInfo(
                     completedResult.authenticationResult.account,
                     correlationId,
-                    this.nativeAuthConfig
+                    this.customAuthConfig
                 );
 
                 return new SignInResult(accountManager);
@@ -163,7 +163,7 @@ export class NativeAuthStandardController
                         this.signInClient,
                         correlationId,
                         startResult.continuationToken,
-                        this.nativeAuthConfig,
+                        this.customAuthConfig,
                         signInInputs.scopes
                     )
                 );
@@ -219,7 +219,7 @@ export class NativeAuthStandardController
         );
     }
 
-    private getCorrelationId(actionInputs: NativeAuthActionInputs): string {
+    private getCorrelationId(actionInputs: CustomAuthActionInputs): string {
         return actionInputs.correlationId || this.browserCrypto.createNewGuid();
     }
 }

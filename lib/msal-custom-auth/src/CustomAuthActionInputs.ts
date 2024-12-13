@@ -5,24 +5,24 @@
 
 import { UserAccountAttributes } from "./UserAccountAttributes.js";
 
-export type GetAccountInputs = NativeAuthActionInputs;
+export type GetAccountInputs = CustomAuthActionInputs;
 
-export type SignInInputs = NativeAuthActionInputs & {
+export type SignInInputs = CustomAuthActionInputs & {
     username: string;
     password?: string;
     scopes?: Array<string>;
 };
 
-export type SignUpInputs = NativeAuthActionInputs & {
+export type SignUpInputs = CustomAuthActionInputs & {
     username: string;
     password?: string;
     attribute?: UserAccountAttributes;
 };
 
-export type ResetPasswordInputs = NativeAuthActionInputs & {
+export type ResetPasswordInputs = CustomAuthActionInputs & {
     username: string;
 };
 
-export type NativeAuthActionInputs = {
+export type CustomAuthActionInputs = {
     correlationId?: string;
 };

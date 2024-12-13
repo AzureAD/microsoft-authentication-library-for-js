@@ -11,10 +11,10 @@ import {
     ResetPasswordInputs,
     SignInInputs,
     SignUpInputs,
-} from "./NativeAuthActionInputs.js";
+} from "./CustomAuthActionInputs.js";
 import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
 
-export interface INativeAuthPublicClientApplication {
+export interface ICustomAuthPublicClientApplication {
     /*
      * Gets the current account from the cache.
      * @param getAccountInputs - Inputs for getting the current cached account

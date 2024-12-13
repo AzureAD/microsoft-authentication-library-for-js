@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { NativeAuthApiResponseBase } from "./NativeAuthApiResponseBase.js";
+import { CustomAuthApiResponseBase } from "./CustomAuthApiResponseBase.js";
 
-export class SignInContinuationTokenResponse extends NativeAuthApiResponseBase {
+export class SignInContinuationTokenResponse extends CustomAuthApiResponseBase {
     constructor(
         correlationId?: string,
         public continuationToken?: string,
@@ -15,7 +15,7 @@ export class SignInContinuationTokenResponse extends NativeAuthApiResponseBase {
     }
 }
 
-export class SignInCodeSendResponse extends NativeAuthApiResponseBase {
+export class SignInCodeSendResponse extends CustomAuthApiResponseBase {
     constructor(
         correlationId?: string,
         public continuationToken?: string,
@@ -30,7 +30,7 @@ export class SignInCodeSendResponse extends NativeAuthApiResponseBase {
     }
 }
 
-export class SignInTokenResponse extends NativeAuthApiResponseBase {
+export class SignInTokenResponse extends CustomAuthApiResponseBase {
     constructor(
         correlationId?: string,
         public tokenType?: string,

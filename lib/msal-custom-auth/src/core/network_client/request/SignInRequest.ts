@@ -5,10 +5,10 @@
 
 import { InvalidArgumentError } from "../../error/InvalidArgumentError.js";
 import { SignInStartParams } from "../../../sign_in/interaction_client/parameter/SignInParams.js";
-import { GrantType } from "../../../NativeAuthConstants.js";
-import { NativeAuthApiRequestBase } from "./NativeAuthApiRequestBase.js";
+import { GrantType } from "../../../CustomAuthConstants.js";
+import { CustomAuthApiRequestBase } from "./CustomAuthApiRequestBase.js";
 
-export class SignInInitiateRequest extends NativeAuthApiRequestBase {
+export class SignInInitiateRequest extends CustomAuthApiRequestBase {
     constructor(
         requestUrl: string,
         correlationId: string,
@@ -62,7 +62,7 @@ export class SignInInitiateRequestParameters {
     }
 }
 
-export class SignInChallengeRequest extends NativeAuthApiRequestBase {
+export class SignInChallengeRequest extends CustomAuthApiRequestBase {
     constructor(
         requestUrl: string,
         correlationId: string,
@@ -123,7 +123,7 @@ export class SignInChallengeRequestParameters {
     }
 }
 
-export class SignInOobTokenRequest extends NativeAuthApiRequestBase {
+export class SignInOobTokenRequest extends CustomAuthApiRequestBase {
     constructor(
         requestUrl: string,
         correlationId: string,
@@ -138,7 +138,7 @@ export class SignInOobTokenRequest extends NativeAuthApiRequestBase {
     }
 }
 
-export class SignInPasswordTokenRequest extends NativeAuthApiRequestBase {
+export class SignInPasswordTokenRequest extends CustomAuthApiRequestBase {
     constructor(
         requestUrl: string,
         correlationId: string,
@@ -153,7 +153,7 @@ export class SignInPasswordTokenRequest extends NativeAuthApiRequestBase {
     }
 }
 
-export class SignInContinuationTokenRequest extends NativeAuthApiRequestBase {
+export class SignInContinuationTokenRequest extends CustomAuthApiRequestBase {
     constructor(
         requestUrl: string,
         correlationId: string,

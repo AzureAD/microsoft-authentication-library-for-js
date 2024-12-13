@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { NativeAuthConfiguration } from "../../../configuration/NativeAuthConfiguration.js";
+import { CustomAuthConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { AuthFlowStateHandlerBase } from "../../../core/auth_flow/AuthFlowStateHandlerBase.js";
 import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
 import { SignInResult } from "../result/SignInResult.js";
@@ -22,7 +22,7 @@ export class SignInContinuationStateHandler extends AuthFlowStateHandlerBase {
     constructor(
         correlationId: string,
         continuationToken: string,
-        private config: NativeAuthConfiguration,
+        private config: CustomAuthConfiguration,
         private username: string
     ) {
         super(correlationId, continuationToken);

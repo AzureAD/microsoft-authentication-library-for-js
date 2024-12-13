@@ -5,12 +5,12 @@
 
 import { UserAttribute } from "../network_client/response/UserAttribute.js";
 import { InvalidArgumentError } from "./InvalidArgumentError.js";
-import { NativeAuthError } from "./NativeAuthError.js";
+import { CustomAuthError } from "./CustomAuthError.js";
 
 /**
  * Error when no required authentication method by Microsoft Entra is supported
  */
-export class RedirectError extends NativeAuthError {
+export class RedirectError extends CustomAuthError {
     constructor(correlationId?: string) {
         super(
             "redirect",
@@ -21,7 +21,7 @@ export class RedirectError extends NativeAuthError {
     }
 }
 
-export class NativeAuthApiError extends NativeAuthError {
+export class CustomAuthApiError extends CustomAuthError {
     constructor(
         error: string,
         errorDescription: string,
@@ -30,24 +30,24 @@ export class NativeAuthApiError extends NativeAuthError {
         public subError?: string
     ) {
         super(error, errorDescription, correlationId);
-        Object.setPrototypeOf(this, NativeAuthApiError.prototype);
+        Object.setPrototypeOf(this, CustomAuthApiError.prototype);
 
         this.errorCodes = errorCodes;
         this.subError = subError;
     }
 }
 
-export class UserNotFoundError extends NativeAuthApiError {}
+export class UserNotFoundError extends CustomAuthApiError {}
 
-export class InvalidCredentialsError extends NativeAuthApiError {}
+export class InvalidCredentialsError extends CustomAuthApiError {}
 
-export class IncorrectCodeError extends NativeAuthApiError {}
+export class IncorrectCodeError extends CustomAuthApiError {}
 
-export class InvalidUserError extends NativeAuthApiError {}
+export class InvalidUserError extends CustomAuthApiError {}
 
-export class UserAlreadyExistsError extends NativeAuthApiError {}
+export class UserAlreadyExistsError extends CustomAuthApiError {}
 
-export class AttributeRequiredError extends NativeAuthApiError {
+export class AttributeRequiredError extends CustomAuthApiError {
     constructor(
         error: string,
         errorDescription: string,
@@ -70,11 +70,11 @@ export class AttributeRequiredError extends NativeAuthApiError {
     }
 }
 
-export class InvalidPasswordError extends NativeAuthApiError {}
+export class InvalidPasswordError extends CustomAuthApiError {}
 
-export class InvalidCodeError extends NativeAuthApiError {}
+export class InvalidCodeError extends CustomAuthApiError {}
 
-export class InvalidAttributesError extends NativeAuthApiError {
+export class InvalidAttributesError extends CustomAuthApiError {
     constructor(
         error: string,
         errorDescription: string,
@@ -92,12 +92,12 @@ export class InvalidAttributesError extends NativeAuthApiError {
     }
 }
 
-export class PasswordNotSetError extends NativeAuthApiError {}
+export class PasswordNotSetError extends CustomAuthApiError {}
 
-export class EmailNotVerifiedError extends NativeAuthApiError {}
+export class EmailNotVerifiedError extends CustomAuthApiError {}
 
-export class PasswordNotAcceptedError extends NativeAuthApiError {}
+export class PasswordNotAcceptedError extends CustomAuthApiError {}
 
-export class PasswordResetFailedError extends NativeAuthApiError {}
+export class PasswordResetFailedError extends CustomAuthApiError {}
 
-export class UnknownApiError extends NativeAuthApiError {}
+export class UnknownApiError extends CustomAuthApiError {}

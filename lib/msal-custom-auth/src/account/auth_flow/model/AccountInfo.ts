@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { NativeAuthConfiguration } from "../../../configuration/NativeAuthConfiguration.js";
+import { CustomAuthConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { SignOutResult } from "../result/SignOutResult.js";
 import { GetAccessTokenResult } from "../result/GetAccessTokenResult.js";
 import {
@@ -30,7 +30,7 @@ export class AccountInfo {
     constructor(
         private readonly account: AccountData,
         private readonly correlationId: string,
-        private readonly config: NativeAuthConfiguration
+        private readonly config: CustomAuthConfiguration
     ) {
         if (!config) {
             throw new InvalidArgumentError("config", correlationId);

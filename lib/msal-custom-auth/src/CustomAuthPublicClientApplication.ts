@@ -7,33 +7,33 @@ import { PublicClientApplication } from "@azure/msal-browser";
 import { GetAccountResult } from "./account/auth_flow/result/GetAccountResult.js";
 import { SignInResult } from "./sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
-import { INativeAuthStandardController } from "./controller/INativeAuthStandardController.js";
-import { NativeAuthStandardController } from "./controller/NativeAuthStandardController.js";
-import { INativeAuthPublicClientApplication } from "./INativeAuthPublicClientApplication.js";
+import { ICustomAuthStandardController } from "./controller/ICustomAuthStandardController.js";
+import { CustomAuthStandardController } from "./controller/CustomAuthStandardController.js";
+import { ICustomAuthPublicClientApplication } from "./ICustomAuthPublicClientApplication.js";
 import {
     GetAccountInputs,
     SignInInputs,
     SignUpInputs,
     ResetPasswordInputs,
-} from "./NativeAuthActionInputs.js";
-import { NativeAuthConfiguration } from "./configuration/NativeAuthConfiguration.js";
-import { NativeAuthOperatingContext } from "./operating_context/NativeAuthOperatingContext.js";
+} from "./CustomAuthActionInputs.js";
+import { CustomAuthConfiguration } from "./configuration/CustomAuthConfiguration.js";
+import { CustomAuthOperatingContext } from "./operating_context/CustomAuthOperatingContext.js";
 import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
 
-export class NativeAuthPublicClientApplication
+export class CustomAuthPublicClientApplication
     extends PublicClientApplication
-    implements INativeAuthPublicClientApplication
+    implements ICustomAuthPublicClientApplication
 {
-    private readonly nativeAuthController: INativeAuthStandardController;
+    private readonly customAuthController: ICustomAuthStandardController;
 
     /*
      * Creates a new instance of a PublicClientApplication with the given configuration.
      * @param config - A configuration object for the PublicClientApplication instance
      */
     static create(
-        config: NativeAuthConfiguration
-    ): NativeAuthPublicClientApplication {
-        return new NativeAuthPublicClientApplication(config);
+        config: CustomAuthConfiguration
+    ): CustomAuthPublicClientApplication {
+        return new CustomAuthPublicClientApplication(config);
     }
 
     /*
@@ -42,18 +42,18 @@ export class NativeAuthPublicClientApplication
      * @param controller - A controller object for the PublicClientApplication instance
      */
     constructor(
-        config: NativeAuthConfiguration,
-        controller?: INativeAuthStandardController
+        config: CustomAuthConfiguration,
+        controller?: ICustomAuthStandardController
     ) {
-        const nativeAuthController =
+        const customAuthController =
             controller ||
-            new NativeAuthStandardController(
-                new NativeAuthOperatingContext(config)
+            new CustomAuthStandardController(
+                new CustomAuthOperatingContext(config)
             );
 
-        super(config, nativeAuthController);
+        super(config, customAuthController);
 
-        this.nativeAuthController = nativeAuthController;
+        this.customAuthController = customAuthController;
     }
 
     /*
@@ -75,7 +75,7 @@ export class NativeAuthPublicClientApplication
      * @returns - A promise that resolves to SignInResult
      */
     signIn(signInInputs: SignInInputs): Promise<SignInResult> {
-        return this.nativeAuthController.signIn(signInInputs);
+        return this.customAuthController.signIn(signInInputs);
     }
 
     /*

@@ -12,13 +12,13 @@ import {
     ResetPasswordInputs,
     SignInInputs,
     SignUpInputs,
-} from "../NativeAuthActionInputs.js";
+} from "../CustomAuthActionInputs.js";
 import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/ResetPasswordStartResult.js";
 
 /*
  * Controller interface for standard authentication operations.
  */
-export interface INativeAuthStandardController extends IController {
+export interface ICustomAuthStandardController extends IController {
     /*
      * Gets the current account from the cache.
      * @param getAccountInputs - Inputs for getting the current cached account

@@ -7,7 +7,7 @@ export class ResponseHandler {
     /*
      * This class should host methods to handle responses from the network client.
      * For example, deserializing JSON responses to response objects,
-     * converting the ApiErrorResponse to Errors which are defined in the NativeAuthApiError.ts,
+     * converting the ApiErrorResponse to Errors which are defined in the CustomAuthApiError.ts,
      * creating the appropriate response objects from the NetworkResponse.
      */
 }

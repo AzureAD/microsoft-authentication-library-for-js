@@ -3,16 +3,16 @@
  * Licensed under the MIT License.
  */
 
-export { NativeAuthPublicClientApplication } from "./NativeAuthPublicClientApplication.js";
-export { INativeAuthPublicClientApplication } from "./INativeAuthPublicClientApplication.js";
-export { NativeAuthConfiguration } from "./configuration/NativeAuthConfiguration.js";
+export { CustomAuthPublicClientApplication } from "./CustomAuthPublicClientApplication.js";
+export { ICustomAuthPublicClientApplication } from "./ICustomAuthPublicClientApplication.js";
+export { CustomAuthConfiguration } from "./configuration/CustomAuthConfiguration.js";
 export {
-    NativeAuthActionInputs,
+    CustomAuthActionInputs,
     SignInInputs,
     SignUpInputs,
     ResetPasswordInputs,
     GetAccountInputs,
-} from "./NativeAuthActionInputs.js";
+} from "./CustomAuthActionInputs.js";
 export { UserAccountAttributes } from "./UserAccountAttributes.js";
 export { SignInCodeRequiredStateHandler } from "./sign_in/auth_flow/state_handler/SignInCodeRequiredStateHandler.js";
 export { SignInPasswordRequiredStateHandler } from "./sign_in/auth_flow/state_handler/SignInPasswordRequiredStateHandler.js";
@@ -47,11 +47,11 @@ export {
     GetAccountState,
 } from "./core/auth_flow/AuthFlowState.js";
 export { AccountInfo } from "./account/auth_flow/model/AccountInfo.js";
-export { INativeAuthStandardController } from "./controller/INativeAuthStandardController.js";
-export { NativeAuthStandardController } from "./controller/NativeAuthStandardController.js";
-export { NativeAuthError } from "./core/error/NativeAuthError.js";
+export { ICustomAuthStandardController } from "./controller/ICustomAuthStandardController.js";
+export { CustomAuthStandardController } from "./controller/CustomAuthStandardController.js";
+export { CustomAuthError } from "./core/error/CustomAuthError.js";
 export { InvalidArgumentError } from "./core/error/InvalidArgumentError.js";
-export { NativeAuthApiError } from "./core/error/NativeAuthApiError.js";
+export { CustomAuthApiError } from "./core/error/CustomAuthApiError.js";
 export { UnexpectedError } from "./core/error/UnexpectedError.js";
 export { UserAccountAttributeError } from "./core/error/UserAccountAttributeError.js";
 

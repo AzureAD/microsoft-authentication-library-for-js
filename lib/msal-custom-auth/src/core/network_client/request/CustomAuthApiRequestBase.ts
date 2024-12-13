@@ -5,7 +5,7 @@
 
 import { InvalidArgumentError } from "../../error/InvalidArgumentError.js";
 
-export abstract class NativeAuthApiRequestBase {
+export abstract class CustomAuthApiRequestBase {
     protected constructor(
         public requestUrl: string,
         public correlationId: string,

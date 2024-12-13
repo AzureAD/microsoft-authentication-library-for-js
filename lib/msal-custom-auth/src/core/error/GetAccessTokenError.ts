@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { NativeAuthError } from "./NativeAuthError.js";
+import { CustomAuthError } from "./CustomAuthError.js";
 
-export class GetAccessTokenError extends NativeAuthError {
+export class GetAccessTokenError extends CustomAuthError {
     constructor(error: string, message: string, correlationId?: string) {
         super(error, message, correlationId);
         Object.setPrototypeOf(this, GetAccessTokenError.prototype);

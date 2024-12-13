@@ -34,7 +34,7 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
                 this.config.auth.authority ?? "",
                 this.config.auth.clientId,
                 this.correlationId,
-                this.config.nativeAuth.challengeTypes ?? [],
+                this.config.customAuth.challengeTypes ?? [],
                 this.scopes ?? [],
                 this.continuationToken ?? "",
                 code
