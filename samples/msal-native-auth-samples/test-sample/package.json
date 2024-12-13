@@ -1,0 +1,25 @@
+{
+  "name": "test-sample",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node ./index.js",
+    "test": "jest --passWithNoTests",
+    "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-native-auth",
+    "start:build": "npm run build:package && npm start"
+  },
+  "author": "Microsoft",
+  "license": "MIT",
+  "description": "test sample app for msal-native-auth",
+  "dependencies": {
+    "@types/jest": "^29.5.14",
+    "jest": "^29.7.0",
+    "jest-junit": "^16.0.0",
+    "ts-jest": "^29.2.5",
+    "ts-jest-resolver": "^2.0.1",
+    "tslib": "^2.8.1",
+    "typescript": "^5.7.2"
+  }
+}
