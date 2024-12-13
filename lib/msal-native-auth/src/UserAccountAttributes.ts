@@ -6,7 +6,7 @@
 import {
     InvalidAttributeErrorCode,
     UserAccountAttributeError,
-} from "./error/UserAccountAttributeError.js";
+} from "./core/error/UserAccountAttributeError.js";
 
 export class UserAccountAttributes {
     private attributes: Record<string, string>;

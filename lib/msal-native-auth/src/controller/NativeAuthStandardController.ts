@@ -4,19 +4,15 @@
  */
 
 import { FetchClient, StandardController } from "@azure/msal-browser";
-import { AccountInfo } from "../auth_flow/data/AccountInfo.js";
-import { GetAccountResult } from "../auth_flow/result/GetAccountResult.js";
-import { ResetPasswordStartResult } from "../auth_flow/result/reset_password/ResetPasswordStartResult.js";
-import { SignInResult } from "../auth_flow/result/sign_in/SignInResult.js";
-import { SignUpResult } from "../auth_flow/result/sign_up/SignUpResult.js";
-import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
-import { UnexpectedError } from "../error/UnexpectedError.js";
+import { GetAccountResult } from "../account/auth_flow/result/GetAccountResult.js";
+import { SignInResult } from "../sign_in/auth_flow/result/SignInResult.js";
+import { SignUpResult } from "../sign_up/auth_flow/result/SignUpResult.js";
 import {
     SignInStartParams,
     SignInSubmitPasswordParams,
-} from "../interaction_client/parameter/SignInParams.js";
-import { SignInWithContinuationTokenResult } from "../interaction_client/result/SignInActionResult.js";
-import { SigninClient } from "../interaction_client/SignInClient.js";
+} from "../sign_in/interaction_client/parameter/SignInParams.js";
+import { SignInWithContinuationTokenResult } from "../sign_in/interaction_client/result/SignInActionResult.js";
+import { SigninClient } from "../sign_in/interaction_client/SignInClient.js";
 import {
     GetAccountInputs,
     SignInInputs,
@@ -24,13 +20,17 @@ import {
     ResetPasswordInputs,
     NativeAuthActionInputs,
 } from "../NativeAuthActionInputs.js";
-import { NativeAuthConfiguration } from "../NativeAuthConfiguration.js";
-import { NativeAuthApiClient } from "../network_client/NativeAuthApiClient.js";
-import { SignInCodeSendResponse } from "../network_client/response/SignInResponse.js";
+import { NativeAuthConfiguration } from "../configuration/NativeAuthConfiguration.js";
+import { NativeAuthApiClient } from "../core/network_client/NativeAuthApiClient.js";
+import { SignInCodeSendResponse } from "../core/network_client/response/SignInResponse.js";
 import { NativeAuthOperatingContext } from "../operating_context/NativeAuthOperatingContext.js";
 import { INativeAuthStandardController } from "./INativeAuthStandardController.js";
-import { SignInPasswordRequiredStateHandler } from "../auth_flow/state_handler/sign_in/SignInPasswordRequiredStateHandler.js";
-import { SignInCodeRequiredStateHandler } from "../auth_flow/state_handler/sign_in/SignInCodeRequiredStateHandler.js";
+import { InvalidArgumentError } from "../core/error/InvalidArgumentError.js";
+import { SignInPasswordRequiredStateHandler } from "../sign_in/auth_flow/state_handler/SignInPasswordRequiredStateHandler.js";
+import { AccountInfo } from "../account/auth_flow/model/AccountInfo.js";
+import { SignInCodeRequiredStateHandler } from "../sign_in/auth_flow/state_handler/SignInCodeRequiredStateHandler.js";
+import { UnexpectedError } from "../core/error/UnexpectedError.js";
+import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/ResetPasswordStartResult.js";
 
 /*
  * Controller for standard native auth operations.

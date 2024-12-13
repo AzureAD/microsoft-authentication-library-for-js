@@ -4,7 +4,7 @@
  */
 
 import { BaseOperatingContext } from "@azure/msal-browser";
-import { NativeAuthConfiguration } from "../NativeAuthConfiguration.js";
+import { NativeAuthConfiguration } from "../configuration/NativeAuthConfiguration.js";
 
 export class NativeAuthOperatingContext extends BaseOperatingContext {
     private static readonly MODULE_NAME: string = "";

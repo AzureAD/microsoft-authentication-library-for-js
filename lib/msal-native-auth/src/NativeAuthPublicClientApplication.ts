@@ -4,10 +4,9 @@
  */
 
 import { PublicClientApplication } from "@azure/msal-browser";
-import { GetAccountResult } from "./auth_flow/result/GetAccountResult.js";
-import { ResetPasswordStartResult } from "./auth_flow/result/reset_password/ResetPasswordStartResult.js";
-import { SignInResult } from "./auth_flow/result/sign_in/SignInResult.js";
-import { SignUpResult } from "./auth_flow/result/sign_up/SignUpResult.js";
+import { GetAccountResult } from "./account/auth_flow/result/GetAccountResult.js";
+import { SignInResult } from "./sign_in/auth_flow/result/SignInResult.js";
+import { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
 import { INativeAuthStandardController } from "./controller/INativeAuthStandardController.js";
 import { NativeAuthStandardController } from "./controller/NativeAuthStandardController.js";
 import { INativeAuthPublicClientApplication } from "./INativeAuthPublicClientApplication.js";
@@ -17,8 +16,9 @@ import {
     SignUpInputs,
     ResetPasswordInputs,
 } from "./NativeAuthActionInputs.js";
-import { NativeAuthConfiguration } from "./NativeAuthConfiguration.js";
+import { NativeAuthConfiguration } from "./configuration/NativeAuthConfiguration.js";
 import { NativeAuthOperatingContext } from "./operating_context/NativeAuthOperatingContext.js";
+import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
 
 export class NativeAuthPublicClientApplication
     extends PublicClientApplication

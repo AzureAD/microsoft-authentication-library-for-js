@@ -3,16 +3,16 @@
  * Licensed under the MIT License.
  */
 
-import { GetAccountResult } from "./auth_flow/result/GetAccountResult.js";
-import { ResetPasswordStartResult } from "./auth_flow/result/reset_password/ResetPasswordStartResult.js";
-import { SignInResult } from "./auth_flow/result/sign_in/SignInResult.js";
-import { SignUpResult } from "./auth_flow/result/sign_up/SignUpResult.js";
+import { GetAccountResult } from "./account/auth_flow/result/GetAccountResult.js";
+import { SignInResult } from "./sign_in/auth_flow/result/SignInResult.js";
+import { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
 import {
     GetAccountInputs,
     ResetPasswordInputs,
     SignInInputs,
     SignUpInputs,
 } from "./NativeAuthActionInputs.js";
+import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
 
 export interface INativeAuthPublicClientApplication {
     /*
