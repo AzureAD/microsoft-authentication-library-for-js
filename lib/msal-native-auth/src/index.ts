@@ -1,3 +1,8 @@
-export function say() {
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+export function say(): string {
     return "Hello";
 }
