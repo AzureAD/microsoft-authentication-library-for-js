@@ -9,7 +9,7 @@ import {
     SignInInputs,
     SignInPasswordRequiredStateHandler,
     SignInState,
-} from "@azure/msal-native-auth";
+} from "@azure/msal-custom-auth";
 import { nativeAuthConfig } from "./nativeAuthConfig.js";
 
 // This sample demonstrates how to sign in a user using the MSAL Native Auth library.

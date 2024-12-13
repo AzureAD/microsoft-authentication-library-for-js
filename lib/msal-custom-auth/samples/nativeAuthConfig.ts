@@ -1,4 +1,4 @@
-import { NativeAuthConfiguration, LogLevel } from "@azure/msal-native-auth";
+import { NativeAuthConfiguration, LogLevel } from "@azure/msal-custom-auth";
 
 export const nativeAuthConfig: NativeAuthConfiguration = {
     nativeAuth: {

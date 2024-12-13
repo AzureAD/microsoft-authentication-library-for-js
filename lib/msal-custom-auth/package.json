@@ -1,5 +1,5 @@
 {
-  "name": "@azure/msal-native-auth",
+  "name": "@azure/msal-custom-auth",
   "version": "0.0.1",
   "author": {
     "name": "Microsoft",
@@ -15,7 +15,7 @@
   "type": "module",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
-  "main": "lib/msal-native-auth.cjs",
+  "main": "lib/msal-custom-auth.cjs",
   "exports": {
     ".": {
       "import": {
@@ -24,7 +24,7 @@
       },
       "require": {
         "types": "./lib/types/index.d.ts",
-        "default": "./lib/msal-native-auth.cjs"
+        "default": "./lib/msal-custom-auth.cjs"
       }
     },
     "./package.json": "./package.json"
@@ -53,7 +53,7 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
-    "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=@azure/msal-react --workspace=@azure/msal-native-auth",
+    "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=@azure/msal-react --workspace=@azure/msal-custom-auth",
     "build:modules": "rollup -c --strictDeprecations --bundleConfigAsCjs",
     "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
     "build": "npm run clean && npm run build:modules",
