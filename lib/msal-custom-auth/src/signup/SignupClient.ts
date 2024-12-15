@@ -5,8 +5,6 @@
 
 import { AuthFlowType } from "../common/AuthFlowTypes.js";
 import { BaseAuthClient } from "../common/BaseAuthClient.js";
-import { CustomAuthApiError } from "../core/error/CustomAuthApiError.js";
-import { SignUpErrorResponse } from "./types/SignUpErrorsTypes.js";
 import {
     SignUpChallengeRequest,
     SignUpContinueRequest,
@@ -69,10 +67,9 @@ export class SignUpClient extends BaseAuthClient {
         );
     }
 
-    protected async handleError(
-        response: Response
-    ): Promise<SignUpErrorResponse> {
-        const errorData = await response.json();
-        return new CustomAuthApiError({});
+    protected async handleError<T>(response: Response): Promise<T> {
+        const errorData = (await response.json()) as T;
+        // return new CustomAuthApiError({});
+        return errorData; // TODO create CustomAuthApiError object
     }
 }
