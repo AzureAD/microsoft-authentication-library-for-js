@@ -282,21 +282,23 @@ export abstract class ClientApplication {
             validRequest.correlationId,
             validRequest.forceRefresh
         );
-        const clientConfiguration = await this.buildOauthClientConfiguration(
-            validRequest.authority,
-            validRequest.correlationId,
-            validRequest.redirectUri || "",
-            serverTelemetryManager,
-            undefined,
-            validRequest.azureCloudOptions
-        );
-        const silentFlowClient = new SilentFlowClient(clientConfiguration);
-        this.logger.verbose(
-            "Silent flow client created",
-            validRequest.correlationId
-        );
+        let clientConfiguration: ClientConfiguration;
+        let silentFlowClient: SilentFlowClient; 
 
         try {
+            clientConfiguration = await this.buildOauthClientConfiguration(
+                validRequest.authority,
+                validRequest.correlationId,
+                validRequest.redirectUri || "",
+                serverTelemetryManager,
+                undefined,
+                validRequest.azureCloudOptions
+            );
+            silentFlowClient = new SilentFlowClient(clientConfiguration);
+            this.logger.verbose(
+                "Silent flow client created",
+                validRequest.correlationId
+            );
             return await this.acquireCachedToken(
                 validRequest,
                 silentFlowClient
