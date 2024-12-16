@@ -134,6 +134,7 @@ export type CacheOptions = {
 // @public
 export abstract class ClientApplication {
     protected constructor(configuration: Configuration);
+    acquireCachedToken(validRequest: CommonSilentFlowRequest, silentFlowClient: SilentFlowClient): Promise<AuthenticationResult>;
     acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult>;
     acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
     acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
@@ -481,6 +482,7 @@ export class NodeStorage extends CacheManager {
     setAppMetadata(appMetadata: AppMetadataEntity): void;
     setAuthorityMetadata(key: string, metadata: AuthorityMetadataEntity): void;
     setCache(cache: CacheKVStore): void;
+    setCacheFromString(cache: string): void;
     setIdTokenCredential(idToken: IdTokenEntity): void;
     setInMemoryCache(inMemoryCache: InMemoryCache): void;
     setItem(key: string, value: ValidCacheType): void;
@@ -633,6 +635,7 @@ export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" 
 // @public
 export class TokenCache implements ISerializableTokenCache, ITokenCache {
     constructor(storage: NodeStorage, logger: Logger, cachePlugin?: ICachePlugin);
+    cacheSnapshot: string;
     deserialize(cache: string): void;
     getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
     getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null>;
