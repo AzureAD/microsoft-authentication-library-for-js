@@ -617,7 +617,7 @@ export abstract class BaseClient {
     // Warning: (ae-forgotten-export) The symbol "CommonClientConfiguration" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    protected config: CommonClientConfiguration;
+    public config: CommonClientConfiguration;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     createTokenQueryParameters(request: BaseAuthRequest): string;
     protected createTokenRequestHeaders(ccsCred?: CcsCredential): Record<string, string>;
@@ -635,7 +635,7 @@ export abstract class BaseClient {
     // (undocumented)
     protected networkManager: NetworkManager;
     // (undocumented)
-    protected performanceClient?: IPerformanceClient;
+    public performanceClient?: IPerformanceClient;
     // (undocumented)
     protected serverTelemetryManager: ServerTelemetryManager | null;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -3734,8 +3734,6 @@ export class SilentFlowClient extends BaseClient {
     constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient);
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     acquireCachedToken(request: CommonSilentFlowRequest): Promise<[AuthenticationResult, CacheOutcome]>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    acquireToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult>;
 }
 
 // Warning: (ae-missing-release-tag) "STATE" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
