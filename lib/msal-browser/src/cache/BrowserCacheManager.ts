@@ -1018,8 +1018,7 @@ export class BrowserCacheManager extends CacheManager {
         const generatedKey = this.validateAndParseJson(key);
         if (!generatedKey) {
             if (
-                StringUtils.startsWith(key, Constants.CACHE_PREFIX) ||
-                StringUtils.startsWith(key, PersistentCacheKeys.ADAL_ID_TOKEN)
+                StringUtils.startsWith(key, Constants.CACHE_PREFIX)
             ) {
                 return key;
             }
