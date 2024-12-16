@@ -52,7 +52,8 @@ import {
     InMemoryCacheKeys,
     StaticCacheKeys,
 } from "../utils/BrowserConstants.js";
-import { BrowserStorage } from "./BrowserStorage.js";
+import { LocalStorage } from "./LocalStorage.js";
+import { SessionStorage } from "./SessionStorage.js";
 import { MemoryStorage } from "./MemoryStorage.js";
 import { IWindowStorage } from "./IWindowStorage.js";
 import { extractBrowserRequestState } from "../utils/BrowserProtocolUtils.js";
@@ -64,6 +65,7 @@ import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import { base64Encode } from "../encode/Base64Encode.js";
+import { CookieStorage } from "./CookieStorage.js";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -79,13 +81,12 @@ export class BrowserCacheManager extends CacheManager {
     protected internalStorage: MemoryStorage<string>;
     // Temporary cache
     protected temporaryCacheStorage: IWindowStorage<string>;
+    // Cookie storage
+    protected cookieStorage: CookieStorage;
     // Logger instance
     protected logger: Logger;
     // Telemetry perf client
     protected performanceClient?: IPerformanceClient;
-
-    // Cookie life calculation (hours * minutes * seconds * ms)
-    protected readonly COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
 
     constructor(
         clientId: string,
@@ -102,10 +103,10 @@ export class BrowserCacheManager extends CacheManager {
         this.browserStorage = this.setupBrowserStorage(
             this.cacheConfig.cacheLocation
         );
-        this.temporaryCacheStorage = this.setupTemporaryCacheStorage(
-            this.cacheConfig.temporaryCacheLocation,
-            this.cacheConfig.cacheLocation
+        this.temporaryCacheStorage = this.setupBrowserStorage(
+            this.cacheConfig.temporaryCacheLocation
         );
+        this.cookieStorage = new CookieStorage();
 
         // Migrate cache entries from older versions of MSAL.
         if (cacheConfig.cacheMigrationEnabled) {
@@ -123,49 +124,21 @@ export class BrowserCacheManager extends CacheManager {
     protected setupBrowserStorage(
         cacheLocation: BrowserCacheLocation | string
     ): IWindowStorage<string> {
-        switch (cacheLocation) {
-            case BrowserCacheLocation.LocalStorage:
-            case BrowserCacheLocation.SessionStorage:
-                try {
-                    return new BrowserStorage(cacheLocation);
-                } catch (e) {
-                    this.logger.verbose(e as string);
+        try {
+            switch (cacheLocation) {
+                case BrowserCacheLocation.LocalStorage:
+                    return new LocalStorage();
+                case BrowserCacheLocation.SessionStorage:
+                    return new SessionStorage();
+                case BrowserCacheLocation.MemoryStorage:
+                default:
                     break;
-                }
-            case BrowserCacheLocation.MemoryStorage:
-            default:
-                break;
+            }
+        } catch (e) {
+            this.logger.error(e as string);
         }
         this.cacheConfig.cacheLocation = BrowserCacheLocation.MemoryStorage;
         return new MemoryStorage();
-    }
-
-    /**
-     * Returns a window storage class implementing the IWindowStorage interface that corresponds to the configured temporaryCacheLocation.
-     * @param temporaryCacheLocation
-     * @param cacheLocation
-     */
-    protected setupTemporaryCacheStorage(
-        temporaryCacheLocation: BrowserCacheLocation | string,
-        cacheLocation: BrowserCacheLocation | string
-    ): IWindowStorage<string> {
-        switch (cacheLocation) {
-            case BrowserCacheLocation.LocalStorage:
-            case BrowserCacheLocation.SessionStorage:
-                try {
-                    // Temporary cache items will always be stored in session storage to mitigate problems caused by multiple tabs
-                    return new BrowserStorage(
-                        temporaryCacheLocation ||
-                            BrowserCacheLocation.SessionStorage
-                    );
-                } catch (e) {
-                    this.logger.verbose(e as string);
-                    return this.internalStorage;
-                }
-            case BrowserCacheLocation.MemoryStorage:
-            default:
-                return this.internalStorage;
-        }
     }
 
     /**
@@ -1144,7 +1117,7 @@ export class BrowserCacheManager extends CacheManager {
     getTemporaryCache(cacheKey: string, generateKey?: boolean): string | null {
         const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
         if (this.cacheConfig.storeAuthStateInCookie) {
-            const itemCookie = this.getItemCookie(key);
+            const itemCookie = this.cookieStorage.getItem(key);
             if (itemCookie) {
                 this.logger.trace(
                     "BrowserCacheManager.getTemporaryCache: storeAuthStateInCookies set to true, retrieving from cookies"
@@ -1198,7 +1171,12 @@ export class BrowserCacheManager extends CacheManager {
             this.logger.trace(
                 "BrowserCacheManager.setTemporaryCache: storeAuthStateInCookie set to true, setting item cookie"
             );
-            this.setItemCookie(key, value);
+            this.cookieStorage.setItem(
+                key,
+                value,
+                undefined,
+                this.cacheConfig.secureCookies
+            );
         }
     }
 
@@ -1221,7 +1199,7 @@ export class BrowserCacheManager extends CacheManager {
             this.logger.trace(
                 "BrowserCacheManager.removeItem: storeAuthStateInCookie is true, clearing item cookie"
             );
-            this.clearItemCookie(key);
+            this.cookieStorage.removeItem(key);
         }
     }
 
@@ -1299,96 +1277,6 @@ export class BrowserCacheManager extends CacheManager {
                 `${removedAccessTokens.length} access tokens with claims in the cache keys have been removed from the cache.`
             );
         }
-    }
-
-    /**
-     * Add value to cookies
-     * @param cookieName
-     * @param cookieValue
-     * @param expires
-     * @deprecated
-     */
-    setItemCookie(
-        cookieName: string,
-        cookieValue: string,
-        expires?: number
-    ): void {
-        let cookieStr = `${encodeURIComponent(cookieName)}=${encodeURIComponent(
-            cookieValue
-        )};path=/;SameSite=Lax;`;
-        if (expires) {
-            const expireTime = this.getCookieExpirationTime(expires);
-            cookieStr += `expires=${expireTime};`;
-        }
-
-        if (this.cacheConfig.secureCookies) {
-            cookieStr += "Secure;";
-        }
-
-        document.cookie = cookieStr;
-    }
-
-    /**
-     * Get one item by key from cookies
-     * @param cookieName
-     * @deprecated
-     */
-    getItemCookie(cookieName: string): string {
-        const name = `${encodeURIComponent(cookieName)}=`;
-        const cookieList = document.cookie.split(";");
-        for (let i: number = 0; i < cookieList.length; i++) {
-            let cookie = cookieList[i];
-            while (cookie.charAt(0) === " ") {
-                cookie = cookie.substring(1);
-            }
-            if (cookie.indexOf(name) === 0) {
-                return decodeURIComponent(
-                    cookie.substring(name.length, cookie.length)
-                );
-            }
-        }
-        return Constants.EMPTY_STRING;
-    }
-
-    /**
-     * Clear all msal-related cookies currently set in the browser. Should only be used to clear temporary cache items.
-     * @deprecated
-     */
-    clearMsalCookies(): void {
-        const cookiePrefix = `${Constants.CACHE_PREFIX}.${this.clientId}`;
-        const cookieList = document.cookie.split(";");
-        cookieList.forEach((cookie: string): void => {
-            while (cookie.charAt(0) === " ") {
-                // eslint-disable-next-line no-param-reassign
-                cookie = cookie.substring(1);
-            }
-            if (cookie.indexOf(cookiePrefix) === 0) {
-                const cookieKey = cookie.split("=")[0];
-                this.clearItemCookie(cookieKey);
-            }
-        });
-    }
-
-    /**
-     * Clear an item in the cookies by key
-     * @param cookieName
-     * @deprecated
-     */
-    clearItemCookie(cookieName: string): void {
-        this.setItemCookie(cookieName, Constants.EMPTY_STRING, -1);
-    }
-
-    /**
-     * Get cookie expiration time
-     * @param cookieLifeDays
-     * @deprecated
-     */
-    getCookieExpirationTime(cookieLifeDays: number): string {
-        const today = new Date();
-        const expr = new Date(
-            today.getTime() + cookieLifeDays * this.COOKIE_LIFE_MULTIPLIER
-        );
-        return expr.toUTCString();
     }
 
     /**
@@ -1570,7 +1458,6 @@ export class BrowserCacheManager extends CacheManager {
             );
             this.resetRequestCache(cachedState || Constants.EMPTY_STRING);
         }
-        this.clearMsalCookies();
     }
 
     /**
@@ -1609,7 +1496,6 @@ export class BrowserCacheManager extends CacheManager {
                 this.resetRequestCache(stateValue);
             }
         });
-        this.clearMsalCookies();
         this.setInteractionInProgress(false);
     }
 

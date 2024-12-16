@@ -2,6 +2,47 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Thu, 12 Dec 2024 19:24:54 GMT",
+      "version": "3.28.0",
+      "tag": "@azure/msal-browser_v3.28.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b76e73dc9fca4bdbd42cf7ae494dbc5d63be1e2f",
+            "comment": "Prioritize loginHint and session id over active account for authorization request #7449"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b76e73dc9fca4bdbd42cf7ae494dbc5d63be1e2f",
+            "comment": "Refactor storage implementations #7446"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 05 Nov 2024 18:58:45 GMT",
       "version": "3.27.0",
       "tag": "@azure/msal-browser_v3.27.0",
