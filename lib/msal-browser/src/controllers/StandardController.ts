@@ -331,6 +331,8 @@ export class StandardController implements IController {
             return;
         }
 
+        await this.browserStorage.initialize();
+
         const initCorrelationId =
             request?.correlationId || this.getRequestCorrelationId();
         const allowNativeBroker = this.config.system.allowNativeBroker;
@@ -1472,7 +1474,7 @@ export class StandardController implements IController {
             result.cloudGraphHostName,
             result.msGraphHost
         );
-        this.browserStorage.setAccount(accountEntity);
+        await this.browserStorage.setAccount(accountEntity);
 
         if (result.fromNativeBroker) {
             this.logger.verbose(

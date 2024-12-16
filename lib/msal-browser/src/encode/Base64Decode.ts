@@ -25,7 +25,7 @@ export function base64Decode(input: string): string {
  * Decodes base64 into Uint8Array
  * @param base64String
  */
-function base64DecToArr(base64String: string): Uint8Array {
+export function base64DecToArr(base64String: string): Uint8Array {
     let encodedString = base64String.replace(/-/g, "+").replace(/_/g, "/");
     switch (encodedString.length % 4) {
         case 0:

@@ -157,8 +157,8 @@ export class NestedAppAuthController implements IController {
      * Specific implementation of initialize function for NestedAppAuthController
      * @returns
      */
-    initialize(): Promise<void> {
-        // do nothing not required by this controller
+    async initialize(): Promise<void> {
+        await this.browserStorage.initialize();
         return Promise.resolve();
     }
 
@@ -842,7 +842,7 @@ export class NestedAppAuthController implements IController {
             result.cloudGraphHostName,
             result.msGraphHost
         );
-        this.browserStorage.setAccount(accountEntity);
+        await this.browserStorage.setAccount(accountEntity);
         return this.browserStorage.hydrateCache(result, request);
     }
 }

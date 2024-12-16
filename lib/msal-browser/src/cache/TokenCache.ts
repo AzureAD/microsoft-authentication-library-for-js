@@ -75,11 +75,11 @@ export class TokenCache implements ITokenCache {
      * @param options
      * @returns `AuthenticationResult` for the response that was loaded.
      */
-    loadExternalTokens(
+    async loadExternalTokens(
         request: SilentRequest,
         response: ExternalTokenResponse,
         options: LoadTokenOptions
-    ): AuthenticationResult {
+    ): Promise<AuthenticationResult> {
         if (!this.isBrowserEnvironment) {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.nonBrowserEnvironment
@@ -112,21 +112,21 @@ export class TokenCache implements ITokenCache {
               )
             : undefined;
 
-        const cacheRecordAccount: AccountEntity = this.loadAccount(
+        const cacheRecordAccount: AccountEntity = await this.loadAccount(
             request,
             options.clientInfo || response.client_info || "",
             idTokenClaims,
             authority
         );
 
-        const idToken = this.loadIdToken(
+        const idToken = await this.loadIdToken(
             response,
             cacheRecordAccount.homeAccountId,
             cacheRecordAccount.environment,
             cacheRecordAccount.realm
         );
 
-        const accessToken = this.loadAccessToken(
+        const accessToken = await this.loadAccessToken(
             request,
             response,
             cacheRecordAccount.homeAccountId,
@@ -135,7 +135,7 @@ export class TokenCache implements ITokenCache {
             options
         );
 
-        const refreshToken = this.loadRefreshToken(
+        const refreshToken = await this.loadRefreshToken(
             response,
             cacheRecordAccount.homeAccountId,
             cacheRecordAccount.environment
@@ -163,19 +163,19 @@ export class TokenCache implements ITokenCache {
      * @param requestHomeAccountId
      * @returns `AccountEntity`
      */
-    private loadAccount(
+    private async loadAccount(
         request: SilentRequest,
         clientInfo: string,
         idTokenClaims?: TokenClaims,
         authority?: Authority
-    ): AccountEntity {
+    ): Promise<AccountEntity> {
         this.logger.verbose("TokenCache - loading account");
 
         if (request.account) {
             const accountEntity = AccountEntity.createFromAccountInfo(
                 request.account
             );
-            this.storage.setAccount(accountEntity);
+            await this.storage.setAccount(accountEntity);
             return accountEntity;
         } else if (!authority || (!clientInfo && !idTokenClaims)) {
             this.logger.error(
@@ -210,7 +210,7 @@ export class TokenCache implements ITokenCache {
             this.logger
         );
 
-        this.storage.setAccount(cachedAccount);
+        await this.storage.setAccount(cachedAccount);
         return cachedAccount;
     }
 
@@ -222,12 +222,12 @@ export class TokenCache implements ITokenCache {
      * @param tenantId
      * @returns `IdTokenEntity`
      */
-    private loadIdToken(
+    private async loadIdToken(
         response: ExternalTokenResponse,
         homeAccountId: string,
         environment: string,
         tenantId: string
-    ): IdTokenEntity | null {
+    ): Promise<IdTokenEntity | null> {
         if (!response.id_token) {
             this.logger.verbose("TokenCache - no id token found in response");
             return null;
@@ -242,7 +242,7 @@ export class TokenCache implements ITokenCache {
             tenantId
         );
 
-        this.storage.setIdTokenCredential(idTokenEntity);
+        await this.storage.setIdTokenCredential(idTokenEntity);
         return idTokenEntity;
     }
 
@@ -255,14 +255,14 @@ export class TokenCache implements ITokenCache {
      * @param tenantId
      * @returns `AccessTokenEntity`
      */
-    private loadAccessToken(
+    private async loadAccessToken(
         request: SilentRequest,
         response: ExternalTokenResponse,
         homeAccountId: string,
         environment: string,
         tenantId: string,
         options: LoadTokenOptions
-    ): AccessTokenEntity | null {
+    ): Promise<AccessTokenEntity | null> {
         if (!response.access_token) {
             this.logger.verbose(
                 "TokenCache - no access token found in response"
@@ -309,7 +309,7 @@ export class TokenCache implements ITokenCache {
             base64Decode
         );
 
-        this.storage.setAccessTokenCredential(accessTokenEntity);
+        await this.storage.setAccessTokenCredential(accessTokenEntity);
         return accessTokenEntity;
     }
 
@@ -321,11 +321,11 @@ export class TokenCache implements ITokenCache {
      * @param environment
      * @returns `RefreshTokenEntity`
      */
-    private loadRefreshToken(
+    private async loadRefreshToken(
         response: ExternalTokenResponse,
         homeAccountId: string,
         environment: string
-    ): RefreshTokenEntity | null {
+    ): Promise<RefreshTokenEntity | null> {
         if (!response.refresh_token) {
             this.logger.verbose(
                 "TokenCache - no refresh token found in response"
@@ -344,7 +344,7 @@ export class TokenCache implements ITokenCache {
             response.refresh_token_expires_in
         );
 
-        this.storage.setRefreshTokenCredential(refreshTokenEntity);
+        await this.storage.setRefreshTokenCredential(refreshTokenEntity);
         return refreshTokenEntity;
     }
 
