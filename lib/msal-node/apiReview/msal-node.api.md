@@ -635,7 +635,7 @@ export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" 
 // @public
 export class TokenCache implements ISerializableTokenCache, ITokenCache {
     constructor(storage: NodeStorage, logger: Logger, cachePlugin?: ICachePlugin);
-    cacheSnapshot: string;
+    public cacheSnapshot: string;
     deserialize(cache: string): void;
     getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
     getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null>;
