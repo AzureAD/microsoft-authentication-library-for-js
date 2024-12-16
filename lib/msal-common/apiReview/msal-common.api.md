@@ -621,7 +621,7 @@ export abstract class BaseClient {
     // Warning: (ae-forgotten-export) The symbol "CommonClientConfiguration" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    public config: CommonClientConfiguration;
+    config: CommonClientConfiguration;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     createTokenQueryParameters(request: BaseAuthRequest): string;
     protected createTokenRequestHeaders(ccsCred?: CcsCredential): Record<string, string>;
@@ -637,7 +637,7 @@ export abstract class BaseClient {
     // (undocumented)
     protected networkClient: INetworkModule;
     // (undocumented)
-    public performanceClient?: IPerformanceClient;
+    performanceClient?: IPerformanceClient;
     sendPostRequest<T extends ServerAuthorizationTokenResponse>(thumbprint: RequestThumbprint, tokenEndpoint: string, options: NetworkRequestOptions, correlationId: string): Promise<NetworkResponse<T>>;
     // (undocumented)
     protected serverTelemetryManager: ServerTelemetryManager | null;
@@ -4285,7 +4285,7 @@ const X_MS_LIB_CAPABILITY = "x-ms-lib-capability";
 // src/client/RefreshTokenClient.ts:277:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:278:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:337:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/SilentFlowClient.ts:227:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/SilentFlowClient.ts:172:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/config/ClientConfiguration.ts:50:5 - (ae-forgotten-export) The symbol "ClientCredentials" needs to be exported by the entry point index.d.ts
 // src/config/ClientConfiguration.ts:51:5 - (ae-forgotten-export) The symbol "LibraryInfo" needs to be exported by the entry point index.d.ts
 // src/config/ClientConfiguration.ts:52:5 - (ae-forgotten-export) The symbol "TelemetryOptions" needs to be exported by the entry point index.d.ts
