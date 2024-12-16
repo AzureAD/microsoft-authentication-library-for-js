@@ -152,6 +152,16 @@ export class LocalStorage implements IWindowStorage<string> {
      */
     clear(): void {
         // Removes all remaining MSAL cache items
+        this.memoryStorage.clear();
+
+        const accountKeys = getAccountKeys(this);
+        accountKeys.forEach(key => this.removeItem(key));
+        const tokenKeys = getTokenKeys(this.clientId, this);
+        tokenKeys.idToken.forEach(key => this.removeItem(key));
+        tokenKeys.accessToken.forEach(key => this.removeItem(key));
+        tokenKeys.refreshToken.forEach(key=> this.removeItem(key));
+
+        // Clean up anything left
         this.getKeys().forEach((cacheKey: string) => {
             if (
                 cacheKey.startsWith(Constants.CACHE_PREFIX) ||
@@ -160,8 +170,6 @@ export class LocalStorage implements IWindowStorage<string> {
                 this.removeItem(cacheKey);
             }
         });
-
-        this.memoryStorage.clear();
     }
 
     /**
@@ -236,7 +244,7 @@ export class LocalStorage implements IWindowStorage<string> {
             const promise = this.getItemFromEncryptedCache(key).then(
                 (value) => {
                     if (value) {
-                        this.setItem(key, value);
+                        this.memoryStorage.setItem(key, value);
                     }
                 }
             );
