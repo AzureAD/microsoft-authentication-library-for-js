@@ -155,6 +155,26 @@ describe("Silent Flow ADFS 2019 Tests", () => {
             );
         });
 
+        it("Performs acquire token silent when tokens are only present in persistent cache", async () => {
+            const screenshot = new Screenshot(
+                `${screenshotFolder}/AcquireTokenSilentFromPersistent`
+            );
+            await clickSignIn(page, screenshot);
+            await enterCredentialsADFS(page, screenshot, username, accountPwd);
+            await page.waitForSelector("#acquireTokenSilent");
+            publicClientApplication.clearCache();
+            await page.click("#acquireTokenSilent");
+            await page.waitForSelector(
+                `#${SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID}`
+            );
+            await page.click("#callGraph");
+            await page.waitForSelector(`#${SUCCESSFUL_GRAPH_CALL_ID}`);
+            await screenshot.takeScreenshot(
+                page,
+                "acquireTokenSilentGotTokens"
+            );
+        });
+
         it("Refreshes an expired access token", async () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/RefreshExpiredToken`
