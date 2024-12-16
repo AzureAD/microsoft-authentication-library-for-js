@@ -1,8 +1,23 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 05 Nov 2024 18:58:45 GMT and should not be manually modified.
+This log was last generated on Thu, 12 Dec 2024 19:24:54 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.28.0
+
+Thu, 12 Dec 2024 19:24:54 GMT
+
+### Minor changes
+
+- Refactor storage implementations #7446 (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Prioritize loginHint and session id over active account for authorization request #7449 (kshabelko@microsoft.com)
 
 ## 3.27.0
 

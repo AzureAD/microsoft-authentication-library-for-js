@@ -362,6 +362,11 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 .serverResponseType as ResponseMode,
         };
 
+        // Skip active account lookup if either login hint or session id is set
+        if (request.loginHint || request.sid) {
+            return validatedRequest;
+        }
+
         const account =
             request.account || this.browserStorage.getActiveAccount();
         if (account) {
