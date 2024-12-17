@@ -26,6 +26,7 @@ import {
     AADServerParamKeys,
     CacheOutcome,
     TokenCacheContext,
+    TimeUtils,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -58,6 +59,7 @@ import { HttpClient } from "../../src/network/HttpClient";
 import { MockStorageClass } from "./ClientTestUtils";
 import { Constants } from "../../src/utils/Constants";
 import { NodeStorage } from "../../src/cache/NodeStorage.js";
+
 
 const msalCommon: MSALCommonModule = jest.requireActual(
     "@azure/msal-common/node"
@@ -372,6 +374,29 @@ describe("PublicClientApplication", () => {
             expect(acquireCachedTokenSpy).toHaveBeenCalledTimes(2);
             //checks if in-memory cache was overwritten with persistent cache
             expect(cacheSpy).toHaveBeenCalledWith("test-cache");
+        });
+
+        it("acquireToken calls refreshToken if refresh is required", async () => {
+            const request: SilentFlowRequest = {
+                account: mockAccountInfo,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            };
+
+            const authApp = new PublicClientApplication(appConfig);
+
+            const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
+            jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
+                (config) => new silentFlowClient(config)
+            );
+
+            jest.spyOn(TimeUtils, <any>"isTokenExpired").mockReturnValue(true);
+            const refreshTokenClientSpy = jest.spyOn(
+                RefreshTokenClient.prototype,
+                "acquireToken"
+            );
+
+            await authApp.acquireTokenSilent(request);
+            expect(refreshTokenClientSpy).toHaveBeenCalled();
         });
     });
 

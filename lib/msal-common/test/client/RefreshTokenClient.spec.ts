@@ -1294,10 +1294,10 @@ describe("RefreshTokenClient unit tests", () => {
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config, stubPerformanceClient);
             await expect(
-                client.acquireToken(tokenRequest)
+                client.acquireCachedToken(tokenRequest)
             ).rejects.toMatchObject(
-                createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.noTokensFound
+                createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired
                 )
             );
         });
