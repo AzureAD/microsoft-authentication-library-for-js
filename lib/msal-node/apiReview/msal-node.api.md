@@ -76,7 +76,6 @@ import { ServerAuthorizationCodeResponse } from '@azure/msal-common/node';
 import { ServerError } from '@azure/msal-common/node';
 import { ServerTelemetryEntity } from '@azure/msal-common/node';
 import { ServerTelemetryManager } from '@azure/msal-common/node';
-import { SilentFlowClient } from '@azure/msal-common/node';
 import { StaticAuthorityOptions } from '@azure/msal-common/node';
 import { ThrottlingEntity } from '@azure/msal-common/node';
 import { TokenCacheContext } from '@azure/msal-common/node';
