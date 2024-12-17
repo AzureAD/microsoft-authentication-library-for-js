@@ -568,9 +568,7 @@ describe("SilentFlowClient unit tests", () => {
             await expect(
                 client.acquireCachedToken(tokenRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.tokenRefreshRequired
-                )
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
             );
         });
 
@@ -787,7 +785,9 @@ describe("SilentFlowClient unit tests", () => {
                 .spyOn(RefreshTokenClient.prototype, "acquireToken")
                 .mockImplementation();
 
-            const authResult = await client.acquireCachedToken(silentFlowRequest);
+            const authResult = await client.acquireCachedToken(
+                silentFlowRequest
+            );
             expect(refreshTokenSpy).not.toHaveBeenCalled();
             const expectedScopes = testAccessTokenEntity.target.split(" ");
             expect(authResult[0].uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);

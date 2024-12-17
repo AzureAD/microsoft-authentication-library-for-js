@@ -1296,9 +1296,7 @@ describe("RefreshTokenClient unit tests", () => {
             await expect(
                 client.acquireCachedToken(tokenRequest)
             ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.tokenRefreshRequired
-                )
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
             );
         });
 
