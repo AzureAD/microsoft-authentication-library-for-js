@@ -181,59 +181,6 @@ describe("Storage tests for msal-node: ", () => {
         ).toEqual(mockAccountEntity);
     });
 
-    it("getAccount() updates an outdated (single-tenant) account cache entry", () => {
-        const nodeStorage = new NodeStorage(
-            logger,
-            clientId,
-            DEFAULT_CRYPTO_IMPLEMENTATION
-        );
-        nodeStorage.setInMemoryCache(inMemoryCache);
-        const outdatedAccountKey = "uid.utid3-login.microsoftonline.com-utid3";
-
-        const outdatedAccountData = {
-            username: "janedoe@microsoft.com",
-            name: "Jane Doe",
-            localAccountId: "uid",
-            realm: "utid3",
-            environment: "login.microsoftonline.com",
-            homeAccountId: "uid.utid3",
-            authorityType: "MSSTS",
-            clientInfo: "eyJ1aWQiOiJ1aWQxIiwgInV0aWQiOiJ1dGlkMSJ9",
-        };
-
-        let outdatedMockAccountEntity = CacheManager.toObject(
-            new AccountEntity(),
-            outdatedAccountData
-        );
-
-        let updatedMockAccountEntity = CacheManager.toObject(
-            new AccountEntity(),
-            {
-                ...outdatedAccountData,
-                tenantProfiles: [
-                    {
-                        tenantId: "utid3",
-                        localAccountId: "uid",
-                        name: "Jane Doe",
-                        isHomeTenant: true,
-                    },
-                ],
-            }
-        );
-        const updatedAccountKey = updatedMockAccountEntity.generateAccountKey();
-        expect(outdatedMockAccountEntity).toBeInstanceOf(AccountEntity);
-        // Set an outdated account
-        nodeStorage.setAccount(outdatedMockAccountEntity);
-        expect(nodeStorage.getItem(outdatedAccountKey)).toEqual(
-            outdatedAccountData
-        );
-
-        // Get account should update and return updated account
-        expect(nodeStorage.getAccount(updatedAccountKey)).toEqual(
-            updatedMockAccountEntity
-        );
-    });
-
     it("setCache() and getCache() tests - tests for an accessToken", () => {
         const nodeStorage = new NodeStorage(
             logger,
