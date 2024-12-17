@@ -271,7 +271,9 @@ export class NodeStorage extends CacheManager {
      * set accessToken credential
      * @param accessToken -  cache value to be set of type AccessTokenEntity
      */
-    async setAccessTokenCredential(accessToken: AccessTokenEntity): Promise<void> {
+    async setAccessTokenCredential(
+        accessToken: AccessTokenEntity
+    ): Promise<void> {
         const accessTokenKey = CacheHelpers.generateCredentialKey(accessToken);
         this.setItem(accessTokenKey, accessToken);
     }
@@ -296,7 +298,9 @@ export class NodeStorage extends CacheManager {
      * set refreshToken credential
      * @param refreshToken - cache value to be set of type RefreshTokenEntity
      */
-    async setRefreshTokenCredential(refreshToken: RefreshTokenEntity): Promise<void> {
+    async setRefreshTokenCredential(
+        refreshToken: RefreshTokenEntity
+    ): Promise<void> {
         const refreshTokenKey =
             CacheHelpers.generateCredentialKey(refreshToken);
         this.setItem(refreshTokenKey, refreshToken);

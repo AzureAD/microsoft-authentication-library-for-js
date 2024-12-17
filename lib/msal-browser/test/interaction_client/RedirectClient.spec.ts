@@ -3019,7 +3019,11 @@ describe("RedirectClient", () => {
                     return Promise.resolve(true);
                 }
             );
-            browserStorage.setAccount(testAccount).then(() => redirectClient.logout({ account: testAccountInfo }));
+            browserStorage
+                .setAccount(testAccount)
+                .then(() =>
+                    redirectClient.logout({ account: testAccountInfo })
+                );
         });
 
         it("logoutHint attribute takes precedence over ID Token Claims from provided account when setting logout_hint", (done) => {
@@ -3075,10 +3079,12 @@ describe("RedirectClient", () => {
                     return Promise.resolve(true);
                 }
             );
-            browserStorage.setAccount(testAccount).then(() => redirectClient.logout({
-                account: testAccountInfo,
-                logoutHint: logoutHint,
-            }));
+            browserStorage.setAccount(testAccount).then(() =>
+                redirectClient.logout({
+                    account: testAccountInfo,
+                    logoutHint: logoutHint,
+                })
+            );
         });
 
         it("doesnt navigate if onRedirectNavigate returns false", (done) => {
@@ -3159,28 +3165,31 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage.setInteractionInProgress(true);
-            browserStorage.setAccount(testAccount).then(() => redirectClient
-                .logout({
-                    account: testAccountInfo,
-                    onRedirectNavigate: (url: string) => {
-                        expect(url).toEqual(testLogoutUrl);
-                        return false;
-                    },
-                })
-                .then(() => {
-                    expect(
-                        browserStorage.getInteractionInProgress()
-                    ).toBeFalsy();
+            browserStorage.setAccount(testAccount).then(() =>
+                redirectClient
+                    .logout({
+                        account: testAccountInfo,
+                        onRedirectNavigate: (url: string) => {
+                            expect(url).toEqual(testLogoutUrl);
+                            return false;
+                        },
+                    })
+                    .then(() => {
+                        expect(
+                            browserStorage.getInteractionInProgress()
+                        ).toBeFalsy();
 
-                    const validatedLogoutRequest: CommonEndSessionRequest = {
-                        correlationId: RANDOM_TEST_GUID,
-                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
-                    };
-                    expect(logoutUriSpy).toHaveBeenCalledWith(
-                        expect.objectContaining(validatedLogoutRequest)
-                    );
-                    done();
-                }));
+                        const validatedLogoutRequest: CommonEndSessionRequest =
+                            {
+                                correlationId: RANDOM_TEST_GUID,
+                                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
+                            };
+                        expect(logoutUriSpy).toHaveBeenCalledWith(
+                            expect.objectContaining(validatedLogoutRequest)
+                        );
+                        done();
+                    })
+            );
         });
 
         it("does navigate if onRedirectNavigate returns true", (done) => {
@@ -3267,31 +3276,34 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage.setInteractionInProgress(true);
-            browserStorage.setAccount(testAccount).then(() => redirectClient
-                .logout({
-                    account: testAccountInfo,
-                    onRedirectNavigate: (url) => {
-                        expect(url).toEqual(testLogoutUrl);
-                        return true;
-                    },
-                })
-                .then(() => {
-                    expect(
-                        browserStorage.getInteractionInProgress()
-                    ).toBeTruthy();
+            browserStorage.setAccount(testAccount).then(() =>
+                redirectClient
+                    .logout({
+                        account: testAccountInfo,
+                        onRedirectNavigate: (url) => {
+                            expect(url).toEqual(testLogoutUrl);
+                            return true;
+                        },
+                    })
+                    .then(() => {
+                        expect(
+                            browserStorage.getInteractionInProgress()
+                        ).toBeTruthy();
 
-                    // Reset after testing it was properly set
-                    browserStorage.setInteractionInProgress(false);
+                        // Reset after testing it was properly set
+                        browserStorage.setInteractionInProgress(false);
 
-                    const validatedLogoutRequest: CommonEndSessionRequest = {
-                        correlationId: RANDOM_TEST_GUID,
-                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
-                    };
-                    expect(logoutUriSpy).toHaveBeenCalledWith(
-                        expect.objectContaining(validatedLogoutRequest)
-                    );
-                    done();
-                }));
+                        const validatedLogoutRequest: CommonEndSessionRequest =
+                            {
+                                correlationId: RANDOM_TEST_GUID,
+                                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
+                            };
+                        expect(logoutUriSpy).toHaveBeenCalledWith(
+                            expect.objectContaining(validatedLogoutRequest)
+                        );
+                        done();
+                    })
+            );
         });
 
         it("errors thrown are cached for telemetry and logout failure event is raised", (done) => {

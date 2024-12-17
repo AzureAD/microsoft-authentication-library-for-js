@@ -303,10 +303,16 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
 
-            tokenCache.loadExternalTokens(request, response, options).catch(e => {
-                expect(e).toEqual(createBrowserAuthError(BrowserAuthErrorCodes.unableToLoadToken));
-                done();
-            });
+            tokenCache
+                .loadExternalTokens(request, response, options)
+                .catch((e) => {
+                    expect(e).toEqual(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.unableToLoadToken
+                        )
+                    );
+                    done();
+                });
         });
 
         it("throws error if request does not have account and clientInfo and idToken is not provided", (done) => {
@@ -319,10 +325,16 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
 
-            tokenCache.loadExternalTokens(request, response, options).catch(e => {
-                expect(e).toEqual(createBrowserAuthError(BrowserAuthErrorCodes.unableToLoadToken));
-                done();
-            });
+            tokenCache
+                .loadExternalTokens(request, response, options)
+                .catch((e) => {
+                    expect(e).toEqual(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.unableToLoadToken
+                        )
+                    );
+                    done();
+                });
         });
 
         it("skips storing access token if server response provided does not have expires_in", async () => {
@@ -412,10 +424,16 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
 
-            tokenCache.loadExternalTokens(request, response, options).catch(e => {
-                expect(e).toEqual(createBrowserAuthError(BrowserAuthErrorCodes.nonBrowserEnvironment));
-                done();
-            });
+            tokenCache
+                .loadExternalTokens(request, response, options)
+                .catch((e) => {
+                    expect(e).toEqual(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.nonBrowserEnvironment
+                        )
+                    );
+                    done();
+                });
         });
 
         it("loads refresh token with request authority and client info provided in response", async () => {
@@ -429,11 +447,7 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
 
-            await tokenCache.loadExternalTokens(
-                request,
-                response,
-                options
-            );
+            await tokenCache.loadExternalTokens(request, response, options);
 
             expect(
                 browserStorage.getRefreshTokenCredential(refreshTokenKey)

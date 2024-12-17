@@ -1712,8 +1712,12 @@ describe("CacheManager.ts test cases", () => {
                 accountData
             );
 
-            await mockCache.cacheManager.setAccessTokenCredential(mockedAtEntity);
-            await mockCache.cacheManager.setAccessTokenCredential(mockedAtEntity2);
+            await mockCache.cacheManager.setAccessTokenCredential(
+                mockedAtEntity
+            );
+            await mockCache.cacheManager.setAccessTokenCredential(
+                mockedAtEntity2
+            );
             await mockCache.cacheManager.setAccount(mockedAccount);
 
             expect(
@@ -1833,8 +1837,12 @@ describe("CacheManager.ts test cases", () => {
         );
 
         await mockCache.cacheManager.setAccessTokenCredential(mockedAtEntity);
-        await mockCache.cacheManager.setAccessTokenCredential(mockedPopAtEntity);
-        await mockCache.cacheManager.setAccessTokenCredential(mockedSshAtEntity);
+        await mockCache.cacheManager.setAccessTokenCredential(
+            mockedPopAtEntity
+        );
+        await mockCache.cacheManager.setAccessTokenCredential(
+            mockedSshAtEntity
+        );
         await mockCache.cacheManager.setAccount(mockedAccount);
 
         const mockedAccountInfo: AccountInfo = {
@@ -1986,8 +1994,12 @@ describe("CacheManager.ts test cases", () => {
         );
 
         await mockCache.cacheManager.setAccessTokenCredential(mockedAtEntity);
-        await mockCache.cacheManager.setAccessTokenCredential(mockedPopAtEntity);
-        await mockCache.cacheManager.setAccessTokenCredential(mockedSshAtEntity);
+        await mockCache.cacheManager.setAccessTokenCredential(
+            mockedPopAtEntity
+        );
+        await mockCache.cacheManager.setAccessTokenCredential(
+            mockedSshAtEntity
+        );
         await mockCache.cacheManager.setAccount(mockedAccount);
 
         const mockedAccountInfo: AccountInfo = {
@@ -2082,8 +2094,12 @@ describe("CacheManager.ts test cases", () => {
         );
 
         await mockCache.cacheManager.setAccessTokenCredential(mockedAtEntity);
-        await mockCache.cacheManager.setAccessTokenCredential(mockedPopAtEntity);
-        await mockCache.cacheManager.setAccessTokenCredential(mockedSshAtEntity);
+        await mockCache.cacheManager.setAccessTokenCredential(
+            mockedPopAtEntity
+        );
+        await mockCache.cacheManager.setAccessTokenCredential(
+            mockedSshAtEntity
+        );
         await mockCache.cacheManager.setAccount(mockedAccount);
 
         const mockedAccountInfo: AccountInfo = {

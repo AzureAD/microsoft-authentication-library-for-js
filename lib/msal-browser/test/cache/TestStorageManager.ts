@@ -91,7 +91,9 @@ export class TestStorageManager extends CacheManager {
         return (this.store[key] as AccessTokenEntity) || null;
     }
 
-    async setAccessTokenCredential(accessToken: AccessTokenEntity): Promise<void> {
+    async setAccessTokenCredential(
+        accessToken: AccessTokenEntity
+    ): Promise<void> {
         const accessTokenKey = CacheHelpers.generateCredentialKey(accessToken);
         this.store[accessTokenKey] = accessToken;
 
@@ -104,7 +106,9 @@ export class TestStorageManager extends CacheManager {
     getRefreshTokenCredential(key: string): RefreshTokenEntity | null {
         return (this.store[key] as RefreshTokenEntity) || null;
     }
-    async setRefreshTokenCredential(refreshToken: RefreshTokenEntity): Promise<void> {
+    async setRefreshTokenCredential(
+        refreshToken: RefreshTokenEntity
+    ): Promise<void> {
         const refreshTokenKey =
             CacheHelpers.generateCredentialKey(refreshToken);
         this.store[refreshTokenKey] = refreshToken;

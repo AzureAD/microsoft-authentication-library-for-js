@@ -116,7 +116,9 @@ export abstract class CacheManager implements ICacheManager {
      * set idToken entity to the platform cache
      * @param accessToken
      */
-    abstract setAccessTokenCredential(accessToken: AccessTokenEntity): Promise<void>;
+    abstract setAccessTokenCredential(
+        accessToken: AccessTokenEntity
+    ): Promise<void>;
 
     /**
      * fetch the idToken entity from the platform cache
@@ -130,7 +132,9 @@ export abstract class CacheManager implements ICacheManager {
      * set idToken entity to the platform cache
      * @param refreshToken
      */
-    abstract setRefreshTokenCredential(refreshToken: RefreshTokenEntity): Promise<void>;
+    abstract setRefreshTokenCredential(
+        refreshToken: RefreshTokenEntity
+    ): Promise<void>;
 
     /**
      * fetch appMetadata entity from the platform cache

@@ -1017,9 +1017,7 @@ export class BrowserCacheManager extends CacheManager {
     generateCacheKey(key: string): string {
         const generatedKey = this.validateAndParseJson(key);
         if (!generatedKey) {
-            if (
-                StringUtils.startsWith(key, Constants.CACHE_PREFIX)
-            ) {
+            if (StringUtils.startsWith(key, Constants.CACHE_PREFIX)) {
                 return key;
             }
             return `${Constants.CACHE_PREFIX}.${this.clientId}.${key}`;

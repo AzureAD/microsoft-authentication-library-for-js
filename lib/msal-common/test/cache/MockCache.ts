@@ -153,7 +153,9 @@ export class MockCache {
             expiresOn: "4600",
             tokenType: AuthenticationScheme.BEARER,
         };
-        await this.cacheManager.setAccessTokenCredential(bearerAtWithAuthScheme);
+        await this.cacheManager.setAccessTokenCredential(
+            bearerAtWithAuthScheme
+        );
 
         // POP Token
         const popAtWithAuthScheme = {
@@ -204,7 +206,9 @@ export class MockCache {
             tokenType: AuthenticationScheme.SSH,
             userAssertionHash: "nFDCbX7CudvdluSPGh34Y-VKZIXRG1rquljNBbn7xuE",
         };
-        await this.cacheManager.setAccessTokenCredential(atWithUserAssertionHash);
+        await this.cacheManager.setAccessTokenCredential(
+            atWithUserAssertionHash
+        );
     }
 
     // create refresh token entries in the cache

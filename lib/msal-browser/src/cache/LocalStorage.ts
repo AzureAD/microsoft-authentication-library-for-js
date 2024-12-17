@@ -155,11 +155,11 @@ export class LocalStorage implements IWindowStorage<string> {
         this.memoryStorage.clear();
 
         const accountKeys = getAccountKeys(this);
-        accountKeys.forEach(key => this.removeItem(key));
+        accountKeys.forEach((key) => this.removeItem(key));
         const tokenKeys = getTokenKeys(this.clientId, this);
-        tokenKeys.idToken.forEach(key => this.removeItem(key));
-        tokenKeys.accessToken.forEach(key => this.removeItem(key));
-        tokenKeys.refreshToken.forEach(key=> this.removeItem(key));
+        tokenKeys.idToken.forEach((key) => this.removeItem(key));
+        tokenKeys.accessToken.forEach((key) => this.removeItem(key));
+        tokenKeys.refreshToken.forEach((key) => this.removeItem(key));
 
         // Clean up anything left
         this.getKeys().forEach((cacheKey: string) => {
