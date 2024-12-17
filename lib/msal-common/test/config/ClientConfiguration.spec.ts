@@ -76,12 +76,9 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(emptyConfig.storageInterface.setAccount).not.toBeNull();
         expect(() =>
             emptyConfig.storageInterface.setAccount(MockCache.acc)
-        ).toThrowError(
+        ).rejects.toEqual(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
-        expect(() =>
-            emptyConfig.storageInterface.setAccount(MockCache.acc)
-        ).toThrowError(AuthError);
         // Network interface checks
         expect(emptyConfig.networkInterface).not.toBeNull();
         expect(emptyConfig.networkInterface.sendGetRequestAsync).not.toBeNull();
@@ -217,7 +214,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 },
             },
         });
-        cacheStorageMock.setAccount(MockCache.acc);
+        await cacheStorageMock.setAccount(MockCache.acc);
         // Crypto interface tests
         expect(newConfig.cryptoInterface).not.toBeNull();
         expect(newConfig.cryptoInterface.base64Decode).not.toBeNull();

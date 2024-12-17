@@ -136,7 +136,7 @@ describe("Storage tests for msal-node: ", () => {
         expect(account).toEqual(fetchedAccount);
     });
 
-    it("setAccount() and getAccount() tests", () => {
+    it("setAccount() and getAccount() tests", async () => {
         const nodeStorage = new NodeStorage(
             logger,
             clientId,
@@ -175,7 +175,7 @@ describe("Storage tests for msal-node: ", () => {
             mockAccountData
         );
         expect(mockAccountEntity).toBeInstanceOf(AccountEntity);
-        nodeStorage.setAccount(mockAccountEntity);
+        await nodeStorage.setAccount(mockAccountEntity);
         expect(
             nodeStorage.getAccount(mockAccountEntity.generateAccountKey())
         ).toEqual(mockAccountEntity);
@@ -212,7 +212,7 @@ describe("Storage tests for msal-node: ", () => {
         expect(readCache[accessTokenKey]).toEqual(accessToken);
     });
 
-    it("setAccessTokenCredential() and getAccessTokenCredential() tests", () => {
+    it("setAccessTokenCredential() and getAccessTokenCredential() tests", async () => {
         const nodeStorage = new NodeStorage(
             logger,
             clientId,
@@ -236,7 +236,7 @@ describe("Storage tests for msal-node: ", () => {
             extendedExpiresOn: "4600",
         };
 
-        nodeStorage.setAccessTokenCredential(accessToken);
+        await nodeStorage.setAccessTokenCredential(accessToken);
         const fetchedAccessToken =
             nodeStorage.getAccessTokenCredential(accessTokenKey);
         const invalidAccessToken = nodeStorage.getAccessTokenCredential(
@@ -247,7 +247,7 @@ describe("Storage tests for msal-node: ", () => {
         expect(invalidAccessToken).toBeNull();
     });
 
-    it("setIdTokenCredential() and getIdTokenCredential() tests", () => {
+    it("setIdTokenCredential() and getIdTokenCredential() tests", async () => {
         const nodeStorage = new NodeStorage(
             logger,
             clientId,
@@ -267,7 +267,7 @@ describe("Storage tests for msal-node: ", () => {
             realm: "samplerealm",
         };
 
-        nodeStorage.setIdTokenCredential(idToken);
+        await nodeStorage.setIdTokenCredential(idToken);
 
         const fetchedIdToken = nodeStorage.getIdTokenCredential(idTokenKey);
         const invalidIdToken =
@@ -277,7 +277,7 @@ describe("Storage tests for msal-node: ", () => {
         expect(invalidIdToken).toBeNull();
     });
 
-    it("setRefreshTokenCredential() and getRefreshTokenCredential() tests", () => {
+    it("setRefreshTokenCredential() and getRefreshTokenCredential() tests", async () => {
         const nodeStorage = new NodeStorage(
             logger,
             clientId,
@@ -297,7 +297,7 @@ describe("Storage tests for msal-node: ", () => {
             realm: "samplerealm",
         };
 
-        nodeStorage.setRefreshTokenCredential(refreshToken);
+        await nodeStorage.setRefreshTokenCredential(refreshToken);
 
         const fetchedRefreshToken =
             nodeStorage.getRefreshTokenCredential(refreshTokenKey);

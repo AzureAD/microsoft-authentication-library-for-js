@@ -116,7 +116,7 @@ export abstract class CacheManager implements ICacheManager {
      * set idToken entity to the platform cache
      * @param accessToken
      */
-    abstract setAccessTokenCredential(accessToken: AccessTokenEntity): void;
+    abstract setAccessTokenCredential(accessToken: AccessTokenEntity): Promise<void>;
 
     /**
      * fetch the idToken entity from the platform cache
@@ -583,7 +583,7 @@ export abstract class CacheManager implements ICacheManager {
             }
         });
         await Promise.all(removedAccessTokens);
-        this.setAccessTokenCredential(credential);
+        await this.setAccessTokenCredential(credential);
     }
 
     /**
@@ -1833,25 +1833,25 @@ export abstract class CacheManager implements ICacheManager {
 
 /** @internal */
 export class DefaultStorageClass extends CacheManager {
-    setAccount(): Promise<void> {
+    async setAccount(): Promise<void> {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getAccount(): AccountEntity {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
-    setIdTokenCredential(): Promise<void> {
+    async setIdTokenCredential(): Promise<void> {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getIdTokenCredential(): IdTokenEntity {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
-    setAccessTokenCredential(): void {
+    async setAccessTokenCredential(): Promise<void> {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getAccessTokenCredential(): AccessTokenEntity {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
-    setRefreshTokenCredential(): Promise<void> {
+    async setRefreshTokenCredential(): Promise<void> {
         throw createClientAuthError(ClientAuthErrorCodes.methodNotImplemented);
     }
     getRefreshTokenCredential(): RefreshTokenEntity {

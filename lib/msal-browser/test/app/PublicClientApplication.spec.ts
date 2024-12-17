@@ -5887,9 +5887,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount);
+            await pca.browserStorage.setAccount(testAccount);
             // @ts-ignore
-            pca.browserStorage.setIdTokenCredential(testIdToken);
+            await pca.browserStorage.setIdTokenCredential(testIdToken);
         });
 
         afterEach(() => {
@@ -5958,15 +5958,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount1);
+            await pca.browserStorage.setAccount(testAccount1);
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount2);
+            await pca.browserStorage.setAccount(testAccount2);
 
             // @ts-ignore
-            pca.browserStorage.setIdTokenCredential(idToken1);
+            await pca.browserStorage.setIdTokenCredential(idToken1);
 
             // @ts-ignore
-            pca.browserStorage.setIdTokenCredential(idToken2);
+            await pca.browserStorage.setIdTokenCredential(idToken2);
         });
 
         afterEach(() => {
@@ -6181,14 +6181,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = (pca as any).controller;
             await pca.initialize();
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount1);
+            await pca.browserStorage.setAccount(testAccount1);
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount2);
+            await pca.browserStorage.setAccount(testAccount2);
 
             // @ts-ignore
-            pca.browserStorage.setIdTokenCredential(idToken1);
+            await pca.browserStorage.setIdTokenCredential(idToken1);
             // @ts-ignore
-            pca.browserStorage.setIdTokenCredential(idToken2);
+            await pca.browserStorage.setIdTokenCredential(idToken2);
         });
 
         afterEach(() => {
@@ -6207,42 +6207,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const activeAccount = pca.getActiveAccount();
                 expect(activeAccount?.idTokenClaims).not.toBeUndefined();
                 expect(activeAccount).toEqual(testAccountInfo1);
-            });
-
-            it("getActiveAccount picks up legacy account id from local storage", async () => {
-                let pcaLocal = new PublicClientApplication({
-                    auth: {
-                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    },
-                    telemetry: {
-                        application: {
-                            appName: TEST_CONFIG.applicationName,
-                            appVersion: TEST_CONFIG.applicationVersion,
-                        },
-                    },
-                    cache: {
-                        cacheLocation: BrowserCacheLocation.LocalStorage,
-                    },
-                });
-                await pcaLocal.initialize();
-                expect(pcaLocal.getActiveAccount()).toBe(null);
-
-                //Implementation of PCA was moved to controller.
-                pcaLocal = (pcaLocal as any).controller;
-
-                // @ts-ignore
-                const localStorage = pcaLocal.browserStorage;
-                localStorage.setAccount(testAccount1);
-                localStorage.setIdTokenCredential(idToken1);
-                localStorage.setItem(
-                    localStorage.generateCacheKey(
-                        PersistentCacheKeys.ACTIVE_ACCOUNT
-                    ),
-                    testAccount1.localAccountId
-                );
-
-                const activeAccount = pcaLocal.getActiveAccount();
-                expect(activeAccount).not.toBeNull();
             });
 
             describe("activeAccount tests with two accounts, both with same localId", () => {

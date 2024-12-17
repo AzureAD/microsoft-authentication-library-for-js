@@ -16,7 +16,6 @@ import {
     RefreshTokenEntity,
     TokenClaims,
     CacheHelpers,
-    Authority,
 } from "@azure/msal-common";
 import { TokenCache, LoadTokenOptions } from "../../src/cache/TokenCache.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
@@ -44,6 +43,7 @@ import {
 } from "../../src/index.js";
 import { base64Decode } from "../../src/encode/Base64Decode.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
+import { createBrowserAuthError } from "../../src/error/BrowserAuthError.js";
 
 describe("TokenCache tests", () => {
     let configuration: BrowserConfiguration;
@@ -52,7 +52,7 @@ describe("TokenCache tests", () => {
     let cacheConfig: Required<CacheOptions>;
 
     let cryptoObj: CryptoOps;
-    beforeEach(() => {
+    beforeEach(async () => {
         configuration = buildConfiguration(
             {
                 auth: {
@@ -174,7 +174,7 @@ describe("TokenCache tests", () => {
             browserStorage.clear();
         });
 
-        it("loads id token with a request account", () => {
+        it("loads id token with a request account", async () => {
             const requestHomeAccountId =
                 TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID;
             const request: SilentRequest = {
@@ -191,7 +191,7 @@ describe("TokenCache tests", () => {
                 id_token: testIdToken,
             };
             const options: LoadTokenOptions = {};
-            const result = tokenCache.loadExternalTokens(
+            const result = await tokenCache.loadExternalTokens(
                 request,
                 response,
                 options
@@ -213,7 +213,7 @@ describe("TokenCache tests", () => {
             );
         });
 
-        it("loads id token with request authority and client info provided in options", () => {
+        it("loads id token with request authority and client info provided in options", async () => {
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
@@ -225,7 +225,7 @@ describe("TokenCache tests", () => {
                 clientInfo: testClientInfo,
             };
 
-            const result = tokenCache.loadExternalTokens(
+            const result = await tokenCache.loadExternalTokens(
                 request,
                 response,
                 options
@@ -237,7 +237,7 @@ describe("TokenCache tests", () => {
             );
         });
 
-        it("sets account when id token is loaded", () => {
+        it("sets account when id token is loaded", async () => {
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
@@ -256,7 +256,7 @@ describe("TokenCache tests", () => {
             ).getAccountInfo();
             const testAccountKey =
                 AccountEntity.generateAccountCacheKey(testAccountInfo);
-            const result = tokenCache.loadExternalTokens(
+            const result = await tokenCache.loadExternalTokens(
                 request,
                 response,
                 options
@@ -272,7 +272,7 @@ describe("TokenCache tests", () => {
             ).toEqual(testAccountInfo.homeAccountId);
         });
 
-        it("loads id token with request authority and client info provided in response", () => {
+        it("loads id token with request authority and client info provided in response", async () => {
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
@@ -282,7 +282,7 @@ describe("TokenCache tests", () => {
                 client_info: testClientInfo,
             };
             const options: LoadTokenOptions = {};
-            const result = tokenCache.loadExternalTokens(
+            const result = await tokenCache.loadExternalTokens(
                 request,
                 response,
                 options
@@ -294,7 +294,7 @@ describe("TokenCache tests", () => {
             );
         });
 
-        it("throws error if request does not have account and authority", () => {
+        it("throws error if request does not have account and authority", (done) => {
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
             };
@@ -303,14 +303,13 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
 
-            expect(() =>
-                tokenCache.loadExternalTokens(request, response, options)
-            ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
-            );
+            tokenCache.loadExternalTokens(request, response, options).catch(e => {
+                expect(e).toEqual(createBrowserAuthError(BrowserAuthErrorCodes.unableToLoadToken));
+                done();
+            });
         });
 
-        it("throws error if request does not have account and clientInfo and idToken is not provided", () => {
+        it("throws error if request does not have account and clientInfo and idToken is not provided", (done) => {
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
@@ -320,14 +319,13 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
 
-            expect(() =>
-                tokenCache.loadExternalTokens(request, response, options)
-            ).toThrowError(
-                `${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc}`
-            );
+            tokenCache.loadExternalTokens(request, response, options).catch(e => {
+                expect(e).toEqual(createBrowserAuthError(BrowserAuthErrorCodes.unableToLoadToken));
+                done();
+            });
         });
 
-        it("skips storing access token if server response provided does not have expires_in", () => {
+        it("skips storing access token if server response provided does not have expires_in", async () => {
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 account: {
@@ -344,7 +342,7 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
 
-            const result = tokenCache.loadExternalTokens(
+            const result = await tokenCache.loadExternalTokens(
                 request,
                 response,
                 options
@@ -360,7 +358,7 @@ describe("TokenCache tests", () => {
             ).toEqual(null);
         });
 
-        it("loads access tokens from server response and token options", () => {
+        it("loads access tokens from server response and token options", async () => {
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 account: {
@@ -380,7 +378,7 @@ describe("TokenCache tests", () => {
                 expiresOn: TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
                 extendedExpiresOn: TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
             };
-            const result = tokenCache.loadExternalTokens(
+            const result = await tokenCache.loadExternalTokens(
                 request,
                 response,
                 options
@@ -395,7 +393,7 @@ describe("TokenCache tests", () => {
             ).toEqual(accessTokenEntity);
         });
 
-        it("throws error if in non-browser environment", () => {
+        it("throws error if in non-browser environment", (done) => {
             tokenCache.isBrowserEnvironment = false;
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -414,16 +412,13 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
 
-            expect(() =>
-                tokenCache.loadExternalTokens(request, response, options)
-            ).toThrow(
-                new BrowserAuthError(
-                    BrowserAuthErrorCodes.nonBrowserEnvironment
-                )
-            );
+            tokenCache.loadExternalTokens(request, response, options).catch(e => {
+                expect(e).toEqual(createBrowserAuthError(BrowserAuthErrorCodes.nonBrowserEnvironment));
+                done();
+            });
         });
 
-        it("loads refresh token with request authority and client info provided in response", () => {
+        it("loads refresh token with request authority and client info provided in response", async () => {
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
@@ -434,7 +429,7 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
 
-            const result = tokenCache.loadExternalTokens(
+            await tokenCache.loadExternalTokens(
                 request,
                 response,
                 options
@@ -445,7 +440,7 @@ describe("TokenCache tests", () => {
             ).toEqual(refreshTokenEntity);
         });
 
-        it("loads refresh token with request authority and client info provided in options", () => {
+        it("loads refresh token with request authority and client info provided in options", async () => {
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
@@ -457,7 +452,7 @@ describe("TokenCache tests", () => {
                 clientInfo: testClientInfo,
             };
 
-            const result = tokenCache.loadExternalTokens(
+            const result = await tokenCache.loadExternalTokens(
                 request,
                 response,
                 options
@@ -481,7 +476,7 @@ describe("TokenCache tests", () => {
             ).toEqual(refreshTokenEntity);
         });
 
-        it("loads refresh token with request authority and information from id_token", () => {
+        it("loads refresh token with request authority and information from id_token", async () => {
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`,
@@ -492,7 +487,7 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
 
-            const result = tokenCache.loadExternalTokens(
+            const result = await tokenCache.loadExternalTokens(
                 request,
                 response,
                 options

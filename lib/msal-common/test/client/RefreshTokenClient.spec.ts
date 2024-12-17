@@ -346,11 +346,11 @@ describe("RefreshTokenClient unit tests", () => {
             ).mockReturnValue(testRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setAccount(testAccountEntity);
-            config.storageInterface!.setRefreshTokenCredential(
+            await config.storageInterface!.setAccount(testAccountEntity);
+            await config.storageInterface!.setRefreshTokenCredential(
                 testRefreshTokenEntity
             );
-            config.storageInterface!.setRefreshTokenCredential(
+            await config.storageInterface!.setRefreshTokenCredential(
                 testFamilyRefreshTokenEntity
             );
             config.storageInterface!.setAppMetadata(testAppMetadata);
@@ -1074,11 +1074,11 @@ describe("RefreshTokenClient unit tests", () => {
             ).mockReturnValue(testFamilyRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setAccount(testAccountEntity);
-            config.storageInterface!.setRefreshTokenCredential(
+            await config.storageInterface!.setAccount(testAccountEntity);
+            await config.storageInterface!.setRefreshTokenCredential(
                 testRefreshTokenEntity
             );
-            config.storageInterface!.setRefreshTokenCredential(
+            await config.storageInterface!.setRefreshTokenCredential(
                 testFamilyRefreshTokenEntity
             );
             config.storageInterface!.setAppMetadata(testAppMetadata);
@@ -1313,7 +1313,7 @@ describe("RefreshTokenClient unit tests", () => {
             };
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setRefreshTokenCredential({
+            await config.storageInterface!.setRefreshTokenCredential({
                 ...testRefreshTokenEntity,
                 expiresOn: (TimeUtils.nowSeconds() - 48 * 60 * 60).toString(), // Set expiration to yesterday
             });
@@ -1342,7 +1342,7 @@ describe("RefreshTokenClient unit tests", () => {
             };
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setRefreshTokenCredential({
+            await config.storageInterface!.setRefreshTokenCredential({
                 ...testRefreshTokenEntity,
                 expiresOn: (TimeUtils.nowSeconds() + 30 * 60).toString(), // Set expiration to 30 minutes from now
             });
@@ -1362,8 +1362,8 @@ describe("RefreshTokenClient unit tests", () => {
         it("Removes refresh token if server returns invalid_grant with bad_token suberror", async () => {
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setAccount(testAccountEntity);
-            config.storageInterface!.setRefreshTokenCredential(
+            await config.storageInterface!.setAccount(testAccountEntity);
+            await config.storageInterface!.setRefreshTokenCredential(
                 testRefreshTokenEntity
             );
             config.storageInterface!.setAppMetadata(testAppMetadata);
