@@ -331,7 +331,6 @@ describe("PublicClientApplication", () => {
             const beforeCacheAccess = jest
                 .fn()
                 .mockImplementation((cacheContext: TokenCacheContext) => {
-                    //the value of the cache doesn't matter since we're mocking acquireCachedToken later on
                     //@ts-ignore
                     cacheContext.cache.cacheSnapshot = "{}";
                 });
@@ -366,8 +365,7 @@ describe("PublicClientApplication", () => {
                 .spyOn(TokenCache.prototype, "getCacheSnapshot")
                 .mockImplementation(() => emptyCache);
 
-            let cacheSpy = jest
-                .spyOn(NodeStorage.prototype, "setCache");
+            let cacheSpy = jest.spyOn(NodeStorage.prototype, "setCache");
 
             const request: SilentFlowRequest = {
                 account: mockAccountInfo,
