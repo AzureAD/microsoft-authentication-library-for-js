@@ -58,7 +58,8 @@ import { TEST_CONFIG } from "../test_kit/StringConstants";
 import { HttpClient } from "../../src/network/HttpClient";
 import { MockStorageClass } from "./ClientTestUtils";
 import { Constants } from "../../src/utils/Constants";
-import { NodeStorage } from "../../src/cache/NodeStorage.js";
+import { NodeStorage } from "../../src/cache/NodeStorage";
+import { CacheKVStore, TokenCache } from "../../src/index.js";
 
 const msalCommon: MSALCommonModule = jest.requireActual(
     "@azure/msal-common/node"
@@ -331,8 +332,8 @@ describe("PublicClientApplication", () => {
                 .fn()
                 .mockImplementation((cacheContext: TokenCacheContext) => {
                     //the value of the cache doesn't matter since we're mocking acquireCachedToken later on
-                    //@ts-ignore"
-                    cacheContext.cache.cacheSnapshot = "test-cache";
+                    //@ts-ignore
+                    cacheContext.cache.cacheSnapshot = "{}";
                 });
             const afterCacheAccess = jest
                 .fn()
@@ -359,9 +360,14 @@ describe("PublicClientApplication", () => {
                     CacheOutcome.NOT_APPLICABLE,
                 ]);
 
+            const emptyCache: CacheKVStore = {};
+
+            let snapshotSpy = jest
+                .spyOn(TokenCache.prototype, "getCacheSnapshot")
+                .mockImplementation(() => emptyCache);
+
             let cacheSpy = jest
-                .spyOn(NodeStorage.prototype, "setCacheFromString")
-                .mockImplementation(() => {});
+                .spyOn(NodeStorage.prototype, "setCache");
 
             const request: SilentFlowRequest = {
                 account: mockAccountInfo,
@@ -372,7 +378,8 @@ describe("PublicClientApplication", () => {
             expect(response).toEqual(mockAuthenticationResult);
             expect(acquireCachedTokenSpy).toHaveBeenCalledTimes(2);
             //checks if in-memory cache was overwritten with persistent cache
-            expect(cacheSpy).toHaveBeenCalledWith("test-cache");
+            expect(snapshotSpy).toHaveBeenCalled();
+            expect(cacheSpy).toHaveBeenCalledWith(emptyCache);
         });
 
         it("acquireToken calls refreshToken if refresh is required", async () => {
