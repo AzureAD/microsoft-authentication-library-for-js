@@ -118,9 +118,11 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
 
     /**
      * Gets cache snapshot in CacheKVStore format
-     */ 
+     */
     getCacheSnapshot(): CacheKVStore {
-        const deserializedPersistentStorage = NodeStorage.generateInMemoryCache(this.cacheSnapshot);
+        const deserializedPersistentStorage = NodeStorage.generateInMemoryCache(
+            this.cacheSnapshot
+        );
         return this.storage.inMemoryCacheToCache(deserializedPersistentStorage);
     }
 

@@ -60,7 +60,6 @@ import { MockStorageClass } from "./ClientTestUtils";
 import { Constants } from "../../src/utils/Constants";
 import { NodeStorage } from "../../src/cache/NodeStorage.js";
 
-
 const msalCommon: MSALCommonModule = jest.requireActual(
     "@azure/msal-common/node"
 );

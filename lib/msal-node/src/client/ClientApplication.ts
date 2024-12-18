@@ -283,15 +283,16 @@ export abstract class ClientApplication {
             validRequest.forceRefresh
         );
 
-        try{
-            const clientConfiguration = await this.buildOauthClientConfiguration(
-                validRequest.authority,
-                validRequest.correlationId,
-                validRequest.redirectUri || "",
-                serverTelemetryManager,
-                undefined,
-                validRequest.azureCloudOptions
-            );
+        try {
+            const clientConfiguration =
+                await this.buildOauthClientConfiguration(
+                    validRequest.authority,
+                    validRequest.correlationId,
+                    validRequest.redirectUri || "",
+                    serverTelemetryManager,
+                    undefined,
+                    validRequest.azureCloudOptions
+                );
             const silentFlowClient = new SilentFlowClient(clientConfiguration);
             this.logger.verbose(
                 "Silent flow client created",
@@ -318,8 +319,9 @@ export abstract class ClientApplication {
                             false
                         );
                         await persistence.beforeCacheAccess(cacheContext);
-                        const cacheSnapshot = this.tokenCache.getCacheSnapshot();
-                        this.storage.setCache(cacheSnapshot)
+                        const cacheSnapshot =
+                            this.tokenCache.getCacheSnapshot();
+                        this.storage.setCache(cacheSnapshot);
                         await persistence.afterCacheAccess(cacheContext);
 
                         this.logger.info("Searching again for a valid token");
@@ -332,7 +334,8 @@ export abstract class ClientApplication {
                 } catch {
                     if (
                         e instanceof ClientAuthError &&
-                        e.errorCode === ClientAuthErrorCodes.tokenRefreshRequired
+                        e.errorCode ===
+                            ClientAuthErrorCodes.tokenRefreshRequired
                     ) {
                         const refreshTokenClient = new RefreshTokenClient(
                             clientConfiguration
@@ -384,7 +387,7 @@ export abstract class ClientApplication {
                     ? validRequest.scopes
                     : [...OIDC_DEFAULT_SCOPES],
             });
-            
+
         if (cacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
             this.logger.info(
                 "ClientApplication:acquireCachedToken - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
