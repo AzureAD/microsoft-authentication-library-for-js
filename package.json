@@ -59,6 +59,7 @@
         "samples/msal-browser-samples/*",
         "samples/msal-angular-v3-samples/*",
         "samples/msal-react-samples/*",
-        "samples/msal-node-samples/*"
+        "samples/msal-node-samples/*",
+        "samples/msal-native-auth-samples/*"
     ]
 }
