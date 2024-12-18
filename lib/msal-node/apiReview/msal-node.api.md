@@ -76,6 +76,7 @@ import { ServerAuthorizationCodeResponse } from '@azure/msal-common/node';
 import { ServerError } from '@azure/msal-common/node';
 import { ServerTelemetryEntity } from '@azure/msal-common/node';
 import { ServerTelemetryManager } from '@azure/msal-common/node';
+import { SilentFlowClient } from '@azure/msal-common/node';
 import { StaticAuthorityOptions } from '@azure/msal-common/node';
 import { ThrottlingEntity } from '@azure/msal-common/node';
 import { TokenCacheContext } from '@azure/msal-common/node';
@@ -134,6 +135,7 @@ export type CacheOptions = {
 // @public
 export abstract class ClientApplication {
     protected constructor(configuration: Configuration);
+    // (undocumented)
     acquireCachedToken(validRequest: CommonSilentFlowRequest, silentFlowClient: SilentFlowClient): Promise<AuthenticationResult>;
     acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult>;
     acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
@@ -635,6 +637,7 @@ export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" 
 // @public
 export class TokenCache implements ISerializableTokenCache, ITokenCache {
     constructor(storage: NodeStorage, logger: Logger, cachePlugin?: ICachePlugin);
+    // (undocumented)
     cacheSnapshot: string;
     deserialize(cache: string): void;
     getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
