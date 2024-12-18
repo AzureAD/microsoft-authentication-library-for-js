@@ -17,7 +17,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: master
+          ref: cuong/new-lib-skel # change it back to master when it passes
 
 extends:
     template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
@@ -54,7 +54,7 @@ extends:
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
                         libName: msal-native-auth
-                        path: "lib/"                  
+                        path: "lib/"
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
                         libName: msal-angular
