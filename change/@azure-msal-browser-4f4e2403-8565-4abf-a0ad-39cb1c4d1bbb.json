@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Prioritize loginHint and session id over active account for authorization request #7449",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
