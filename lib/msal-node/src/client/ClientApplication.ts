@@ -301,7 +301,8 @@ export abstract class ClientApplication {
             try {
                 return await this.acquireCachedToken(
                     validRequest,
-                    silentFlowClient
+                    silentFlowClient,
+                    clientConfiguration
                 );
             } catch (e) {
                 try {
@@ -317,15 +318,15 @@ export abstract class ClientApplication {
                             false
                         );
                         await persistence.beforeCacheAccess(cacheContext);
-
-                        const persistentStorage = this.tokenCache.cacheSnapshot;
-                        this.storage.setCacheFromString(persistentStorage);
+                        const cacheSnapshot = this.tokenCache.getCacheSnapshot();
+                        this.storage.setCache(cacheSnapshot)
                         await persistence.afterCacheAccess(cacheContext);
 
                         this.logger.info("Searching again for a valid token");
                         return await this.acquireCachedToken(
                             validRequest,
-                            silentFlowClient
+                            silentFlowClient,
+                            clientConfiguration
                         );
                     }
                 } catch {
@@ -334,8 +335,7 @@ export abstract class ClientApplication {
                         e.errorCode === ClientAuthErrorCodes.tokenRefreshRequired
                     ) {
                         const refreshTokenClient = new RefreshTokenClient(
-                            clientConfiguration,
-                            silentFlowClient.performanceClient
+                            clientConfiguration
                         );
                         return refreshTokenClient.acquireTokenByRefreshToken(
                             validRequest
@@ -352,8 +352,7 @@ export abstract class ClientApplication {
                     e.errorCode === ClientAuthErrorCodes.tokenRefreshRequired
                 ) {
                     const refreshTokenClient = new RefreshTokenClient(
-                        clientConfiguration,
-                        silentFlowClient.performanceClient
+                        clientConfiguration
                     );
                     return refreshTokenClient.acquireTokenByRefreshToken(
                         validRequest
@@ -375,7 +374,8 @@ export abstract class ClientApplication {
 
     private async acquireCachedToken(
         validRequest: CommonSilentFlowRequest,
-        silentFlowClient: SilentFlowClient
+        silentFlowClient: SilentFlowClient,
+        clientConfiguration: ClientConfiguration
     ): Promise<AuthenticationResult> {
         const [authResponse, cacheOutcome] =
             await silentFlowClient.acquireCachedToken({
@@ -391,8 +391,7 @@ export abstract class ClientApplication {
             );
             // refresh the access token in the background
             const refreshTokenClient = new RefreshTokenClient(
-                silentFlowClient.config,
-                silentFlowClient.performanceClient
+                clientConfiguration
             );
 
             refreshTokenClient

@@ -76,7 +76,6 @@ import { ServerAuthorizationCodeResponse } from '@azure/msal-common/node';
 import { ServerError } from '@azure/msal-common/node';
 import { ServerTelemetryEntity } from '@azure/msal-common/node';
 import { ServerTelemetryManager } from '@azure/msal-common/node';
-import { SilentFlowClient } from '@azure/msal-common/node';
 import { StaticAuthorityOptions } from '@azure/msal-common/node';
 import { ThrottlingEntity } from '@azure/msal-common/node';
 import { TokenCacheContext } from '@azure/msal-common/node';
@@ -482,7 +481,6 @@ export class NodeStorage extends CacheManager {
     setAppMetadata(appMetadata: AppMetadataEntity): void;
     setAuthorityMetadata(key: string, metadata: AuthorityMetadataEntity): void;
     setCache(cache: CacheKVStore): void;
-    setCacheFromString(cache: string): void;
     setIdTokenCredential(idToken: IdTokenEntity): void;
     setInMemoryCache(inMemoryCache: InMemoryCache): void;
     setItem(key: string, value: ValidCacheType): void;
@@ -635,12 +633,11 @@ export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" 
 // @public
 export class TokenCache implements ISerializableTokenCache, ITokenCache {
     constructor(storage: NodeStorage, logger: Logger, cachePlugin?: ICachePlugin);
-    // (undocumented)
-    cacheSnapshot: string;
     deserialize(cache: string): void;
     getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
     getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null>;
     getAllAccounts(): Promise<AccountInfo[]>;
+    getCacheSnapshot(): CacheKVStore;
     getKVStore(): CacheKVStore;
     hasChanged(): boolean;
     removeAccount(account: AccountInfo): Promise<void>;

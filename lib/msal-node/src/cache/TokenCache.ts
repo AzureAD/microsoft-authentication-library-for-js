@@ -41,7 +41,7 @@ const defaultSerializedCache: JsonCache = {
 export class TokenCache implements ISerializableTokenCache, ITokenCache {
     private storage: NodeStorage;
     private cacheHasChanged: boolean;
-    public cacheSnapshot: string;
+    private cacheSnapshot: string;
     private readonly persistence: ICachePlugin;
     private logger: Logger;
 
@@ -114,6 +114,14 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      */
     getKVStore(): CacheKVStore {
         return this.storage.getCache();
+    }
+
+    /**
+     * Gets cache snapshot in CacheKVStore format
+     */ 
+    getCacheSnapshot(): CacheKVStore {
+        const deserializedPersistentStorage = NodeStorage.generateInMemoryCache(this.cacheSnapshot);
+        return this.storage.inMemoryCacheToCache(deserializedPersistentStorage);
     }
 
     /**

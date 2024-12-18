@@ -621,7 +621,7 @@ export abstract class BaseClient {
     // Warning: (ae-forgotten-export) The symbol "CommonClientConfiguration" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)
-    config: CommonClientConfiguration;
+    protected config: CommonClientConfiguration;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     createTokenQueryParameters(request: BaseAuthRequest): string;
     protected createTokenRequestHeaders(ccsCred?: CcsCredential): Record<string, string>;
@@ -637,7 +637,7 @@ export abstract class BaseClient {
     // (undocumented)
     protected networkClient: INetworkModule;
     // (undocumented)
-    performanceClient?: IPerformanceClient;
+    protected performanceClient?: IPerformanceClient;
     sendPostRequest<T extends ServerAuthorizationTokenResponse>(thumbprint: RequestThumbprint, tokenEndpoint: string, options: NetworkRequestOptions, correlationId: string): Promise<NetworkResponse<T>>;
     // (undocumented)
     protected serverTelemetryManager: ServerTelemetryManager | null;

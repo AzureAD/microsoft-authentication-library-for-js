@@ -772,37 +772,6 @@ describe("SilentFlowClient unit tests", () => {
         });
 
         it("acquireCachedToken returns token from cache", async () => {
-            const silentFlowRequest: CommonSilentFlowRequest = {
-                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                account: testAccount,
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                forceRefresh: false,
-            };
-
-            jest.spyOn(TimeUtils, <any>"isTokenExpired").mockReturnValue(false);
-            const refreshTokenSpy = jest
-                .spyOn(RefreshTokenClient.prototype, "acquireToken")
-                .mockImplementation();
-
-            const authResult = await client.acquireCachedToken(
-                silentFlowRequest
-            );
-            expect(refreshTokenSpy).not.toHaveBeenCalled();
-            const expectedScopes = testAccessTokenEntity.target.split(" ");
-            expect(authResult[0].uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
-            expect(authResult[0].tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
-            expect(authResult[0].scopes).toEqual(expectedScopes);
-            expect(authResult[0].account).toEqual(testAccount);
-            expect(authResult[0].idToken).toEqual(testIdToken.secret);
-            expect(authResult[0].idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
-            expect(authResult[0].accessToken).toEqual(
-                testAccessTokenEntity.secret
-            );
-            expect(authResult[0].state).toHaveLength(0);
-        });
-
-        it("acquireCachedToken returns cached token", async () => {
             config.serverTelemetryManager = new ServerTelemetryManager(
                 {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -829,20 +798,27 @@ describe("SilentFlowClient unit tests", () => {
                 forceRefresh: false,
             };
 
-            const response = await client.acquireCachedToken(silentFlowRequest);
-            const authResult: AuthenticationResult = response[0];
+            jest.spyOn(TimeUtils, <any>"isTokenExpired").mockReturnValue(false);
+            const refreshTokenSpy = jest
+                .spyOn(RefreshTokenClient.prototype, "acquireToken")
+                .mockImplementation();
+
+            const authResult = await client.acquireCachedToken(
+                silentFlowRequest
+            );
+            expect(refreshTokenSpy).not.toHaveBeenCalled();
             const expectedScopes = testAccessTokenEntity.target.split(" ");
             expect(telemetryCacheHitSpy).toHaveBeenCalledTimes(1);
-            expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
-            expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
-            expect(authResult.scopes).toEqual(expectedScopes);
-            expect(authResult.account).toEqual(testAccount);
-            expect(authResult.idToken).toEqual(testIdToken.secret);
-            expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
-            expect(authResult.accessToken).toEqual(
+            expect(authResult[0].uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(authResult[0].tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(authResult[0].scopes).toEqual(expectedScopes);
+            expect(authResult[0].account).toEqual(testAccount);
+            expect(authResult[0].idToken).toEqual(testIdToken.secret);
+            expect(authResult[0].idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(authResult[0].accessToken).toEqual(
                 testAccessTokenEntity.secret
             );
-            expect(authResult.state).toHaveLength(0);
+            expect(authResult[0].state).toHaveLength(0);
         });
 
         it("Throws error if max age is equal to 0 or has transpired since the last end-user authentication", async () => {
