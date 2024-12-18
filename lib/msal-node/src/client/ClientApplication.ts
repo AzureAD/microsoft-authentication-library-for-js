@@ -306,13 +306,13 @@ export abstract class ClientApplication {
             } catch (e) {
                 try {
                     // If persistence exists, overwrite the in-memory cache with the persistent cache and search for the cached token again
-                    let persistence = this.config.cache.cachePlugin;
+                    const persistence = this.config.cache.cachePlugin;
                     if (persistence) {
                         this.logger.info(
                             "Overwriting in-memory cache with persistent cache"
                         );
                         this.storage.clear();
-                        let cacheContext = new TokenCacheContext(
+                        const cacheContext = new TokenCacheContext(
                             this.tokenCache,
                             false
                         );
@@ -373,7 +373,7 @@ export abstract class ClientApplication {
         }
     }
 
-    async acquireCachedToken(
+    private async acquireCachedToken(
         validRequest: CommonSilentFlowRequest,
         silentFlowClient: SilentFlowClient
     ): Promise<AuthenticationResult> {
@@ -384,10 +384,7 @@ export abstract class ClientApplication {
                     ? validRequest.scopes
                     : [...OIDC_DEFAULT_SCOPES],
             });
-
-        //for testing, don't commit
-        // cacheOutcome = CacheOutcome.PROACTIVELY_REFRESHED;
-
+            
         if (cacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
             this.logger.info(
                 "ClientApplication:acquireCachedToken - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
