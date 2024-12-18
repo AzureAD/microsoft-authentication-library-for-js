@@ -50,7 +50,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: master
+          ref: cuong/new-lib-skel # change it back to master when it passes, this will reflect the new msal-browser option added to e2e-tests.yml
 extends:
     template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
     parameters:
