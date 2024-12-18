@@ -135,8 +135,6 @@ export type CacheOptions = {
 // @public
 export abstract class ClientApplication {
     protected constructor(configuration: Configuration);
-    // (undocumented)
-    acquireCachedToken(validRequest: CommonSilentFlowRequest, silentFlowClient: SilentFlowClient): Promise<AuthenticationResult>;
     acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult>;
     acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
     acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
