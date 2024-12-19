@@ -1,7 +1,7 @@
-import { say } from '../src/index.js';
+import { say } from "../src/index.js";
 
-describe('say function', () => {
+describe("say function", () => {
     it('should return "Hello"', () => {
-        expect(say()).toBe('Hello');
+        expect(say()).toBe("Hello");
     });
 });
