@@ -34,12 +34,9 @@
     "lib",
     "src"
   ],
-  "peerDependencies": {
-    "@azure/msal-browser": "^3.28.0"
-  },
   "scripts": {
     "apiExtractor": "api-extractor run",
-    "build:all": "npm list --depth=0",
+    "build:all": "npm list --depth=0 && cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser",
     "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
     "build:modules": "rollup -c --strictDeprecations --bundleConfigAsCjs",
     "build": "rollup -c --strictDeprecations --bundleConfigAsCjs",
@@ -51,6 +48,9 @@
     "prepack": "npm run build:all",
     "test:coverage": "jest --coverage",
     "test": "jest"
+  },
+  "peerDependencies": {
+    "@azure/msal-browser": "^3.28.0"
   },
   "dependencies": {
     "@microsoft/api-extractor": "^7.48.0",
