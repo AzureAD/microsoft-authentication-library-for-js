@@ -39,7 +39,7 @@
   },
   "scripts": {
     "apiExtractor": "api-extractor run",
-    "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=@azure/msal-native-auth",
+    "build:all": "npm list --depth=0",
     "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
     "build:modules": "rollup -c --strictDeprecations --bundleConfigAsCjs",
     "build": "rollup -c --strictDeprecations --bundleConfigAsCjs",
