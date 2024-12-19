@@ -38,17 +38,19 @@
     "@azure/msal-browser": "^3.27.0"
   },
   "scripts": {
-    "build": "rollup -c --strictDeprecations --bundleConfigAsCjs",
-    "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
-    "test": "jest",
-    "test:coverage": "jest --coverage",
-    "lint": "eslint src --ext .ts --ext .tsx",
-    "lint:fix": "npm run lint -- --fix",
+    "apiExtractor": "api-extractor run",
     "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=@azure/msal-native-auth",
-    "prepack": "npm run build:all",
+    "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
+    "build:modules": "rollup -c --strictDeprecations --bundleConfigAsCjs",
+    "build": "rollup -c --strictDeprecations --bundleConfigAsCjs",
+    "clean": "shx rm -rf dist lib",
     "format:check": "prettier --ignore-path .gitignore --check src test",
     "format:fix": "prettier --ignore-path .gitignore --write src test",
-    "apiExtractor": "api-extractor run"
+    "lint:fix": "npm run lint -- --fix",
+    "lint": "eslint src --ext .ts --ext .tsx",
+    "prepack": "npm run build:all",
+    "test:coverage": "jest --coverage",
+    "test": "jest"
   },
   "dependencies": {
     "@microsoft/api-extractor": "^7.48.0",
