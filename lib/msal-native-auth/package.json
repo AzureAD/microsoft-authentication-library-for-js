@@ -50,7 +50,7 @@
     "test": "jest"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^3.28.0"
+    "@azure/msal-browser": "^3.27.0"
   },
   "dependencies": {
     "@microsoft/api-extractor": "^7.48.0",
