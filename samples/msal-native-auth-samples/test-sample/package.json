@@ -1,11 +1,11 @@
 {
   "name": "test-sample",
   "version": "1.0.0",
-  "main": "src/index.ts",
+  "main": "index.js",
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "node ./src/index.ts",
+    "start": "node ./index.js",
     "build": "npm run clean && tsc",
     "clean": "rimraf ./build",
     "test": "jest --passWithNoTests",
