@@ -107,11 +107,11 @@ describe("JS Runtime Nested App Auth", () => {
             "GetToken",
             BRIDGE_ERROR_USER_INTERACTION_REQUIRED
         );
-        expect(() =>
+        await expect(() =>
             pca.acquireTokenSilent({
                 scopes: ["Files.Read"],
             })
-        ).rejects.toBeInstanceOf(InteractionRequiredAuthError);
+        ).rejects.toThrow(InteractionRequiredAuthError);
 
         // Validate acquireTokenPopup
         mockBridge.addAuthResultResponse(
