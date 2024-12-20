@@ -2,14 +2,18 @@
  * @jest-environment node
  */
 
-import MockBridge from "./MockBridge";
+import MockBridge from "./MockBridge.js";
 import {
+    BRIDGE_ERROR_USER_INTERACTION_REQUIRED,
     INIT_CONTEXT_RESPONSE,
     SILENT_TOKEN_RESPONSE,
-} from "./BridgeProxyConstants";
-import { PublicClientNext } from "../../src/app/PublicClientNext";
-import { TEST_CONFIG, TEST_TOKENS } from "../utils/StringConstants";
-import NodeCrypto from "crypto";
+} from "./BridgeProxyConstants.js";
+import { PublicClientNext } from "../../src/app/PublicClientNext.js";
+import { TEST_CONFIG, TEST_TOKENS } from "../utils/StringConstants.js";
+import { randomFillSync } from "crypto";
+import { TokenClaims } from "@azure/msal-common";
+import { CacheLookupPolicy } from "../../src/index.js";
+import { InteractionRequiredAuthError } from "@azure/msal-common";
 
 /**
  * Tests Nested App Auth for JS Runtime environment
@@ -21,15 +25,13 @@ import NodeCrypto from "crypto";
 
 describe("JS Runtime Nested App Auth", () => {
     let mockBridge: MockBridge;
-    const deletedProperties = new Map<string, any>();
+    const globalObj: any = global;
 
     function deleteGlobalProperty(name: string) {
-        deletedProperties.set(name, global[name]);
-        delete global[name];
+        delete globalObj[name];
     }
 
     beforeAll(() => {
-        let globalObj: any = global;
         globalObj.self = globalObj;
         // JS Runtime is not a browser, but does have window defined
         globalObj.window = globalObj;
@@ -42,7 +44,7 @@ describe("JS Runtime Nested App Auth", () => {
         // Add platform API Nested App Auth depends on
         globalObj["crypto"] = {
             getRandomValues(dataBuffer: any) {
-                return NodeCrypto.randomFillSync(dataBuffer);
+                return randomFillSync(dataBuffer);
             },
         };
 
@@ -53,36 +55,82 @@ describe("JS Runtime Nested App Auth", () => {
         globalObj.nestedAppAuthBridge = mockBridge;
     });
 
-    afterAll(() => {
-        // Reset global properties
-        for (const [name, value] of deletedProperties) {
-            if (value === undefined) {
-                delete global[name];
-            } else {
-                global[name] = value;
-            }
-        }
-    });
-
     it("Nested App Auth access token can be acquired", async () => {
         mockBridge.addInitContextResponse(
             "GetInitContext",
             INIT_CONTEXT_RESPONSE
         );
-        mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+
         const pca = await PublicClientNext.createPublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 supportsNestedAppAuth: true,
             },
         });
-        const authResult = await pca.ssoSilent({ scopes: ["User.Read"] });
-        expect(authResult.account.homeAccountId).toBe(
-            "2995ae49-d9dd-409d-8d62-ba969ce58a81.51178b70-16cc-41b5-bef1-ae1808139065"
+
+        expect(pca.getActiveAccount()).toBe(null);
+
+        // Validate ssoSilent
+        mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+        {
+            const authResult = await pca.ssoSilent({ scopes: ["User.Read"] });
+            const idTokenClaims: TokenClaims = authResult.idTokenClaims;
+            expect(authResult.account.homeAccountId).toBe(
+                "00000000-0000-0000-66f3-3332eca7ea81.3338040d-6c67-4c5b-b112-36a304b66da"
+            );
+            expect(idTokenClaims.aud).toBe(
+                "6cb04018-a3f5-46a7-b995-940c78f5aef3"
+            );
+            expect(authResult.fromCache).toBe(false);
+            expect(authResult.accessToken).toBe(TEST_TOKENS.ACCESS_TOKEN);
+        }
+
+        // Validate acquireTokenSilent
+        {
+            const authResult = await pca.acquireTokenSilent({
+                scopes: ["User.Read"],
+                cacheLookupPolicy: CacheLookupPolicy.Default,
+            });
+            const idTokenClaims: TokenClaims = authResult.idTokenClaims;
+            expect(authResult.account.homeAccountId).toBe(
+                "00000000-0000-0000-66f3-3332eca7ea81.3338040d-6c67-4c5b-b112-36a304b66da"
+            );
+            expect(idTokenClaims.aud).toBe(
+                "6cb04018-a3f5-46a7-b995-940c78f5aef3"
+            );
+            expect(authResult.fromCache).toBe(true);
+            expect(authResult.accessToken).toBe(TEST_TOKENS.ACCESS_TOKEN);
+        }
+
+        // Validate error scenario
+        mockBridge.addErrorResponse(
+            "GetToken",
+            BRIDGE_ERROR_USER_INTERACTION_REQUIRED
         );
-        expect(authResult.idTokenClaims["aud"]).toBe(
-            "6cb04018-a3f5-46a7-b995-940c78f5aef3"
+        expect(() =>
+            pca.acquireTokenSilent({
+                scopes: ["Files.Read"],
+            })
+        ).rejects.toBeInstanceOf(InteractionRequiredAuthError);
+
+        // Validate acquireTokenPopup
+        mockBridge.addAuthResultResponse(
+            "GetTokenPopup",
+            SILENT_TOKEN_RESPONSE
         );
-        expect(authResult.accessToken).toBe(TEST_TOKENS.ACCESS_TOKEN);
+        {
+            const authResult = await pca.acquireTokenPopup({
+                scopes: ["User.Read"],
+            });
+            const idTokenClaims: TokenClaims = authResult.idTokenClaims;
+            expect(authResult.account.homeAccountId).toBe(
+                "00000000-0000-0000-66f3-3332eca7ea81.3338040d-6c67-4c5b-b112-36a304b66da"
+            );
+            expect(idTokenClaims.aud).toBe(
+                "6cb04018-a3f5-46a7-b995-940c78f5aef3"
+            );
+            expect(authResult.fromCache).toBe(false);
+            expect(authResult.accessToken).toBe(TEST_TOKENS.ACCESS_TOKEN);
+        }
     });
 });
