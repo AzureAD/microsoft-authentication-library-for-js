@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Add test for JS Runtime NAA scenario (#7477)",
+  "packageName": "@azure/msal-browser",
+  "email": "dasau@microsoft.com",
+  "dependentChangeType": "none"
+}
