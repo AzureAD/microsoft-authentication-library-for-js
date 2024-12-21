@@ -15,6 +15,28 @@ const p12FilePath = path.join(__dirname, "certificate.p12");
 const certificateKEY = path.join(__dirname, "certificate.key");
 const certificateCER = path.join(__dirname, "certificate.cer");
 
+/**
+ * Retrieves certificate information from Azure Key Vault, extracts the private key and certificate(s),
+ * and verifies the private key with the certificate chain to ensure proper matching.
+ *
+ * This function handles the extraction of a PKCS#12 certificate stored as a secret in Azure Key Vault,
+ * splits it into the private key and certificate(s), and validates the match between the private key
+ * and the certificates. It also ensures the correct order of certificates in the chain (if necessary).
+ *
+ * **Note:** The function writes temporary files to the local filesystem and cleans them up after the process is complete.
+ * 
+ * @async
+ * @param {any} client - The Azure Key Vault client object used to interact with the Key Vault.
+ * @param {string} secretName - The name of the secret in Key Vault that contains the base64-encoded PKCS#12 certificate.
+ * 
+ * @returns {Promise<Array<string>>} A promise that resolves to an array containing:
+ *  - The thumbprint (SHA-256 hash) of the certificate in the correct order.
+ *  - The private key extracted from the PKCS#12 certificate.
+ *  - The full certificate chain (x5c) in PEM format, including all certificates.
+ * 
+ * @throws {Error} If an error occurs while processing the PKCS#12 certificate, such as a malformed certificate or mismatched private key.
+ * @throws {Error} If the private key does not match any of the certificates in the chain.
+ */
 export const getCertificateInfo = async (
     client: any,
     secretName: string
