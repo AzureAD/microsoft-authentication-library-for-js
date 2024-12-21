@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1734744715923,
+  "lastUpdate": 1734744822572,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -14008,6 +14008,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.06%",
             "unit": "ops/sec",
             "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "958da505ca3ff78e09e2bec49d40a270bd90ff65",
+          "message": "MSAL-Node Tests: Fixed file extensions on all imports & added MS license to all files (#7454)\n\nAddressed tech debt in the msal-node tests.\r\n\r\n1. Added \".js\" to all file names in imports\r\n2. Added the MS license at the top of all files",
+          "timestamp": "2024-12-20T20:28:05-05:00",
+          "tree_id": "df4dcf42b93e3736d08690bec4026ec4a37f4903",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/958da505ca3ff78e09e2bec49d40a270bd90ff65"
+        },
+        "date": 1734744820465,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 196779,
+            "range": "±2.11%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 179134,
+            "range": "±2.09%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
           }
         ]
       }
