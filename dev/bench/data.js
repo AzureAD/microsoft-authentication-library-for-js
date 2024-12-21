@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1734031877623,
+  "lastUpdate": 1734739301369,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -13894,6 +13894,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.77%",
             "unit": "ops/sec",
             "extra": "222 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "284fd9db2f246169f37c5509a2b16b297b1d0df3",
+          "message": "Linted/Formatted all msal-node samples (#7450)\n\nI made no changes of my own, but saved every file. The linting/formatting happened automatically.",
+          "timestamp": "2024-12-20T18:56:30-05:00",
+          "tree_id": "73c9ec847946b3ce1f494dd72cfb7d89a3437534",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/284fd9db2f246169f37c5509a2b16b297b1d0df3"
+        },
+        "date": 1734739300023,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 188000,
+            "range": "±2.00%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 194122,
+            "range": "±2.17%",
+            "unit": "ops/sec",
+            "extra": "202 samples"
           }
         ]
       }
