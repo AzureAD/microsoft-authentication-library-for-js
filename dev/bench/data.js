@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1734739301369,
+  "lastUpdate": 1734741828513,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -13932,6 +13932,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.17%",
             "unit": "ops/sec",
             "extra": "202 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "40ab70a820b56c7d7a7317086176c4a7798b0d2e",
+          "message": "Improved JSDoc in CertificateUtils.ts (#7471)\n\nImproved JSDoc in CertificateUtils.ts",
+          "timestamp": "2024-12-20T19:38:13-05:00",
+          "tree_id": "83b30b96c1e3df534a262545f746eb4a5a2d54e8",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/40ab70a820b56c7d7a7317086176c4a7798b0d2e"
+        },
+        "date": 1734741827202,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 190499,
+            "range": "±2.16%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 193268,
+            "range": "±2.07%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
