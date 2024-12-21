@@ -18,15 +18,17 @@ export const isAuthorized = (appConfig: AppConfig): RequestHandler => {
 
         try {
             const tokenValidator = new TokenValidator(appConfig);
-            const isTokenValid = await tokenValidator.validateAccessToken(accessToken);
+            const isTokenValid = await tokenValidator.validateAccessToken(
+                accessToken
+            );
 
             if (!isTokenValid) {
                 return res.status(401).json({ message: "Unauthorized" });
-            };
+            }
 
             next();
         } catch (error) {
             next(error);
         }
-    }
+    };
 };

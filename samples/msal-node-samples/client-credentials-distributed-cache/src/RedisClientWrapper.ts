@@ -13,11 +13,11 @@ const EVICTION_POLICY = "volatile-lru";
 const EMPTY_STRING = "";
 
 /**
-* Simple persistence client helper, using Redis (node-redis). You must have redis installed
-* on your machine and have redis server listening. Note that this is only for illustration,
-* and you'll need to consider cache eviction policies and handle cache server connection
-* issues. For more information, visit: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/caching.md
-*/
+ * Simple persistence client helper, using Redis (node-redis). You must have redis installed
+ * on your machine and have redis server listening. Note that this is only for illustration,
+ * and you'll need to consider cache eviction policies and handle cache server connection
+ * issues. For more information, visit: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/caching.md
+ */
 class RedisClientWrapper implements ICacheClient {
     cacheClient: RedisClientType;
 
@@ -39,9 +39,9 @@ class RedisClientWrapper implements ICacheClient {
      */
     public async get(key: string): Promise<string> {
         try {
-            return await this.cacheClient.get(key) || EMPTY_STRING;
+            return (await this.cacheClient.get(key)) || EMPTY_STRING;
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
 
         return EMPTY_STRING;
@@ -55,11 +55,13 @@ class RedisClientWrapper implements ICacheClient {
      */
     public async set(key: string, value: string): Promise<string> {
         try {
-            return await this.cacheClient.set(key, value, {
-                EX: CACHE_TTL
-            }) || EMPTY_STRING;
+            return (
+                (await this.cacheClient.set(key, value, {
+                    EX: CACHE_TTL,
+                })) || EMPTY_STRING
+            );
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
 
         return EMPTY_STRING;
