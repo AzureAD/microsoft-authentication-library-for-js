@@ -10,12 +10,12 @@ import {
     LogLevel,
     ConfidentialClientApplication,
     ClientCredentialRequest,
-    AuthenticationResult
+    AuthenticationResult,
 } from "@azure/msal-node";
 
 import CustomCachePlugin from "./CustomCachePlugin";
 import RedisClientWrapper from "./RedisClientWrapper";
-import AxiosHelper from './AxiosHelper';
+import AxiosHelper from "./AxiosHelper";
 
 export type AppConfig = {
     instance: string;
@@ -29,7 +29,11 @@ export class AuthProvider {
     private cacheClientWrapper: RedisClientWrapper;
     private partitionKey: string;
 
-    private constructor(msalConfig: Configuration, cacheClient: RedisClientType, partitionKey: string) {
+    private constructor(
+        msalConfig: Configuration,
+        cacheClient: RedisClientType,
+        partitionKey: string
+    ) {
         this.msalConfig = msalConfig;
         this.cacheClientWrapper = new RedisClientWrapper(cacheClient);
         this.partitionKey = partitionKey;
@@ -43,7 +47,10 @@ export class AuthProvider {
      * @param cacheClient
      * @returns
      */
-    static async initialize(appConfig: AppConfig, cacheClient: RedisClientType): Promise<AuthProvider> {
+    static async initialize(
+        appConfig: AppConfig,
+        cacheClient: RedisClientType
+    ): Promise<AuthProvider> {
         const msalConfig = {
             auth: {
                 clientId: appConfig.clientId,
@@ -56,37 +63,51 @@ export class AuthProvider {
                         console.log(message);
                     },
                     logLevel: LogLevel.Trace,
-                    piiLoggingEnabled: false
+                    piiLoggingEnabled: false,
                 },
                 // proxyUrl: "http://localhost:8888" // uncomment to capture traffic with Fiddler
-            }
+            },
         } as Configuration;
 
         const partitionKey = `${appConfig.clientId}.${appConfig.tenantId}`;
-        const msalConfigWithMetadata = await AuthProvider.getMetadata(msalConfig, cacheClient, partitionKey);
+        const msalConfigWithMetadata = await AuthProvider.getMetadata(
+            msalConfig,
+            cacheClient,
+            partitionKey
+        );
 
-        return new AuthProvider(msalConfigWithMetadata, cacheClient, partitionKey);
+        return new AuthProvider(
+            msalConfigWithMetadata,
+            cacheClient,
+            partitionKey
+        );
     }
 
-    async getToken(tokenRequest: ClientCredentialRequest): Promise<AuthenticationResult | null> {
+    async getToken(
+        tokenRequest: ClientCredentialRequest
+    ): Promise<AuthenticationResult | null> {
         const cca = new ConfidentialClientApplication({
             ...this.msalConfig,
             cache: {
                 cachePlugin: new CustomCachePlugin(
                     this.cacheClientWrapper,
                     this.partitionKey // <clientId>.<tenantId>
-                )
-            }
+                ),
+            },
         });
 
         let tokenResponse = null;
 
         try {
             performance.mark("acquireTokenByClientCredential-start");
-            tokenResponse = await cca.acquireTokenByClientCredential(tokenRequest);
+            tokenResponse = await cca.acquireTokenByClientCredential(
+                tokenRequest
+            );
             performance.mark("acquireTokenByClientCredential-end");
             performance.measure(
-                tokenResponse?.fromCache ? "acquireTokenByClientCredential-fromCache" : "acquireTokenByClientCredential-fromNetwork",
+                tokenResponse?.fromCache
+                    ? "acquireTokenByClientCredential-fromCache"
+                    : "acquireTokenByClientCredential-fromNetwork",
                 "acquireTokenByClientCredential-start",
                 "acquireTokenByClientCredential-end"
             );
@@ -97,29 +118,53 @@ export class AuthProvider {
         return tokenResponse;
     }
 
-    private static async getMetadata(msalConfig: Configuration, cacheClient: RedisClientType, partitionKey: string): Promise<Configuration> {
+    private static async getMetadata(
+        msalConfig: Configuration,
+        cacheClient: RedisClientType,
+        partitionKey: string
+    ): Promise<Configuration> {
         const msalConfigWithMetadata = msalConfig;
 
         try {
-            let [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all([
-                cacheClient.get(`${partitionKey}.discovery-metadata`),
-                cacheClient.get(`${partitionKey}.authority-metadata`)
-            ]);
+            let [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all(
+                [
+                    cacheClient.get(`${partitionKey}.discovery-metadata`),
+                    cacheClient.get(`${partitionKey}.authority-metadata`),
+                ]
+            );
 
             if (!cloudDiscoveryMetadata || !authorityMetadata) {
-                [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all([
-                    AuthProvider.fetchCloudDiscoveryMetadata(partitionKey.split('.')[1]),
-                    AuthProvider.fetchOIDCMetadata(partitionKey.split('.')[1])
-                ]);
+                [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all(
+                    [
+                        AuthProvider.fetchCloudDiscoveryMetadata(
+                            partitionKey.split(".")[1]
+                        ),
+                        AuthProvider.fetchOIDCMetadata(
+                            partitionKey.split(".")[1]
+                        ),
+                    ]
+                );
 
                 if (cloudDiscoveryMetadata && authorityMetadata) {
-                    await cacheClient.set(`${partitionKey}.discovery-metadata`, JSON.stringify(cloudDiscoveryMetadata));
-                    await cacheClient.set(`${partitionKey}.authority-metadata`, JSON.stringify(authorityMetadata));
+                    await cacheClient.set(
+                        `${partitionKey}.discovery-metadata`,
+                        JSON.stringify(cloudDiscoveryMetadata)
+                    );
+                    await cacheClient.set(
+                        `${partitionKey}.authority-metadata`,
+                        JSON.stringify(authorityMetadata)
+                    );
                 }
             }
 
-            msalConfigWithMetadata.auth.cloudDiscoveryMetadata = typeof cloudDiscoveryMetadata === 'string' ? cloudDiscoveryMetadata : JSON.stringify(cloudDiscoveryMetadata);
-            msalConfigWithMetadata.auth.authorityMetadata = typeof authorityMetadata === 'string' ? authorityMetadata : JSON.stringify(authorityMetadata);
+            msalConfigWithMetadata.auth.cloudDiscoveryMetadata =
+                typeof cloudDiscoveryMetadata === "string"
+                    ? cloudDiscoveryMetadata
+                    : JSON.stringify(cloudDiscoveryMetadata);
+            msalConfigWithMetadata.auth.authorityMetadata =
+                typeof authorityMetadata === "string"
+                    ? authorityMetadata
+                    : JSON.stringify(authorityMetadata);
         } catch (error) {
             console.log(error);
         }
@@ -127,14 +172,21 @@ export class AuthProvider {
         return msalConfigWithMetadata;
     }
 
-    private static async fetchCloudDiscoveryMetadata(tenantId: string): Promise<any> {
-        const endpoint = 'https://login.microsoftonline.com/common/discovery/instance';
+    private static async fetchCloudDiscoveryMetadata(
+        tenantId: string
+    ): Promise<any> {
+        const endpoint =
+            "https://login.microsoftonline.com/common/discovery/instance";
 
         try {
-            const response = await AxiosHelper.callDownstreamApi(endpoint, undefined, {
-                'api-version': '1.1',
-                'authorization_endpoint': `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`
-            });
+            const response = await AxiosHelper.callDownstreamApi(
+                endpoint,
+                undefined,
+                {
+                    "api-version": "1.1",
+                    authorization_endpoint: `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`,
+                }
+            );
 
             return response;
         } catch (error) {
@@ -146,7 +198,7 @@ export class AuthProvider {
         const endpoint = `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid-configuration`;
 
         try {
-            const response = await AxiosHelper.callDownstreamApi(endpoint)
+            const response = await AxiosHelper.callDownstreamApi(endpoint);
             return response;
         } catch (error) {
             console.log(error);

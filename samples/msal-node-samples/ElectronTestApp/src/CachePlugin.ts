@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 import { ICachePlugin } from "@azure/msal-node";
-import * as fs from 'fs';
+import * as fs from "fs";
 
 export const cachePlugin = (CACHE_LOCATION: string): ICachePlugin => {
     const beforeCacheAccess = async (cacheContext) => {
@@ -18,28 +18,35 @@ export const cachePlugin = (CACHE_LOCATION: string): ICachePlugin => {
                     }
                 });
             } else {
-                fs.writeFile(CACHE_LOCATION, cacheContext.tokenCache.serialize(), (err) => {
-                    if (err) {
-                        reject();
+                fs.writeFile(
+                    CACHE_LOCATION,
+                    cacheContext.tokenCache.serialize(),
+                    (err) => {
+                        if (err) {
+                            reject();
+                        }
                     }
-                });
+                );
             }
         });
     };
 
     const afterCacheAccess = async (cacheContext) => {
         if (cacheContext.cacheHasChanged) {
-            fs.writeFile(CACHE_LOCATION, cacheContext.tokenCache.serialize(), (err) => {
-                if (err) {
-                    console.log(err);
+            fs.writeFile(
+                CACHE_LOCATION,
+                cacheContext.tokenCache.serialize(),
+                (err) => {
+                    if (err) {
+                        console.log(err);
+                    }
                 }
-            });
+            );
         }
     };
 
     return {
         beforeCacheAccess,
-        afterCacheAccess
-    }
-}
-
+        afterCacheAccess,
+    };
+};

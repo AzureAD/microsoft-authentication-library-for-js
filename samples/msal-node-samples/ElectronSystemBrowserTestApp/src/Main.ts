@@ -55,7 +55,7 @@ export default class Main {
         // Windows and Linux will quit the application when all windows are closed. In macOS requires explicit quitting
         if (process.platform !== "darwin") {
             Main.application.quit();
-        } 
+        }
     }
 
     private static requestSingleInstance(): void {
@@ -91,7 +91,7 @@ export default class Main {
         if (Main.mainWindow) {
             if (Main.mainWindow.isMinimized()) {
                 Main.mainWindow.restore();
-            } 
+            }
             Main.mainWindow.focus();
         }
     }
@@ -137,7 +137,6 @@ export default class Main {
         Main.mainWindow.webContents.send(message, payload);
     }
 
-    
     private static async attemptSSOSilent(): Promise<void> {
         const tokenRequest = {
             scopes: authConfig.resourceApi.scopes,
