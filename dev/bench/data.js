@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1734741828513,
+  "lastUpdate": 1734744715923,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -13968,6 +13968,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 193268,
             "range": "±2.07%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c837638cddd163e2372aabc1bf9f8d63c6e24e9a",
+          "message": "MSAL-Node Samples - console.log + error Improvements (#7447)\n\nThis PR resolves several instances of the error found in CodeQL:\r\n`Information exposure through a stack trace`.\r\n\r\nAll instances of `console.log` have been deleted for acquireToken calls\r\nthat make a network request.\r\n\r\nAdditionally, for all instances of `console.log` **NOT** for\r\nacquireToken calls that make a network request:\r\n1. `console.log` has been converted to `console.error`\r\n2. All instances of `err` have been changed to `error` for consistency\r\n\r\n(There's one instance of a `console.log` change to a msal-browser sample\r\nas well)",
+          "timestamp": "2024-12-20T20:26:41-05:00",
+          "tree_id": "660daff879156c41f5da37947f4f7817dd5a8311",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/c837638cddd163e2372aabc1bf9f8d63c6e24e9a"
+        },
+        "date": 1734744714642,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 209717,
+            "range": "±1.54%",
+            "unit": "ops/sec",
+            "extra": "206 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 190488,
+            "range": "±2.06%",
             "unit": "ops/sec",
             "extra": "221 samples"
           }
