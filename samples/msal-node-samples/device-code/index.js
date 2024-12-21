@@ -77,12 +77,12 @@ const getTokenDeviceCode = function (scenarioConfig, clientApplication, runtimeO
  * and execute the sample application.
  */
  if(argv.$0 === "index.js") {
-    const loggerOptions = {
-        loggerCallback(loglevel, message, containsPii) {
-            console.log(message);
+    const loggerOptions = {
+        loggerCallback(loglevel, message, containsPii) {
+            console.log(message);
         },
-            piiLoggingEnabled: false,
-        logLevel: msal.LogLevel.Verbose,
+        piiLoggingEnabled: false,
+        logLevel: msal.LogLevel.Verbose,
     }
     
     // Build MSAL Client Configuration from scenario configuration file
