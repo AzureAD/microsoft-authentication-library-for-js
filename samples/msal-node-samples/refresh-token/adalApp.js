@@ -79,12 +79,12 @@ app.get('/redirect', function (req, res, next) {
         resource,
         clientId,
         clientSecret,
-        function (err, response) {
-            if (err) return next(err);
+        function (error, response) {
+            if (error) return next(error);
 
             // cache the response
-            authenticationContext.cache.add([response], function (err, result) {
-                if (err) return next(err);
+            authenticationContext.cache.add([response], function (error, result) {
+                if (error) return next(error);
                 console.log(result);
             });
 

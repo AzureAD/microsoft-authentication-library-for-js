@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication";
+import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication.js";
 import {
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     MANAGED_IDENTITY_AZURE_ARC_NETWORK_REQUEST_400_ERROR,
@@ -12,7 +12,7 @@ import {
     MANAGED_IDENTITY_RESOURCE,
     MANAGED_IDENTITY_RESOURCE_BASE,
     TEST_TOKENS,
-} from "../../test_kit/StringConstants";
+} from "../../test_kit/StringConstants.js";
 
 import {
     ManagedIdentityNetworkErrorClient,
@@ -20,26 +20,26 @@ import {
     managedIdentityRequestParams,
     userAssignedClientIdConfig,
     networkClient,
-} from "../../test_kit/ManagedIdentityTestUtils";
+} from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
     AuthenticationResult,
     HttpStatus,
     ServerError,
 } from "@azure/msal-common";
-import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient";
+import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient.js";
 import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
-} from "../../../src/error/ManagedIdentityError";
+} from "../../../src/error/ManagedIdentityError.js";
 import {
     ARC_API_VERSION,
     SUPPORTED_AZURE_ARC_PLATFORMS,
-} from "../../../src/client/ManagedIdentitySources/AzureArc";
+} from "../../../src/client/ManagedIdentitySources/AzureArc.js";
 import * as fs from "fs";
 import {
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentitySourceNames,
-} from "../../../src/utils/Constants";
+} from "../../../src/utils/Constants.js";
 
 jest.mock("fs");
 

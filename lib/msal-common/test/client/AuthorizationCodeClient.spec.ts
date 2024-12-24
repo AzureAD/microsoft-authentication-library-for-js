@@ -3442,8 +3442,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 // @ts-ignore
-                client.networkManager,
-                "sendPostRequest"
+                client.networkClient,
+                "sendPostRequestAsync"
             ).mockResolvedValue(AUTHENTICATION_RESULT_WITH_HEADERS);
 
             if (!config.cryptoInterface) {
@@ -3491,6 +3491,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     refreshTokenSize:
                         AUTHENTICATION_RESULT_WITH_HEADERS.body.refresh_token
                             ?.length,
+                    requestId: "xMsRequestId",
                 },
                 RANDOM_TEST_GUID
             );
@@ -3522,8 +3523,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             jest.spyOn(
                 // @ts-ignore
-                client.networkManager,
-                "sendPostRequest"
+                client.networkClient,
+                "sendPostRequestAsync"
             ).mockResolvedValue({ ...AUTHENTICATION_RESULT, headers: {} });
 
             if (!config.cryptoInterface) {
@@ -3570,6 +3571,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     httpVerToken: "",
                     refreshTokenSize:
                         AUTHENTICATION_RESULT.body.refresh_token?.length,
+                    requestId: "",
                 },
                 RANDOM_TEST_GUID
             );
