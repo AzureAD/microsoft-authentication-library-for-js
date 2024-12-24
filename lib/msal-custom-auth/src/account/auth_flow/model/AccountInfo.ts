@@ -8,14 +8,16 @@ import { SignOutResult } from "../result/SignOutResult.js";
 import { GetAccessTokenResult } from "../result/GetAccessTokenResult.js";
 import {
     AccountInfo as AccountData,
-    Constants,
+//    Constants,
     TokenClaims,
 } from "@azure/msal-browser";
 import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
-import {
-    GetAccessTokenError,
-    InvalidScopes,
-} from "../../../core/error/GetAccessTokenError.js";
+/*
+ * import {
+ *     GetAccessTokenError,
+ *     InvalidScopes,
+ * } from "../../../core/error/GetAccessTokenError.js";
+ */
 import { DefaultScopes } from "../../../CustomAuthConstants.js";
 
 /*
