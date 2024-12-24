@@ -16,6 +16,7 @@ import {
     GetAccessTokenError,
     InvalidScopes,
 } from "../../../core/error/GetAccessTokenError.js";
+import { DefaultScopes } from "../../../CustomAuthConstants.js";
 
 /*
  * Account information.
@@ -73,17 +74,7 @@ export class AccountInfo {
      * Gets the token claims.
      * @returns The token claims.
      */
-    getClaims():
-        | (TokenClaims & {
-              [key: string]:
-                  | string
-                  | number
-                  | string[]
-                  | object
-                  | undefined
-                  | unknown;
-          })
-        | undefined {
+    getClaims(): AuthTokenClaims | undefined {
         return this.account.idTokenClaims;
     }
 
@@ -97,26 +88,24 @@ export class AccountInfo {
         forceRefresh: boolean = false,
         scopes?: Array<string>
     ): Promise<GetAccessTokenResult> {
-        const newScopes = scopes || [
-            Constants.OPENID_SCOPE,
-            Constants.PROFILE_SCOPE,
-            Constants.OFFLINE_ACCESS_SCOPE,
-        ];
-
-        if (newScopes.length === 0) {
-            const errorResult = GetAccessTokenResult.createWithError(
-                new GetAccessTokenError(
-                    InvalidScopes,
-                    "Empty scopes",
-                    this.correlationId
-                )
-            );
-
-            return Promise.resolve(errorResult);
-        }
+        const newScopes = scopes || DefaultScopes;
 
         throw new Error(
-            `Method not implemented with forceRefresh '${forceRefresh}'.`
+            `Method not implemented with forceRefresh '${forceRefresh}' and scopes ${newScopes}.`
         );
     }
 }
+
+/*
+ * Authentication token claims.
+ */
+type AuthTokenClaims =
+    | TokenClaims & {
+          [key: string]:
+              | string
+              | number
+              | string[]
+              | object
+              | undefined
+              | unknown;
+      };
