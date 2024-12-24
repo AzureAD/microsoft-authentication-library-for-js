@@ -47,7 +47,7 @@
   },
   "scripts": {
     "apiExtractor": "api-extractor run",
-    "build:all": "npm run build:browser && npm run build",
+    "build:all": "shx",
     "build:common": "cd ../.. && npm run build --workspace=@azure/msal-common",
     "build:browser": "npm run build:common && npm run build --workspace=@azure/msal-browser",
     "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
