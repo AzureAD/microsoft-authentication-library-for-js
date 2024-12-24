@@ -52,7 +52,7 @@
     "build:browser": "npm run build:common && npm run build --workspace=@azure/msal-browser",
     "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
     "build:modules": "rollup -c --strictDeprecations --bundleConfigAsCjs",
-    "build": "npm run clean && npm run build:modules",
+    "build": "rollup -c --strictDeprecations --bundleConfigAsCjs",
     "clean:coverage": "rimraf ../../.nyc_output/*",
     "clean": "shx rm -rf dist lib",
     "format:check": "prettier --ignore-path .gitignore --check src test",
