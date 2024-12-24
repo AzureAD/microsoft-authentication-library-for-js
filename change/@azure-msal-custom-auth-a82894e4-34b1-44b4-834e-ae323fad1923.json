@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Alter build:all",
+  "packageName": "@azure/msal-custom-auth",
+  "email": "164532638+nguyencuong2596@users.noreply.github.com",
+  "dependentChangeType": "patch"
+}
