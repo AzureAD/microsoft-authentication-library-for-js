@@ -1,0 +1,29 @@
+{
+  "name": "sample-sample",
+  "version": "1.0.0",
+  "description": "Sample for end-to-end test sample project",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "start": "node ./index.js",
+    "build": "npm run clean && tsc",
+    "clean": "rimraf ./build",
+    "test:e2e": "jest --passWithNoTests",
+    "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-custom-auth",
+    "start:build": "npm run build:package && npm start"
+  },
+  "author": "Microsoft",
+  "license": "MIT",
+  "dependencies": {
+    "@azure/msal-browser": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "dotenv": "^16.4.7",
+    "jest": "^29.7.0",
+    "jest-junit": "^16.0.0",
+    "rimraf": "^5.0.10",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.7.2"
+  }
+}

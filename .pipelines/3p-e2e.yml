@@ -26,6 +26,10 @@ parameters:
       displayName: "Run Angular Tests"
       type: boolean
       default: true
+    - name: "runCustomAuthTests"
+      displayName: "Run Custom Auth Tests"
+      type: boolean
+      default: true
 
 variables:
     CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
@@ -46,7 +50,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: master
+          ref: jiashen/sketeton # TODO: change back to master after pipeline is working
 extends:
     template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
     parameters:
@@ -126,4 +130,17 @@ extends:
                             - "angular-b2c-sample-app"
                             - "angular-standalone-sample"
                             - "angular17-standalone-sample"
+                        debug: ${{ parameters.debug }}
+                - ${{ if eq(parameters.runCustomAuthTests, true) }}:
+                  - template: .pipelines/templates/e2e-tests.yml@1P
+                    parameters:
+                        jobName: "validate_msal_custom_auth"
+                        targetLib: "msal-custom-auth"
+                        poolType: ${{ parameters.poolType }}
+                        stage: "CI"
+                        sourceRepo: ${{ variables.sourceRepo }}
+                        sourceBranch: ${{ variables.sourceBranch }}
+                        workspace: "samples/msal-custom-auth-samples"
+                        samples:
+                            - "sample-sample"
                         debug: ${{ parameters.debug }}
