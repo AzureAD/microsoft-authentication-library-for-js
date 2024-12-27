@@ -47,9 +47,7 @@
   },
   "scripts": {
     "apiExtractor": "api-extractor run",
-    "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common",
-    "build:common": "cd ../.. && npm run build --workspace=@azure/msal-common",
-    "build:browser": "npm run build:common && npm run build --workspace=@azure/msal-browser",
+    "build:all": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser --workspace=@azure/msal-custom-auth",
     "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
     "build:modules": "rollup -c --strictDeprecations --bundleConfigAsCjs",
     "build": "rollup -c --strictDeprecations --bundleConfigAsCjs",
