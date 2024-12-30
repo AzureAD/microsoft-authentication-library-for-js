@@ -20,7 +20,7 @@ export class UserAccountAttributes {
             throw new UserAccountAttributeError(
                 InvalidAttributeErrorCode,
                 name,
-                value
+                value,
             );
         }
 

@@ -10,7 +10,7 @@ export abstract class ClientActionParamsBase {
         public authorityUrl: string,
         public clientId: string,
         public correlationId: string,
-        public challengeType: Array<string>
+        public challengeType: Array<string>,
     ) {
         if (!correlationId) {
             throw new InvalidArgumentError("correlationId");

@@ -17,7 +17,7 @@ export abstract class ContinuationTokenResult extends AuthActionResultBase {
     constructor(
         public continuationToken: string,
         correlationId: string,
-        public challengeType?: string
+        public challengeType?: string,
     ) {
         super(correlationId);
 
@@ -34,7 +34,7 @@ export abstract class CodeSendResult extends ContinuationTokenResult {
         public challengeChannel: string,
         public challengeTargetLabel: string,
         public codeLength: number,
-        correlationId: string
+        correlationId: string,
     ) {
         super(continuationToken, correlationId);
 

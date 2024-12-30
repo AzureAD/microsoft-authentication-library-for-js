@@ -23,7 +23,7 @@ export class SignInContinuationStateHandler extends AuthFlowStateHandlerBase {
         correlationId: string,
         continuationToken: string,
         private config: CustomAuthConfiguration,
-        private username: string
+        private username: string,
     ) {
         super(correlationId, continuationToken);
 

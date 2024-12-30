@@ -21,8 +21,8 @@ export class ResetPasswordCodeRequiredStateHandler extends ResetPasswordStateHan
         if (!code) {
             return Promise.resolve(
                 ResetPasswordSubmitCodeResult.createWithError(
-                    new InvalidArgumentError("code", this.correlationId)
-                )
+                    new InvalidArgumentError("code", this.correlationId),
+                ),
             );
         }
 

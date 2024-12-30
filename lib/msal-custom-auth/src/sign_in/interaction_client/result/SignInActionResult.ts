@@ -14,14 +14,14 @@ import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.j
 export class SignInCompleteResult extends AuthActionResultBase {
     constructor(
         public authenticationResult: AuthenticationResult,
-        correlationId: string
+        correlationId: string,
     ) {
         super(correlationId);
 
         if (!authenticationResult) {
             throw new InvalidArgumentError(
                 "authenticationResult",
-                correlationId
+                correlationId,
             );
         }
     }

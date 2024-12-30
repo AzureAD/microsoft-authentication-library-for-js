@@ -37,7 +37,7 @@ export class SigninClient extends InteractionClientBase {
     }
 
     async start(
-        parameters: SignInStartParams
+        parameters: SignInStartParams,
     ): Promise<SignInWithContinuationTokenResult | SignInCodeSendResult> {
         /*
          * Using the customAuthApiClient to make the requests to start the signin flow.
@@ -50,7 +50,7 @@ export class SigninClient extends InteractionClientBase {
         // There is no need to catch the error here. If an error is thrown, it should be caught by the caller.
         const initiateResponse =
             await this.customAuthApiClient.performSignInInitiateRequest(
-                initiateRequest
+                initiateRequest,
             );
 
         if (initiateResponse.challengeType === ChallengeType.REDIRECT) {
@@ -65,20 +65,20 @@ export class SigninClient extends InteractionClientBase {
                 "Unknown",
                 "Cannot find continuation token in the response.",
                 parameters.correlationId,
-                []
+                [],
             );
         }
 
         // Create challenge request.
         const challengeRequest = SignInChallengeRequest.create(
             parameters,
-            continuationToken
+            continuationToken,
         );
 
         // Call challenge endpoint.
         const challengeResponse =
             await this.customAuthApiClient.performSignInChallengeRequest(
-                challengeRequest
+                challengeRequest,
             );
 
         if (initiateResponse.challengeType === ChallengeType.REDIRECT) {
@@ -93,7 +93,7 @@ export class SigninClient extends InteractionClientBase {
             return new SignInWithContinuationTokenResult(
                 challengeResponse.continuationToken ?? "",
                 parameters.correlationId,
-                challengeResponse.challengeType
+                challengeResponse.challengeType,
             );
         } else if (
             challengeResponse instanceof SignInCodeSendResponse &&
@@ -109,38 +109,38 @@ export class SigninClient extends InteractionClientBase {
                 challengeResponse.challengeChannel ?? "",
                 challengeResponse.challengeTargetLabel ?? "",
                 challengeResponse.codeLength ?? 0,
-                parameters.correlationId
+                parameters.correlationId,
             );
         } else {
             throw new UnknownApiError(
                 "Unknown",
                 "Unexpected response returned from challenge endpoint.",
                 parameters.correlationId,
-                []
+                [],
             );
         }
     }
 
     async submitCode(
-        parameters: SignInSubmitCodeParams
+        parameters: SignInSubmitCodeParams,
     ): Promise<SignInCompleteResult> {
         throw new Error(`Method not implemented with Parameter ${parameters}.`);
     }
 
     async submitPassword(
-        parameters: SignInSubmitPasswordParams
+        parameters: SignInSubmitPasswordParams,
     ): Promise<SignInCompleteResult> {
         throw new Error(`Method not implemented with Parameter ${parameters}.`);
     }
 
     async resendCode(
-        parameters: SignInResendCodeParams
+        parameters: SignInResendCodeParams,
     ): Promise<SignInCodeSendResult> {
         throw new Error(`Method not implemented with Parameter ${parameters}.`);
     }
 
     async signInWithContinuationToken(
-        parameters: SignInContinuationTokenParams
+        parameters: SignInContinuationTokenParams,
     ): Promise<SignInWithContinuationTokenResult> {
         throw new Error(`Method not implemented with Parameter ${parameters}.`);
     }

@@ -21,8 +21,8 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
         if (!code) {
             return Promise.resolve(
                 SignUpSubmitCodeResult.createWithError(
-                    new InvalidArgumentError("code", this.correlationId)
-                )
+                    new InvalidArgumentError("code", this.correlationId),
+                ),
             );
         }
 

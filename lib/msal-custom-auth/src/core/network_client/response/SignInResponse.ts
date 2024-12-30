@@ -9,7 +9,7 @@ export class SignInContinuationTokenResponse extends CustomAuthApiResponseBase {
     constructor(
         correlationId?: string,
         public continuationToken?: string,
-        public challengeType?: string
+        public challengeType?: string,
     ) {
         super(correlationId);
     }
@@ -24,7 +24,7 @@ export class SignInCodeSendResponse extends CustomAuthApiResponseBase {
         public challengeTargetLabel?: string,
         public challengeChannel?: string,
         public codeLength?: number,
-        public interval?: number
+        public interval?: number,
     ) {
         super(correlationId);
     }
@@ -38,7 +38,7 @@ export class SignInTokenResponse extends CustomAuthApiResponseBase {
         public expiresIn?: number,
         public idToken?: string,
         public accessToken?: string,
-        public refreshToken?: string
+        public refreshToken?: string,
     ) {
         super(correlationId);
     }

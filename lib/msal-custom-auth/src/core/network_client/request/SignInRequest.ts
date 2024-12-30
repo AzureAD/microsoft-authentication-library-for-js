@@ -13,7 +13,7 @@ export class SignInInitiateRequest extends CustomAuthApiRequestBase {
         requestUrl: string,
         correlationId: string,
         public parameters: SignInInitiateRequestParameters,
-        headers?: Record<string, string>
+        headers?: Record<string, string>,
     ) {
         super(requestUrl, correlationId, headers);
 
@@ -31,8 +31,8 @@ export class SignInInitiateRequest extends CustomAuthApiRequestBase {
                 signInStartParams.username,
                 signInStartParams.clientId,
                 signInStartParams.challengeType.join(" "),
-                signInStartParams.correlationId
-            )
+                signInStartParams.correlationId,
+            ),
         );
     }
 }
@@ -42,7 +42,7 @@ export class SignInInitiateRequestParameters {
         public username: string,
         public clientId: string,
         public challengeType: string,
-        correlationId: string
+        correlationId: string,
     ) {
         if (!correlationId) {
             throw new InvalidArgumentError("correlationId");
@@ -67,7 +67,7 @@ export class SignInChallengeRequest extends CustomAuthApiRequestBase {
         requestUrl: string,
         correlationId: string,
         public parameters: SignInChallengeRequestParameters,
-        headers?: Record<string, string>
+        headers?: Record<string, string>,
     ) {
         super(requestUrl, correlationId, headers);
 
@@ -78,7 +78,7 @@ export class SignInChallengeRequest extends CustomAuthApiRequestBase {
 
     static create(
         signInStartParams: SignInStartParams,
-        continuationToken: string
+        continuationToken: string,
     ): SignInChallengeRequest {
         // TODO: the codes here are just used to demo how to generate a request with parameters. We need to revisit it later to ensure the correctness.
         return new SignInChallengeRequest(
@@ -88,8 +88,8 @@ export class SignInChallengeRequest extends CustomAuthApiRequestBase {
                 signInStartParams.clientId,
                 signInStartParams.challengeType.join(" "),
                 continuationToken,
-                signInStartParams.correlationId
-            )
+                signInStartParams.correlationId,
+            ),
         );
     }
 }
@@ -103,7 +103,7 @@ export class SignInChallengeRequestParameters {
         public clientId: string,
         public challengeType: string,
         public coninuationToken: string,
-        correlationId: string
+        correlationId: string,
     ) {
         if (!correlationId) {
             throw new InvalidArgumentError("correlationId");
@@ -128,7 +128,7 @@ export class SignInOobTokenRequest extends CustomAuthApiRequestBase {
         requestUrl: string,
         correlationId: string,
         public parameters: SignInOobTokenRequestParameters,
-        headers?: Record<string, string>
+        headers?: Record<string, string>,
     ) {
         super(requestUrl, correlationId, headers);
 
@@ -143,7 +143,7 @@ export class SignInPasswordTokenRequest extends CustomAuthApiRequestBase {
         requestUrl: string,
         correlationId: string,
         public parameters: SignInPasswordTokenRequestParameters,
-        headers?: Record<string, string>
+        headers?: Record<string, string>,
     ) {
         super(requestUrl, correlationId, headers);
 
@@ -158,7 +158,7 @@ export class SignInContinuationTokenRequest extends CustomAuthApiRequestBase {
         requestUrl: string,
         correlationId: string,
         public parameters: SignInContinuationTokenRequestParameters,
-        headers?: Record<string, string>
+        headers?: Record<string, string>,
     ) {
         super(requestUrl, correlationId, headers);
 
@@ -175,7 +175,7 @@ abstract class SignInTokenRequestBase {
         public grantType: string,
         correlationId: string,
         public scopes?: Array<string>,
-        public challengeType?: string
+        public challengeType?: string,
     ) {
         if (!correlationId) {
             throw new InvalidArgumentError("correlationId");
@@ -202,7 +202,7 @@ export class SignInOobTokenRequestParameters extends SignInTokenRequestBase {
         correlationId: string,
         public oob: string,
         challengeType?: string,
-        scopes?: Array<string>
+        scopes?: Array<string>,
     ) {
         super(
             clientId,
@@ -210,7 +210,7 @@ export class SignInOobTokenRequestParameters extends SignInTokenRequestBase {
             GrantType.OOB,
             correlationId,
             scopes,
-            challengeType
+            challengeType,
         );
 
         if (!oob) {
@@ -226,7 +226,7 @@ export class SignInPasswordTokenRequestParameters extends SignInTokenRequestBase
         correlationId: string,
         public password: string,
         challengeType?: string,
-        scopes?: Array<string>
+        scopes?: Array<string>,
     ) {
         super(
             clientId,
@@ -234,7 +234,7 @@ export class SignInPasswordTokenRequestParameters extends SignInTokenRequestBase
             GrantType.PASSWORD,
             correlationId,
             scopes,
-            challengeType
+            challengeType,
         );
 
         if (!password) {
@@ -250,7 +250,7 @@ export class SignInContinuationTokenRequestParameters extends SignInTokenRequest
         correlationId: string,
         public username: string,
         challengeType?: string,
-        scopes?: Array<string>
+        scopes?: Array<string>,
     ) {
         super(
             clientId,
@@ -258,7 +258,7 @@ export class SignInContinuationTokenRequestParameters extends SignInTokenRequest
             GrantType.CONTINUATION_TOKEN,
             correlationId,
             scopes,
-            challengeType
+            challengeType,
         );
 
         if (!username) {

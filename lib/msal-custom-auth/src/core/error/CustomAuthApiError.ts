@@ -15,7 +15,7 @@ export class RedirectError extends CustomAuthError {
         super(
             "redirect",
             "No required authentication method by Microsoft Entra is supported, a fallback to the web-based authentication flow is needed.",
-            correlationId
+            correlationId,
         );
         Object.setPrototypeOf(this, RedirectError.prototype);
     }
@@ -27,7 +27,7 @@ export class CustomAuthApiError extends CustomAuthError {
         errorDescription: string,
         correlationId: string,
         public errorCodes: Array<string>,
-        public subError?: string
+        public subError?: string,
     ) {
         super(error, errorDescription, correlationId);
         Object.setPrototypeOf(this, CustomAuthApiError.prototype);
@@ -55,7 +55,7 @@ export class AttributeRequiredError extends CustomAuthApiError {
         errorCodes: Array<string>,
         public requiredAttributes: Array<UserAttribute>,
         public continuationToken: string,
-        subError?: string
+        subError?: string,
     ) {
         super(error, errorDescription, correlationId, errorCodes, subError);
         Object.setPrototypeOf(this, AttributeRequiredError.prototype);
@@ -81,7 +81,7 @@ export class InvalidAttributesError extends CustomAuthApiError {
         correlationId: string,
         errorCodes: Array<string>,
         public invalidAttributes: Array<string>,
-        subError?: string
+        subError?: string,
     ) {
         super(error, errorDescription, correlationId, errorCodes, subError);
         Object.setPrototypeOf(this, InvalidAttributesError.prototype);

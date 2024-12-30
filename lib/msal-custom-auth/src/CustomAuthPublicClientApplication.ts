@@ -31,7 +31,7 @@ export class CustomAuthPublicClientApplication
      * @param config - A configuration object for the PublicClientApplication instance
      */
     static create(
-        config: CustomAuthConfiguration
+        config: CustomAuthConfiguration,
     ): CustomAuthPublicClientApplication {
         return new CustomAuthPublicClientApplication(config);
     }
@@ -43,12 +43,12 @@ export class CustomAuthPublicClientApplication
      */
     constructor(
         config: CustomAuthConfiguration,
-        controller?: ICustomAuthStandardController
+        controller?: ICustomAuthStandardController,
     ) {
         const customAuthController =
             controller ||
             new CustomAuthStandardController(
-                new CustomAuthOperatingContext(config)
+                new CustomAuthOperatingContext(config),
             );
 
         super(config, customAuthController);
@@ -62,10 +62,10 @@ export class CustomAuthPublicClientApplication
      * @returns - A promise that resolves to GetAccountResult
      */
     getCurrentAccount(
-        getAccountInputs: GetAccountInputs
+        getAccountInputs: GetAccountInputs,
     ): Promise<GetAccountResult> {
         throw new Error(
-            `Method not implemented with parameter ${getAccountInputs}`
+            `Method not implemented with parameter ${getAccountInputs}`,
         );
     }
 
@@ -85,7 +85,7 @@ export class CustomAuthPublicClientApplication
      */
     signUp(signUpInputs: SignUpInputs): Promise<SignUpResult> {
         throw new Error(
-            `Method not implemented with parameter ${signUpInputs}`
+            `Method not implemented with parameter ${signUpInputs}`,
         );
     }
 
@@ -95,10 +95,10 @@ export class CustomAuthPublicClientApplication
      * @returns - A promise that resolves to ResetPasswordStartResult
      */
     resetPassword(
-        resetPasswordInputs: ResetPasswordInputs
+        resetPasswordInputs: ResetPasswordInputs,
     ): Promise<ResetPasswordStartResult> {
         throw new Error(
-            `Method not implemented with parameter ${resetPasswordInputs}`
+            `Method not implemented with parameter ${resetPasswordInputs}`,
         );
     }
 }

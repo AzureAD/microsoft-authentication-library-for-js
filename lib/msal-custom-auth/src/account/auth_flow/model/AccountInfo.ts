@@ -8,7 +8,7 @@ import { SignOutResult } from "../result/SignOutResult.js";
 import { GetAccessTokenResult } from "../result/GetAccessTokenResult.js";
 import {
     AccountInfo as AccountData,
-//    Constants,
+    //    Constants,
     TokenClaims,
 } from "@azure/msal-browser";
 import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
@@ -33,7 +33,7 @@ export class AccountInfo {
     constructor(
         private readonly account: AccountData,
         private readonly correlationId: string,
-        private readonly config: CustomAuthConfiguration
+        private readonly config: CustomAuthConfiguration,
     ) {
         if (!config) {
             throw new InvalidArgumentError("config", correlationId);
@@ -88,12 +88,12 @@ export class AccountInfo {
      */
     getAccessToken(
         forceRefresh: boolean = false,
-        scopes?: Array<string>
+        scopes?: Array<string>,
     ): Promise<GetAccessTokenResult> {
         const newScopes = scopes || DefaultScopes;
 
         throw new Error(
-            `Method not implemented with forceRefresh '${forceRefresh}' and scopes ${newScopes}.`
+            `Method not implemented with forceRefresh '${forceRefresh}' and scopes ${newScopes}.`,
         );
     }
 }
@@ -101,13 +101,6 @@ export class AccountInfo {
 /*
  * Authentication token claims.
  */
-type AuthTokenClaims =
-    | TokenClaims & {
-          [key: string]:
-              | string
-              | number
-              | string[]
-              | object
-              | undefined
-              | unknown;
-      };
+type AuthTokenClaims = TokenClaims & {
+    [key: string]: string | number | string[] | object | undefined | unknown;
+};

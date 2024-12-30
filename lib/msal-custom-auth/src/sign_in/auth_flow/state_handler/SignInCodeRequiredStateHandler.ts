@@ -22,7 +22,7 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
     async submitCode(code: string): Promise<SignInSubmitCodeResult> {
         if (!code) {
             const result = SignInSubmitCodeResult.createWithError(
-                new InvalidArgumentError("code", this.correlationId)
+                new InvalidArgumentError("code", this.correlationId),
             );
 
             return Promise.resolve(result);
@@ -37,17 +37,16 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
                 this.config.customAuth.challengeTypes ?? [],
                 this.scopes ?? [],
                 this.continuationToken ?? "",
-                code
+                code,
             );
 
-            const completedResult = await this.signInClient.submitCode(
-                submitCodeParams
-            );
+            const completedResult =
+                await this.signInClient.submitCode(submitCodeParams);
 
             const accountManager = new AccountInfo(
                 completedResult.authenticationResult.account,
                 this.correlationId,
-                this.config
+                this.config,
             );
 
             return new SignInSubmitCodeResult(accountManager);

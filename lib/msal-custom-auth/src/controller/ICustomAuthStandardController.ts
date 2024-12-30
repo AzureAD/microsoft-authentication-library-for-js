@@ -25,7 +25,7 @@ export interface ICustomAuthStandardController extends IController {
      * @returns - A promise that resolves to GetAccountResult
      */
     getCurrentAccount(
-        getAccountInputs: GetAccountInputs
+        getAccountInputs: GetAccountInputs,
     ): Promise<GetAccountResult>;
 
     /*
@@ -48,6 +48,6 @@ export interface ICustomAuthStandardController extends IController {
      * @returns The result of the operation.
      */
     resetPassword(
-        resetPasswordInputs: ResetPasswordInputs
+        resetPasswordInputs: ResetPasswordInputs,
     ): Promise<ResetPasswordStartResult>;
 }

@@ -18,13 +18,13 @@ export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
      * @returns The result of the operation.
      */
     async sumbmitAttributes(
-        attributes: UserAccountAttributes
+        attributes: UserAccountAttributes,
     ): Promise<SignUpSubmitAttributesResult> {
         if (!attributes) {
             return Promise.resolve(
                 SignUpSubmitAttributesResult.createWithError(
-                    new InvalidArgumentError("attributes", this.correlationId)
-                )
+                    new InvalidArgumentError("attributes", this.correlationId),
+                ),
             );
         }
 

@@ -17,11 +17,11 @@ export class SignInPasswordRequiredStateHandler extends SignInStateHandler {
      * @returns The result of the operation.
      */
     async sumbmitPassword(
-        password: string
+        password: string,
     ): Promise<SignInSubmitPasswordResult> {
         if (!password) {
             const result = SignInSubmitPasswordResult.createWithError(
-                new InvalidArgumentError("password", this.correlationId)
+                new InvalidArgumentError("password", this.correlationId),
             );
 
             return Promise.resolve(result);

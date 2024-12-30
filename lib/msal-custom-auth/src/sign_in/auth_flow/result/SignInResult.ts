@@ -21,7 +21,7 @@ export class SignInResult extends ResultBase<
         resultData?: AccountInfo,
         stateHandler?:
             | SignInCodeRequiredStateHandler
-            | SignInPasswordRequiredStateHandler
+            | SignInPasswordRequiredStateHandler,
     ) {
         super(resultData, stateHandler);
 

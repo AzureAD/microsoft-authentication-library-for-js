@@ -17,13 +17,13 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
      * @returns The result of the operation.
      */
     async sumbmitPassword(
-        password: string
+        password: string,
     ): Promise<SignUpSubmitPasswordResult> {
         if (!password) {
             return Promise.resolve(
                 SignUpSubmitPasswordResult.createWithError(
-                    new InvalidArgumentError("password", this.correlationId)
-                )
+                    new InvalidArgumentError("password", this.correlationId),
+                ),
             );
         }
 

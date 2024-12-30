@@ -21,7 +21,7 @@ export interface ICustomAuthPublicClientApplication {
      * @returns - A promise that resolves to GetAccountResult
      */
     getCurrentAccount(
-        getAccountInputs: GetAccountInputs
+        getAccountInputs: GetAccountInputs,
     ): Promise<GetAccountResult>;
 
     /*
@@ -44,6 +44,6 @@ export interface ICustomAuthPublicClientApplication {
      * @returns - A promise that resolves to ResetPasswordStartResult
      */
     resetPassword(
-        resetPasswordInputs: ResetPasswordInputs
+        resetPasswordInputs: ResetPasswordInputs,
     ): Promise<ResetPasswordStartResult>;
 }
