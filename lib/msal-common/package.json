@@ -73,7 +73,7 @@
     "browser"
   ],
   "scripts": {
-    "clean": "rimraf dist lib",
+    "clean": "shx rm -rf dist lib",
     "clean:coverage": "rimraf ../../.nyc_output/*",
     "lint": "eslint src --ext .ts",
     "lint:fix": "npm run lint -- --fix",
