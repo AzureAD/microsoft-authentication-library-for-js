@@ -45,7 +45,9 @@ async function isServerUp(port, timeout) {
                 host: "localhost",
                 port: port,
                 family: 4,
-                rejectUnauthorized: false,
+                // This can be set to false during local development or when in a trusted environment where you control the certificates
+                // Otherwise, use a valid certificate instead of disabling validation.
+                rejectUnauthorized: true,
             };
 
             https
