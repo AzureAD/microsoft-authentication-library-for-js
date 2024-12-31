@@ -72,7 +72,7 @@ const acquireTokenObo = (cca, webApiPort, clientId, authority, discoveryKeysEndp
                 res.status(200).send(graphResponse);
             });
         }).catch((error) => {
-            res.status(500).send(error);
+            res.status(500).send(error.errorMessage);
         });
     });
 
@@ -91,7 +91,7 @@ const acquireTokenObo = (cca, webApiPort, clientId, authority, discoveryKeysEndp
             });
         });
         req.on("error", (error) => {
-            console.error(error);
+            console.error(error.errorMessage);
         });
         req.end();
     }

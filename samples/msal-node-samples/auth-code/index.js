@@ -143,7 +143,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
             console.log("Successfully acquired token using Authorization Code.");
             res.sendStatus(200);
         }).catch((error) => {
-            res.status(500).send(error);
+            res.status(500).send(error.errorMessage);
         });
     });
 
