@@ -1,6 +1,11 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { PkceCodes } from "@azure/msal-common";
-import { CryptoProvider } from "./../../src/index";
-import { GuidGenerator } from "./../../src/crypto/GuidGenerator";
+import { CryptoProvider } from "./../../src/index.js";
+import { GuidGenerator } from "./../../src/crypto/GuidGenerator.js";
 
 describe("CryptoOps", () => {
     const cryptoOps = new CryptoProvider();
