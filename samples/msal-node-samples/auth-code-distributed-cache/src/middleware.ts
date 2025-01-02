@@ -37,7 +37,7 @@ export const auth = (options: AuthOptions): Router => {
             );
         }
 
-        res.locals.originalUrl = req.originalUrl;
+        res.locals.originalUrl = `${req.protocol}://${req.get("host")}`;
 
         next();
     });
