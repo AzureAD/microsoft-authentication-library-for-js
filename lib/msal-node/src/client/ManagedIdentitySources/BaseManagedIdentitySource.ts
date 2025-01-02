@@ -38,7 +38,7 @@ import {
 export const ManagedIdentityUserAssignedIdQueryParameterNames = {
     MANAGED_IDENTITY_CLIENT_ID: "client_id",
     MANAGED_IDENTITY_OBJECT_ID: "object_id",
-    MANAGED_IDENTITY_RESOURCE_ID: "mi_res_id",
+    MANAGED_IDENTITY_RESOURCE_ID: "msi_res_id",
 } as const;
 export type ManagedIdentityUserAssignedIdQueryParameterNames =
     (typeof ManagedIdentityUserAssignedIdQueryParameterNames)[keyof typeof ManagedIdentityUserAssignedIdQueryParameterNames];
