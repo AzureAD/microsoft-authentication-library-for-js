@@ -16,7 +16,7 @@ export class UIManager {
     private signInButton: HTMLElement;
     private signOutButton: HTMLElement;
     private cardDiv: HTMLElement;
-    private mailButton: HTMLElement; 
+    private mailButton: HTMLElement;
     private profileButton: HTMLElement;
     private profileDiv: HTMLElement;
     private tabList: HTMLElement;
@@ -36,15 +36,15 @@ export class UIManager {
 
     public showWelcomeMessage(account: AccountInfo) {
         // Reconfiguring DOM elements
-        this.cardDiv.style.display = 'initial';
+        this.cardDiv.style.display = "initial";
         this.welcomeDiv.innerHTML = `Welcome ${account.username}`;
         this.signInButton.hidden = true;
         this.signOutButton.hidden = false;
     }
 
     public clearTabs() {
-        this.tabList.innerHTML = '';
-        this.tabContent.innerHTML = '';
+        this.tabList.innerHTML = "";
+        this.tabContent.innerHTML = "";
     }
 
     public updateUI(data: UserInfo | MailInfo, endpoint: string) {
@@ -67,36 +67,44 @@ export class UIManager {
     public setMail(data: MailInfo) {
         const mailInfo = data as MailInfo;
         if (mailInfo.value.length < 1) {
-            alert("Your mailbox is empty!")
+            alert("Your mailbox is empty!");
         } else {
             this.clearTabs();
             mailInfo.value.slice(0, 10).forEach((d: any, i) => {
-                    this.createAndAppendListItem(d, i);
-                    this.createAndAppendContentItem(d, i);
+                this.createAndAppendListItem(d, i);
+                this.createAndAppendContentItem(d, i);
             });
         }
     }
 
     public createAndAppendListItem(d: any, i: Number) {
         const listItem = document.createElement("a");
-        listItem.setAttribute("class", "list-group-item list-group-item-action")
-        listItem.setAttribute("id", "list" + i + "list")
-        listItem.setAttribute("data-toggle", "list")
-        listItem.setAttribute("href", "#list" + i)
-        listItem.setAttribute("role", "tab")
-        listItem.setAttribute("aria-controls", `${i}`)
+        listItem.setAttribute(
+            "class",
+            "list-group-item list-group-item-action"
+        );
+        listItem.setAttribute("id", "list" + i + "list");
+        listItem.setAttribute("data-toggle", "list");
+        listItem.setAttribute("href", "#list" + i);
+        listItem.setAttribute("role", "tab");
+        listItem.setAttribute("aria-controls", `${i}`);
         listItem.innerHTML = d.subject;
-        this.tabList.appendChild(listItem)
+        this.tabList.appendChild(listItem);
     }
 
     public createAndAppendContentItem(d: any, i: Number) {
         const contentItem = document.createElement("div");
-        contentItem.setAttribute("class", "tab-pane fade")
-        contentItem.setAttribute("id", "list" + i)
-        contentItem.setAttribute("role", "tabpanel")
-        contentItem.setAttribute("aria-labelledby", "list" + i + "list")
+        contentItem.setAttribute("class", "tab-pane fade");
+        contentItem.setAttribute("id", "list" + i);
+        contentItem.setAttribute("role", "tabpanel");
+        contentItem.setAttribute("aria-labelledby", "list" + i + "list");
         if (d.from) {
-            contentItem.innerHTML = "<strong> from: " + d.from.emailAddress.address + "</strong><br><br>" + d.bodyPreview + "...";
+            contentItem.innerHTML =
+                "<strong> from: " +
+                d.from.emailAddress.address +
+                "</strong><br><br>" +
+                d.bodyPreview +
+                "...";
             this.tabContent.appendChild(contentItem);
         }
     }

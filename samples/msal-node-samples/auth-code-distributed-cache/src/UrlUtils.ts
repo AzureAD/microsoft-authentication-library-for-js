@@ -8,8 +8,10 @@ import { Request } from "express";
 
 class UrlUtils {
     static getCanonicalUrlFromRequest = (req: Request): string => {
-        return UrlString.canonicalizeUri(`${req.protocol}://${req.get("host")}${req.path}`);
-    }
+        return UrlString.canonicalizeUri(
+            `${req.protocol}://${req.get("host")}${req.path}`
+        );
+    };
 
     static getPathFromUrl = (url: string): string => {
         const urlComponents: IUri = new UrlString(url).getUrlComponents();
