@@ -79,7 +79,7 @@ function msalApp(thumbprint, privateKey) {
         cca.acquireTokenByCode(tokenRequest).then((response) => {
             res.status(200).send('Congratulations! You have signed in successfully');
         }).catch((error) => {
-            res.status(500).send(error);
+            res.status(500).send(error.errorMessage);
         });
     });
 
