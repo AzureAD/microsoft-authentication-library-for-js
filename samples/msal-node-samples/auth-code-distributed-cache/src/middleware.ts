@@ -37,6 +37,8 @@ export const auth = (options: AuthOptions): Router => {
             );
         }
 
+        res.locals.originalUrl = `${req.protocol}://${req.get("host")}`;
+
         next();
     });
 
@@ -58,10 +60,7 @@ export const auth = (options: AuthOptions): Router => {
                 req.session.isAuthenticated = true;
                 req.session.account = tokenResponse?.account!; // account won't be null in this grant type
 
-                const { redirectTo } = JSON.parse(
-                    Buffer.from(req.body.state, "base64").toString("utf8")
-                );
-                res.redirect(redirectTo); // redirect back to original route
+                res.redirect(res.locals.originalUrl); // redirect back to original route
             } catch (error) {
                 next(error);
             }
