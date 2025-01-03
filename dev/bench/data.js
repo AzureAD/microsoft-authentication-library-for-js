@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1734744822572,
+  "lastUpdate": 1735863567958,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -14046,6 +14046,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.09%",
             "unit": "ops/sec",
             "extra": "219 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "994cfde885ddfc49aba1378b2e57d95d6496398d",
+          "message": "Addressed CodeQL Findings (#7486)\n\nAddresses:\r\n\r\n- Disabling certificate validation\r\n- Information exposure through a stack trace\r\n- Server-side URL redirect\r\n    - Tested with redis",
+          "timestamp": "2025-01-02T19:13:59-05:00",
+          "tree_id": "841513fc486a60d0918aaf07f69a8bb2b819a82e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/994cfde885ddfc49aba1378b2e57d95d6496398d"
+        },
+        "date": 1735863566521,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 189423,
+            "range": "±1.74%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 193894,
+            "range": "±2.07%",
+            "unit": "ops/sec",
+            "extra": "216 samples"
           }
         ]
       }
