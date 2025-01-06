@@ -91,11 +91,7 @@ export {
     NetworkRequestOptions,
     StubbedNetworkModule,
 } from "./network/INetworkModule.js";
-export {
-    NetworkManager,
-    NetworkResponse,
-    UrlToHttpRequestOptions,
-} from "./network/NetworkManager.js";
+export { NetworkResponse } from "./network/NetworkResponse.js";
 export { ThrottlingUtils } from "./network/ThrottlingUtils.js";
 export { RequestThumbprint } from "./network/RequestThumbprint.js";
 export { IUri } from "./url/IUri.js";
@@ -140,6 +136,7 @@ export {
     createAuthError,
 } from "./error/AuthError.js";
 export { ServerError } from "./error/ServerError.js";
+export { NetworkError, createNetworkError } from "./error/NetworkError.js";
 export { CacheError, CacheErrorCodes } from "./error/CacheError.js";
 export {
     ClientAuthError,

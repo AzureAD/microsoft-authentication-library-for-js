@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-react",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -56,11 +56,11 @@
     "apiExtractor": "api-extractor run"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^3.25.0",
+    "@azure/msal-browser": "^3.27.0",
     "react": "^16.8.0 || ^17 || ^18"
   },
   "devDependencies": {
-    "@azure/msal-browser": "^3.25.0",
+    "@azure/msal-browser": "^3.27.0",
     "@microsoft/api-extractor": "^7.43.4",
     "@rollup/plugin-typescript": "^11.1.5",
     "@testing-library/jest-dom": "^5.11.5",
@@ -75,7 +75,7 @@
     "prettier": "2.8.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "rollup": "^4.9.6",
+    "rollup": "^4.22.4",
     "ts-jest": "^29.1.0",
     "ts-jest-resolver": "^2.0.1",
     "tslib": "^2.0.0",

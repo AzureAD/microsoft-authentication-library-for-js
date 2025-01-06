@@ -1,13 +1,18 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import {
     buildAppConfiguration,
     Configuration,
-} from "../../src/config/Configuration";
-import { HttpClient } from "../../src/network/HttpClient";
+} from "../../src/config/Configuration.js";
+import { HttpClient } from "../../src/network/HttpClient.js";
 import {
     TEST_CONSTANTS,
     AUTHENTICATION_RESULT,
     DEFAULT_OPENID_CONFIG_RESPONSE,
-} from "../utils/TestConstants";
+} from "../utils/TestConstants.js";
 import {
     LogLevel,
     NetworkRequestOptions,
@@ -16,8 +21,9 @@ import {
 import {
     ClientCredentialRequest,
     ConfidentialClientApplication,
-} from "../../src";
-import { OnBehalfOfRequest } from "../../src/request/OnBehalfOfRequest";
+} from "../../src/index.js";
+import { OnBehalfOfRequest } from "../../src/request/OnBehalfOfRequest.js";
+import { RANDOM_TEST_GUID } from "../test_kit/StringConstants.js";
 
 describe("ClientConfiguration tests", () => {
     test("builds configuration and assigns default functions", () => {
@@ -203,6 +209,7 @@ describe("ClientConfiguration tests", () => {
         const request: ClientCredentialRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             skipCache: true,
+            correlationId: RANDOM_TEST_GUID,
         };
 
         await new ConfidentialClientApplication(
@@ -215,7 +222,7 @@ describe("ClientConfiguration tests", () => {
             DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
                 "{tenant}",
                 "tenantid"
-            ),
+            ) + `?client-request-id=${RANDOM_TEST_GUID}`,
             expect.objectContaining({
                 body: expect.stringContaining("TEST-CAPABILITY"),
             })
@@ -227,6 +234,7 @@ describe("ClientConfiguration tests", () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             oboAssertion: "user_assertion_hash",
             skipCache: true,
+            correlationId: RANDOM_TEST_GUID,
         };
 
         const appConfig: Configuration = {
@@ -258,7 +266,7 @@ describe("ClientConfiguration tests", () => {
             DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
                 "{tenant}",
                 "tenantid"
-            ),
+            ) + `?client-request-id=${RANDOM_TEST_GUID}`,
             expect.objectContaining({
                 body: expect.stringContaining("TEST-CAPABILITY"),
             })

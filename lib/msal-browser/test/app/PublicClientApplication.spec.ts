@@ -6809,4 +6809,162 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
         });
     });
+
+    describe("handleAccountCacheChange", () => {
+        it("ACCOUNT_ADDED event raised when an account logs in in another tab", (done) => {
+            const subscriber = (message: EventMessage) => {
+                expect(message.eventType).toEqual(EventType.ACCOUNT_ADDED);
+                expect(message.interactionType).toBeNull();
+                expect(message.payload).toEqual(accountEntity.getAccountInfo());
+                expect(message.error).toBeNull();
+                expect(message.timestamp).not.toBeNull();
+                done();
+            };
+
+            pca.addEventCallback(subscriber);
+
+            const accountEntity: AccountEntity =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+
+            const account: AccountInfo = accountEntity.getAccountInfo();
+
+            const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
+
+            // @ts-ignore
+            pca.controller.handleAccountCacheChange({
+                key: cacheKey1,
+                oldValue: null,
+                newValue: JSON.stringify(accountEntity),
+            });
+        });
+
+        it("ACCOUNT_REMOVED event raised when an account logs out in another tab", (done) => {
+            const subscriber = (message: EventMessage) => {
+                expect(message.eventType).toEqual(EventType.ACCOUNT_REMOVED);
+                expect(message.interactionType).toBeNull();
+                expect(message.payload).toEqual(account);
+                expect(message.error).toBeNull();
+                expect(message.timestamp).not.toBeNull();
+                done();
+            };
+
+            pca.addEventCallback(subscriber);
+
+            const accountEntity: AccountEntity =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+
+            const account: AccountInfo = accountEntity.getAccountInfo();
+
+            const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
+
+            // @ts-ignore
+            pca.controller.handleAccountCacheChange({
+                key: cacheKey1,
+                oldValue: JSON.stringify(accountEntity),
+                newValue: null,
+            });
+        });
+
+        it("No event raised if cache value is not JSON", () => {
+            const subscriber = (message: EventMessage) => {};
+            pca.addEventCallback(subscriber);
+
+            const emitEventSpy = jest.spyOn(
+                EventHandler.prototype,
+                "emitEvent"
+            );
+            // @ts-ignore
+            pca.controller.handleAccountCacheChange({
+                key: "testCacheKey",
+                oldValue: "not JSON",
+                newValue: null,
+            });
+
+            expect(emitEventSpy.mock.calls.length).toBe(0);
+        });
+
+        it("No event raised if cache value is not an account", () => {
+            const subscriber = (message: EventMessage) => {};
+            pca.addEventCallback(subscriber);
+
+            const emitEventSpy = jest.spyOn(
+                EventHandler.prototype,
+                "emitEvent"
+            );
+            // @ts-ignore
+            pca.controller.handleAccountCacheChange({
+                key: "testCacheKey",
+                oldValue: JSON.stringify({
+                    testKey: "this is not an account object",
+                }),
+                newValue: null,
+            });
+
+            expect(emitEventSpy.mock.calls.length).toBe(0);
+        });
+
+        it("No event raised if both oldValue and newValue are falsey", () => {
+            const subscriber = (message: EventMessage) => {};
+            pca.addEventCallback(subscriber);
+
+            const emitEventSpy = jest.spyOn(
+                EventHandler.prototype,
+                "emitEvent"
+            );
+            // @ts-ignore
+            pca.controller.handleAccountCacheChange({
+                key: "testCacheKey",
+                oldValue: null,
+                newValue: null,
+            });
+
+            expect(emitEventSpy.mock.calls.length).toBe(0);
+        });
+
+        it("ACTIVE_ACCOUNT_CHANGED event raised when active account is changed in another tab", (done) => {
+            const subscriber = (message: EventMessage) => {
+                expect(message.eventType).toEqual(
+                    EventType.ACTIVE_ACCOUNT_CHANGED
+                );
+                expect(message.interactionType).toBeNull();
+                expect(message.payload).toBeNull();
+                expect(message.error).toBeNull();
+                expect(message.timestamp).not.toBeNull();
+                done();
+            };
+
+            pca.addEventCallback(subscriber);
+
+            const activeAccountEntity: AccountEntity =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+            const newActiveAccountEntity: AccountEntity =
+                buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
+
+            const activeAccount: AccountInfo =
+                activeAccountEntity.getAccountInfo();
+            const newActiveAccount: AccountInfo =
+                newActiveAccountEntity.getAccountInfo();
+
+            const previousActiveAccountFilters = {
+                homeAccountId: activeAccount.homeAccountId,
+                localAccountId: activeAccount.localAccountId,
+                tenantId: activeAccount.tenantId,
+            };
+
+            const newActiveAccountFilters = {
+                homeAccountId: newActiveAccount.homeAccountId,
+                localAccountId: newActiveAccount.localAccountId,
+                tenantId: newActiveAccount.tenantId,
+            };
+
+            const activeAccountKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS}`;
+
+            // @ts-ignore
+            pca.controller.handleAccountCacheChange({
+                key: activeAccountKey,
+                oldValue: JSON.stringify(previousActiveAccountFilters),
+                newValue: JSON.stringify(newActiveAccountFilters),
+            });
+        });
+    });
 });

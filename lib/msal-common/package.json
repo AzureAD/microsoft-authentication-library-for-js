@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "14.15.0",
+  "version": "14.16.0",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -113,7 +113,7 @@
     "msal-test-utils": "file:../../shared-test-utils",
     "prettier": "2.8.7",
     "rimraf": "^3.0.2",
-    "rollup": "^3.29.5",
+    "rollup": "^4.22.4",
     "rollup-msal": "file:../../shared-configs/rollup-msal",
     "shx": "^0.3.2",
     "ts-jest": "^29.1.0",

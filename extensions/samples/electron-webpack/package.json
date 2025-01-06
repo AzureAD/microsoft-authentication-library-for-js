@@ -55,7 +55,7 @@
     "dependencies": {
         "@azure/msal-node": "^2.6.2",
         "@azure/msal-node-extensions": "^1.0.10",
-        "bootstrap": "^4.6.2",
+        "bootstrap": "^5.0.0",
         "electron-squirrel-startup": "^1.0.0"
     }
 }

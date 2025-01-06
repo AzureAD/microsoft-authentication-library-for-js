@@ -30,7 +30,12 @@ class ProvisionHandler {
      * @param clientId
      * @param scope
      */
-    async grantAdminConsent(instance: string, tenantId: string, clientId: string, scope: string): Promise<boolean> {
+    async grantAdminConsent(
+        instance: string,
+        tenantId: string,
+        clientId: string,
+        scope: string
+    ): Promise<boolean> {
         const adminConsentListener = this.listenForAdminConsentResponse();
         const redirectUri = this.getRedirectUri();
 
@@ -44,10 +49,10 @@ class ProvisionHandler {
 
         const searchParams = new URLSearchParams({});
 
-        searchParams.append('client_id', clientId);
-        searchParams.append('state', this.state);
-        searchParams.append('redirect_uri', redirectUri);
-        searchParams.append('scope', scope);
+        searchParams.append("client_id", clientId);
+        searchParams.append("state", this.state);
+        searchParams.append("redirect_uri", redirectUri);
+        searchParams.append("scope", scope);
 
         await open(`${adminConsentUri}?${searchParams.toString()}`);
 
@@ -60,38 +65,51 @@ class ProvisionHandler {
 
     private async listenForAdminConsentResponse(): Promise<boolean> {
         if (!!this.server) {
-            throw new Error('Server already exists. Cannot create another.')
+            throw new Error("Server already exists. Cannot create another.");
         }
 
         const adminConsentListener = new Promise<boolean>((resolve, reject) => {
-            this.server = http.createServer(async (req: http.IncomingMessage, res: http.ServerResponse) => {
-                const url = req.url;
+            this.server = http.createServer(
+                async (req: http.IncomingMessage, res: http.ServerResponse) => {
+                    const url = req.url;
 
-                if (!url) {
-                    res.end("Error occurred loading redirectUrl");
-                    reject(new Error('Server callback was invoked without a url. This is unexpected.'));
-                    return;
+                    if (!url) {
+                        res.end("Error occurred loading redirectUrl");
+                        reject(
+                            new Error(
+                                "Server callback was invoked without a url. This is unexpected."
+                            )
+                        );
+                        return;
+                    }
+
+                    const redirectUri = await this.getRedirectUri();
+                    const responseUri = new URL(`${redirectUri}${url}`);
+
+                    /**
+                     * Retrieve the response parameters. For more information, visit:
+                     * https://docs.microsoft.com/azure/active-directory/develop/v2-admin-consent#successful-response
+                     */
+                    const isGranted =
+                        responseUri.searchParams.get("admin_consent") ===
+                        "True";
+                    const doesStateMatch =
+                        responseUri.searchParams.get("state") === this.state;
+                    const hasAnyErrors = responseUri.searchParams.has("error");
+
+                    if (isGranted && doesStateMatch && !hasAnyErrors) {
+                        res.end(
+                            "Admin consent was successfully acquired. You can close this window now."
+                        );
+                    } else {
+                        res.end(
+                            "Admin consent was not acquired. Make sure the account has admin privileges in the tenant and try again."
+                        );
+                    }
+
+                    resolve(isGranted && doesStateMatch && !hasAnyErrors);
                 }
-
-                const redirectUri = await this.getRedirectUri();
-                const responseUri = new URL(`${redirectUri}${url}`);
-
-                /**
-                 * Retrieve the response parameters. For more information, visit:
-                 * https://docs.microsoft.com/azure/active-directory/develop/v2-admin-consent#successful-response
-                 */
-                const isGranted = responseUri.searchParams.get('admin_consent') === "True";
-                const doesStateMatch = responseUri.searchParams.get('state') === this.state;
-                const hasAnyErrors = responseUri.searchParams.has('error');
-
-                if (isGranted && doesStateMatch && !hasAnyErrors) {
-                    res.end("Admin consent was successfully acquired. You can close this window now.");
-                } else {
-                    res.end("Admin consent was not acquired. Make sure the account has admin privileges in the tenant and try again.");
-                }
-
-                resolve(isGranted && doesStateMatch && !hasAnyErrors);
-            });
+            );
 
             this.server.listen(0);
         });
@@ -101,8 +119,10 @@ class ProvisionHandler {
             let ticks = 0;
 
             const id = setInterval(() => {
-                if ((5000 / 100) < ticks) {
-                    throw new Error('Timed out waiting for auth code listener to be registered.');
+                if (5000 / 100 < ticks) {
+                    throw new Error(
+                        "Timed out waiting for auth code listener to be registered."
+                    );
                 }
 
                 if (this.server.listening) {
@@ -119,14 +139,16 @@ class ProvisionHandler {
 
     private getRedirectUri(): string {
         if (!this.server) {
-            throw new Error('No loopback server exists yet.')
+            throw new Error("No loopback server exists yet.");
         }
 
         const address = this.server.address();
 
         if (!address || typeof address === "string" || !address.port) {
             this.closeServer();
-            throw new Error('Loopback server address is not type string. This is unexpected.')
+            throw new Error(
+                "Loopback server address is not type string. This is unexpected."
+            );
         }
 
         const port = address && address.port;

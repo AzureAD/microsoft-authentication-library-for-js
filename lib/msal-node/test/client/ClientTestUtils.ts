@@ -43,9 +43,9 @@ import {
     TEST_DATA_CLIENT_INFO,
     TEST_POP_VALUES,
     TEST_TOKENS,
-} from "../test_kit/StringConstants";
-import { Configuration } from "../../src/config/Configuration";
-import { TEST_CONSTANTS } from "../utils/TestConstants";
+} from "../test_kit/StringConstants.js";
+import { Configuration } from "../../src/config/Configuration.js";
+import { TEST_CONSTANTS } from "../utils/TestConstants.js";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
@@ -342,6 +342,7 @@ export class ClientTestUtils {
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: authority,
+                redirectUri: TEST_CONFIG.REDIRECT_URI,
             },
             storageInterface: mockStorage,
             networkInterface: mockHttpClient,
@@ -635,7 +636,7 @@ export const getClientAssertionCallback = (
     const clientAssertionCallback: ClientAssertionCallback = async (
         _config: ClientAssertionConfig
     ): Promise<string> => {
-        return await Promise.resolve(clientAssertion);
+        return Promise.resolve(clientAssertion);
     };
 
     return clientAssertionCallback;

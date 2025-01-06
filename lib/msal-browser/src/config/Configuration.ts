@@ -30,6 +30,7 @@ import {
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { NavigationClient } from "../navigation/NavigationClient.js";
 import { FetchClient } from "../network/FetchClient.js";
+import * as BrowserUtils from "../utils/BrowserUtils.js";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -273,7 +274,8 @@ export function buildConfiguration(
         knownAuthorities: [],
         cloudDiscoveryMetadata: Constants.EMPTY_STRING,
         authorityMetadata: Constants.EMPTY_STRING,
-        redirectUri: Constants.EMPTY_STRING,
+        redirectUri:
+            typeof window !== "undefined" ? BrowserUtils.getCurrentUri() : "",
         postLogoutRedirectUri: Constants.EMPTY_STRING,
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],

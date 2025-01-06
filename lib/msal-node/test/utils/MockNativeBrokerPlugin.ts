@@ -11,7 +11,7 @@ import {
 import {
     mockNativeAuthenticationResult,
     mockNativeAccountInfo,
-} from "./TestConstants";
+} from "./TestConstants.js";
 
 export class MockNativeBrokerPlugin implements INativeBrokerPlugin {
     isBrokerAvailable: boolean = true;

@@ -28,6 +28,8 @@ import {
     AccountFilter,
     buildStaticAuthorityOptions,
     InteractionRequiredAuthErrorCodes,
+    PersistentCacheKeys,
+    CacheManager,
 } from "@azure/msal-common/browser";
 import {
     BrowserCacheManager,
@@ -176,6 +178,9 @@ export class StandardController implements IController {
 
     private ssoSilentMeasurement?: InProgressPerformanceEvent;
     private acquireTokenByCodeAsyncMeasurement?: InProgressPerformanceEvent;
+
+    // Flag which indicates if we're currently listening for account storage events
+    private listeningToStorageEvents: boolean;
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -228,7 +233,7 @@ export class StandardController implements IController {
             ? new CryptoOps(this.logger, this.performanceClient)
             : DEFAULT_CRYPTO_IMPLEMENTATION;
 
-        this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
+        this.eventHandler = new EventHandler(this.logger);
 
         // Initialize the browser storage class.
         this.browserStorage = this.isBrowserEnvironment
@@ -279,6 +284,11 @@ export class StandardController implements IController {
         // Register listener functions
         this.trackPageVisibilityWithMeasurement =
             this.trackPageVisibilityWithMeasurement.bind(this);
+
+        // account storage events
+        this.listeningToStorageEvents = false;
+        this.handleAccountCacheChange =
+            this.handleAccountCacheChange.bind(this);
     }
 
     static async createController(
@@ -311,6 +321,13 @@ export class StandardController implements IController {
             this.logger.info(
                 "initialize has already been called, exiting early."
             );
+            return;
+        }
+
+        if (!this.isBrowserEnvironment) {
+            this.logger.info("in non-browser environment, exiting early.");
+            this.initialized = true;
+            this.eventHandler.emitEvent(EventType.INITIALIZE_END);
             return;
         }
 
@@ -354,7 +371,6 @@ export class StandardController implements IController {
 
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
-
         initMeasurement.end({ allowNativeBroker, success: true });
     }
 
@@ -765,7 +781,6 @@ export class StandardController implements IController {
                     atPopupMeasurement.end({
                         success: true,
                         isNativeBroker: true,
-                        requestId: response.requestId,
                         accountType: getAccountType(response.account),
                     });
                     return response;
@@ -818,7 +833,6 @@ export class StandardController implements IController {
 
                 atPopupMeasurement.end({
                     success: true,
-                    requestId: result.requestId,
                     accessTokenSize: result.accessToken.length,
                     idTokenSize: result.idToken.length,
                     accountType: getAccountType(result.account),
@@ -955,7 +969,6 @@ export class StandardController implements IController {
                 this.ssoSilentMeasurement?.end({
                     success: true,
                     isNativeBroker: response.fromNativeBroker,
-                    requestId: response.requestId,
                     accessTokenSize: response.accessToken.length,
                     idTokenSize: response.idToken.length,
                     accountType: getAccountType(response.account),
@@ -1040,7 +1053,6 @@ export class StandardController implements IController {
                             atbcMeasurement.end({
                                 success: true,
                                 isNativeBroker: result.fromNativeBroker,
-                                requestId: result.requestId,
                                 accessTokenSize: result.accessToken.length,
                                 idTokenSize: result.idToken.length,
                                 accountType: getAccountType(result.account),
@@ -1157,7 +1169,6 @@ export class StandardController implements IController {
                     success: true,
                     fromCache: response.fromCache,
                     isNativeBroker: response.fromNativeBroker,
-                    requestId: response.requestId,
                 });
                 return response;
             })
@@ -1336,6 +1347,10 @@ export class StandardController implements IController {
      * @param logoutRequest
      */
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
+        if (!this.isBrowserEnvironment) {
+            this.logger.info("in non-browser environment, returning early.");
+            return;
+        }
         const correlationId = this.getRequestCorrelationId(logoutRequest);
         const cacheClient = this.createSilentCacheClient(correlationId);
         return cacheClient.logout(logoutRequest);
@@ -1697,8 +1712,11 @@ export class StandardController implements IController {
      * Adds event callbacks to array
      * @param callback
      */
-    addEventCallback(callback: EventCallbackFunction): string | null {
-        return this.eventHandler.addEventCallback(callback);
+    addEventCallback(
+        callback: EventCallbackFunction,
+        eventTypes?: Array<EventType>
+    ): string | null {
+        return this.eventHandler.addEventCallback(callback, eventTypes);
     }
 
     /**
@@ -1716,6 +1734,7 @@ export class StandardController implements IController {
      * @returns {string}
      */
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
+        BrowserUtils.blockNonBrowserEnvironment();
         return this.performanceClient.addPerformanceCallback(callback);
     }
 
@@ -1733,14 +1752,89 @@ export class StandardController implements IController {
      * Adds event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
      */
     enableAccountStorageEvents(): void {
-        this.eventHandler.enableAccountStorageEvents();
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        if (!this.listeningToStorageEvents) {
+            this.logger.verbose("Adding account storage listener.");
+            this.listeningToStorageEvents = true;
+            window.addEventListener("storage", this.handleAccountCacheChange);
+        } else {
+            this.logger.verbose("Account storage listener already registered.");
+        }
     }
 
     /**
      * Removes event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
      */
     disableAccountStorageEvents(): void {
-        this.eventHandler.disableAccountStorageEvents();
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        if (this.listeningToStorageEvents) {
+            this.logger.verbose("Removing account storage listener.");
+            window.removeEventListener(
+                "storage",
+                this.handleAccountCacheChange
+            );
+            this.listeningToStorageEvents = false;
+        } else {
+            this.logger.verbose("No account storage listener registered.");
+        }
+    }
+
+    /**
+     * Emit account added/removed events when cached accounts are changed in a different tab or frame
+     */
+    protected handleAccountCacheChange(e: StorageEvent): void {
+        try {
+            // Handle active account filter change
+            if (e.key?.includes(PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS)) {
+                // This event has no payload, it only signals cross-tab app instances that the results of calling getActiveAccount() will have changed
+                this.eventHandler.emitEvent(EventType.ACTIVE_ACCOUNT_CHANGED);
+            }
+
+            // Handle account object change
+            const cacheValue = e.newValue || e.oldValue;
+            if (!cacheValue) {
+                return;
+            }
+            const parsedValue = JSON.parse(cacheValue);
+            if (
+                typeof parsedValue !== "object" ||
+                !AccountEntity.isAccountEntity(parsedValue)
+            ) {
+                return;
+            }
+            const accountEntity = CacheManager.toObject<AccountEntity>(
+                new AccountEntity(),
+                parsedValue
+            );
+            const accountInfo = accountEntity.getAccountInfo();
+            if (!e.oldValue && e.newValue) {
+                this.logger.info(
+                    "Account was added to cache in a different window"
+                );
+                this.eventHandler.emitEvent(
+                    EventType.ACCOUNT_ADDED,
+                    undefined,
+                    accountInfo
+                );
+            } else if (!e.newValue && e.oldValue) {
+                this.logger.info(
+                    "Account was removed from cache in a different window"
+                );
+                this.eventHandler.emitEvent(
+                    EventType.ACCOUNT_REMOVED,
+                    undefined,
+                    accountInfo
+                );
+            }
+        } catch (e) {
+            return;
+        }
     }
 
     /**
@@ -1802,13 +1896,6 @@ export class StandardController implements IController {
      */
     public isBrowserEnv(): boolean {
         return this.isBrowserEnvironment;
-    }
-
-    /**
-     * Returns the event handler
-     */
-    getEventHandler(): EventHandler {
-        return this.eventHandler;
     }
 
     /**
@@ -1943,7 +2030,6 @@ export class StandardController implements IController {
                         fromCache: result.fromCache,
                         isNativeBroker: result.fromNativeBroker,
                         cacheLookupPolicy: request.cacheLookupPolicy,
-                        requestId: result.requestId,
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
                     });
@@ -2131,7 +2217,6 @@ export class StandardController implements IController {
                         {
                             fromCache: response.fromCache,
                             isNativeBroker: response.fromNativeBroker,
-                            requestId: response.requestId,
                         },
                         request.correlationId
                     );

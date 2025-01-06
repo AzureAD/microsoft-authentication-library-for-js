@@ -1,8 +1,67 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Thu, 03 Oct 2024 00:40:42 GMT and should not be manually modified.
+This log was last generated on Thu, 12 Dec 2024 19:24:54 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.28.0
+
+Thu, 12 Dec 2024 19:24:54 GMT
+
+### Minor changes
+
+- Refactor storage implementations #7446 (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Prioritize loginHint and session id over active account for authorization request #7449 (kshabelko@microsoft.com)
+
+## 3.27.0
+
+Tue, 05 Nov 2024 18:58:45 GMT
+
+### Minor changes
+
+- Capture runtime errors in telemetry for submeasures (thomas.norling@microsoft.com)
+- Additional network failure telemetry (thomas.norling@microsoft.com)
+- Add first order broker parameters #7348 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.16.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Move requestId telemetry collection (thomas.norling@microsoft.com)
+
+## 3.26.1
+
+Tue, 08 Oct 2024 20:45:26 GMT
+
+### Patches
+
+- Respect cache policy and claims set in the request #7363 (sameera.gajjarapu@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 3.26.0
+
+Tue, 08 Oct 2024 16:51:05 GMT
+
+### Minor changes
+
+- Add optional event type filter to addEventCallback #7351 (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Bug fixes for windowless PCA (shylasummers@microsoft.com)
 
 ## 3.25.0
 

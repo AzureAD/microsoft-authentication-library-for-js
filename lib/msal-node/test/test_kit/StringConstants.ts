@@ -6,8 +6,6 @@
 import {
     AuthenticationResult,
     PasswordGrantConstants,
-} from "@azure/msal-common";
-import {
     AuthenticationScheme,
     Constants,
     ONE_DAY_IN_MS,
@@ -15,8 +13,8 @@ import {
 import {
     DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
     DEFAULT_MANAGED_IDENTITY_ID,
-} from "../../src/utils/Constants";
-import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse";
+} from "../../src/utils/Constants.js";
+import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse.js";
 
 // This file contains the string constants used by the test classes.
 
@@ -195,6 +193,7 @@ export const TEST_CONFIG = {
     DEFAULT_TOKEN_RENEWAL_OFFSET: 300,
     TEST_CONFIG_ASSERTION: "DefaultAssertion",
     TEST_REQUEST_ASSERTION: "RequestAssertion",
+    REDIRECT_URI: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
 };
 
 const ADDITIONAL_CLAIM = '"additional_claim":{"key":"value"}';

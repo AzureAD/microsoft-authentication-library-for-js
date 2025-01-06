@@ -49,7 +49,7 @@ const config = {
         clientId: "ENTER_CLIENT_ID",
         authority: "https://login.microsoftonline.com/ENTER_TENANT_ID",
         clientCertificate: {
-                thumbprint: process.env.thumbprint; // a 40-digit hexadecimal string
+                thumbprint: process.env.thumbprint, // a 40-digit hexadecimal string
                 privateKey: process.env.privateKey,
                 x5c: process.env.x5c
             }

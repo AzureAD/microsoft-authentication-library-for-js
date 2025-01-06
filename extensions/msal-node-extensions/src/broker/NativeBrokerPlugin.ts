@@ -466,11 +466,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             if (request.authenticationScheme === AuthenticationScheme.POP) {
                 if (
                     !request.resourceRequestMethod ||
-                    !request.resourceRequestUri ||
-                    !request.shrNonce
+                    !request.resourceRequestUri
                 ) {
                     throw new Error(
-                        "Authentication Scheme set to POP but one or more of the following parameters are missing: resourceRequestMethod, resourceRequestUri, shrNonce"
+                        "Authentication Scheme set to POP but one or more of the following parameters are missing: resourceRequestMethod, resourceRequestUri"
                     );
                 }
                 const resourceUrl = new URL(request.resourceRequestUri);
@@ -478,7 +477,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     request.resourceRequestMethod,
                     resourceUrl.host,
                     resourceUrl.pathname,
-                    request.shrNonce
+                    request.shrNonce || ""
                 );
             }
 
@@ -548,6 +547,17 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             idTokenClaims
         );
 
+        let accessToken;
+        let tokenType;
+        if (authResult.isPopAuthorization) {
+            // Header includes 'pop ' prefix
+            accessToken = authResult.authorizationHeader.split(" ")[1];
+            tokenType = AuthenticationScheme.POP;
+        } else {
+            accessToken = authResult.accessToken;
+            tokenType = AuthenticationScheme.BEARER;
+        }
+
         const result: AuthenticationResult = {
             authority: request.authority,
             uniqueId: idTokenClaims.oid || idTokenClaims.sub || "",
@@ -556,12 +566,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             account: accountInfo,
             idToken: authResult.rawIdToken,
             idTokenClaims: idTokenClaims,
-            accessToken: authResult.accessToken,
+            accessToken: accessToken,
             fromCache: fromCache,
             expiresOn: new Date(authResult.expiresOn),
-            tokenType: authResult.isPopAuthorization
-                ? AuthenticationScheme.POP
-                : AuthenticationScheme.BEARER,
+            tokenType: tokenType,
             correlationId: request.correlationId,
             fromNativeBroker: true,
         };
