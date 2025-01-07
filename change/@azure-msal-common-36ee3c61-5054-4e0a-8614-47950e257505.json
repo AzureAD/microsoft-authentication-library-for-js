@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Move correlationId to query string on /token calls",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -19,7 +19,7 @@ export class SignUpSubmitPasswordResult extends ResultBase<
     constructor(
         stateHandler?:
             | SignUpAttributesRequiredStateHandler
-            | SignInContinuationStateHandler
+            | SignInContinuationStateHandler,
     ) {
         super(undefined, stateHandler);
 

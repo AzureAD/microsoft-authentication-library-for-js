@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { Constants } from "@azure/msal-browser";
+
 export const GrantType = {
     PASSWORD: "password",
     OOB: "oob",
@@ -16,3 +18,9 @@ export const ChallengeType = {
     OOB: "oob",
     REDIRECT: "redirect",
 };
+
+export const DefaultScopes = [
+    Constants.OPENID_SCOPE,
+    Constants.PROFILE_SCOPE,
+    Constants.OFFLINE_ACCESS_SCOPE,
+];

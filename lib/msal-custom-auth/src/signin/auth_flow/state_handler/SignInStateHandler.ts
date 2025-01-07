@@ -25,7 +25,7 @@ export abstract class SignInStateHandler extends AuthFlowStateHandlerBase {
         correlationId: string,
         continuationToken: string,
         protected config: CustomAuthConfiguration,
-        protected scopes?: Array<string>
+        protected scopes?: Array<string>,
     ) {
         super(correlationId, continuationToken);
 

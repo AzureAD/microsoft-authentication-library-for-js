@@ -9,7 +9,7 @@ export abstract class CustomAuthApiRequestBase {
     protected constructor(
         public requestUrl: string,
         public correlationId: string,
-        public headers?: Record<string, string>
+        public headers?: Record<string, string>,
     ) {
         if (!correlationId) {
             throw new InvalidArgumentError("correlationId");

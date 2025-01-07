@@ -32,7 +32,7 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
     }
 
     async performSignInInitiateRequest(
-        request: SignInInitiateRequest
+        request: SignInInitiateRequest,
     ): Promise<SignInContinuationTokenResponse> {
         /*
          * 1. generate the network request options and request url
@@ -45,25 +45,25 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
     }
 
     async performSignInChallengeRequest(
-        request: SignInChallengeRequest
+        request: SignInChallengeRequest,
     ): Promise<SignInCodeSendResponse | SignInContinuationTokenResponse> {
         throw new Error(`Method not implemented with parameter ${request}`);
     }
 
     async performSignInOobTokenRequest(
-        request: SignInOobTokenRequest
+        request: SignInOobTokenRequest,
     ): Promise<SignInTokenResponse> {
         throw new Error(`Method not implemented with parameter ${request}`);
     }
 
     async performSignInPasswordTokenRequest(
-        request: SignInPasswordTokenRequest
+        request: SignInPasswordTokenRequest,
     ): Promise<SignInTokenResponse> {
         throw new Error(`Method not implemented with parameter ${request}`);
     }
 
     async performSignInContinuationTokenTokenRequest(
-        request: SignInContinuationTokenRequest
+        request: SignInContinuationTokenRequest,
     ): Promise<SignInTokenResponse> {
         throw new Error(`Method not implemented with parameter ${request}`);
     }

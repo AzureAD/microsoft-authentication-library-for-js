@@ -18,22 +18,22 @@ import {
 
 export interface ICustomAuthApiClient {
     performSignInInitiateRequest(
-        request: SignInInitiateRequest
+        request: SignInInitiateRequest,
     ): Promise<SignInContinuationTokenResponse>;
 
     performSignInChallengeRequest(
-        request: SignInChallengeRequest
+        request: SignInChallengeRequest,
     ): Promise<SignInCodeSendResponse | SignInContinuationTokenResponse>;
 
     performSignInOobTokenRequest(
-        request: SignInOobTokenRequest
+        request: SignInOobTokenRequest,
     ): Promise<SignInTokenResponse>;
 
     performSignInPasswordTokenRequest(
-        request: SignInPasswordTokenRequest
+        request: SignInPasswordTokenRequest,
     ): Promise<SignInTokenResponse>;
 
     performSignInContinuationTokenTokenRequest(
-        request: SignInContinuationTokenRequest
+        request: SignInContinuationTokenRequest,
     ): Promise<SignInTokenResponse>;
 }

@@ -8,8 +8,8 @@ import { DataProtectionScope } from "../../src/persistence/DataProtectionScope";
 import { platform } from "process";
 
 // DPAPI is only available on windows
-if (platform === "win32") {
-    describe("Test DPAPI addon", () => {
+describe("Test DPAPI addon", () => {
+    if (platform === "win32") {
         test("Protect and Unprotect data", () => {
             const data = Buffer.from("DPAPITestString");
 
@@ -58,8 +58,12 @@ if (platform === "win32") {
             );
             expect(decryptedData).toEqual(data);
         });
-    });
-} else {
-    // Jest require that a .spec.ts file contain at least one test.
-    test("Empty test", () => {});
-}
+    } else {
+        test("Should throw on non-Windows", () => {
+            const data = Buffer.from("DPAPITestString");
+            expect(() =>
+                Dpapi.protectData(data, null, DataProtectionScope.LocalMachine)
+            ).toThrow();
+        });
+    }
+});

@@ -16,7 +16,7 @@ export abstract class AuthFlowStateHandlerBase {
      */
     protected constructor(
         protected correlationId: string,
-        protected continuationToken?: string
+        protected continuationToken?: string,
     ) {
         if (!correlationId) {
             throw new InvalidArgumentError("correlationId");

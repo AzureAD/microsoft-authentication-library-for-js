@@ -15,7 +15,7 @@ import { AuthFlowStateHandlerBase } from "./AuthFlowStateHandlerBase.js";
 export abstract class ResultBase<
     TState,
     TData = void,
-    TStateHandler extends AuthFlowStateHandlerBase | void = void
+    TStateHandler extends AuthFlowStateHandlerBase | void = void,
 > {
     /*
      * The state of the authentication operation.
@@ -29,7 +29,10 @@ export abstract class ResultBase<
      * @typeParam TData - The type of the result data.
      * @typeParam TState - The type of state.
      */
-    constructor(public data?: TData, public stateHandler?: TStateHandler) {}
+    constructor(
+        public data?: TData,
+        public stateHandler?: TStateHandler,
+    ) {}
 
     /*
      * The error that occurred during the authentication operation.
@@ -53,7 +56,7 @@ export abstract class ResultBase<
         TData,
         TStateHandler extends AuthFlowStateHandlerBase | void,
         TState,
-        TActionResult extends ResultBase<TState, TData, TStateHandler>
+        TActionResult extends ResultBase<TState, TData, TStateHandler>,
     >(this: new () => TActionResult, error: unknown): TActionResult {
         let customAuthError: CustomAuthError;
 

@@ -14,6 +14,6 @@ export class CustomAuthApiError {
         public continuationToken?: string,
         public requiredAttributes?: Array<UserAttribute>,
         public invalidAttributes?: Array<string>,
-        public subError?: string
+        public subError?: string,
     ) {}
 }

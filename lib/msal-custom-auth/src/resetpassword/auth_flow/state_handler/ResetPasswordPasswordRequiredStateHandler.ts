@@ -17,13 +17,13 @@ export class ResetPasswordPasswordRequiredStateHandler extends ResetPasswordStat
      * @returns The result of the operation.
      */
     async sumbmitPassword(
-        password: string
+        password: string,
     ): Promise<ResetPasswordSubmitPasswordResult> {
         if (!password) {
             return Promise.resolve(
                 ResetPasswordSubmitPasswordResult.createWithError(
-                    new InvalidArgumentError("password", this.correlationId)
-                )
+                    new InvalidArgumentError("password", this.correlationId),
+                ),
             );
         }
 

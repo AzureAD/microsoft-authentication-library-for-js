@@ -1,10 +1,15 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import {
     JsonCache,
     InMemoryCache,
-} from "../../../src/cache/serializer/SerializerTypes";
-import { Serializer } from "../../../src/cache/serializer/Serializer";
-import { Deserializer } from "../../../src/cache/serializer/Deserializer";
-import { MockCache } from "../cacheConstants";
+} from "../../../src/cache/serializer/SerializerTypes.js";
+import { Serializer } from "../../../src/cache/serializer/Serializer.js";
+import { Deserializer } from "../../../src/cache/serializer/Deserializer.js";
+import { MockCache } from "../cacheConstants.js";
 
 const cachedJson = require("./cache.json");
 

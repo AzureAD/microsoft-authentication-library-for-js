@@ -23,7 +23,7 @@ export class SignUpSubmitCodeResult extends ResultBase<
         stateHandler?:
             | SignUpPasswordRequiredStateHandler
             | SignUpAttributesRequiredStateHandler
-            | SignInContinuationStateHandler
+            | SignInContinuationStateHandler,
     ) {
         super(undefined, stateHandler);
 

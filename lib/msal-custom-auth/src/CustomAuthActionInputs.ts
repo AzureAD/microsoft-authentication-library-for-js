@@ -5,6 +5,10 @@
 
 import { UserAccountAttributes } from "./UserAccountAttributes.js";
 
+export type CustomAuthActionInputs = {
+    correlationId?: string;
+};
+
 export type GetAccountInputs = CustomAuthActionInputs;
 
 export type SignInInputs = CustomAuthActionInputs & {
@@ -21,8 +25,4 @@ export type SignUpInputs = CustomAuthActionInputs & {
 
 export type ResetPasswordInputs = CustomAuthActionInputs & {
     username: string;
-};
-
-export type CustomAuthActionInputs = {
-    correlationId?: string;
 };

@@ -12,7 +12,7 @@ abstract class SignInParamsBase extends ClientActionParamsBase {
         clientId: string,
         correlationId: string,
         challengeType: Array<string>,
-        public scopes: Array<string>
+        public scopes: Array<string>,
     ) {
         super(authorityUrl, clientId, correlationId, challengeType);
 
@@ -29,7 +29,7 @@ export class SignInResendCodeParams extends SignInParamsBase {
         correlationId: string,
         challengeType: Array<string>,
         scopes: Array<string>,
-        public continuationToken: string
+        public continuationToken: string,
     ) {
         super(authorityUrl, clientId, correlationId, challengeType, scopes);
 
@@ -47,7 +47,7 @@ export class SignInStartParams extends SignInParamsBase {
         challengeType: Array<string>,
         scopes: Array<string>,
         public username: string,
-        public password?: string
+        public password?: string,
     ) {
         super(authorityUrl, clientId, correlationId, challengeType, scopes);
 
@@ -65,7 +65,7 @@ export class SignInSubmitCodeParams extends SignInParamsBase {
         challengeType: Array<string>,
         scopes: Array<string>,
         public continuationToken: string,
-        public code: string
+        public code: string,
     ) {
         super(authorityUrl, clientId, correlationId, challengeType, scopes);
 
@@ -87,7 +87,7 @@ export class SignInSubmitPasswordParams extends SignInParamsBase {
         challengeType: Array<string>,
         scopes: Array<string>,
         public continuationToken: string,
-        public password: string
+        public password: string,
     ) {
         super(authorityUrl, clientId, correlationId, challengeType, scopes);
 
@@ -109,7 +109,7 @@ export class SignInContinuationTokenParams extends SignInParamsBase {
         challengeType: Array<string>,
         scopes: Array<string>,
         public continuationToken: string,
-        public username: string
+        public username: string,
     ) {
         super(authorityUrl, clientId, correlationId, challengeType, scopes);
 

@@ -22,7 +22,7 @@ export abstract class SignUpStateHandler extends AuthFlowStateHandlerBase {
         correlationId: string,
         continuationToken: string,
         protected config: CustomAuthConfiguration,
-        protected username: string
+        protected username: string,
     ) {
         super(correlationId, continuationToken);
 
