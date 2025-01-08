@@ -41,6 +41,6 @@ describe('AppComponent', () => {
   it(`should have the 'Angular 19 Sample - MSAL Angular v3' title`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('Angular 18 Sample - MSAL Angular v3');
+    expect(app.title).toEqual('Angular 19 Sample - MSAL Angular v3');
   });
 });
