@@ -387,7 +387,7 @@ describe("PublicClientApplication", () => {
             expect(cacheSpy).toHaveBeenCalledWith(emptyCache);
         });
 
-        it("acquireToken calls refreshToken if refresh is required", async () => {
+        it("acquireTokenSilent calls refreshToken if refresh is required", async () => {
             const request: SilentFlowRequest = {
                 account: mockAccountInfo,
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
@@ -400,7 +400,7 @@ describe("PublicClientApplication", () => {
                 (config) => new silentFlowClient(config)
             );
 
-            jest.spyOn(TimeUtils, <any>"isTokenExpired").mockReturnValue(true);
+            jest.spyOn(TimeUtils, "isTokenExpired").mockReturnValue(true);
             const refreshTokenClientSpy = jest.spyOn(
                 RefreshTokenClient.prototype,
                 "acquireToken"
