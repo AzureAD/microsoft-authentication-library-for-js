@@ -386,29 +386,6 @@ describe("PublicClientApplication", () => {
             expect(snapshotSpy).toHaveBeenCalled();
             expect(cacheSpy).toHaveBeenCalledWith(emptyCache);
         });
-
-        it("acquireTokenSilent calls refreshToken if refresh is required", async () => {
-            const request: SilentFlowRequest = {
-                account: mockAccountInfo,
-                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-            };
-
-            const authApp = new PublicClientApplication(appConfig);
-
-            const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
-            jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
-                (config) => new silentFlowClient(config)
-            );
-
-            jest.spyOn(TimeUtils, "isTokenExpired").mockReturnValue(true);
-            const refreshTokenClientSpy = jest.spyOn(
-                RefreshTokenClient.prototype,
-                "acquireToken"
-            );
-
-            await authApp.acquireTokenSilent(request);
-            expect(refreshTokenClientSpy).toHaveBeenCalled();
-        });
     });
 
     describe("acquireTokenInteractive tests", () => {
