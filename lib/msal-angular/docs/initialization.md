@@ -60,6 +60,27 @@ import { PublicClientApplication, InteractionType, BrowserCacheLocation } from "
 export class AppModule {}
 ```
 
+## Initialise the MsalRedirectComponent
+
+Add the `<app-redirect></app-redirect>` selector to `index.html`
+
+```html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AngularrbacmoduleClient</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <app-root></app-root>
+  <app-redirect></app-redirect>
+</body>
+</html>
+```
+
 ## Secure the routes in your application
 
 You can add authentication to secure specific routes in your application by just adding `canActivate: [MsalGuard]` to your route definition. It can be added at the parent or child routes. When a user visits these routes, the library will prompt the user to authenticate.
