@@ -1,59 +1,33 @@
-# Angular19StandaloneSample
+# Angular 19 Standalone MSAL Angular v3 Sample
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.0.6.
+This developer sample is used to demonstrate how to use `@azure/msal-angular` with Angular standalone components, and **does not** use the `MsalModule` or `NgModule`. Please see [Angular's docs on standalone](https://angular.io/guide/standalone-components) for more information.
 
-## Development server
+This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.0.6., and uses Angular 19's application builder, but **does not** demonstrate use of server-side and prerendering capabilities. See [Angular's docs](https://angular.io/guide/esbuild) for more details.
 
-To start a local development server, run:
+## How to run the sample
 
-```bash
-ng serve
-```
+### Pre-requisites
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- Ensure [all pre-requisites](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/README.md) have been completed to run msal-angular.
 
-## Code scaffolding
+### Configure the application
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- Open `./src/app/app.config.ts` in an editor.
+- Replace client ID with the Application (client) ID from the portal registration, or use the currently configured lab registration.
+  - Optionally, you may replace any of the other parameters (tenant ID, redirect URI, scopes, etc.), or you can remove them and use the default values.
+- You can also change the client ID, tenant ID, or scopes in the `./src/environments` folder.
 
-```bash
-ng generate component component-name
-```
+### Running the sample
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+- In a command prompt, run `npm run start`.
+- Navigate to [http://localhost:4200](http://localhost:4200)
+- In the web page, click on the "Login" button. The app will automatically reload if you change any of the source files.
 
-```bash
-ng generate --help
-```
+## Local development
 
-## Building
+If you are trying to run this sample locally in the MSAL.js repo, run `npm run build` before `npm run start` to install a tarball file of MSAL Angular.
 
-To build the project run:
+## Additional notes
 
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- This sample does not use the `MsalRedirectComponent`, but subscribes to `handleRedirectObservable` in the `app.component.ts` file. See our doc on [redirects](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/redirects.md) for more information.
+- The default interaction type for the sample is redirects. The sample can be configured to use redirects by changing the `interactionType` in `main.ts` to `InteractionType.Popup`.
