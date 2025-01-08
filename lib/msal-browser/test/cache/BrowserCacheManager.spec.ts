@@ -34,6 +34,7 @@ import {
     CacheErrorCodes,
     CacheManager,
     PerformanceEvent,
+    StubPerformanceClient,
 } from "@azure/msal-common";
 import {
     BrowserCacheLocation,
@@ -85,7 +86,8 @@ describe("BrowserCacheManager tests", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 { ...cacheConfig, cacheLocation: "notALocation" },
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             // @ts-ignore
             cacheManager.browserStorage.setItem("key", "value");
@@ -103,7 +105,8 @@ describe("BrowserCacheManager tests", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             // @ts-ignore
             sessionCache.browserStorage.setItem("key", "value");
@@ -120,7 +123,8 @@ describe("BrowserCacheManager tests", () => {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
                 },
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             // @ts-ignore
             localCache.browserStorage.setItem("key", "value");
@@ -141,9 +145,10 @@ describe("BrowserCacheManager tests", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
-            await browserSessionStorage.initialize();
+            await browserSessionStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             authority = new Authority(
                 TEST_CONFIG.validAuthority,
                 StubbedNetworkModule,
@@ -168,9 +173,10 @@ describe("BrowserCacheManager tests", () => {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
                 },
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
-            await browserLocalStorage.initialize();
+            await browserLocalStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             cacheVal = "cacheVal";
             msalCacheKey = browserSessionStorage.generateCacheKey("cacheKey");
             msalCacheKey2 = browserSessionStorage.generateCacheKey("cacheKey2");
@@ -199,7 +205,8 @@ describe("BrowserCacheManager tests", () => {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
                 },
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             expect(browserLocalStorage.getTemporaryCache(testTempItemKey)).toBe(
                 testTempItemValue
@@ -298,8 +305,14 @@ describe("BrowserCacheManager tests", () => {
                         authority
                     );
 
-                    await browserLocalStorage.setAccount(testAccount);
-                    await browserSessionStorage.setAccount(testAccount);
+                    await browserLocalStorage.setAccount(
+                        testAccount,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    await browserSessionStorage.setAccount(
+                        testAccount,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
 
                     expect(
                         browserSessionStorage.getAccount(
@@ -380,9 +393,13 @@ describe("BrowserCacheManager tests", () => {
                         "tenantId"
                     );
 
-                    await browserLocalStorage.setIdTokenCredential(testIdToken);
+                    await browserLocalStorage.setIdTokenCredential(
+                        testIdToken,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
                     await browserSessionStorage.setIdTokenCredential(
-                        testIdToken
+                        testIdToken,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     expect(
@@ -463,10 +480,12 @@ describe("BrowserCacheManager tests", () => {
                         );
 
                     await browserLocalStorage.setAccessTokenCredential(
-                        testAccessToken
+                        testAccessToken,
+                        TEST_CONFIG.CORRELATION_ID
                     );
                     await browserSessionStorage.setAccessTokenCredential(
-                        testAccessToken
+                        testAccessToken,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     expect(
@@ -514,10 +533,12 @@ describe("BrowserCacheManager tests", () => {
                         );
                     // Cache bearer token
                     await browserLocalStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme
+                        testAccessTokenWithoutAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
                     );
                     await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme
+                        testAccessTokenWithoutAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
                     );
                 });
 
@@ -554,18 +575,22 @@ describe("BrowserCacheManager tests", () => {
                         );
                     // Cache bearer token
                     await browserLocalStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme
+                        testAccessTokenWithoutAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
                     );
                     await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme
+                        testAccessTokenWithoutAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     // Cache pop token
                     await browserLocalStorage.setAccessTokenCredential(
-                        testAccessTokenWithAuthScheme
+                        testAccessTokenWithAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
                     );
                     await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithAuthScheme
+                        testAccessTokenWithAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     expect(
@@ -631,18 +656,22 @@ describe("BrowserCacheManager tests", () => {
                         );
                     // Cache bearer token
                     await browserLocalStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme
+                        testAccessTokenWithoutAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
                     );
                     await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme
+                        testAccessTokenWithoutAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     // Cache pop token
                     await browserLocalStorage.setAccessTokenCredential(
-                        testAccessTokenWithAuthScheme
+                        testAccessTokenWithAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
                     );
                     await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithAuthScheme
+                        testAccessTokenWithAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     expect(
@@ -753,21 +782,37 @@ describe("BrowserCacheManager tests", () => {
                         refreshToken: [],
                     });
 
-                    await browserLocalStorage.setAccessTokenCredential(testAT1);
-                    await browserSessionStorage.setAccessTokenCredential(
-                        testAT1
+                    await browserLocalStorage.setAccessTokenCredential(
+                        testAT1,
+                        TEST_CONFIG.CORRELATION_ID
                     );
-                    await browserLocalStorage.setAccessTokenCredential(testAT2);
                     await browserSessionStorage.setAccessTokenCredential(
-                        testAT2
+                        testAT1,
+                        TEST_CONFIG.CORRELATION_ID
                     );
-                    await browserLocalStorage.setAccessTokenCredential(testAT3);
-                    await browserSessionStorage.setAccessTokenCredential(
-                        testAT3
+                    await browserLocalStorage.setAccessTokenCredential(
+                        testAT2,
+                        TEST_CONFIG.CORRELATION_ID
                     );
-                    await browserLocalStorage.setAccessTokenCredential(testAT4);
                     await browserSessionStorage.setAccessTokenCredential(
-                        testAT4
+                        testAT2,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    await browserLocalStorage.setAccessTokenCredential(
+                        testAT3,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    await browserSessionStorage.setAccessTokenCredential(
+                        testAT3,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    await browserLocalStorage.setAccessTokenCredential(
+                        testAT4,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    await browserSessionStorage.setAccessTokenCredential(
+                        testAT4,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     expect(browserLocalStorage.getTokenKeys()).toStrictEqual({
@@ -982,10 +1027,12 @@ describe("BrowserCacheManager tests", () => {
                         );
 
                     await browserLocalStorage.setRefreshTokenCredential(
-                        testRefreshToken
+                        testRefreshToken,
+                        TEST_CONFIG.CORRELATION_ID
                     );
                     await browserSessionStorage.setRefreshTokenCredential(
-                        testRefreshToken
+                        testRefreshToken,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     expect(
@@ -1347,7 +1394,6 @@ describe("BrowserCacheManager tests", () => {
                         cacheConfig,
                         browserCrypto,
                         logger,
-                        undefined,
                         perfClient
                     );
 
@@ -1361,7 +1407,9 @@ describe("BrowserCacheManager tests", () => {
                         (events: PerformanceEvent[]) => {
                             expect(events.length).toEqual(1);
                             const event = events[0];
-                            expect(event.name).toBe("test-measurement");
+                            if (event.name !== "test-measurement") {
+                                return;
+                            }
                             expect(event.correlationId).toEqual(
                                 "test-correlation-id"
                             );
@@ -1384,13 +1432,16 @@ describe("BrowserCacheManager tests", () => {
                     );
 
                     cacheManager
-                        .setAccessTokenCredential(testAccessToken)
+                        .setAccessTokenCredential(
+                            testAccessToken,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
                         .then(() =>
                             cacheManager
                                 .saveCacheRecord(
                                     {},
-                                    undefined,
-                                    "test-correlation-id"
+                                    "test-correlation-id",
+                                    undefined
                                 )
                                 .then(() => {
                                     throw new Error(
@@ -1419,7 +1470,8 @@ describe("BrowserCacheManager tests", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             authority = new Authority(
                 TEST_CONFIG.validAuthority,
@@ -1446,10 +1498,11 @@ describe("BrowserCacheManager tests", () => {
                     temporaryCacheLocation: BrowserCacheLocation.LocalStorage,
                 },
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
-            await browserLocalStorage.initialize();
-            await browserSessionStorage.initialize();
+            await browserLocalStorage.initialize(TEST_CONFIG.CORRELATION_ID);
+            await browserSessionStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             cacheVal = "cacheVal";
             msalCacheKey = browserSessionStorage.generateCacheKey("cacheKey");
             msalCacheKey2 = browserSessionStorage.generateCacheKey("cacheKey2");
@@ -1478,7 +1531,8 @@ describe("BrowserCacheManager tests", () => {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
                 },
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             expect(browserLocalStorage.getTemporaryCache(testTempItemKey)).toBe(
                 testTempItemValue
@@ -1561,8 +1615,14 @@ describe("BrowserCacheManager tests", () => {
                         authority
                     );
 
-                    await browserLocalStorage.setAccount(testAccount);
-                    await browserSessionStorage.setAccount(testAccount);
+                    await browserLocalStorage.setAccount(
+                        testAccount,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                    await browserSessionStorage.setAccount(
+                        testAccount,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
 
                     expect(
                         browserSessionStorage.getAccount(
@@ -1643,9 +1703,13 @@ describe("BrowserCacheManager tests", () => {
                         "tenantId"
                     );
 
-                    await browserLocalStorage.setIdTokenCredential(testIdToken);
+                    await browserLocalStorage.setIdTokenCredential(
+                        testIdToken,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
                     await browserSessionStorage.setIdTokenCredential(
-                        testIdToken
+                        testIdToken,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     expect(
@@ -1726,10 +1790,12 @@ describe("BrowserCacheManager tests", () => {
                         );
 
                     await browserLocalStorage.setAccessTokenCredential(
-                        testAccessToken
+                        testAccessToken,
+                        TEST_CONFIG.CORRELATION_ID
                     );
                     await browserSessionStorage.setAccessTokenCredential(
-                        testAccessToken
+                        testAccessToken,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     expect(
@@ -1777,18 +1843,22 @@ describe("BrowserCacheManager tests", () => {
                         );
                     // Cache bearer token
                     await browserLocalStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme
+                        testAccessTokenWithoutAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
                     );
                     await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme
+                        testAccessTokenWithoutAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     // Cache pop token
                     await browserLocalStorage.setAccessTokenCredential(
-                        testAccessTokenWithAuthScheme
+                        testAccessTokenWithAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
                     );
                     await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithAuthScheme
+                        testAccessTokenWithAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     expect(
@@ -1854,18 +1924,22 @@ describe("BrowserCacheManager tests", () => {
                         );
                     // Cache bearer token
                     await browserLocalStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme
+                        testAccessTokenWithoutAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
                     );
                     await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme
+                        testAccessTokenWithoutAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     // Cache pop token
                     await browserLocalStorage.setAccessTokenCredential(
-                        testAccessTokenWithAuthScheme
+                        testAccessTokenWithAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
                     );
                     await browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithAuthScheme
+                        testAccessTokenWithAuthScheme,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     expect(
@@ -1958,10 +2032,12 @@ describe("BrowserCacheManager tests", () => {
                         );
 
                     await browserLocalStorage.setRefreshTokenCredential(
-                        testRefreshToken
+                        testRefreshToken,
+                        TEST_CONFIG.CORRELATION_ID
                     );
                     await browserSessionStorage.setRefreshTokenCredential(
-                        testRefreshToken
+                        testRefreshToken,
+                        TEST_CONFIG.CORRELATION_ID
                     );
 
                     expect(
@@ -2303,9 +2379,10 @@ describe("BrowserCacheManager tests", () => {
                     storeAuthStateInCookie: true,
                 },
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
-            await browserSessionStorage.initialize();
+            await browserSessionStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             browserLocalStorage = new BrowserCacheManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 {
@@ -2314,9 +2391,10 @@ describe("BrowserCacheManager tests", () => {
                     storeAuthStateInCookie: true,
                 },
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
-            await browserLocalStorage.initialize();
+            await browserLocalStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             browserMemoryStorage = new BrowserCacheManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 {
@@ -2325,9 +2403,10 @@ describe("BrowserCacheManager tests", () => {
                     storeAuthStateInCookie: true,
                 },
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
-            await browserMemoryStorage.initialize();
+            await browserMemoryStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             cacheVal = "cacheVal";
             msalCacheKey = browserSessionStorage.generateCacheKey("cacheKey");
         });
@@ -2433,8 +2512,8 @@ describe("BrowserCacheManager tests", () => {
             );
             expect(document.cookie).toContain(`${msalCacheKey}=${cacheVal}`);
             browserMemoryStorage.removeTemporaryItem(msalCacheKey);
-            // @ts-ignore
             expect(
+                // @ts-ignore
                 browserMemoryStorage.temporaryCacheStorage.getItem(msalCacheKey)
             ).toBeNull();
             expect(document.cookie).not.toContain(
@@ -2600,7 +2679,8 @@ describe("BrowserCacheManager tests", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             const authorityKey = browserStorage.generateAuthorityKey(
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
@@ -2615,7 +2695,8 @@ describe("BrowserCacheManager tests", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             const nonceKey = browserStorage.generateNonceKey(
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
@@ -2630,7 +2711,8 @@ describe("BrowserCacheManager tests", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             const testNonce = "testNonce";
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
@@ -2662,7 +2744,8 @@ describe("BrowserCacheManager tests", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             browserStorage.updateCacheEntries(
                 stateString,
@@ -2716,7 +2799,8 @@ describe("BrowserCacheManager tests", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             const tokenRequest: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
@@ -2746,7 +2830,8 @@ describe("BrowserCacheManager tests", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             // browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
 
@@ -2768,7 +2853,8 @@ describe("BrowserCacheManager tests", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             const tokenRequest: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
@@ -2803,7 +2889,8 @@ describe("BrowserCacheManager tests", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             // Set up cache
             const authorityKey = browserStorage.generateAuthorityKey(
@@ -2848,7 +2935,8 @@ describe("BrowserCacheManager tests", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
 
             const cacheKey = "cacheKey";
@@ -2874,7 +2962,8 @@ describe("BrowserCacheManager tests", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
 
             const browserState: BrowserStateObject = {
@@ -2916,7 +3005,8 @@ describe("BrowserCacheManager tests", () => {
                     storeAuthStateInCookie: true,
                 },
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
 
             browserStorage.setInteractionInProgress(true);
@@ -2933,7 +3023,8 @@ describe("BrowserCacheManager tests", () => {
                     ...cacheConfig,
                 },
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
 
             expect(browserStorage.getTokenKeys()).toStrictEqual({

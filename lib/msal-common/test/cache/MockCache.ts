@@ -3,22 +3,22 @@
  * Licensed under the MIT License.
  */
 
+import { StaticAuthorityOptions } from "../../src/authority/AuthorityOptions.js";
+import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity.js";
+import { ICrypto } from "../../src/crypto/ICrypto.js";
+import { Logger } from "../../src/logger/Logger.js";
 import {
-    ICrypto,
-    RefreshTokenEntity,
-    Logger,
-    StaticAuthorityOptions,
-    CredentialType,
     AuthenticationScheme,
-} from "../../src";
-import { MockStorageClass } from "../client/ClientTestUtils";
+    CredentialType,
+} from "../../src/utils/Constants.js";
+import { MockStorageClass } from "../client/ClientTestUtils.js";
 import {
     TEST_TOKENS,
     TEST_CRYPTO_VALUES,
     ID_TOKEN_CLAIMS,
     ID_TOKEN_ALT_CLAIMS,
     GUEST_ID_TOKEN_CLAIMS,
-} from "../test_kit/StringConstants";
+} from "../test_kit/StringConstants.js";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 
 export class MockCache {

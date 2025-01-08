@@ -37,6 +37,7 @@ import {
     CacheHelpers,
     StoreInCache,
     CacheError,
+    invokeAsync,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
@@ -85,15 +86,15 @@ export class BrowserCacheManager extends CacheManager {
     // Logger instance
     protected logger: Logger;
     // Telemetry perf client
-    protected performanceClient?: IPerformanceClient;
+    protected performanceClient: IPerformanceClient;
 
     constructor(
         clientId: string,
         cacheConfig: Required<CacheOptions>,
         cryptoImpl: ICrypto,
         logger: Logger,
-        staticAuthorityOptions?: StaticAuthorityOptions,
-        performanceClient?: IPerformanceClient
+        performanceClient: IPerformanceClient,
+        staticAuthorityOptions?: StaticAuthorityOptions
     ) {
         super(clientId, cryptoImpl, logger, staticAuthorityOptions);
         this.cacheConfig = cacheConfig;
@@ -110,8 +111,8 @@ export class BrowserCacheManager extends CacheManager {
         this.performanceClient = performanceClient;
     }
 
-    async initialize(): Promise<void> {
-        await this.browserStorage.initialize();
+    async initialize(correlationId: string): Promise<void> {
+        await this.browserStorage.initialize(correlationId);
     }
 
     /**
@@ -124,7 +125,11 @@ export class BrowserCacheManager extends CacheManager {
         try {
             switch (cacheLocation) {
                 case BrowserCacheLocation.LocalStorage:
-                    return new LocalStorage(this.clientId);
+                    return new LocalStorage(
+                        this.clientId,
+                        this.logger,
+                        this.performanceClient
+                    );
                 case BrowserCacheLocation.SessionStorage:
                     return new SessionStorage();
                 case BrowserCacheLocation.MemoryStorage:
@@ -189,10 +194,18 @@ export class BrowserCacheManager extends CacheManager {
      * set account entity in the platform cache
      * @param account
      */
-    async setAccount(account: AccountEntity): Promise<void> {
+    async setAccount(
+        account: AccountEntity,
+        correlationId: string
+    ): Promise<void> {
         this.logger.trace("BrowserCacheManager.setAccount called");
         const key = account.generateAccountKey();
-        await this.browserStorage.setUserData(key, JSON.stringify(account));
+        await invokeAsync(
+            this.browserStorage.setUserData.bind(this.browserStorage),
+            PerformanceEvents.SetUserData,
+            this.logger,
+            this.performanceClient
+        )(key, JSON.stringify(account), correlationId);
         this.addAccountKeyToMap(key);
     }
 
@@ -457,14 +470,19 @@ export class BrowserCacheManager extends CacheManager {
      * set IdToken credential to the platform cache
      * @param idToken
      */
-    async setIdTokenCredential(idToken: IdTokenEntity): Promise<void> {
+    async setIdTokenCredential(
+        idToken: IdTokenEntity,
+        correlationId: string
+    ): Promise<void> {
         this.logger.trace("BrowserCacheManager.setIdTokenCredential called");
         const idTokenKey = CacheHelpers.generateCredentialKey(idToken);
 
-        await this.browserStorage.setUserData(
-            idTokenKey,
-            JSON.stringify(idToken)
-        );
+        await invokeAsync(
+            this.browserStorage.setUserData.bind(this.browserStorage),
+            PerformanceEvents.SetUserData,
+            this.logger,
+            this.performanceClient
+        )(idTokenKey, JSON.stringify(idToken), correlationId);
 
         this.addTokenKey(idTokenKey, CredentialType.ID_TOKEN);
     }
@@ -505,16 +523,19 @@ export class BrowserCacheManager extends CacheManager {
      * @param accessToken
      */
     async setAccessTokenCredential(
-        accessToken: AccessTokenEntity
+        accessToken: AccessTokenEntity,
+        correlationId: string
     ): Promise<void> {
         this.logger.trace(
             "BrowserCacheManager.setAccessTokenCredential called"
         );
         const accessTokenKey = CacheHelpers.generateCredentialKey(accessToken);
-        await this.browserStorage.setUserData(
-            accessTokenKey,
-            JSON.stringify(accessToken)
-        );
+        await invokeAsync(
+            this.browserStorage.setUserData.bind(this.browserStorage),
+            PerformanceEvents.SetUserData,
+            this.logger,
+            this.performanceClient
+        )(accessTokenKey, JSON.stringify(accessToken), correlationId);
 
         this.addTokenKey(accessTokenKey, CredentialType.ACCESS_TOKEN);
     }
@@ -557,17 +578,20 @@ export class BrowserCacheManager extends CacheManager {
      * @param refreshToken
      */
     async setRefreshTokenCredential(
-        refreshToken: RefreshTokenEntity
+        refreshToken: RefreshTokenEntity,
+        correlationId: string
     ): Promise<void> {
         this.logger.trace(
             "BrowserCacheManager.setRefreshTokenCredential called"
         );
         const refreshTokenKey =
             CacheHelpers.generateCredentialKey(refreshToken);
-        await this.browserStorage.setUserData(
-            refreshTokenKey,
-            JSON.stringify(refreshToken)
-        );
+        await invokeAsync(
+            this.browserStorage.setUserData.bind(this.browserStorage),
+            PerformanceEvents.SetUserData,
+            this.logger,
+            this.performanceClient
+        )(refreshTokenKey, JSON.stringify(refreshToken), correlationId);
 
         this.addTokenKey(refreshTokenKey, CredentialType.REFRESH_TOKEN);
     }
@@ -1404,7 +1428,7 @@ export class BrowserCacheManager extends CacheManager {
             idToken: idTokenEntity,
             accessToken: accessTokenEntity,
         };
-        return this.saveCacheRecord(cacheRecord);
+        return this.saveCacheRecord(cacheRecord, result.correlationId);
     }
 
     /**
@@ -1415,14 +1439,14 @@ export class BrowserCacheManager extends CacheManager {
      */
     async saveCacheRecord(
         cacheRecord: CacheRecord,
-        storeInCache?: StoreInCache,
-        correlationId?: string
+        correlationId: string,
+        storeInCache?: StoreInCache
     ): Promise<void> {
         try {
             await super.saveCacheRecord(
                 cacheRecord,
-                storeInCache,
-                correlationId
+                correlationId,
+                storeInCache
             );
         } catch (e) {
             if (
@@ -1451,7 +1475,8 @@ export class BrowserCacheManager extends CacheManager {
 
 export const DEFAULT_BROWSER_CACHE_MANAGER = (
     clientId: string,
-    logger: Logger
+    logger: Logger,
+    performanceClient: IPerformanceClient
 ): BrowserCacheManager => {
     const cacheOptions: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.MemoryStorage,
@@ -1465,6 +1490,7 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
         clientId,
         cacheOptions,
         DEFAULT_CRYPTO_IMPLEMENTATION,
-        logger
+        logger,
+        performanceClient
     );
 };

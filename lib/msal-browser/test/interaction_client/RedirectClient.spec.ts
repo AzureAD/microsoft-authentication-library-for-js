@@ -49,6 +49,7 @@ import {
     IdTokenEntity,
     CredentialType,
     InProgressPerformanceEvent,
+    StubPerformanceClient,
 } from "@azure/msal-common";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
@@ -1399,7 +1400,8 @@ describe("RedirectClient", () => {
                 "different-client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             secondInstanceStorage.setInteractionInProgress(true);
             browserStorage.setInteractionInProgress(false);
@@ -1985,7 +1987,8 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
+                new StubPerformanceClient()
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
@@ -2047,7 +2050,8 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
+                new StubPerformanceClient()
             );
 
             jest.spyOn(
@@ -2160,7 +2164,8 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
+                new StubPerformanceClient()
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
@@ -2237,7 +2242,8 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
+                new StubPerformanceClient()
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
@@ -2307,7 +2313,8 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
+                new StubPerformanceClient()
             );
             await redirectClient.acquireToken(tokenRequest);
             const cachedRequest: CommonAuthorizationCodeRequest = JSON.parse(
@@ -2350,7 +2357,8 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
+                new StubPerformanceClient()
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -2483,7 +2491,8 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
+                new StubPerformanceClient()
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
@@ -2545,7 +2554,8 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
+                new StubPerformanceClient()
             );
             await redirectClient.acquireToken(tokenRequest);
             const cachedRequest: CommonAuthorizationCodeRequest = JSON.parse(
@@ -2588,7 +2598,8 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
+                new StubPerformanceClient()
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -3020,7 +3031,7 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage
-                .setAccount(testAccount)
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
                 .then(() =>
                     redirectClient.logout({ account: testAccountInfo })
                 );
@@ -3079,12 +3090,14 @@ describe("RedirectClient", () => {
                     return Promise.resolve(true);
                 }
             );
-            browserStorage.setAccount(testAccount).then(() =>
-                redirectClient.logout({
-                    account: testAccountInfo,
-                    logoutHint: logoutHint,
-                })
-            );
+            browserStorage
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .then(() =>
+                    redirectClient.logout({
+                        account: testAccountInfo,
+                        logoutHint: logoutHint,
+                    })
+                );
         });
 
         it("doesnt navigate if onRedirectNavigate returns false", (done) => {
@@ -3165,31 +3178,34 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage.setInteractionInProgress(true);
-            browserStorage.setAccount(testAccount).then(() =>
-                redirectClient
-                    .logout({
-                        account: testAccountInfo,
-                        onRedirectNavigate: (url: string) => {
-                            expect(url).toEqual(testLogoutUrl);
-                            return false;
-                        },
-                    })
-                    .then(() => {
-                        expect(
-                            browserStorage.getInteractionInProgress()
-                        ).toBeFalsy();
+            browserStorage
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .then(() =>
+                    redirectClient
+                        .logout({
+                            account: testAccountInfo,
+                            onRedirectNavigate: (url: string) => {
+                                expect(url).toEqual(testLogoutUrl);
+                                return false;
+                            },
+                        })
+                        .then(() => {
+                            expect(
+                                browserStorage.getInteractionInProgress()
+                            ).toBeFalsy();
 
-                        const validatedLogoutRequest: CommonEndSessionRequest =
-                            {
-                                correlationId: RANDOM_TEST_GUID,
-                                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
-                            };
-                        expect(logoutUriSpy).toHaveBeenCalledWith(
-                            expect.objectContaining(validatedLogoutRequest)
-                        );
-                        done();
-                    })
-            );
+                            const validatedLogoutRequest: CommonEndSessionRequest =
+                                {
+                                    correlationId: RANDOM_TEST_GUID,
+                                    postLogoutRedirectUri:
+                                        TEST_URIS.TEST_REDIR_URI,
+                                };
+                            expect(logoutUriSpy).toHaveBeenCalledWith(
+                                expect.objectContaining(validatedLogoutRequest)
+                            );
+                            done();
+                        })
+                );
         });
 
         it("does navigate if onRedirectNavigate returns true", (done) => {
@@ -3276,34 +3292,37 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage.setInteractionInProgress(true);
-            browserStorage.setAccount(testAccount).then(() =>
-                redirectClient
-                    .logout({
-                        account: testAccountInfo,
-                        onRedirectNavigate: (url) => {
-                            expect(url).toEqual(testLogoutUrl);
-                            return true;
-                        },
-                    })
-                    .then(() => {
-                        expect(
-                            browserStorage.getInteractionInProgress()
-                        ).toBeTruthy();
+            browserStorage
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .then(() =>
+                    redirectClient
+                        .logout({
+                            account: testAccountInfo,
+                            onRedirectNavigate: (url) => {
+                                expect(url).toEqual(testLogoutUrl);
+                                return true;
+                            },
+                        })
+                        .then(() => {
+                            expect(
+                                browserStorage.getInteractionInProgress()
+                            ).toBeTruthy();
 
-                        // Reset after testing it was properly set
-                        browserStorage.setInteractionInProgress(false);
+                            // Reset after testing it was properly set
+                            browserStorage.setInteractionInProgress(false);
 
-                        const validatedLogoutRequest: CommonEndSessionRequest =
-                            {
-                                correlationId: RANDOM_TEST_GUID,
-                                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
-                            };
-                        expect(logoutUriSpy).toHaveBeenCalledWith(
-                            expect.objectContaining(validatedLogoutRequest)
-                        );
-                        done();
-                    })
-            );
+                            const validatedLogoutRequest: CommonEndSessionRequest =
+                                {
+                                    correlationId: RANDOM_TEST_GUID,
+                                    postLogoutRedirectUri:
+                                        TEST_URIS.TEST_REDIR_URI,
+                                };
+                            expect(logoutUriSpy).toHaveBeenCalledWith(
+                                expect.objectContaining(validatedLogoutRequest)
+                            );
+                            done();
+                        })
+                );
         });
 
         it("errors thrown are cached for telemetry and logout failure event is raised", (done) => {
@@ -3385,8 +3404,14 @@ describe("RedirectClient", () => {
                 }
             );
 
-            await browserStorage.setAccount(testAccountEntity);
-            await browserStorage.setIdTokenCredential(testIdToken);
+            await browserStorage.setAccount(
+                testAccountEntity,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            await browserStorage.setIdTokenCredential(
+                testIdToken,
+                TEST_CONFIG.CORRELATION_ID
+            );
 
             pca.setActiveAccount(testAccountInfo);
             expect(pca.getActiveAccount()).toStrictEqual(testAccountInfo);

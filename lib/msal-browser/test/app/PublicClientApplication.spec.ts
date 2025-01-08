@@ -56,7 +56,8 @@ import {
     ServerResponseType,
     ServerTelemetryEntity,
     TokenClaims,
-} from "@azure/msal-common";
+    StubPerformanceClient,
+} from "@azure/msal-common/browser";
 import {
     ApiId,
     BrowserCacheLocation,
@@ -1580,7 +1581,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             browserStorage.setInteractionInProgress(true);
             await expect(
@@ -1599,13 +1601,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             const secondInstanceStorage = new BrowserCacheManager(
                 "different-client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             secondInstanceStorage.setInteractionInProgress(true);
 
@@ -2501,7 +2505,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             browserStorage.setInteractionInProgress(true);
 
@@ -5853,7 +5858,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient()
             );
             browserStorage.setInteractionInProgress(true);
 

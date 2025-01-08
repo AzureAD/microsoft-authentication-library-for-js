@@ -89,8 +89,12 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * set account entity in the platform cache
      * @param account
+     * @param correlationId
      */
-    abstract setAccount(account: AccountEntity): Promise<void>;
+    abstract setAccount(
+        account: AccountEntity,
+        correlationId: string
+    ): Promise<void>;
 
     /**
      * fetch the idToken entity from the platform cache
@@ -101,8 +105,12 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * set idToken entity to the platform cache
      * @param idToken
+     * @param correlationId
      */
-    abstract setIdTokenCredential(idToken: IdTokenEntity): Promise<void>;
+    abstract setIdTokenCredential(
+        idToken: IdTokenEntity,
+        correlationId: string
+    ): Promise<void>;
 
     /**
      * fetch the idToken entity from the platform cache
@@ -113,11 +121,13 @@ export abstract class CacheManager implements ICacheManager {
     ): AccessTokenEntity | null;
 
     /**
-     * set idToken entity to the platform cache
+     * set accessToken entity to the platform cache
      * @param accessToken
+     * @param correlationId
      */
     abstract setAccessTokenCredential(
-        accessToken: AccessTokenEntity
+        accessToken: AccessTokenEntity,
+        correlationId: string
     ): Promise<void>;
 
     /**
@@ -129,11 +139,13 @@ export abstract class CacheManager implements ICacheManager {
     ): RefreshTokenEntity | null;
 
     /**
-     * set idToken entity to the platform cache
+     * set refreshToken entity to the platform cache
      * @param refreshToken
+     * @param correlationId
      */
     abstract setRefreshTokenCredential(
-        refreshToken: RefreshTokenEntity
+        refreshToken: RefreshTokenEntity,
+        correlationId: string
     ): Promise<void>;
 
     /**
@@ -478,8 +490,8 @@ export abstract class CacheManager implements ICacheManager {
      */
     async saveCacheRecord(
         cacheRecord: CacheRecord,
-        storeInCache?: StoreInCache,
-        correlationId?: string
+        correlationId: string,
+        storeInCache?: StoreInCache
     ): Promise<void> {
         if (!cacheRecord) {
             throw createClientAuthError(
@@ -489,25 +501,34 @@ export abstract class CacheManager implements ICacheManager {
 
         try {
             if (!!cacheRecord.account) {
-                await this.setAccount(cacheRecord.account);
+                await this.setAccount(cacheRecord.account, correlationId);
             }
 
             if (!!cacheRecord.idToken && storeInCache?.idToken !== false) {
-                await this.setIdTokenCredential(cacheRecord.idToken);
+                await this.setIdTokenCredential(
+                    cacheRecord.idToken,
+                    correlationId
+                );
             }
 
             if (
                 !!cacheRecord.accessToken &&
                 storeInCache?.accessToken !== false
             ) {
-                await this.saveAccessToken(cacheRecord.accessToken);
+                await this.saveAccessToken(
+                    cacheRecord.accessToken,
+                    correlationId
+                );
             }
 
             if (
                 !!cacheRecord.refreshToken &&
                 storeInCache?.refreshToken !== false
             ) {
-                await this.setRefreshTokenCredential(cacheRecord.refreshToken);
+                await this.setRefreshTokenCredential(
+                    cacheRecord.refreshToken,
+                    correlationId
+                );
             }
 
             if (!!cacheRecord.appMetadata) {
@@ -551,7 +572,8 @@ export abstract class CacheManager implements ICacheManager {
      * @param credential
      */
     private async saveAccessToken(
-        credential: AccessTokenEntity
+        credential: AccessTokenEntity,
+        correlationId: string
     ): Promise<void> {
         const accessTokenFilter: CredentialFilter = {
             clientId: credential.clientId,
@@ -587,7 +609,7 @@ export abstract class CacheManager implements ICacheManager {
             }
         });
         await Promise.all(removedAccessTokens);
-        await this.setAccessTokenCredential(credential);
+        await this.setAccessTokenCredential(credential, correlationId);
     }
 
     /**

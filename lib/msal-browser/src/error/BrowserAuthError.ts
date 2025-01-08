@@ -96,6 +96,7 @@ export const BrowserAuthErrorMessages = {
         "Failed to build request headers object.",
     [BrowserAuthErrorCodes.failedToParseHeaders]:
         "Failed to parse response headers",
+    [BrowserAuthErrorCodes.invalidCache]: "Cache entry is invalid",
 };
 
 /**

@@ -16,7 +16,8 @@ import {
     RefreshTokenEntity,
     TokenClaims,
     CacheHelpers,
-} from "@azure/msal-common";
+    StubPerformanceClient,
+} from "@azure/msal-common/browser";
 import { TokenCache, LoadTokenOptions } from "../../src/cache/TokenCache.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
@@ -82,7 +83,8 @@ describe("TokenCache tests", () => {
             TEST_CONFIG.MSAL_CLIENT_ID,
             cacheConfig,
             cryptoObj,
-            logger
+            logger,
+            new StubPerformanceClient()
         );
     });
 

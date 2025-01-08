@@ -3,7 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, TokenKeys } from "@azure/msal-common/browser";
+import {
+    Constants,
+    TokenKeys,
+    IPerformanceClient,
+    invokeAsync,
+    PerformanceEvents,
+    Logger,
+    invoke,
+} from "@azure/msal-common/browser";
 import {
     createNewGuid,
     decrypt,
@@ -43,9 +51,15 @@ export class LocalStorage implements IWindowStorage<string> {
     private clientId: string;
     private initialized: boolean;
     private memoryStorage: MemoryStorage<string>;
+    private performanceClient: IPerformanceClient;
+    private logger: Logger;
     private encryptionCookie?: EncryptionCookie;
 
-    constructor(clientId: string) {
+    constructor(
+        clientId: string,
+        logger: Logger,
+        performanceClient: IPerformanceClient
+    ) {
         if (!window.localStorage) {
             throw createBrowserConfigurationAuthError(
                 BrowserConfigurationAuthErrorCodes.storageNotSupported
@@ -54,9 +68,11 @@ export class LocalStorage implements IWindowStorage<string> {
         this.memoryStorage = new MemoryStorage<string>();
         this.initialized = false;
         this.clientId = clientId;
+        this.logger = logger;
+        this.performanceClient = performanceClient;
     }
 
-    async initialize(): Promise<void> {
+    async initialize(correlationId: string): Promise<void> {
         this.initialized = true;
 
         const cookies = new CookieStorage();
@@ -65,26 +81,61 @@ export class LocalStorage implements IWindowStorage<string> {
         if (cookieString) {
             try {
                 parsedCookie = JSON.parse(cookieString);
-            } catch (e) {
-                // TODO: Log telemetry but don't throw
-            }
+            } catch (e) {}
         }
         if (parsedCookie.key && parsedCookie.id) {
             // Encryption key already exists, import
+            const baseKey = invoke(
+                base64DecToArr,
+                PerformanceEvents.Base64Decode,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(parsedCookie.key);
             this.encryptionCookie = {
                 id: parsedCookie.id,
-                key: await generateHKDF(base64DecToArr(parsedCookie.key)),
+                key: await invokeAsync(
+                    generateHKDF,
+                    PerformanceEvents.GenerateHKDF,
+                    this.logger,
+                    this.performanceClient,
+                    correlationId
+                )(baseKey),
             };
-            await this.importExistingCache();
+            await invokeAsync(
+                this.importExistingCache.bind(this),
+                PerformanceEvents.ImportExistingCache,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(correlationId);
         } else {
             // Encryption key doesn't exist or is invalid, generate a new one and clear existing cache
             this.clear();
             const id = createNewGuid();
-            const baseKey = await generateBaseKey();
-            const keyStr = urlEncodeArr(new Uint8Array(baseKey));
+            const baseKey = await invokeAsync(
+                generateBaseKey,
+                PerformanceEvents.GenerateBaseKey,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )();
+            const keyStr = invoke(
+                urlEncodeArr,
+                PerformanceEvents.UrlEncodeArr,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(new Uint8Array(baseKey));
             this.encryptionCookie = {
                 id: id,
-                key: await generateHKDF(baseKey),
+                key: await invokeAsync(
+                    generateHKDF,
+                    PerformanceEvents.GenerateHKDF,
+                    this.logger,
+                    this.performanceClient,
+                    correlationId
+                )(baseKey),
             };
 
             const cookieData = {
@@ -112,18 +163,24 @@ export class LocalStorage implements IWindowStorage<string> {
         window.localStorage.setItem(key, value);
     }
 
-    async setUserData(key: string, value: string): Promise<void> {
+    async setUserData(
+        key: string,
+        value: string,
+        correlationId: string
+    ): Promise<void> {
         if (!this.initialized || !this.encryptionCookie) {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.uninitializedPublicClientApplication
             );
         }
 
-        const { data, nonce } = await encrypt(
-            this.encryptionCookie.key,
-            value,
-            this.getContext(key)
-        );
+        const { data, nonce } = await invokeAsync(
+            encrypt,
+            PerformanceEvents.Encrypt,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(this.encryptionCookie.key, value, this.getContext(key));
         const encryptedData: EncryptedData = {
             id: this.encryptionCookie.id,
             nonce: nonce,
@@ -176,19 +233,19 @@ export class LocalStorage implements IWindowStorage<string> {
      * Helper to decrypt all known MSAL keys in localStorage and save them to inMemory storage
      * @returns
      */
-    private async importExistingCache(): Promise<void> {
+    private async importExistingCache(correlationId: string): Promise<void> {
         if (!this.encryptionCookie) {
             return;
         }
 
         const accountKeys = getAccountKeys(this);
-        await this.importArray(accountKeys);
+        await this.importArray(accountKeys, correlationId);
 
         const tokenKeys: TokenKeys = getTokenKeys(this.clientId, this);
         await Promise.all([
-            this.importArray(tokenKeys.idToken),
-            this.importArray(tokenKeys.accessToken),
-            this.importArray(tokenKeys.refreshToken),
+            this.importArray(tokenKeys.idToken, correlationId),
+            this.importArray(tokenKeys.accessToken, correlationId),
+            this.importArray(tokenKeys.refreshToken, correlationId),
         ]);
     }
 
@@ -198,7 +255,8 @@ export class LocalStorage implements IWindowStorage<string> {
      * @returns
      */
     private async getItemFromEncryptedCache(
-        key: string
+        key: string,
+        correlationId: string
     ): Promise<string | null> {
         if (!this.encryptionCookie) {
             return null;
@@ -213,16 +271,29 @@ export class LocalStorage implements IWindowStorage<string> {
         try {
             encObj = JSON.parse(rawCache);
             if (!encObj.id || !encObj.nonce || !encObj.data) {
-                throw "Not encrypted!"; // TODO: Typed error
+                // Data is not encrypted, likely from old version of MSAL. It must be removed because we don't know how old it is.
+                this.performanceClient.incrementFields(
+                    { unencryptedCacheCount: 1 },
+                    correlationId
+                );
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.invalidCache
+                );
             }
 
             if (encObj.id !== this.encryptionCookie.id) {
-                throw "Old item!"; // TODO: Typed error
+                // Data was encrypted with a different key. It must be removed because it is from a previous session.
+                this.performanceClient.incrementFields(
+                    { encryptedCacheExpiredCount: 1 },
+                    correlationId
+                );
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.invalidCache
+                );
             }
         } catch (e) {
             // Not a valid encrypted object, remove
             this.removeItem(key);
-            // TODO: Log to telemetry
             return null;
         }
 
@@ -238,16 +309,24 @@ export class LocalStorage implements IWindowStorage<string> {
      * Helper to decrypt and save an array of cache keys
      * @param arr
      */
-    private async importArray(arr: Array<string>): Promise<void> {
+    private async importArray(
+        arr: Array<string>,
+        correlationId: string
+    ): Promise<void> {
         const promiseArr: Array<Promise<void>> = [];
         arr.forEach((key) => {
-            const promise = this.getItemFromEncryptedCache(key).then(
-                (value) => {
-                    if (value) {
-                        this.memoryStorage.setItem(key, value);
-                    }
+            const promise = this.getItemFromEncryptedCache(
+                key,
+                correlationId
+            ).then((value) => {
+                if (value) {
+                    this.memoryStorage.setItem(key, value);
                 }
-            );
+                this.performanceClient.incrementFields(
+                    { decryptedCacheCount: 1 },
+                    correlationId
+                );
+            });
             promiseArr.push(promise);
         });
 
