@@ -4,7 +4,7 @@ import { AccountInfo } from "@azure/msal-node";
 import { IpcMessages } from "../Constants";
 import { Profile } from "./pages/Profile";
 import { Home } from "./pages/Home";
-import { PageLayout}  from "./components/PageLayout";
+import { PageLayout } from "./components/PageLayout";
 
 import "./styles/App.css";
 
@@ -17,14 +17,16 @@ const Pages = () => {
             <Route path="/" element={<Home />} />
         </Routes>
     );
-}
+};
 
 const App = () => {
     const [account, setAccount] = useState(null);
     useEffect(() => {
         //leveraging IPC channels to communication between the Main React
         window.api.send(IpcMessages.GET_ACCOUNT);
-        window.api.receive( IpcMessages.SHOW_WELCOME_MESSAGE,(account: AccountInfo) => {
+        window.api.receive(
+            IpcMessages.SHOW_WELCOME_MESSAGE,
+            (account: AccountInfo) => {
                 setAccount(account);
             }
         );
@@ -48,6 +50,6 @@ const App = () => {
             </PageLayout>
         </>
     );
-}
+};
 
 export default App;

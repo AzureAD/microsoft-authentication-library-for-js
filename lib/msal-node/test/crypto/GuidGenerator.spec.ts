@@ -1,4 +1,9 @@
-import { GuidGenerator } from "./../../src/crypto/GuidGenerator";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { GuidGenerator } from "./../../src/crypto/GuidGenerator.js";
 
 describe("GuidGenerator", () => {
     // tests correctness of isGuid()

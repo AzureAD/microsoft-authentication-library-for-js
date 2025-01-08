@@ -60,7 +60,7 @@ export default class AuthProvider {
                 .removeAccount(this.account);
             this.account = null;
         } catch (error) {
-            console.log(error);
+            console.error(error);
         }
     }
 
@@ -121,7 +121,9 @@ export default class AuthProvider {
              * A loopback server of your own implementation, which can have custom logic
              * such as attempting to listen on a given port if it is available.
              */
-            const customLoopbackClient = await CustomLoopbackClient.initialize(3874);
+            const customLoopbackClient = await CustomLoopbackClient.initialize(
+                3874
+            );
 
             // opens a browser instance via Electron shell API
             const openBrowser = async (url: any) => {
@@ -141,7 +143,7 @@ export default class AuthProvider {
                 errorTemplate: fs
                     .readFileSync("./public/errorTemplate.html", "utf8")
                     .toString(),
-                loopbackClient: customLoopbackClient // overrides default loopback client
+                loopbackClient: customLoopbackClient, // overrides default loopback client
             };
 
             const authResponse =

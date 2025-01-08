@@ -10,19 +10,21 @@ import * as axios from "axios";
  * Class that handles Bearer requests for data using Fetch.
  */
 export class FetchManager {
-
     /**
      * Makes an Authorization "Bearer"  request with the given accessToken to the given endpoint.
-     * @param endpoint 
-     * @param accessToken 
+     * @param endpoint
+     * @param accessToken
      */
-    async callEndpointWithToken(endpoint: string, accessToken: string): Promise<UserInfo | MailInfo> {
+    async callEndpointWithToken(
+        endpoint: string,
+        accessToken: string
+    ): Promise<UserInfo | MailInfo> {
         const options = {
             headers: {
-                Authorization: `Bearer ${accessToken}`
-            }
+                Authorization: `Bearer ${accessToken}`,
+            },
         };
-        console.log('Request made at: ' + new Date().toString());
+        console.log("Request made at: " + new Date().toString());
         const response = await axios.default.get(endpoint, options);
 
         return (await response.data) as UserInfo | MailInfo;

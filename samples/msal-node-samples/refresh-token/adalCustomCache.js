@@ -78,9 +78,9 @@ function _readCache() {
         var data = fs.readFileSync(this._cacheLocation);
         this._entries = JSON.parse(data);
     } else {
-        fs.writeFile(this._cacheLocation, JSON.stringify(this._entries), (err) => {
-            if (err) {
-                throw err;
+        fs.writeFile(this._cacheLocation, JSON.stringify(this._entries), (error) => {
+            if (error) {
+                throw error;
             }
         });
     }
@@ -89,9 +89,9 @@ function _readCache() {
 }
 
 function _writeCache(data) {
-    fs.writeFile(this._cacheLocation, JSON.stringify(data), (err) => {
-        if (err) {
-            throw err;
+    fs.writeFile(this._cacheLocation, JSON.stringify(data), (error) => {
+        if (error) {
+            throw error;
         }
     });
 }
