@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { CustomAuthConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
+import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { AuthFlowStateHandlerBase } from "../../../core/auth_flow/AuthFlowStateHandlerBase.js";
-import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
+import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 import { SignInResult } from "../result/SignInResult.js";
 
 /*
@@ -22,22 +22,28 @@ export class SignInContinuationStateHandler extends AuthFlowStateHandlerBase {
     constructor(
         correlationId: string,
         continuationToken: string,
-        private config: CustomAuthConfiguration,
-        private username: string,
+        private config: CustomAuthBrowserConfiguration,
+        private username: string
     ) {
         super(correlationId, continuationToken);
 
-        if (!continuationToken) {
-            throw new InvalidArgumentError("continuationToken", correlationId);
-        }
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "config",
+            config,
+            correlationId
+        );
 
-        if (!config) {
-            throw new InvalidArgumentError("config", correlationId);
-        }
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
+            "continuationToken",
+            continuationToken,
+            correlationId
+        );
 
-        if (!username) {
-            throw new InvalidArgumentError("username", correlationId);
-        }
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
+            "username",
+            username,
+            correlationId
+        );
     }
 
     /*

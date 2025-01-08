@@ -6,12 +6,14 @@
 import { ResetPasswordState } from "../../../core/auth_flow/AuthFlowState.js";
 import { ResultBase } from "../../../core/auth_flow/ResultBase.js";
 import { SignInContinuationStateHandler } from "../../../sign_in/auth_flow/state_handler/SignInContinuationStateHandler.js";
+import { ResetPasswordSubmitPasswordError } from "../error_type/ResetPasswordError.js";
 
 /*
  * Result of a reset password operation that requires a password.
  */
 export class ResetPasswordSubmitPasswordResult extends ResultBase<
     ResetPasswordState,
+    ResetPasswordSubmitPasswordError,
     void,
     SignInContinuationStateHandler
 > {

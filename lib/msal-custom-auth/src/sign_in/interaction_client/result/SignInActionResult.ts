@@ -9,21 +9,20 @@ import {
     CodeSendResult,
     ContinuationTokenResult,
 } from "../../../core/interaction_client/AuthActionResult.js";
-import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
+import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 
 export class SignInCompleteResult extends AuthActionResultBase {
     constructor(
         public authenticationResult: AuthenticationResult,
-        correlationId: string,
+        correlationId: string
     ) {
         super(correlationId);
 
-        if (!authenticationResult) {
-            throw new InvalidArgumentError(
-                "authenticationResult",
-                correlationId,
-            );
-        }
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "authenticationResult",
+            authenticationResult,
+            correlationId
+        );
     }
 }
 

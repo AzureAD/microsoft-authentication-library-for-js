@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
+import { ArgumentValidator } from "../utils/ArgumentValidator.js";
 
 /**
  * Base class for handling the state of an authentication flow.
@@ -18,8 +18,9 @@ export abstract class AuthFlowStateHandlerBase {
         protected correlationId: string,
         protected continuationToken?: string,
     ) {
-        if (!correlationId) {
-            throw new InvalidArgumentError("correlationId");
-        }
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
+            "correlationId",
+            correlationId
+        );
     }
 }

@@ -3,22 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { CustomAuthConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
+import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { SignOutResult } from "../result/SignOutResult.js";
 import { GetAccessTokenResult } from "../result/GetAccessTokenResult.js";
-import {
-    AccountInfo as AccountData,
-    //    Constants,
-    TokenClaims,
-} from "@azure/msal-browser";
-import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
-/*
- * import {
- *     GetAccessTokenError,
- *     InvalidScopes,
- * } from "../../../core/error/GetAccessTokenError.js";
- */
+import { AccountInfo as AccountData, TokenClaims } from "@azure/msal-browser";
 import { DefaultScopes } from "../../../CustomAuthConstants.js";
+import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 
 /*
  * Account information.
@@ -33,19 +23,22 @@ export class AccountInfo {
     constructor(
         private readonly account: AccountData,
         private readonly correlationId: string,
-        private readonly config: CustomAuthConfiguration,
+        private readonly config: CustomAuthBrowserConfiguration
     ) {
-        if (!config) {
-            throw new InvalidArgumentError("config", correlationId);
-        }
-
-        if (!account) {
-            throw new InvalidArgumentError("account", correlationId);
-        }
-
-        if (!correlationId) {
-            throw new InvalidArgumentError("correlationId");
-        }
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "correlationId",
+            correlationId
+        );
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "account",
+            account,
+            correlationId
+        );
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "config",
+            config,
+            correlationId
+        );
     }
 
     /*
@@ -88,12 +81,12 @@ export class AccountInfo {
      */
     getAccessToken(
         forceRefresh: boolean = false,
-        scopes?: Array<string>,
+        scopes?: Array<string>
     ): Promise<GetAccessTokenResult> {
         const newScopes = scopes || DefaultScopes;
 
         throw new Error(
-            `Method not implemented with forceRefresh '${forceRefresh}' and scopes ${newScopes}.`,
+            `Method not implemented with forceRefresh '${forceRefresh}' and scopes ${newScopes}.`
         );
     }
 }

@@ -6,12 +6,14 @@
 import { AuthenticationResult } from "@azure/msal-browser";
 import { GetAccessTokenState } from "../../../core/auth_flow/AuthFlowState.js";
 import { ResultBase } from "../../../core/auth_flow/ResultBase.js";
+import { GetAccessTokenError } from "../error_type/GetAccountError.js";
 
 /*
  * Result of getting an access token.
  */
 export class GetAccessTokenResult extends ResultBase<
     GetAccessTokenState,
+    GetAccessTokenError,
     AuthenticationResult
 > {
     constructor(resultData?: AuthenticationResult) {

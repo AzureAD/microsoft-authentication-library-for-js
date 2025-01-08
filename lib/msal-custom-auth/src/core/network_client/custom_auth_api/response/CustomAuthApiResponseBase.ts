@@ -4,5 +4,5 @@
  */
 
 export abstract class CustomAuthApiResponseBase {
-    protected constructor(public correlationId?: string) {}
+    protected constructor(public correlation_id?: string) {}
 }

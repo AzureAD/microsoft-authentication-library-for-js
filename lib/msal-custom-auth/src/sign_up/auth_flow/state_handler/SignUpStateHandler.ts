@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { CustomAuthConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
+import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { AuthFlowStateHandlerBase } from "../../../core/auth_flow/AuthFlowStateHandlerBase.js";
-import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
+import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 
 /*
  * Base state handler for sign-up flow.
@@ -21,17 +21,21 @@ export abstract class SignUpStateHandler extends AuthFlowStateHandlerBase {
     constructor(
         correlationId: string,
         continuationToken: string,
-        protected config: CustomAuthConfiguration,
-        protected username: string,
+        protected config: CustomAuthBrowserConfiguration,
+        protected username: string
     ) {
         super(correlationId, continuationToken);
 
-        if (!config) {
-            throw new InvalidArgumentError("config", correlationId);
-        }
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "config",
+            config,
+            correlationId
+        );
 
-        if (!username) {
-            throw new InvalidArgumentError("username", correlationId);
-        }
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
+            "username",
+            username,
+            correlationId
+        );
     }
 }

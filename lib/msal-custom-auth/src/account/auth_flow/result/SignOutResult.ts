@@ -5,11 +5,17 @@
 
 import { SignOutState } from "../../../core/auth_flow/AuthFlowState.js";
 import { ResultBase } from "../../../core/auth_flow/ResultBase.js";
+import { SignOutError } from "../error_type/GetAccountError.js";
 
 /*
  * Result of a sign-out operation.
  */
-export class SignOutResult extends ResultBase<SignOutState, void, void> {
+export class SignOutResult extends ResultBase<
+    SignOutState,
+    SignOutError,
+    void,
+    void
+> {
     constructor() {
         super(undefined, undefined);
     }

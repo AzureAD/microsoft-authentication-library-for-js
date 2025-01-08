@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { PublicClientApplication } from "@azure/msal-browser";
+import { Constants, PublicClientApplication } from "@azure/msal-browser";
 import { GetAccountResult } from "./account/auth_flow/result/GetAccountResult.js";
 import { SignInResult } from "./sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
@@ -19,6 +19,14 @@ import {
 import { CustomAuthConfiguration } from "./configuration/CustomAuthConfiguration.js";
 import { CustomAuthOperatingContext } from "./operating_context/CustomAuthOperatingContext.js";
 import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
+import {
+    InvalidAuthApiProxyDomain,
+    InvalidAuthority,
+    InvalidConfigurationError,
+    MissingConfiguration,
+} from "./core/error/InvalidConfigurationError.js";
+import { UrlUtils } from "./core/utils/UrlUtils.js";
+import { StringUtils } from "./core/utils/StringUtils.js";
 
 export class CustomAuthPublicClientApplication
     extends PublicClientApplication
@@ -29,11 +37,30 @@ export class CustomAuthPublicClientApplication
     /*
      * Creates a new instance of a PublicClientApplication with the given configuration.
      * @param config - A configuration object for the PublicClientApplication instance
+     * @param controller - A controller object for the PublicClientApplication instance
      */
-    static create(
+    static async create(
         config: CustomAuthConfiguration,
-    ): CustomAuthPublicClientApplication {
-        return new CustomAuthPublicClientApplication(config);
+        controller?: ICustomAuthStandardController
+    ): Promise<ICustomAuthPublicClientApplication> {
+        CustomAuthPublicClientApplication.validateConfig(config);
+
+        let customAuthController = controller;
+
+        if (!customAuthController) {
+            customAuthController = new CustomAuthStandardController(
+                new CustomAuthOperatingContext(config)
+            );
+
+            await customAuthController.initialize();
+        }
+
+        const app = new CustomAuthPublicClientApplication(
+            config,
+            customAuthController
+        );
+
+        return app;
     }
 
     /*
@@ -41,19 +68,13 @@ export class CustomAuthPublicClientApplication
      * @param config - A configuration object for the PublicClientApplication instance
      * @param controller - A controller object for the PublicClientApplication instance
      */
-    constructor(
+    private constructor(
         config: CustomAuthConfiguration,
-        controller?: ICustomAuthStandardController,
+        controller: ICustomAuthStandardController
     ) {
-        const customAuthController =
-            controller ||
-            new CustomAuthStandardController(
-                new CustomAuthOperatingContext(config),
-            );
+        super(config, controller);
 
-        super(config, customAuthController);
-
-        this.customAuthController = customAuthController;
+        this.customAuthController = controller;
     }
 
     /*
@@ -62,10 +83,10 @@ export class CustomAuthPublicClientApplication
      * @returns - A promise that resolves to GetAccountResult
      */
     getCurrentAccount(
-        getAccountInputs: GetAccountInputs,
+        getAccountInputs: GetAccountInputs
     ): Promise<GetAccountResult> {
         throw new Error(
-            `Method not implemented with parameter ${getAccountInputs}`,
+            `Method not implemented with parameter ${getAccountInputs}`
         );
     }
 
@@ -85,7 +106,7 @@ export class CustomAuthPublicClientApplication
      */
     signUp(signUpInputs: SignUpInputs): Promise<SignUpResult> {
         throw new Error(
-            `Method not implemented with parameter ${signUpInputs}`,
+            `Method not implemented with parameter ${signUpInputs}`
         );
     }
 
@@ -95,10 +116,50 @@ export class CustomAuthPublicClientApplication
      * @returns - A promise that resolves to ResetPasswordStartResult
      */
     resetPassword(
-        resetPasswordInputs: ResetPasswordInputs,
+        resetPasswordInputs: ResetPasswordInputs
     ): Promise<ResetPasswordStartResult> {
         throw new Error(
-            `Method not implemented with parameter ${resetPasswordInputs}`,
+            `Method not implemented with parameter ${resetPasswordInputs}`
         );
+    }
+
+    /**
+     * Validates the configuration to ensure it is a valid CustomAuthConfiguration object.
+     * @param config The configuration object for the PublicClientApplication.
+     */
+    private static validateConfig(config: CustomAuthConfiguration): void {
+        // Ensure the configuration object has a valid CIAM authority URL.
+        if (!config) {
+            throw new InvalidConfigurationError(
+                MissingConfiguration,
+                "The configuration is missing."
+            );
+        }
+
+        if (!config.auth?.authority) {
+            throw new InvalidConfigurationError(
+                InvalidAuthority,
+                `The authority URL '${config.auth?.authority}' is not set.`
+            );
+        }
+
+        const trimmedAuthority = StringUtils.trim(config.auth.authority, "/");
+
+        if (!trimmedAuthority.endsWith(Constants.CIAM_AUTH_URL)) {
+            throw new InvalidConfigurationError(
+                InvalidAuthority,
+                `The authority URL '${config.auth?.authority}' is not a CIAM authority.`
+            );
+        }
+
+        if (
+            config.customAuth.authApiProxyUrl &&
+            !UrlUtils.IsValidSecureUrl(config.customAuth.authApiProxyUrl)
+        ) {
+            throw new InvalidConfigurationError(
+                InvalidAuthApiProxyDomain,
+                `The authApiProxyDomain URL '${config.customAuth.authApiProxyUrl}' is not a valid secure URL.`
+            );
+        }
     }
 }

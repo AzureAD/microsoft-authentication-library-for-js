@@ -3,29 +3,29 @@
  * Licensed under the MIT License.
  */
 
-import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
+import { ArgumentValidator } from "../utils/ArgumentValidator.js";
 
 export abstract class ClientActionParamsBase {
     protected constructor(
-        public authorityUrl: string,
         public clientId: string,
         public correlationId: string,
         public challengeType: Array<string>,
     ) {
-        if (!correlationId) {
-            throw new InvalidArgumentError("correlationId");
-        }
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
+            "correlationId",
+            correlationId
+        );
 
-        if (!authorityUrl) {
-            throw new InvalidArgumentError("authorityUrl", correlationId);
-        }
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
+            "clientId",
+            clientId,
+            correlationId
+        );
 
-        if (!clientId) {
-            throw new InvalidArgumentError("clientId", correlationId);
-        }
-
-        if (!challengeType) {
-            throw new InvalidArgumentError("challengeType", correlationId);
-        }
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "challengeType",
+            challengeType,
+            correlationId
+        );
     }
 }

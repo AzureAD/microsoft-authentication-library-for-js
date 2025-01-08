@@ -3,13 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
+import { ArgumentValidator } from "../utils/ArgumentValidator.js";
 
 export abstract class AuthActionResultBase {
     protected constructor(public correlationId: string) {
-        if (!correlationId) {
-            throw new InvalidArgumentError("correlationId");
-        }
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
+            "correlationId",
+            correlationId
+        );
     }
 }
 
@@ -21,9 +22,10 @@ export abstract class ContinuationTokenResult extends AuthActionResultBase {
     ) {
         super(correlationId);
 
-        if (!continuationToken) {
-            throw new InvalidArgumentError("continuationToken", correlationId);
-        }
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
+            "correlationId",
+            correlationId
+        );
     }
 }
 

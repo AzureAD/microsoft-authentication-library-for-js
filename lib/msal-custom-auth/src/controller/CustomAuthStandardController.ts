@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { FetchClient, StandardController } from "@azure/msal-browser";
+import { StandardController } from "@azure/msal-browser";
 import { GetAccountResult } from "../account/auth_flow/result/GetAccountResult.js";
 import { SignInResult } from "../sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "../sign_up/auth_flow/result/SignUpResult.js";
@@ -20,9 +20,9 @@ import {
     ResetPasswordInputs,
     CustomAuthActionInputs,
 } from "../CustomAuthActionInputs.js";
-import { CustomAuthConfiguration } from "../configuration/CustomAuthConfiguration.js";
-import { CustomAuthApiClient } from "../core/network_client/CustomAuthApiClient.js";
-import { SignInCodeSendResponse } from "../core/network_client/response/SignInResponse.js";
+import { CustomAuthBrowserConfiguration } from "../configuration/CustomAuthConfiguration.js";
+import { CustomAuthApiClient } from "../core/network_client/custom_auth_api/CustomAuthApiClient.js";
+import { SignInChallengeResponse } from "../core/network_client/custom_auth_api/response/SignInResponse.js";
 import { CustomAuthOperatingContext } from "../operating_context/CustomAuthOperatingContext.js";
 import { ICustomAuthStandardController } from "./ICustomAuthStandardController.js";
 import { InvalidArgumentError } from "../core/error/InvalidArgumentError.js";
@@ -31,6 +31,9 @@ import { AccountInfo } from "../account/auth_flow/model/AccountInfo.js";
 import { SignInCodeRequiredStateHandler } from "../sign_in/auth_flow/state_handler/SignInCodeRequiredStateHandler.js";
 import { UnexpectedError } from "../core/error/UnexpectedError.js";
 import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/ResetPasswordStartResult.js";
+import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
+import { DefaultPackageInfo } from "../CustomAuthConstants.js";
+import { FetchHttpClient } from "../core/network_client/http-client/FetchHttpClient.js";
 
 /*
  * Controller for standard native auth operations.
@@ -47,7 +50,12 @@ export class CustomAuthStandardController
     /*
      * The configuration for the client.
      */
-    private readonly customAuthConfig: CustomAuthConfiguration;
+    private readonly customAuthConfig: CustomAuthBrowserConfiguration;
+
+    /**
+     * The authority to use for the client.
+     */
+    private readonly authority: CustomAuthAuthority;
 
     /*
      * Constructor for CustomAuthStandardController.
@@ -56,10 +64,34 @@ export class CustomAuthStandardController
     constructor(operatingContext: CustomAuthOperatingContext) {
         super(operatingContext);
 
+        this.logger = this.logger.clone(
+            DefaultPackageInfo.SKU,
+            DefaultPackageInfo.VERSION
+        );
         this.customAuthConfig = operatingContext.getCustomAuthConfig();
+        this.authority = new CustomAuthAuthority(
+            this.config.auth.authority,
+            this.customAuthConfig.customAuth?.authApiProxyUrl
+        );
 
-        const customAuthApiClient = new CustomAuthApiClient(new FetchClient());
-        this.signInClient = new SigninClient(customAuthApiClient);
+        const customAuthApiClient = new CustomAuthApiClient(
+            new FetchHttpClient(
+                this.logger,
+                this.authority.getCustomAuthDomain()
+            ),
+            this.logger
+        );
+
+        this.signInClient = new SigninClient(
+            this.customAuthConfig,
+            this.browserStorage,
+            this.browserCrypto,
+            this.logger,
+            this.eventHandler,
+            this.navigationClient,
+            this.performanceClient,
+            customAuthApiClient
+        );
         // Create more interaction clients here, such as SignUpClient, ResetPasswordClient, etc.
     }
 
@@ -69,12 +101,12 @@ export class CustomAuthStandardController
      * @returns - A promise that resolves to GetAccountResult
      */
     async getCurrentAccount(
-        getAccountInputs: GetAccountInputs,
+        getAccountInputs: GetAccountInputs
     ): Promise<GetAccountResult> {
         const correlationId = this.getCorrelationId(getAccountInputs);
 
         throw new Error(
-            `Method not implemented with Parameter ${correlationId}.`,
+            `Method not implemented with Parameter ${correlationId}.`
         );
     }
 
@@ -86,35 +118,31 @@ export class CustomAuthStandardController
     async signIn(signInInputs: SignInInputs): Promise<SignInResult> {
         const correlationId = this.getCorrelationId(signInInputs);
 
-        if (!signInInputs.username) {
+        if (!this.isUsernameValid(signInInputs.username)) {
             return Promise.resolve(
                 SignInResult.createWithError(
-                    new InvalidArgumentError("username", correlationId),
-                ),
+                    new InvalidArgumentError(
+                        "signUpInputs.username",
+                        correlationId
+                    )
+                )
             );
         }
 
-        /*
-         * Use the signIn method as an example of how to implement a auth flow action.
-         * Please note this is not a working implementation.
-         */
         try {
-            // The authority URL need to be revisited to ensure it is correct.
-            const authorityUrl = this.config.auth.authority;
-
             // start the signin flow
             const signInStartParams: SignInStartParams = new SignInStartParams(
-                authorityUrl,
                 this.config.auth.clientId,
                 correlationId,
                 this.customAuthConfig.customAuth.challengeTypes ?? [],
                 signInInputs.scopes ?? [],
                 signInInputs.username,
-                signInInputs.password,
+                signInInputs.password
             );
 
-            const startResult =
-                await this.signInClient.start(signInStartParams);
+            const startResult = await this.signInClient.start(
+                signInStartParams
+            );
 
             if (startResult instanceof SignInWithContinuationTokenResult) {
                 // require password
@@ -126,35 +154,34 @@ export class CustomAuthStandardController
                             correlationId,
                             startResult.continuationToken,
                             this.customAuthConfig,
-                            signInInputs.scopes,
-                        ),
+                            signInInputs.scopes
+                        )
                     );
                 }
 
                 // if the password is provided, then try to get token silently.
                 const signInSubmitPasswordParams =
                     new SignInSubmitPasswordParams(
-                        authorityUrl,
                         this.config.auth.clientId,
                         correlationId,
                         this.customAuthConfig.customAuth.challengeTypes ?? [],
                         signInInputs.scopes ?? [],
                         startResult.continuationToken,
-                        signInInputs.password,
+                        signInInputs.password
                     );
 
                 const completedResult = await this.signInClient.submitPassword(
-                    signInSubmitPasswordParams,
+                    signInSubmitPasswordParams
                 );
 
                 const accountManager = new AccountInfo(
                     completedResult.authenticationResult.account,
                     correlationId,
-                    this.customAuthConfig,
+                    this.customAuthConfig
                 );
 
                 return new SignInResult(accountManager);
-            } else if (startResult instanceof SignInCodeSendResponse) {
+            } else if (startResult instanceof SignInChallengeResponse) {
                 // require code
                 return new SignInResult(
                     undefined,
@@ -163,8 +190,8 @@ export class CustomAuthStandardController
                         correlationId,
                         startResult.continuationToken,
                         this.customAuthConfig,
-                        signInInputs.scopes,
-                    ),
+                        signInInputs.scopes
+                    )
                 );
             } else {
                 throw new UnexpectedError("Unknow SignInStartResult type");
@@ -182,16 +209,19 @@ export class CustomAuthStandardController
     async signUp(signUpInputs: SignUpInputs): Promise<SignUpResult> {
         const correlationId = this.getCorrelationId(signUpInputs);
 
-        if (!signUpInputs.username) {
+        if (!this.isUsernameValid(signUpInputs.username)) {
             return Promise.resolve(
                 SignUpResult.createWithError(
-                    new InvalidArgumentError("username", correlationId),
-                ),
+                    new InvalidArgumentError(
+                        "signUpInputs.username",
+                        correlationId
+                    )
+                )
             );
         }
 
         throw new Error(
-            `Method not implemented with Parameter ${correlationId}.`,
+            `Method not implemented with Parameter ${correlationId}.`
         );
     }
 
@@ -201,24 +231,32 @@ export class CustomAuthStandardController
      * @returns The result of the operation.
      */
     async resetPassword(
-        resetPasswordInputs: ResetPasswordInputs,
+        resetPasswordInputs: ResetPasswordInputs
     ): Promise<ResetPasswordStartResult> {
         const correlationId = this.getCorrelationId(resetPasswordInputs);
 
-        if (!resetPasswordInputs.username) {
+        if (!this.isUsernameValid(resetPasswordInputs.username)) {
             return Promise.resolve(
                 ResetPasswordStartResult.createWithError(
-                    new InvalidArgumentError("username", correlationId),
-                ),
+                    new InvalidArgumentError(
+                        "resetPasswordInputs.username",
+                        correlationId
+                    )
+                )
             );
         }
 
         throw new Error(
-            `Method not implemented with Parameter ${correlationId}.`,
+            `Method not implemented with Parameter ${correlationId}.`
         );
     }
 
     private getCorrelationId(actionInputs: CustomAuthActionInputs): string {
         return actionInputs.correlationId || this.browserCrypto.createNewGuid();
+    }
+
+    private isUsernameValid(username: string): boolean {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return !!username && emailRegex.test(username);
     }
 }

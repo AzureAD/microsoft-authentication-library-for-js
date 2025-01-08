@@ -6,12 +6,14 @@
 import { SignUpState } from "../../../core/auth_flow/AuthFlowState.js";
 import { ResultBase } from "../../../core/auth_flow/ResultBase.js";
 import { SignInContinuationStateHandler } from "../../../sign_in/auth_flow/state_handler/SignInContinuationStateHandler.js";
+import { SignUpSubmitAttributesError } from "../error_type/SignUpError.js";
 
 /*
  * Result of a sign-up operation that requires attributes.
  */
 export class SignUpSubmitAttributesResult extends ResultBase<
     SignUpState,
+    SignUpSubmitAttributesError,
     void,
     SignInContinuationStateHandler
 > {

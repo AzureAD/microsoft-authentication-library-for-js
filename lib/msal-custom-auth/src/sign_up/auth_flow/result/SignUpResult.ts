@@ -9,12 +9,14 @@ import { SignUpPasswordRequiredStateHandler } from "../state_handler/SignUpPassw
 import { SignUpAttributesRequiredStateHandler } from "../state_handler/SignUpAttributesRequiredStateHandler.js";
 import { ResultBase } from "../../../core/auth_flow/ResultBase.js";
 import { SignInContinuationStateHandler } from "../../../sign_in/auth_flow/state_handler/SignInContinuationStateHandler.js";
+import { SignUpError } from "../error_type/SignUpError.js";
 
 /*
  * Result of a sign-up operation.
  */
 export class SignUpResult extends ResultBase<
     SignUpState,
+    SignUpError,
     void,
     | SignUpCodeRequiredStateHandler
     | SignUpPasswordRequiredStateHandler

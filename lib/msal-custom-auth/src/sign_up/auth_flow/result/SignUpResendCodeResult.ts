@@ -6,12 +6,14 @@
 import { SignUpCodeRequiredStateHandler } from "../state_handler/SignUpCodeRequiredStateHandler.js";
 import { SignUpState } from "../../../core/auth_flow/AuthFlowState.js";
 import { ResultBase } from "../../../core/auth_flow/ResultBase.js";
+import { SignUpResendCodeError } from "../error_type/SignUpError.js";
 
 /*
  * Result of resending code in a sign-up operation.
  */
 export class SignUpResendCodeResult extends ResultBase<
     SignUpState,
+    SignUpResendCodeError,
     void,
     SignUpCodeRequiredStateHandler
 > {

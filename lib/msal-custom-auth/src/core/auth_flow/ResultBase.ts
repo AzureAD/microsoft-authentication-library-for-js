@@ -5,6 +5,7 @@
 
 import { CustomAuthError } from "../error/CustomAuthError.js";
 import { UnexpectedError } from "../error/UnexpectedError.js";
+import { AuthFlowErrorBase } from "./AuthFlowErrorBase.js";
 import { AuthFlowStateHandlerBase } from "./AuthFlowStateHandlerBase.js";
 
 /*
@@ -14,8 +15,9 @@ import { AuthFlowStateHandlerBase } from "./AuthFlowStateHandlerBase.js";
  */
 export abstract class ResultBase<
     TState,
+    TError extends AuthFlowErrorBase,
     TData = void,
-    TStateHandler extends AuthFlowStateHandlerBase | void = void,
+    TStateHandler extends AuthFlowStateHandlerBase | void = void
 > {
     /*
      * The state of the authentication operation.
@@ -29,15 +31,12 @@ export abstract class ResultBase<
      * @typeParam TData - The type of the result data.
      * @typeParam TState - The type of state.
      */
-    constructor(
-        public data?: TData,
-        public stateHandler?: TStateHandler,
-    ) {}
+    constructor(public data?: TData, public stateHandler?: TStateHandler) {}
 
     /*
      * The error that occurred during the authentication operation.
      */
-    error?: CustomAuthError;
+    error?: TError;
 
     /*
      * Gets current state of the authentication operation.
@@ -56,7 +55,8 @@ export abstract class ResultBase<
         TData,
         TStateHandler extends AuthFlowStateHandlerBase | void,
         TState,
-        TActionResult extends ResultBase<TState, TData, TStateHandler>,
+        TError extends AuthFlowErrorBase,
+        TActionResult extends ResultBase<TState, TError, TData, TStateHandler>
     >(this: new () => TActionResult, error: unknown): TActionResult {
         let customAuthError: CustomAuthError;
 
@@ -67,7 +67,9 @@ export abstract class ResultBase<
         }
 
         const errorResult = new this();
-        errorResult.error = customAuthError;
+        errorResult.error = {
+            error: customAuthError,
+        } as TError;
         return errorResult;
     }
 }

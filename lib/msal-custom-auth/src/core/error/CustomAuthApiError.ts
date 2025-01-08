@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { UserAttribute } from "../network_client/response/UserAttribute.js";
-import { InvalidArgumentError } from "./InvalidArgumentError.js";
+import { UserAttribute } from "../network_client/custom_auth_api/response/UserAttribute.js";
 import { CustomAuthError } from "./CustomAuthError.js";
 
 /**
@@ -15,89 +14,43 @@ export class RedirectError extends CustomAuthError {
         super(
             "redirect",
             "No required authentication method by Microsoft Entra is supported, a fallback to the web-based authentication flow is needed.",
-            correlationId,
+            correlationId
         );
         Object.setPrototypeOf(this, RedirectError.prototype);
     }
 }
 
+/**
+ * Custom Auth API error.
+ */
 export class CustomAuthApiError extends CustomAuthError {
     constructor(
         error: string,
         errorDescription: string,
-        correlationId: string,
-        public errorCodes: Array<string>,
+        correlationId?: string,
+        public errorCodes?: Array<string>,
         public subError?: string,
+        public attributes?: Array<UserAttribute>,
+        public continuationToken?: string,
+        public traceId?: string
     ) {
         super(error, errorDescription, correlationId);
         Object.setPrototypeOf(this, CustomAuthApiError.prototype);
 
-        this.errorCodes = errorCodes;
-        this.subError = subError;
+        this.errorCodes = errorCodes ?? [];
+        this.subError = subError ?? "";
     }
 }
 
-export class UserNotFoundError extends CustomAuthApiError {}
-
-export class InvalidCredentialsError extends CustomAuthApiError {}
-
-export class IncorrectCodeError extends CustomAuthApiError {}
-
-export class InvalidUserError extends CustomAuthApiError {}
-
-export class UserAlreadyExistsError extends CustomAuthApiError {}
-
-export class AttributeRequiredError extends CustomAuthApiError {
-    constructor(
-        error: string,
-        errorDescription: string,
-        correlationId: string,
-        errorCodes: Array<string>,
-        public requiredAttributes: Array<UserAttribute>,
-        public continuationToken: string,
-        subError?: string,
-    ) {
-        super(error, errorDescription, correlationId, errorCodes, subError);
-        Object.setPrototypeOf(this, AttributeRequiredError.prototype);
-
-        if (!requiredAttributes) {
-            throw new InvalidArgumentError("requiredAttributes", correlationId);
-        }
-
-        if (!continuationToken) {
-            throw new InvalidArgumentError("continuationToken", correlationId);
-        }
-    }
-}
-
-export class InvalidPasswordError extends CustomAuthApiError {}
-
-export class InvalidCodeError extends CustomAuthApiError {}
-
-export class InvalidAttributesError extends CustomAuthApiError {
-    constructor(
-        error: string,
-        errorDescription: string,
-        correlationId: string,
-        errorCodes: Array<string>,
-        public invalidAttributes: Array<string>,
-        subError?: string,
-    ) {
-        super(error, errorDescription, correlationId, errorCodes, subError);
-        Object.setPrototypeOf(this, InvalidAttributesError.prototype);
-
-        if (!invalidAttributes) {
-            throw new InvalidArgumentError("invalidAttributes", correlationId);
-        }
-    }
-}
-
-export class PasswordNotSetError extends CustomAuthApiError {}
-
-export class EmailNotVerifiedError extends CustomAuthApiError {}
-
-export class PasswordNotAcceptedError extends CustomAuthApiError {}
-
-export class PasswordResetFailedError extends CustomAuthApiError {}
-
-export class UnknownApiError extends CustomAuthApiError {}
+export const CustomAuthApiErrorCode = {
+    CONTINUATION_TOKEN_MISSING: "continuation_token_missing",
+    INVALID_RESPONSE_BODY: "invalid_response_body",
+    EMPTY_RESPONSE: "empty_response",
+    UNSUPPORTED_CHALLENGE_TYPE: "unsupported_challenge_type",
+    ACCESS_TOKEN_MISSING: "access_token_missing",
+    ID_TOKEN_MISSING: "id_token_missing",
+    REFRESH_TOKEN_MISSING: "refresh_token_missing",
+    INVALID_EXPIRES_IN: "invalid_expires_in",
+    INVALID_TOKEN_TYPE: "invalid_token_type",
+    HTTP_REQUEST_FAILED: "http_request_failed",
+} as const;

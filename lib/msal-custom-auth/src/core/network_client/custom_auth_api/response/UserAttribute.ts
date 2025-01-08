@@ -8,7 +8,7 @@ export class UserAttribute {
         public name?: string,
         public type?: string,
         public required?: boolean,
-        public options?: UserAttributeOption,
+        public options?: UserAttributeOption
     ) {}
 }
 

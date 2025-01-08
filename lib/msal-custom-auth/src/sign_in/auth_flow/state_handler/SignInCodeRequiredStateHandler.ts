@@ -31,7 +31,6 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
         try {
             // The followings are the sample codes used to demonstrate how to use the signInClient to implement submitting code.
             const submitCodeParams = new SignInSubmitCodeParams(
-                this.config.auth.authority ?? "",
                 this.config.auth.clientId,
                 this.correlationId,
                 this.config.customAuth.challengeTypes ?? [],

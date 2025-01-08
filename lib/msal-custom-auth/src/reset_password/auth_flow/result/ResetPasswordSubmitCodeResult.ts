@@ -5,6 +5,7 @@
 
 import { ResetPasswordState } from "../../../core/auth_flow/AuthFlowState.js";
 import { ResultBase } from "../../../core/auth_flow/ResultBase.js";
+import { ResetPasswordSubmitCodeError } from "../error_type/ResetPasswordError.js";
 import { ResetPasswordPasswordRequiredStateHandler } from "../state_handler/ResetPasswordPasswordRequiredStateHandler.js";
 
 /*
@@ -12,6 +13,7 @@ import { ResetPasswordPasswordRequiredStateHandler } from "../state_handler/Rese
  */
 export class ResetPasswordSubmitCodeResult extends ResultBase<
     ResetPasswordState,
+    ResetPasswordSubmitCodeError,
     void,
     ResetPasswordPasswordRequiredStateHandler
 > {

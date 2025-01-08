@@ -3,21 +3,24 @@
  * Licensed under the MIT License.
  */
 
+import {
+    RedirectRequest,
+    PopupRequest,
+    SsoSilentRequest,
+    AuthenticationResult,
+    EndSessionRequest,
+    ClearCacheRequest,
+} from "@azure/msal-browser";
 import { ChallengeType } from "../../CustomAuthConstants.js";
 import {
-    RedirectError,
-    UnknownApiError,
+    CustomAuthApiError,
+    CustomAuthApiErrorCode,
 } from "../../core/error/CustomAuthApiError.js";
-import { InteractionClientBase } from "../../core/interaction_client/InteractionClientBase.js";
-import { ICustomAuthApiClient } from "../../core/network_client/ICustomAuthApiClient.js";
+import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
 import {
     SignInChallengeRequest,
     SignInInitiateRequest,
-} from "../../core/network_client/request/SignInRequest.js";
-import {
-    SignInCodeSendResponse,
-    SignInContinuationTokenResponse,
-} from "../../core/network_client/response/SignInResponse.js";
+} from "../../core/network_client/custom_auth_api/request/SignInRequest.js";
 import {
     SignInContinuationTokenParams,
     SignInStartParams,
@@ -30,118 +33,105 @@ import {
     SignInCompleteResult,
     SignInWithContinuationTokenResult,
 } from "./result/SignInActionResult.js";
+import { MethodNotImplementedError } from "../../core/error/MethodNotImplementedError.js";
+import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
 
-export class SigninClient extends InteractionClientBase {
-    constructor(customAuthApiClient: ICustomAuthApiClient) {
-        super(customAuthApiClient);
-    }
-
+export class SigninClient extends CustomAuthInteractionClientBase {
     async start(
-        parameters: SignInStartParams,
+        parameters: SignInStartParams
     ): Promise<SignInWithContinuationTokenResult | SignInCodeSendResult> {
-        /*
-         * Using the customAuthApiClient to make the requests to start the signin flow.
-         * Based on the response, we will return the appropriate result for the different.
-         * The followings are just some sample codes to demonstrate how to use the customAuthApiClient.
-         */
+        const apiId = !parameters.password
+            ? PublicApiId.SIGN_IN_WITH_CODE_START
+            : PublicApiId.SIGN_IN_WITH_PASSWORD_START;
+        const telemetryManager = this.initializeServerTelemetryManager(apiId);
 
-        const initiateRequest = SignInInitiateRequest.create(parameters);
+        const initiateRequest = SignInInitiateRequest.create(
+            parameters,
+            telemetryManager
+        );
 
         // There is no need to catch the error here. If an error is thrown, it should be caught by the caller.
         const initiateResponse =
             await this.customAuthApiClient.performSignInInitiateRequest(
-                initiateRequest,
+                initiateRequest
             );
-
-        if (initiateResponse.challengeType === ChallengeType.REDIRECT) {
-            throw new RedirectError(parameters.correlationId);
-        }
-
-        const continuationToken: string =
-            initiateResponse.continuationToken || "";
-
-        if (!continuationToken) {
-            throw new UnknownApiError(
-                "Unknown",
-                "Cannot find continuation token in the response.",
-                parameters.correlationId,
-                [],
-            );
-        }
 
         // Create challenge request.
         const challengeRequest = SignInChallengeRequest.create(
             parameters,
-            continuationToken,
+            initiateResponse.continuation_token ?? "",
+            telemetryManager
         );
 
         // Call challenge endpoint.
         const challengeResponse =
             await this.customAuthApiClient.performSignInChallengeRequest(
-                challengeRequest,
+                challengeRequest
             );
 
-        if (initiateResponse.challengeType === ChallengeType.REDIRECT) {
-            throw new RedirectError(parameters.correlationId);
-        }
-
-        if (
-            challengeResponse instanceof SignInContinuationTokenResponse &&
-            challengeResponse.challengeType === ChallengeType.PASSWORD
-        ) {
+        if (challengeResponse.challenge_type === ChallengeType.PASSWORD) {
             // Password is required
             return new SignInWithContinuationTokenResult(
-                challengeResponse.continuationToken ?? "",
+                challengeResponse.continuation_token ?? "",
                 parameters.correlationId,
-                challengeResponse.challengeType,
+                challengeResponse.challenge_type
             );
-        } else if (
-            challengeResponse instanceof SignInCodeSendResponse &&
-            challengeResponse.challengeType === ChallengeType.OOB
-        ) {
-            /*
-             * Code is required
-             * Need to verify the response and return the correct result.
-             */
+        } else if (challengeResponse.challenge_type === ChallengeType.OOB) {
+            // Code is required
             return new SignInCodeSendResult(
-                challengeResponse.continuationToken ?? "",
-                challengeResponse.challengeType ?? "",
-                challengeResponse.challengeChannel ?? "",
-                challengeResponse.challengeTargetLabel ?? "",
-                challengeResponse.codeLength ?? 0,
-                parameters.correlationId,
-            );
-        } else {
-            throw new UnknownApiError(
-                "Unknown",
-                "Unexpected response returned from challenge endpoint.",
-                parameters.correlationId,
-                [],
+                challengeResponse.continuation_token ?? "",
+                challengeResponse.challenge_type ?? "",
+                challengeResponse.challenge_channel ?? "",
+                challengeResponse.target_challenge_label ?? "",
+                challengeResponse.code_length ?? 0,
+                parameters.correlationId
             );
         }
+
+        throw new CustomAuthApiError(
+            CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
+            `Unsupported challenge type '${challengeResponse.challenge_type}'.`,
+            parameters.correlationId
+        );
     }
 
     async submitCode(
-        parameters: SignInSubmitCodeParams,
+        parameters: SignInSubmitCodeParams
     ): Promise<SignInCompleteResult> {
         throw new Error(`Method not implemented with Parameter ${parameters}.`);
     }
 
     async submitPassword(
-        parameters: SignInSubmitPasswordParams,
+        parameters: SignInSubmitPasswordParams
     ): Promise<SignInCompleteResult> {
         throw new Error(`Method not implemented with Parameter ${parameters}.`);
     }
 
     async resendCode(
-        parameters: SignInResendCodeParams,
+        parameters: SignInResendCodeParams
     ): Promise<SignInCodeSendResult> {
         throw new Error(`Method not implemented with Parameter ${parameters}.`);
     }
 
     async signInWithContinuationToken(
-        parameters: SignInContinuationTokenParams,
+        parameters: SignInContinuationTokenParams
     ): Promise<SignInWithContinuationTokenResult> {
         throw new Error(`Method not implemented with Parameter ${parameters}.`);
+    }
+
+    // It is not necessary to implement this method from base class.
+    acquireToken(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        request: RedirectRequest | PopupRequest | SsoSilentRequest
+    ): Promise<AuthenticationResult | void> {
+        throw new MethodNotImplementedError("SignInClient.acquireToken");
+    }
+
+    // It is not necessary to implement this method from base class.
+    logout(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        request: EndSessionRequest | ClearCacheRequest | undefined
+    ): Promise<void> {
+        throw new MethodNotImplementedError("SignInClient.logout");
     }
 }

@@ -4,14 +4,21 @@
  */
 
 import { BaseOperatingContext } from "@azure/msal-browser";
-import { CustomAuthConfiguration } from "../configuration/CustomAuthConfiguration.js";
+import {
+    CustomAuthBrowserConfiguration,
+    CustomAuthConfiguration,
+    CustomAuthOptions,
+} from "../configuration/CustomAuthConfiguration.js";
 
 export class CustomAuthOperatingContext extends BaseOperatingContext {
+    private readonly customAuthOptions: CustomAuthOptions;
     private static readonly MODULE_NAME: string = "";
     private static readonly ID: string = "CustomAuthOperatingContext";
 
     constructor(configuration: CustomAuthConfiguration) {
         super(configuration);
+
+        this.customAuthOptions = configuration.customAuth;
     }
 
     getModuleName(): string {
@@ -22,8 +29,11 @@ export class CustomAuthOperatingContext extends BaseOperatingContext {
         return CustomAuthOperatingContext.ID;
     }
 
-    getCustomAuthConfig(): CustomAuthConfiguration {
-        return this.config as CustomAuthConfiguration;
+    getCustomAuthConfig(): CustomAuthBrowserConfiguration {
+        return {
+            ...this.getConfig(),
+            customAuth: this.customAuthOptions,
+        };
     }
 
     async initialize(): Promise<boolean> {

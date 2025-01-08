@@ -4,16 +4,16 @@
  */
 
 import { AccountInfo } from "../../../account/auth_flow/model/AccountInfo.js";
+import { AuthFlowErrorBase } from "../../../core/auth_flow/AuthFlowErrorBase.js";
 import { SignInState } from "../../../core/auth_flow/AuthFlowState.js";
 import { ResultBase } from "../../../core/auth_flow/ResultBase.js";
 
 /*
  * Result of a sign-in submit credential operation.
  */
-export abstract class SignInSubmitCredentialResult extends ResultBase<
-    SignInState,
-    AccountInfo
-> {
+export abstract class SignInSubmitCredentialResult<
+    TError extends AuthFlowErrorBase
+> extends ResultBase<SignInState, TError, AccountInfo> {
     constructor(resultData?: AccountInfo) {
         super(resultData);
     }

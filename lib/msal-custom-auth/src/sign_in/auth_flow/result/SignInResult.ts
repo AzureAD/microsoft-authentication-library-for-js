@@ -6,6 +6,7 @@
 import { AccountInfo } from "../../../account/auth_flow/model/AccountInfo.js";
 import { SignInState } from "../../../core/auth_flow/AuthFlowState.js";
 import { ResultBase } from "../../../core/auth_flow/ResultBase.js";
+import { SignInError } from "../error_type/SignInError.js";
 import { SignInCodeRequiredStateHandler } from "../state_handler/SignInCodeRequiredStateHandler.js";
 import { SignInPasswordRequiredStateHandler } from "../state_handler/SignInPasswordRequiredStateHandler.js";
 
@@ -14,6 +15,7 @@ import { SignInPasswordRequiredStateHandler } from "../state_handler/SignInPassw
  */
 export class SignInResult extends ResultBase<
     SignInState,
+    SignInError,
     AccountInfo,
     SignInCodeRequiredStateHandler | SignInPasswordRequiredStateHandler
 > {

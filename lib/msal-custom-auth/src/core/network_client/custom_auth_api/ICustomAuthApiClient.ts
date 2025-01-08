@@ -11,29 +11,29 @@ import {
     SignInPasswordTokenRequest,
 } from "./request/SignInRequest.js";
 import {
-    SignInCodeSendResponse,
-    SignInContinuationTokenResponse,
+    SignInChallengeResponse,
+    SignInInitiateResponse,
     SignInTokenResponse,
 } from "./response/SignInResponse.js";
 
 export interface ICustomAuthApiClient {
     performSignInInitiateRequest(
-        request: SignInInitiateRequest,
-    ): Promise<SignInContinuationTokenResponse>;
+        request: SignInInitiateRequest
+    ): Promise<SignInInitiateResponse>;
 
     performSignInChallengeRequest(
-        request: SignInChallengeRequest,
-    ): Promise<SignInCodeSendResponse | SignInContinuationTokenResponse>;
+        request: SignInChallengeRequest
+    ): Promise<SignInChallengeResponse>;
 
     performSignInOobTokenRequest(
-        request: SignInOobTokenRequest,
+        request: SignInOobTokenRequest
     ): Promise<SignInTokenResponse>;
 
     performSignInPasswordTokenRequest(
-        request: SignInPasswordTokenRequest,
+        request: SignInPasswordTokenRequest
     ): Promise<SignInTokenResponse>;
 
     performSignInContinuationTokenTokenRequest(
-        request: SignInContinuationTokenRequest,
+        request: SignInContinuationTokenRequest
     ): Promise<SignInTokenResponse>;
 }

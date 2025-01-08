@@ -4,9 +4,9 @@
  */
 
 import { SigninClient } from "../../interaction_client/SignInClient.js";
-import { CustomAuthConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
+import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { AuthFlowStateHandlerBase } from "../../../core/auth_flow/AuthFlowStateHandlerBase.js";
-import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
+import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 
 /*
  * Base state handler for sign-in flow.
@@ -24,21 +24,27 @@ export abstract class SignInStateHandler extends AuthFlowStateHandlerBase {
         protected signInClient: SigninClient,
         correlationId: string,
         continuationToken: string,
-        protected config: CustomAuthConfiguration,
-        protected scopes?: Array<string>,
+        protected config: CustomAuthBrowserConfiguration,
+        protected scopes?: Array<string>
     ) {
         super(correlationId, continuationToken);
 
-        if (!continuationToken) {
-            throw new InvalidArgumentError("continuationToken", correlationId);
-        }
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
+            "continuationToken",
+            continuationToken,
+            correlationId
+        );
 
-        if (!config) {
-            throw new InvalidArgumentError("config", correlationId);
-        }
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "config",
+            config,
+            correlationId
+        );
 
-        if (!signInClient) {
-            throw new InvalidArgumentError("signInClient", correlationId);
-        }
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "signInClient",
+            signInClient,
+            correlationId
+        );
     }
 }

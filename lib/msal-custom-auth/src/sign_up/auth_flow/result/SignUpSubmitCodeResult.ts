@@ -8,12 +8,14 @@ import { SignUpPasswordRequiredStateHandler } from "../state_handler/SignUpPassw
 import { SignUpState } from "../../../core/auth_flow/AuthFlowState.js";
 import { ResultBase } from "../../../core/auth_flow/ResultBase.js";
 import { SignInContinuationStateHandler } from "../../../sign_in/auth_flow/state_handler/SignInContinuationStateHandler.js";
+import { SignUpSubmitCodeError } from "../error_type/SignUpError.js";
 
 /*
  * Result of a sign-up operation that requires a code.
  */
 export class SignUpSubmitCodeResult extends ResultBase<
     SignUpState,
+    SignUpSubmitCodeError,
     void,
     | SignUpPasswordRequiredStateHandler
     | SignUpAttributesRequiredStateHandler

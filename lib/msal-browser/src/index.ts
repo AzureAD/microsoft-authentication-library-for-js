@@ -78,6 +78,7 @@ export { BaseOperatingContext } from "./operatingcontext/BaseOperatingContext.js
 // Cache
 export { LoadTokenOptions } from "./cache/TokenCache.js";
 export { ITokenCache } from "./cache/ITokenCache.js";
+export { BrowserCacheManager } from "./cache/BrowserCacheManager.js";
 
 // Storage
 export { MemoryStorage } from "./cache/MemoryStorage.js";
@@ -85,6 +86,9 @@ export { BrowserStorage } from "./cache/BrowserStorage.js";
 export { LocalStorage } from "./cache/LocalStorage.js";
 export { SessionStorage } from "./cache/SessionStorage.js";
 export { IWindowStorage } from "./cache/IWindowStorage.js";
+
+// Interaction Client
+export { StandardInteractionClient } from "./interaction_client/StandardInteractionClient.js";
 
 // Events
 export {
@@ -160,6 +164,8 @@ export {
     PerformanceCallbackFunction,
     PerformanceEvent,
     PerformanceEvents,
+    // Crypto
+    ICrypto,
     // Telemetry
     InProgressPerformanceEvent,
     TenantProfile,
@@ -167,6 +173,8 @@ export {
     StubPerformanceClient,
     TokenClaims,
     Constants,
+    AADServerParamKeys,
+    ServerTelemetryManager,
 } from "@azure/msal-common/browser";
 
 export { version } from "./packageMetadata.js";
