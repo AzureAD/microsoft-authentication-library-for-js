@@ -13,7 +13,6 @@ type ProfileType = {
   selector: 'app-profile',
   templateUrl: './profile.component.html',
   styleUrls: [],
-  standalone: true,
 })
 export class ProfileComponent implements OnInit {
   profile: ProfileType | undefined;

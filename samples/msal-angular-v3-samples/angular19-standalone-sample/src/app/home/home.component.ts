@@ -13,7 +13,6 @@ import { filter } from 'rxjs/operators';
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: [],
-  standalone: true,
   imports: [CommonModule],
 })
 export class HomeComponent implements OnInit {
