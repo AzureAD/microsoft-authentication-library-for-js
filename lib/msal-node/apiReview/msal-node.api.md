@@ -462,7 +462,6 @@ export class NodeStorage extends CacheManager {
     getAuthorityMetadata(key: string): AuthorityMetadataEntity | null;
     getAuthorityMetadataKeys(): Array<string>;
     getCache(): CacheKVStore;
-    getCachedAccountEntity(accountKey: string): AccountEntity | null;
     getIdTokenCredential(idTokenKey: string): IdTokenEntity | null;
     getInMemoryCache(): InMemoryCache;
     getItem(key: string): ValidCacheType;
@@ -476,15 +475,15 @@ export class NodeStorage extends CacheManager {
     registerChangeEmitter(func: () => void): void;
     removeItem(key: string): boolean;
     removeOutdatedAccount(accountKey: string): void;
-    setAccessTokenCredential(accessToken: AccessTokenEntity): void;
-    setAccount(account: AccountEntity): void;
+    setAccessTokenCredential(accessToken: AccessTokenEntity): Promise<void>;
+    setAccount(account: AccountEntity): Promise<void>;
     setAppMetadata(appMetadata: AppMetadataEntity): void;
     setAuthorityMetadata(key: string, metadata: AuthorityMetadataEntity): void;
     setCache(cache: CacheKVStore): void;
-    setIdTokenCredential(idToken: IdTokenEntity): void;
+    setIdTokenCredential(idToken: IdTokenEntity): Promise<void>;
     setInMemoryCache(inMemoryCache: InMemoryCache): void;
     setItem(key: string, value: ValidCacheType): void;
-    setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void;
+    setRefreshTokenCredential(refreshToken: RefreshTokenEntity): Promise<void>;
     setServerTelemetry(serverTelemetryKey: string, serverTelemetry: ServerTelemetryEntity): void;
     setThrottlingCache(throttlingCacheKey: string, throttlingCache: ThrottlingEntity): void;
     updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string;
@@ -663,7 +662,7 @@ export { ValidCacheType }
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "2.16.2";
+export const version = "3.0.0";
 
 // Warnings were encountered during analysis:
 //
