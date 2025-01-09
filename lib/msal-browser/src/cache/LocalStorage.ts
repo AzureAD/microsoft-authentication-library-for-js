@@ -297,7 +297,7 @@ export class LocalStorage implements IWindowStorage<string> {
             return null;
         }
 
-        return decrypt(
+        return invokeAsync(decrypt, PerformanceEvents.Decrypt, this.logger, this.performanceClient, correlationId)(
             this.encryptionCookie.key,
             encObj.nonce,
             this.getContext(key),
@@ -322,10 +322,6 @@ export class LocalStorage implements IWindowStorage<string> {
                 if (value) {
                     this.memoryStorage.setItem(key, value);
                 }
-                this.performanceClient.incrementFields(
-                    { decryptedCacheCount: 1 },
-                    correlationId
-                );
             });
             promiseArr.push(promise);
         });
