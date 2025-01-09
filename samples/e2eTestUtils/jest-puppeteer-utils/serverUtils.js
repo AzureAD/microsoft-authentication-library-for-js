@@ -45,6 +45,7 @@ async function isServerUp(port, timeout) {
                 host: "localhost",
                 port: port,
                 family: 4,
+                rejectUnauthorized: false,
             };
 
             https
