@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import {
     LogLevel,
     Logger,
@@ -5,17 +10,17 @@ import {
     ICachePlugin,
     buildStaticAuthorityOptions,
 } from "@azure/msal-common";
-import { NodeStorage } from "../../src/cache/NodeStorage";
-import { TokenCache } from "../../src/cache/TokenCache";
+import { NodeStorage } from "../../src/cache/NodeStorage.js";
+import { TokenCache } from "../../src/cache/TokenCache.js";
 import { existsSync, watch, promises, FSWatcher } from "fs";
 import { version, name } from "../../package.json";
 import {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     ID_TOKEN_CLAIMS,
-} from "../utils/TestConstants";
-import { Deserializer } from "../../src/cache/serializer/Deserializer";
-import { JsonCache } from "../../src";
-import { MSALCommonModule } from "../utils/MockUtils";
+} from "../utils/TestConstants.js";
+import { Deserializer } from "../../src/cache/serializer/Deserializer.js";
+import { JsonCache } from "../../src/index.js";
+import { MSALCommonModule } from "../utils/MockUtils.js";
 
 const msalCommon: MSALCommonModule = jest.requireActual(
     "@azure/msal-common/node"

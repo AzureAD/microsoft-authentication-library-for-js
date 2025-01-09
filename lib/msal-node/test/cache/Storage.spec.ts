@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import {
     LogLevel,
     Logger,
@@ -12,15 +17,15 @@ import {
 import {
     JsonCache,
     InMemoryCache,
-} from "./../../src/cache/serializer/SerializerTypes";
-import { Deserializer } from "./../../src/cache/serializer/Deserializer";
-import { NodeStorage } from "../../src/cache/NodeStorage";
+} from "./../../src/cache/serializer/SerializerTypes.js";
+import { Deserializer } from "./../../src/cache/serializer/Deserializer.js";
+import { NodeStorage } from "../../src/cache/NodeStorage.js";
 import { version, name } from "../../package.json";
 import {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONSTANTS,
-} from "../utils/TestConstants";
+} from "../utils/TestConstants.js";
 
 const cacheJson = require("./serializer/cache.json");
 const clientId = TEST_CONSTANTS.CLIENT_ID;

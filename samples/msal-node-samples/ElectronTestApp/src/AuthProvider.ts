@@ -10,14 +10,13 @@ import {
     AuthorizationUrlRequest,
     AuthenticationResult,
     SilentFlowRequest,
-    CryptoProvider
+    CryptoProvider,
 } from "@azure/msal-node";
 import { cachePlugin } from "./CachePlugin";
 import { BrowserWindow } from "electron";
 import { CustomProtocolListener } from "./CustomProtocolListener";
 
 export default class AuthProvider {
-
     private clientApplication: PublicClientApplication;
     private account: AccountInfo;
     private authCodeUrlParams: AuthorizationUrlRequest;
@@ -27,12 +26,12 @@ export default class AuthProvider {
     private authConfig: any;
 
     constructor(authConfig: any) {
-        this.authConfig = authConfig
+        this.authConfig = authConfig;
 
         this.clientApplication = new PublicClientApplication({
             auth: this.authConfig.authOptions,
             cache: {
-                cachePlugin: cachePlugin(this.authConfig.cache.cacheLocation)
+                cachePlugin: cachePlugin(this.authConfig.cache.cacheLocation),
             },
             system: {
                 loggerOptions: {
@@ -41,8 +40,8 @@ export default class AuthProvider {
                     },
                     piiLoggingEnabled: false,
                     logLevel: LogLevel.Info,
-                }
-            }
+                },
+            },
         });
 
         this.account = null;
@@ -72,17 +71,16 @@ export default class AuthProvider {
      * Initialize request objects used by this AuthModule.
      */
     private setRequestObjects(): void {
-
         const baseSilentRequest = {
             account: null,
-            forceRefresh: false
+            forceRefresh: false,
         };
 
         this.authCodeUrlParams = this.authConfig.request.authCodeUrlParameters;
 
         this.authCodeRequest = {
             ...this.authConfig.request.authCodeRequest,
-            code: null
+            code: null,
         };
 
         this.silentProfileRequest = {
@@ -106,7 +104,7 @@ export default class AuthProvider {
 
     async getToken(request: SilentFlowRequest): Promise<string> {
         let authResponse: AuthenticationResult;
-        const account = this.account || await this.getAccount();
+        const account = this.account || (await this.getAccount());
         if (account) {
             request.account = account;
             authResponse = await this.getTokenSilent(request);
@@ -118,20 +116,32 @@ export default class AuthProvider {
         return authResponse.accessToken || null;
     }
 
-    async getTokenSilent(tokenRequest: SilentFlowRequest): Promise<AuthenticationResult> {
+    async getTokenSilent(
+        tokenRequest: SilentFlowRequest
+    ): Promise<AuthenticationResult> {
         try {
-            return await this.clientApplication.acquireTokenSilent(tokenRequest);
+            return await this.clientApplication.acquireTokenSilent(
+                tokenRequest
+            );
         } catch (error) {
-            console.log("Silent token acquisition failed, acquiring token using pop up");
-            const authCodeRequest = { ...this.authCodeUrlParams, ...tokenRequest };
+            console.error(
+                "Silent token acquisition failed, acquiring token interactively"
+            );
+            const authCodeRequest = {
+                ...this.authCodeUrlParams,
+                ...tokenRequest,
+            };
             return await this.getTokenInteractive(authCodeRequest);
         }
     }
 
-    async getTokenInteractive(tokenRequest: AuthorizationUrlRequest): Promise<AuthenticationResult> {
+    async getTokenInteractive(
+        tokenRequest: AuthorizationUrlRequest
+    ): Promise<AuthenticationResult> {
         // Generate PKCE Challenge and Verifier before request
         const cryptoProvider = new CryptoProvider();
-        const { challenge, verifier } = await cryptoProvider.generatePkceCodes();
+        const { challenge, verifier } =
+            await cryptoProvider.generatePkceCodes();
         const authWindow = await AuthProvider.createAuthWindow();
 
         // Add PKCE params to Auth Code URL request
@@ -139,21 +149,27 @@ export default class AuthProvider {
             ...this.authCodeUrlParams,
             scopes: tokenRequest.scopes,
             codeChallenge: challenge,
-            codeChallengeMethod: "S256"
+            codeChallengeMethod: "S256",
         };
 
         try {
             // Get Auth Code URL
-            const authCodeUrl = await this.clientApplication.getAuthCodeUrl(authCodeUrlParams);
+            const authCodeUrl = await this.clientApplication.getAuthCodeUrl(
+                authCodeUrlParams
+            );
 
-            const authCode = await this.listenForAuthCode(authCodeUrl, authWindow);
+            const authCode = await this.listenForAuthCode(
+                authCodeUrl,
+                authWindow
+            );
 
             // Use Authorization Code and PKCE Code verifier to make token request
-            const authResult: AuthenticationResult = await this.clientApplication.acquireTokenByCode({
-                ...this.authCodeRequest,
-                code: authCode,
-                codeVerifier: verifier
-            });
+            const authResult: AuthenticationResult =
+                await this.clientApplication.acquireTokenByCode({
+                    ...this.authCodeRequest,
+                    code: authCode,
+                    codeVerifier: verifier,
+                });
 
             authWindow.close();
             return authResult;
@@ -164,7 +180,9 @@ export default class AuthProvider {
     }
 
     async login(): Promise<AccountInfo> {
-        const authResult = await this.getTokenInteractive(this.authCodeUrlParams);
+        const authResult = await this.getTokenInteractive(
+            this.authCodeUrlParams
+        );
         return this.handleResponse(authResult);
     }
 
@@ -178,14 +196,21 @@ export default class AuthProvider {
 
     async logout(): Promise<void> {
         if (this.account) {
-            await this.clientApplication.getTokenCache().removeAccount(this.account);
+            await this.clientApplication
+                .getTokenCache()
+                .removeAccount(this.account);
             this.account = null;
         }
     }
 
-    private async listenForAuthCode(navigateUrl: string, authWindow: BrowserWindow): Promise<string> {
+    private async listenForAuthCode(
+        navigateUrl: string,
+        authWindow: BrowserWindow
+    ): Promise<string> {
         // Set up custom file protocol to listen for redirect response
-        const authCodeListener = new CustomProtocolListener(this.authConfig.customProtocol.name);
+        const authCodeListener = new CustomProtocolListener(
+            this.authConfig.customProtocol.name
+        );
         const codePromise = authCodeListener.start();
         authWindow.loadURL(navigateUrl);
         const code = await codePromise;
@@ -194,9 +219,9 @@ export default class AuthProvider {
     }
 
     /**
- * Handles the response from a popup or redirect. If response is null, will check if we have any accounts and attempt to sign in.
- * @param response
- */
+     * Handles the response from a popup or redirect. If response is null, will check if we have any accounts and attempt to sign in.
+     * @param response
+     */
     private async handleResponse(response: AuthenticationResult) {
         if (response !== null) {
             this.account = response.account;
@@ -225,7 +250,9 @@ export default class AuthProvider {
 
         if (currentAccounts.length > 1) {
             // Add choose account code here
-            console.log("Multiple accounts detected, need to add choose account code.");
+            console.log(
+                "Multiple accounts detected, need to add choose account code."
+            );
             return currentAccounts[0];
         } else if (currentAccounts.length === 1) {
             return currentAccounts[0];
