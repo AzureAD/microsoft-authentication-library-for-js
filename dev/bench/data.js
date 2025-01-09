@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1735863567958,
+  "lastUpdate": 1736448926564,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -14084,6 +14084,44 @@ window.BENCHMARK_DATA = {
             "range": "±2.07%",
             "unit": "ops/sec",
             "extra": "216 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cc2bdb2c7c9c3375a12a9f756cb363fa481bb271",
+          "message": "Add back rejectUnauthorized request option to support self-signed certificates (#7499)\n\n- Add back \"rejectUnauthorized\" request option to support self-signed\r\ncertificates\r\n- Fixes regression in https samples introduced by changes in\r\nhttps://github.com/AzureAD/microsoft-authentication-library-for-js/pull/7486",
+          "timestamp": "2025-01-09T13:49:40-05:00",
+          "tree_id": "fb86a7cf099bdbfc983de291d9c9e48478458d1e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/cc2bdb2c7c9c3375a12a9f756cb363fa481bb271"
+        },
+        "date": 1736448925117,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 246319,
+            "range": "±1.30%",
+            "unit": "ops/sec",
+            "extra": "213 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 248022,
+            "range": "±0.83%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
