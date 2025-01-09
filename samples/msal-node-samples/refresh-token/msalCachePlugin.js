@@ -11,8 +11,8 @@ module.exports = function (cacheLocation) {
     const beforeCacheAccess = (cacheContext) => {
         return new Promise((resolve, reject) => {
             if (fs.existsSync(cacheLocation)) {
-                fs.readFile(cacheLocation, "utf-8", (err, data) => {
-                    if (err) {
+                fs.readFile(cacheLocation, "utf-8", (error, data) => {
+                    if (error) {
                         reject();
                     } else {
                         cacheContext.tokenCache.deserialize(data);
@@ -20,8 +20,8 @@ module.exports = function (cacheLocation) {
                     }
                 });
             } else {
-                fs.writeFile(cacheLocation, cacheContext.tokenCache.serialize(), (err) => {
-                    if (err) {
+                fs.writeFile(cacheLocation, cacheContext.tokenCache.serialize(), (error) => {
+                    if (error) {
                         reject();
                     }
                 });
@@ -32,9 +32,9 @@ module.exports = function (cacheLocation) {
     const afterCacheAccess = (cacheContext) => {
         return new Promise((resolve, reject) => {
             if (cacheContext.cacheHasChanged) {
-                fs.writeFile(cacheLocation, cacheContext.tokenCache.serialize(), (err) => {
-                    if (err) {
-                        reject(err);
+                fs.writeFile(cacheLocation, cacheContext.tokenCache.serialize(), (error) => {
+                    if (error) {
+                        reject(error);
                     }
                     resolve();
                 });

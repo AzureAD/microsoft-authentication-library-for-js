@@ -22,7 +22,10 @@ import {
     CacheHelpers,
     GrantType,
 } from "@azure/msal-common";
-import { ClientCredentialClient, UsernamePasswordClient } from "../../src";
+import {
+    ClientCredentialClient,
+    UsernamePasswordClient,
+} from "../../src/index.js";
 import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
     CAE_CONSTANTS,
@@ -33,14 +36,14 @@ import {
     DSTS_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
     TEST_TOKENS,
-} from "../test_kit/StringConstants";
+} from "../test_kit/StringConstants.js";
 import {
     checkMockedNetworkRequest,
     ClientTestUtils,
     getClientAssertionCallback,
     mockCrypto,
-} from "./ClientTestUtils";
-import { mockNetworkClient } from "../utils/MockNetworkClient";
+} from "./ClientTestUtils.js";
+import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 
 describe("ClientCredentialClient unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
