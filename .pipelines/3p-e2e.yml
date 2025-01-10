@@ -50,7 +50,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: jiashen/sketeton # TODO: change back to master after pipeline is working
+          ref: custom-auth/cuong/release-pipeline # TODO: change back to master after pipeline is working
 extends:
     template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
     parameters:
