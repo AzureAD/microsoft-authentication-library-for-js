@@ -58,4 +58,3 @@ export const invalidBase64String = "invalid_base64_string";
 export const invalidPopTokenRequest = "invalid_pop_token_request";
 export const failedToBuildHeaders = "failed_to_build_headers";
 export const failedToParseHeaders = "failed_to_parse_headers";
-export const invalidCache = "invalid_cache";
