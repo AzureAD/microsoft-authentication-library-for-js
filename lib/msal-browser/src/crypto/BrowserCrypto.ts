@@ -35,6 +35,8 @@ const UUID_CHARS = "0123456789abcdef";
 // Array to store UINT32 random value
 const UINT32_ARR = new Uint32Array(1);
 
+const SUBTLE_SUBERROR = "crypto_subtle_undefined";
+
 const keygenAlgorithmOptions: RsaHashedKeyGenParams = {
     name: PKCS1_V15_KEYGEN_ALG,
     hash: S256_HASH_ALG,
@@ -45,7 +47,9 @@ const keygenAlgorithmOptions: RsaHashedKeyGenParams = {
 /**
  * Check whether browser crypto is available.
  */
-export function validateCryptoAvailable(): void {
+export function validateCryptoAvailable(
+    skipValidateSubtleCrypto: boolean
+): void {
     if (!window) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.nonBrowserEnvironment
@@ -53,6 +57,12 @@ export function validateCryptoAvailable(): void {
     }
     if (!window.crypto) {
         throw createBrowserAuthError(BrowserAuthErrorCodes.cryptoNonExistent);
+    }
+    if (!window.crypto.subtle && !skipValidateSubtleCrypto) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.cryptoNonExistent,
+            SUBTLE_SUBERROR
+        );
     }
 }
 
