@@ -58,7 +58,7 @@ export function validateCryptoAvailable(
     if (!window.crypto) {
         throw createBrowserAuthError(BrowserAuthErrorCodes.cryptoNonExistent);
     }
-    if (!window.crypto.subtle && !skipValidateSubtleCrypto) {
+    if (!skipValidateSubtleCrypto && !window.crypto.subtle) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.cryptoNonExistent,
             SUBTLE_SUBERROR
