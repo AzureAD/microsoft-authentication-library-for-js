@@ -155,6 +155,7 @@ export abstract class ClientApplication {
     protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager;
     protected logger: Logger;
     setLogger(logger: Logger): void;
+    // Warning: (ae-forgotten-export) The symbol "NodeStorage" needs to be exported by the entry point index.d.ts
     protected storage: NodeStorage;
     protected validateState(state: string, cachedState: string): void;
 }
@@ -444,50 +445,6 @@ export type NodeAuthOptions = {
     azureCloudOptions?: AzureCloudOptions;
     skipAuthorityMetadataCache?: boolean;
 };
-
-// @public
-export class NodeStorage extends CacheManager {
-    constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto, staticAuthorityOptions?: StaticAuthorityOptions);
-    cacheToInMemoryCache(cache: CacheKVStore): InMemoryCache;
-    clear(): void;
-    containsKey(key: string): boolean;
-    emitChange(): void;
-    static generateInMemoryCache(cache: string): InMemoryCache;
-    static generateJsonCache(inMemoryCache: InMemoryCache): JsonCache;
-    getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null;
-    getAccount(accountKey: string): AccountEntity | null;
-    // (undocumented)
-    getAccountKeys(): string[];
-    getAppMetadata(appMetadataKey: string): AppMetadataEntity | null;
-    getAuthorityMetadata(key: string): AuthorityMetadataEntity | null;
-    getAuthorityMetadataKeys(): Array<string>;
-    getCache(): CacheKVStore;
-    getIdTokenCredential(idTokenKey: string): IdTokenEntity | null;
-    getInMemoryCache(): InMemoryCache;
-    getItem(key: string): ValidCacheType;
-    getKeys(): string[];
-    getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null;
-    getServerTelemetry(serverTelemetrykey: string): ServerTelemetryEntity | null;
-    getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null;
-    // (undocumented)
-    getTokenKeys(): TokenKeys;
-    inMemoryCacheToCache(inMemoryCache: InMemoryCache): CacheKVStore;
-    registerChangeEmitter(func: () => void): void;
-    removeItem(key: string): boolean;
-    removeOutdatedAccount(accountKey: string): void;
-    setAccessTokenCredential(accessToken: AccessTokenEntity): Promise<void>;
-    setAccount(account: AccountEntity): Promise<void>;
-    setAppMetadata(appMetadata: AppMetadataEntity): void;
-    setAuthorityMetadata(key: string, metadata: AuthorityMetadataEntity): void;
-    setCache(cache: CacheKVStore): void;
-    setIdTokenCredential(idToken: IdTokenEntity): Promise<void>;
-    setInMemoryCache(inMemoryCache: InMemoryCache): void;
-    setItem(key: string, value: ValidCacheType): void;
-    setRefreshTokenCredential(refreshToken: RefreshTokenEntity): Promise<void>;
-    setServerTelemetry(serverTelemetryKey: string, serverTelemetry: ServerTelemetryEntity): void;
-    setThrottlingCache(throttlingCacheKey: string, throttlingCache: ThrottlingEntity): void;
-    updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string;
-}
 
 // @public
 export type NodeSystemOptions = {

@@ -245,11 +245,23 @@ export class LocalStorage implements IWindowStorage<string> {
         this.setItem(StaticCacheKeys.ACCOUNT_KEYS, JSON.stringify(accountKeys));
 
         let tokenKeys: TokenKeys = getTokenKeys(this.clientId, this);
-        tokenKeys.idToken = await this.importArray(tokenKeys.idToken, correlationId);
-        tokenKeys.accessToken = await this.importArray(tokenKeys.accessToken, correlationId);
-        tokenKeys.refreshToken = await this.importArray(tokenKeys.refreshToken, correlationId);
+        tokenKeys.idToken = await this.importArray(
+            tokenKeys.idToken,
+            correlationId
+        );
+        tokenKeys.accessToken = await this.importArray(
+            tokenKeys.accessToken,
+            correlationId
+        );
+        tokenKeys.refreshToken = await this.importArray(
+            tokenKeys.refreshToken,
+            correlationId
+        );
         // Write valid token keys back to map
-        this.setItem(`${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`, JSON.stringify(tokenKeys));
+        this.setItem(
+            `${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`,
+            JSON.stringify(tokenKeys)
+        );
     }
 
     /**
@@ -296,7 +308,13 @@ export class LocalStorage implements IWindowStorage<string> {
             return null;
         }
 
-        return invokeAsync(decrypt, PerformanceEvents.Decrypt, this.logger, this.performanceClient, correlationId)(
+        return invokeAsync(
+            decrypt,
+            PerformanceEvents.Decrypt,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(
             this.encryptionCookie.key,
             encObj.nonce,
             this.getContext(key),
