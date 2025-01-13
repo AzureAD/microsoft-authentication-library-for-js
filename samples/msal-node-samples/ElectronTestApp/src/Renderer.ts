@@ -3,7 +3,7 @@
 
 /**
  * The renderer API is exposed by the preload script found in the preload.ts
- * file in order to give the renderer access to the Node API in a secure and 
+ * file in order to give the renderer access to the Node API in a secure and
  * controlled way
  */
 // @ts-ignore
@@ -12,19 +12,18 @@ const renderer = window.renderer;
 window.renderer.startUiManager();
 
 // UI event handlers
-document.querySelector('#SignIn').addEventListener('click', () => {
+document.querySelector("#SignIn").addEventListener("click", () => {
     renderer.sendLoginMessage();
 });
 
-document.querySelector('#SignOut').addEventListener('click', () => {
+document.querySelector("#SignOut").addEventListener("click", () => {
     renderer.sendSignoutMessage();
 });
 
-document.querySelector('#seeProfile').addEventListener('click', () => {
+document.querySelector("#seeProfile").addEventListener("click", () => {
     renderer.sendSeeProfileMessage();
 });
 
-document.querySelector('#readMail').addEventListener('click', () => {
+document.querySelector("#readMail").addEventListener("click", () => {
     renderer.sendReadMailMessage();
 });
-

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { DistributedCachePlugin } from "../../../src/cache/distributed/DistributedCachePlugin.js";
 import {
     AccountEntity,

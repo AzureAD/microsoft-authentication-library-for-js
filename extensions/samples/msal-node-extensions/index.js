@@ -52,7 +52,7 @@ PersistenceCreator
         // get url to sign user in and consent to scopes needed for application
         pca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
             res.redirect(response);
-        }).catch((error) => console.log(JSON.stringify(error)));
+        });
     });
 
     app.get('/redirect', (req, res) => {
@@ -63,11 +63,9 @@ PersistenceCreator
         };
 
         pca.acquireTokenByCode(tokenRequest).then((response) => {
-            console.log("\nResponse: \n", response);
             res.sendStatus(200);
         }).catch((error) => {
-            console.log(error);
-            res.status(500).send(error);
+            res.status(500).send(error.errorMessage);
         });
     });
 

@@ -16,10 +16,10 @@ import {
     MANAGED_IDENTITY_RESOURCE_ID,
     TEST_TOKENS,
     TEST_TOKEN_LIFETIMES,
-} from "./StringConstants";
-import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse";
-import { ManagedIdentityRequestParams } from "../../src";
-import { ManagedIdentityConfiguration } from "../../src/config/Configuration";
+} from "./StringConstants.js";
+import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse.js";
+import { ManagedIdentityRequestParams } from "../../src/request/ManagedIdentityRequestParams.js";
+import { ManagedIdentityConfiguration } from "../../src/config/Configuration.js";
 
 const EMPTY_HEADERS: Record<string, string> = {};
 

@@ -1,13 +1,18 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import {
     buildAppConfiguration,
     Configuration,
-} from "../../src/config/Configuration";
-import { HttpClient } from "../../src/network/HttpClient";
+} from "../../src/config/Configuration.js";
+import { HttpClient } from "../../src/network/HttpClient.js";
 import {
     TEST_CONSTANTS,
     AUTHENTICATION_RESULT,
     DEFAULT_OPENID_CONFIG_RESPONSE,
-} from "../utils/TestConstants";
+} from "../utils/TestConstants.js";
 import {
     LogLevel,
     NetworkRequestOptions,
@@ -16,8 +21,8 @@ import {
 import {
     ClientCredentialRequest,
     ConfidentialClientApplication,
-} from "../../src";
-import { OnBehalfOfRequest } from "../../src/request/OnBehalfOfRequest";
+} from "../../src/index.js";
+import { OnBehalfOfRequest } from "../../src/request/OnBehalfOfRequest.js";
 import { RANDOM_TEST_GUID } from "../test_kit/StringConstants.js";
 
 describe("ClientConfiguration tests", () => {
