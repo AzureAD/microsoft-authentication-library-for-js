@@ -1,5 +1,5 @@
 {
-  "type": "major",
+  "type": "patch",
   "comment": "Rename `native` to `platformBroker` in public API and docs",
   "packageName": "@azure/msal-browser",
   "email": "sameera.gajjarapu@microsoft.com",
