@@ -33,6 +33,7 @@ import { CookieStorage } from "./CookieStorage.js";
 import { IWindowStorage } from "./IWindowStorage.js";
 import { MemoryStorage } from "./MemoryStorage.js";
 import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
+import { StaticCacheKeys } from "../utils/BrowserConstants.js";
 
 const ENCRYPTION_KEY = "msal.cache.encryption";
 
@@ -238,15 +239,17 @@ export class LocalStorage implements IWindowStorage<string> {
             return;
         }
 
-        const accountKeys = getAccountKeys(this);
-        await this.importArray(accountKeys, correlationId);
+        let accountKeys = getAccountKeys(this);
+        accountKeys = await this.importArray(accountKeys, correlationId);
+        // Write valid account keys back to map
+        this.setItem(StaticCacheKeys.ACCOUNT_KEYS, JSON.stringify(accountKeys));
 
-        const tokenKeys: TokenKeys = getTokenKeys(this.clientId, this);
-        await Promise.all([
-            this.importArray(tokenKeys.idToken, correlationId),
-            this.importArray(tokenKeys.accessToken, correlationId),
-            this.importArray(tokenKeys.refreshToken, correlationId),
-        ]);
+        let tokenKeys: TokenKeys = getTokenKeys(this.clientId, this);
+        tokenKeys.idToken = await this.importArray(tokenKeys.idToken, correlationId);
+        tokenKeys.accessToken = await this.importArray(tokenKeys.accessToken, correlationId);
+        tokenKeys.refreshToken = await this.importArray(tokenKeys.refreshToken, correlationId);
+        // Write valid token keys back to map
+        this.setItem(`${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`, JSON.stringify(tokenKeys));
     }
 
     /**
@@ -270,34 +273,30 @@ export class LocalStorage implements IWindowStorage<string> {
         let encObj: EncryptedData;
         try {
             encObj = JSON.parse(rawCache);
-            if (!encObj.id || !encObj.nonce || !encObj.data) {
-                // Data is not encrypted, likely from old version of MSAL. It must be removed because we don't know how old it is.
-                this.performanceClient.incrementFields(
-                    { unencryptedCacheCount: 1 },
-                    correlationId
-                );
-                throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.invalidCache
-                );
-            }
-
-            if (encObj.id !== this.encryptionCookie.id) {
-                // Data was encrypted with a different key. It must be removed because it is from a previous session.
-                this.performanceClient.incrementFields(
-                    { encryptedCacheExpiredCount: 1 },
-                    correlationId
-                );
-                throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.invalidCache
-                );
-            }
         } catch (e) {
             // Not a valid encrypted object, remove
-            this.removeItem(key);
             return null;
         }
 
-        return decrypt(
+        if (!encObj.id || !encObj.nonce || !encObj.data) {
+            // Data is not encrypted, likely from old version of MSAL. It must be removed because we don't know how old it is.
+            this.performanceClient.incrementFields(
+                { unencryptedCacheCount: 1 },
+                correlationId
+            );
+            return null;
+        }
+
+        if (encObj.id !== this.encryptionCookie.id) {
+            // Data was encrypted with a different key. It must be removed because it is from a previous session.
+            this.performanceClient.incrementFields(
+                { encryptedCacheExpiredCount: 1 },
+                correlationId
+            );
+            return null;
+        }
+
+        return invokeAsync(decrypt, PerformanceEvents.Decrypt, this.logger, this.performanceClient, correlationId)(
             this.encryptionCookie.key,
             encObj.nonce,
             this.getContext(key),
@@ -308,11 +307,13 @@ export class LocalStorage implements IWindowStorage<string> {
     /**
      * Helper to decrypt and save an array of cache keys
      * @param arr
+     * @returns Array of keys successfully imported
      */
     private async importArray(
         arr: Array<string>,
         correlationId: string
-    ): Promise<void> {
+    ): Promise<Array<string>> {
+        const importedArr: Array<string> = [];
         const promiseArr: Array<Promise<void>> = [];
         arr.forEach((key) => {
             const promise = this.getItemFromEncryptedCache(
@@ -321,16 +322,17 @@ export class LocalStorage implements IWindowStorage<string> {
             ).then((value) => {
                 if (value) {
                     this.memoryStorage.setItem(key, value);
+                    importedArr.push(key);
+                } else {
+                    // If value is empty, unencrypted or expired remove
+                    this.removeItem(key);
                 }
-                this.performanceClient.incrementFields(
-                    { decryptedCacheCount: 1 },
-                    correlationId
-                );
             });
             promiseArr.push(promise);
         });
 
         await Promise.all(promiseArr);
+        return importedArr;
     }
 
     /**

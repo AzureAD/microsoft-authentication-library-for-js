@@ -315,6 +315,7 @@ export const PerformanceEvents = {
     Base64Decode: "base64Decode",
     UrlEncodeArr: "urlEncodeArr",
     Encrypt: "encrypt",
+    Decrypt: "decrypt"
 } as const;
 export type PerformanceEvents =
     (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
@@ -548,6 +549,7 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         [PerformanceEvents.Base64Decode, "b64Decode"],
         [PerformanceEvents.UrlEncodeArr, "urlEncArr"],
         [PerformanceEvents.Encrypt, "encrypt"],
+        [PerformanceEvents.Decrypt, "decrypt"]
     ]);
 
 /**
@@ -895,5 +897,4 @@ export const IntFields: ReadonlySet<string> = new Set([
     "multiMatchedRT",
     "unencryptedCacheCount",
     "encryptedCacheExpiredCount",
-    "decryptedCacheCount",
 ]);
