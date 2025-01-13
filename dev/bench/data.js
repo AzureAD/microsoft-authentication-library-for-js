@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1736448926564,
+  "lastUpdate": 1736810531488,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -14122,6 +14122,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.83%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bc9dd3e0016e0cb59a2535a3e565322053c30725",
+          "message": "Disable tests using B2C AAD client app registration (#7493)",
+          "timestamp": "2025-01-13T15:16:14-08:00",
+          "tree_id": "a6b579f0b37fe33e7cba096b91c196d0d9b19d81",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/bc9dd3e0016e0cb59a2535a3e565322053c30725"
+        },
+        "date": 1736810530247,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 240637,
+            "range": "±0.98%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 242677,
+            "range": "±0.76%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
           }
         ]
       }
