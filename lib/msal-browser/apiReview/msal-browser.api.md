@@ -236,8 +236,7 @@ declare namespace BrowserAuthErrorCodes {
         invalidBase64String,
         invalidPopTokenRequest,
         failedToBuildHeaders,
-        failedToParseHeaders,
-        invalidCache
+        failedToParseHeaders
     }
 }
 export { BrowserAuthErrorCodes }
@@ -1037,11 +1036,6 @@ export enum InteractionType {
 // @public (undocumented)
 const invalidBase64String = "invalid_base64_string";
 
-// Warning: (ae-missing-release-tag) "invalidCache" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const invalidCache = "invalid_cache";
-
 // Warning: (ae-missing-release-tag) "invalidCacheType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -1786,9 +1780,9 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/app/PublicClientNext.ts:85:79 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
 // src/app/PublicClientNext.ts:88:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/app/PublicClientNext.ts:89:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/LocalStorage.ts:254:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/LocalStorage.ts:310:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/LocalStorage.ts:338:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/LocalStorage.ts:257:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/LocalStorage.ts:309:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/LocalStorage.ts:340:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/config/Configuration.ts:246:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
 // src/index.ts:8:4 - (tsdoc-undefined-tag) The TSDoc tag "@module" is not defined in this configuration
