@@ -247,7 +247,7 @@ export class BrowserCacheUtils {
         ).toBeTruthy();
         const storage = await this.getWindowStorage();
         expect(Object.keys(storage).length).toEqual(
-            totalIdTokens + totalAccessTokens + totalRefreshTokens + 5 // 1 Account + 1 Account Keys + 1 Token Keys + 2 active token filters = 5
+            totalIdTokens + totalAccessTokens + totalRefreshTokens + 4 // 1 Account + 1 Account Keys + 1 Token Keys + 1 active token filters = 4
         );
     }
 }

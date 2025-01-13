@@ -13,27 +13,6 @@ import {
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/profile-tests`;
 
-async function verifyTokenStore(
-  BrowserCache: BrowserCacheUtils,
-  scopes: string[]
-): Promise<void> {
-  const tokenStore = await BrowserCache.getTokens();
-  expect(tokenStore.idTokens.length).toBe(1);
-  expect(tokenStore.accessTokens.length).toBe(1);
-  expect(tokenStore.refreshTokens.length).toBe(1);
-  expect(
-    await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
-  ).not.toBeNull();
-  expect(
-    await BrowserCache.accessTokenForScopesExists(
-      tokenStore.accessTokens,
-      scopes
-    )
-  ).toBeTruthy;
-  const storage = await BrowserCache.getWindowStorage();
-  expect(Object.keys(storage).length).toBe(9);
-}
-
 describe('/ (Profile Page)', () => {
   jest.retryTimes(RETRY_TIMES);
   let browser: puppeteer.Browser;
@@ -97,7 +76,9 @@ describe('/ (Profile Page)', () => {
     await screenshot.takeScreenshot(page, 'Profile page signed in');
 
     // Verify tokens are in cache
-    await verifyTokenStore(BrowserCache, ['User.Read']);
+    await BrowserCache.verifyTokenStore({
+      scopes: ['User.Read'],
+    });
 
     // Verify displays profile page without activating MsalGuard
     await page.waitForXPath("//strong[contains(., 'First Name: ')]");
@@ -120,7 +101,9 @@ describe('/ (Profile Page)', () => {
     await screenshot.takeScreenshot(page, 'Profile page signed in directly');
 
     // Verify tokens are in cache
-    await verifyTokenStore(BrowserCache, ['User.Read']);
+    await BrowserCache.verifyTokenStore({
+      scopes: ['User.Read'],
+    });
 
     // Verify displays profile page without activating MsalGuard
     await page.waitForXPath("//strong[contains(., 'First Name: ')]");

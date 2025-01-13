@@ -13,27 +13,6 @@ import {
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/home-tests`;
 
-async function verifyTokenStore(
-    BrowserCache: BrowserCacheUtils,
-    scopes: string[]
-): Promise<void> {
-    const tokenStore = await BrowserCache.getTokens();
-    expect(tokenStore.idTokens.length).toBe(1);
-    expect(tokenStore.accessTokens.length).toBe(1);
-    expect(tokenStore.refreshTokens.length).toBe(1);
-    expect(
-        await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
-    ).not.toBeNull();
-    expect(
-        await BrowserCache.accessTokenForScopesExists(
-            tokenStore.accessTokens,
-            scopes
-        )
-    ).toBeTruthy;
-    const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(8);
-}
-
 describe("/ (Home Page)", () => {
     jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
@@ -114,7 +93,9 @@ describe("/ (Home Page)", () => {
         await screenshot.takeScreenshot(page, "App signed in");
 
         // Verify tokens are in cache
-        await verifyTokenStore(BrowserCache, ["User.Read"]);
+        await BrowserCache.verifyTokenStore({
+            scopes: ['User.Read'],
+          });
     });
 
     it("AuthenticatedTemplate - children are rendered after logging in with loginPopup", async () => {
@@ -161,6 +142,8 @@ describe("/ (Home Page)", () => {
         await screenshot.takeScreenshot(page, "App signed in");
 
         // Verify tokens are in cache
-        await verifyTokenStore(BrowserCache, ["User.Read"]);
+        await BrowserCache.verifyTokenStore({
+            scopes: ['User.Read'],
+          });
     });
 });
