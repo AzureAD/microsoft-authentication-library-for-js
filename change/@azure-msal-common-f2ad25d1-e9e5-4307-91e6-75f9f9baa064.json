@@ -1,5 +1,5 @@
 {
-  "type": "major",
+  "type": "patch",
   "comment": "Asynchronous cache writes",
   "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
