@@ -104,7 +104,7 @@ export class NestedAppAuthController implements IController {
 
         // Initialize the crypto class.
         this.browserCrypto = operatingContext.isBrowserEnvironment()
-            ? new CryptoOps(this.logger, this.performanceClient)
+            ? new CryptoOps(this.logger, this.performanceClient, true)
             : DEFAULT_CRYPTO_IMPLEMENTATION;
 
         // Initialize the browser storage class.
