@@ -96,7 +96,7 @@ All possible parameters for the request object can be found here: [`PopupRequest
 
 The `loginFailedRoute` string can be set on `MsalGuardConfiguration`. The `MsalGuard` will redirect to this route if login is required and fails.
 
-See the Angular sample for examples of implementing it in the [configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular15-sample-app/src/app/app.module.ts#L66) and [app routing module](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular15-sample-app/src/app/app-routing.module.ts#L20). 
+See the Angular sample for examples of implementing it in the [configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular16-sample-app/src/app/app.module.ts#L66) and [app routing module](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular16-sample-app/src/app/app-routing.module.ts#L20). 
 
 Note that redirecting on failure is not available for Angular 9 applications that use the `CanLoad` interface due to base type differences.
 
@@ -166,7 +166,7 @@ To log users in upon reaching your app, when using the `PathLocationStrategy`, w
 - Making sure the `MsalRedirectComponent` is bootstrapped
 - Optionally: adding `MsalGuard` to all your routes if you want all your routes protected
 
-Our [Angular 15 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular15-sample-app) uses the `PathLocationStrategy` and demonstrates how to protect routes with the `MsalGuard`.
+Our [Angular 16 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular16-sample-app) uses the `PathLocationStrategy` and demonstrates how to protect routes with the `MsalGuard`.
 
 ### Using the MSAL Guard with hash routing
 
