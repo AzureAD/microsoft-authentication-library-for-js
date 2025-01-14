@@ -244,7 +244,7 @@ export class LocalStorage implements IWindowStorage<string> {
         // Write valid account keys back to map
         this.setItem(StaticCacheKeys.ACCOUNT_KEYS, JSON.stringify(accountKeys));
 
-        let tokenKeys: TokenKeys = getTokenKeys(this.clientId, this);
+        const tokenKeys: TokenKeys = getTokenKeys(this.clientId, this);
         tokenKeys.idToken = await this.importArray(
             tokenKeys.idToken,
             correlationId
