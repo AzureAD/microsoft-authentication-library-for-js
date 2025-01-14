@@ -78,7 +78,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.system?.allowPlatformBroker).toBe(false);
     });
 
-    it("sets allowNativeBroker to passed in true value", () => {
+    it("sets allowPlatformBroker to passed in true value", () => {
         const config: Configuration = buildConfiguration(
             {
                 auth: {
