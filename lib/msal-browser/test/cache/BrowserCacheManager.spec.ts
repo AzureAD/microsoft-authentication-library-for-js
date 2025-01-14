@@ -239,6 +239,8 @@ describe("BrowserCacheManager tests", () => {
             window.localStorage.setItem(msalCacheKey, cacheVal);
             window.localStorage.setItem(msalCacheKey2, cacheVal);
             expect(browserLocalStorage.getKeys()).toEqual([
+                "msal.account.keys",
+                `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
                 msalCacheKey,
                 msalCacheKey2,
             ]);
