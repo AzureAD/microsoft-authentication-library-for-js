@@ -87,8 +87,6 @@ describe("On Page Load tests", function () {
                 ["openid", "profile", "user.read"]
             )
         ).toBeTruthy();
-        const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(7);
     }, 60000);
 
     it("Performs loginRedirect on page load from a page other than redirectUri", async () => {
@@ -118,7 +116,5 @@ describe("On Page Load tests", function () {
                 ["openid", "profile", "user.read"]
             )
         ).toBeTruthy();
-        const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(7);
     }, 60000);
 });

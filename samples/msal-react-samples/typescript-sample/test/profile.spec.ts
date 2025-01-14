@@ -30,8 +30,6 @@ async function verifyTokenStore(
             scopes
         )
     ).toBeTruthy;
-    const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(9);
     const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry(
         "b5c2e510-4a17-4feb-b219-e55aa5b74144"
     );

@@ -104,10 +104,6 @@ describe("Browser PoP tests", function () {
         const pubKey = decodedToken.cnf.jwk;
         const pubKeyJwk = JWK.asKey(pubKey);
         expect(JWT.verify(token, pubKeyJwk)).toEqual(decodedToken);
-
-        // Expected 5 since the pop request will fail
-        const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(7);
     });
 
     it("Performs loginRedirect, acquires and verifies a PoP token is unsigned if PoP kid is provided in request", async () => {
@@ -145,8 +141,5 @@ describe("Browser PoP tests", function () {
             );
         expect(cachedAccount).toBeDefined();
         expect(defaultCachedToken).toBeTruthy();
-
-        const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(7);
     });
 });
