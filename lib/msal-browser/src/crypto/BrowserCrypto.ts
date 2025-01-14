@@ -47,7 +47,9 @@ const keygenAlgorithmOptions: RsaHashedKeyGenParams = {
 /**
  * Check whether browser crypto is available.
  */
-export function validateCryptoAvailable(): void {
+export function validateCryptoAvailable(
+    skipValidateSubtleCrypto: boolean
+): void {
     if (!window) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.nonBrowserEnvironment
@@ -56,7 +58,7 @@ export function validateCryptoAvailable(): void {
     if (!window.crypto) {
         throw createBrowserAuthError(BrowserAuthErrorCodes.cryptoNonExistent);
     }
-    if (!window.crypto.subtle) {
+    if (!skipValidateSubtleCrypto && !window.crypto.subtle) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.cryptoNonExistent,
             SUBTLE_SUBERROR
