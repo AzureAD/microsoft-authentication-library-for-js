@@ -88,9 +88,7 @@ describe("Browser PoP tests", function () {
         // One Bearer Token and one PoP token
         expect(tokenStore.accessTokens).toHaveLength(2);
         expect(tokenStore.refreshTokens).toHaveLength(1);
-        const cachedAccount = await BrowserCache.getAccountFromCache(
-            tokenStore.idTokens[0]
-        );
+        const cachedAccount = await BrowserCache.getAccountFromCache();
         const defaultCachedToken =
             await BrowserCache.popAccessTokenForScopesExists(
                 tokenStore.accessTokens,
@@ -139,9 +137,7 @@ describe("Browser PoP tests", function () {
         // One Bearer Token and one PoP token
         expect(tokenStore.accessTokens).toHaveLength(2);
         expect(tokenStore.refreshTokens).toHaveLength(1);
-        const cachedAccount = await BrowserCache.getAccountFromCache(
-            tokenStore.idTokens[0]
-        );
+        const cachedAccount = await BrowserCache.getAccountFromCache();
         const defaultCachedToken =
             await BrowserCache.accessTokenForScopesExists(
                 tokenStore.accessTokens,

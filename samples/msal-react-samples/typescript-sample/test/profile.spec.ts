@@ -22,7 +22,7 @@ async function verifyTokenStore(
     expect(tokenStore.accessTokens.length).toBe(1);
     expect(tokenStore.refreshTokens.length).toBe(1);
     expect(
-        await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
+        await BrowserCache.getAccountFromCache()
     ).not.toBeNull();
     expect(
         await BrowserCache.accessTokenForScopesExists(

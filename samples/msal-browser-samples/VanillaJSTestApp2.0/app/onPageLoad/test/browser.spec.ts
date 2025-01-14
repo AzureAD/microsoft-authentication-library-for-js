@@ -79,7 +79,7 @@ describe("On Page Load tests", function () {
         expect(tokenStore.accessTokens).toHaveLength(1);
         expect(tokenStore.refreshTokens).toHaveLength(1);
         expect(
-            await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
+            await BrowserCache.getAccountFromCache()
         ).toBeDefined();
         expect(
             await BrowserCache.accessTokenForScopesExists(
@@ -110,7 +110,7 @@ describe("On Page Load tests", function () {
         expect(tokenStore.accessTokens).toHaveLength(1);
         expect(tokenStore.refreshTokens).toHaveLength(1);
         expect(
-            await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
+            await BrowserCache.getAccountFromCache()
         ).toBeDefined();
         expect(
             await BrowserCache.accessTokenForScopesExists(
