@@ -67,7 +67,9 @@ export function isInPopup(): boolean {
  * Returns current window URL as redirect uri
  */
 export function getCurrentUri(): string {
-    return window.location.href.split("?")[0].split("#")[0];
+    return typeof window !== "undefined" && window.location
+        ? window.location.href.split("?")[0].split("#")[0]
+        : "";
 }
 
 /**
