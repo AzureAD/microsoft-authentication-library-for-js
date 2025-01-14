@@ -2,6 +2,33 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 14 Jan 2025 22:59:33 GMT",
+      "version": "2.16.2",
+      "tag": "@azure/msal-node_v2.16.2",
+      "comments": {
+        "none": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "3b9c4f30d0ca132e22b7f0d756ececbd9be89e63",
+            "comment": "Fixed file extentions on imports. Added MS license to all files. (#7454)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 19 Nov 2024 17:21:57 GMT",
       "version": "2.16.2",
       "tag": "@azure/msal-node_v2.16.2",
