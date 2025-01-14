@@ -63,11 +63,9 @@ PersistenceCreator
         };
 
         pca.acquireTokenByCode(tokenRequest).then((response) => {
-            console.log("\nResponse: \n", response);
             res.sendStatus(200);
         }).catch((error) => {
-            console.error(error.errorMessage);
-            res.status(500).send(error);
+            res.status(500).send(error.errorMessage);
         });
     });
 

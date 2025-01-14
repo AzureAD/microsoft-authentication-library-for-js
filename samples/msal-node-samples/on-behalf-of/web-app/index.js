@@ -52,7 +52,7 @@ const acquireTokenByCode = (cca, webAppPort, webApiPort, redirectUri, webApiScop
                 res.status(200).send(oboResponse);
             });
         }).catch((error) => {
-            res.status(500).send(error);
+            res.status(500).send(error.errorMessage);
         });
     });
 
