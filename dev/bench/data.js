@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1736810531488,
+  "lastUpdate": 1736867635952,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -14160,6 +14160,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.76%",
             "unit": "ops/sec",
             "extra": "231 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d03ccccfdc76af70b0ffc41cda0f1a4a5fa7d8b6",
+          "message": "Added CodeQL Suppression Comment (#7504)\n\nThis PR introduces a comment in the `serverUtils.js` file to suppress a\r\nCodeQL finding related to certificate validation.",
+          "timestamp": "2025-01-14T10:07:52-05:00",
+          "tree_id": "38bebd1fa3e5ca5aa92cb75c4776f06d14289bcb",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/d03ccccfdc76af70b0ffc41cda0f1a4a5fa7d8b6"
+        },
+        "date": 1736867634446,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 241208,
+            "range": "±0.97%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 239166,
+            "range": "±0.73%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
