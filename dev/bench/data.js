@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1736867635952,
+  "lastUpdate": 1736880177668,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -14198,6 +14198,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.73%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dasau@microsoft.com",
+            "name": "Dan Saunders",
+            "username": "codexeon"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "585ed9ebafd430eba64755a437a8e8a6eba6620c",
+          "message": "Fix unhandled exception in NAA JS Runtime scenario (#7475)\n\nThere were regressions to the NAA JS Runtime scenario by the following\ncommits, adding new platform API dependencies in the NAA critical path.\nThis change is tested to get JS Runtime back into a working state.\n\n-\nhttps://github.com/AzureAD/microsoft-authentication-library-for-js/commit/df26209f7cf78f5e27c9d001eb24e9741344a8a7\n-\nhttps://github.com/AzureAD/microsoft-authentication-library-for-js/commit/09066cc2ac11fb9549ed28aa89d1998b001800bc\n\n---------\n\nCo-authored-by: Hector Morales <hemoral@microsoft.com>",
+          "timestamp": "2025-01-14T10:36:46-08:00",
+          "tree_id": "c81e366f72d28f3379292d56eeab6bd7c7431745",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/585ed9ebafd430eba64755a437a8e8a6eba6620c"
+        },
+        "date": 1736880175822,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 249434,
+            "range": "±0.97%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 248682,
+            "range": "±0.95%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
