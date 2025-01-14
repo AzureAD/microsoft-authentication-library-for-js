@@ -2453,7 +2453,7 @@ describe("RedirectClient", () => {
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
                 codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
-                nativeBroker: false,
+                platformBroker: false,
             };
             expect(loginUrlSpy).toHaveBeenCalledWith(validatedRequest);
         });
@@ -2526,7 +2526,7 @@ describe("RedirectClient", () => {
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
                 codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
-                nativeBroker: false,
+                platformBroker: false,
             };
             expect(loginUrlSpy).toHaveBeenCalledWith(validatedRequest);
         });
@@ -2600,7 +2600,7 @@ describe("RedirectClient", () => {
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
                 codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
-                nativeBroker: false,
+                platformBroker: false,
             };
             expect(loginUrlSpy).toHaveBeenCalledWith(validatedRequest);
         });
@@ -2674,7 +2674,7 @@ describe("RedirectClient", () => {
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
                 codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
-                nativeBroker: false,
+                platformBroker: false,
             };
             expect(loginUrlSpy).toHaveBeenCalledWith(validatedRequest);
         });
@@ -2736,7 +2736,7 @@ describe("RedirectClient", () => {
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
                 codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
-                nativeBroker: false,
+                platformBroker: false,
             };
             expect(loginUrlSpy).toHaveBeenCalledWith(validatedRequest);
         });
@@ -3048,7 +3048,7 @@ describe("RedirectClient", () => {
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
                 codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
-                nativeBroker: false,
+                platformBroker: false,
             };
             expect(acquireTokenUrlSpy).toHaveBeenCalledWith(validatedRequest);
         });
@@ -3111,7 +3111,7 @@ describe("RedirectClient", () => {
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
                 codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
-                nativeBroker: false,
+                platformBroker: false,
             };
             expect(acquireTokenUrlSpy).toHaveBeenCalledWith(validatedRequest);
         });
