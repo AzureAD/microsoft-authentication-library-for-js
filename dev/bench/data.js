@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1736880177668,
+  "lastUpdate": 1736888451865,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -14236,6 +14236,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.95%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dasau@microsoft.com",
+            "name": "Dan Saunders",
+            "username": "codexeon"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3b9c4f30d0ca132e22b7f0d756ececbd9be89e63",
+          "message": "Add test for JS Runtime NAA scenario (#7477)\n\nTo prevent regressions, add a test that simulates JS Runtime environment\nand tests E2E scenario for NAA. This will fail until\nhttps://github.com/AzureAD/microsoft-authentication-library-for-js/pull/7475\nis merged.\n\n---------\n\nCo-authored-by: Hector Morales <hemoral@microsoft.com>",
+          "timestamp": "2025-01-14T12:54:47-08:00",
+          "tree_id": "0a23de6419365a8b9d5de2fc7c2059852b768026",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/3b9c4f30d0ca132e22b7f0d756ececbd9be89e63"
+        },
+        "date": 1736888449979,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 241538,
+            "range": "±1.04%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 242285,
+            "range": "±0.75%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
