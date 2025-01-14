@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Rename `native` to `platformBroker` in public API and docs",
+  "packageName": "@azure/msal-react",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
