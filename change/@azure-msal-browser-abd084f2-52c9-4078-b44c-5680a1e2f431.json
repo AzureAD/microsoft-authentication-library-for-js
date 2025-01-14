@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix unhandled exception in NAA JS Runtime scenario (#7475)",
+  "packageName": "@azure/msal-browser",
+  "email": "dasau@microsoft.com",
+  "dependentChangeType": "patch"
+}
