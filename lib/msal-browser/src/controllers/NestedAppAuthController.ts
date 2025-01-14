@@ -568,7 +568,7 @@ export class NestedAppAuthController implements IController {
                       | "responseMode"
                       | "codeChallenge"
                       | "codeChallengeMethod"
-                      | "nativeBroker"
+                      | "platformBroker"
                   >
               >
             | PopupRequest,
@@ -761,7 +761,7 @@ export class NestedAppAuthController implements IController {
                 | "responseMode"
                 | "codeChallenge"
                 | "codeChallengeMethod"
-                | "nativeBroker"
+                | "platformBroker"
             >
         >
     ): Promise<AuthenticationResult> {

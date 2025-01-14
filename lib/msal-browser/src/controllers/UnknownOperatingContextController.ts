@@ -180,7 +180,7 @@ export class UnknownOperatingContextController implements IController {
                       | "codeChallenge"
                       | "codeChallengeMethod"
                       | "requestedClaimsHash"
-                      | "nativeBroker"
+                      | "platformBroker"
                   >
               >,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -287,7 +287,7 @@ export class UnknownOperatingContextController implements IController {
                 | "codeChallenge"
                 | "codeChallengeMethod"
                 | "requestedClaimsHash"
-                | "nativeBroker"
+                | "platformBroker"
             >
         >
     ): Promise<AuthenticationResult> {
