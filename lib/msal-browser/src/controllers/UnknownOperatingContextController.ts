@@ -105,12 +105,13 @@ export class UnknownOperatingContextController implements IController {
                   this.config.cache,
                   this.browserCrypto,
                   this.logger,
-                  undefined,
-                  this.performanceClient
+                  this.performanceClient,
+                  undefined
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
-                  this.logger
+                  this.logger,
+                  this.performanceClient
               );
     }
     getBrowserStorage(): BrowserCacheManager {

@@ -246,7 +246,7 @@ describe("StandardInteractionClient", () => {
 
     it("initializeAuthorizationRequest adds active account to request", async () => {
         // @ts-ignore
-        pca.browserStorage.setAccount(testAccountEntity);
+        await pca.browserStorage.setAccount(testAccountEntity);
         pca.setActiveAccount(testAccount);
 
         const request: AuthorizationUrlRequest = {
@@ -287,7 +287,7 @@ describe("StandardInteractionClient", () => {
 
     it("initializeAuthorizationRequest sets loginHint when active account is set", async () => {
         // @ts-ignore
-        pca.browserStorage.setAccount(testAccountEntity);
+        await pca.browserStorage.setAccount(testAccountEntity);
         pca.setActiveAccount(testAccount);
 
         const request: AuthorizationUrlRequest = {
@@ -311,7 +311,7 @@ describe("StandardInteractionClient", () => {
 
     it("initializeAuthorizationRequest sets sid when active account is set", async () => {
         // @ts-ignore
-        pca.browserStorage.setAccount(testAccountEntity);
+        await pca.browserStorage.setAccount(testAccountEntity);
         pca.setActiveAccount(testAccount);
 
         const request: AuthorizationUrlRequest = {

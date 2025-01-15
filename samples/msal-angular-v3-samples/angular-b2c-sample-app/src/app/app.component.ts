@@ -30,7 +30,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.isIframe = window !== window.parent && !window.opener; // Remove this line to use Angular Universal
-        this.setLoginDisplay();
 
         this.authService.instance.enableAccountStorageEvents(); // Optional - This will enable ACCOUNT_ADDED and ACCOUNT_REMOVED events emitted when a user logs in or out of another tab or window
         this.msalBroadcastService.msalSubject$

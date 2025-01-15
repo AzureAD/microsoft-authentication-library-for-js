@@ -242,12 +242,13 @@ export class StandardController implements IController {
                   this.config.cache,
                   this.browserCrypto,
                   this.logger,
-                  buildStaticAuthorityOptions(this.config.auth),
-                  this.performanceClient
+                  this.performanceClient,
+                  buildStaticAuthorityOptions(this.config.auth)
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
-                  this.logger
+                  this.logger,
+                  this.performanceClient
               );
 
         // initialize in memory storage for native flows
@@ -264,7 +265,6 @@ export class StandardController implements IController {
             nativeCacheOptions,
             this.browserCrypto,
             this.logger,
-            undefined,
             this.performanceClient
         );
 
@@ -339,6 +339,14 @@ export class StandardController implements IController {
             initCorrelationId
         );
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
+
+        await invokeAsync(
+            this.browserStorage.initialize.bind(this.browserStorage),
+            PerformanceEvents.InitializeCache,
+            this.logger,
+            this.performanceClient,
+            initCorrelationId
+        )(initCorrelationId);
 
         if (allowNativeBroker) {
             try {
@@ -1472,7 +1480,10 @@ export class StandardController implements IController {
             result.cloudGraphHostName,
             result.msGraphHost
         );
-        this.browserStorage.setAccount(accountEntity);
+        await this.browserStorage.setAccount(
+            accountEntity,
+            result.correlationId
+        );
 
         if (result.fromNativeBroker) {
             this.logger.verbose(
