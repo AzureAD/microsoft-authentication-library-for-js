@@ -2,6 +2,41 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Wed, 15 Jan 2025 05:05:16 GMT",
+      "version": "4.0.1",
+      "tag": "@azure/msal-angular_v4.0.1",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "f0802a137253a664b0ca6ec3749c2df79e0c6ddb",
+            "comment": "Bump react and angular to next major versions"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "f0802a137253a664b0ca6ec3749c2df79e0c6ddb",
+            "comment": "Update msal-browser peer dependency to include v4"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v4.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 05 Nov 2024 18:58:46 GMT",
       "version": "3.1.0",
       "tag": "@azure/msal-angular_v3.1.0",

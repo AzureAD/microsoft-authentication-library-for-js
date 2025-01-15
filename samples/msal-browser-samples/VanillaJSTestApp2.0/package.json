@@ -18,7 +18,7 @@
     "yargs": "^17.7.2"
   },
   "devDependencies": {
-    "@azure/msal-browser": "^3.1.0",
+    "@azure/msal-browser": "^4.0.0",
     "@types/express": "^4.17.3",
     "@types/jest": "^29.5.0",
     "@types/morgan": "^1.9.0",

@@ -346,12 +346,17 @@ describe("RefreshTokenClient unit tests", () => {
             ).mockReturnValue(testRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setAccount(testAccountEntity);
-            config.storageInterface!.setRefreshTokenCredential(
-                testRefreshTokenEntity
+            await config.storageInterface!.setAccount(
+                testAccountEntity,
+                TEST_CONFIG.CORRELATION_ID
             );
-            config.storageInterface!.setRefreshTokenCredential(
-                testFamilyRefreshTokenEntity
+            await config.storageInterface!.setRefreshTokenCredential(
+                testRefreshTokenEntity,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            await config.storageInterface!.setRefreshTokenCredential(
+                testFamilyRefreshTokenEntity,
+                TEST_CONFIG.CORRELATION_ID
             );
             config.storageInterface!.setAppMetadata(testAppMetadata);
             client = new RefreshTokenClient(config, stubPerformanceClient);
@@ -1074,12 +1079,17 @@ describe("RefreshTokenClient unit tests", () => {
             ).mockReturnValue(testFamilyRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setAccount(testAccountEntity);
-            config.storageInterface!.setRefreshTokenCredential(
-                testRefreshTokenEntity
+            await config.storageInterface!.setAccount(
+                testAccountEntity,
+                TEST_CONFIG.CORRELATION_ID
             );
-            config.storageInterface!.setRefreshTokenCredential(
-                testFamilyRefreshTokenEntity
+            await config.storageInterface!.setRefreshTokenCredential(
+                testRefreshTokenEntity,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            await config.storageInterface!.setRefreshTokenCredential(
+                testFamilyRefreshTokenEntity,
+                TEST_CONFIG.CORRELATION_ID
             );
             config.storageInterface!.setAppMetadata(testAppMetadata);
             client = new RefreshTokenClient(config, stubPerformanceClient);
@@ -1313,10 +1323,16 @@ describe("RefreshTokenClient unit tests", () => {
             };
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setRefreshTokenCredential({
-                ...testRefreshTokenEntity,
-                expiresOn: (TimeUtils.nowSeconds() - 48 * 60 * 60).toString(), // Set expiration to yesterday
-            });
+            await config.storageInterface!.setRefreshTokenCredential(
+                {
+                    ...testRefreshTokenEntity,
+                    expiresOn: (
+                        TimeUtils.nowSeconds() -
+                        48 * 60 * 60
+                    ).toString(), // Set expiration to yesterday
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
             const client = new RefreshTokenClient(
                 config,
                 stubPerformanceClient
@@ -1342,10 +1358,13 @@ describe("RefreshTokenClient unit tests", () => {
             };
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setRefreshTokenCredential({
-                ...testRefreshTokenEntity,
-                expiresOn: (TimeUtils.nowSeconds() + 30 * 60).toString(), // Set expiration to 30 minutes from now
-            });
+            await config.storageInterface!.setRefreshTokenCredential(
+                {
+                    ...testRefreshTokenEntity,
+                    expiresOn: (TimeUtils.nowSeconds() + 30 * 60).toString(), // Set expiration to 30 minutes from now
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
             const client = new RefreshTokenClient(
                 config,
                 stubPerformanceClient
@@ -1362,9 +1381,13 @@ describe("RefreshTokenClient unit tests", () => {
         it("Removes refresh token if server returns invalid_grant with bad_token suberror", async () => {
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setAccount(testAccountEntity);
-            config.storageInterface!.setRefreshTokenCredential(
-                testRefreshTokenEntity
+            await config.storageInterface!.setAccount(
+                testAccountEntity,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            await config.storageInterface!.setRefreshTokenCredential(
+                testRefreshTokenEntity,
+                TEST_CONFIG.CORRELATION_ID
             );
             config.storageInterface!.setAppMetadata(testAppMetadata);
             const client = new RefreshTokenClient(

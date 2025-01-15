@@ -48,12 +48,11 @@ import {
     createManagedIdentityError,
 } from "../../../src/error/ManagedIdentityError.js";
 import { mockCrypto } from "../ClientTestUtils.js";
-import {
-    CacheKVStore,
-    ClientCredentialClient,
-    NodeStorage,
-} from "../../../src/index.js";
-import { setTimeout } from "timers/promises"; // NodeJS 16+ provides a built-in version of setTimeout that is promise-based
+// NodeJS 16+ provides a built-in version of setTimeout that is promise-based
+import { setTimeout } from "timers/promises";
+import { ClientCredentialClient } from "../../../src/client/ClientCredentialClient.js";
+import { NodeStorage } from "../../../src/cache/NodeStorage.js";
+import { CacheKVStore } from "../../../src/cache/serializer/SerializerTypes.js";
 import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/client/ManagedIdentitySources/BaseManagedIdentitySource.js";
 
 describe("Acquires a token successfully via an IMDS Managed Identity", () => {

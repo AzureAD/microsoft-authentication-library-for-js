@@ -190,6 +190,8 @@ export const PerformanceEvents = {
 
     InitializeClientApplication: "initializeClientApplication",
 
+    InitializeCache: "initializeCache",
+
     /**
      * Helper function in SilentIframeClient class (msal-browser).
      */
@@ -297,6 +299,8 @@ export const PerformanceEvents = {
      */
     ClearTokensAndKeysWithClaims: "clearTokensAndKeysWithClaims",
     CacheManagerGetRefreshToken: "cacheManagerGetRefreshToken",
+    ImportExistingCache: "importExistingCache",
+    SetUserData: "setUserData",
 
     /**
      * Crypto Operations
@@ -306,6 +310,12 @@ export const PerformanceEvents = {
     GenerateCodeChallengeFromVerifier: "generateCodeChallengeFromVerifier",
     Sha256Digest: "sha256Digest",
     GetRandomValues: "getRandomValues",
+    GenerateHKDF: "generateHKDF",
+    GenerateBaseKey: "generateBaseKey",
+    Base64Decode: "base64Decode",
+    UrlEncodeArr: "urlEncodeArr",
+    Encrypt: "encrypt",
+    Decrypt: "decrypt",
 } as const;
 export type PerformanceEvents =
     (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
@@ -394,6 +404,9 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
             PerformanceEvents.InitializeClientApplication,
             "InitClientApplication",
         ],
+        [PerformanceEvents.InitializeCache, "InitCache"],
+        [PerformanceEvents.ImportExistingCache, "importCache"],
+        [PerformanceEvents.SetUserData, "setUserData"],
         [PerformanceEvents.SilentIframeClientTokenHelper, "SIClientTHelper"],
         [
             PerformanceEvents.SilentHandlerInitiateAuthRequest,
@@ -531,6 +544,12 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         ],
         [PerformanceEvents.Sha256Digest, "Sha256Digest"],
         [PerformanceEvents.GetRandomValues, "GetRandomValues"],
+        [PerformanceEvents.GenerateHKDF, "genHKDF"],
+        [PerformanceEvents.GenerateBaseKey, "genBaseKey"],
+        [PerformanceEvents.Base64Decode, "b64Decode"],
+        [PerformanceEvents.UrlEncodeArr, "urlEncArr"],
+        [PerformanceEvents.Encrypt, "encrypt"],
+        [PerformanceEvents.Decrypt, "decrypt"],
     ]);
 
 /**
@@ -805,9 +824,9 @@ export type PerformanceEvent = {
     contentLengthHeader?: string;
 
     /**
-     * Native broker fields
+     * Platform broker fields
      */
-    allowNativeBroker?: boolean;
+    allowPlatformBroker?: boolean;
     extensionInstalled?: boolean;
     extensionHandshakeTimeoutMs?: number;
     extensionHandshakeTimedOut?: boolean;
@@ -876,4 +895,6 @@ export const IntFields: ReadonlySet<string> = new Set([
     "multiMatchedAT",
     "multiMatchedID",
     "multiMatchedRT",
+    "unencryptedCacheCount",
+    "encryptedCacheExpiredCount",
 ]);
