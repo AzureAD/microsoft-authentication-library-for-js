@@ -23,11 +23,14 @@ import { UrlUtils } from "../../utils/UrlUtils.js";
 export class FetchHttpClient implements IHttpClient {
     private readonly baseRequestUrl: URL | undefined;
 
-    constructor(private logger: Logger, baseUrl?: string) {
+    constructor(
+        private logger: Logger,
+        baseUrl?: string,
+    ) {
         this.baseRequestUrl = !baseUrl
             ? undefined
             : UrlUtils.parseSecureUrl(
-                  !baseUrl.endsWith("/") ? `${baseUrl}/` : baseUrl
+                  !baseUrl.endsWith("/") ? `${baseUrl}/` : baseUrl,
               );
     }
 
@@ -50,15 +53,10 @@ export class FetchHttpClient implements IHttpClient {
 
             this.logger.trace(
                 `Sending request to ${requestUrl}`,
-                request.correlationId
+                request.correlationId,
             );
 
             const startTime = performance.now();
-
-            const r1 = await fetch("https://www.bing.com");
-
-            if (r1.status !== 200) {
-            }
 
             const response = await fetch(requestUrl, requestInit);
 
@@ -68,32 +66,32 @@ export class FetchHttpClient implements IHttpClient {
                 `Request to '${requestUrl}' completed in ${
                     endTime - startTime
                 }ms with status code ${response.status}`,
-                request.correlationId
+                request.correlationId,
             );
 
             return new HttpResponseMessage(
                 response.status,
-                await response.json(),
-                this.readFetchHeader(response.headers)
+                JSON.stringify(await response.json()),
+                this.readFetchHeader(response.headers),
             );
         } catch (e) {
             this.logger.error(
                 `Failed to send request: ${e}`,
-                request.correlationId
+                request.correlationId,
             );
 
             if (!window.navigator.onLine) {
                 throw new HttpError(
                     NoNetworkConnectivity,
                     `No network connectivity: ${e}`,
-                    request.correlationId
+                    request.correlationId,
                 );
             }
 
             throw new HttpError(
                 FailedSendRequest,
                 `Failed to send request: ${e}`,
-                request.correlationId
+                request.correlationId,
             );
         }
     }

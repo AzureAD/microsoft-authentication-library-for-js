@@ -3,134 +3,32 @@
  * Licensed under the MIT License.
  */
 
-import { ClientActionParamsBase } from "../../../core/interaction_client/ClientActionParams.js";
-import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
-
-abstract class SignInParamsBase extends ClientActionParamsBase {
-    constructor(
-        clientId: string,
-        correlationId: string,
-        challengeType: Array<string>,
-        public scopes: Array<string>,
-    ) {
-        super(clientId, correlationId, challengeType);
-
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "scopes",
-            scopes,
-            correlationId
-        );
-    }
+export interface SignInParamsBase {
+    clientId: string;
+    correlationId: string;
+    challengeType: Array<string>;
+    scopes: Array<string>;
+    username: string;
 }
 
-export class SignInResendCodeParams extends SignInParamsBase {
-    constructor(
-        clientId: string,
-        correlationId: string,
-        challengeType: Array<string>,
-        scopes: Array<string>,
-        public continuationToken: string,
-    ) {
-        super(clientId, correlationId, challengeType, scopes);
-
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "continuationToken",
-            continuationToken,
-            correlationId
-        );
-    }
+export interface SignInResendCodeParams extends SignInParamsBase {
+    continuationToken: string;
 }
 
-export class SignInStartParams extends SignInParamsBase {
-    constructor(
-        clientId: string,
-        correlationId: string,
-        challengeType: Array<string>,
-        scopes: Array<string>,
-        public username: string,
-        public password?: string,
-    ) {
-        super(clientId, correlationId, challengeType, scopes);
-
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "username",
-            username,
-            correlationId
-        );
-    }
+export interface SignInStartParams extends SignInParamsBase {
+    password?: string;
 }
 
-export class SignInSubmitCodeParams extends SignInParamsBase {
-    constructor(
-        clientId: string,
-        correlationId: string,
-        challengeType: Array<string>,
-        scopes: Array<string>,
-        public continuationToken: string,
-        public code: string,
-    ) {
-        super(clientId, correlationId, challengeType, scopes);
-
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "continuationToken",
-            continuationToken,
-            correlationId
-        );
-
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "code",
-            code,
-            correlationId
-        );
-    }
+export interface SignInSubmitCodeParams extends SignInParamsBase {
+    continuationToken: string;
+    code: string;
 }
 
-export class SignInSubmitPasswordParams extends SignInParamsBase {
-    constructor(
-        clientId: string,
-        correlationId: string,
-        challengeType: Array<string>,
-        scopes: Array<string>,
-        public continuationToken: string,
-        public password: string,
-    ) {
-        super(clientId, correlationId, challengeType, scopes);
-
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "continuationToken",
-            continuationToken,
-            correlationId
-        );
-
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "password",
-            password,
-            correlationId
-        );
-    }
+export interface SignInSubmitPasswordParams extends SignInParamsBase {
+    continuationToken: string;
+    password: string;
 }
 
-export class SignInContinuationTokenParams extends SignInParamsBase {
-    constructor(
-        clientId: string,
-        correlationId: string,
-        challengeType: Array<string>,
-        scopes: Array<string>,
-        public continuationToken: string,
-        public username: string,
-    ) {
-        super(clientId, correlationId, challengeType, scopes);
-
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "continuationToken",
-            continuationToken,
-            correlationId
-        );
-
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "username",
-            username,
-            correlationId
-        );
-    }
+export interface SignInContinuationTokenParams extends SignInParamsBase {
+    continuationToken: string;
 }

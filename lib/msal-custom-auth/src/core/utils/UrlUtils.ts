@@ -40,7 +40,7 @@ export class UrlUtils {
         } catch (e) {
             throw new ParsedUrlError(
                 InvalidUrl,
-                `The URL "${url}" is invalid: ${e}`
+                `The URL "${url}" is invalid: ${e}`,
             );
         }
     }
@@ -51,12 +51,12 @@ export class UrlUtils {
      * @returns The parsed URL object
      */
     static parseSecureUrl(url: string): URL {
-        const parsedUrl = this.parseUrl(url);
+        const parsedUrl = UrlUtils.parseUrl(url);
 
         if (parsedUrl.protocol !== "https:") {
             throw new ParsedUrlError(
                 UnsecureUrl,
-                `The URL "${url}" is not secure. Only HTTPS URLs are supported.`
+                `The URL "${url}" is not secure. Only HTTPS URLs are supported.`,
             );
         }
 

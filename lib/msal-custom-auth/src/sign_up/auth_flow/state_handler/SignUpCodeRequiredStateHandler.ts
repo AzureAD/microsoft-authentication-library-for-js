@@ -4,6 +4,7 @@
  */
 
 import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
+import { SignUpSubmitCodeError } from "../error_type/SignUpError.js";
 import { SignUpResendCodeResult } from "../result/SignUpResendCodeResult.js";
 import { SignUpSubmitCodeResult } from "../result/SignUpSubmitCodeResult.js";
 import { SignUpStateHandler } from "./SignUpStateHandler.js";
@@ -22,6 +23,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
             return Promise.resolve(
                 SignUpSubmitCodeResult.createWithError(
                     new InvalidArgumentError("code", this.correlationId),
+                    SignUpSubmitCodeError,
                 ),
             );
         }

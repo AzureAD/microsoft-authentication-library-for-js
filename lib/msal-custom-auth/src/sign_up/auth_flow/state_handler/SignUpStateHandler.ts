@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { Logger } from "@azure/msal-browser";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { AuthFlowStateHandlerBase } from "../../../core/auth_flow/AuthFlowStateHandlerBase.js";
 import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
@@ -20,22 +21,23 @@ export abstract class SignUpStateHandler extends AuthFlowStateHandlerBase {
      */
     constructor(
         correlationId: string,
+        logger: Logger,
         continuationToken: string,
         protected config: CustomAuthBrowserConfiguration,
-        protected username: string
+        protected username: string,
     ) {
-        super(correlationId, continuationToken);
+        super(correlationId, logger, continuationToken);
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "config",
             config,
-            correlationId
+            correlationId,
         );
 
         ArgumentValidator.ensureArgumentIsNotEmptyString(
             "username",
             username,
-            correlationId
+            correlationId,
         );
     }
 }

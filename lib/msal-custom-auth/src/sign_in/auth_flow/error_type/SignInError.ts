@@ -7,7 +7,7 @@ import { AuthFlowErrorBase } from "../../../core/auth_flow/AuthFlowErrorBase.js"
 
 export class SignInError extends AuthFlowErrorBase {
     isUserNotFound(): boolean {
-        return false;
+        return this.errorData.error === this.errorCodes.USER_NOT_FOUND;
     }
 
     isInvalidUsername(): boolean {
@@ -15,23 +15,27 @@ export class SignInError extends AuthFlowErrorBase {
     }
 
     isInvalidPassword(): boolean {
-        return false;
+        return this.isInvalidPasswordError();
     }
 
     isUnsupportedChallengeType(): boolean {
         return this.isUnsupportedChallengeTypeError();
     }
+
+    isRedirect(): boolean {
+        return this.isRedirectError();
+    }
 }
 
 export class SignInSubmitPasswordError extends AuthFlowErrorBase {
     isInvalidPassword(): boolean {
-        return true;
+        return this.isInvalidPasswordError();
     }
 }
 
 export class SignInSubmitCodeError extends AuthFlowErrorBase {
     isInvalidCode(): boolean {
-        return true;
+        return this.isInvalidCodeError();
     }
 }
 

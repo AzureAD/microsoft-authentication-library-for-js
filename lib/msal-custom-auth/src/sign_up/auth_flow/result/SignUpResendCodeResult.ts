@@ -22,11 +22,11 @@ export class SignUpResendCodeResult extends ResultBase<
     }
 
     get state(): SignUpState {
-        if (this.error) {
+        if (!!this.error) {
             return SignUpState.Failed;
         }
 
-        if (this.stateHandler) {
+        if (!!this.stateHandler) {
             return SignUpState.CodeRequired;
         }
 

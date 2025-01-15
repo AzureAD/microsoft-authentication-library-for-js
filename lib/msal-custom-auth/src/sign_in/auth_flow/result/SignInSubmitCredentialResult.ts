@@ -12,18 +12,18 @@ import { ResultBase } from "../../../core/auth_flow/ResultBase.js";
  * Result of a sign-in submit credential operation.
  */
 export abstract class SignInSubmitCredentialResult<
-    TError extends AuthFlowErrorBase
+    TError extends AuthFlowErrorBase,
 > extends ResultBase<SignInState, TError, AccountInfo> {
     constructor(resultData?: AccountInfo) {
         super(resultData);
     }
 
     get state(): SignInState {
-        if (this.error) {
+        if (!!this.error) {
             return SignInState.Failed;
         }
 
-        if (this.data) {
+        if (!!this.data) {
             return SignInState.Completed;
         }
 

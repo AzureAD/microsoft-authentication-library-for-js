@@ -3,29 +3,32 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult } from "@azure/msal-browser";
-import {
-    AuthActionResultBase,
-    CodeSendResult,
-    ContinuationTokenResult,
-} from "../../../core/interaction_client/AuthActionResult.js";
-import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
+import { CustomAuthAuthenticationResult } from "../../../core/interaction_client/CustomAuthAuthenticationResult.js";
 
-export class SignInCompleteResult extends AuthActionResultBase {
+export class SignInCompleteResult {
     constructor(
-        public authenticationResult: AuthenticationResult,
-        correlationId: string
-    ) {
-        super(correlationId);
-
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "authenticationResult",
-            authenticationResult,
-            correlationId
-        );
-    }
+        public correlationId: string,
+        public authenticationResult: CustomAuthAuthenticationResult
+    ) {}
 }
 
-export class SignInWithContinuationTokenResult extends ContinuationTokenResult {}
+export class SignInContinuationTokenResult {
+    constructor(
+        public correlationId: string,
+        public continuationToken: string,
+        public challengeType: string
+    ) {}
+}
 
-export class SignInCodeSendResult extends CodeSendResult {}
+export class SignInCodeSendResult extends SignInContinuationTokenResult {
+    constructor(
+        correlationId: string,
+        continuationToken: string,
+        challengeType: string,
+        public challengeChannel: string,
+        public challengeTargetLabel: string,
+        public codeLength: number
+    ) {
+        super(correlationId, continuationToken, challengeType);
+    }
+}

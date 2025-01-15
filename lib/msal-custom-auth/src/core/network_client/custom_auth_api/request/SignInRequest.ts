@@ -3,7 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { SignInStartParams } from "../../../../sign_in/interaction_client/parameter/SignInParams.js";
+import {
+    SignInContinuationTokenParams,
+    SignInParamsBase,
+    SignInStartParams,
+    SignInSubmitCodeParams,
+    SignInSubmitPasswordParams,
+} from "../../../../sign_in/interaction_client/parameter/SignInParams.js";
 import { GrantType } from "../../../../CustomAuthConstants.js";
 import { CustomAuthApiRequestBase } from "./CustomAuthApiRequestBase.js";
 import { ServerTelemetryManager } from "@azure/msal-browser";
@@ -28,13 +34,18 @@ export class SignInInitiateRequest extends CustomAuthApiRequestBase {
         signInStartParams: SignInStartParams,
         telemetryManager: ServerTelemetryManager
     ): SignInInitiateRequest {
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "signInStartParams",
+            signInStartParams
+        );
+
         return new SignInInitiateRequest(
             signInStartParams.correlationId,
             telemetryManager,
             new SignInInitiateRequestParameters(
                 signInStartParams.username,
                 signInStartParams.clientId,
-                signInStartParams.challengeType.join(" "),
+                this.getChallengeTypes(signInStartParams.challengeType),
                 signInStartParams.correlationId
             )
         );
@@ -89,18 +100,23 @@ export class SignInChallengeRequest extends CustomAuthApiRequestBase {
     }
 
     static create(
-        signInStartParams: SignInStartParams,
+        signInParams: SignInParamsBase,
         continuationToken: string,
         telemetryManager: ServerTelemetryManager
     ): SignInChallengeRequest {
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "signInStartParams",
+            signInParams
+        );
+
         return new SignInChallengeRequest(
-            signInStartParams.correlationId,
+            signInParams.correlationId,
             telemetryManager,
             new SignInChallengeRequestParameters(
-                signInStartParams.clientId,
-                signInStartParams.challengeType.join(" "),
+                signInParams.clientId,
+                this.getChallengeTypes(signInParams.challengeType),
                 continuationToken,
-                signInStartParams.correlationId
+                signInParams.correlationId
             )
         );
     }
@@ -150,6 +166,29 @@ export class SignInOobTokenRequest extends CustomAuthApiRequestBase {
             correlationId
         );
     }
+
+    static create(
+        signInSubmitCodeParams: SignInSubmitCodeParams,
+        telemetryManager: ServerTelemetryManager
+    ): SignInOobTokenRequest {
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "signInSubmitCodeParams",
+            signInSubmitCodeParams
+        );
+
+        return new SignInOobTokenRequest(
+            signInSubmitCodeParams.correlationId,
+            telemetryManager,
+            new SignInOobTokenRequestParameters(
+                signInSubmitCodeParams.clientId,
+                signInSubmitCodeParams.continuationToken,
+                signInSubmitCodeParams.correlationId,
+                signInSubmitCodeParams.code,
+                this.getChallengeTypes(signInSubmitCodeParams.challengeType),
+                this.getScopes(signInSubmitCodeParams.scopes)
+            )
+        );
+    }
 }
 
 export class SignInPasswordTokenRequest extends CustomAuthApiRequestBase {
@@ -164,6 +203,31 @@ export class SignInPasswordTokenRequest extends CustomAuthApiRequestBase {
             "parameters",
             parameters,
             correlationId
+        );
+    }
+
+    static create(
+        signInSubmitPasswordParams: SignInSubmitPasswordParams,
+        telemetryManager: ServerTelemetryManager
+    ): SignInPasswordTokenRequest {
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "signInSubmitPasswordParams",
+            signInSubmitPasswordParams
+        );
+
+        return new SignInPasswordTokenRequest(
+            signInSubmitPasswordParams.correlationId,
+            telemetryManager,
+            new SignInPasswordTokenRequestParameters(
+                signInSubmitPasswordParams.clientId,
+                signInSubmitPasswordParams.continuationToken,
+                signInSubmitPasswordParams.correlationId,
+                signInSubmitPasswordParams.password,
+                this.getChallengeTypes(
+                    signInSubmitPasswordParams.challengeType
+                ),
+                this.getScopes(signInSubmitPasswordParams.scopes)
+            )
         );
     }
 }
@@ -182,9 +246,34 @@ export class SignInContinuationTokenRequest extends CustomAuthApiRequestBase {
             correlationId
         );
     }
+
+    static create(
+        signInContinuationTokenParams: SignInContinuationTokenParams,
+        telemetryManager: ServerTelemetryManager
+    ): SignInContinuationTokenRequest {
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "signInContinuationTokenParams",
+            signInContinuationTokenParams
+        );
+
+        return new SignInContinuationTokenRequest(
+            signInContinuationTokenParams.correlationId,
+            telemetryManager,
+            new SignInContinuationTokenRequestParameters(
+                signInContinuationTokenParams.clientId,
+                signInContinuationTokenParams.continuationToken,
+                signInContinuationTokenParams.correlationId,
+                signInContinuationTokenParams.username,
+                this.getChallengeTypes(
+                    signInContinuationTokenParams.challengeType
+                ),
+                this.getScopes(signInContinuationTokenParams.scopes)
+            )
+        );
+    }
 }
 
-abstract class SignInTokenRequestBase {
+abstract class SignInTokenRequestParametersBase {
     constructor(
         public clientId: string,
         public continuationToken: string,
@@ -218,7 +307,7 @@ abstract class SignInTokenRequestBase {
     }
 }
 
-export class SignInOobTokenRequestParameters extends SignInTokenRequestBase {
+export class SignInOobTokenRequestParameters extends SignInTokenRequestParametersBase {
     constructor(
         clientId: string,
         continuationToken: string,
@@ -244,7 +333,7 @@ export class SignInOobTokenRequestParameters extends SignInTokenRequestBase {
     }
 }
 
-export class SignInPasswordTokenRequestParameters extends SignInTokenRequestBase {
+export class SignInPasswordTokenRequestParameters extends SignInTokenRequestParametersBase {
     constructor(
         clientId: string,
         continuationToken: string,
@@ -270,7 +359,7 @@ export class SignInPasswordTokenRequestParameters extends SignInTokenRequestBase
     }
 }
 
-export class SignInContinuationTokenRequestParameters extends SignInTokenRequestBase {
+export class SignInContinuationTokenRequestParameters extends SignInTokenRequestParametersBase {
     constructor(
         clientId: string,
         continuationToken: string,

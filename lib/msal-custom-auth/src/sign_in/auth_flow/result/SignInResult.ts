@@ -41,7 +41,7 @@ export class SignInResult extends ResultBase<
             return SignInState.Failed;
         }
 
-        if (this._state) {
+        if (this._state !== undefined && this._state !== null) {
             return this._state;
         }
 

@@ -22,11 +22,11 @@ export class ResetPasswordSubmitPasswordResult extends ResultBase<
     }
 
     get state(): ResetPasswordState {
-        if (this.error) {
+        if (!!this.error) {
             return ResetPasswordState.Failed;
         }
 
-        if (this.stateHandler) {
+        if (!!this.stateHandler) {
             return ResetPasswordState.Completed;
         }
 

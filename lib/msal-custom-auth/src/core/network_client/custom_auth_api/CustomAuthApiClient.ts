@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { Logger } from "@azure/msal-browser";
 import {
     SignInChallengeRequest,
     SignInContinuationTokenRequest,
@@ -17,12 +16,12 @@ import {
     SignInTokenResponse,
 } from "./response/SignInResponse.js";
 import { CustomAuthApiResponseHandler } from "./CustomAuthApiResponseHandler.js";
-import { IHttpClient } from "../http-client/IHttpClient.js";
+import { IHttpClient } from "../http_client/IHttpClient.js";
 import {
     HttpMethod,
     HttpRequestMessage,
     HttpResponseMessage,
-} from "../http-client/HttpMessage.js";
+} from "../http_client/HttpMessage.js";
 import { ICustomAuthApiClient } from "./ICustomAuthApiClient.js";
 import { CustomAuthApiEndpoint } from "./CustomAuthApiEndpoint.js";
 import { CustomAuthApiRequestBase } from "./request/CustomAuthApiRequestBase.js";
@@ -37,18 +36,15 @@ import { ArgumentValidator } from "../../utils/ArgumentValidator.js";
  * Custom Auth Client which can be used to make requests to the Custom Auth service.
  */
 export class CustomAuthApiClient implements ICustomAuthApiClient {
-    constructor(
-        private readonly httpClient: IHttpClient,
-        private readonly logger: Logger
-    ) {
+    constructor(private readonly httpClient: IHttpClient) {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "httpClient",
-            httpClient
+            httpClient,
         );
     }
 
     async performSignInInitiateRequest(
-        request: SignInInitiateRequest
+        request: SignInInitiateRequest,
     ): Promise<SignInInitiateResponse> {
         const body = new URLSearchParams({
             client_id: request.parameters.clientId,
@@ -60,12 +56,12 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
             CustomAuthApiEndpoint.SIGN_IN_INITIATE_ENDPOINT,
             body,
             request,
-            CustomAuthApiResponseHandler.handleSignInInitiateResponse
+            CustomAuthApiResponseHandler.handleSignInInitiateResponse,
         );
     }
 
     async performSignInChallengeRequest(
-        request: SignInChallengeRequest
+        request: SignInChallengeRequest,
     ): Promise<SignInChallengeResponse> {
         const body = new URLSearchParams({
             client_id: request.parameters.clientId,
@@ -77,12 +73,12 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
             CustomAuthApiEndpoint.SIGN_IN_CHALLENGE_ENDPOINT,
             body,
             request,
-            CustomAuthApiResponseHandler.handleSignInChallengeResponse
+            CustomAuthApiResponseHandler.handleSignInChallengeResponse,
         );
     }
 
     async performSignInOobTokenRequest(
-        request: SignInOobTokenRequest
+        request: SignInOobTokenRequest,
     ): Promise<SignInTokenResponse> {
         const body = new URLSearchParams({
             client_id: request.parameters.clientId,
@@ -96,12 +92,12 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
             CustomAuthApiEndpoint.SIGN_IN_TOKEN_ENDPOINT,
             body,
             request,
-            CustomAuthApiResponseHandler.handleSignInTokenResponse
+            CustomAuthApiResponseHandler.handleSignInTokenResponse,
         );
     }
 
     async performSignInPasswordTokenRequest(
-        request: SignInPasswordTokenRequest
+        request: SignInPasswordTokenRequest,
     ): Promise<SignInTokenResponse> {
         const body = new URLSearchParams({
             client_id: request.parameters.clientId,
@@ -115,12 +111,12 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
             CustomAuthApiEndpoint.SIGN_IN_TOKEN_ENDPOINT,
             body,
             request,
-            CustomAuthApiResponseHandler.handleSignInTokenResponse
+            CustomAuthApiResponseHandler.handleSignInTokenResponse,
         );
     }
 
-    async performSignInContinuationTokenTokenRequest(
-        request: SignInContinuationTokenRequest
+    async performSignInContinuationTokenRequest(
+        request: SignInContinuationTokenRequest,
     ): Promise<SignInTokenResponse> {
         const body = new URLSearchParams({
             client_id: request.parameters.clientId,
@@ -134,7 +130,7 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
             CustomAuthApiEndpoint.SIGN_IN_TOKEN_ENDPOINT,
             body,
             request,
-            CustomAuthApiResponseHandler.handleSignInTokenResponse
+            CustomAuthApiResponseHandler.handleSignInTokenResponse,
         );
     }
 
@@ -144,27 +140,29 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
         requestParams: CustomAuthApiRequestBase,
         responseHandler: (
             response: HttpResponseMessage,
-            correlationId: string
-        ) => TResult
+            correlationId: string,
+        ) => TResult,
     ): Promise<TResult> {
         const requestMessage = new HttpRequestMessage(
             HttpMethod.POST,
             requestEndpoint,
             requestParams.headers,
             requestParams.correlationId,
-            requestBody.toString()
+            requestBody.toString(),
         );
 
-        try {
-            const response = await this.httpClient.sendAsync(requestMessage);
+        let response: HttpResponseMessage;
 
-            return responseHandler(response, requestParams.correlationId);
+        try {
+            response = await this.httpClient.sendAsync(requestMessage);
         } catch (e) {
             throw new CustomAuthApiError(
                 CustomAuthApiErrorCode.HTTP_REQUEST_FAILED,
                 `Failed to perform '${requestEndpoint}' request: ${e}`,
-                requestParams.correlationId
+                requestParams.correlationId,
             );
         }
+
+        return responseHandler(response, requestParams.correlationId);
     }
 }
