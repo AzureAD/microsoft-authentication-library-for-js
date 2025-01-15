@@ -961,10 +961,10 @@ export type CacheType = (typeof CacheType)[keyof typeof CacheType];
 // @public (undocumented)
 const cacheUnknownErrorCode = "cache_error_unknown";
 
-// Warning: (ae-missing-release-tag) "cannotAllowNativeBroker" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "cannotAllowPlatformBroker" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-const cannotAllowNativeBroker = "cannot_allow_native_broker";
+const cannotAllowPlatformBroker = "cannot_allow_platform_broker";
 
 // Warning: (ae-missing-release-tag) "cannotAppendScopeSet" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1374,7 +1374,7 @@ declare namespace ClientConfigurationErrorCodes {
         missingNonceAuthenticationHeader,
         invalidAuthenticationHeader,
         cannotSetOIDCOptions,
-        cannotAllowNativeBroker,
+        cannotAllowPlatformBroker,
         authorityMismatch
     }
 }
@@ -1464,7 +1464,7 @@ export const ClientConfigurationErrorMessage: {
         code: string;
         desc: string;
     };
-    cannotAllowNativeBroker: {
+    cannotAllowPlatformBroker: {
         code: string;
         desc: string;
     };
@@ -1550,7 +1550,7 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     prompt?: string;
     sid?: string;
     state?: string;
-    nativeBroker?: boolean;
+    platformBroker?: boolean;
 };
 
 // Warning: (ae-missing-release-tag) "CommonClientCredentialRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -3043,7 +3043,7 @@ export type PerformanceEvent = {
     httpStatus?: number;
     contentTypeHeader?: string;
     contentLengthHeader?: string;
-    allowNativeBroker?: boolean;
+    allowPlatformBroker?: boolean;
     extensionInstalled?: boolean;
     extensionHandshakeTimeoutMs?: number;
     extensionHandshakeTimedOut?: boolean;
@@ -4155,7 +4155,7 @@ export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTok
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "15.0.0";
+export const version = "15.0.1";
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

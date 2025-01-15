@@ -4,7 +4,7 @@
     "private": true,
     "dependencies": {
         "@azure/msal-browser": "^4.0.0",
-        "@azure/msal-react": "^2.0.3",
+        "@azure/msal-react": "^3.0.0",
         "@emotion/react": "^11.10.5",
         "@emotion/styled": "^11.10.5",
         "@mui/icons-material": "^5.10.16",

@@ -824,9 +824,9 @@ export type PerformanceEvent = {
     contentLengthHeader?: string;
 
     /**
-     * Native broker fields
+     * Platform broker fields
      */
-    allowNativeBroker?: boolean;
+    allowPlatformBroker?: boolean;
     extensionInstalled?: boolean;
     extensionHandshakeTimeoutMs?: number;
     extensionHandshakeTimedOut?: boolean;

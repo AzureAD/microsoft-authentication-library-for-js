@@ -9,7 +9,7 @@
             "storeAuthStateInCookie": false
         },
         "system": {
-            "allowNativeBroker": false
+            "allowPlatformBroker": false
         }
     },
     "request": {

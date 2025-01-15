@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@azure/msal-browser": "^4.0.0",
-    "@azure/msal-react": "^2.0.3",
+    "@azure/msal-react": "^3.0.0",
     "@emotion/cache": "^11.10.5",
     "@emotion/react": "^11.10.5",
     "@emotion/server": "^11.10.0",
