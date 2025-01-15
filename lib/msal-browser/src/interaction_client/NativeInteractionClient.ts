@@ -529,8 +529,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
         );
 
         // cache accounts and tokens in the appropriate storage
-        this.cacheAccount(baseAccount);
-        this.cacheNativeTokens(
+        await this.cacheAccount(baseAccount);
+        await this.cacheNativeTokens(
             response,
             request,
             homeAccountIdentifier,
@@ -722,9 +722,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * cache the account entity in browser storage
      * @param accountEntity
      */
-    cacheAccount(accountEntity: AccountEntity): void {
+    async cacheAccount(accountEntity: AccountEntity): Promise<void> {
         // Store the account info and hence `nativeAccountId` in browser cache
-        this.browserStorage.setAccount(accountEntity);
+        await this.browserStorage.setAccount(accountEntity, this.correlationId);
 
         // Remove any existing cached tokens for this account in browser storage
         this.browserStorage.removeAccountContext(accountEntity).catch((e) => {
@@ -752,7 +752,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         responseAccessToken: string,
         tenantId: string,
         reqTimestamp: number
-    ): void {
+    ): Promise<void> {
         const cachedIdToken: IdTokenEntity | null =
             CacheHelpers.createIdTokenEntity(
                 homeAccountIdentifier,
@@ -794,8 +794,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
             accessToken: cachedAccessToken,
         };
 
-        void this.nativeStorageManager.saveCacheRecord(
+        return this.nativeStorageManager.saveCacheRecord(
             nativeCacheRecord,
+            this.correlationId,
             request.storeInCache
         );
     }

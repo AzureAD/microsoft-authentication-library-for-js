@@ -17,21 +17,9 @@ async function verifyTokenStore(
     BrowserCache: BrowserCacheUtils,
     scopes: string[]
 ): Promise<void> {
-    const tokenStore = await BrowserCache.getTokens();
-    expect(tokenStore.idTokens.length).toBe(1);
-    expect(tokenStore.accessTokens.length).toBe(1);
-    expect(tokenStore.refreshTokens.length).toBe(1);
-    expect(
-        await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
-    ).not.toBeNull();
-    expect(
-        await BrowserCache.accessTokenForScopesExists(
-            tokenStore.accessTokens,
-            scopes
-        )
-    ).toBeTruthy;
-    const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(9);
+    await BrowserCache.verifyTokenStore({
+        scopes,
+      });
     const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry(
         "b5c2e510-4a17-4feb-b219-e55aa5b74144"
     );

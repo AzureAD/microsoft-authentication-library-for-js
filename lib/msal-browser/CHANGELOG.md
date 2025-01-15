@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Thu, 12 Dec 2024 19:24:54 GMT and should not be manually modified.
+This log was last generated on Tue, 14 Jan 2025 22:59:33 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.28.1
+
+Tue, 14 Jan 2025 22:59:33 GMT
+
+### Patches
+
+- Fix unhandled exception in NAA JS Runtime scenario (#7475) (dasau@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 3.28.0
 

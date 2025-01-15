@@ -2,6 +2,47 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 14 Jan 2025 22:59:33 GMT",
+      "version": "3.28.1",
+      "tag": "@azure/msal-browser_v3.28.1",
+      "comments": {
+        "none": [
+          {
+            "author": "dasau@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "3b9c4f30d0ca132e22b7f0d756ececbd9be89e63",
+            "comment": "Add test for JS Runtime NAA scenario (#7477)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "dasau@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "3b9c4f30d0ca132e22b7f0d756ececbd9be89e63",
+            "comment": "Fix unhandled exception in NAA JS Runtime scenario (#7475)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 12 Dec 2024 19:24:54 GMT",
       "version": "3.28.0",
       "tag": "@azure/msal-browser_v3.28.0",

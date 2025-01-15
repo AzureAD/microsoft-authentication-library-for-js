@@ -22,7 +22,8 @@ import {
     AuthorityOptions,
     CcsCredential,
     CcsCredentialType,
-} from "@azure/msal-common";
+    StubPerformanceClient,
+} from "@azure/msal-common/browser";
 import {
     Configuration,
     buildConfiguration,
@@ -202,7 +203,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
             TEST_CONFIG.MSAL_CLIENT_ID,
             configObj.cache,
             cryptoOpts,
-            logger
+            logger,
+            new StubPerformanceClient()
         );
         authorityInstance = new Authority(
             configObj.auth.authority,
