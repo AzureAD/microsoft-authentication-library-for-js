@@ -79,7 +79,7 @@ describe("On Page Load tests", function () {
         expect(tokenStore.accessTokens).toHaveLength(1);
         expect(tokenStore.refreshTokens).toHaveLength(1);
         expect(
-            await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
+            await BrowserCache.getAccountFromCache()
         ).toBeDefined();
         expect(
             await BrowserCache.accessTokenForScopesExists(
@@ -87,8 +87,6 @@ describe("On Page Load tests", function () {
                 ["openid", "profile", "user.read"]
             )
         ).toBeTruthy();
-        const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(7);
     }, 60000);
 
     it("Performs loginRedirect on page load from a page other than redirectUri", async () => {
@@ -110,7 +108,7 @@ describe("On Page Load tests", function () {
         expect(tokenStore.accessTokens).toHaveLength(1);
         expect(tokenStore.refreshTokens).toHaveLength(1);
         expect(
-            await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
+            await BrowserCache.getAccountFromCache()
         ).toBeDefined();
         expect(
             await BrowserCache.accessTokenForScopesExists(
@@ -118,7 +116,5 @@ describe("On Page Load tests", function () {
                 ["openid", "profile", "user.read"]
             )
         ).toBeTruthy();
-        const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(7);
     }, 60000);
 });

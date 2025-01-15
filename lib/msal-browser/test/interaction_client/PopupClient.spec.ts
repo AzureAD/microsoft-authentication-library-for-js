@@ -287,7 +287,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
 
@@ -405,7 +405,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
 
@@ -1181,7 +1181,7 @@ describe("PopupClient", () => {
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount);
+            await pca.browserStorage.setAccount(testAccount);
 
             jest.spyOn(
                 PopupClient.prototype,
@@ -1269,7 +1269,7 @@ describe("PopupClient", () => {
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount);
+            await pca.browserStorage.setAccount(testAccount);
 
             jest.spyOn(
                 PopupClient.prototype,
@@ -1399,7 +1399,7 @@ describe("PopupClient", () => {
             });
 
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount);
+            await pca.browserStorage.setAccount(testAccount);
             pca.setActiveAccount(testAccountInfo);
 
             await popupClient.logout(validatedLogoutRequest).then(() => {

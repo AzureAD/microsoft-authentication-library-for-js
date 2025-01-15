@@ -41,8 +41,10 @@ class TokenValidator {
      * @param {string} rawAccessToken
      * @returns {Promise}
      */
-    async validateAccessToken(rawAccessToken: string, idTokenClaims: IdTokenClaims): Promise<boolean> {
-
+    async validateAccessToken(
+        rawAccessToken: string,
+        idTokenClaims: IdTokenClaims
+    ): Promise<boolean> {
         /**
          * A JWT token validation is a 2-step process comprising of:
          *   (1) signature validation
@@ -52,7 +54,9 @@ class TokenValidator {
          * https://learn.microsoft.com/azure/active-directory/develop/access-tokens#validate-tokens
          */
         try {
-            const isTokenSignatureValid = await this.validateTokenSignature(rawAccessToken);
+            const isTokenSignatureValid = await this.validateTokenSignature(
+                rawAccessToken
+            );
 
             if (!isTokenSignatureValid) {
                 return false;
@@ -60,17 +64,19 @@ class TokenValidator {
 
             return this.validateAccessTokenClaims(idTokenClaims);
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return false;
         }
-    };
+    }
 
     /**
      * Validates the access token for a set of claims
      * @param {AccessTokenClaims} accessTokenClaims: decoded access token claims
      * @returns {boolean}
      */
-    private validateAccessTokenClaims(accessTokenClaims: AccessTokenClaims): boolean {
+    private validateAccessTokenClaims(
+        accessTokenClaims: AccessTokenClaims
+    ): boolean {
         const now = Math.round(new Date().getTime() / 1000.0); // current time in seconds
 
         /**
@@ -81,27 +87,52 @@ class TokenValidator {
          * then it can ignore the issuer value altogether. For more information, visit:
          * https://learn.microsoft.com/azure/active-directory/develop/howto-convert-app-to-be-multi-tenant#update-your-code-to-handle-multiple-issuer-values
          */
-        const isMultiTenant = ["common", "organizations", "consumers"]
-            .some((val) => this.appConfig.tenantId === val) ? true : false;
+        const isMultiTenant = ["common", "organizations", "consumers"].some(
+            (val) => this.appConfig.tenantId === val
+        )
+            ? true
+            : false;
 
         /**
          * At the very least, check for issuer, audience and expiry dates. For more information
          * on validating access tokens claims, visit:
          * https://docs.microsoft.com/azure/active-directory/develop/access-tokens#validate-tokens
          */
-        const checkIssuer = isMultiTenant ? true : accessTokenClaims.iss?.endsWith(`${this.appConfig.tenantId}/`) ? true : false;
-        const checkAudience = (accessTokenClaims.aud === this.appConfig.clientId || accessTokenClaims.aud === `api://${this.appConfig.clientId}`) ? true : false;
-        const checkTimestamp = (accessTokenClaims.iat && accessTokenClaims.iat <= now) && (accessTokenClaims.exp && accessTokenClaims.exp >= now) ? true : false;
-        const checkPermissions = accessTokenClaims.scp && accessTokenClaims.scp.includes(this.appConfig.permissions) ? true : false;
-        return checkIssuer && checkAudience && checkTimestamp && checkPermissions;
-    };
+        const checkIssuer = isMultiTenant
+            ? true
+            : accessTokenClaims.iss?.endsWith(`${this.appConfig.tenantId}/`)
+            ? true
+            : false;
+        const checkAudience =
+            accessTokenClaims.aud === this.appConfig.clientId ||
+            accessTokenClaims.aud === `api://${this.appConfig.clientId}`
+                ? true
+                : false;
+        const checkTimestamp =
+            accessTokenClaims.iat &&
+            accessTokenClaims.iat <= now &&
+            accessTokenClaims.exp &&
+            accessTokenClaims.exp >= now
+                ? true
+                : false;
+        const checkPermissions =
+            accessTokenClaims.scp &&
+            accessTokenClaims.scp.includes(this.appConfig.permissions)
+                ? true
+                : false;
+        return (
+            checkIssuer && checkAudience && checkTimestamp && checkPermissions
+        );
+    }
 
     /**
      * Verifies a given tokens signature
      * @param {string} authToken
      * @returns {Promise}
      */
-    private async validateTokenSignature(rawAuthToken: string): Promise<boolean> {
+    private async validateTokenSignature(
+        rawAuthToken: string
+    ): Promise<boolean> {
         if (!rawAuthToken) {
             return false;
         }
@@ -111,16 +142,18 @@ class TokenValidator {
         try {
             decodedToken = jwt.decode(rawAuthToken, { complete: true });
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return false;
         }
 
         let keys; // obtain signing keys from discovery endpoint
 
         try {
-            keys = decodedToken && await this.getSigningKeys(decodedToken.header);
+            keys =
+                decodedToken &&
+                (await this.getSigningKeys(decodedToken.header));
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return false;
         }
 
@@ -129,10 +162,10 @@ class TokenValidator {
             let verifiedToken = keys && jwt.verify(rawAuthToken, keys);
             return !!verifiedToken;
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return false;
         }
-    };
+    }
 
     /**
      * Fetches signing keys from the openid-configuration endpoint
@@ -141,7 +174,7 @@ class TokenValidator {
      */
     private async getSigningKeys(header: any): Promise<string> {
         return (await this.keyClient.getSigningKey(header.kid)).getPublicKey();
-    };
+    }
 }
 
 export default TokenValidator;

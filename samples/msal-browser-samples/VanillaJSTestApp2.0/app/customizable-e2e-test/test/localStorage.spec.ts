@@ -124,7 +124,10 @@ describe("LocalStorage Tests", function () {
                 const sessionStorage =
                     await sessionBrowserStorage.getWindowStorage();
                 const localStorage = await BrowserCache.getWindowStorage();
-                expect(Object.keys(localStorage).length).toEqual(0);
+                expect(Object.keys(localStorage).length).toBeLessThanOrEqual(2);
+                Object.keys(localStorage).forEach((key) => {
+                    expect(key.startsWith("msal.token.keys") || key === "msal.account.keys").toBe(true);
+                });
                 expect(Object.keys(sessionStorage).length).toEqual(0);
             }, ONE_SECOND_IN_MS);
         });

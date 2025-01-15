@@ -239,7 +239,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             correlationId
         )({
             ...silentRequest,
-            nativeBroker: NativeMessageHandler.isNativeAvailable(
+            platformBroker: NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
                 this.logger,
                 this.nativeMessageHandler,

@@ -36,13 +36,14 @@ export const NavigationBar = (props: NavigationBarProps) => {
                             <DropdownButton
                                 variant="warning"
                                 drop="start"
-                                title={props.account ? props.account?.username : "Unknown"}
+                                title={
+                                    props.account
+                                        ? props.account?.username
+                                        : "Unknown"
+                                }
                                 id="dropdownButton"
                             >
-                                <Dropdown.Item
-                                    as="button"
-                                    onClick={logout}
-                                >
+                                <Dropdown.Item as="button" onClick={logout}>
                                     Sign out
                                 </Dropdown.Item>
                             </DropdownButton>

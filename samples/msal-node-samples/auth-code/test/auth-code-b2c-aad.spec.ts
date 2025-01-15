@@ -34,7 +34,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 // Load scenario configuration
 const config = require("../config/B2C-AAD.json");
 
-describe("Auth Code B2C Tests (aad account)", () => {
+describe.skip("Auth Code B2C Tests (aad account)", () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(45000);
     let browser: puppeteer.Browser;

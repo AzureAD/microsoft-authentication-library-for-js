@@ -94,9 +94,7 @@ describe("B2C user-flow tests (local account)", () => {
         expect(tokenStoreBeforeEdit.accessTokens.length).toBe(1);
         expect(tokenStoreBeforeEdit.refreshTokens.length).toBe(1);
         expect(
-            await BrowserCache.getAccountFromCache(
-                tokenStoreBeforeEdit.idTokens[0]
-            )
+            await BrowserCache.getAccountFromCache()
         ).not.toBeNull();
         expect(
             await BrowserCache.accessTokenForScopesExists(
@@ -140,14 +138,10 @@ describe("B2C user-flow tests (local account)", () => {
         expect(tokenStoreAfterEdit.accessTokens.length).toBe(1);
         expect(tokenStoreAfterEdit.refreshTokens.length).toBe(2); // 1 for each policy
         expect(
-            await BrowserCache.getAccountFromCache(
-                tokenStoreAfterEdit.idTokens[0]
-            )
+            await BrowserCache.getAccountFromCache()
         ).not.toBeNull();
         expect(
-            await BrowserCache.getAccountFromCache(
-                tokenStoreAfterEdit.idTokens[1]
-            )
+            await BrowserCache.getAccountFromCache()
         ).not.toBeNull(); // new account after edit
         expect(
             await BrowserCache.accessTokenForScopesExists(

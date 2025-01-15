@@ -45,7 +45,7 @@ async function isServerUp(port, timeout) {
                 host: "localhost",
                 port: port,
                 family: 4,
-                rejectUnauthorized: false,
+                rejectUnauthorized: false, // codeql[js/disabling-certificate-validation]: This line is necessary for first-party HTTPS samples using self-signed SSL certificates. It is safe to ignore this finding as it is only used in MSAL.js samples and never hits the production environment.
             };
 
             https

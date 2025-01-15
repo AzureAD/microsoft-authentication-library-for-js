@@ -152,9 +152,9 @@ describe("SilentCacheClient", () => {
     describe("logout", () => {
         it("logout clears browser cache", async () => {
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccountEntity);
+            await pca.browserStorage.setAccount(testAccountEntity);
             // @ts-ignore
-            pca.browserStorage.setIdTokenCredential(testIdToken);
+            await pca.browserStorage.setIdTokenCredential(testIdToken);
 
             pca.setActiveAccount(testAccount);
             expect(pca.getActiveAccount()).toEqual(testAccount);

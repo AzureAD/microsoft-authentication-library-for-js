@@ -17,5 +17,5 @@ export interface ITokenCache {
         request: SilentRequest,
         response: ExternalTokenResponse,
         options: LoadTokenOptions
-    ): AuthenticationResult;
+    ): Promise<AuthenticationResult>;
 }

@@ -362,6 +362,11 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 .serverResponseType as ResponseMode,
         };
 
+        // Skip active account lookup if either login hint or session id is set
+        if (request.loginHint || request.sid) {
+            return validatedRequest;
+        }
+
         const account =
             request.account || this.browserStorage.getActiveAccount();
         if (account) {
@@ -374,14 +379,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 this.correlationId
             );
             validatedRequest.account = account;
-        }
-
-        // Check for ADAL/MSAL v1 SSO
-        if (!validatedRequest.loginHint && !account) {
-            const legacyLoginHint = this.browserStorage.getLegacyLoginHint();
-            if (legacyLoginHint) {
-                validatedRequest.loginHint = legacyLoginHint;
-            }
         }
 
         return validatedRequest;

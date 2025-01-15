@@ -6,6 +6,6 @@
   "main": "src/index.ts",
   "devDependencies": {
     "typescript": "^4.9.5",
-    "@azure/msal-common": "^14.0.0"
+    "@azure/msal-common": "^15.0.0"
   }
 }

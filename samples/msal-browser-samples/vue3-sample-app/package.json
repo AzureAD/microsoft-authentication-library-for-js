@@ -8,7 +8,7 @@
     "build:package": "cd ../../../lib/msal-browser && npm run build:all"
   },
   "dependencies": {
-    "@azure/msal-browser": "^3.1.0",
+    "@azure/msal-browser": "^4.0.0",
     "element-plus": "^2.2.19",
     "vue": "^3.2.41",
     "vue-router": "^4.1.5"

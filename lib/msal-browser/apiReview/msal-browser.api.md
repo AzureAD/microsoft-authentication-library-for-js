@@ -127,7 +127,7 @@ export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeReque
 // Warning: (ae-missing-release-tag) "AuthorizationUrlRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type AuthorizationUrlRequest = Omit<CommonAuthorizationUrlRequest, "state" | "nonce" | "requestedClaimsHash" | "nativeBroker"> & {
+export type AuthorizationUrlRequest = Omit<CommonAuthorizationUrlRequest, "state" | "nonce" | "requestedClaimsHash" | "platformBroker"> & {
     state: string;
     nonce: string;
 };
@@ -561,24 +561,6 @@ export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
     static supportsBrowserPerformance(): boolean;
 }
 
-// Warning: (ae-forgotten-export) The symbol "IWindowStorage" needs to be exported by the entry point index.d.ts
-// Warning: (ae-missing-release-tag) "BrowserStorage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-export class BrowserStorage implements IWindowStorage<string> {
-    constructor(cacheLocation: string);
-    // (undocumented)
-    containsKey(key: string): boolean;
-    // (undocumented)
-    getItem(key: string): string | null;
-    // (undocumented)
-    getKeys(): string[];
-    // (undocumented)
-    removeItem(key: string): void;
-    // (undocumented)
-    setItem(key: string, value: string): void;
-}
-
 // Warning: (ae-missing-release-tag) "BrowserSystemOptions" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -593,7 +575,7 @@ export type BrowserSystemOptions = SystemOptions & {
     redirectNavigationTimeout?: number;
     asyncPopups?: boolean;
     allowRedirectInIframe?: boolean;
-    allowNativeBroker?: boolean;
+    allowPlatformBroker?: boolean;
     nativeBrokerHandshakeTimeout?: number;
     pollIntervalMilliseconds?: number;
 };
@@ -1152,7 +1134,26 @@ function isInPopup(): boolean;
 //
 // @public (undocumented)
 export interface ITokenCache {
-    loadExternalTokens(request: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions): AuthenticationResult;
+    loadExternalTokens(request: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions): Promise<AuthenticationResult>;
+}
+
+// Warning: (ae-missing-release-tag) "IWindowStorage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export interface IWindowStorage<T> {
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    containsKey(key: string): boolean;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    getItem(key: string): T | null;
+    getKeys(): string[];
+    getUserData(key: string): T | null;
+    initialize(correlationId: string): Promise<void>;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    removeItem(key: string): void;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    setItem(key: string, value: T): void;
+    setUserData(key: string, value: T, correlationId: string): Promise<void>;
 }
 
 export { JsonWebTokenTypes }
@@ -1165,6 +1166,30 @@ export type LoadTokenOptions = {
     expiresOn?: number;
     extendedExpiresOn?: number;
 };
+
+// Warning: (ae-missing-release-tag) "LocalStorage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export class LocalStorage implements IWindowStorage<string> {
+    constructor(clientId: string, logger: Logger, performanceClient: IPerformanceClient);
+    clear(): void;
+    // (undocumented)
+    containsKey(key: string): boolean;
+    // (undocumented)
+    getItem(key: string): string | null;
+    // (undocumented)
+    getKeys(): string[];
+    // (undocumented)
+    getUserData(key: string): string | null;
+    // (undocumented)
+    initialize(correlationId: string): Promise<void>;
+    // (undocumented)
+    removeItem(key: string): void;
+    // (undocumented)
+    setItem(key: string, value: string): void;
+    // (undocumented)
+    setUserData(key: string, value: string, correlationId: string): Promise<void>;
+}
 
 export { Logger }
 
@@ -1184,9 +1209,15 @@ export class MemoryStorage<T> implements IWindowStorage<T> {
     // (undocumented)
     getKeys(): string[];
     // (undocumented)
+    getUserData(key: string): T | null;
+    // (undocumented)
+    initialize(): Promise<void>;
+    // (undocumented)
     removeItem(key: string): void;
     // (undocumented)
     setItem(key: string, value: T): void;
+    // (undocumented)
+    setUserData(key: string, value: T): Promise<void>;
 }
 
 // Warning: (ae-missing-release-tag) "monitorPopupTimeout" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1305,7 +1336,7 @@ export type PopupPosition = {
 // Warning: (ae-missing-release-tag) "PopupRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "nativeBroker">> & {
+export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">> & {
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
     tokenBodyParameters?: StringDict;
@@ -1563,7 +1594,7 @@ function redirectPreflightCheck(initialized: boolean, config: BrowserConfigurati
 // Warning: (ae-missing-release-tag) "RedirectRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "nativeBroker">> & {
+export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">> & {
     scopes: Array<string>;
     redirectStartPage?: string;
     onRedirectNavigate?: (url: string) => boolean | void;
@@ -1578,6 +1609,29 @@ function replaceHash(url: string): void;
 export { ServerError }
 
 export { ServerResponseType }
+
+// Warning: (ae-missing-release-tag) "SessionStorage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export class SessionStorage implements IWindowStorage<string> {
+    constructor();
+    // (undocumented)
+    containsKey(key: string): boolean;
+    // (undocumented)
+    getItem(key: string): string | null;
+    // (undocumented)
+    getKeys(): string[];
+    // (undocumented)
+    getUserData(key: string): string | null;
+    // (undocumented)
+    initialize(): Promise<void>;
+    // (undocumented)
+    removeItem(key: string): void;
+    // (undocumented)
+    setItem(key: string, value: string): void;
+    // (undocumented)
+    setUserData(key: string, value: string): Promise<void>;
+}
 
 // Warning: (ae-missing-release-tag) "SignedHttpRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1634,7 +1688,7 @@ const spaCodeAndNativeAccountIdPresent = "spa_code_and_nativeAccountId_present";
 // Warning: (ae-missing-release-tag) "SsoSilentRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "nativeBroker">> & {
+export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">> & {
     tokenBodyParameters?: StringDict;
 };
 
@@ -1699,7 +1753,7 @@ const userCancelled = "user_cancelled";
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "3.27.0";
+export const version = "4.0.1";
 
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1726,6 +1780,9 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/app/PublicClientNext.ts:85:79 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
 // src/app/PublicClientNext.ts:88:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/app/PublicClientNext.ts:89:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/LocalStorage.ts:269:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/LocalStorage.ts:327:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/LocalStorage.ts:358:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/config/Configuration.ts:246:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
 // src/index.ts:8:4 - (tsdoc-undefined-tag) The TSDoc tag "@module" is not defined in this configuration

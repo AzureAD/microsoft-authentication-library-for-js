@@ -22,7 +22,7 @@ async function verifyTokenStore(
     expect(tokenStore.accessTokens.length).toBe(1);
     expect(tokenStore.refreshTokens.length).toBe(1);
     expect(
-        await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
+        await BrowserCache.getAccountFromCache()
     ).not.toBeNull();
     expect(
         await BrowserCache.accessTokenForScopesExists(
@@ -30,8 +30,6 @@ async function verifyTokenStore(
             scopes
         )
     ).toBeTruthy;
-    const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(9);
     const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry(
         "b5c2e510-4a17-4feb-b219-e55aa5b74144"
     );
