@@ -381,14 +381,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             validatedRequest.account = account;
         }
 
-        // Check for ADAL/MSAL v1 SSO
-        if (!validatedRequest.loginHint && !account) {
-            const legacyLoginHint = this.browserStorage.getLegacyLoginHint();
-            if (legacyLoginHint) {
-                validatedRequest.loginHint = legacyLoginHint;
-            }
-        }
-
         return validatedRequest;
     }
 }

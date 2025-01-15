@@ -242,12 +242,13 @@ export class StandardController implements IController {
                   this.config.cache,
                   this.browserCrypto,
                   this.logger,
-                  buildStaticAuthorityOptions(this.config.auth),
-                  this.performanceClient
+                  this.performanceClient,
+                  buildStaticAuthorityOptions(this.config.auth)
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
-                  this.logger
+                  this.logger,
+                  this.performanceClient
               );
 
         // initialize in memory storage for native flows
@@ -264,7 +265,6 @@ export class StandardController implements IController {
             nativeCacheOptions,
             this.browserCrypto,
             this.logger,
-            undefined,
             this.performanceClient
         );
 
@@ -333,14 +333,22 @@ export class StandardController implements IController {
 
         const initCorrelationId =
             request?.correlationId || this.getRequestCorrelationId();
-        const allowNativeBroker = this.config.system.allowNativeBroker;
+        const allowPlatformBroker = this.config.system.allowPlatformBroker;
         const initMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.InitializeClientApplication,
             initCorrelationId
         );
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
 
-        if (allowNativeBroker) {
+        await invokeAsync(
+            this.browserStorage.initialize.bind(this.browserStorage),
+            PerformanceEvents.InitializeCache,
+            this.logger,
+            this.performanceClient,
+            initCorrelationId
+        )(initCorrelationId);
+
+        if (allowPlatformBroker) {
             try {
                 this.nativeExtensionProvider =
                     await NativeMessageHandler.createProvider(
@@ -371,7 +379,10 @@ export class StandardController implements IController {
 
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
-        initMeasurement.end({ allowNativeBroker, success: true });
+        initMeasurement.end({
+            allowPlatformBroker: allowPlatformBroker,
+            success: true,
+        });
     }
 
     // #region Redirect Flow
@@ -431,7 +442,7 @@ export class StandardController implements IController {
             this.browserStorage.getCachedNativeRequest();
         const useNative =
             request &&
-            NativeMessageHandler.isNativeAvailable(
+            NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
                 this.logger,
                 this.nativeExtensionProvider
@@ -654,7 +665,10 @@ export class StandardController implements IController {
 
             let result: Promise<void>;
 
-            if (this.nativeExtensionProvider && this.canUseNative(request)) {
+            if (
+                this.nativeExtensionProvider &&
+                this.canUsePlatformBroker(request)
+            ) {
                 const nativeClient = new NativeInteractionClient(
                     this.config,
                     this.browserStorage,
@@ -768,7 +782,7 @@ export class StandardController implements IController {
 
         let result: Promise<AuthenticationResult>;
 
-        if (this.canUseNative(request)) {
+        if (this.canUsePlatformBroker(request)) {
             result = this.acquireTokenNative(
                 {
                     ...request,
@@ -937,7 +951,7 @@ export class StandardController implements IController {
 
         let result: Promise<AuthenticationResult>;
 
-        if (this.canUseNative(validRequest)) {
+        if (this.canUsePlatformBroker(validRequest)) {
             result = this.acquireTokenNative(
                 validRequest,
                 ApiId.ssoSilent
@@ -1085,7 +1099,9 @@ export class StandardController implements IController {
                 }
                 return await response;
             } else if (request.nativeAccountId) {
-                if (this.canUseNative(request, request.nativeAccountId)) {
+                if (
+                    this.canUsePlatformBroker(request, request.nativeAccountId)
+                ) {
                     const result = await this.acquireTokenNative(
                         {
                             ...request,
@@ -1472,7 +1488,10 @@ export class StandardController implements IController {
             result.cloudGraphHostName,
             result.msGraphHost
         );
-        this.browserStorage.setAccount(accountEntity);
+        await this.browserStorage.setAccount(
+            accountEntity,
+            result.correlationId
+        );
 
         if (result.fromNativeBroker) {
             this.logger.verbose(
@@ -1522,16 +1541,16 @@ export class StandardController implements IController {
     }
 
     /**
-     * Returns boolean indicating if this request can use the native broker
+     * Returns boolean indicating if this request can use the platform broker
      * @param request
      */
-    public canUseNative(
+    public canUsePlatformBroker(
         request: RedirectRequest | PopupRequest | SsoSilentRequest,
         accountId?: string
     ): boolean {
-        this.logger.trace("canUseNative called");
+        this.logger.trace("canUsePlatformBroker called");
         if (
-            !NativeMessageHandler.isNativeAvailable(
+            !NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
                 this.logger,
                 this.nativeExtensionProvider,
@@ -1539,7 +1558,7 @@ export class StandardController implements IController {
             )
         ) {
             this.logger.trace(
-                "canUseNative: isNativeAvailable returned false, returning false"
+                "canUsePlatformBroker: isPlatformBrokerAvailable returned false, returning false"
             );
             return false;
         }
@@ -1550,12 +1569,12 @@ export class StandardController implements IController {
                 case PromptValue.CONSENT:
                 case PromptValue.LOGIN:
                     this.logger.trace(
-                        "canUseNative: prompt is compatible with native flow"
+                        "canUsePlatformBroker: prompt is compatible with platform broker flow"
                     );
                     break;
                 default:
                     this.logger.trace(
-                        `canUseNative: prompt = ${request.prompt} is not compatible with native flow, returning false`
+                        `canUsePlatformBroker: prompt = ${request.prompt} is not compatible with platform broker flow, returning false`
                     );
                     return false;
             }
@@ -1563,7 +1582,7 @@ export class StandardController implements IController {
 
         if (!accountId && !this.getNativeAccountId(request)) {
             this.logger.trace(
-                "canUseNative: nativeAccountId is not available, returning false"
+                "canUsePlatformBroker: nativeAccountId is not available, returning false"
             );
             return false;
         }
@@ -2252,7 +2271,7 @@ export class StandardController implements IController {
         cacheLookupPolicy: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
         if (
-            NativeMessageHandler.isNativeAvailable(
+            NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
                 this.logger,
                 this.nativeExtensionProvider,

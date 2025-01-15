@@ -267,7 +267,7 @@ describe("Non-browser environment", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
             system: {
-                allowNativeBroker: false,
+                allowPlatformBroker: false,
             },
         });
         instance.initialize().then(() => {

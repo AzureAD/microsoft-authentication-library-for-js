@@ -22,8 +22,6 @@ export class HomeComponent implements OnInit {
       )
       .subscribe((result: EventMessage) => {
         console.log(result);
-        const payload = result.payload as AuthenticationResult;
-        this.authService.instance.setActiveAccount(payload.account);
       });
 
     this.msalBroadcastService.inProgress$

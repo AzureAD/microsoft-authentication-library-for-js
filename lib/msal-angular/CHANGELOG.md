@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Tue, 05 Nov 2024 18:58:46 GMT and should not be manually modified.
+<!-- This log was last generated on Wed, 15 Jan 2025 05:05:16 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.0.1
+
+Wed, 15 Jan 2025 05:05:16 GMT
+
+### Breaking Changes
+
+- Update msal-browser peer dependency to include v4 (thomas.norling@microsoft.com)
+
+Please see the msal-browser [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v3-migration.md) for more details on what's changed in v4.
 
 ## 3.1.0
 
