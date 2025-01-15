@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update msal-common dependency",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

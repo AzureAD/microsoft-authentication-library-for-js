@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@azure/msal-node": "^2.0.1",
+    "@azure/msal-node": "^3.0.0",
     "express": "^4.20.0",
     "url": "^0.11.0"
   },
