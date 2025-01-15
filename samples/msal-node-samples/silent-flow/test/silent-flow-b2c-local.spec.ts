@@ -1,8 +1,8 @@
+
 /*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
 import * as puppeteer from "puppeteer";
 import {
     Screenshot,
@@ -23,19 +23,14 @@ import {
     UserTypes,
 } from "e2e-test-utils";
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
-
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/b2c-local.cache.json`;
-
 // Get flow-specific routes from sample application
 const getTokenSilent = require("../index");
-
 // Build cachePlugin
 const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
-
 // Load scenario configuration
 const config = require("../config/B2C-Local.json");
-
 describe("Silent Flow B2C Tests", () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(ONE_SECOND_IN_MS * 45);
@@ -44,32 +39,24 @@ describe("Silent Flow B2C Tests", () => {
     let page: puppeteer.Page;
     let port: number;
     let homeRoute: string;
-
     let publicClientApplication: PublicClientApplication;
     let msalTokenCache: TokenCache;
     let server: any;
-
     let username: string;
     let accountPwd: string;
-
     const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/silent-flow/b2c/local-account`;
-
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
         // @ts-ignore
         browser = await global.__BROWSER__;
-
         // To run tests in parallel, each test needs to run on a unique port
         port = 3007;
         homeRoute = `${SAMPLE_HOME_URL}:${port}`;
-
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
-
         const labApiParms: LabApiQueryParams = {
             userType: UserTypes.B2C,
             b2cProvider: B2cProviders.LOCAL,
         };
-
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(
             labApiParms
@@ -78,12 +65,10 @@ describe("Silent Flow B2C Tests", () => {
             envResponse[0],
             labClient
         );
-
         publicClientApplication = new PublicClientApplication({
             auth: config.authOptions,
             cache: { cachePlugin },
         });
-
         msalTokenCache = publicClientApplication.getTokenCache();
         server = getTokenSilent(
             config,
@@ -93,14 +78,12 @@ describe("Silent Flow B2C Tests", () => {
         );
         await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
     });
-
     afterAll(async () => {
         await browser.close();
         if (server) {
             server.close();
         }
     });
-
     describe("AcquireToken (local account)", () => {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
@@ -108,13 +91,11 @@ describe("Silent Flow B2C Tests", () => {
             page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             await page.goto(homeRoute, { waitUntil: "networkidle0" });
         });
-
         afterEach(async () => {
             await page.close();
             await context.close();
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
-
         it("Performs acquire token with Auth Code flow", async () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/AcquireTokenAuthCode`
@@ -136,7 +117,29 @@ describe("Silent Flow B2C Tests", () => {
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
         });
-
+        it("Performs acquire token silent when tokens are only present in persistent cache", async () => {
+            const screenshot = new Screenshot(
+                `${screenshotFolder}/AcquireTokenSilentFromPersistent`
+            );
+            await clickSignIn(page, screenshot);
+            await b2cLocalAccountEnterCredentials(
+                page,
+                screenshot,
+                username,
+                accountPwd
+            );
+            await page.waitForSelector("#acquireTokenSilent");
+            await publicClientApplication.clearCache();
+            await screenshot.takeScreenshot(page, "ATS");
+            await page.click("#acquireTokenSilent");
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(
+                TEST_CACHE_LOCATION,
+                ONE_SECOND_IN_MS * 2
+            );
+            expect(cachedTokens.accessTokens.length).toBe(1);
+            expect(cachedTokens.idTokens.length).toBe(1);
+            expect(cachedTokens.refreshTokens.length).toBe(1);
+        });
         it("Performs acquire token silent", async () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/AcquireTokenSilent`
@@ -159,7 +162,6 @@ describe("Silent Flow B2C Tests", () => {
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
             expect(htmlBody).toContain("Silent token acquisition successful");
         });
-
         it("Refreshes an expired access token", async () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/RefreshExpiredToken`
@@ -172,7 +174,6 @@ describe("Silent Flow B2C Tests", () => {
                 accountPwd
             );
             await page.waitForSelector("#acquireTokenSilent");
-
             let tokens = await NodeCacheTestUtils.waitForTokens(
                 TEST_CACHE_LOCATION,
                 ONE_SECOND_IN_MS * 2
@@ -184,7 +185,6 @@ describe("Silent Flow B2C Tests", () => {
                 ONE_SECOND_IN_MS * 2
             );
             const expiredAccessToken = tokens.accessTokens[0];
-
             // Wait to ensure new token has new iat
             await new Promise((r) => setTimeout(r, ONE_SECOND_IN_MS));
             await page.click("#acquireTokenSilent");
@@ -199,7 +199,6 @@ describe("Silent Flow B2C Tests", () => {
                 "acquireTokenSilentGotTokens"
             );
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
-
             expect(htmlBody).toContain("Silent token acquisition successful");
             expect(Number(originalAccessToken.expiresOn)).toBeGreaterThan(0);
             expect(Number(expiredAccessToken.expiresOn)).toBe(0);
@@ -209,7 +208,6 @@ describe("Silent Flow B2C Tests", () => {
             );
         });
     });
-
     describe("Get All Accounts (local account)", () => {
         describe("Authenticated", () => {
             beforeEach(async () => {
@@ -217,13 +215,11 @@ describe("Silent Flow B2C Tests", () => {
                 page = await context.newPage();
                 await page.goto(homeRoute, { waitUntil: "networkidle0" });
             });
-
             afterEach(async () => {
                 await page.close();
                 await context.close();
                 await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
             });
-
             it("Gets all cached accounts", async () => {
                 const screenshot = new Screenshot(
                     `${screenshotFolder}/GetAllAccounts`
@@ -260,20 +256,17 @@ describe("Silent Flow B2C Tests", () => {
                 expect(accounts.length).toBe(1);
             });
         });
-
         describe("Unauthenticated (local account)", () => {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
                 await publicClientApplication.clearCache();
             });
-
             afterEach(async () => {
                 await page.close();
                 await context.close();
                 await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
             });
-
             it("Returns empty account array", async () => {
                 const screenshot = new Screenshot(
                     `${screenshotFolder}/NoCachedAccounts`
