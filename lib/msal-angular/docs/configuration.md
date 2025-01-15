@@ -5,7 +5,7 @@ MSAL for Angular can be configured in multiple ways:
 1. [Factory providers](#factory-providers)
 1. [`platformBrowserDynamic`](#platformbrowserdynamic)
 1. [Dynamic configurations using Factory Providers and `APP_INITIALIZER`](#dynamic-configurations-using-factory-providers-and-app_initializer)
-1. [Configurations for Angular 17 apps with standalone components](#configurations-for-angular-17-apps-with-standalone-components)
+1. [Configurations for Angular apps with standalone components](#configurations-for-angular-apps-with-standalone-components)
 
 This guide will detail how to leverage each method for your application.
 
