@@ -2,6 +2,47 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Wed, 15 Jan 2025 05:05:17 GMT",
+      "version": "3.0.1",
+      "tag": "@azure/msal-react_v3.0.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "f0802a137253a664b0ca6ec3749c2df79e0c6ddb",
+            "comment": "Update msal-browser peer dependency to include v4"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "f0802a137253a664b0ca6ec3749c2df79e0c6ddb",
+            "comment": "Rename `native` to `platformBroker` in public API and docs"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v4.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "f0802a137253a664b0ca6ec3749c2df79e0c6ddb",
+            "comment": "Bump react and angular to next major versions"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 05 Nov 2024 18:58:46 GMT",
       "version": "2.2.0",
       "tag": "@azure/msal-react_v2.2.0",

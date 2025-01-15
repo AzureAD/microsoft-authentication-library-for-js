@@ -127,7 +127,7 @@ export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeReque
 // Warning: (ae-missing-release-tag) "AuthorizationUrlRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type AuthorizationUrlRequest = Omit<CommonAuthorizationUrlRequest, "state" | "nonce" | "requestedClaimsHash" | "nativeBroker"> & {
+export type AuthorizationUrlRequest = Omit<CommonAuthorizationUrlRequest, "state" | "nonce" | "requestedClaimsHash" | "platformBroker"> & {
     state: string;
     nonce: string;
 };
@@ -575,7 +575,7 @@ export type BrowserSystemOptions = SystemOptions & {
     redirectNavigationTimeout?: number;
     asyncPopups?: boolean;
     allowRedirectInIframe?: boolean;
-    allowNativeBroker?: boolean;
+    allowPlatformBroker?: boolean;
     nativeBrokerHandshakeTimeout?: number;
     pollIntervalMilliseconds?: number;
 };
@@ -1336,7 +1336,7 @@ export type PopupPosition = {
 // Warning: (ae-missing-release-tag) "PopupRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "nativeBroker">> & {
+export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">> & {
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
     tokenBodyParameters?: StringDict;
@@ -1594,7 +1594,7 @@ function redirectPreflightCheck(initialized: boolean, config: BrowserConfigurati
 // Warning: (ae-missing-release-tag) "RedirectRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "nativeBroker">> & {
+export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">> & {
     scopes: Array<string>;
     redirectStartPage?: string;
     onRedirectNavigate?: (url: string) => boolean | void;
@@ -1688,7 +1688,7 @@ const spaCodeAndNativeAccountIdPresent = "spa_code_and_nativeAccountId_present";
 // Warning: (ae-missing-release-tag) "SsoSilentRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "nativeBroker">> & {
+export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">> & {
     tokenBodyParameters?: StringDict;
 };
 
@@ -1753,7 +1753,7 @@ const userCancelled = "user_cancelled";
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "4.0.0";
+export const version = "4.0.1";
 
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)

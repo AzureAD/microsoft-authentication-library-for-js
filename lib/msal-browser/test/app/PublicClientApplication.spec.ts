@@ -177,7 +177,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             },
             system: {
-                allowNativeBroker: false,
+                allowPlatformBroker: false,
             },
         });
 
@@ -250,7 +250,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             const concurrency = 5;
@@ -340,7 +340,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             const concurrency = 6;
@@ -426,13 +426,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }
         });
 
-        it("creates extension provider if allowNativeBroker is true", async () => {
+        it("creates extension provider if allowPlatformBroker is true", async () => {
             const config = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -452,7 +452,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
         });
 
-        it("does not create extension provider if allowNativeBroker is false", async () => {
+        it("does not create extension provider if allowPlatformBroker is false", async () => {
             const createProviderSpy = jest.spyOn(
                 NativeMessageHandler,
                 "createProvider"
@@ -462,7 +462,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                 },
             });
             await pca.initialize();
@@ -484,7 +484,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
             await pca.initialize();
@@ -633,7 +633,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -716,7 +716,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -987,7 +987,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                 },
             });
 
@@ -1130,7 +1130,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                 },
             });
 
@@ -1284,7 +1284,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -1336,7 +1336,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -1361,7 +1361,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         PerformanceEvents.InitializeClientApplication
                     ) {
                         expect(event.success).toBeTruthy();
-                        expect(event.allowNativeBroker).toBeTruthy();
+                        expect(event.allowPlatformBroker).toBeTruthy();
                         pca.removePerformanceCallback(callbackId);
                         done();
                     }
@@ -1377,7 +1377,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -1420,7 +1420,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -1467,7 +1467,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -1516,7 +1516,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -1704,7 +1704,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     storeAuthStateInCookie: false,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                 },
             });
             await pca.initialize();
@@ -1794,7 +1794,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
 
@@ -2201,7 +2201,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -2264,7 +2264,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -2319,7 +2319,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -2377,7 +2377,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -2437,7 +2437,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -2525,7 +2525,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
             await expect(
@@ -2870,7 +2870,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -2927,7 +2927,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -2985,7 +2985,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -3276,7 +3276,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -3328,7 +3328,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -3365,7 +3365,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
             await pca.initialize();
@@ -3723,7 +3723,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
 
@@ -3773,7 +3773,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -3829,7 +3829,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -3888,7 +3888,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -4270,7 +4270,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                 },
                 cache: {
                     claimsBasedCachingEnabled: true,
@@ -4580,7 +4580,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                 },
                 cache: {
                     claimsBasedCachingEnabled: true,
@@ -6482,7 +6482,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -6539,7 +6539,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                     loggerOptions: {
                         logLevel: LogLevel.Info,
                         loggerCallback: (level, message, containsPii) => {
@@ -6585,7 +6585,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                     loggerOptions: {
                         logLevel: LogLevel.Verbose,
                         loggerCallback: (level, message, containsPii) => {
@@ -6626,7 +6626,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                     loggerOptions: {
                         logLevel: LogLevel.Info,
                         loggerCallback: (level, message, containsPii) => {
@@ -6679,7 +6679,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                     loggerOptions: {
                         logLevel: LogLevel.Info,
                         loggerCallback: (level, message, containsPii) => {
@@ -6728,7 +6728,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                     loggerOptions: {
                         logLevel: LogLevel.Verbose,
                         loggerCallback: (level, message, containsPii) => {

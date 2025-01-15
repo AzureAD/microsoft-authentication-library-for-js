@@ -192,9 +192,9 @@ export type BrowserSystemOptions = SystemOptions & {
      */
     allowRedirectInIframe?: boolean;
     /**
-     * Flag to enable native broker support (e.g. acquiring tokens from WAM on Windows)
+     * Flag to enable native broker support (e.g. acquiring tokens from WAM on Windows, MacBroker on Mac)
      */
-    allowNativeBroker?: boolean;
+    allowPlatformBroker?: boolean;
     /**
      * Sets the timeout for waiting for the native broker handshake to resolve
      */
@@ -340,7 +340,7 @@ export function buildConfiguration(
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         asyncPopups: false,
         allowRedirectInIframe: false,
-        allowNativeBroker: false,
+        allowPlatformBroker: false,
         nativeBrokerHandshakeTimeout:
             userInputSystem?.nativeBrokerHandshakeTimeout ||
             DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
@@ -376,14 +376,14 @@ export function buildConfiguration(
         );
     }
 
-    // Throw an error if user has set allowNativeBroker to true without being in AAD protocol mode
+    // Throw an error if user has set allowPlatformBroker to true without being in AAD protocol mode
     if (
         userInputAuth?.protocolMode &&
         userInputAuth.protocolMode !== ProtocolMode.AAD &&
-        providedSystemOptions?.allowNativeBroker
+        providedSystemOptions?.allowPlatformBroker
     ) {
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.cannotAllowNativeBroker
+            ClientConfigurationErrorCodes.cannotAllowPlatformBroker
         );
     }
 

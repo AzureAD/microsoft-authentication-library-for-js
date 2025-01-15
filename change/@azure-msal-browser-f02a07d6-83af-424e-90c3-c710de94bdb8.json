@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Encrypt localStorage to reduce persistence to browser session lifetime",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
