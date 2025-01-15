@@ -1,5 +1,5 @@
 {
-  "type": "minor",
+  "type": "patch",
   "comment": "Update msal-browser peer dependency to include v4",
   "packageName": "@azure/msal-angular",
   "email": "thomas.norling@microsoft.com",
