@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 19 Nov 2024 17:21:57 GMT and should not be manually modified.
+<!-- This log was last generated on Wed, 15 Jan 2025 05:05:17 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.0.1
+
+Wed, 15 Jan 2025 05:05:17 GMT
+
+### Breaking Changes
+
+- NodeStorage is no longer exported
+
+Please see the [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/v2-migration.md) for more details.
 
 ## 2.16.2
 

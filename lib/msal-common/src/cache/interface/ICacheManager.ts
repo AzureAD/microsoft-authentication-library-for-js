@@ -27,7 +27,7 @@ export interface ICacheManager {
      * set account entity in the platform cache
      * @param account
      */
-    setAccount(account: AccountEntity): void;
+    setAccount(account: AccountEntity, correlationId: string): Promise<void>;
 
     /**
      * Returns true if the given key matches our account key schema. Also matches homeAccountId and/or tenantId if provided
@@ -52,7 +52,10 @@ export interface ICacheManager {
      * set idToken entity to the platform cache
      * @param idToken
      */
-    setIdTokenCredential(idToken: IdTokenEntity): void;
+    setIdTokenCredential(
+        idToken: IdTokenEntity,
+        correlationId: string
+    ): Promise<void>;
 
     /**
      * fetch the idToken entity from the platform cache
@@ -64,7 +67,10 @@ export interface ICacheManager {
      * set idToken entity to the platform cache
      * @param accessToken
      */
-    setAccessTokenCredential(accessToken: AccessTokenEntity): void;
+    setAccessTokenCredential(
+        accessToken: AccessTokenEntity,
+        correlationId: string
+    ): Promise<void>;
 
     /**
      * fetch the idToken entity from the platform cache
@@ -78,7 +84,10 @@ export interface ICacheManager {
      * set idToken entity to the platform cache
      * @param refreshToken
      */
-    setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void;
+    setRefreshTokenCredential(
+        refreshToken: RefreshTokenEntity,
+        correlationId: string
+    ): Promise<void>;
 
     /**
      * fetch appMetadata entity from the platform cache
@@ -167,6 +176,7 @@ export interface ICacheManager {
      */
     saveCacheRecord(
         cacheRecord: CacheRecord,
+        correlationId: string,
         storeInCache?: StoreInCache
     ): Promise<void>;
 

@@ -18,12 +18,24 @@ export class SessionStorage implements IWindowStorage<string> {
         }
     }
 
+    async initialize(): Promise<void> {
+        // Session storage does not require initialization
+    }
+
     getItem(key: string): string | null {
         return window.sessionStorage.getItem(key);
     }
 
+    getUserData(key: string): string | null {
+        return this.getItem(key);
+    }
+
     setItem(key: string, value: string): void {
         window.sessionStorage.setItem(key, value);
+    }
+
+    async setUserData(key: string, value: string): Promise<void> {
+        this.setItem(key, value);
     }
 
     removeItem(key: string): void {

@@ -40,7 +40,7 @@ export type SsoSilentRequest = Partial<
         | "codeChallenge"
         | "codeChallengeMethod"
         | "requestedClaimsHash"
-        | "nativeBroker"
+        | "platformBroker"
     >
 > & {
     tokenBodyParameters?: StringDict;
