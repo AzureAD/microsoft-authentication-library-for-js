@@ -69,7 +69,11 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
 } from "@azure/msal-common/node";
-import { AUTHENTICATION_RESULT, TEST_CONFIG, TEST_TOKENS } from "../test_kit/StringConstants.js";
+import {
+    AUTHENTICATION_RESULT,
+    TEST_CONFIG,
+    TEST_TOKENS,
+} from "../test_kit/StringConstants.js";
 import { HttpClient } from "../../src/network/HttpClient.js";
 import { MockStorageClass } from "./ClientTestUtils.js";
 import { Constants } from "../../src/utils/Constants.js";
@@ -283,7 +287,7 @@ describe("PublicClientApplication", () => {
             Number(testAccessTokenEntity.cachedAt) +
             AUTHENTICATION_RESULT.body.expires_in
         }`;
-        
+
         test("acquireTokenSilent succeeds", async () => {
             const request: SilentFlowRequest = {
                 account: mockAccountInfo,
@@ -470,10 +474,9 @@ describe("PublicClientApplication", () => {
                 CacheManager.prototype,
                 "getRefreshToken"
             ).mockReturnValue(testRefreshTokenEntity);
-            jest.spyOn(
-                NodeStorage.prototype,
-                "getAccount"
-            ).mockReturnValue(testAccountEntity);
+            jest.spyOn(NodeStorage.prototype, "getAccount").mockReturnValue(
+                testAccountEntity
+            );
 
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -483,7 +486,7 @@ describe("PublicClientApplication", () => {
                 forceRefresh: false,
             };
 
-            const appConfiguration : Configuration = {
+            const appConfiguration: Configuration = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
