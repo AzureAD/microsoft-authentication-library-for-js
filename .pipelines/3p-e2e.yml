@@ -122,9 +122,6 @@ extends:
                         sourceBranch: ${{ variables.sourceBranch }}
                         workspace: "samples/msal-angular-v3-samples"
                         samples:
-                            - "angular15-sample-app"
                             - "angular16-sample-app"
                             - "angular-b2c-sample-app"
-                            - "angular-standalone-sample"
-                            - "angular17-standalone-sample"
                         debug: ${{ parameters.debug }}
