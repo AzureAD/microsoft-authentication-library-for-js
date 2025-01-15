@@ -3,6 +3,10 @@ parameters:
       displayName: "Debug Variables"
       type: boolean
       default: false
+    - name: "maxParallel"
+      displayName: "Max number of parallel jobs"
+      type: number
+      default: 0
     - name: "poolType"
       displayName: "Pool Type"
       type: string
@@ -29,7 +33,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: master
+          ref: max-parallel
 
 extends:
     template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
@@ -58,3 +62,4 @@ extends:
                             - "BrokerTestApp-React"
                             - "BrokerSingleFrameTestApp"
                         debug: ${{ parameters.debug }}
+                        maxParallel: ${{ parameters.maxParallel }}

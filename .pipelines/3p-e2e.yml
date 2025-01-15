@@ -3,6 +3,10 @@ parameters:
       displayName: "Debug Variables"
       type: boolean
       default: false
+    - name: "maxParallel"
+      displayName: "Max number of parallel jobs"
+      type: number
+      default: 0
     - name: "poolType"
       displayName: "Pool Type"
       type: string
@@ -46,7 +50,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: master
+          ref: max-parallel
 extends:
     template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
     parameters:
@@ -74,6 +78,7 @@ extends:
                             - "pop"
                             - "customizable-e2e-test"
                         debug: ${{ parameters.debug }}
+                        maxParallel: ${{ parameters.maxParallel }}
                 - ${{ if eq(parameters.runNodeTests, true) }}:
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
@@ -95,6 +100,7 @@ extends:
                             - "b2c-user-flows"
                             # - "on-behalf-of"
                         debug: ${{ parameters.debug }}
+                        maxParallel: ${{ parameters.maxParallel }}
                 - ${{ if eq(parameters.runReactTests, true) }}:
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
@@ -111,6 +117,7 @@ extends:
                             - "typescript-sample"
                             - "b2c-sample"
                         debug: ${{ parameters.debug }}
+                        maxParallel: ${{ parameters.maxParallel }}
                 - ${{ if eq(parameters.runAngularTests, true) }}:
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
@@ -128,3 +135,4 @@ extends:
                             - "angular-standalone-sample"
                             - "angular17-standalone-sample"
                         debug: ${{ parameters.debug }}
+                        maxParallel: ${{ parameters.maxParallel }}
