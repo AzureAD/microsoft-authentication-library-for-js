@@ -75,23 +75,23 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.system?.navigateFrameWait).toBe(0);
         expect(emptyConfig.system?.tokenRenewalOffsetSeconds).toBe(300);
         expect(emptyConfig.system?.asyncPopups).toBe(false);
-        expect(emptyConfig.system?.allowNativeBroker).toBe(false);
+        expect(emptyConfig.system?.allowPlatformBroker).toBe(false);
     });
 
-    it("sets allowNativeBroker to passed in true value", () => {
+    it("sets allowPlatformBroker to passed in true value", () => {
         const config: Configuration = buildConfiguration(
             {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             },
             true
         );
 
-        expect(config.system?.allowNativeBroker).toBe(true);
+        expect(config.system?.allowPlatformBroker).toBe(true);
     });
 
     it("sets timeouts with loadFrameTimeout", () => {

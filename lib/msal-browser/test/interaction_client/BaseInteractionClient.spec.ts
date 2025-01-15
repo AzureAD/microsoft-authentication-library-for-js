@@ -23,7 +23,11 @@ import {
     ID_TOKEN_ALT_CLAIMS,
 } from "../utils/StringConstants.js";
 import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient.js";
-import { EndSessionRequest, PublicClientApplication } from "../../src/index.js";
+import {
+    EndSessionRequest,
+    PublicClientApplication,
+    TenantProfile,
+} from "../../src/index.js";
 import { OpenIdConfigResponse } from "../../../msal-common/src/authority/OpenIdConfigResponse.js";
 
 class testInteractionClient extends BaseInteractionClient {
@@ -80,6 +84,12 @@ describe("BaseInteractionClient", () => {
 
         beforeEach(async () => {
             const testIdTokenClaims: TokenClaims = ID_TOKEN_CLAIMS;
+            const tenantProfile1: TenantProfile = {
+                tenantId: testIdTokenClaims.tid || "",
+                localAccountId: testIdTokenClaims.oid || "",
+                name: testIdTokenClaims.name,
+                isHomeTenant: true,
+            };
 
             testAccountInfo1 = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -87,6 +97,9 @@ describe("BaseInteractionClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || "",
+                tenantProfiles: new Map([
+                    [tenantProfile1.tenantId, tenantProfile1],
+                ]),
             };
 
             const idToken1: IdTokenEntity = {
@@ -108,8 +121,15 @@ describe("BaseInteractionClient", () => {
             testAccount1.authorityType = "MSSTS";
             testAccount1.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            testAccount1.tenantProfiles = [tenantProfile1];
 
             const testIdTokenClaims2: TokenClaims = ID_TOKEN_ALT_CLAIMS;
+            const tenantProfile2: TenantProfile = {
+                tenantId: testIdTokenClaims2.tid || "",
+                localAccountId: testIdTokenClaims2.oid || "",
+                name: testIdTokenClaims2.name,
+                isHomeTenant: true,
+            };
 
             testAccountInfo2 = {
                 homeAccountId: "different-home-account-id",
@@ -117,6 +137,9 @@ describe("BaseInteractionClient", () => {
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims2.tid || "",
                 username: testIdTokenClaims2.preferred_username || "",
+                tenantProfiles: new Map([
+                    [tenantProfile2.tenantId, tenantProfile2],
+                ]),
             };
 
             const idToken2: IdTokenEntity = {
@@ -138,16 +161,17 @@ describe("BaseInteractionClient", () => {
             testAccount2.authorityType = "MSSTS";
             testAccount2.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            testAccount2.tenantProfiles = [tenantProfile2];
 
             pca.setActiveAccount(testAccountInfo1);
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount1);
+            await pca.browserStorage.setAccount(testAccount1);
             // @ts-ignore
-            pca.browserStorage.setIdTokenCredential(idToken1);
+            await pca.browserStorage.setIdTokenCredential(idToken1);
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount2);
+            await pca.browserStorage.setAccount(testAccount2);
             // @ts-ignore
-            pca.browserStorage.setIdTokenCredential(idToken2);
+            await pca.browserStorage.setIdTokenCredential(idToken2);
 
             jest.spyOn(
                 CacheManager.prototype,

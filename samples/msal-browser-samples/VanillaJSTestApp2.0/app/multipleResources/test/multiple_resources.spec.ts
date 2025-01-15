@@ -84,7 +84,7 @@ describe("Browser tests", function () {
         expect(tokenStore.accessTokens).toHaveLength(1);
         expect(tokenStore.refreshTokens).toHaveLength(1);
         expect(
-            BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
+            BrowserCache.getAccountFromCache()
         ).toBeDefined();
 
         // acquire First Access Token
@@ -97,7 +97,7 @@ describe("Browser tests", function () {
         expect(tokenStore.accessTokens).toHaveLength(1);
         expect(tokenStore.refreshTokens).toHaveLength(1);
         expect(
-            await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
+            await BrowserCache.getAccountFromCache()
         ).toBeDefined();
         expect(
             await BrowserCache.accessTokenForScopesExists(
@@ -115,7 +115,7 @@ describe("Browser tests", function () {
         expect(tokenStore.accessTokens).toHaveLength(2);
         expect(tokenStore.refreshTokens).toHaveLength(1);
         expect(
-            await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
+            await BrowserCache.getAccountFromCache()
         ).toBeDefined();
         expect(
             await BrowserCache.accessTokenForScopesExists(

@@ -4,36 +4,34 @@
  */
 
 import {
-    ClientConfiguration,
-    Constants,
-    AccountEntity,
-    AppMetadataEntity,
-    ThrottlingEntity,
-    IdTokenEntity,
-    AccessTokenEntity,
-    RefreshTokenEntity,
-    ProtocolMode,
-    AuthorityOptions,
-    AuthorityMetadataEntity,
-    ValidCredentialType,
-    Logger,
-    LogLevel,
-    TokenKeys,
-    ServerTelemetryManager,
-    createClientAuthError,
-    ClientAuthErrorCodes,
-    CacheHelpers,
-    Authority,
-} from "../../src";
-import {
     RANDOM_TEST_GUID,
     TEST_CONFIG,
     TEST_CRYPTO_VALUES,
     TEST_POP_VALUES,
-} from "../test_kit/StringConstants";
+} from "../test_kit/StringConstants.js";
 
-import { CacheManager } from "../../src/cache/CacheManager";
-import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
+import { CacheManager } from "../../src/cache/CacheManager.js";
+import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity.js";
+import { AccountEntity } from "../../src/cache/entities/AccountEntity.js";
+import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity.js";
+import * as CacheHelpers from "../../src/cache/utils/CacheHelpers.js";
+import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity.js";
+import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity.js";
+import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity.js";
+import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity.js";
+import { ThrottlingEntity } from "../../src/cache/entities/ThrottlingEntity.js";
+import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
+import { ClientConfiguration } from "../../src/config/ClientConfiguration.js";
+import { Logger, LogLevel } from "../../src/logger/Logger.js";
+import { Authority } from "../../src/authority/Authority.js";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../../src/error/ClientAuthError.js";
+import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemetryManager.js";
+import { Constants } from "../../src/utils/Constants.js";
+import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
+import { TokenKeys } from "../../src/cache/utils/CacheTypes.js";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
@@ -42,18 +40,15 @@ export class MockStorageClass extends CacheManager {
     store = {};
 
     // Accounts
-    getCachedAccountEntity(accountKey: string): AccountEntity | null {
-        const account: AccountEntity = this.store[accountKey] as AccountEntity;
+    getAccount(key: string): AccountEntity | null {
+        const account: AccountEntity = this.store[key] as AccountEntity;
         if (AccountEntity.isAccountEntity(account)) {
             return account;
         }
         return null;
     }
-    getAccount(key: string): AccountEntity | null {
-        return this.getCachedAccountEntity(key);
-    }
 
-    setAccount(value: AccountEntity): void {
+    async setAccount(value: AccountEntity): Promise<void> {
         const key = value.generateAccountKey();
         this.store[key] = value;
 
@@ -74,10 +69,6 @@ export class MockStorageClass extends CacheManager {
         }
     }
 
-    removeOutdatedAccount(accountKey: string): void {
-        delete this.store[accountKey];
-    }
-
     getAccountKeys(): string[] {
         return this.store[ACCOUNT_KEYS] || [];
     }
@@ -96,7 +87,7 @@ export class MockStorageClass extends CacheManager {
     getIdTokenCredential(key: string): IdTokenEntity | null {
         return (this.store[key] as IdTokenEntity) || null;
     }
-    setIdTokenCredential(value: IdTokenEntity): void {
+    async setIdTokenCredential(value: IdTokenEntity): Promise<void> {
         const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
@@ -111,7 +102,7 @@ export class MockStorageClass extends CacheManager {
     getAccessTokenCredential(key: string): AccessTokenEntity | null {
         return (this.store[key] as AccessTokenEntity) || null;
     }
-    setAccessTokenCredential(value: AccessTokenEntity): void {
+    async setAccessTokenCredential(value: AccessTokenEntity): Promise<void> {
         const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
@@ -126,7 +117,7 @@ export class MockStorageClass extends CacheManager {
     getRefreshTokenCredential(key: string): RefreshTokenEntity | null {
         return (this.store[key] as RefreshTokenEntity) || null;
     }
-    setRefreshTokenCredential(value: RefreshTokenEntity): void {
+    async setRefreshTokenCredential(value: RefreshTokenEntity): Promise<void> {
         const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
@@ -197,23 +188,6 @@ export class MockStorageClass extends CacheManager {
     }
     async clear(): Promise<void> {
         this.store = {};
-    }
-    updateCredentialCacheKey(
-        currentCacheKey: string,
-        credential: ValidCredentialType
-    ): string {
-        const updatedCacheKey = CacheHelpers.generateCredentialKey(credential);
-
-        if (currentCacheKey !== updatedCacheKey) {
-            const cacheItem = this.store[currentCacheKey];
-            if (cacheItem) {
-                this.removeItem(currentCacheKey);
-                this.store[updatedCacheKey] = cacheItem;
-                return updatedCacheKey;
-            }
-        }
-
-        return currentCacheKey;
     }
 }
 

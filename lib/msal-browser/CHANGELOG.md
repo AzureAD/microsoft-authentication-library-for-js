@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 14 Jan 2025 22:59:33 GMT and should not be manually modified.
+<!-- This log was last generated on Wed, 15 Jan 2025 05:05:17 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.0.1
+
+Wed, 15 Jan 2025 05:05:17 GMT
+
+### Breaking Changes
+
+- Rename `native` to `platformBroker` in public API and docs (sameera.gajjarapu@microsoft.com)
+- Encrypt localStorage to reduce persistence to browser session lifetime (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.0.1 (beachball)
+
+Please see the [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v3-migration.md) for more details.
 
 ## 3.28.1
 

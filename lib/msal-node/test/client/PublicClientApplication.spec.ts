@@ -1074,7 +1074,7 @@ describe("PublicClientApplication", () => {
             );
 
             // @ts-ignore
-            authApp.storage.setAccount(accountEntity);
+            await authApp.storage.setAccount(accountEntity);
 
             const idTokenEntity = CacheHelpers.createIdTokenEntity(
                 mockAccountInfo.homeAccountId,
@@ -1085,7 +1085,7 @@ describe("PublicClientApplication", () => {
             );
 
             // @ts-ignore
-            authApp.storage.setIdTokenCredential(idTokenEntity);
+            await authApp.storage.setIdTokenCredential(idTokenEntity);
 
             const accountsBefore = await authApp.getAllAccounts();
             expect(accountsBefore.length).toBe(1);
@@ -1151,10 +1151,10 @@ describe("PublicClientApplication", () => {
                 AccountEntity.createFromAccountInfo(mockAccountInfo);
 
             // @ts-ignore
-            authApp.storage.setAccount(accountEntity);
+            await authApp.storage.setAccount(accountEntity);
 
             // @ts-ignore
-            authApp.storage.setAccount(accountEntity);
+            await authApp.storage.setAccount(accountEntity);
 
             const idTokenEntity = CacheHelpers.createIdTokenEntity(
                 mockAccountInfo.homeAccountId,
@@ -1165,7 +1165,7 @@ describe("PublicClientApplication", () => {
             );
 
             // @ts-ignore
-            authApp.storage.setIdTokenCredential(idTokenEntity);
+            await authApp.storage.setIdTokenCredential(idTokenEntity);
 
             const accounts = await authApp.getAllAccounts();
             expect(accounts).toStrictEqual([mockAccountInfo]);
