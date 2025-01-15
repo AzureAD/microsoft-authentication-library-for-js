@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Bump react and angular to next major versions",
+  "packageName": "@azure/msal-react",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none"
+}
