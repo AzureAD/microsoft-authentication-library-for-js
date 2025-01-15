@@ -396,6 +396,11 @@ export const MANAGED_IDENTITY_APP_SERVICE_NETWORK_REQUEST_400_ERROR: ManagedIden
     {
         ...MANAGED_IDENTITY_NETWORK_REQUEST_500_ERROR,
     };
+// Machine Learning 400 error response
+export const MANAGED_IDENTITY_MACHINE_LEARNING_NETWORK_REQUEST_400_ERROR: ManagedIdentityTokenResponse =
+    {
+        ...MANAGED_IDENTITY_NETWORK_REQUEST_500_ERROR,
+    };
 // Cloud Shell 400 error response
 export const MANAGED_IDENTITY_CLOUD_SHELL_NETWORK_REQUEST_400_ERROR: ManagedIdentityTokenResponse =
     {
