@@ -8,12 +8,11 @@
 
 Wed, 15 Jan 2025 05:05:17 GMT
 
-### Patches
+### Breaking Changes
 
-- Asynchronous cache writes (thomas.norling@microsoft.com)
-- Bump @azure/msal-common to v15.0.1
-- Bump eslint-config-msal to v0.0.0
-- Bump rollup-msal to v0.0.0
+- NodeStorage is no longer exported
+
+Please see the [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/v2-migration.md) for more details.
 
 ## 2.16.2
 

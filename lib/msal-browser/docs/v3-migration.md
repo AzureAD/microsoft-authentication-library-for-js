@@ -66,4 +66,5 @@ Starting in v4, if you are using the `localStorage` cache location, auth artifac
 
 This cookie will be automatically removed when the browser instance (not tab) is closed, thus making it impossible to decrypt any auth artifacts after the session has ended. These expired auth artifacts will be removed the next time MSAL is initialized and the user may need to reauthenticate. The `localStorage` location still provides cross-tab cache persistence but will no longer persist across browser sessions.  
 
-> [!Important] The purpose of this encryption is to reduce the persistence of auth artifacts, **not** to provide additional security. If a bad actor gains access to browser storage they would also have access to the key or have the ability to request tokens on your behalf without the need for cache at all. It is your responsibility to ensure your application is not vulnerable to XSS attacks [see below](#security)
+> [!Important]
+> The purpose of this encryption is to reduce the persistence of auth artifacts, **not** to provide additional security. If a bad actor gains access to browser storage they would also have access to the key or have the ability to request tokens on your behalf without the need for cache at all. It is your responsibility to ensure your application is not vulnerable to XSS attacks [see below](#security)
