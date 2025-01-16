@@ -131,6 +131,15 @@ export const userAssignedClientIdConfig: ManagedIdentityConfiguration = {
     },
 };
 
+export const userAssignedResourceIdConfig: ManagedIdentityConfiguration = {
+    system: {
+        networkClient,
+    },
+    managedIdentityIdParams: {
+        userAssignedResourceId: MANAGED_IDENTITY_RESOURCE_ID,
+    },
+};
+
 export const systemAssignedConfig: ManagedIdentityConfiguration = {
     system: {
         networkClient,
