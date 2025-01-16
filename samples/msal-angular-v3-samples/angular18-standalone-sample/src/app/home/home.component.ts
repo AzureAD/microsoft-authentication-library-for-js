@@ -10,11 +10,10 @@ import {
 import { filter } from 'rxjs/operators';
 
 @Component({
-  selector: 'app-home',
-  templateUrl: './home.component.html',
-  styleUrls: [],
-  standalone: true,
-  imports: [CommonModule],
+    selector: 'app-home',
+    templateUrl: './home.component.html',
+    styleUrls: [],
+    imports: [CommonModule]
 })
 export class HomeComponent implements OnInit {
   loginDisplay = false;
