@@ -9,8 +9,7 @@ import { HttpStatus } from "@azure/msal-common/node";
 export const AUTHORIZATION_HEADER_NAME: string = "Authorization";
 export const METADATA_HEADER_NAME: string = "Metadata";
 export const APP_SERVICE_SECRET_HEADER_NAME: string = "X-IDENTITY-HEADER";
-export const MACHINE_LEARNING_AND_SERVICE_FABRIC_SECRET_HEADER_NAME: string =
-    "secret";
+export const ML_AND_SF_SECRET_HEADER_NAME: string = "secret";
 export const API_VERSION_QUERY_PARAMETER_NAME: string = "api-version";
 export const RESOURCE_BODY_OR_QUERY_PARAMETER_NAME: string = "resource";
 export const DEFAULT_MANAGED_IDENTITY_ID = "system_assigned_managed_identity";

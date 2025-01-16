@@ -34,15 +34,15 @@ import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/c
 
 describe("Acquires a token successfully via an Machine Learning Managed Identity", () => {
     beforeAll(() => {
-        process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT] =
-            "fake_IDENTITY_ENDPOINT";
+        process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT] =
+            "fake_MSI_ENDPOINT";
         process.env[ManagedIdentityEnvironmentVariableNames.MSI_SECRET] =
             "fake_MSI_SECRET";
     });
 
     afterAll(() => {
         delete process.env[
-            ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
+            ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT
         ];
         delete process.env[ManagedIdentityEnvironmentVariableNames.MSI_SECRET];
     });
@@ -107,6 +107,28 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
             ).toEqual(MANAGED_IDENTITY_RESOURCE_ID);
 
             jest.restoreAllMocks();
+        });
+
+        test("ensures that App Service is selected as the Managed Identity source when all of its and Machine Learning's environment variables are present", async () => {
+            process.env[
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
+            ] = "fake_IDENTITY_ENDPOINT";
+            process.env[
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER
+            ] = "fake_IDENTITY_HEADER";
+
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication(userAssignedClientIdConfig);
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.APP_SERVICE
+            );
+
+            delete process.env[
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
+            ];
+            delete process.env[
+                ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER
+            ];
         });
     });
 

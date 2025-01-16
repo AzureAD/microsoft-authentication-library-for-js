@@ -13,7 +13,7 @@ import {
     ManagedIdentitySourceNames,
     ManagedIdentityIdType,
     METADATA_HEADER_NAME,
-    MACHINE_LEARNING_AND_SERVICE_FABRIC_SECRET_HEADER_NAME,
+    ML_AND_SF_SECRET_HEADER_NAME,
 } from "../../utils/Constants.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
@@ -25,7 +25,7 @@ const MACHINE_LEARNING_MSI_API_VERSION: string = "2017-09-01";
 // search for all App Service
 
 export class MachineLearning extends BaseManagedIdentitySource {
-    private identityEndpoint: string;
+    private msiEndpoint: string;
     private secret: string;
 
     constructor(
@@ -33,25 +33,23 @@ export class MachineLearning extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
-        identityEndpoint: string,
+        msiEndpoint: string,
         secret: string
     ) {
         super(logger, nodeStorage, networkClient, cryptoProvider);
 
-        this.identityEndpoint = identityEndpoint;
+        this.msiEndpoint = msiEndpoint;
         this.secret = secret;
     }
 
     public static getEnvironmentVariables(): Array<string | undefined> {
-        const identityEndpoint: string | undefined =
-            process.env[
-                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
-            ];
+        const msiEndpoint: string | undefined =
+            process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT];
 
         const secret: string | undefined =
             process.env[ManagedIdentityEnvironmentVariableNames.MSI_SECRET];
 
-        return [identityEndpoint, secret];
+        return [msiEndpoint, secret];
     }
 
     public static tryCreate(
@@ -60,27 +58,26 @@ export class MachineLearning extends BaseManagedIdentitySource {
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ): MachineLearning | null {
-        const [identityEndpoint, secret] =
-            MachineLearning.getEnvironmentVariables();
+        const [msiEndpoint, secret] = MachineLearning.getEnvironmentVariables();
 
         // if either of the identity endpoint or MSI secret variables are undefined, this MSI provider is unavailable.
-        if (!identityEndpoint || !secret) {
+        if (!msiEndpoint || !secret) {
             logger.info(
-                `[Managed Identity] ${ManagedIdentitySourceNames.MACHINE_LEARNING} managed identity is unavailable because one or both of the '${ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT}' and '${ManagedIdentityEnvironmentVariableNames.MSI_SECRET}' environment variables are not defined.`
+                `[Managed Identity] ${ManagedIdentitySourceNames.MACHINE_LEARNING} managed identity is unavailable because one or both of the '${ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT}' and '${ManagedIdentityEnvironmentVariableNames.MSI_SECRET}' environment variables are not defined.`
             );
             return null;
         }
 
-        const validatedIdentityEndpoint: string =
+        const validatedMsiEndpoint: string =
             MachineLearning.getValidatedEnvVariableUrlString(
-                ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT,
-                identityEndpoint,
+                ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT,
+                msiEndpoint,
                 ManagedIdentitySourceNames.MACHINE_LEARNING,
                 logger
             );
 
         logger.info(
-            `[Managed Identity] Environment variables validation passed for ${ManagedIdentitySourceNames.MACHINE_LEARNING} managed identity. Endpoint URI: ${validatedIdentityEndpoint}. Creating ${ManagedIdentitySourceNames.MACHINE_LEARNING} managed identity.`
+            `[Managed Identity] Environment variables validation passed for ${ManagedIdentitySourceNames.MACHINE_LEARNING} managed identity. Endpoint URI: ${validatedMsiEndpoint}. Creating ${ManagedIdentitySourceNames.MACHINE_LEARNING} managed identity.`
         );
 
         return new MachineLearning(
@@ -88,7 +85,7 @@ export class MachineLearning extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
-            identityEndpoint,
+            msiEndpoint,
             secret
         );
     }
@@ -100,13 +97,11 @@ export class MachineLearning extends BaseManagedIdentitySource {
         const request: ManagedIdentityRequestParameters =
             new ManagedIdentityRequestParameters(
                 HttpMethod.GET,
-                this.identityEndpoint
+                this.msiEndpoint
             );
 
         request.headers[METADATA_HEADER_NAME] = "true";
-        request.headers[
-            MACHINE_LEARNING_AND_SERVICE_FABRIC_SECRET_HEADER_NAME
-        ] = this.secret;
+        request.headers[ML_AND_SF_SECRET_HEADER_NAME] = this.secret;
 
         request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
             MACHINE_LEARNING_MSI_API_VERSION;
