@@ -20,12 +20,12 @@ export class SignInPasswordRequiredStateHandler extends SignInStateHandler {
      * @returns The result of the operation.
      */
     async submitPassword(
-        password: string
+        password: string,
     ): Promise<SignInSubmitPasswordResult> {
         if (!password) {
             const result = SignInSubmitPasswordResult.createWithError(
                 new InvalidArgumentError("password", this.correlationId),
-                SignInSubmitPasswordError
+                SignInSubmitPasswordError,
             );
 
             return Promise.resolve(result);
@@ -44,27 +44,26 @@ export class SignInPasswordRequiredStateHandler extends SignInStateHandler {
 
             this.logger.info("Submitting password for sign-in.");
 
-            const completedResult = await this.signInClient.submitPassword(
-                submitPasswordParams
-            );
+            const completedResult =
+                await this.signInClient.submitPassword(submitPasswordParams);
 
             this.logger.info("Password submitted for sign-in.");
 
             const accountInfo = new AccountInfo(
                 completedResult.authenticationResult.account,
                 this.correlationId,
-                this.config
+                this.config,
             );
 
             return new SignInSubmitPasswordResult(accountInfo);
         } catch (error) {
             this.logger.error(
-                `Failed to sign in after submitting password. Error: ${error}.`
+                `Failed to sign in after submitting password. Error: ${error}.`,
             );
 
             return SignInSubmitPasswordResult.createWithError(
                 error,
-                SignInSubmitPasswordError
+                SignInSubmitPasswordError,
             );
         }
     }

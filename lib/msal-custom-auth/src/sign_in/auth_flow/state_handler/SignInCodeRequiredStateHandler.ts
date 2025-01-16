@@ -32,7 +32,7 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
 
             const result = SignInSubmitCodeResult.createWithError(
                 new InvalidArgumentError("code", this.correlationId),
-                SignInSubmitCodeError
+                SignInSubmitCodeError,
             );
 
             return Promise.resolve(result);
@@ -51,27 +51,26 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
 
             this.logger.info("Submitting code for sign-in.");
 
-            const completedResult = await this.signInClient.submitCode(
-                submitCodeParams
-            );
+            const completedResult =
+                await this.signInClient.submitCode(submitCodeParams);
 
             this.logger.info("Code submitted for sign-in.");
 
             const accountManager = new AccountInfo(
                 completedResult.authenticationResult.account,
                 this.correlationId,
-                this.config
+                this.config,
             );
 
             return new SignInSubmitCodeResult(accountManager);
         } catch (error) {
             this.logger.error(
-                `Failed to submit code for sign-in. Error: ${error}.`
+                `Failed to submit code for sign-in. Error: ${error}.`,
             );
 
             return SignInSubmitCodeResult.createWithError(
                 error,
-                SignInSubmitCodeError
+                SignInSubmitCodeError,
             );
         }
     }
@@ -101,13 +100,13 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
                     this.logger,
                     result.continuationToken,
                     this.config,
-                    this.scopes
-                )
+                    this.scopes,
+                ),
             );
         } catch (error) {
             return SignInResendCodeResult.createWithError(
                 error,
-                SignInResendCodeError
+                SignInResendCodeError,
             );
         }
     }

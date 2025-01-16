@@ -8,7 +8,7 @@ import { CustomAuthAuthenticationResult } from "../../../core/interaction_client
 export class SignInCompleteResult {
     constructor(
         public correlationId: string,
-        public authenticationResult: CustomAuthAuthenticationResult
+        public authenticationResult: CustomAuthAuthenticationResult,
     ) {}
 }
 
@@ -16,7 +16,7 @@ export class SignInContinuationTokenResult {
     constructor(
         public correlationId: string,
         public continuationToken: string,
-        public challengeType: string
+        public challengeType: string,
     ) {}
 }
 
@@ -27,7 +27,7 @@ export class SignInCodeSendResult extends SignInContinuationTokenResult {
         challengeType: string,
         public challengeChannel: string,
         public challengeTargetLabel: string,
-        public codeLength: number
+        public codeLength: number,
     ) {
         super(correlationId, continuationToken, challengeType);
     }

@@ -71,19 +71,19 @@ export class CustomAuthStandardController
 
         this.logger = this.logger.clone(
             DefaultPackageInfo.SKU,
-            DefaultPackageInfo.VERSION
+            DefaultPackageInfo.VERSION,
         );
         this.customAuthConfig = operatingContext.getCustomAuthConfig();
         this.authority = new CustomAuthAuthority(
             this.config.auth.authority,
-            this.customAuthConfig.customAuth?.authApiProxyUrl
+            this.customAuthConfig.customAuth?.authApiProxyUrl,
         );
 
         const customAuthApiClient = new CustomAuthApiClient(
             new FetchHttpClient(
                 this.logger,
-                this.authority.getCustomAuthDomain()
-            )
+                this.authority.getCustomAuthDomain(),
+            ),
         );
 
         this.signInClient = new SigninClient(
@@ -95,7 +95,7 @@ export class CustomAuthStandardController
             this.navigationClient,
             this.performanceClient,
             customAuthApiClient,
-            this.authority
+            this.authority,
         );
         // Create more interaction clients here, such as SignUpClient, ResetPasswordClient, etc.
     }
@@ -106,12 +106,12 @@ export class CustomAuthStandardController
      * @returns - A promise that resolves to GetAccountResult
      */
     async getCurrentAccount(
-        getAccountInputs: GetAccountInputs
+        getAccountInputs: GetAccountInputs,
     ): Promise<GetAccountResult> {
         const correlationId = this.getCorrelationId(getAccountInputs);
 
         throw new Error(
-            `Method not implemented with Parameter ${correlationId}.`
+            `Method not implemented with Parameter ${correlationId}.`,
         );
     }
 
@@ -130,10 +130,10 @@ export class CustomAuthStandardController
                 SignInResult.createWithError(
                     new InvalidArgumentError(
                         "signUpInputs.username",
-                        correlationId
+                        correlationId,
                     ),
-                    SignInError
-                )
+                    SignInError,
+                ),
             );
         }
 
@@ -152,12 +152,11 @@ export class CustomAuthStandardController
             this.logger.info(
                 `Starting sign-in flow ${
                     !!signInInputs.password ? "with" : "without"
-                } password.`
+                } password.`,
             );
 
-            const startResult = await this.signInClient.start(
-                signInStartParams
-            );
+            const startResult =
+                await this.signInClient.start(signInStartParams);
 
             this.logger.info("Sign-in flow started.");
 
@@ -174,8 +173,8 @@ export class CustomAuthStandardController
                         this.logger,
                         startResult.continuationToken,
                         this.customAuthConfig,
-                        signInInputs.scopes
-                    )
+                        signInInputs.scopes,
+                    ),
                 );
             } else if (startResult instanceof SignInContinuationTokenResult) {
                 // require password
@@ -183,7 +182,7 @@ export class CustomAuthStandardController
 
                 if (!signInInputs.password) {
                     this.logger.info(
-                        "Password required but not provided. Returning password required state."
+                        "Password required but not provided. Returning password required state.",
                     );
 
                     return new SignInResult(
@@ -195,8 +194,8 @@ export class CustomAuthStandardController
                             this.logger,
                             startResult.continuationToken,
                             this.customAuthConfig,
-                            signInInputs.scopes
-                        )
+                            signInInputs.scopes,
+                        ),
                     );
                 }
 
@@ -214,22 +213,23 @@ export class CustomAuthStandardController
                     username: signInInputs.username,
                 };
 
-                const completedResult = await this.signInClient.submitPassword(
-                    submitPasswordParams
-                );
+                const completedResult =
+                    await this.signInClient.submitPassword(
+                        submitPasswordParams,
+                    );
 
                 this.logger.info("Sign-in flow completed.");
 
                 const accountInfo = new AccountInfo(
                     completedResult.authenticationResult.account,
                     correlationId,
-                    this.customAuthConfig
+                    this.customAuthConfig,
                 );
 
                 return new SignInResult(accountInfo);
             } else {
                 this.logger.error(
-                    "Unexpected sign-in result type. Returning error."
+                    "Unexpected sign-in result type. Returning error.",
                 );
 
                 throw new UnexpectedError("Unknow sign-in result type");
@@ -254,15 +254,15 @@ export class CustomAuthStandardController
                 SignUpResult.createWithError(
                     new InvalidArgumentError(
                         "signUpInputs.username",
-                        correlationId
+                        correlationId,
                     ),
-                    SignUpError
-                )
+                    SignUpError,
+                ),
             );
         }
 
         throw new Error(
-            `Method not implemented with Parameter ${correlationId}.`
+            `Method not implemented with Parameter ${correlationId}.`,
         );
     }
 
@@ -272,7 +272,7 @@ export class CustomAuthStandardController
      * @returns The result of the operation.
      */
     async resetPassword(
-        resetPasswordInputs: ResetPasswordInputs
+        resetPasswordInputs: ResetPasswordInputs,
     ): Promise<ResetPasswordStartResult> {
         const correlationId = this.getCorrelationId(resetPasswordInputs);
 
@@ -281,15 +281,15 @@ export class CustomAuthStandardController
                 ResetPasswordStartResult.createWithError(
                     new InvalidArgumentError(
                         "resetPasswordInputs.username",
-                        correlationId
+                        correlationId,
                     ),
-                    ResetPasswordError
-                )
+                    ResetPasswordError,
+                ),
             );
         }
 
         throw new Error(
-            `Method not implemented with Parameter ${correlationId}.`
+            `Method not implemented with Parameter ${correlationId}.`,
         );
     }
 

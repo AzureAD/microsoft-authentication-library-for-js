@@ -19,24 +19,24 @@ export class SignInInitiateRequest extends CustomAuthApiRequestBase {
     constructor(
         correlationId: string,
         telemetryManager: ServerTelemetryManager,
-        public parameters: SignInInitiateRequestParameters
+        public parameters: SignInInitiateRequestParameters,
     ) {
         super(correlationId, telemetryManager);
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
-            correlationId
+            correlationId,
         );
     }
 
     static create(
         signInStartParams: SignInStartParams,
-        telemetryManager: ServerTelemetryManager
+        telemetryManager: ServerTelemetryManager,
     ): SignInInitiateRequest {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "signInStartParams",
-            signInStartParams
+            signInStartParams,
         );
 
         return new SignInInitiateRequest(
@@ -46,8 +46,8 @@ export class SignInInitiateRequest extends CustomAuthApiRequestBase {
                 signInStartParams.username,
                 signInStartParams.clientId,
                 this.getChallengeTypes(signInStartParams.challengeType),
-                signInStartParams.correlationId
-            )
+                signInStartParams.correlationId,
+            ),
         );
     }
 }
@@ -57,29 +57,29 @@ export class SignInInitiateRequestParameters {
         public username: string,
         public clientId: string,
         public challengeType: string,
-        correlationId: string
+        correlationId: string,
     ) {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "correlationId",
-            correlationId
+            correlationId,
         );
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "username",
             username,
-            correlationId
+            correlationId,
         );
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "clientId",
             clientId,
-            correlationId
+            correlationId,
         );
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "challengeType",
             challengeType,
-            correlationId
+            correlationId,
         );
     }
 }
@@ -88,25 +88,25 @@ export class SignInChallengeRequest extends CustomAuthApiRequestBase {
     constructor(
         correlationId: string,
         telemetryManager: ServerTelemetryManager,
-        public parameters: SignInChallengeRequestParameters
+        public parameters: SignInChallengeRequestParameters,
     ) {
         super(correlationId, telemetryManager);
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
-            correlationId
+            correlationId,
         );
     }
 
     static create(
         signInParams: SignInParamsBase,
         continuationToken: string,
-        telemetryManager: ServerTelemetryManager
+        telemetryManager: ServerTelemetryManager,
     ): SignInChallengeRequest {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "signInStartParams",
-            signInParams
+            signInParams,
         );
 
         return new SignInChallengeRequest(
@@ -116,8 +116,8 @@ export class SignInChallengeRequest extends CustomAuthApiRequestBase {
                 signInParams.clientId,
                 this.getChallengeTypes(signInParams.challengeType),
                 continuationToken,
-                signInParams.correlationId
-            )
+                signInParams.correlationId,
+            ),
         );
     }
 }
@@ -131,23 +131,23 @@ export class SignInChallengeRequestParameters {
         public clientId: string,
         public challengeType: string,
         public continuationToken: string,
-        correlationId: string
+        correlationId: string,
     ) {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "correlationId",
-            correlationId
+            correlationId,
         );
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "continuationToken",
             continuationToken,
-            correlationId
+            correlationId,
         );
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "clientId",
             clientId,
-            correlationId
+            correlationId,
         );
     }
 }
@@ -156,24 +156,24 @@ export class SignInOobTokenRequest extends CustomAuthApiRequestBase {
     constructor(
         correlationId: string,
         telemetryManager: ServerTelemetryManager,
-        public parameters: SignInOobTokenRequestParameters
+        public parameters: SignInOobTokenRequestParameters,
     ) {
         super(correlationId, telemetryManager);
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
-            correlationId
+            correlationId,
         );
     }
 
     static create(
         signInSubmitCodeParams: SignInSubmitCodeParams,
-        telemetryManager: ServerTelemetryManager
+        telemetryManager: ServerTelemetryManager,
     ): SignInOobTokenRequest {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "signInSubmitCodeParams",
-            signInSubmitCodeParams
+            signInSubmitCodeParams,
         );
 
         return new SignInOobTokenRequest(
@@ -185,8 +185,8 @@ export class SignInOobTokenRequest extends CustomAuthApiRequestBase {
                 signInSubmitCodeParams.correlationId,
                 signInSubmitCodeParams.code,
                 this.getChallengeTypes(signInSubmitCodeParams.challengeType),
-                this.getScopes(signInSubmitCodeParams.scopes)
-            )
+                this.getScopes(signInSubmitCodeParams.scopes),
+            ),
         );
     }
 }
@@ -195,24 +195,24 @@ export class SignInPasswordTokenRequest extends CustomAuthApiRequestBase {
     constructor(
         correlationId: string,
         telemetryManager: ServerTelemetryManager,
-        public parameters: SignInPasswordTokenRequestParameters
+        public parameters: SignInPasswordTokenRequestParameters,
     ) {
         super(correlationId, telemetryManager);
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
-            correlationId
+            correlationId,
         );
     }
 
     static create(
         signInSubmitPasswordParams: SignInSubmitPasswordParams,
-        telemetryManager: ServerTelemetryManager
+        telemetryManager: ServerTelemetryManager,
     ): SignInPasswordTokenRequest {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "signInSubmitPasswordParams",
-            signInSubmitPasswordParams
+            signInSubmitPasswordParams,
         );
 
         return new SignInPasswordTokenRequest(
@@ -224,10 +224,10 @@ export class SignInPasswordTokenRequest extends CustomAuthApiRequestBase {
                 signInSubmitPasswordParams.correlationId,
                 signInSubmitPasswordParams.password,
                 this.getChallengeTypes(
-                    signInSubmitPasswordParams.challengeType
+                    signInSubmitPasswordParams.challengeType,
                 ),
-                this.getScopes(signInSubmitPasswordParams.scopes)
-            )
+                this.getScopes(signInSubmitPasswordParams.scopes),
+            ),
         );
     }
 }
@@ -236,24 +236,24 @@ export class SignInContinuationTokenRequest extends CustomAuthApiRequestBase {
     constructor(
         correlationId: string,
         telemetryManager: ServerTelemetryManager,
-        public parameters: SignInContinuationTokenRequestParameters
+        public parameters: SignInContinuationTokenRequestParameters,
     ) {
         super(correlationId, telemetryManager);
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
-            correlationId
+            correlationId,
         );
     }
 
     static create(
         signInContinuationTokenParams: SignInContinuationTokenParams,
-        telemetryManager: ServerTelemetryManager
+        telemetryManager: ServerTelemetryManager,
     ): SignInContinuationTokenRequest {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "signInContinuationTokenParams",
-            signInContinuationTokenParams
+            signInContinuationTokenParams,
         );
 
         return new SignInContinuationTokenRequest(
@@ -265,10 +265,10 @@ export class SignInContinuationTokenRequest extends CustomAuthApiRequestBase {
                 signInContinuationTokenParams.correlationId,
                 signInContinuationTokenParams.username,
                 this.getChallengeTypes(
-                    signInContinuationTokenParams.challengeType
+                    signInContinuationTokenParams.challengeType,
                 ),
-                this.getScopes(signInContinuationTokenParams.scopes)
-            )
+                this.getScopes(signInContinuationTokenParams.scopes),
+            ),
         );
     }
 }
@@ -280,29 +280,29 @@ abstract class SignInTokenRequestParametersBase {
         public grantType: string,
         correlationId: string,
         public scopes?: Array<string>,
-        public challengeType?: string
+        public challengeType?: string,
     ) {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "correlationId",
-            correlationId
+            correlationId,
         );
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "grantType",
             grantType,
-            correlationId
+            correlationId,
         );
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "clientId",
             clientId,
-            correlationId
+            correlationId,
         );
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "continuationToken",
             continuationToken,
-            correlationId
+            correlationId,
         );
     }
 }
@@ -314,7 +314,7 @@ export class SignInOobTokenRequestParameters extends SignInTokenRequestParameter
         correlationId: string,
         public oob: string,
         challengeType?: string,
-        scopes?: Array<string>
+        scopes?: Array<string>,
     ) {
         super(
             clientId,
@@ -322,13 +322,13 @@ export class SignInOobTokenRequestParameters extends SignInTokenRequestParameter
             GrantType.OOB,
             correlationId,
             scopes,
-            challengeType
+            challengeType,
         );
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "oob",
             oob,
-            correlationId
+            correlationId,
         );
     }
 }
@@ -340,7 +340,7 @@ export class SignInPasswordTokenRequestParameters extends SignInTokenRequestPara
         correlationId: string,
         public password: string,
         challengeType?: string,
-        scopes?: Array<string>
+        scopes?: Array<string>,
     ) {
         super(
             clientId,
@@ -348,13 +348,13 @@ export class SignInPasswordTokenRequestParameters extends SignInTokenRequestPara
             GrantType.PASSWORD,
             correlationId,
             scopes,
-            challengeType
+            challengeType,
         );
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "password",
             password,
-            correlationId
+            correlationId,
         );
     }
 }
@@ -366,7 +366,7 @@ export class SignInContinuationTokenRequestParameters extends SignInTokenRequest
         correlationId: string,
         public username: string,
         challengeType?: string,
-        scopes?: Array<string>
+        scopes?: Array<string>,
     ) {
         super(
             clientId,
@@ -374,13 +374,13 @@ export class SignInContinuationTokenRequestParameters extends SignInTokenRequest
             GrantType.CONTINUATION_TOKEN,
             correlationId,
             scopes,
-            challengeType
+            challengeType,
         );
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "username",
             username,
-            correlationId
+            correlationId,
         );
     }
 }

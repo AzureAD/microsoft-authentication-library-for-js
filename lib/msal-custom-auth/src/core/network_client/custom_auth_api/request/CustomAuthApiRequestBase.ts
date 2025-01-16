@@ -18,17 +18,17 @@ import { ArgumentValidator } from "../../../utils/ArgumentValidator.js";
 export abstract class CustomAuthApiRequestBase {
     protected constructor(
         public correlationId: string,
-        private telemetryManager: ServerTelemetryManager
+        private telemetryManager: ServerTelemetryManager,
     ) {
         ArgumentValidator.ensureArgumentIsNotEmptyString(
             "correlationId",
-            correlationId
+            correlationId,
         );
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "telemetryManager",
             telemetryManager,
-            correlationId
+            correlationId,
         );
 
         this.setCommonApiHeaders();
@@ -37,7 +37,7 @@ export abstract class CustomAuthApiRequestBase {
     public headers: Record<string, string> = {};
 
     protected static getChallengeTypes(
-        configuredChallengeTypes: string[]
+        configuredChallengeTypes: string[],
     ): string {
         let challengeTypes = configuredChallengeTypes;
 

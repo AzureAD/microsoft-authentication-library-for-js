@@ -40,11 +40,11 @@ export class SigninClient extends CustomAuthInteractionClientBase {
      * @returns The result of the sign-in start operation.
      */
     async start(
-        parameters: SignInStartParams
+        parameters: SignInStartParams,
     ): Promise<SignInContinuationTokenResult | SignInCodeSendResult> {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "parameters",
-            parameters
+            parameters,
         );
 
         const apiId = !parameters.password
@@ -55,7 +55,7 @@ export class SigninClient extends CustomAuthInteractionClientBase {
         // Create initiate request.
         const initiateRequest = SignInInitiateRequest.create(
             parameters,
-            telemetryManager
+            telemetryManager,
         );
 
         // Call initiate endpoint.
@@ -63,7 +63,7 @@ export class SigninClient extends CustomAuthInteractionClientBase {
 
         const initiateResponse =
             await this.customAuthApiClient.performSignInInitiateRequest(
-                initiateRequest
+                initiateRequest,
             );
 
         this.logger.info("Initiate endpoint called for sign in.");
@@ -72,7 +72,7 @@ export class SigninClient extends CustomAuthInteractionClientBase {
         const challengeRequest = SignInChallengeRequest.create(
             parameters,
             initiateResponse.continuation_token ?? "",
-            telemetryManager
+            telemetryManager,
         );
 
         // Call challenge endpoint.
@@ -80,7 +80,7 @@ export class SigninClient extends CustomAuthInteractionClientBase {
 
         const challengeResponse =
             await this.customAuthApiClient.performSignInChallengeRequest(
-                challengeRequest
+                challengeRequest,
             );
 
         this.logger.info("Challenge endpoint called for sign in.");
@@ -95,7 +95,7 @@ export class SigninClient extends CustomAuthInteractionClientBase {
                 challengeResponse.challenge_type ?? "",
                 challengeResponse.challenge_channel ?? "",
                 challengeResponse.target_challenge_label ?? "",
-                challengeResponse.code_length ?? 0
+                challengeResponse.code_length ?? 0,
             );
         }
 
@@ -106,33 +106,33 @@ export class SigninClient extends CustomAuthInteractionClientBase {
             return new SignInContinuationTokenResult(
                 challengeResponse.correlation_id ?? "",
                 challengeResponse.continuation_token ?? "",
-                challengeResponse.challenge_type
+                challengeResponse.challenge_type,
             );
         }
 
         this.logger.error(
-            `Unsupported challenge type '${challengeResponse.challenge_type}' for sign in.`
+            `Unsupported challenge type '${challengeResponse.challenge_type}' for sign in.`,
         );
 
         throw new CustomAuthApiError(
             CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
             `Unsupported challenge type '${challengeResponse.challenge_type}'.`,
-            parameters.correlationId
+            parameters.correlationId,
         );
     }
 
     async submitCode(
-        parameters: SignInSubmitCodeParams
+        parameters: SignInSubmitCodeParams,
     ): Promise<SignInCompleteResult> {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "parameters",
-            parameters
+            parameters,
         );
 
         ArgumentValidator.ensureArgumentIsNotEmptyString(
             "parameters.code",
             parameters.code,
-            parameters.correlationId
+            parameters.correlationId,
         );
 
         const apiId = PublicApiId.SIGN_IN_SUBMIT_CODE;
@@ -141,7 +141,7 @@ export class SigninClient extends CustomAuthInteractionClientBase {
         // Create token request.
         const request = SignInOobTokenRequest.create(
             parameters,
-            telemetryManager
+            telemetryManager,
         );
 
         // Call token endpoint.
@@ -149,7 +149,7 @@ export class SigninClient extends CustomAuthInteractionClientBase {
 
         const response =
             await this.customAuthApiClient.performSignInOobTokenRequest(
-                request
+                request,
             );
 
         this.logger.info("Token endpoint called with code for sign in.");
@@ -159,23 +159,23 @@ export class SigninClient extends CustomAuthInteractionClientBase {
             this.createAuthenticationResult(
                 response,
                 parameters.scopes,
-                parameters.username
-            )
+                parameters.username,
+            ),
         );
     }
 
     async submitPassword(
-        parameters: SignInSubmitPasswordParams
+        parameters: SignInSubmitPasswordParams,
     ): Promise<SignInCompleteResult> {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "parameters",
-            parameters
+            parameters,
         );
 
         ArgumentValidator.ensureArgumentIsNotEmptyString(
             "parameters.password",
             parameters.password,
-            parameters.correlationId
+            parameters.correlationId,
         );
 
         const apiId = PublicApiId.SIGN_IN_SUBMIT_PASSWORD;
@@ -184,7 +184,7 @@ export class SigninClient extends CustomAuthInteractionClientBase {
         // Create token request.
         const request = SignInPasswordTokenRequest.create(
             parameters,
-            telemetryManager
+            telemetryManager,
         );
 
         // Call token endpoint.
@@ -192,7 +192,7 @@ export class SigninClient extends CustomAuthInteractionClientBase {
 
         const response =
             await this.customAuthApiClient.performSignInPasswordTokenRequest(
-                request
+                request,
             );
 
         this.logger.info("Token endpoint called with password for sign in.");
@@ -202,17 +202,17 @@ export class SigninClient extends CustomAuthInteractionClientBase {
             this.createAuthenticationResult(
                 response,
                 parameters.scopes,
-                parameters.username
-            )
+                parameters.username,
+            ),
         );
     }
 
     async resendCode(
-        parameters: SignInResendCodeParams
+        parameters: SignInResendCodeParams,
     ): Promise<SignInCodeSendResult> {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "parameters",
-            parameters
+            parameters,
         );
 
         const apiId = PublicApiId.SIGN_IN_RESEND_CODE;
@@ -222,21 +222,21 @@ export class SigninClient extends CustomAuthInteractionClientBase {
         const request = SignInChallengeRequest.create(
             parameters,
             parameters.continuationToken,
-            telemetryManager
+            telemetryManager,
         );
 
         // Call challenge endpoint.
         this.logger.info(
-            "Calling challenge endpoint to resend code for sign in."
+            "Calling challenge endpoint to resend code for sign in.",
         );
 
         const challengeResponse =
             await this.customAuthApiClient.performSignInChallengeRequest(
-                request
+                request,
             );
 
         this.logger.info(
-            "Challenge endpoint called to resend code for sign in."
+            "Challenge endpoint called to resend code for sign in.",
         );
 
         return new SignInCodeSendResult(
@@ -245,16 +245,16 @@ export class SigninClient extends CustomAuthInteractionClientBase {
             challengeResponse.challenge_type ?? "",
             challengeResponse.challenge_channel ?? "",
             challengeResponse.target_challenge_label ?? "",
-            challengeResponse.code_length ?? 0
+            challengeResponse.code_length ?? 0,
         );
     }
 
     async signInWithContinuationToken(
-        parameters: SignInContinuationTokenParams
+        parameters: SignInContinuationTokenParams,
     ): Promise<SignInCompleteResult> {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "parameters",
-            parameters
+            parameters,
         );
 
         const apiId = PublicApiId.SIGN_IN_AFTER_SIGN_UP;
@@ -263,21 +263,21 @@ export class SigninClient extends CustomAuthInteractionClientBase {
         // Create token request.
         const request = SignInContinuationTokenRequest.create(
             parameters,
-            telemetryManager
+            telemetryManager,
         );
 
         // Call token endpoint.
         this.logger.info(
-            "Calling token endpoint with continuation token for sign in."
+            "Calling token endpoint with continuation token for sign in.",
         );
 
         const response =
             await this.customAuthApiClient.performSignInContinuationTokenRequest(
-                request
+                request,
             );
 
         this.logger.info(
-            "Token endpoint called with continuation token for sign in."
+            "Token endpoint called with continuation token for sign in.",
         );
 
         return new SignInCompleteResult(
@@ -285,22 +285,22 @@ export class SigninClient extends CustomAuthInteractionClientBase {
             this.createAuthenticationResult(
                 response,
                 parameters.scopes,
-                parameters.username
-            )
+                parameters.username,
+            ),
         );
     }
 
     private createAuthenticationResult(
         tokenResponse: SignInTokenResponse,
         scopes: string[],
-        username: string
+        username: string,
     ): CustomAuthAuthenticationResult {
         return {
             accessToken: tokenResponse.access_token ?? "",
             idToken: tokenResponse.id_token ?? "",
             refreshToken: tokenResponse.refresh_token ?? "",
             expiresOn: new Date(
-                Date.now() + (tokenResponse.expires_in ?? 0) * 1000
+                Date.now() + (tokenResponse.expires_in ?? 0) * 1000,
             ),
             tokenType: tokenResponse.token_type ?? "",
             correlationId: tokenResponse.correlation_id ?? "",

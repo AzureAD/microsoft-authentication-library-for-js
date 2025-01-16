@@ -22,7 +22,7 @@ export class AuthFlowErrorBase {
             ((this.errorData instanceof InvalidArgumentError &&
                 this.errorData.errorDescription.includes("username")) ||
                 this.errorData.errorDescription.includes(
-                    "username parameter is empty or not valid"
+                    "username parameter is empty or not valid",
                 ))
         );
     }
@@ -31,7 +31,7 @@ export class AuthFlowErrorBase {
         return (
             (this.errorData.error === this.errorCodes.INVALID_REQUEST &&
                 (this.errorData.errorDescription?.includes(
-                    "The challenge_type list parameter contains an unsupported challenge type"
+                    "The challenge_type list parameter contains an unsupported challenge type",
                 ) ??
                     false)) ||
             this.errorData.error === this.errorCodes.UNSUPPORTED_CHALLENGE_TYPE

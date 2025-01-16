@@ -34,7 +34,7 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
         protected customAuthApiClient: ICustomAuthApiClient,
-        protected customAuthAuthority: CustomAuthAuthority
+        protected customAuthAuthority: CustomAuthAuthority,
     ) {
         super(
             config,
@@ -43,26 +43,26 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
             logger,
             eventHandler,
             navigationClient,
-            performanceClient
+            performanceClient,
         );
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "customAuthApiClient",
             customAuthApiClient,
-            this.correlationId
+            this.correlationId,
         );
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "customAuthAuthority",
             customAuthAuthority,
-            this.correlationId
+            this.correlationId,
         );
     }
 
     // It is not necessary to implement this method from base class.
     acquireToken(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        request: RedirectRequest | PopupRequest | SsoSilentRequest
+        request: RedirectRequest | PopupRequest | SsoSilentRequest,
     ): Promise<AuthenticationResult | void> {
         throw new MethodNotImplementedError("SignInClient.acquireToken");
     }
@@ -70,7 +70,7 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
     // It is not necessary to implement this method from base class.
     logout(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        request: EndSessionRequest | ClearCacheRequest | undefined
+        request: EndSessionRequest | ClearCacheRequest | undefined,
     ): Promise<void> {
         throw new MethodNotImplementedError("SignInClient.logout");
     }
