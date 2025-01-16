@@ -66,7 +66,7 @@ export class MachineLearning extends BaseManagedIdentitySource {
         // if either of the identity endpoint or MSI secret variables are undefined, this MSI provider is unavailable.
         if (!identityEndpoint || !secret) {
             logger.info(
-                `[Managed Identity] ${ManagedIdentitySourceNames.MACHINE_LEARNING} managed identity is unavailable because one or both of the '${ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER}' and '${ManagedIdentityEnvironmentVariableNames.MSI_SECRET}' environment variables are not defined.`
+                `[Managed Identity] ${ManagedIdentitySourceNames.MACHINE_LEARNING} managed identity is unavailable because one or both of the '${ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT}' and '${ManagedIdentityEnvironmentVariableNames.MSI_SECRET}' environment variables are not defined.`
             );
             return null;
         }
