@@ -3,13 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication";
+import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication.js";
 import {
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     MANAGED_IDENTITY_APP_SERVICE_NETWORK_REQUEST_400_ERROR,
     MANAGED_IDENTITY_RESOURCE,
-} from "../../test_kit/StringConstants";
+    MANAGED_IDENTITY_RESOURCE_ID,
+} from "../../test_kit/StringConstants.js";
 
 import {
     userAssignedClientIdConfig,
@@ -17,17 +18,19 @@ import {
     systemAssignedConfig,
     networkClient,
     ManagedIdentityNetworkErrorClient,
-} from "../../test_kit/ManagedIdentityTestUtils";
+    userAssignedResourceIdConfig,
+} from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
     AuthenticationResult,
     HttpStatus,
     ServerError,
 } from "@azure/msal-common";
-import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient";
+import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient.js";
 import {
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentitySourceNames,
-} from "../../../src/utils/Constants";
+} from "../../../src/utils/Constants.js";
+import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/client/ManagedIdentitySources/BaseManagedIdentitySource.js";
 
 describe("Acquires a token successfully via an App Service Managed Identity", () => {
     beforeAll(() => {
@@ -52,21 +55,61 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
         delete ManagedIdentityApplication["nodeStorage"];
     });
 
-    test("acquires a User Assigned Client Id token", async () => {
-        const managedIdentityApplication: ManagedIdentityApplication =
-            new ManagedIdentityApplication(userAssignedClientIdConfig);
-        expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-            ManagedIdentitySourceNames.APP_SERVICE
-        );
-
-        const networkManagedIdentityResult: AuthenticationResult =
-            await managedIdentityApplication.acquireToken(
-                managedIdentityRequestParams
+    describe("User Assigned", () => {
+        test("acquires a User Assigned Client Id token", async () => {
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication(userAssignedClientIdConfig);
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.APP_SERVICE
             );
 
-        expect(networkManagedIdentityResult.accessToken).toEqual(
-            DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
-        );
+            const networkManagedIdentityResult: AuthenticationResult =
+                await managedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                );
+
+            expect(networkManagedIdentityResult.accessToken).toEqual(
+                DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+            );
+        });
+
+        test("acquires a User Assigned Resource Id token", async () => {
+            const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            );
+
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication(userAssignedResourceIdConfig);
+            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.APP_SERVICE
+            );
+
+            const networkManagedIdentityResult: AuthenticationResult =
+                await managedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                );
+
+            expect(networkManagedIdentityResult.accessToken).toEqual(
+                DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+            );
+
+            const url: URLSearchParams = new URLSearchParams(
+                sendGetRequestAsyncSpy.mock.lastCall[0]
+            );
+            expect(
+                url.has(
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID_NON_IMDS
+                )
+            ).toBe(true);
+            expect(
+                url.get(
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID_NON_IMDS
+                )
+            ).toEqual(MANAGED_IDENTITY_RESOURCE_ID);
+
+            jest.restoreAllMocks();
+        });
     });
 
     describe("System Assigned", () => {

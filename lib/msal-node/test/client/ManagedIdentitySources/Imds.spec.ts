@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication";
-import { ManagedIdentityConfiguration } from "../../../src/config/Configuration";
+import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication.js";
+import { ManagedIdentityConfiguration } from "../../../src/config/Configuration.js";
 import {
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
@@ -17,8 +17,7 @@ import {
     TEST_CONFIG,
     THREE_SECONDS_IN_MILLI,
     getCacheKey,
-} from "../../test_kit/StringConstants";
-
+} from "../../test_kit/StringConstants.js";
 import {
     ManagedIdentityNetworkClient,
     ManagedIdentityNetworkErrorClient,
@@ -26,11 +25,12 @@ import {
     userAssignedClientIdConfig,
     managedIdentityRequestParams,
     systemAssignedConfig,
-} from "../../test_kit/ManagedIdentityTestUtils";
+    userAssignedResourceIdConfig,
+} from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
     DEFAULT_MANAGED_IDENTITY_ID,
     ManagedIdentitySourceNames,
-} from "../../../src/utils/Constants";
+} from "../../../src/utils/Constants.js";
 import {
     AccessTokenEntity,
     AuthenticationResult,
@@ -42,19 +42,18 @@ import {
     ServerError,
     TimeUtils,
 } from "@azure/msal-common";
-import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient";
+import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient.js";
 import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
-} from "../../../src/error/ManagedIdentityError";
-import { mockCrypto } from "../ClientTestUtils";
-import {
-    CacheKVStore,
-    ClientCredentialClient,
-    NodeStorage,
-} from "../../../src";
+} from "../../../src/error/ManagedIdentityError.js";
+import { mockCrypto } from "../ClientTestUtils.js";
 // NodeJS 16+ provides a built-in version of setTimeout that is promise-based
 import { setTimeout } from "timers/promises";
+import { ClientCredentialClient } from "../../../src/client/ClientCredentialClient.js";
+import { NodeStorage } from "../../../src/cache/NodeStorage.js";
+import { CacheKVStore } from "../../../src/cache/serializer/SerializerTypes.js";
+import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/client/ManagedIdentitySources/BaseManagedIdentitySource.js";
 
 describe("Acquires a token successfully via an IMDS Managed Identity", () => {
     // IMDS doesn't need environment variables because there is a default IMDS endpoint
@@ -79,14 +78,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         },
         managedIdentityIdParams: {
             userAssignedObjectId: MANAGED_IDENTITY_RESOURCE_ID,
-        },
-    };
-    const userAssignedResourceIdConfig: ManagedIdentityConfiguration = {
-        system: {
-            networkClient,
-        },
-        managedIdentityIdParams: {
-            userAssignedResourceId: MANAGED_IDENTITY_RESOURCE_ID,
         },
     };
 
@@ -126,6 +117,11 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         });
 
         test("acquires a User Assigned Resource Id token", async () => {
+            const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            );
+
             const managedIdentityApplication: ManagedIdentityApplication =
                 new ManagedIdentityApplication(userAssignedResourceIdConfig);
             expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
@@ -140,6 +136,22 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
+
+            const url: URLSearchParams = new URLSearchParams(
+                sendGetRequestAsyncSpy.mock.lastCall[0]
+            );
+            expect(
+                url.has(
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID_IMDS
+                )
+            ).toBe(true);
+            expect(
+                url.get(
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID_IMDS
+                )
+            ).toEqual(MANAGED_IDENTITY_RESOURCE_ID);
+
+            jest.restoreAllMocks();
         });
     });
 

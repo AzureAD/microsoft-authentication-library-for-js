@@ -1,8 +1,38 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 05 Nov 2024 18:58:45 GMT and should not be manually modified.
+<!-- This log was last generated on Wed, 15 Jan 2025 05:05:17 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.0.1
+
+Wed, 15 Jan 2025 05:05:17 GMT
+
+### Breaking Changes
+
+- NodeStorage is no longer exported
+
+Please see the [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/v2-migration.md) for more details.
+
+## 2.16.2
+
+Tue, 19 Nov 2024 17:21:57 GMT
+
+### Patches
+
+- removeAccount method now clears client cache by retrieving partitionKey when accountEntities are empty (#7329) (luccarebtoledo@gmail.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 2.16.1
+
+Tue, 12 Nov 2024 15:32:46 GMT
+
+### Patches
+
+- Fixes bug where getAllAccounts always writes to the cache (shylasummers@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 2.16.0
 

@@ -26,7 +26,7 @@
         "watch": "webpack --mode development --watch"
     },
     "dependencies": {
-        "@azure/msal-browser": "^3.2.0",
+        "@azure/msal-browser": "^4.0.0",
         "core-js": "^3.9.1",
         "regenerator-runtime": "^0.13.7"
     },

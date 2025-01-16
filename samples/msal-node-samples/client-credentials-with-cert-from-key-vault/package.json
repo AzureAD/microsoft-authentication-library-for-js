@@ -5,15 +5,16 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "start": "node index.js",
     "test:e2e": "jest",
-    "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-node",
-    "start:build": "npm run build:package && npm start"
+    "build": "npx tsc",
+    "start": "npm run build && node dist/client-credentials-with-cert-from-key-vault/app.js",
+    "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-node"
   },
+  "type": "module",
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "^2.0.0-beta.0"
+    "@azure/msal-node": "^3.0.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",

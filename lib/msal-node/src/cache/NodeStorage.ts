@@ -214,23 +214,11 @@ export class NodeStorage extends CacheManager {
     }
 
     /**
-     * fetch the account entity
-     * @param accountKey - lookup key to fetch cache type AccountEntity
-     */
-    getAccount(accountKey: string): AccountEntity | null {
-        const accountEntity = this.getCachedAccountEntity(accountKey);
-        if (accountEntity && AccountEntity.isAccountEntity(accountEntity)) {
-            return this.updateOutdatedCachedAccount(accountKey, accountEntity);
-        }
-        return null;
-    }
-
-    /**
      * Reads account from cache, builds it into an account entity and returns it.
      * @param accountKey - lookup key to fetch cache type AccountEntity
      * @returns
      */
-    getCachedAccountEntity(accountKey: string): AccountEntity | null {
+    getAccount(accountKey: string): AccountEntity | null {
         const cachedAccount = this.getItem(accountKey);
         return cachedAccount
             ? Object.assign(new AccountEntity(), this.getItem(accountKey))
@@ -241,7 +229,7 @@ export class NodeStorage extends CacheManager {
      * set account entity
      * @param account - cache value to be set of type AccountEntity
      */
-    setAccount(account: AccountEntity): void {
+    async setAccount(account: AccountEntity): Promise<void> {
         const accountKey = account.generateAccountKey();
         this.setItem(accountKey, account);
     }
@@ -262,7 +250,7 @@ export class NodeStorage extends CacheManager {
      * set idToken credential
      * @param idToken - cache value to be set of type IdTokenEntity
      */
-    setIdTokenCredential(idToken: IdTokenEntity): void {
+    async setIdTokenCredential(idToken: IdTokenEntity): Promise<void> {
         const idTokenKey = CacheHelpers.generateCredentialKey(idToken);
         this.setItem(idTokenKey, idToken);
     }
@@ -283,7 +271,9 @@ export class NodeStorage extends CacheManager {
      * set accessToken credential
      * @param accessToken -  cache value to be set of type AccessTokenEntity
      */
-    setAccessTokenCredential(accessToken: AccessTokenEntity): void {
+    async setAccessTokenCredential(
+        accessToken: AccessTokenEntity
+    ): Promise<void> {
         const accessTokenKey = CacheHelpers.generateCredentialKey(accessToken);
         this.setItem(accessTokenKey, accessToken);
     }
@@ -308,7 +298,9 @@ export class NodeStorage extends CacheManager {
      * set refreshToken credential
      * @param refreshToken - cache value to be set of type RefreshTokenEntity
      */
-    setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void {
+    async setRefreshTokenCredential(
+        refreshToken: RefreshTokenEntity
+    ): Promise<void> {
         const refreshTokenKey =
             CacheHelpers.generateCredentialKey(refreshToken);
         this.setItem(refreshTokenKey, refreshToken);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 export const Home = () => {
     return (
@@ -8,4 +8,4 @@ export const Home = () => {
             </h5>
         </div>
     );
-}
+};

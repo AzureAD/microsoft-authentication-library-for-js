@@ -10,7 +10,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "^2.0.0",
+    "@azure/msal-node": "^3.0.0",
     "benchmark": "^2.1.4"
   }
 }

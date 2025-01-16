@@ -1,8 +1,29 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Tue, 05 Nov 2024 18:58:46 GMT and should not be manually modified.
+<!-- This log was last generated on Wed, 15 Jan 2025 05:05:17 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 1.5.1
+
+Wed, 15 Jan 2025 05:05:17 GMT
+
+### Patches
+
+- Update msal-common dependency (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.0.1
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 1.5.0
+
+Tue, 19 Nov 2024 17:21:57 GMT
+
+### Minor changes
+
+- Allow requiring msal-node-extensions without Dpapi dependency (tyleonha@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 1.4.0
 

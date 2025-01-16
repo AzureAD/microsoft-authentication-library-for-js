@@ -1,8 +1,46 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 05 Nov 2024 18:58:45 GMT and should not be manually modified.
+<!-- This log was last generated on Wed, 15 Jan 2025 05:05:17 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.0.1
+
+Wed, 15 Jan 2025 05:05:17 GMT
+
+### Breaking Changes
+
+- Rename `native` to `platformBroker` in public API and docs (sameera.gajjarapu@microsoft.com)
+- Encrypt localStorage to reduce persistence to browser session lifetime (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.0.1 (beachball)
+
+Please see the [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v3-migration.md) for more details.
+
+## 3.28.1
+
+Tue, 14 Jan 2025 22:59:33 GMT
+
+### Patches
+
+- Fix unhandled exception in NAA JS Runtime scenario (#7475) (dasau@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 3.28.0
+
+Thu, 12 Dec 2024 19:24:54 GMT
+
+### Minor changes
+
+- Refactor storage implementations #7446 (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Prioritize loginHint and session id over active account for authorization request #7449 (kshabelko@microsoft.com)
 
 ## 3.27.0
 

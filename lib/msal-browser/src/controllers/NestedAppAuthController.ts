@@ -54,6 +54,8 @@ import {
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import * as AccountManager from "../cache/AccountManager.js";
 import { AccountContext } from "../naa/BridgeAccountContext.js";
+import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
+import { createNewGuid } from "../crypto/BrowserCrypto.js";
 
 export class NestedAppAuthController implements IController {
     // OperatingContext
@@ -106,7 +108,7 @@ export class NestedAppAuthController implements IController {
 
         // Initialize the crypto class.
         this.browserCrypto = operatingContext.isBrowserEnvironment()
-            ? new CryptoOps(this.logger, this.performanceClient)
+            ? new CryptoOps(this.logger, this.performanceClient, true)
             : DEFAULT_CRYPTO_IMPLEMENTATION;
 
         // Initialize the browser storage class.
@@ -116,11 +118,13 @@ export class NestedAppAuthController implements IController {
                   this.config.cache,
                   this.browserCrypto,
                   this.logger,
+                  this.performanceClient,
                   buildStaticAuthorityOptions(this.config.auth)
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
-                  this.logger
+                  this.logger,
+                  this.performanceClient
               );
 
         this.eventHandler = new EventHandler(this.logger);
@@ -153,8 +157,9 @@ export class NestedAppAuthController implements IController {
      * Specific implementation of initialize function for NestedAppAuthController
      * @returns
      */
-    initialize(): Promise<void> {
-        // do nothing not required by this controller
+    async initialize(request?: InitializeApplicationRequest): Promise<void> {
+        const initCorrelationId = request?.correlationId || createNewGuid();
+        await this.browserStorage.initialize(initCorrelationId);
         return Promise.resolve();
     }
 
@@ -576,7 +581,7 @@ export class NestedAppAuthController implements IController {
                       | "responseMode"
                       | "codeChallenge"
                       | "codeChallengeMethod"
-                      | "nativeBroker"
+                      | "platformBroker"
                   >
               >
             | PopupRequest,
@@ -769,7 +774,7 @@ export class NestedAppAuthController implements IController {
                 | "responseMode"
                 | "codeChallenge"
                 | "codeChallengeMethod"
-                | "nativeBroker"
+                | "platformBroker"
             >
         >
     ): Promise<AuthenticationResult> {
@@ -850,7 +855,10 @@ export class NestedAppAuthController implements IController {
             result.cloudGraphHostName,
             result.msGraphHost
         );
-        this.browserStorage.setAccount(accountEntity);
+        await this.browserStorage.setAccount(
+            accountEntity,
+            result.correlationId
+        );
         return this.browserStorage.hydrateCache(result, request);
     }
 }

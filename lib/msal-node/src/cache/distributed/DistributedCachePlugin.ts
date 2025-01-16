@@ -52,17 +52,20 @@ export class DistributedCachePlugin implements ICachePlugin {
                 AccountEntity.isAccountEntity(value as object)
             );
 
+            let partitionKey: string;
             if (accountEntities.length > 0) {
                 const accountEntity = accountEntities[0] as AccountEntity;
-                const partitionKey = await this.partitionManager.extractKey(
+                partitionKey = await this.partitionManager.extractKey(
                     accountEntity
                 );
-
-                await this.client.set(
-                    partitionKey,
-                    cacheContext.tokenCache.serialize()
-                );
+            } else {
+                partitionKey = await this.partitionManager.getKey();
             }
+
+            await this.client.set(
+                partitionKey,
+                cacheContext.tokenCache.serialize()
+            );
         }
     }
 }

@@ -17,30 +17,31 @@ Locate the folder where `package.json` resides in your terminal. Then type:
 1. Navigate to the [Microsoft Entra admin center](https://entra.microsoft.com) and select the **Microsoft Entra ID** service.
 1. Select the **App Registrations** blade on the left, then select **New registration**.
 1. In the **Register an application page** that appears, enter your application's registration information:
-   - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `msal-node-daemon`.
-   - Under **Supported account types**, select **Accounts in any organizational directory (Any Microsoft Entra ID directory - Multitenant)**.
-   - In the **Redirect URI (optional)** section, select **Public client/native (mobile & desktop)** in the combo-box and enter the following redirect URI: `http://localhost` (this is required for provisioning the app into other tenants via admin consent).
+    - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `msal-node-daemon`.
+    - Under **Supported account types**, select **Accounts in any organizational directory (Any Microsoft Entra ID directory - Multitenant)**.
+    - In the **Redirect URI (optional)** section, select **Public client/native (mobile & desktop)** in the combo-box and enter the following redirect URI: `http://localhost` (this is required for provisioning the app into other tenants via admin consent).
 1. Select **Register** to create the application.
 1. In the app's registration screen, find and note the **Application (client) ID** and **Directory (Tenant) ID**. You use these values in your app's configuration file(s) later.
 1. In the app's registration screen, select the **Certificates & secrets** blade in the left.
-   - In the **Client secrets** section, select **New client secret**.
-   - Type a key description (for instance `app secret`),
-   - Select one of the available key durations (6 months, 12 months or Custom) as per your security posture.
-   - The generated key value will be displayed when you select the **Add** button. Record this value for use in a later step (it's shown only once).
-    > :warning: In production, use certificates with Azure Key Vault instead of secrets. See [certificate-credentials.md](../../../lib/msal-node/docs/certificate-credentials.md) and [key-vault.md](../../../lib/msal-node/docs/key-vault-managed-identity.md) for more information and examples.
+    - In the **Client secrets** section, select **New client secret**.
+    - Type a key description (for instance `app secret`),
+    - Select one of the available key durations (6 months, 12 months or Custom) as per your security posture.
+    - The generated key value will be displayed when you select the **Add** button. Record this value for use in a later step (it's shown only once).
+        > :warning: In production, use certificates with Azure Key Vault instead of secrets. See [certificate-credentials.md](../../../lib/msal-node/docs/certificate-credentials.md) and [key-vault.md](../../../lib/msal-node/docs/key-vault-managed-identity.md) for more information and examples.
 1. In the app's registration screen, select the API permissions blade in the left to open the page where we add access to the APIs that your application needs.
-   - Select the **Add a permission** button and then,
-   - Ensure that the **Microsoft APIs** tab is selected.
-   - In the **Commonly used Microsoft APIs** section, select **Microsoft Graph**
-   - In the **Application permissions** section, select the **User.Read.All** in the list. Use the search box if necessary.
-   - Select the **Add permissions** button at the bottom.
-   - Finally, grant **admin consent** for this scope.
+    - Select the **Add a permission** button and then,
+    - Ensure that the **Microsoft APIs** tab is selected.
+    - In the **Commonly used Microsoft APIs** section, select **Microsoft Graph**
+    - In the **Application permissions** section, select the **User.Read.All** in the list. Use the search box if necessary.
+    - Select the **Add permissions** button at the bottom.
+    - Finally, grant **admin consent** for this scope.
 
 Before running the sample, you will need to replace the values in the configuration object (see [index.ts](./src/index.ts)):
 
 ```typescript
 const appConfig: AppConfig = {
-    instance: options.instance || process.env.INSTANCE || "ENTER_CLOUD_INSTANCE_HERE",
+    instance:
+        options.instance || process.env.INSTANCE || "ENTER_CLOUD_INSTANCE_HERE",
     tenantId: options.tenant || process.env.TENANT_ID || "ENTER_TENANT_ID_HERE",
     clientId: process.env.CLIENT_ID || "ENTER_CLIENT_ID_HERE",
     clientSecret: process.env.CLIENT_SECRET || "ENTER_CLIENT_SECRET_HERE",
@@ -84,6 +85,6 @@ For persisting tokens using a distributed cache, multitenant daemon apps should 
 
 ## More information
 
-- [Tenancy in Microsoft Entra ID](https://learn.microsoft.com/azure/active-directory/develop/single-and-multi-tenant-apps)
-- [Making your application multi-tenant](https://learn.microsoft.com/azure/active-directory/develop/howto-convert-app-to-be-multi-tenant)
-- [Admin consent on the Microsoft identity platform](https://learn.microsoft.com/azure/active-directory/develop/v2-admin-consent)
+-   [Tenancy in Microsoft Entra ID](https://learn.microsoft.com/azure/active-directory/develop/single-and-multi-tenant-apps)
+-   [Making your application multi-tenant](https://learn.microsoft.com/azure/active-directory/develop/howto-convert-app-to-be-multi-tenant)
+-   [Admin consent on the Microsoft identity platform](https://learn.microsoft.com/azure/active-directory/develop/v2-admin-consent)

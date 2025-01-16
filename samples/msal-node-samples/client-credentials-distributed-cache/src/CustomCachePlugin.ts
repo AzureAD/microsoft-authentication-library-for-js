@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { ICacheClient, ICachePlugin, TokenCacheContext } from "@azure/msal-node";
+import {
+    ICacheClient,
+    ICachePlugin,
+    TokenCacheContext,
+} from "@azure/msal-node";
 import { performance } from "perf_hooks";
 
 /**
@@ -20,20 +24,35 @@ class CustomCachePlugin implements ICachePlugin {
         this.partitionKey = partitionKey;
     }
 
-    public async beforeCacheAccess(cacheContext: TokenCacheContext): Promise<void> {
+    public async beforeCacheAccess(
+        cacheContext: TokenCacheContext
+    ): Promise<void> {
         performance.mark("beforeCacheAccess-start");
         const cacheData = await this.client.get(this.partitionKey);
         cacheContext.tokenCache.deserialize(cacheData);
         performance.mark("beforeCacheAccess-end");
-        performance.measure("beforeCacheAccess", "beforeCacheAccess-start", "beforeCacheAccess-end");
+        performance.measure(
+            "beforeCacheAccess",
+            "beforeCacheAccess-start",
+            "beforeCacheAccess-end"
+        );
     }
 
-    public async afterCacheAccess(cacheContext: TokenCacheContext): Promise<void> {
+    public async afterCacheAccess(
+        cacheContext: TokenCacheContext
+    ): Promise<void> {
         if (cacheContext.cacheHasChanged) {
             performance.mark("afterCacheAccess-start");
-            await this.client.set(this.partitionKey, cacheContext.tokenCache.serialize());
+            await this.client.set(
+                this.partitionKey,
+                cacheContext.tokenCache.serialize()
+            );
             performance.mark("afterCacheAccess-end");
-            performance.measure("afterCacheAccess", "afterCacheAccess-start", "afterCacheAccess-end");
+            performance.measure(
+                "afterCacheAccess",
+                "afterCacheAccess-start",
+                "afterCacheAccess-end"
+            );
         }
     }
 }

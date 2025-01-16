@@ -694,7 +694,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         this.addExtraQueryParams(request, parameterBuilder);
 
-        if (request.nativeBroker) {
+        if (request.platformBroker) {
             // signal ests that this is a WAM call
             parameterBuilder.addNativeBroker();
 

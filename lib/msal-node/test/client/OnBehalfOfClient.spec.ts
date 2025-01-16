@@ -17,21 +17,21 @@ import {
     ScopeSet,
     TimeUtils,
 } from "@azure/msal-common";
-import { AuthenticationResult, OnBehalfOfClient } from "../../src";
+import { AuthenticationResult, OnBehalfOfClient } from "../../src/index.js";
 import {
     AUTHENTICATION_RESULT,
     CAE_CONSTANTS,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
     TEST_TOKENS,
-} from "../test_kit/StringConstants";
+} from "../test_kit/StringConstants.js";
 import {
     checkMockedNetworkRequest,
     ClientTestUtils,
     getClientAssertionCallback,
-} from "./ClientTestUtils";
-import { EncodingUtils } from "../../src/utils/EncodingUtils";
-import { mockNetworkClient } from "../utils/MockNetworkClient";
+} from "./ClientTestUtils.js";
+import { EncodingUtils } from "../../src/utils/EncodingUtils.js";
+import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 
 describe("OnBehalfOf unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
