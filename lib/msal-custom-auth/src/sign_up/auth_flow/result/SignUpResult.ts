@@ -50,11 +50,11 @@ export class SignUpResult extends ResultBase<
     }
 
     get state(): SignUpState {
-        if (this.error) {
+        if (!!this.error) {
             return SignUpState.Failed;
         }
 
-        if (this._state) {
+        if (this._state !== undefined && this._state !== null) {
             return this._state;
         }
 

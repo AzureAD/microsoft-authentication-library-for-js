@@ -3,14 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import {
-    RedirectRequest,
-    PopupRequest,
-    SsoSilentRequest,
-    AuthenticationResult,
-    EndSessionRequest,
-    ClearCacheRequest,
-} from "@azure/msal-browser";
 import { ChallengeType } from "../../CustomAuthConstants.js";
 import {
     CustomAuthApiError,
@@ -19,7 +11,10 @@ import {
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
 import {
     SignInChallengeRequest,
+    SignInContinuationTokenRequest,
     SignInInitiateRequest,
+    SignInOobTokenRequest,
+    SignInPasswordTokenRequest,
 } from "../../core/network_client/custom_auth_api/request/SignInRequest.js";
 import {
     SignInContinuationTokenParams,
@@ -31,107 +26,298 @@ import {
 import {
     SignInCodeSendResult,
     SignInCompleteResult,
-    SignInWithContinuationTokenResult,
+    SignInContinuationTokenResult,
 } from "./result/SignInActionResult.js";
-import { MethodNotImplementedError } from "../../core/error/MethodNotImplementedError.js";
 import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
+import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
+import { SignInTokenResponse } from "../../core/network_client/custom_auth_api/response/SignInResponse.js";
+import { CustomAuthAuthenticationResult } from "../../core/interaction_client/CustomAuthAuthenticationResult.js";
 
 export class SigninClient extends CustomAuthInteractionClientBase {
+    /**
+     * Starts the signin flow.
+     * @param parameters The parameters required to start the sign-in flow.
+     * @returns The result of the sign-in start operation.
+     */
     async start(
-        parameters: SignInStartParams
-    ): Promise<SignInWithContinuationTokenResult | SignInCodeSendResult> {
+        parameters: SignInStartParams,
+    ): Promise<SignInContinuationTokenResult | SignInCodeSendResult> {
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "parameters",
+            parameters,
+        );
+
         const apiId = !parameters.password
             ? PublicApiId.SIGN_IN_WITH_CODE_START
             : PublicApiId.SIGN_IN_WITH_PASSWORD_START;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
 
+        // Create initiate request.
         const initiateRequest = SignInInitiateRequest.create(
             parameters,
-            telemetryManager
+            telemetryManager,
         );
 
-        // There is no need to catch the error here. If an error is thrown, it should be caught by the caller.
+        // Call initiate endpoint.
+        this.logger.info("Calling initiate endpoint for sign in.");
+
         const initiateResponse =
             await this.customAuthApiClient.performSignInInitiateRequest(
-                initiateRequest
+                initiateRequest,
             );
+
+        this.logger.info("Initiate endpoint called for sign in.");
 
         // Create challenge request.
         const challengeRequest = SignInChallengeRequest.create(
             parameters,
             initiateResponse.continuation_token ?? "",
-            telemetryManager
+            telemetryManager,
         );
 
         // Call challenge endpoint.
+        this.logger.info("Calling challenge endpoint for sign in.");
+
         const challengeResponse =
             await this.customAuthApiClient.performSignInChallengeRequest(
-                challengeRequest
+                challengeRequest,
             );
 
-        if (challengeResponse.challenge_type === ChallengeType.PASSWORD) {
-            // Password is required
-            return new SignInWithContinuationTokenResult(
-                challengeResponse.continuation_token ?? "",
-                parameters.correlationId,
-                challengeResponse.challenge_type
-            );
-        } else if (challengeResponse.challenge_type === ChallengeType.OOB) {
+        this.logger.info("Challenge endpoint called for sign in.");
+
+        if (challengeResponse.challenge_type === ChallengeType.OOB) {
             // Code is required
+            this.logger.info("Challenge type is oob for sign in.");
+
             return new SignInCodeSendResult(
+                challengeResponse.correlation_id ?? "",
                 challengeResponse.continuation_token ?? "",
                 challengeResponse.challenge_type ?? "",
                 challengeResponse.challenge_channel ?? "",
                 challengeResponse.target_challenge_label ?? "",
                 challengeResponse.code_length ?? 0,
-                parameters.correlationId
             );
         }
+
+        if (challengeResponse.challenge_type === ChallengeType.PASSWORD) {
+            // Password is required
+            this.logger.info("Challenge type is password for sign in.");
+
+            return new SignInContinuationTokenResult(
+                challengeResponse.correlation_id ?? "",
+                challengeResponse.continuation_token ?? "",
+                challengeResponse.challenge_type,
+            );
+        }
+
+        this.logger.error(
+            `Unsupported challenge type '${challengeResponse.challenge_type}' for sign in.`,
+        );
 
         throw new CustomAuthApiError(
             CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
             `Unsupported challenge type '${challengeResponse.challenge_type}'.`,
-            parameters.correlationId
+            parameters.correlationId,
         );
     }
 
     async submitCode(
-        parameters: SignInSubmitCodeParams
+        parameters: SignInSubmitCodeParams,
     ): Promise<SignInCompleteResult> {
-        throw new Error(`Method not implemented with Parameter ${parameters}.`);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "parameters",
+            parameters,
+        );
+
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
+            "parameters.code",
+            parameters.code,
+            parameters.correlationId,
+        );
+
+        const apiId = PublicApiId.SIGN_IN_SUBMIT_CODE;
+        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+
+        // Create token request.
+        const request = SignInOobTokenRequest.create(
+            parameters,
+            telemetryManager,
+        );
+
+        // Call token endpoint.
+        this.logger.info("Calling token endpoint with code for sign in.");
+
+        const response =
+            await this.customAuthApiClient.performSignInOobTokenRequest(
+                request,
+            );
+
+        this.logger.info("Token endpoint called with code for sign in.");
+
+        return new SignInCompleteResult(
+            response.correlation_id ?? "",
+            this.createAuthenticationResult(
+                response,
+                parameters.scopes,
+                parameters.username,
+            ),
+        );
     }
 
     async submitPassword(
-        parameters: SignInSubmitPasswordParams
+        parameters: SignInSubmitPasswordParams,
     ): Promise<SignInCompleteResult> {
-        throw new Error(`Method not implemented with Parameter ${parameters}.`);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "parameters",
+            parameters,
+        );
+
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
+            "parameters.password",
+            parameters.password,
+            parameters.correlationId,
+        );
+
+        const apiId = PublicApiId.SIGN_IN_SUBMIT_PASSWORD;
+        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+
+        // Create token request.
+        const request = SignInPasswordTokenRequest.create(
+            parameters,
+            telemetryManager,
+        );
+
+        // Call token endpoint.
+        this.logger.info("Calling token endpoint with password for sign in.");
+
+        const response =
+            await this.customAuthApiClient.performSignInPasswordTokenRequest(
+                request,
+            );
+
+        this.logger.info("Token endpoint called with password for sign in.");
+
+        return new SignInCompleteResult(
+            response.correlation_id ?? "",
+            this.createAuthenticationResult(
+                response,
+                parameters.scopes,
+                parameters.username,
+            ),
+        );
     }
 
     async resendCode(
-        parameters: SignInResendCodeParams
+        parameters: SignInResendCodeParams,
     ): Promise<SignInCodeSendResult> {
-        throw new Error(`Method not implemented with Parameter ${parameters}.`);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "parameters",
+            parameters,
+        );
+
+        const apiId = PublicApiId.SIGN_IN_RESEND_CODE;
+        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+
+        // Create challenge request.
+        const request = SignInChallengeRequest.create(
+            parameters,
+            parameters.continuationToken,
+            telemetryManager,
+        );
+
+        // Call challenge endpoint.
+        this.logger.info(
+            "Calling challenge endpoint to resend code for sign in.",
+        );
+
+        const challengeResponse =
+            await this.customAuthApiClient.performSignInChallengeRequest(
+                request,
+            );
+
+        this.logger.info(
+            "Challenge endpoint called to resend code for sign in.",
+        );
+
+        return new SignInCodeSendResult(
+            challengeResponse.correlation_id ?? "",
+            challengeResponse.continuation_token ?? "",
+            challengeResponse.challenge_type ?? "",
+            challengeResponse.challenge_channel ?? "",
+            challengeResponse.target_challenge_label ?? "",
+            challengeResponse.code_length ?? 0,
+        );
     }
 
     async signInWithContinuationToken(
-        parameters: SignInContinuationTokenParams
-    ): Promise<SignInWithContinuationTokenResult> {
-        throw new Error(`Method not implemented with Parameter ${parameters}.`);
+        parameters: SignInContinuationTokenParams,
+    ): Promise<SignInCompleteResult> {
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            "parameters",
+            parameters,
+        );
+
+        const apiId = PublicApiId.SIGN_IN_AFTER_SIGN_UP;
+        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+
+        // Create token request.
+        const request = SignInContinuationTokenRequest.create(
+            parameters,
+            telemetryManager,
+        );
+
+        // Call token endpoint.
+        this.logger.info(
+            "Calling token endpoint with continuation token for sign in.",
+        );
+
+        const response =
+            await this.customAuthApiClient.performSignInContinuationTokenRequest(
+                request,
+            );
+
+        this.logger.info(
+            "Token endpoint called with continuation token for sign in.",
+        );
+
+        return new SignInCompleteResult(
+            response.correlation_id ?? "",
+            this.createAuthenticationResult(
+                response,
+                parameters.scopes,
+                parameters.username,
+            ),
+        );
     }
 
-    // It is not necessary to implement this method from base class.
-    acquireToken(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        request: RedirectRequest | PopupRequest | SsoSilentRequest
-    ): Promise<AuthenticationResult | void> {
-        throw new MethodNotImplementedError("SignInClient.acquireToken");
-    }
-
-    // It is not necessary to implement this method from base class.
-    logout(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        request: EndSessionRequest | ClearCacheRequest | undefined
-    ): Promise<void> {
-        throw new MethodNotImplementedError("SignInClient.logout");
+    private createAuthenticationResult(
+        tokenResponse: SignInTokenResponse,
+        scopes: string[],
+        username: string,
+    ): CustomAuthAuthenticationResult {
+        return {
+            accessToken: tokenResponse.access_token ?? "",
+            idToken: tokenResponse.id_token ?? "",
+            refreshToken: tokenResponse.refresh_token ?? "",
+            expiresOn: new Date(
+                Date.now() + (tokenResponse.expires_in ?? 0) * 1000,
+            ),
+            tokenType: tokenResponse.token_type ?? "",
+            correlationId: tokenResponse.correlation_id ?? "",
+            authority: this.customAuthAuthority.authorityUrl.href,
+            tenantId: this.customAuthAuthority.getTenant(),
+            scopes: scopes,
+            account: {
+                homeAccountId: "",
+                environment: "",
+                tenantId: this.customAuthAuthority.getTenant(),
+                username: username,
+                localAccountId: "",
+                idToken: tokenResponse.id_token ?? "",
+            },
+            idTokenClaims: {},
+            fromCache: false,
+            uniqueId: this.browserCrypto.createNewGuid(),
+        };
     }
 }

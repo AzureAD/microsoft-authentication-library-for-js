@@ -23,21 +23,21 @@ export class AccountInfo {
     constructor(
         private readonly account: AccountData,
         private readonly correlationId: string,
-        private readonly config: CustomAuthBrowserConfiguration
+        private readonly config: CustomAuthBrowserConfiguration,
     ) {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "correlationId",
-            correlationId
+            correlationId,
         );
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "account",
             account,
-            correlationId
+            correlationId,
         );
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "config",
             config,
-            correlationId
+            correlationId,
         );
     }
 
@@ -81,12 +81,12 @@ export class AccountInfo {
      */
     getAccessToken(
         forceRefresh: boolean = false,
-        scopes?: Array<string>
+        scopes?: Array<string>,
     ): Promise<GetAccessTokenResult> {
         const newScopes = scopes || DefaultScopes;
 
         throw new Error(
-            `Method not implemented with forceRefresh '${forceRefresh}' and scopes ${newScopes}.`
+            `Method not implemented with forceRefresh '${forceRefresh}' and scopes ${newScopes}.`,
         );
     }
 }

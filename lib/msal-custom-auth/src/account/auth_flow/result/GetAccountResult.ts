@@ -21,11 +21,11 @@ export class GetAccountResult extends ResultBase<
     }
 
     get state(): GetAccountState {
-        if (this.error) {
+        if (!!this.error) {
             return GetAccountState.Failed;
         }
 
-        if (this.data) {
+        if (!!this.data) {
             return GetAccountState.Completed;
         }
 

@@ -11,10 +11,10 @@ export class ApiErrorResponse {
         public error_description?: string,
         public correlation_id?: string,
         public trace_id?: string,
-        public error_codes?: Array<string>,
+        public error_codes?: Array<number>,
         public continuation_token?: string,
         public required_attributes?: Array<UserAttribute>,
         public invalid_attributes?: Array<UserAttribute>,
-        public suberror?: string
+        public suberror?: string,
     ) {}
 }

@@ -41,7 +41,7 @@ export class CustomAuthPublicClientApplication
      */
     static async create(
         config: CustomAuthConfiguration,
-        controller?: ICustomAuthStandardController
+        controller?: ICustomAuthStandardController,
     ): Promise<ICustomAuthPublicClientApplication> {
         CustomAuthPublicClientApplication.validateConfig(config);
 
@@ -49,7 +49,7 @@ export class CustomAuthPublicClientApplication
 
         if (!customAuthController) {
             customAuthController = new CustomAuthStandardController(
-                new CustomAuthOperatingContext(config)
+                new CustomAuthOperatingContext(config),
             );
 
             await customAuthController.initialize();
@@ -57,7 +57,7 @@ export class CustomAuthPublicClientApplication
 
         const app = new CustomAuthPublicClientApplication(
             config,
-            customAuthController
+            customAuthController,
         );
 
         return app;
@@ -70,7 +70,7 @@ export class CustomAuthPublicClientApplication
      */
     private constructor(
         config: CustomAuthConfiguration,
-        controller: ICustomAuthStandardController
+        controller: ICustomAuthStandardController,
     ) {
         super(config, controller);
 
@@ -83,10 +83,10 @@ export class CustomAuthPublicClientApplication
      * @returns - A promise that resolves to GetAccountResult
      */
     getCurrentAccount(
-        getAccountInputs: GetAccountInputs
+        getAccountInputs: GetAccountInputs,
     ): Promise<GetAccountResult> {
         throw new Error(
-            `Method not implemented with parameter ${getAccountInputs}`
+            `Method not implemented with parameter ${getAccountInputs}`,
         );
     }
 
@@ -106,7 +106,7 @@ export class CustomAuthPublicClientApplication
      */
     signUp(signUpInputs: SignUpInputs): Promise<SignUpResult> {
         throw new Error(
-            `Method not implemented with parameter ${signUpInputs}`
+            `Method not implemented with parameter ${signUpInputs}`,
         );
     }
 
@@ -116,10 +116,10 @@ export class CustomAuthPublicClientApplication
      * @returns - A promise that resolves to ResetPasswordStartResult
      */
     resetPassword(
-        resetPasswordInputs: ResetPasswordInputs
+        resetPasswordInputs: ResetPasswordInputs,
     ): Promise<ResetPasswordStartResult> {
         throw new Error(
-            `Method not implemented with parameter ${resetPasswordInputs}`
+            `Method not implemented with parameter ${resetPasswordInputs}`,
         );
     }
 
@@ -132,14 +132,14 @@ export class CustomAuthPublicClientApplication
         if (!config) {
             throw new InvalidConfigurationError(
                 MissingConfiguration,
-                "The configuration is missing."
+                "The configuration is missing.",
             );
         }
 
         if (!config.auth?.authority) {
             throw new InvalidConfigurationError(
                 InvalidAuthority,
-                `The authority URL '${config.auth?.authority}' is not set.`
+                `The authority URL '${config.auth?.authority}' is not set.`,
             );
         }
 
@@ -148,7 +148,7 @@ export class CustomAuthPublicClientApplication
         if (!trimmedAuthority.endsWith(Constants.CIAM_AUTH_URL)) {
             throw new InvalidConfigurationError(
                 InvalidAuthority,
-                `The authority URL '${config.auth?.authority}' is not a CIAM authority.`
+                `The authority URL '${config.auth?.authority}' is not a CIAM authority.`,
             );
         }
 
@@ -158,7 +158,7 @@ export class CustomAuthPublicClientApplication
         ) {
             throw new InvalidConfigurationError(
                 InvalidAuthApiProxyDomain,
-                `The authApiProxyDomain URL '${config.customAuth.authApiProxyUrl}' is not a valid secure URL.`
+                `The authApiProxyDomain URL '${config.customAuth.authApiProxyUrl}' is not a valid secure URL.`,
             );
         }
     }

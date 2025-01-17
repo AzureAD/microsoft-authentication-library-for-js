@@ -21,7 +21,7 @@ export class SignOutResult extends ResultBase<
     }
 
     get state(): SignOutState {
-        if (this.error) {
+        if (!!this.error) {
             return SignOutState.Error;
         }
 

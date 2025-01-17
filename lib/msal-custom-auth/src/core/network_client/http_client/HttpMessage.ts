@@ -12,7 +12,7 @@ export class HttpRequestMessage {
         public url: string,
         public headers: Record<string, string>,
         public correlationId: string,
-        public body?: string
+        public body?: string,
     ) {}
 }
 
@@ -23,7 +23,7 @@ export class HttpResponseMessage {
     constructor(
         public status: number,
         public body: string,
-        public headers: Record<string, string>
+        public headers: Record<string, string>,
     ) {}
 
     isSuccessful(): boolean {

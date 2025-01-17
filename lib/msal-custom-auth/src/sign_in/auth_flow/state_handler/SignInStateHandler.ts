@@ -7,6 +7,7 @@ import { SigninClient } from "../../interaction_client/SignInClient.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { AuthFlowStateHandlerBase } from "../../../core/auth_flow/AuthFlowStateHandlerBase.js";
 import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
+import { Logger } from "@azure/msal-browser";
 
 /*
  * Base state handler for sign-in flow.
@@ -14,6 +15,7 @@ import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 export abstract class SignInStateHandler extends AuthFlowStateHandlerBase {
     /*
      * Constructor for SignInStateHandler.
+     * @param username - The username to use for sign-in operations.
      * @param signInClient - The client to use for sign-in operations.
      * @param correlationId - The correlation ID for the request.
      * @param continuationToken - The continuation token for the sign-in operation.
@@ -21,30 +23,38 @@ export abstract class SignInStateHandler extends AuthFlowStateHandlerBase {
      * @param scopes - The scopes to request during sign-in.
      */
     constructor(
+        protected username: string,
         protected signInClient: SigninClient,
         correlationId: string,
+        logger: Logger,
         continuationToken: string,
         protected config: CustomAuthBrowserConfiguration,
-        protected scopes?: Array<string>
+        protected scopes?: Array<string>,
     ) {
-        super(correlationId, continuationToken);
+        super(correlationId, logger, continuationToken);
+
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
+            "username",
+            username,
+            correlationId,
+        );
 
         ArgumentValidator.ensureArgumentIsNotEmptyString(
             "continuationToken",
             continuationToken,
-            correlationId
+            correlationId,
         );
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "config",
             config,
-            correlationId
+            correlationId,
         );
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "signInClient",
             signInClient,
-            correlationId
+            correlationId,
         );
     }
 }

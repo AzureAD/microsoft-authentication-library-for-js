@@ -5,6 +5,7 @@
 
 import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
 import { UserAccountAttributes } from "../../../UserAccountAttributes.js";
+import { SignUpSubmitAttributesError } from "../error_type/SignUpError.js";
 import { SignUpSubmitAttributesResult } from "../result/SignUpSubmitAttributesResult.js";
 import { SignUpStateHandler } from "./SignUpStateHandler.js";
 
@@ -24,6 +25,7 @@ export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
             return Promise.resolve(
                 SignUpSubmitAttributesResult.createWithError(
                     new InvalidArgumentError("attributes", this.correlationId),
+                    SignUpSubmitAttributesError,
                 ),
             );
         }

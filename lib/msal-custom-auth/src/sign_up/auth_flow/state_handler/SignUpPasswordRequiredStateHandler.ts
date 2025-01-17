@@ -4,6 +4,7 @@
  */
 
 import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
+import { SignUpSubmitPasswordError } from "../error_type/SignUpError.js";
 import { SignUpSubmitPasswordResult } from "../result/SignUpSubmitPasswordResult.js";
 import { SignUpStateHandler } from "./SignUpStateHandler.js";
 
@@ -23,6 +24,7 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
             return Promise.resolve(
                 SignUpSubmitPasswordResult.createWithError(
                     new InvalidArgumentError("password", this.correlationId),
+                    SignUpSubmitPasswordError,
                 ),
             );
         }

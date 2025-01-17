@@ -10,11 +10,11 @@ import { UrlUtils } from "./utils/UrlUtils.js";
  * Authority class which can be used to create an authority object for Custom Auth features.
  */
 export class CustomAuthAuthority {
-    private readonly authorityUrl: URL;
+    readonly authorityUrl: URL;
 
     constructor(
         authorityUrl: string,
-        private readonly customAuthProxyDomain?: string
+        private readonly customAuthProxyDomain?: string,
     ) {
         this.authorityUrl = UrlUtils.parseSecureUrl(authorityUrl);
     }
@@ -40,8 +40,8 @@ export class CustomAuthAuthority {
          */
         const authApiDomain = !this.customAuthProxyDomain
             ? new URL(
+                  `${this.getTenant()}${Constants.AAD_TENANT_DOMAIN_SUFFIX}`,
                   this.authorityUrl.href,
-                  `${this.getTenant()}.${Constants.AAD_TENANT_DOMAIN_SUFFIX}`
               ).href
             : this.customAuthProxyDomain;
 

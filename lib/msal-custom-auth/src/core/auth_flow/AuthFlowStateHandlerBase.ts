@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { Logger } from "@azure/msal-browser";
 import { ArgumentValidator } from "../utils/ArgumentValidator.js";
 
 /**
@@ -16,11 +17,12 @@ export abstract class AuthFlowStateHandlerBase {
      */
     protected constructor(
         protected correlationId: string,
+        protected logger: Logger,
         protected continuationToken?: string,
     ) {
         ArgumentValidator.ensureArgumentIsNotEmptyString(
             "correlationId",
-            correlationId
+            correlationId,
         );
     }
 }

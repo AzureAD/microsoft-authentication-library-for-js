@@ -3,55 +3,53 @@
  * Licensed under the MIT License.
  */
 
-import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
-import { AuthFlowStateHandlerBase } from "../../../core/auth_flow/AuthFlowStateHandlerBase.js";
-import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
+import { AccountInfo } from "../../../account/auth_flow/model/AccountInfo.js";
+import { SignInContinuationTokenParams } from "../../interaction_client/parameter/SignInParams.js";
+import { SignInError } from "../error_type/SignInError.js";
 import { SignInResult } from "../result/SignInResult.js";
+import { SignInStateHandler } from "./SignInStateHandler.js";
 
 /*
  * Sign-in continuation state handler.
  */
-export class SignInContinuationStateHandler extends AuthFlowStateHandlerBase {
-    /*
-     * Constructor for SignInContinuationStateHandler.
-     * @param correlationId - The correlation ID for the request.
-     * @param continuationToken - The continuation token for the sign-in operation.
-     * @param config - The configuration for the client.
-     * @param username - The username for the sign-in operation.
-     */
-    constructor(
-        correlationId: string,
-        continuationToken: string,
-        private config: CustomAuthBrowserConfiguration,
-        private username: string
-    ) {
-        super(correlationId, continuationToken);
-
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "config",
-            config,
-            correlationId
-        );
-
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "continuationToken",
-            continuationToken,
-            correlationId
-        );
-
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "username",
-            username,
-            correlationId
-        );
-    }
-
+export class SignInContinuationStateHandler extends SignInStateHandler {
     /*
      * Initiates the sign-in flow with continuation token.
-     * @param scopes - The scopes to request during sign-in.
      * @returns The result of the operation.
      */
-    async signIn(scopes?: Array<string>): Promise<SignInResult> {
-        throw new Error(`Method not implemented with parameter: ${scopes}`);
+    async signIn(): Promise<SignInResult> {
+        try {
+            const continuationTokenParams: SignInContinuationTokenParams = {
+                clientId: this.config.auth.clientId,
+                correlationId: this.correlationId,
+                challengeType: this.config.customAuth.challengeTypes ?? [],
+                scopes: this.scopes ?? [],
+                continuationToken: this.continuationToken ?? "",
+                username: this.username,
+            };
+
+            this.logger.info("Signing in with continuation token.");
+
+            const completedResult =
+                await this.signInClient.signInWithContinuationToken(
+                    continuationTokenParams,
+                );
+
+            this.logger.info("Signed in with continuation token.");
+
+            const accountInfo = new AccountInfo(
+                completedResult.authenticationResult.account,
+                this.correlationId,
+                this.config,
+            );
+
+            return new SignInResult(accountInfo);
+        } catch (error) {
+            this.logger.error(
+                `Failed to sign in with continuation token. Error: ${error}.`,
+            );
+
+            return SignInResult.createWithError(error, SignInError);
+        }
     }
 }

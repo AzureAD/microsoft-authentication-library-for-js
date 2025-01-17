@@ -17,7 +17,7 @@ export abstract class ResultBase<
     TState,
     TError extends AuthFlowErrorBase,
     TData = void,
-    TStateHandler extends AuthFlowStateHandlerBase | void = void
+    TStateHandler extends AuthFlowStateHandlerBase | void = void,
 > {
     /*
      * The state of the authentication operation.
@@ -31,7 +31,10 @@ export abstract class ResultBase<
      * @typeParam TData - The type of the result data.
      * @typeParam TState - The type of state.
      */
-    constructor(public data?: TData, public stateHandler?: TStateHandler) {}
+    constructor(
+        public data?: TData,
+        public stateHandler?: TStateHandler,
+    ) {}
 
     /*
      * The error that occurred during the authentication operation.
@@ -56,8 +59,12 @@ export abstract class ResultBase<
         TStateHandler extends AuthFlowStateHandlerBase | void,
         TState,
         TError extends AuthFlowErrorBase,
-        TActionResult extends ResultBase<TState, TError, TData, TStateHandler>
-    >(this: new () => TActionResult, error: unknown): TActionResult {
+        TActionResult extends ResultBase<TState, TError, TData, TStateHandler>,
+    >(
+        this: new () => TActionResult,
+        error: unknown,
+        errorConstructor: new (errorData: CustomAuthError) => TError,
+    ): TActionResult {
         let customAuthError: CustomAuthError;
 
         if (error instanceof CustomAuthError) {
@@ -67,9 +74,8 @@ export abstract class ResultBase<
         }
 
         const errorResult = new this();
-        errorResult.error = {
-            error: customAuthError,
-        } as TError;
+
+        errorResult.error = new errorConstructor(customAuthError);
         return errorResult;
     }
 }

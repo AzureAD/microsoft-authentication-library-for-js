@@ -19,11 +19,11 @@ export class SignInResendCodeResult extends ResultBase<
     }
 
     get state(): SignInState {
-        if (this.error) {
+        if (!!this.error) {
             return SignInState.Failed;
         }
 
-        if (this.stateHandler) {
+        if (!!this.stateHandler) {
             return SignInState.CodeRequired;
         }
 

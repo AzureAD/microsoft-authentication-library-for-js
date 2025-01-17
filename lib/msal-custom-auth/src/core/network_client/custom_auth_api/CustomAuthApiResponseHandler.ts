@@ -9,7 +9,7 @@ import {
     CustomAuthApiError,
     CustomAuthApiErrorCode,
 } from "../../error/CustomAuthApiError.js";
-import { HttpResponseMessage } from "../http-client/HttpMessage.js";
+import { HttpResponseMessage } from "../http_client/HttpMessage.js";
 import { ApiErrorResponse } from "./response/ApiErrorResponse.js";
 import { CustomAuthApiResponseBase } from "./response/CustomAuthApiResponseBase.js";
 import {
@@ -21,67 +21,95 @@ import {
 export class CustomAuthApiResponseHandler {
     static handleSignInInitiateResponse(
         response: HttpResponseMessage,
-        correlationId: string
+        correlationId: string,
     ): SignInInitiateResponse {
         const responseBodyContent =
-            this.readResponseBody<SignInInitiateResponse>(
+            CustomAuthApiResponseHandler.readResponseBody<SignInInitiateResponse>(
                 response,
-                correlationId
+                correlationId,
             );
 
-        this.ensureContinuationTokenIsValid(responseBodyContent);
+        CustomAuthApiResponseHandler.ensureContinuationTokenIsValid(
+            responseBodyContent,
+        );
 
-        return responseBodyContent;
+        return new SignInInitiateResponse(
+            responseBodyContent.correlation_id,
+            responseBodyContent.continuation_token,
+            responseBodyContent.challenge_type,
+        );
     }
 
     static handleSignInChallengeResponse(
         response: HttpResponseMessage,
-        correlationId: string
+        correlationId: string,
     ): SignInChallengeResponse {
         const responseBodyContent =
-            this.readResponseBody<SignInChallengeResponse>(
+            CustomAuthApiResponseHandler.readResponseBody<SignInChallengeResponse>(
                 response,
-                correlationId
+                correlationId,
             );
 
-        this.ensureContinuationTokenIsValid(responseBodyContent);
-        this.ensureChallengeTypeIsValid(
+        CustomAuthApiResponseHandler.ensureContinuationTokenIsValid(
+            responseBodyContent,
+        );
+        CustomAuthApiResponseHandler.ensureChallengeTypeIsValid(
             responseBodyContent.challenge_type,
-            responseBodyContent.correlation_id
+            responseBodyContent.correlation_id,
         );
 
-        return responseBodyContent;
+        return new SignInChallengeResponse(
+            responseBodyContent.correlation_id,
+            responseBodyContent.continuation_token,
+            responseBodyContent.challenge_type,
+            responseBodyContent.binding_method,
+            responseBodyContent.target_challenge_label,
+            responseBodyContent.challenge_channel,
+            responseBodyContent.code_length,
+        );
     }
 
     static handleSignInTokenResponse(
         response: HttpResponseMessage,
-        correlationId: string
-    ): SignInChallengeResponse {
-        const responseBodyContent = this.readResponseBody<SignInTokenResponse>(
-            response,
-            correlationId
+        correlationId: string,
+    ): SignInTokenResponse {
+        const responseBodyContent =
+            CustomAuthApiResponseHandler.readResponseBody<SignInTokenResponse>(
+                response,
+                correlationId,
+            );
+
+        CustomAuthApiResponseHandler.ensureTokenResponseIsValid(
+            responseBodyContent,
         );
 
-        this.ensureTokenResponseIsValid(responseBodyContent);
-
-        return responseBodyContent;
+        return new SignInTokenResponse(
+            responseBodyContent.correlation_id,
+            responseBodyContent.token_type,
+            responseBodyContent.scopes,
+            responseBodyContent.expires_in,
+            responseBodyContent.id_token,
+            responseBodyContent.access_token,
+            responseBodyContent.refresh_token,
+        );
     }
 
     private static readResponseBody<
-        TResponseBody extends CustomAuthApiResponseBase
+        TResponseBody extends CustomAuthApiResponseBase,
     >(response: HttpResponseMessage, correlationId: string): TResponseBody {
         if (!response) {
             throw new CustomAuthApiError(
                 "empty_response",
                 "Response is empty",
-                correlationId
+                correlationId,
             );
         }
 
-        const responseCorrelationId = this.readResponseCorrelationId(
-            response,
-            correlationId
-        );
+        const responseCorrelationId =
+            CustomAuthApiResponseHandler.readResponseCorrelationId(
+                response,
+                correlationId,
+            );
 
         if (response.isSuccessful()) {
             let responseBody: TResponseBody;
@@ -92,7 +120,7 @@ export class CustomAuthApiResponseHandler {
                 throw new CustomAuthApiError(
                     CustomAuthApiErrorCode.INVALID_RESPONSE_BODY,
                     `Response body is empty or invalid: ${error}`,
-                    responseCorrelationId
+                    responseCorrelationId,
                 );
             }
 
@@ -107,7 +135,7 @@ export class CustomAuthApiResponseHandler {
             throw new CustomAuthApiError(
                 CustomAuthApiErrorCode.INVALID_RESPONSE_BODY,
                 "Response error body is empty or invalid",
-                responseCorrelationId
+                responseCorrelationId,
             );
         }
 
@@ -119,7 +147,7 @@ export class CustomAuthApiResponseHandler {
             !!responseError.required_attributes &&
             responseError.required_attributes.length > 0
                 ? responseError.required_attributes
-                : responseError.invalid_attributes ?? [];
+                : (responseError.invalid_attributes ?? []);
 
         throw new CustomAuthApiError(
             responseError.error ?? "unknown_error",
@@ -129,16 +157,16 @@ export class CustomAuthApiResponseHandler {
             responseError.suberror,
             attributes,
             responseError.continuation_token,
-            responseError.trace_id
+            responseError.trace_id,
         );
     }
 
     private static readResponseCorrelationId(
         response: HttpResponseMessage,
-        requestCorrelationId: string
+        requestCorrelationId: string,
     ): string {
         const correlationId = response.getHeader(
-            HttpHeaderKeys.X_MS_REQUEST_ID
+            HttpHeaderKeys.X_MS_REQUEST_ID,
         );
 
         return !correlationId ? requestCorrelationId : correlationId;
@@ -160,14 +188,14 @@ export class CustomAuthApiResponseHandler {
             throw new CustomAuthApiError(
                 CustomAuthApiErrorCode.CONTINUATION_TOKEN_MISSING,
                 "Continuation token is missing in the response body",
-                partialResponse.correlation_id
+                partialResponse.correlation_id,
             );
         }
     }
 
     private static ensureChallengeTypeIsValid(
         challengeType?: string,
-        correlationId?: string
+        correlationId?: string,
     ): void {
         if (
             challengeType?.toLowerCase() !== ChallengeType.OOB &&
@@ -176,13 +204,13 @@ export class CustomAuthApiResponseHandler {
             throw new CustomAuthApiError(
                 CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
                 `Challenge type ${challengeType} is not supported`,
-                correlationId
+                correlationId,
             );
         }
     }
 
     private static ensureTokenResponseIsValid(
-        tokenResponse: SignInTokenResponse
+        tokenResponse: SignInTokenResponse,
     ): void {
         let errorCode = "";
         let errorDescription = "";
@@ -204,10 +232,14 @@ export class CustomAuthApiResponseHandler {
             errorDescription = `Token type '${tokenResponse.token_type}' is invalid in the response body`;
         }
 
+        if (!errorCode && !errorDescription) {
+            return;
+        }
+
         throw new CustomAuthApiError(
             errorCode,
             errorDescription,
-            tokenResponse.correlation_id
+            tokenResponse.correlation_id,
         );
     }
 }

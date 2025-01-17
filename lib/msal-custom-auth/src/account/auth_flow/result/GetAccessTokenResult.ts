@@ -21,11 +21,11 @@ export class GetAccessTokenResult extends ResultBase<
     }
 
     get state(): GetAccessTokenState {
-        if (this.error) {
+        if (!!this.error) {
             return GetAccessTokenState.Failed;
         }
 
-        if (this.data) {
+        if (!!this.data) {
             return GetAccessTokenState.Completed;
         }
 
