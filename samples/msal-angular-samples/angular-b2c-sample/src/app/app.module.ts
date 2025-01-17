@@ -52,7 +52,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
       knownAuthorities: [environment.b2cPolicies.authorityDomain],
     },
     cache: {
-      cacheLocation: BrowserCacheLocation.LocalStorage,
+      cacheLocation: BrowserCacheLocation.SessionStorage,
     },
     system: {
       allowPlatformBroker: false, // Disables WAM Broker
