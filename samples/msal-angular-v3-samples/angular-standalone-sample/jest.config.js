@@ -1,5 +1,5 @@
 module.exports = {
-    displayName: "angular18-standalone-sample",
+    displayName: "angular-standalone-sample",
     globals: {
         __PORT__: 4218,
         __STARTCMD__: "npm start -- --port 4218",

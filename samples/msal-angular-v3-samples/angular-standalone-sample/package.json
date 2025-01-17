@@ -1,5 +1,5 @@
 {
-  "name": "angular18-standalone-sample",
+  "name": "angular-standalone-sample",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",

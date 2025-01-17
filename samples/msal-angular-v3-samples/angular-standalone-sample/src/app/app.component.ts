@@ -37,7 +37,7 @@ import { CommonModule } from '@angular/common';
     ]
 })
 export class AppComponent implements OnInit, OnDestroy {
-  title = 'Angular 18 Sample - MSAL Angular v3';
+  title = 'Angular Standalone Sample - MSAL Angular';
   isIframe = false;
   loginDisplay = false;
   private readonly _destroying$ = new Subject<void>();

@@ -1,10 +1,8 @@
-# Angular 18 Standalone MSAL Angular v3 Sample
+# Angular Standalone MSAL Angular v4 Sample
 
 This developer sample is used to demonstrate how to use `@azure/msal-angular` with Angular standalone components, and **does not** use the `MsalModule` or `NgModule`. Please see [Angular's docs on standalone](https://angular.io/guide/standalone-components) for more information.
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.0.0-next.5, and uses Angular 18's application builder, but **does not** demonstrate use of server-side and prerendering capabilities. See [Angular's docs](https://angular.io/guide/esbuild) for more details.
-
-**NOTE:** This sample is currently on the RC version of Angular 18, and will be updated when Angular 18 is released.
+This project uses Angular 19's application builder, but **does not** demonstrate use of server-side and prerendering capabilities. See [Angular's docs](https://angular.io/guide/esbuild) for more details.
 
 ## How to run the sample
 
