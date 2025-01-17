@@ -38,7 +38,7 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'Angular Standalone Sample - MSAL Angular' title`, () => {
+  it(`should have as title 'Angular Standalone Sample - MSAL Angular'`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
     expect(app.title).toEqual('Angular Standalone Sample - MSAL Angular');
