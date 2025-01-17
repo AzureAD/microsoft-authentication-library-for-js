@@ -172,7 +172,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
         );
         const reqTimestamp = TimeUtils.nowSeconds();
 
-        const serverTelemetryManager = this.initializeServerTelemetryManager(this.apiId);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(
+            this.apiId
+        );
         try {
             // initialize native request
             const nativeRequest = await this.initializeNativeRequest(request);
@@ -234,9 +236,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 });
         } catch (e) {
             if (e instanceof NativeAuthError) {
-                serverTelemetryManager.setNativeBrokerErrorCode(
-                    e.errorCode
-                );
+                serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
             }
             throw e;
         }
@@ -343,10 +343,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
             if (e instanceof NativeAuthError) {
-                const serverTelemetryManager = this.initializeServerTelemetryManager(this.apiId);
-                serverTelemetryManager.setNativeBrokerErrorCode(
-                    e.errorCode
-                );
+                const serverTelemetryManager =
+                    this.initializeServerTelemetryManager(this.apiId);
+                serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
                 if (isFatalNativeAuthError(e)) {
                     throw e;
                 }
@@ -441,7 +440,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
             );
             this.browserStorage.setInteractionInProgress(false);
             const res = await result;
-            const serverTelemetryManager = this.initializeServerTelemetryManager(this.apiId);
+            const serverTelemetryManager =
+                this.initializeServerTelemetryManager(this.apiId);
             serverTelemetryManager.clearNativeBrokerErrorCode();
             return res;
         } catch (e) {

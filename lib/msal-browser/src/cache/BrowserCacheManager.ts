@@ -1464,11 +1464,7 @@ function getStorageImplementation(
     try {
         switch (cacheLocation) {
             case BrowserCacheLocation.LocalStorage:
-                return new LocalStorage(
-                    clientId,
-                    logger,
-                    performanceClient
-                );
+                return new LocalStorage(clientId, logger, performanceClient);
             case BrowserCacheLocation.SessionStorage:
                 return new SessionStorage();
             case BrowserCacheLocation.MemoryStorage:

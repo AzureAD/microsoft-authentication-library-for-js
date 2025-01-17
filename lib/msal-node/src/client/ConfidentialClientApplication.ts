@@ -68,7 +68,7 @@ export class ConfidentialClientApplication
      */
     constructor(configuration: Configuration) {
         super(configuration);
-        
+
         const clientSecretNotEmpty = !!this.config.auth.clientSecret;
         const clientAssertionNotEmpty = !!this.config.auth.clientAssertion;
         const certificateNotEmpty =
