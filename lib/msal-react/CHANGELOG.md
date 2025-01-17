@@ -8,12 +8,13 @@
 
 Wed, 15 Jan 2025 05:05:17 GMT
 
-### Patches
+### Breaking Changes
 
 - Update msal-browser peer dependency to include v4 (thomas.norling@microsoft.com)
 - Rename `native` to `platformBroker` in public API and docs (sameera.gajjarapu@microsoft.com)
 - Bump @azure/msal-browser to v4.0.1
-- Bump eslint-config-msal to v0.0.0
+
+- Please see the msal-browser [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v3-migration.md) for more details on what's changed in v4.
 
 ## 2.2.0
 
