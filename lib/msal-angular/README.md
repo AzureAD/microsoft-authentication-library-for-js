@@ -34,6 +34,7 @@ The current `@azure/msal-angular` library improves upon the previous version and
 
 ## Guides
 
+- MSAL Angular v4 includes security updates from msal-browser. Please see the msal-browser [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v3-migration.md) for more details on what's changed in v4.
 - [Upgrade Guide (v2-v3)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-v3-upgrade-guide.md)
 - [Upgrade Guide (v1-v2)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v1-v2-upgrade-guide.md)
 - [Upgrade Guide (v0-v1)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v0-v1-upgrade-guide.md)
@@ -45,7 +46,8 @@ At a minimum, `@azure/msal-angular` will follow the [support schedule of the mai
 
 | MSAL Angular version | MSAL support status | Supported Angular versions |
 | -------------------- | ------------------- | -------------------------- |
-| MSAL Angular v3      | Active development  | 15, 16, 17, 18             |
+| MSAL Angular v4      | Active development  | 19                         |
+| MSAL Angular v3      | In maintenance      | 15, 16, 17, 18             |
 | MSAL Angular v2      | In maintenance      | 9, 10, 11, 12, 13, 14      |
 | MSAL Angular v1      | In maintenance      | 6, 7, 8, 9                 |
 | MSAL Angular v0      | Out of support      | 4, 5                       |
@@ -89,14 +91,20 @@ Documentation specifically for MSAL Angular v1 can be found [here](https://githu
 
 ## Samples
 
+### Current MSAL Angular Samples
+
+- [Angular B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular-b2c-sample)
+- [Angular Modules Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular-modules-sample)
+- [Angular Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular-standalone-sample)
+
 ### MSAL Angular v3 Samples
 
-- [Angular v15](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular15-sample-app)
-- [Angular v16](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular16-sample-app)
-- [Angular v16 B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular-b2c-sample-app)
-- [Angular Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular-standalone-sample)
-- [Angular v17 Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular17-standalone-sample)
-- [Angular v18 Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular18-standalone-sample)
+- [Angular v15](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v3-lts/samples/msal-angular-v3-samples/angular15-sample-app)
+- [Angular v16](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v3-lts/samples/msal-angular-v3-samples/angular16-sample-app)
+- [Angular v16 B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v3-lts/samples/msal-angular-v3-samples/angular-b2c-sample-app)
+- [Angular Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v3-lts/samples/msal-angular-v3-samples/angular-standalone-sample)
+- [Angular v17 Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v3-lts/samples/msal-angular-v3-samples/angular17-standalone-sample)
+- [Angular v18 Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v3-lts/samples/msal-angular-v3-samples/angular18-standalone-sample)
 
 ### MSAL Angular v2 Samples
 
