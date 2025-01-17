@@ -126,7 +126,7 @@ describe("B2C user-flow tests (msa account)", () => {
             ),
             page.waitForSelector("#idTokenClaims"),
             page.waitForSelector(
-                "xpath/.//*[@id=\"interactionStatus\"]/center[contains(., 'ssoSilent success')]",
+                "::-p-xpath(//*[@id=\"interactionStatus\"]/center[contains(., 'ssoSilent success')])",
                 { timeout: 4000 }
             ),
         ]);
