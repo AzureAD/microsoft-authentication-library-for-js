@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "angular16-sample-app": {
+    "angular-modules-sample": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/angular16-sample-app",
+            "outputPath": "dist/angular-modules-sample",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": [
@@ -85,13 +85,13 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "angular16-sample-app:build:production"
+              "browserTarget": "angular-modules-sample:build:production"
             },
             "e2e": {
-              "browserTarget": "angular16-sample-app:build:e2e"
+              "browserTarget": "angular-modules-sample:build:e2e"
             },
             "dev": {
-              "browserTarget": "angular16-sample-app:build:dev"
+              "browserTarget": "angular-modules-sample:build:dev"
             }
           },
           "defaultConfiguration": "dev"
@@ -99,7 +99,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "angular16-sample-app:build"
+            "browserTarget": "angular-modules-sample:build"
           }
         },
         "test": {
@@ -111,7 +111,6 @@
             ],
             "tsConfig": "tsconfig.spec.json",
             "assets": [
-              "src/favicon.ico",
               "src/assets"
             ],
             "styles": [

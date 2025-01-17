@@ -17,7 +17,7 @@ type IdTokenClaimsWithPolicyId = IdTokenClaims & {
     styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit, OnDestroy {
-    title = 'Angular 16 B2C Sample - MSAL Angular v3';
+    title = 'Angular B2C Sample - MSAL Angular';
     isIframe = false;
     loginDisplay = false;
     private readonly _destroying$ = new Subject<void>();

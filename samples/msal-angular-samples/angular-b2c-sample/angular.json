@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "angular-b2c-sample-app": {
+    "angular-b2c-sample": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:application": {
@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/angular-b2c-sample-app",
+            "outputPath": "dist/angular-b2c-sample",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -93,13 +93,13 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "angular-b2c-sample-app:build:production"
+              "browserTarget": "angular-b2c-sample:build:production"
             },
             "e2e": {
-              "browserTarget": "angular-b2c-sample-app:build:e2e"
+              "browserTarget": "angular-b2c-sample:build:e2e"
             },
             "dev": {
-              "browserTarget": "angular-b2c-sample-app:build:dev"
+              "browserTarget": "angular-b2c-sample:build:dev"
             }
           },
           "defaultConfiguration": "dev"
@@ -107,7 +107,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "angular-b2c-sample-app:build"
+            "browserTarget": "angular-b2c-sample:build"
           }
         },
         "test": {
@@ -118,7 +118,6 @@
             "tsConfig": "tsconfig.spec.json",
             "karmaConfig": "karma.conf.js",
             "assets": [
-              "src/favicon.ico",
               "src/assets"
             ],
             "styles": [

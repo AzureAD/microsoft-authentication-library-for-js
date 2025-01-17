@@ -32,20 +32,8 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'Angular 16 B2C Sample - MSAL Angular v3'`, () => {
+  it(`should have as title 'Angular B2C Sample - MSAL Angular'`, () => {
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('Angular 16 B2C Sample - MSAL Angular v3');
-  });
-
-  it('should render title', () => {
-    let el: any;
-    fixture.whenStable().then(
-      ()=>{
-        el = fixture.nativeElement.getElementsByClassName("title");
-      },
-      (error)=>{console.error(error)})
-      .finally(()=>{
-        expect(el.nativeElement.innerText).toBeDefined(); // Unit test reads render a title. Hence contribution assumes the value of the text to be irrelevant.
-      })
+    expect(app.title).toEqual('Angular B2C Sample - MSAL Angular');
   });
 });

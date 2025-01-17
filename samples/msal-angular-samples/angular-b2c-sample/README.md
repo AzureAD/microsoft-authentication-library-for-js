@@ -1,4 +1,4 @@
-# Angular 16 B2C Sample using MSAL Angular v3
+# Angular B2C Sample using MSAL Angular
 
 This developer sample is used to demonstrate how to use `@azure/msal-angular` on Azure AD B2C.
 

@@ -1,6 +1,6 @@
-# Angular 16 MSAL Angular v3 Sample
+# Angular Modules Sample
 
-This developer sample is used to demonstrate how to use `@azure/msal-angular`.
+This developer sample is used to demonstrate how to use `@azure/msal-angular` with Angular's NgModules.
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 15.1.4 and then upgraded to version 16.0.0-rc.3.
 
@@ -13,6 +13,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 - Open `./src/app/app.modules.ts` in an editor.
 - Replace client id with the Application (client) ID from the portal registration, or use the currently configured lab registration. 
   - Optionally, you may replace any of the other parameters, or you can remove them and use the default values.
+- You can also change the client ID, tenant ID, or scopes in the `./src/environments` folder.
 
 ### Running the sample
 - In a command prompt, run `npm start`.

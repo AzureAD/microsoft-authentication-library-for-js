@@ -1,5 +1,5 @@
 module.exports = {
-    displayName: "angular16-sample-app",
+    displayName: "angular-modules-sample",
     globals: {
         __PORT__: 4216,
         __STARTCMD__: "npm start -- --port 4216",
