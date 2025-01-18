@@ -121,8 +121,8 @@ describe("B2C user-flow tests (local account)", () => {
             ),
             page.waitForSelector("#idTokenClaims"),
             page.waitForSelector(
-                "::-p-xpath(//*[@id=\"interactionStatus\"]/center[contains(., 'ssoSilent success')])",
-                { timeout: 4000 }
+                "::-p-xpath(//*[@id=\"interactionStatus\"]/center[contains(., 'update success')])",
+                { timeout: 10000 }
             ),
         ]);
         const idTokenClaims = await page.$eval(
