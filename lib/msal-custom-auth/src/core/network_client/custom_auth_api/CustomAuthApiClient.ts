@@ -14,7 +14,10 @@ import {
     SignInChallengeResponse,
     SignInInitiateResponse,
     SignInTokenResponse,
-} from "./response/SignInResponse.js";
+    SignUpChallengeResponse,
+    SignUpContinueResponse,
+    SignUpStartResponse,
+} from "./response/ApiResponse.js";
 import { CustomAuthApiResponseHandler } from "./CustomAuthApiResponseHandler.js";
 import { IHttpClient } from "../http_client/IHttpClient.js";
 import {
@@ -31,6 +34,13 @@ import {
     CustomAuthApiErrorCode,
 } from "../../error/CustomAuthApiError.js";
 import { ArgumentValidator } from "../../utils/ArgumentValidator.js";
+import {
+    SignUpStartRequest,
+    SignUpChallengeRequest,
+    SignUpSubmitCodeRequest,
+    SignUpSubmitPasswordRequest,
+    SignUpSubmitUserAttributesRequest,
+} from "./request/SignUpRequest.js";
 
 /**
  * Custom Auth Client which can be used to make requests to the Custom Auth service.
@@ -164,5 +174,45 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
         }
 
         return responseHandler(response, requestParams.correlationId);
+    }
+
+    performSignUpStartRequest(
+        request: SignUpStartRequest,
+    ): Promise<SignUpStartResponse> {
+        throw new Error(
+            `Method not implemented with parameter request '${request}'.`,
+        );
+    }
+
+    performSignUpChallengeRequest(
+        request: SignUpChallengeRequest,
+    ): Promise<SignUpChallengeResponse> {
+        throw new Error(
+            `Method not implemented with parameter request '${request}'.`,
+        );
+    }
+
+    performSignUpSubmitCodeRequest(
+        request: SignUpSubmitCodeRequest,
+    ): Promise<SignUpContinueResponse> {
+        throw new Error(
+            `Method not implemented with parameter request '${request}'.`,
+        );
+    }
+
+    performSignUpSubmitPasswordRequest(
+        request: SignUpSubmitPasswordRequest,
+    ): Promise<SignUpContinueResponse> {
+        throw new Error(
+            `Method not implemented with parameter request '${request}'.`,
+        );
+    }
+
+    performSignUpSubmitUserAttributesRequest(
+        request: SignUpSubmitUserAttributesRequest,
+    ): Promise<SignUpContinueResponse> {
+        throw new Error(
+            `Method not implemented with parameter request '${request}'.`,
+        );
     }
 }

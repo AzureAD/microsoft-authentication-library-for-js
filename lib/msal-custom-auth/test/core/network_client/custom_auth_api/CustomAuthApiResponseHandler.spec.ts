@@ -8,7 +8,7 @@ import {
     SignInChallengeResponse,
     SignInInitiateResponse,
     SignInTokenResponse,
-} from "../../../../src/core/network_client/custom_auth_api/response/SignInResponse.js";
+} from "../../../../src/core/network_client/custom_auth_api/response/ApiResponse.js";
 import {
     HttpResponseMessage,
     HttpStatusCode,

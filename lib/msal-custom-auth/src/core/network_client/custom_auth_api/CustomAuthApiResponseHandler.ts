@@ -16,7 +16,7 @@ import {
     SignInChallengeResponse,
     SignInInitiateResponse,
     SignInTokenResponse,
-} from "./response/SignInResponse.js";
+} from "./response/ApiResponse.js";
 
 export class CustomAuthApiResponseHandler {
     static handleSignInInitiateResponse(
