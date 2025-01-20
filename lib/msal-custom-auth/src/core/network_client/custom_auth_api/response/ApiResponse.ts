@@ -5,7 +5,7 @@
 
 import { CustomAuthApiResponseBase } from "./CustomAuthApiResponseBase.js";
 
-export class SignInInitiateResponse extends CustomAuthApiResponseBase {
+class InitiateResponse extends CustomAuthApiResponseBase {
     constructor(
         correlation_id?: string,
         public continuation_token?: string,
@@ -15,7 +15,7 @@ export class SignInInitiateResponse extends CustomAuthApiResponseBase {
     }
 }
 
-export class SignInChallengeResponse extends CustomAuthApiResponseBase {
+class ChallengeResponse extends CustomAuthApiResponseBase {
     constructor(
         correlation_id?: string,
         public continuation_token?: string,
@@ -24,10 +24,16 @@ export class SignInChallengeResponse extends CustomAuthApiResponseBase {
         public target_challenge_label?: string,
         public challenge_channel?: string,
         public code_length?: number,
+        public interval?: number,
     ) {
         super(correlation_id);
     }
 }
+
+// Sign-in responses
+export class SignInInitiateResponse extends InitiateResponse {}
+
+export class SignInChallengeResponse extends ChallengeResponse {}
 
 export class SignInTokenResponse extends CustomAuthApiResponseBase {
     constructor(
@@ -42,3 +48,10 @@ export class SignInTokenResponse extends CustomAuthApiResponseBase {
         super(correlation_id);
     }
 }
+
+// Sign-up responses
+export class SignUpStartResponse extends InitiateResponse {}
+
+export class SignUpChallengeResponse extends ChallengeResponse {}
+
+export class SignUpContinueResponse extends InitiateResponse {}

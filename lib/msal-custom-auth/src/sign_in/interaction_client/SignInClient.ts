@@ -30,7 +30,7 @@ import {
 } from "./result/SignInActionResult.js";
 import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
 import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
-import { SignInTokenResponse } from "../../core/network_client/custom_auth_api/response/SignInResponse.js";
+import { SignInTokenResponse } from "../../core/network_client/custom_auth_api/response/ApiResponse.js";
 import { CustomAuthAuthenticationResult } from "../../core/interaction_client/CustomAuthAuthenticationResult.js";
 
 export class SigninClient extends CustomAuthInteractionClientBase {

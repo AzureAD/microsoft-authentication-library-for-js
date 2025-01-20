@@ -59,24 +59,24 @@ export class SignInInitiateRequestParameters {
         public challengeType: string,
         correlationId: string,
     ) {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
             "correlationId",
             correlationId,
         );
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
             "username",
             username,
             correlationId,
         );
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
             "clientId",
             clientId,
             correlationId,
         );
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
             "challengeType",
             challengeType,
             correlationId,
@@ -133,18 +133,18 @@ export class SignInChallengeRequestParameters {
         public continuationToken: string,
         correlationId: string,
     ) {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
             "correlationId",
             correlationId,
         );
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
             "continuationToken",
             continuationToken,
             correlationId,
         );
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
             "clientId",
             clientId,
             correlationId,
@@ -282,24 +282,24 @@ abstract class SignInTokenRequestParametersBase {
         public scopes?: Array<string>,
         public challengeType?: string,
     ) {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
             "correlationId",
             correlationId,
         );
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
             "grantType",
             grantType,
             correlationId,
         );
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
             "clientId",
             clientId,
             correlationId,
         );
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
             "continuationToken",
             continuationToken,
             correlationId,
@@ -325,7 +325,7 @@ export class SignInOobTokenRequestParameters extends SignInTokenRequestParameter
             challengeType,
         );
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
             "oob",
             oob,
             correlationId,
@@ -351,7 +351,7 @@ export class SignInPasswordTokenRequestParameters extends SignInTokenRequestPara
             challengeType,
         );
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
             "password",
             password,
             correlationId,
@@ -377,7 +377,7 @@ export class SignInContinuationTokenRequestParameters extends SignInTokenRequest
             challengeType,
         );
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
             "username",
             username,
             correlationId,
