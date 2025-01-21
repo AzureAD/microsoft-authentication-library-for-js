@@ -54,7 +54,7 @@ MSAL Angular v2 supports Angular 9, 10, 11, 12, 13 and 14.
 
 Yes, server side rendering is supported through Angular universal. See our doc [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/angular-universal.md) for more information.
 
-**Note:** MSAL Angular currently does not officially support Angular 17-19's server-side and prerendering capabilities. Using SSR with MSAL Angular may break your app.
+**Note:** MSAL Angular currently does not officially support server-side and prerendering capabilities. Using SSR with MSAL Angular may break your app.
 
 ### Does `@azure/msal-angular` support standalone components?
 
