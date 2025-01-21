@@ -22,8 +22,6 @@ import { NodeStorage } from "../../cache/NodeStorage.js";
 
 const MACHINE_LEARNING_MSI_API_VERSION: string = "2017-09-01";
 
-// search for all App Service
-
 export class MachineLearning extends BaseManagedIdentitySource {
     private msiEndpoint: string;
     private secret: string;
@@ -60,7 +58,7 @@ export class MachineLearning extends BaseManagedIdentitySource {
     ): MachineLearning | null {
         const [msiEndpoint, secret] = MachineLearning.getEnvironmentVariables();
 
-        // if either of the identity endpoint or MSI secret variables are undefined, this MSI provider is unavailable.
+        // if either of the MSI endpoint or MSI secret variables are undefined, this MSI provider is unavailable.
         if (!msiEndpoint || !secret) {
             logger.info(
                 `[Managed Identity] ${ManagedIdentitySourceNames.MACHINE_LEARNING} managed identity is unavailable because one or both of the '${ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT}' and '${ManagedIdentityEnvironmentVariableNames.MSI_SECRET}' environment variables are not defined.`
