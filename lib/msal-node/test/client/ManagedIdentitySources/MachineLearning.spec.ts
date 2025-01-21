@@ -109,7 +109,7 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
             jest.restoreAllMocks();
         });
 
-        test("ensures that App Service is selected as the Managed Identity source when all of its and Machine Learning's environment variables are present", async () => {
+        test("ensures that App Service is selected as the Managed Identity source when all App Service and Machine Learning environment variables are present", async () => {
             process.env[
                 ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT
             ] = "fake_IDENTITY_ENDPOINT";
