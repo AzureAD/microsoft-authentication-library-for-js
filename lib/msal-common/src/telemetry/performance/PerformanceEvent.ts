@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { CommonAuthorizationCodeRequest } from "../../request/CommonAuthorizationCodeRequest";
-import { CommonAuthorizationUrlRequest } from "../../request/CommonAuthorizationUrlRequest";
+import { CommonAuthorizationCodeRequest } from "../../request/CommonAuthorizationCodeRequest.js";
+import { CommonAuthorizationUrlRequest } from "../../request/CommonAuthorizationUrlRequest.js";
 
 /**
  * Enumeration of operations that are instrumented by have their performance measured by the PerformanceClient.
