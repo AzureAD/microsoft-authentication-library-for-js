@@ -59,7 +59,7 @@ module.exports = async (jestOptions) => {
     if(jestOptions.projects && jestOptions.projects.length > 0) {
         const servers = [];
         jestOptions.projects.forEach((project) => {
-            const jestConfig = require(path.resolve(project, "jest.config.js"));
+            const jestConfig = require(path.resolve(project, "jest.config.cjs"));
             servers.push(startServer(jestConfig));
         });
 
@@ -68,7 +68,7 @@ module.exports = async (jestOptions) => {
             process.exit(1);
         });
     } else {
-        const jestConfig = require(path.resolve(jestOptions.rootDir, "jest.config.js"));
+        const jestConfig = require(path.resolve(jestOptions.rootDir, "jest.config.cjs"));
         await startServer(jestConfig).catch(async () => {
             await serverUtils.killServers(jestOptions);
             process.exit(1)
