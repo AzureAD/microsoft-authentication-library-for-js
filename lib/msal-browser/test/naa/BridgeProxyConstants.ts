@@ -81,10 +81,14 @@ export const SILENT_TOKEN_RESPONSE: AuthResult = {
 export const NAA_APP_CONSTANTS = {
     homeAccountId:
         "2995ae49-d9dd-409d-8d62-ba969ce58a81.51178b70-16cc-41b5-bef1-ae1808139065",
+    altHomeAccountId:
+        "c691463b-b280-4755-8fd1-486f6e9c6f53.73541b02-bd0d-4c53-ad05-b0cf19ab7d40",
     localAccountId: "2995ae49-d9dd-409d-8d62-ba969ce58a81",
+    altLocalAccountId: "c691463b-b280-4755-8fd1-486f6e9c6f53",
     environment: "login.microsoftonline.com",
     tenantId: "51178b70-16cc-41b5-bef1-ae1808139065",
     username: "AdeleV@vc6w6.onmicrosoft.com",
+    altUsername: "sampleacccounto.onmicrosoft.com",
     idTokenClaims: {
         ver: "2.0",
         iss: "https://login.microsoftonline.com/3338040d-6c67-4c5b-b112-36a304b66dad/v2.0",
