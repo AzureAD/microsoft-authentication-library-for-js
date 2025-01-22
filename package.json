@@ -45,6 +45,7 @@
         "beachball:release": "node ./.github/create-releases.js"
     },
     "workspaces": [
+        "shared-configs/eslint-plugin-custom-msal",
         "shared-configs/eslint-config-msal",
         "shared-configs/rollup-msal",
         "lib/msal-common",
