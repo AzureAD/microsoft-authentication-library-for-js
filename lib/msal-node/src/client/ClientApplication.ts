@@ -361,9 +361,7 @@ export abstract class ClientApplication {
             const refreshTokenClient = new RefreshTokenClient(
                 clientConfiguration
             );
-            return refreshTokenClient.acquireTokenByRefreshToken(
-                validRequest
-            );
+            return refreshTokenClient.acquireTokenByRefreshToken(validRequest);
         }
         throw error;
     }
