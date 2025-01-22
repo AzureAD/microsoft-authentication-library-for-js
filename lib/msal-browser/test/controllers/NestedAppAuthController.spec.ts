@@ -238,9 +238,16 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 SILENT_TOKEN_RESPONSE,
                 0
             );
+
+            const hydrateCacheSpy = jest.spyOn(
+                NestedAppAuthController.prototype as any,
+                "hydrateCache"
+            );
+
             const response = await pca.acquireTokenSilent(testRequest);
 
             expect(response.accessToken).toEqual(testResponse.accessToken);
+            expect(hydrateCacheSpy).toHaveBeenCalledTimes(1);
         });
 
         it("acquireTokenSilent sends the request to bridge if cache misses", async () => {
