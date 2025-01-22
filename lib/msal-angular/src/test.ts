@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import "zone.js/dist/zone";
-import "zone.js/dist/zone-testing";
+import "zone.js";
+import "zone.js/testing"
 // eslint-disable-next-line import/no-unresolved
 import { getTestBed } from "@angular/core/testing";
 import {
