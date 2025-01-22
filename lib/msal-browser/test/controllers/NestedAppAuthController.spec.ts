@@ -250,6 +250,28 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             expect(hydrateCacheSpy).toHaveBeenCalledTimes(1);
         });
 
+        it("acquireTokenSilent ignores cache if forceRefresh is on", async () => {
+            mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+
+            const testRequest = {
+                scopes: [NAA_SCOPE],
+                account: testAccount,
+                forceRefresh: true,
+                correlationId: NAA_CORRELATION_ID,
+            };
+
+            const testTokenResponse = nestedAppAuthAdapter.fromNaaTokenResponse(
+                nestedAppAuthAdapter.toNaaTokenRequest(testRequest),
+                SILENT_TOKEN_RESPONSE,
+                0
+            );
+
+            const response = await pca.acquireTokenSilent(testRequest);
+
+            expect(response?.idToken).not.toBeNull();
+            expect(response.accessToken).toEqual(testTokenResponse.accessToken);
+        });
+
         it("acquireTokenSilent sends the request to bridge if cache misses", async () => {
             mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
             jest.spyOn(

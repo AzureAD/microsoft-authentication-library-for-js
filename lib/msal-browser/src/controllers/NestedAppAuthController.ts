@@ -389,8 +389,20 @@ export class NestedAppAuthController implements IController {
             return null;
         }
 
+        // if the request has forceRefresh, we cannot look up in the cache
+        if (request.forceRefresh) {
+            this.logger.verbose(
+                "forceRefresh is set to true, skipping cache lookup"
+            );
+            return null;
+        }
+
         // respect cache lookup policy
         let result: AuthenticationResult | null = null;
+        if (!request.cacheLookupPolicy) {
+            request.cacheLookupPolicy = CacheLookupPolicy.Default;
+        }
+
         switch (request.cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessToken:
