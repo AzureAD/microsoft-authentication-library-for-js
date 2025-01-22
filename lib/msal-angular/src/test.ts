@@ -4,7 +4,7 @@
  */
 
 import "zone.js";
-import "zone.js/testing"
+import "zone.js/testing";
 // eslint-disable-next-line import/no-unresolved
 import { getTestBed } from "@angular/core/testing";
 import {
