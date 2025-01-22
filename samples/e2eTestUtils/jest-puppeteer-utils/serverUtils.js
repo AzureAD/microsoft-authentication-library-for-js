@@ -130,14 +130,14 @@ async function killServers(jestOptions) {
     if (jestOptions.projects && jestOptions.projects.length > 0) {
         for (let i = 0; i < jestOptions.projects.length; i++) {
             const project = jestOptions.projects[i];
-            const jestConfig = require(path.resolve(project, "jest.config.js"));
+            const jestConfig = require(path.resolve(project, "jest.config.cjs"));
             const port = jestConfig.globals.__PORT__;
             await killServer(port);
         }
     } else {
         const jestConfig = require(path.resolve(
             jestOptions.rootDir,
-            "jest.config.js"
+            "jest.config.cjs"
         ));
         await killServer(jestConfig.globals.__PORT__);
     }
