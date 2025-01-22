@@ -9,6 +9,10 @@ In addition to npm, `msal` can be consumed from Microsoft-hosted CDNs.
 
 ## Best Practices
 
+**_NOTE:_** We highly recommend using npm to consume MSAL.js (all versions). This documentation is maintained _only_ for existing legacy build support for CDNs until MSAL v2. CDN support is discontinued starting MSAL JS v3.
+
+When using the CDN, we recommend the following best practices:
+
 -   Use the latest version of MSAL.js v2.
 -   Use the minified build in production, unminified build for development.
 -   Use the Microsoft CDN instead of third-party CDNs.
@@ -42,7 +46,7 @@ In addition to minified builds, unminified builds for each version are also avai
 
 ## Domains supported
 
-Microsoft offers 2 top-level CDN domains for resilience
+Microsoft offers 2 top-level CDN domains for resilience.
 
 | CDN Domain           | Example                                                             |
 | -------------------- | ------------------------------------------------------------------- |
