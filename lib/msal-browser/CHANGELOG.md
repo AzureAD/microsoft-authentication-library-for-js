@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 15 Jan 2025 05:05:17 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 22 Jan 2025 21:45:31 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.0.2
+
+Wed, 22 Jan 2025 21:45:31 GMT
+
+### Patches
+
+- Add support for forceRefresh and set default cache policy in NAA flows (sameera.gajjarapu@microsoft.com)
+- Update current account and active account behavior in NAA apps (sameera.gajjarapu@microsoft.com)
+- Fix 'Cannot read properties of undefined (reading 'incrementFields')' error (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.0.2
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.0.1
 

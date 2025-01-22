@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Added Machine Learning as a Managed Identity Source #7512",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}
