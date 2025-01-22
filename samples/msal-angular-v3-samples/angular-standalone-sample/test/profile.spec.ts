@@ -41,7 +41,7 @@ describe('/ (Profile Page)', () => {
   });
 
   beforeEach(async () => {
-    context = await browser.createIncognitoBrowserContext();
+    context = await browser.createBrowserContext();
     page = await context.newPage();
     page.setDefaultTimeout(5000);
     BrowserCache = new BrowserCacheUtils(page, 'localStorage');
@@ -72,7 +72,7 @@ describe('/ (Profile Page)', () => {
     await enterCredentials(page, screenshot, username, accountPwd);
 
     // Verify UI now displays logged in content
-    await page.waitForXPath("//button[contains(., 'Logout')]");
+    await page.waitForSelector("xpath/.//button[contains(., 'Logout')]");
     await screenshot.takeScreenshot(page, 'Profile page signed in');
 
     // Verify tokens are in cache
@@ -81,7 +81,7 @@ describe('/ (Profile Page)', () => {
     });
 
     // Verify displays profile page without activating MsalGuard
-    await page.waitForXPath("//strong[contains(., 'First Name: ')]");
+    await page.waitForSelector("xpath/.//strong[contains(., 'First Name: ')]");
   });
 
   it('Profile page - children are rendered after initial navigation to profile before login ', async () => {
@@ -97,7 +97,7 @@ describe('/ (Profile Page)', () => {
     await enterCredentials(page, screenshot, username, accountPwd);
 
     // Verify UI now displays logged in content
-    await page.waitForXPath("//button[contains(., 'Logout')]");
+    await page.waitForSelector("xpath/.//button[contains(., 'Logout')]");
     await screenshot.takeScreenshot(page, 'Profile page signed in directly');
 
     // Verify tokens are in cache
@@ -106,6 +106,6 @@ describe('/ (Profile Page)', () => {
     });
 
     // Verify displays profile page without activating MsalGuard
-    await page.waitForXPath("//strong[contains(., 'First Name: ')]");
+    await page.waitForSelector("xpath/.//strong[contains(., 'First Name: ')]");
   });
 });

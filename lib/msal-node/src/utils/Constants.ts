@@ -9,7 +9,7 @@ import { HttpStatus } from "@azure/msal-common/node";
 export const AUTHORIZATION_HEADER_NAME: string = "Authorization";
 export const METADATA_HEADER_NAME: string = "Metadata";
 export const APP_SERVICE_SECRET_HEADER_NAME: string = "X-IDENTITY-HEADER";
-export const SERVICE_FABRIC_SECRET_HEADER_NAME: string = "secret";
+export const ML_AND_SF_SECRET_HEADER_NAME: string = "secret";
 export const API_VERSION_QUERY_PARAMETER_NAME: string = "api-version";
 export const RESOURCE_BODY_OR_QUERY_PARAMETER_NAME: string = "resource";
 export const DEFAULT_MANAGED_IDENTITY_ID = "system_assigned_managed_identity";
@@ -26,6 +26,7 @@ export const ManagedIdentityEnvironmentVariableNames = {
     IDENTITY_SERVER_THUMBPRINT: "IDENTITY_SERVER_THUMBPRINT",
     IMDS_ENDPOINT: "IMDS_ENDPOINT",
     MSI_ENDPOINT: "MSI_ENDPOINT",
+    MSI_SECRET: "MSI_SECRET",
 } as const;
 export type ManagedIdentityEnvironmentVariableNames =
     (typeof ManagedIdentityEnvironmentVariableNames)[keyof typeof ManagedIdentityEnvironmentVariableNames];
@@ -40,6 +41,7 @@ export const ManagedIdentitySourceNames = {
     CLOUD_SHELL: "CloudShell",
     DEFAULT_TO_IMDS: "DefaultToImds",
     IMDS: "Imds",
+    MACHINE_LEARNING: "MachineLearning",
     SERVICE_FABRIC: "ServiceFabric",
 } as const;
 /**

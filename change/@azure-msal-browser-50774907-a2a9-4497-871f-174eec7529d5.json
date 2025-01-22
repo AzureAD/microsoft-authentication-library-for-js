@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add support for forceRefresh and set default cache policy in NAA flows",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
