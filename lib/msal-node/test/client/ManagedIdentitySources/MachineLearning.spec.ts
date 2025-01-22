@@ -50,6 +50,7 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
     afterEach(() => {
         // reset static variables after each test
         delete ManagedIdentityClient["identitySource"];
+        delete ManagedIdentityClient["sourceName"];
         delete ManagedIdentityApplication["nodeStorage"];
     });
 
