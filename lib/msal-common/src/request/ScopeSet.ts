@@ -32,8 +32,12 @@ export class ScopeSet {
             ? StringUtils.removeEmptyStringsFromArray(scopeArr)
             : [];
 
-        // Validate and filter scopes (validate function throws if validation fails)
-        this.validateInputScopes(filteredInput);
+        // Check if scopes array has at least one member
+        if (!filteredInput || !filteredInput.length) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.emptyInputScopesError
+            );
+        }
 
         this.scopes = new Set<string>(); // Iterator in constructor not supported by IE11
         filteredInput.forEach((scope) => this.scopes.add(scope));
@@ -65,20 +69,6 @@ export class ScopeSet {
         }
 
         return scopeSet;
-    }
-
-    /**
-     * Used to validate the scopes input parameter requested  by the developer.
-     * @param {Array<string>} inputScopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
-     * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
-     */
-    private validateInputScopes(inputScopes: Array<string>): void {
-        // Check if scopes are required but not given or is an empty array
-        if (!inputScopes || inputScopes.length < 1) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.emptyInputScopesError
-            );
-        }
     }
 
     /**

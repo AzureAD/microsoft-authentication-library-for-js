@@ -83,7 +83,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
     protected silentCacheClient: SilentCacheClient;
     protected nativeStorageManager: BrowserCacheManager;
     protected skus: string;
-    protected serverTelemetryManager: ServerTelemetryManager;
 
     constructor(
         config: BrowserConfiguration,
@@ -124,9 +123,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
             performanceClient,
             provider,
             correlationId
-        );
-        this.serverTelemetryManager = this.initializeServerTelemetryManager(
-            this.apiId
         );
 
         const extensionName =
@@ -176,6 +172,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
         );
         const reqTimestamp = TimeUtils.nowSeconds();
 
+        const serverTelemetryManager = this.initializeServerTelemetryManager(
+            this.apiId
+        );
         try {
             // initialize native request
             const nativeRequest = await this.initializeNativeRequest(request);
@@ -223,7 +222,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                         isNativeBroker: true,
                         requestId: result.requestId,
                     });
-                    this.serverTelemetryManager.clearNativeBrokerErrorCode();
+                    serverTelemetryManager.clearNativeBrokerErrorCode();
                     return result;
                 })
                 .catch((error: AuthError) => {
@@ -237,9 +236,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 });
         } catch (e) {
             if (e instanceof NativeAuthError) {
-                this.serverTelemetryManager.setNativeBrokerErrorCode(
-                    e.errorCode
-                );
+                serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
             }
             throw e;
         }
@@ -346,9 +343,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
             if (e instanceof NativeAuthError) {
-                this.serverTelemetryManager.setNativeBrokerErrorCode(
-                    e.errorCode
-                );
+                const serverTelemetryManager =
+                    this.initializeServerTelemetryManager(this.apiId);
+                serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
                 if (isFatalNativeAuthError(e)) {
                     throw e;
                 }
@@ -443,7 +440,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
             );
             this.browserStorage.setInteractionInProgress(false);
             const res = await result;
-            this.serverTelemetryManager.clearNativeBrokerErrorCode();
+            const serverTelemetryManager =
+                this.initializeServerTelemetryManager(this.apiId);
+            serverTelemetryManager.clearNativeBrokerErrorCode();
             return res;
         } catch (e) {
             this.browserStorage.setInteractionInProgress(false);
