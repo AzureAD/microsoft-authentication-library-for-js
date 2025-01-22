@@ -415,7 +415,6 @@ export const ManagedIdentitySourceNames: {
     readonly CLOUD_SHELL: "CloudShell";
     readonly DEFAULT_TO_IMDS: "DefaultToImds";
     readonly IMDS: "Imds";
-    readonly MACHINE_LEARNING: "MachineLearning";
     readonly SERVICE_FABRIC: "ServiceFabric";
 };
 
@@ -597,6 +596,9 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     getCacheSnapshot(): CacheKVStore;
     getKVStore(): CacheKVStore;
     hasChanged(): boolean;
+    overwriteCache(): Promise<void>;
+    // (undocumented)
+    readonly persistence: ICachePlugin;
     removeAccount(account: AccountInfo): Promise<void>;
     serialize(): string;
 }

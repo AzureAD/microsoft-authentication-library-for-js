@@ -209,27 +209,21 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
         }
     }
 
-     /**
-      * Overwrites in-memory cache with persistent cache
-      */
+    /**
+     * Overwrites in-memory cache with persistent cache
+     */
     async overwriteCache(): Promise<void> {
-        if(!this.persistence){
+        if (!this.persistence) {
             this.logger.info(
                 "No persistence layer specified, cache cannot be overwritten"
             );
             return;
         }
-        this.logger.info(
-            "Overwriting in-memory cache with persistent cache"
-        );
+        this.logger.info("Overwriting in-memory cache with persistent cache");
         this.storage.clear();
-        const cacheContext = new TokenCacheContext(
-            this,
-            false
-        );
+        const cacheContext = new TokenCacheContext(this, false);
         await this.persistence.beforeCacheAccess(cacheContext);
-        const cacheSnapshot =
-            this.getCacheSnapshot();
+        const cacheSnapshot = this.getCacheSnapshot();
         this.storage.setCache(cacheSnapshot);
         await this.persistence.afterCacheAccess(cacheContext);
     }

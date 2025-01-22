@@ -275,28 +275,29 @@ export abstract class ClientApplication {
             ...(await this.initializeBaseRequest(request)),
             forceRefresh: request.forceRefresh || false,
         };
-    
+
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.acquireTokenSilent,
             validRequest.correlationId,
             validRequest.forceRefresh
         );
-    
+
         try {
-            const clientConfiguration = await this.buildOauthClientConfiguration(
-                validRequest.authority,
-                validRequest.correlationId,
-                validRequest.redirectUri || "",
-                serverTelemetryManager,
-                undefined,
-                validRequest.azureCloudOptions
-            );
+            const clientConfiguration =
+                await this.buildOauthClientConfiguration(
+                    validRequest.authority,
+                    validRequest.correlationId,
+                    validRequest.redirectUri || "",
+                    serverTelemetryManager,
+                    undefined,
+                    validRequest.azureCloudOptions
+                );
             const silentFlowClient = new SilentFlowClient(clientConfiguration);
             this.logger.verbose(
                 "Silent flow client created",
                 validRequest.correlationId
             );
-    
+
             return await this.handleCachedTokenFlow(
                 validRequest,
                 silentFlowClient,
@@ -310,11 +311,11 @@ export abstract class ClientApplication {
             throw error;
         }
     }
-    
+
     private async handleCachedTokenFlow(
         validRequest: CommonSilentFlowRequest,
         silentFlowClient: SilentFlowClient,
-        clientConfiguration: ClientConfiguration,
+        clientConfiguration: ClientConfiguration
     ): Promise<AuthenticationResult> {
         try {
             return await this.acquireCachedTokenSilent(
@@ -340,10 +341,14 @@ export abstract class ClientApplication {
                     );
                 }
             }
-            return this.handleRefreshTokenFlow(validRequest, clientConfiguration, error);
+            return this.handleRefreshTokenFlow(
+                validRequest,
+                clientConfiguration,
+                error
+            );
         }
     }
-    
+
     private async handleRefreshTokenFlow(
         validRequest: CommonSilentFlowRequest,
         clientConfiguration: ClientConfiguration,
@@ -353,8 +358,12 @@ export abstract class ClientApplication {
             error instanceof ClientAuthError &&
             error.errorCode === ClientAuthErrorCodes.tokenRefreshRequired
         ) {
-            const refreshTokenClient = new RefreshTokenClient(clientConfiguration);
-            return await refreshTokenClient.acquireTokenByRefreshToken(validRequest);
+            const refreshTokenClient = new RefreshTokenClient(
+                clientConfiguration
+            );
+            return await refreshTokenClient.acquireTokenByRefreshToken(
+                validRequest
+            );
         }
         throw error;
     }
@@ -382,7 +391,9 @@ export abstract class ClientApplication {
             );
 
             try {
-                await refreshTokenClient.acquireTokenByRefreshToken(validRequest);
+                await refreshTokenClient.acquireTokenByRefreshToken(
+                    validRequest
+                );
             } catch {
                 // do nothing, this is running in the background and no action is to be taken upon success or failure
             }
