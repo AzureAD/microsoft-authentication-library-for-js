@@ -326,7 +326,7 @@ export abstract class ClientApplication {
         } catch (error) {
             if (this.tokenCache.persistence) {
                 try {
-                    this.tokenCache.overwriteCache();
+                    await this.tokenCache.overwriteCache();
                     this.logger.info("Searching again for a valid token");
                     return await this.acquireCachedTokenSilent(
                         validRequest,
@@ -337,14 +337,14 @@ export abstract class ClientApplication {
                     return this.handleRefreshTokenFlow(
                         validRequest,
                         clientConfiguration,
-                        error
+                        overwriteError as Error
                     );
                 }
             }
             return this.handleRefreshTokenFlow(
                 validRequest,
                 clientConfiguration,
-                error
+                error as Error
             );
         }
     }
@@ -352,7 +352,7 @@ export abstract class ClientApplication {
     private async handleRefreshTokenFlow(
         validRequest: CommonSilentFlowRequest,
         clientConfiguration: ClientConfiguration,
-        error: any
+        error: Error
     ): Promise<AuthenticationResult> {
         if (
             error instanceof ClientAuthError &&
@@ -361,7 +361,7 @@ export abstract class ClientApplication {
             const refreshTokenClient = new RefreshTokenClient(
                 clientConfiguration
             );
-            return await refreshTokenClient.acquireTokenByRefreshToken(
+            return refreshTokenClient.acquireTokenByRefreshToken(
                 validRequest
             );
         }
