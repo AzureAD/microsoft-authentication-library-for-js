@@ -100,11 +100,17 @@ export class BrowserCacheManager extends CacheManager {
         this.cacheConfig = cacheConfig;
         this.logger = logger;
         this.internalStorage = new MemoryStorage();
-        this.browserStorage = this.setupBrowserStorage(
-            this.cacheConfig.cacheLocation
+        this.browserStorage = getStorageImplementation(
+            clientId,
+            cacheConfig.cacheLocation,
+            logger,
+            performanceClient
         );
-        this.temporaryCacheStorage = this.setupBrowserStorage(
-            this.cacheConfig.temporaryCacheLocation
+        this.temporaryCacheStorage = getStorageImplementation(
+            clientId,
+            cacheConfig.temporaryCacheLocation,
+            logger,
+            performanceClient
         );
         this.cookieStorage = new CookieStorage();
 
@@ -113,34 +119,6 @@ export class BrowserCacheManager extends CacheManager {
 
     async initialize(correlationId: string): Promise<void> {
         await this.browserStorage.initialize(correlationId);
-    }
-
-    /**
-     * Returns a window storage class implementing the IWindowStorage interface that corresponds to the configured cacheLocation.
-     * @param cacheLocation
-     */
-    protected setupBrowserStorage(
-        cacheLocation: BrowserCacheLocation | string
-    ): IWindowStorage<string> {
-        try {
-            switch (cacheLocation) {
-                case BrowserCacheLocation.LocalStorage:
-                    return new LocalStorage(
-                        this.clientId,
-                        this.logger,
-                        this.performanceClient
-                    );
-                case BrowserCacheLocation.SessionStorage:
-                    return new SessionStorage();
-                case BrowserCacheLocation.MemoryStorage:
-                default:
-                    break;
-            }
-        } catch (e) {
-            this.logger.error(e as string);
-        }
-        this.cacheConfig.cacheLocation = BrowserCacheLocation.MemoryStorage;
-        return new MemoryStorage();
     }
 
     /**
@@ -1471,6 +1449,33 @@ export class BrowserCacheManager extends CacheManager {
             throw e;
         }
     }
+}
+
+/**
+ * Returns a window storage class implementing the IWindowStorage interface that corresponds to the configured cacheLocation.
+ * @param cacheLocation
+ */
+function getStorageImplementation(
+    clientId: string,
+    cacheLocation: BrowserCacheLocation | string,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): IWindowStorage<string> {
+    try {
+        switch (cacheLocation) {
+            case BrowserCacheLocation.LocalStorage:
+                return new LocalStorage(clientId, logger, performanceClient);
+            case BrowserCacheLocation.SessionStorage:
+                return new SessionStorage();
+            case BrowserCacheLocation.MemoryStorage:
+            default:
+                break;
+        }
+    } catch (e) {
+        logger.error(e as string);
+    }
+
+    return new MemoryStorage();
 }
 
 export const DEFAULT_BROWSER_CACHE_MANAGER = (
