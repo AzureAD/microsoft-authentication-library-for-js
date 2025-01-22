@@ -42,7 +42,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     private storage: NodeStorage;
     private cacheHasChanged: boolean;
     private cacheSnapshot: string;
-    private readonly persistence: ICachePlugin;
+    public readonly persistence: ICachePlugin;
     private logger: Logger;
 
     constructor(
@@ -207,6 +207,31 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
                 await this.persistence.afterCacheAccess(cacheContext);
             }
         }
+    }
+
+     /**
+      * Overwrites in-memory cache with persistent cache
+      */
+    async overwriteCache(): Promise<void> {
+        if(!this.persistence){
+            this.logger.info(
+                "No persistence layer specified, cache cannot be overwritten"
+            );
+            return;
+        }
+        this.logger.info(
+            "Overwriting in-memory cache with persistent cache"
+        );
+        this.storage.clear();
+        const cacheContext = new TokenCacheContext(
+            this,
+            false
+        );
+        await this.persistence.beforeCacheAccess(cacheContext);
+        const cacheSnapshot =
+            this.getCacheSnapshot();
+        this.storage.setCache(cacheSnapshot);
+        await this.persistence.afterCacheAccess(cacheContext);
     }
 
     /**
