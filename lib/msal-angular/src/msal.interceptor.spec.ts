@@ -1,11 +1,7 @@
 import { TestBed } from "@angular/core/testing";
 import { Location } from "@angular/common";
-import { HTTP_INTERCEPTORS, HttpClient } from "@angular/common/http";
-import {
-  HttpClientTestingModule,
-  HttpTestingController,
-} from "@angular/common/http/testing";
-import { RouterTestingModule } from "@angular/router/testing";
+import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from "@angular/common/http";
+import { HttpTestingController, provideHttpClientTesting } from "@angular/common/http/testing";
 import {
   AccountInfo,
   AuthError,
@@ -109,22 +105,22 @@ function initializeMsal() {
 
   TestBed.configureTestingModule({
     imports: [
-      HttpClientTestingModule,
-      RouterTestingModule,
-      MsalModule.forRoot(MSALInstanceFactory(), null, MSALInterceptorFactory()),
+      MsalModule.forRoot(MSALInstanceFactory(), null, MSALInterceptorFactory())
     ],
     providers: [
-      MsalInterceptor,
-      MsalService,
-      MsalBroadcastService,
-      {
-        provide: HTTP_INTERCEPTORS,
-        useClass: MsalInterceptor,
-        multi: true,
-      },
-      Location,
-    ],
-  });
+        MsalInterceptor,
+        MsalService,
+        MsalBroadcastService,
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: MsalInterceptor,
+            multi: true,
+        },
+        Location,
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+    ]
+});
 
   interceptor = TestBed.inject(MsalInterceptor);
   httpMock = TestBed.inject(HttpTestingController);
