@@ -10,6 +10,7 @@ import {
   RouterStateSnapshot,
   UrlTree,
   Router,
+  RedirectCommand,
 } from "@angular/router";
 import {
   InteractionType,
@@ -270,7 +271,7 @@ export class MsalGuard {
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ): Observable<boolean | UrlTree> {
+  ): Observable<boolean | UrlTree | RedirectCommand> {
     this.authService.getLogger().verbose("Guard - canActivate");
     return this.activateHelper(state);
   }
@@ -278,13 +279,13 @@ export class MsalGuard {
   canActivateChild(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ): Observable<boolean | UrlTree> {
+  ): Observable<boolean | UrlTree | RedirectCommand> {
     this.authService.getLogger().verbose("Guard - canActivateChild");
     return this.activateHelper(state);
   }
 
-  canMatch(): Observable<boolean | UrlTree> {
-    this.authService.getLogger().verbose("Guard - canLoad");
+  canMatch(): Observable<boolean | UrlTree | RedirectCommand> {
+    this.authService.getLogger().verbose("Guard - canMatch");
     return this.activateHelper();
   }
 }
