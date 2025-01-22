@@ -13,8 +13,8 @@ import {
 import {
     DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
     DEFAULT_MANAGED_IDENTITY_ID,
-} from "../../src/utils/Constants";
-import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse";
+} from "../../src/utils/Constants.js";
+import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse.js";
 
 // This file contains the string constants used by the test classes.
 
@@ -393,6 +393,11 @@ export const MANAGED_IDENTITY_NETWORK_REQUEST_500_ERROR: ManagedIdentityTokenRes
 
 // App Service 400 error response
 export const MANAGED_IDENTITY_APP_SERVICE_NETWORK_REQUEST_400_ERROR: ManagedIdentityTokenResponse =
+    {
+        ...MANAGED_IDENTITY_NETWORK_REQUEST_500_ERROR,
+    };
+// Machine Learning 400 error response
+export const MANAGED_IDENTITY_MACHINE_LEARNING_NETWORK_REQUEST_400_ERROR: ManagedIdentityTokenResponse =
     {
         ...MANAGED_IDENTITY_NETWORK_REQUEST_500_ERROR,
     };

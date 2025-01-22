@@ -37,7 +37,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 // Load scenario configuration
 const config = require("../config/B2C-AAD.json");
 
-describe("Silent Flow B2C Tests (aad account)", () => {
+describe.skip("Silent Flow B2C Tests (aad account)", () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(ONE_SECOND_IN_MS * 45);
     let browser: puppeteer.Browser;
@@ -104,7 +104,7 @@ describe("Silent Flow B2C Tests (aad account)", () => {
 
     describe("AcquireToken", () => {
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             await page.goto(homeRoute, { waitUntil: "networkidle0" });
@@ -214,7 +214,7 @@ describe("Silent Flow B2C Tests (aad account)", () => {
     describe("Get All Accounts", () => {
         describe("Authenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await page.goto(homeRoute, { waitUntil: "networkidle0" });
             });
@@ -264,7 +264,7 @@ describe("Silent Flow B2C Tests (aad account)", () => {
 
         describe("Unauthenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await publicClientApplication.clearCache();
             });

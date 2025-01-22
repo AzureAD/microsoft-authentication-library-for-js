@@ -41,7 +41,7 @@ describe('B2C user-flow tests (local account)', () => {
   });
 
   beforeEach(async () => {
-    context = await browser.createIncognitoBrowserContext();
+    context = await browser.createBrowserContext();
     page = await context.newPage();
     page.setDefaultTimeout(5000);
     BrowserCache = new BrowserCacheUtils(page, 'localStorage');
@@ -77,8 +77,8 @@ describe('B2C user-flow tests (local account)', () => {
     );
 
     // Verify UI now displays logged in content
-    await page.waitForXPath("//p[contains(., 'Login successful!')]");
-    await page.waitForXPath("//button[contains(., 'Logout')]");
+    await page.waitForSelector("xpath/.//p[contains(., 'Login successful!')]");
+    await page.waitForSelector("xpath/.//button[contains(., 'Logout')]");
 
     await screenshot.takeScreenshot(page, 'Signed in with the policy');
 
@@ -88,7 +88,7 @@ describe('B2C user-flow tests (local account)', () => {
     expect(tokenStoreBeforeEdit.accessTokens.length).toBe(1);
     expect(tokenStoreBeforeEdit.refreshTokens.length).toBe(1);
     expect(
-      await BrowserCache.getAccountFromCache(tokenStoreBeforeEdit.idTokens[0])
+      await BrowserCache.getAccountFromCache()
     ).not.toBeNull();
     expect(
       await BrowserCache.accessTokenForScopesExists(
@@ -113,9 +113,8 @@ describe('B2C user-flow tests (local account)', () => {
       `window.location.href.startsWith("http://localhost:${port}")`
     );
     await page.waitForSelector('#idTokenClaims');
-    const htmlBody = await page.evaluate(() => document.body.innerHTML);
-    expect(htmlBody).toContain(`${displayName}`);
-    expect(htmlBody).toContain('B2C_1_SISOPolicy'); // implies the current active account
+    await page.waitForSelector(`xpath=//td[contains(., ${displayName})]`);
+    await page.waitForSelector(`xpath=//td[contains(., 'B2C_1_SISOPolicy')]`); // implies the current active account
 
     // Verify tokens are in cache
     const tokenStoreAfterEdit = await BrowserCache.getTokens();
@@ -123,10 +122,10 @@ describe('B2C user-flow tests (local account)', () => {
     expect(tokenStoreAfterEdit.accessTokens.length).toBe(1);
     expect(tokenStoreAfterEdit.refreshTokens.length).toBe(2); // 1 for each policy
     expect(
-      await BrowserCache.getAccountFromCache(tokenStoreAfterEdit.idTokens[0])
+      await BrowserCache.getAccountFromCache()
     ).not.toBeNull();
     expect(
-      await BrowserCache.getAccountFromCache(tokenStoreAfterEdit.idTokens[1])
+      await BrowserCache.getAccountFromCache()
     ).not.toBeNull(); // new account after edit
     expect(
       await BrowserCache.accessTokenForScopesExists(

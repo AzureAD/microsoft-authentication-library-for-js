@@ -105,12 +105,13 @@ export class UnknownOperatingContextController implements IController {
                   this.config.cache,
                   this.browserCrypto,
                   this.logger,
-                  undefined,
-                  this.performanceClient
+                  this.performanceClient,
+                  undefined
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
-                  this.logger
+                  this.logger,
+                  this.performanceClient
               );
     }
     getBrowserStorage(): BrowserCacheManager {
@@ -180,7 +181,7 @@ export class UnknownOperatingContextController implements IController {
                       | "codeChallenge"
                       | "codeChallengeMethod"
                       | "requestedClaimsHash"
-                      | "nativeBroker"
+                      | "platformBroker"
                   >
               >,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -287,7 +288,7 @@ export class UnknownOperatingContextController implements IController {
                 | "codeChallenge"
                 | "codeChallengeMethod"
                 | "requestedClaimsHash"
-                | "nativeBroker"
+                | "platformBroker"
             >
         >
     ): Promise<AuthenticationResult> {

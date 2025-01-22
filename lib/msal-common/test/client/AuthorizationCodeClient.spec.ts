@@ -1285,7 +1285,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             nonce: TEST_CONFIG.NONCE,
             correlationId: RANDOM_TEST_GUID,
             authenticationScheme: AuthenticationScheme.POP,
-            nativeBroker: true,
+            platformBroker: true,
         };
         const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
         expect(

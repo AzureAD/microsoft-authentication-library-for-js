@@ -87,7 +87,7 @@ describe("Auth Code CLI AAD Prod Tests", () => {
         it("Performs acquire token", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/BaseCase`);
             const openBrowser = async (url: string) => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 page.setDefaultTimeout(5000);
                 page.goto(url);

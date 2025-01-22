@@ -166,13 +166,13 @@ async function main() {
         });
     });
 
-    app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    app.use((error: any, req: Request, res: Response, next: NextFunction) => {
         // set locals, only providing error in development
-        res.locals.message = err.message;
-        res.locals.error = req.app.get("env") === "development" ? err : {};
+        res.locals.message = error.message;
+        res.locals.error = req.app.get("env") === "development" ? error : {};
 
         // render the error page
-        res.status(err.status || 500);
+        res.status(error.status || 500);
         res.render("error");
     });
 
@@ -209,9 +209,9 @@ function initializePerformanceObserver(): void {
             fs.appendFile(
                 "benchmarks.json",
                 `${JSON.stringify(results)}\n`,
-                function (err) {
-                    if (err) {
-                        throw err;
+                function (error) {
+                    if (error) {
+                        throw error;
                     }
                 }
             );
@@ -232,7 +232,9 @@ async function initializeRedisClient(): Promise<RedisClientType> {
         },
     });
 
-    redis.on("error", (err: any) => console.log("Redis Client Error", err));
+    redis.on("error", (error: any) =>
+        console.error("Redis Client Error", error)
+    );
 
     await redis.connect();
     return redis as RedisClientType;

@@ -19,16 +19,16 @@ Locate the folder where `package.json` resides in your terminal. Then type:
 1. Navigate to the [Microsoft Entra admin center](https://entra.microsoft.com) and select the **Microsoft Entra ID** service.
 1. Select the **App Registrations** blade on the left, then select **New registration**.
 1. In the **Register an application page** that appears, enter your application's registration information:
-   - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `msal-node-app`.
-   - Under **Supported account types**, select **Accounts in this organizational directory only**.
-   - In the **Redirect URI (optional)** section, select **Web** in the combo-box and enter the following redirect URI: `http://localhost:3000/redirect`.
+    - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `msal-node-app`.
+    - Under **Supported account types**, select **Accounts in this organizational directory only**.
+    - In the **Redirect URI (optional)** section, select **Web** in the combo-box and enter the following redirect URI: `http://localhost:3000/redirect`.
 1. Select **Register** to create the application.
 1. In the app's registration screen, find and note the **Application (client) ID** and **Directory (Tenant) ID**. You use these values in your app's configuration file(s) later.
 1. In the app's registration screen, select the **Certificates & secrets** blade in the left.
-   - In the **Client secrets** section, select **New client secret**.
-   - Type a key description (for instance `app secret`),
-   - Select one of the available key durations (6 months, 12 months or Custom) as per your security posture.
-   - The generated key value will be displayed when you select the **Add** button. Copy and add this client secret to the `.env` file as `CLIENT_SECRET`.
+    - In the **Client secrets** section, select **New client secret**.
+    - Type a key description (for instance `app secret`),
+    - Select one of the available key durations (6 months, 12 months or Custom) as per your security posture.
+    - The generated key value will be displayed when you select the **Add** button. Copy and add this client secret to the `.env` file as `CLIENT_SECRET`.
 
 Before running the sample, you will need to replace the values in the [customConfig.json](./config/customConfig.json):
 
@@ -55,7 +55,7 @@ CLIENT_SECRET=<your client secret here>
     npm run start:adal
 ```
 
-1. Open a browser and navigate to `http://localhost:3000`. The app will attempt to interactively acquire tokens for the user. Enter your credentials and consent to the permissions required by the app. Once you do, you should be redirected back to the app, and see the token acquisition response printed on the page. At this point, your tokens should be cached in a file named [cache.json](./data/cache.json) under the *data* folder.
+1. Open a browser and navigate to `http://localhost:3000`. The app will attempt to interactively acquire tokens for the user. Enter your credentials and consent to the permissions required by the app. Once you do, you should be redirected back to the app, and see the token acquisition response printed on the page. At this point, your tokens should be cached in a file named [cache.json](./data/cache.json) under the _data_ folder.
 1. Stop the ADAL Node app in your terminal.
 1. Now start the MSAL Node app. In your terminal, type:
 
@@ -90,9 +90,9 @@ app.get('/acquireToken', async (req, res, next) => {
                  * If no cached refresh token is found or if the refresh token is expired,
                  * we fallback to interactive flow via getAuthCodeUrl -> acquireTokenByCode.
                  */
-                diskCache.find({ userId: req.cookies.userId }, async (err, data) => {
+                diskCache.find({ userId: req.cookies.userId }, async (error, data) => {
                     try {
-                        if (err || !data || !data.length) throw new Error('Could not retrieve user cache');
+                        if (error || !data || !data.length) throw new Error('Could not retrieve user cache');
 
                         /**
                          * You can add the /.default scope suffix to the resource to help migrate your apps
@@ -112,8 +112,8 @@ app.get('/acquireToken', async (req, res, next) => {
                          * Once you successfully acquire an access token using a refresh token,
                          * we recommend to clear the ADAL cache for this user.
                          */
-                        diskCache.remove(data, (err, data) => {
-                            if (err) console.log(err)
+                        diskCache.remove(data, (error, data) => {
+                            if (error) console.error(error)
                             res.send(tokenResponse);
                         })
                     } catch (error) {
@@ -146,5 +146,5 @@ app.get('/acquireToken', async (req, res, next) => {
 
 ## More information
 
-- [Microsoft identity platform refresh tokens](https://docs.microsoft.com/azure/active-directory/develop/refresh-tokens)
-- [How to migrate a Node.js app from ADAL to MSAL](https://docs.microsoft.com/azure/active-directory/develop/msal-node-migration)
+-   [Microsoft identity platform refresh tokens](https://docs.microsoft.com/azure/active-directory/develop/refresh-tokens)
+-   [How to migrate a Node.js app from ADAL to MSAL](https://docs.microsoft.com/azure/active-directory/develop/msal-node-migration)

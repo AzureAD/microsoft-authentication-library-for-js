@@ -23,7 +23,6 @@ const clientConfig: msal.Configuration = {
          */
         // proxyUrl: "http://localhost:8866", // Fiddler Everywhere default port
         // proxyUrl: "http://localhost:8888", // Fiddler Classic default port
-
         /**
          * Uncomment either of the HttpClient import statement to use a custom INetworkModule
          * The contents of ./HttpClientCurrent.ts are the default msal-node network functionality (msal-node v1.15.0), copied from:
@@ -36,7 +35,6 @@ const clientConfig: msal.Configuration = {
         // networkClient: new HttpClientCurrent,
         // networkClient: new HttpClientCurrent(<proxyUrl>, <customHttp(s)AgentOptions>),
         // networkClient: new HttpClientAxios,
-
         /**
          * This is the same functionality as the networkClient lines above. Instead of importing a custom INetworkModule, one can be implemented here.
          * Uncomment the INetworkModule import statement to implement the custom INetworkModule below
@@ -60,11 +58,11 @@ const request: msal.ClientCredentialRequest = {
 
 // self-executing anonymous asyc function that's needed to use "await" for acquireTokenByClientCredential
 (async () => {
-    try {
-        const confidentialClientApplication = new msal.ConfidentialClientApplication(clientConfig);
-        const response = await confidentialClientApplication.acquireTokenByClientCredential(request);
-        console.log(response);
-    } catch (error) {
-        console.log(error);
-    }
+    const confidentialClientApplication =
+        new msal.ConfidentialClientApplication(clientConfig);
+    const response =
+        await confidentialClientApplication.acquireTokenByClientCredential(
+            request
+        );
+    console.log(response);
 })();

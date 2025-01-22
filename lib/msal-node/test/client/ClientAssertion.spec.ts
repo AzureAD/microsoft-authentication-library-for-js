@@ -1,12 +1,17 @@
-import { ClientAssertion } from "../../src/client/ClientAssertion";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { ClientAssertion } from "../../src/client/ClientAssertion.js";
 import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONSTANTS,
-} from "../utils/TestConstants";
-import { CryptoProvider } from "../../src/crypto/CryptoProvider";
-import { EncodingUtils } from "../../src/utils/EncodingUtils";
-import { JwtConstants } from "../../src/utils/Constants";
-import { getClientAssertionCallback } from "./ClientTestUtils";
+} from "../utils/TestConstants.js";
+import { CryptoProvider } from "../../src/crypto/CryptoProvider.js";
+import { EncodingUtils } from "../../src/utils/EncodingUtils.js";
+import { JwtConstants } from "../../src/utils/Constants.js";
+import { getClientAssertionCallback } from "./ClientTestUtils.js";
 import { getClientAssertion } from "@azure/msal-common";
 import jwt from "jsonwebtoken";
 

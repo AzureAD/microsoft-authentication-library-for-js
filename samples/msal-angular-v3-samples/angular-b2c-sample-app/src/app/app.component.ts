@@ -1,6 +1,6 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
-import { AuthenticationResult, InteractionStatus, PopupRequest, RedirectRequest, EventMessage, EventType, InteractionType, AccountInfo, SsoSilentRequest, IdTokenClaims, PromptValue } from '@azure/msal-browser';
+import { AuthenticationResult, InteractionStatus, PopupRequest, RedirectRequest, EventMessage, EventType, InteractionType, AccountInfo, IdTokenClaims, PromptValue } from '@azure/msal-browser';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 
@@ -30,7 +30,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.isIframe = window !== window.parent && !window.opener; // Remove this line to use Angular Universal
-        this.setLoginDisplay();
 
         this.authService.instance.enableAccountStorageEvents(); // Optional - This will enable ACCOUNT_ADDED and ACCOUNT_REMOVED events emitted when a user logs in or out of another tab or window
         this.msalBroadcastService.msalSubject$
@@ -88,13 +87,15 @@ export class AppComponent implements OnInit, OnDestroy {
                                     || (account.idTokenClaims as IdTokenClaimsWithPolicyId).tfp === environment.b2cPolicies.names.signUpSignIn)
                             );
                             
-                    let signUpSignInFlowRequest: SsoSilentRequest = {
+                    let signUpSignInFlowRequest: PopupRequest = {
+                        scopes: [...environment.apiConfig.scopes],
                         authority: environment.b2cPolicies.authorities.signUpSignIn.authority,
-                        account: originalSignInAccount
+                        account: originalSignInAccount,
+                        prompt: PromptValue.NONE
                     };
 
-                    // silently login again with the signUpSignIn policy
-                    this.authService.ssoSilent(signUpSignInFlowRequest);
+                    // To get the updated account information
+                    this.authService.acquireTokenPopup(signUpSignInFlowRequest);
                 }
 
                 /**

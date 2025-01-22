@@ -2,6 +2,66 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Wed, 15 Jan 2025 05:05:17 GMT",
+      "version": "1.5.1",
+      "tag": "@azure/msal-node-extensions_v1.5.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "f0802a137253a664b0ca6ec3749c2df79e0c6ddb",
+            "comment": "Update msal-common dependency"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 19 Nov 2024 17:21:57 GMT",
+      "version": "1.5.0",
+      "tag": "@azure/msal-node-extensions_v1.5.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "tyleonha@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "6362e79cfff838ec5c57efbfeffc3e5262dc2513",
+            "comment": "Allow requiring msal-node-extensions without Dpapi dependency"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 05 Nov 2024 18:58:46 GMT",
       "version": "1.4.0",
       "tag": "@azure/msal-node-extensions_v1.4.0",

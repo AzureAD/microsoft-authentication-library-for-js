@@ -11,6 +11,8 @@ import {
     Authority,
     ProtocolMode,
     ServerResponseType,
+    AccountEntity,
+    AccountInfo,
 } from "@azure/msal-common";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
 import { StandardInteractionClient } from "../../src/interaction_client/StandardInteractionClient.js";
@@ -22,12 +24,15 @@ import {
     DEFAULT_TENANT_DISCOVERY_RESPONSE,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_REQ_CNF_DATA,
+    ID_TOKEN_CLAIMS,
+    TEST_TOKENS,
 } from "../utils/StringConstants.js";
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { InteractionType } from "../../src/utils/BrowserConstants.js";
+import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 
 class testStandardInteractionClient extends StandardInteractionClient {
     acquireToken(): Promise<void> {
@@ -60,6 +65,12 @@ class testStandardInteractionClient extends StandardInteractionClient {
 describe("StandardInteractionClient", () => {
     let pca: PublicClientApplication;
     let testClient: testStandardInteractionClient;
+    const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
+        ID_TOKEN_CLAIMS,
+        undefined,
+        { environment: "login.microsoftonline.com" }
+    );
+    const testAccount: AccountInfo = testAccountEntity.getAccountInfo();
 
     beforeEach(() => {
         pca = new PublicClientApplication({
@@ -231,6 +242,137 @@ describe("StandardInteractionClient", () => {
             requestAzureCloudOptions,
         });
         expect(authority.canonicalAuthority).toBe(TEST_CONFIG.germanyAuthority);
+    });
+
+    it("initializeAuthorizationRequest adds active account to request", async () => {
+        // @ts-ignore
+        await pca.browserStorage.setAccount(testAccountEntity);
+        pca.setActiveAccount(testAccount);
+
+        const request: AuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            nonce: "",
+        };
+
+        const authCodeRequest = await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Silent
+        );
+        expect(authCodeRequest.account).toEqual(testAccount);
+    });
+
+    it("initializeAuthorizationRequest persists account in request", async () => {
+        const request: AuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            account: { ...testAccount },
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            nonce: "",
+        };
+
+        const authCodeRequest = await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Silent
+        );
+        expect(authCodeRequest.account).toEqual(testAccount);
+    });
+
+    it("initializeAuthorizationRequest sets loginHint when active account is set", async () => {
+        // @ts-ignore
+        await pca.browserStorage.setAccount(testAccountEntity);
+        pca.setActiveAccount(testAccount);
+
+        const request: AuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            loginHint: "AbeLi@microsoft.com",
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            nonce: "",
+        };
+
+        const authCodeRequest = await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Silent
+        );
+        expect(authCodeRequest.account).toBeUndefined();
+        expect(authCodeRequest.loginHint).toEqual(request.loginHint);
+    });
+
+    it("initializeAuthorizationRequest sets sid when active account is set", async () => {
+        // @ts-ignore
+        await pca.browserStorage.setAccount(testAccountEntity);
+        pca.setActiveAccount(testAccount);
+
+        const request: AuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            sid: "test_sid",
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            nonce: "",
+        };
+
+        const authCodeRequest = await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Silent
+        );
+        expect(authCodeRequest.account).toBeUndefined();
+        expect(authCodeRequest.sid).toEqual(request.sid);
+    });
+
+    it("initializeAuthorizationRequest keeps both loginHint and account", async () => {
+        const request: AuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            loginHint: "AbeLi@microsoft.com",
+            account: testAccount,
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            nonce: "",
+        };
+
+        const authCodeRequest = await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Silent
+        );
+        expect(authCodeRequest.account).toEqual(request.account);
+        expect(authCodeRequest.loginHint).toEqual(request.loginHint);
+    });
+
+    it("initializeAuthorizationRequest keeps both sid and account", async () => {
+        const request: AuthorizationUrlRequest = {
+            redirectUri: TEST_URIS.TEST_REDIR_URI,
+            scopes: ["scope"],
+            sid: "test_sid",
+            account: testAccount,
+            state: TEST_STATE_VALUES.USER_STATE,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+            nonce: "",
+        };
+
+        const authCodeRequest = await testClient.initializeAuthorizationRequest(
+            request,
+            InteractionType.Silent
+        );
+        expect(authCodeRequest.account).toEqual(request.account);
+        expect(authCodeRequest.sid).toEqual(request.sid);
     });
 });
 

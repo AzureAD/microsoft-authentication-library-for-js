@@ -9,7 +9,7 @@ import * as path from "path";
 import AuthProvider from "./AuthProvider";
 import { FetchManager } from "./FetchManager";
 import { IpcMessages, GRAPH_CONFIG } from "./Constants";
-import * as authConfig from './config/customConfig.json';
+import * as authConfig from "./config/customConfig.json";
 
 export default class Main {
     static application: Electron.App;
@@ -20,20 +20,22 @@ export default class Main {
 
     static main(): void {
         Main.application = app;
-        Main.application.on('window-all-closed', Main.onWindowAllClosed);
-        Main.application.on('ready', Main.onReady);
+        Main.application.on("window-all-closed", Main.onWindowAllClosed);
+        Main.application.on("ready", Main.onReady);
 
         // if in automation, read the config from environment
-        Main.authConfig = process.env.authConfig ? JSON.parse(process.env.authConfig) : authConfig;
+        Main.authConfig = process.env.authConfig
+            ? JSON.parse(process.env.authConfig)
+            : authConfig;
     }
 
     private static async loadBaseUI(): Promise<void> {
-        await Main.mainWindow.loadFile(path.join(__dirname, '../index.html'));
+        await Main.mainWindow.loadFile(path.join(__dirname, "../index.html"));
     }
 
     private static onWindowAllClosed(): void {
         // Windows and Linux will quit the application when all windows are closed
-        if (process.platform !== 'darwin') {
+        if (process.platform !== "darwin") {
             // macOS requires explicit quitting
             Main.application.quit();
         }
@@ -45,8 +47,8 @@ export default class Main {
 
     private static onReady(): void {
         Main.createMainWindow();
-        Main.mainWindow.loadFile(path.join(__dirname, '../index.html'));
-        Main.mainWindow.on('closed', Main.onClose);
+        Main.mainWindow.loadFile(path.join(__dirname, "../index.html"));
+        Main.mainWindow.on("closed", Main.onClose);
         Main.authProvider = new AuthProvider(Main.authConfig);
         Main.fetchManager = new FetchManager();
         Main.registerSubscriptions();
@@ -65,7 +67,7 @@ export default class Main {
              * the user interface but is otherwise not trustworthy of directly handling
              * the Node API.
              */
-            webPreferences: { preload: path.join(__dirname, 'preload.js') }
+            webPreferences: { preload: path.join(__dirname, "preload.js") },
         });
     }
 
@@ -84,7 +86,7 @@ export default class Main {
     }
 
     private static async login(): Promise<void> {
-        const account = await Main.authProvider.login()
+        const account = await Main.authProvider.login();
         await Main.loadBaseUI();
         Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
     }
@@ -94,7 +96,10 @@ export default class Main {
         const account = Main.authProvider.currentAccount;
         await Main.loadBaseUI();
         Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
-        const graphResponse = await Main.fetchManager.callEndpointWithToken(`${Main.authConfig.resourceApi.endpoint}${GRAPH_CONFIG.GRAPH_ME_ENDPT}`, token);
+        const graphResponse = await Main.fetchManager.callEndpointWithToken(
+            `${Main.authConfig.resourceApi.endpoint}${GRAPH_CONFIG.GRAPH_ME_ENDPT}`,
+            token
+        );
         Main.publish(IpcMessages.SET_PROFILE, graphResponse);
     }
 
@@ -103,7 +108,10 @@ export default class Main {
         const account = Main.authProvider.currentAccount;
         await Main.loadBaseUI();
         Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
-        const graphResponse = await Main.fetchManager.callEndpointWithToken(`${Main.authConfig.resourceApi.endpoint}${GRAPH_CONFIG.GRAPH_ME_ENDPT}`, token);
+        const graphResponse = await Main.fetchManager.callEndpointWithToken(
+            `${Main.authConfig.resourceApi.endpoint}${GRAPH_CONFIG.GRAPH_ME_ENDPT}`,
+            token
+        );
         Main.publish(IpcMessages.SET_MAIL, graphResponse);
     }
 
@@ -119,5 +127,4 @@ export default class Main {
         ipcMain.on(IpcMessages.GET_MAIL, Main.getMail);
         ipcMain.on(IpcMessages.LOGOUT, Main.logout);
     }
-
 }
