@@ -103,7 +103,7 @@ describe("Silent Flow B2C Tests", () => {
 
     describe("AcquireToken (local account)", () => {
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             await page.goto(homeRoute, { waitUntil: "networkidle0" });
@@ -213,7 +213,7 @@ describe("Silent Flow B2C Tests", () => {
     describe("Get All Accounts (local account)", () => {
         describe("Authenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await page.goto(homeRoute, { waitUntil: "networkidle0" });
             });
@@ -263,7 +263,7 @@ describe("Silent Flow B2C Tests", () => {
 
         describe("Unauthenticated (local account)", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await publicClientApplication.clearCache();
             });
