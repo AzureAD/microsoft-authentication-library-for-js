@@ -1,6 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -12,7 +13,6 @@ import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
 import { ProfileComponent } from './profile/profile.component';
 
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import {
   IPublicClientApplication,
   PublicClientApplication,
@@ -100,7 +100,6 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
     MatToolbarModule,
     MatListModule,
     MatMenuModule,
-    HttpClientModule,
     MsalModule,
   ],
   providers: [
@@ -124,6 +123,7 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
     MsalService,
     MsalGuard,
     MsalBroadcastService,
+    provideHttpClient(withInterceptorsFromDi()),
   ],
   bootstrap: [AppComponent, MsalRedirectComponent],
 })
