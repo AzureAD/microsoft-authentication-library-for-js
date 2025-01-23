@@ -60,7 +60,7 @@ describe("/profile", () => {
     });
 
     beforeEach(async () => {
-        context = await browser.createIncognitoBrowserContext();
+        context = await browser.createBrowserContext();
         page = await context.newPage();
         page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "localStorage");
@@ -80,12 +80,15 @@ describe("/profile", () => {
         await screenshot.takeScreenshot(page, "Home page loaded");
 
         // Navigate to /profile and expect popup to be opened without interaction
-        const newPopupWindowPromise = new Promise<puppeteer.Page>((resolve) =>
+        const newPopupWindowPromise = new Promise<puppeteer.Page|null>((resolve) =>
             page.once("popup", resolve)
         );
         await page.goto(`http://localhost:${port}/profile`);
         await screenshot.takeScreenshot(page, "Profile page loaded");
         const popupPage = await newPopupWindowPromise;
+        if (!popupPage) {
+            throw new Error('Popup window was not opened');
+          }
         const popupWindowClosed = new Promise<void>((resolve) =>
             popupPage.once("close", resolve)
         );
@@ -94,19 +97,19 @@ describe("/profile", () => {
         await popupWindowClosed;
 
         // Wait for Graph data to display
-        await page.waitForXPath("//div/ul/li[contains(., 'Name')]", {
+        await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]", {
             timeout: 5000,
         });
         await screenshot.takeScreenshot(page, "Graph data acquired");
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]");
         const profileButton = await page.waitForSelector(
             "xpath=//header//button"
         );
         await profileButton.click();
-        const logoutButtons = await page.$x(
-            "//li[contains(., 'Logout using')]"
+        const logoutButtons = await page.$$(
+            "xpath/.//li[contains(., 'Logout using')]"
         );
         expect(logoutButtons.length).toBe(2);
         await screenshot.takeScreenshot(page, "App signed in");
@@ -131,30 +134,33 @@ describe("/profile", () => {
         const loginPopupButton = await page.waitForSelector(
             "xpath=//li[contains(., 'Sign in using Popup')]"
         );
-        const newPopupWindowPromise = new Promise<puppeteer.Page>((resolve) =>
+        const newPopupWindowPromise = new Promise<puppeteer.Page|null>((resolve) =>
             page.once("popup", resolve)
         );
         await loginPopupButton.click();
         const popupPage = await newPopupWindowPromise;
+        if (!popupPage) {
+            throw new Error('Popup window was not opened');
+          }
         const popupWindowClosed = new Promise<void>((resolve) =>
             popupPage.once("close", resolve)
         );
 
         await enterCredentials(popupPage, screenshot, username, accountPwd);
         await popupWindowClosed;
-        await page.waitForXPath("//header[contains(., 'Welcome,')]", {
+        await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]", {
             timeout: 3000,
         });
         await screenshot.takeScreenshot(page, "Popup closed");
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]");
         const profileButton = await page.waitForSelector(
             "xpath=//header//button"
         );
         await profileButton.click();
-        const logoutButtons = await page.$x(
-            "//li[contains(., 'Logout using')]"
+        const logoutButtons = await page.$$(
+            "xpath/.//li[contains(., 'Logout using')]"
         );
         expect(logoutButtons.length).toBe(2);
         await screenshot.takeScreenshot(page, "App signed in");
@@ -162,7 +168,7 @@ describe("/profile", () => {
         // Go to protected page
         await page.goto(`http://localhost:${port}/profile`);
         // Wait for Graph data to display
-        await page.waitForXPath("//div/ul/li[contains(., 'Name')]", {
+        await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]", {
             timeout: 5000,
         });
         await screenshot.takeScreenshot(page, "Graph data acquired");
@@ -178,12 +184,15 @@ describe("/profile", () => {
         await screenshot.takeScreenshot(page, "Home page loaded");
 
         // Navigate to /profile and expect popup to be opened without interaction
-        const newPopupWindowPromise = new Promise<puppeteer.Page>((resolve) =>
+        const newPopupWindowPromise = new Promise<puppeteer.Page|null>((resolve) =>
             page.once("popup", resolve)
         );
         await page.goto(`http://localhost:${port}/profile`);
         await screenshot.takeScreenshot(page, "Profile page loaded");
         const popupPage = await newPopupWindowPromise;
+        if (!popupPage) {
+            throw new Error('Popup window was not opened');
+          }
         const popupWindowClosed = new Promise<void>((resolve) =>
             popupPage.once("close", resolve)
         );
@@ -191,16 +200,16 @@ describe("/profile", () => {
         // Wait until the popup has navigated to login page
         await popupPage.waitForNavigation({ waitUntil: "networkidle0" });
 
-        await page.waitForXPath(
-            "//h6[contains(., 'Authentication in progress...')]"
+        await page.waitForSelector(
+            "xpath/.//h6[contains(., 'Authentication in progress...')]"
         );
         await screenshot.takeScreenshot(page, "Loading component rendered");
 
         await popupPage.close();
         await popupWindowClosed;
 
-        await page.waitForXPath(
-            "//h6[contains(., 'An Error Occurred: user_cancelled')]"
+        await page.waitForSelector(
+            "xpath/.//h6[contains(., 'An Error Occurred: user_cancelled')]"
         );
         await screenshot.takeScreenshot(page, "Error component rendered");
     });

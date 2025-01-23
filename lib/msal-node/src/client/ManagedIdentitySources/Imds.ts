@@ -114,7 +114,8 @@ export class Imds extends BaseManagedIdentitySource {
         ) {
             request.queryParameters[
                 this.getManagedIdentityUserAssignedIdQueryParameterKey(
-                    managedIdentityId.idType
+                    managedIdentityId.idType,
+                    true // indicates source is IMDS
                 )
             ] = managedIdentityId.id;
         }
