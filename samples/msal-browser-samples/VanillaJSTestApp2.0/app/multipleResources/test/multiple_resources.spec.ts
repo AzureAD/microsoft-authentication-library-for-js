@@ -45,7 +45,7 @@ describe("Browser tests", function () {
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
     beforeEach(async () => {
-        context = await browser.createIncognitoBrowserContext();
+        context = await browser.createBrowserContext();
         page = await context.newPage();
         page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
@@ -77,7 +77,7 @@ describe("Browser tests", function () {
         await enterCredentials(page, screenshot, username, accountPwd);
         // Wait for return to page
         await screenshot.takeScreenshot(page, "samplePageReturnedToApp");
-        await page.waitForXPath("//button[contains(., 'Sign Out')]");
+        await page.waitForSelector("xpath/.//button[contains(., 'Sign Out')]");
         await screenshot.takeScreenshot(page, "samplePageLoggedIn");
         let tokenStore = await BrowserCache.getTokens();
         expect(tokenStore.idTokens).toHaveLength(1);
@@ -90,7 +90,7 @@ describe("Browser tests", function () {
         // acquire First Access Token
         await BrowserCache.removeTokens(tokenStore.accessTokens);
         await page.click("#seeProfile");
-        await page.waitForXPath("//p[contains(., 'Phone:')]");
+        await page.waitForSelector("xpath/.//p[contains(., 'Phone:')]");
         await screenshot.takeScreenshot(page, "seeProfile");
         tokenStore = await BrowserCache.getTokens();
         expect(tokenStore.idTokens).toHaveLength(1);

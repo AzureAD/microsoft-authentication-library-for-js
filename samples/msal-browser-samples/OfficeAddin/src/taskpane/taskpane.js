@@ -33,9 +33,12 @@ export async function run() {
 // Config object to be passed to Msal on creation
 const msalConfig = {
   auth: {
-    clientId: "a076930c-cfc9-4ebd-9607-7963bccbf666",
-    authority: "https://login.microsoftonline.com/common",
-    supportsNestedAppAuth: true
+      clientId: "58f921c3-84a4-4da8-8544-65acb867aaf4",
+      authority: "https://login.microsoftonline.com/common",
+      supportsNestedAppAuth: true
+  },
+  cache: {
+    cacheLocation: 'localStorage'
   },
 };
 

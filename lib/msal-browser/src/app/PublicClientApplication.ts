@@ -446,7 +446,12 @@ export async function createNestablePublicClientApplication(
 
     if (nestedAppAuth.isAvailable()) {
         const controller = new NestedAppAuthController(nestedAppAuth);
-        return new PublicClientApplication(configuration, controller);
+        const nestablePCA = new PublicClientApplication(
+            configuration,
+            controller
+        );
+        await nestablePCA.initialize();
+        return nestablePCA;
     }
 
     return createStandardPublicClientApplication(configuration);
