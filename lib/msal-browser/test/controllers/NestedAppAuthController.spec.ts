@@ -44,15 +44,7 @@ import {
 import BridgeProxy from "../../src/naa/BridgeProxy.js";
 import { NestedAppAuthAdapter } from "../../src/naa/mapping/NestedAppAuthAdapter.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
-
-const cacheConfig = {
-    temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
-    cacheLocation: BrowserCacheLocation.SessionStorage,
-    storeAuthStateInCookie: false,
-    secureCookies: false,
-    cacheMigrationEnabled: false,
-    claimsBasedCachingEnabled: false,
-};
+import exp from "constants";
 
 function stubProvider(config: Configuration) {
     const browserEnvironment = typeof window !== "undefined";
@@ -133,6 +125,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             expect(pca instanceof PublicClientApplication).toBeTruthy();
             // @ts-ignore
             expect(pca.controller).toBeInstanceOf(NestedAppAuthController);
+            expect(pca.getActiveAccount()).toBeNull();
             done();
         });
     });
@@ -177,11 +170,16 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             );
         });
 
-        it("acquireTokenSilent calls acquireTokenFromCach with no cache policy set", async () => {
+        it("acquireTokenSilent calls acquireTokenFromCache with no cache policy set", async () => {
             jest.spyOn(
                 NestedAppAuthController.prototype as any,
                 "acquireTokenFromCache"
             ).mockResolvedValue(testTokenResponse);
+
+            const setActiveAccountSpy = jest.spyOn(
+                PublicClientApplication.prototype,
+                "setActiveAccount"
+            );
 
             const response = await pca.acquireTokenSilent({
                 scopes: [NAA_SCOPE],
@@ -190,6 +188,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             });
             expect(response?.idToken).not.toBeNull();
             expect(response).toEqual(testTokenResponse);
+            expect(setActiveAccountSpy).toHaveBeenCalledTimes(0);
         });
 
         it("acquireTokenSilent looks for cache first if cache policy prefers it", async () => {
@@ -197,6 +196,19 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 NestedAppAuthController.prototype as any,
                 "acquireTokenFromCache"
             ).mockResolvedValue(testTokenResponse);
+
+            const activeAccount = {
+                homeAccountId: NAA_APP_CONSTANTS.altHomeAccountId,
+                localAccountId: NAA_APP_CONSTANTS.altLocalAccountId,
+                environment: NAA_APP_CONSTANTS.environment,
+                tenantId: NAA_APP_CONSTANTS.tenantId,
+                username: NAA_APP_CONSTANTS.altUsername,
+            };
+
+            jest.spyOn(
+                PublicClientApplication.prototype as any,
+                "setActiveAccount"
+            ).mockResolvedValue(activeAccount);
 
             const response = await pca.acquireTokenSilent({
                 scopes: [NAA_SCOPE],
@@ -206,6 +218,9 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             });
             expect(response?.idToken).not.toBeNull();
             expect(response).toEqual(testTokenResponse);
+            expect(response.account.localAccountId).toEqual(
+                NAA_APP_CONSTANTS.localAccountId
+            );
         });
 
         it("acquireTokenSilent sends the request to bridge if cache policy prefers it", async () => {
@@ -223,9 +238,38 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 SILENT_TOKEN_RESPONSE,
                 0
             );
+
+            const hydrateCacheSpy = jest.spyOn(
+                NestedAppAuthController.prototype as any,
+                "hydrateCache"
+            );
+
             const response = await pca.acquireTokenSilent(testRequest);
 
             expect(response.accessToken).toEqual(testResponse.accessToken);
+            expect(hydrateCacheSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it("acquireTokenSilent ignores cache if forceRefresh is on", async () => {
+            mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+
+            const testRequest = {
+                scopes: [NAA_SCOPE],
+                account: testAccount,
+                forceRefresh: true,
+                correlationId: NAA_CORRELATION_ID,
+            };
+
+            const testTokenResponse = nestedAppAuthAdapter.fromNaaTokenResponse(
+                nestedAppAuthAdapter.toNaaTokenRequest(testRequest),
+                SILENT_TOKEN_RESPONSE,
+                0
+            );
+
+            const response = await pca.acquireTokenSilent(testRequest);
+
+            expect(response?.idToken).not.toBeNull();
+            expect(response.accessToken).toEqual(testTokenResponse.accessToken);
         });
 
         it("acquireTokenSilent sends the request to bridge if cache misses", async () => {

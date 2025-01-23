@@ -1,3 +1,8 @@
+parameters:
+    - name: npmInstallTimeout
+      displayName: "NPM Install Timeout (Tests)"
+      type: number
+      default: 15
 variables:
     CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
     LinuxContainerImage: "mcr.microsoft.com/onebranch/cbl-mariner/build:2.0" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
@@ -35,10 +40,12 @@ extends:
                     parameters:
                         libName: msal-common
                         path: "lib/"
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
                         libName: msal-browser
                         path: "lib/"
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
                         libName: msal-browser-1p
@@ -47,14 +54,17 @@ extends:
                     parameters:
                         libName: msal-node
                         path: "lib/"
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
                         libName: msal-react
                         path: "lib/"
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
                         libName: msal-angular
                         path: "lib/"
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
                         libName: msal-node-extensions
