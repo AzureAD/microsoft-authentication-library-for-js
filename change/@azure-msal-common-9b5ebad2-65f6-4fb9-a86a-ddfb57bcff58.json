@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "ResponseHandler can now accept an ISO 8601 date in the ServerAuthorizationTokenResponse's \"expires_in\" value",
+  "comment": "ResponseHandler can now accept an ISO 8601 date in the ServerAuthorizationTokenResponse's expires_in value",
   "packageName": "@azure/msal-common",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
