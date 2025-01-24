@@ -300,11 +300,11 @@ export class TokenCache implements ITokenCache {
             : new ScopeSet(request.scopes);
         const expiresOn =
             options.expiresOn ||
-            response.expires_in + new Date().getTime() / 1000;
+            (response.expires_in as number) + new Date().getTime() / 1000;
 
         const extendedExpiresOn =
             options.extendedExpiresOn ||
-            (response.ext_expires_in || response.expires_in) +
+            (response.ext_expires_in || (response.expires_in as number)) +
                 new Date().getTime() / 1000;
 
         const accessTokenEntity = CacheHelpers.createAccessTokenEntity(

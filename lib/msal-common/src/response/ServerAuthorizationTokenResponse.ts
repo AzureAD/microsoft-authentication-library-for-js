@@ -31,7 +31,7 @@ export type ServerAuthorizationTokenResponse = {
     // Success
     token_type?: AuthenticationScheme;
     scope?: string;
-    expires_in?: number | string; // Managed Identity can send an ISO 8601 string instead of a number (or a number as a string)
+    expires_in?: number | string; // Managed Identity can send an ISO 8601 string instead of a number
     ext_expires_in?: number;
     refresh_in?: number;
     access_token?: string;

@@ -1141,7 +1141,9 @@ describe("RedirectClient", () => {
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in! * 1000
+                    Date.now() +
+                        (testServerTokenResponse.body.expires_in as number)! *
+                            1000
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
