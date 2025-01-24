@@ -44,7 +44,7 @@ describe('B2C user-flow tests (local account)', () => {
     context = await browser.createBrowserContext();
     page = await context.newPage();
     page.setDefaultTimeout(5000);
-    BrowserCache = new BrowserCacheUtils(page, 'localStorage');
+    BrowserCache = new BrowserCacheUtils(page, 'sessionStorage');
     await page.goto(`http://localhost:${port}`);
   });
 
