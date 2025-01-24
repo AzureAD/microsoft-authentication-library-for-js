@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Fixed file extentions on imports. Added MS license to all files. (#7454)",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "none"
-}

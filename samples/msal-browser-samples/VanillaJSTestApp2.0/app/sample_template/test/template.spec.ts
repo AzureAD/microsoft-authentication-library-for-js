@@ -43,7 +43,7 @@ describe("Browser tests", function () {
     let page: puppeteer.Page;
     beforeEach(async () => {
         SCREENSHOT_NUM = 0;
-        context = await browser.createIncognitoBrowserContext();
+        context = await browser.createBrowserContext();
         page = await context.newPage();
         await page.goto('http://localhost:30662/');
     });
