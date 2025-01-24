@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "\"Managed Identity: ResponseHandler can now accept an ISO 8601 date in the ServerAuthorizationTokenResponse expires_in value #7529\"",
+  "packageName": "@azure/msal-browser",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
