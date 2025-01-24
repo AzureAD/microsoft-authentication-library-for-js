@@ -2446,6 +2446,9 @@ export interface ISerializableTokenCache {
 // @public
 function isIdTokenEntity(entity: object): boolean;
 
+// @internal
+function isIso8601(dateString: string): boolean;
+
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "isRefreshTokenEntity" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -3607,9 +3610,9 @@ export type ServerAuthorizationTokenResponse = {
     status?: number;
     token_type?: AuthenticationScheme;
     scope?: string;
-    expires_in?: number;
-    refresh_in?: number;
+    expires_in?: number | string;
     ext_expires_in?: number;
+    refresh_in?: number;
     access_token?: string;
     refresh_token?: string;
     refresh_token_expires_in?: number;
@@ -3956,7 +3959,8 @@ declare namespace TimeUtils {
         nowSeconds,
         isTokenExpired,
         wasClockTurnedBack,
-        delay
+        delay,
+        isIso8601
     }
 }
 export { TimeUtils }
@@ -4288,9 +4292,9 @@ const X_MS_LIB_CAPABILITY = "x-ms-lib-capability";
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
 // src/index.ts:8:4 - (tsdoc-undefined-tag) The TSDoc tag "@module" is not defined in this configuration
 // src/request/AuthenticationHeaderParser.ts:74:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/response/ResponseHandler.ts:430:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/response/ResponseHandler.ts:431:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/response/ResponseHandler.ts:432:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/response/ResponseHandler.ts:455:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/response/ResponseHandler.ts:456:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/response/ResponseHandler.ts:457:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/telemetry/performance/PerformanceClient.ts:916:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/telemetry/performance/PerformanceClient.ts:916:15 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
 // src/telemetry/performance/PerformanceClient.ts:928:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

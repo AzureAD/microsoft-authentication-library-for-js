@@ -454,6 +454,55 @@ describe("ResponseHandler.ts", () => {
             );
         });
 
+        it("Ensure handleServerTokenResponse is able to parse token expiry information that is provided as ISO 8601 string", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                null,
+                null
+            );
+
+            const timestamp = TimeUtils.nowSeconds();
+
+            // convert the test response's expires_in to an ISO string
+            const newExpiresIn = new Date(timestamp * 1000);
+            newExpiresIn.setSeconds(
+                newExpiresIn.getSeconds() + (testResponse.expires_in as number)
+            );
+            const newExpiresInIsoDate = newExpiresIn.toISOString();
+            testResponse.expires_in = newExpiresInIsoDate;
+
+            const response = await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                timestamp,
+                testRequest
+            );
+
+            expect(
+                response.expiresOn && response.expiresOn.toISOString()
+            ).toEqual(newExpiresInIsoDate);
+            expect(
+                ((response.expiresOn as Date) &&
+                    Math.round((response.expiresOn as Date).getTime() / 1000)) -
+                    timestamp
+            ).toEqual(AUTHENTICATION_RESULT.body.expires_in);
+
+            jest.restoreAllMocks();
+        });
+
         it("includes spa_code in response as code", async () => {
             const testSpaCode = "sample-spa-code";
 

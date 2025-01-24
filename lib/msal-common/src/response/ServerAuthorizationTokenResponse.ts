@@ -9,9 +9,9 @@ import { AuthenticationScheme } from "../utils/Constants.js";
  * Deserialized response object from server authorization code request.
  * - token_type: Indicates the token type value. Can be either Bearer or pop.
  * - scope: The scopes that the access_token is valid for.
- * - expires_in: How long the access token is valid (in seconds).
- * - refresh_in: Duration afer which a token should be renewed, regardless of expiration.
+ * - expires_in: How long the access token is valid (in seconds, or an ISO 8601 string).
  * - ext_expires_in: How long the access token is valid (in seconds) if the server isn't responding.
+ * - refresh_in: Duration afer which a token should be renewed, regardless of expiration.
  * - access_token: The requested access token. The app can use this token to authenticate to the secured resource, such as a web API.
  * - refresh_token: An OAuth 2.0 refresh token. The app can use this token acquire additional access tokens after the current access token expires.
  * - id_token: A JSON Web Token (JWT). The app can decode the segments of this token to request information about the user who signed in.
@@ -31,9 +31,9 @@ export type ServerAuthorizationTokenResponse = {
     // Success
     token_type?: AuthenticationScheme;
     scope?: string;
-    expires_in?: number;
-    refresh_in?: number;
+    expires_in?: number | string; // Managed Identity can send an ISO 8601 string instead of a number (or a number as a string)
     ext_expires_in?: number;
+    refresh_in?: number;
     access_token?: string;
     refresh_token?: string;
     refresh_token_expires_in?: number;

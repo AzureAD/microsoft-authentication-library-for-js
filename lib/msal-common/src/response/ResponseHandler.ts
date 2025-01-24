@@ -52,6 +52,7 @@ import {
     updateAccountTenantProfileData,
 } from "../account/AccountInfo.js";
 import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
+import { isIso8601 } from "../utils/TimeUtils.js";
 
 function parseServerErrorNo(
     serverResponse: ServerAuthorizationCodeResponse
@@ -426,6 +427,30 @@ export class ResponseHandler {
     }
 
     /**
+     * Calculates the number of seconds until the token expires.
+     *
+     * @param reqTimestamp - The timestamp when the request was made, in seconds.
+     * @param tokenExpirationTimestamp - The expiration timestamp of the token, which can be a number (or a number as a string), a string in ISO 8601 format, or undefined.
+     * @param returnValueIfUndefined - The value to return if the tokenExpirationTimestamp is undefined.
+     * @returns The number of seconds until the token expires, or the returnValueIfUndefined if the tokenExpirationTimestamp is undefined.
+     */
+    private getSecondsUntilTokenExpires(
+        reqTimestamp: number,
+        tokenExpirationTimestamp: number | string | undefined,
+        returnValueIfUndefined: number | undefined
+    ): number | undefined {
+        if (typeof tokenExpirationTimestamp === "string") {
+            return isIso8601(tokenExpirationTimestamp)
+                ? Math.floor(
+                      new Date(tokenExpirationTimestamp).getTime() / 1000
+                  ) - reqTimestamp
+                : parseInt(tokenExpirationTimestamp, 10);
+        } else {
+            return tokenExpirationTimestamp || returnValueIfUndefined;
+        }
+    }
+
+    /**
      * Generates CacheRecord
      * @param serverTokenResponse
      * @param idTokenObj
@@ -486,23 +511,26 @@ export class ResponseHandler {
 
             /*
              * Use timestamp calculated before request
-             * Server may return timestamps as strings, parse to numbers if so.
+             * Server may return timestamps as an ISO 8601 date string or a numeric string, parse to numbers if so.
              */
-            const expiresIn: number =
-                (typeof serverTokenResponse.expires_in === "string"
-                    ? parseInt(serverTokenResponse.expires_in, 10)
-                    : serverTokenResponse.expires_in) || 0;
+            const expiresIn: number = this.getSecondsUntilTokenExpires(
+                reqTimestamp,
+                serverTokenResponse.expires_in,
+                0
+            ) as number;
+            const tokenExpirationSeconds = reqTimestamp + expiresIn;
+
             const extExpiresIn: number =
                 (typeof serverTokenResponse.ext_expires_in === "string"
                     ? parseInt(serverTokenResponse.ext_expires_in, 10)
                     : serverTokenResponse.ext_expires_in) || 0;
+            const extendedTokenExpirationSeconds =
+                tokenExpirationSeconds + extExpiresIn;
+
             const refreshIn: number | undefined =
                 (typeof serverTokenResponse.refresh_in === "string"
                     ? parseInt(serverTokenResponse.refresh_in, 10)
                     : serverTokenResponse.refresh_in) || undefined;
-            const tokenExpirationSeconds = reqTimestamp + expiresIn;
-            const extendedTokenExpirationSeconds =
-                tokenExpirationSeconds + extExpiresIn;
             const refreshOnSeconds =
                 refreshIn && refreshIn > 0
                     ? reqTimestamp + refreshIn
