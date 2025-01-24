@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Avoid calling class methods in their own constructors",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
