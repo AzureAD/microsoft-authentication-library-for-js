@@ -4,7 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "npm run postinstall:msal-angular && ng build",
+    "build": "ng build",
+    "build:local": "npm run postinstall:msal-angular && ng build",
     "postinstall:msal-angular": "node ../sample-scripts/useMsalAngularTarball.js",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
