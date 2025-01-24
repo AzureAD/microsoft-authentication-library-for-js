@@ -48,10 +48,10 @@ In addition to minified builds, unminified builds for each version are also avai
 
 Microsoft offers 2 top-level CDN domains for resilience.
 
-| CDN Domain           | Example                                                             |
-| -------------------- | ------------------------------------------------------------------- |
-| `alcdn.msauth.net`   | `https://alcdn.msauth.net/browser/<version>/js/msal-browser.min.js` |
-| `alcdn.msftauth.net` | `https://alcdn.msftauth.net/browser/<version>/js/msal-browser.mi    |
+| CDN Domain           | Example                                                               |
+| -------------------- | --------------------------------------------------------------------- |
+| `alcdn.msauth.net`   | `https://alcdn.msauth.net/browser/<version>/js/msal-browser.min.js`   |
+| `alcdn.msftauth.net` | `https://alcdn.msftauth.net/browser/<version>/js/msal-browser.min.js` |
 
 ### CDN fallback
 
