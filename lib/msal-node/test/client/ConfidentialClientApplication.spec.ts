@@ -483,7 +483,7 @@ describe("ConfidentialClientApplication", () => {
             await client.acquireTokenByClientCredential(request);
         });
 
-        test('acquireTokenByClientCredential throws missingTenantIdError if "common", ""organization", or "consumers" was provided as the tenant id', async () => {
+        test('acquireTokenByClientCredential throws missingTenantIdError if "common", "organization" was provided as the tenant id', async () => {
             const request: ClientCredentialRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 skipCache: false,
