@@ -513,9 +513,9 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     )
                 ).toBe(true);
                 expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(1);
-            });
 
-            jest.restoreAllMocks();
+                jest.restoreAllMocks();
+            });
         });
     });
 
