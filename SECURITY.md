@@ -8,10 +8,10 @@ The following versions of our libraries are receiving security updates:
 | -------                       | ------------------ |
 | `@azure/msal-browser@2.x.x`   | :white_check_mark: |
 | `msal@1.x.x`                  | :white_check_mark: |
-| `msal@0.x.x`                  | :x:                |
+| `msal@0.x.x`                  |  ✅                |
 | `@azure/msal-angular@2.x.x`   | :white_check_mark: |
 | `@azure/msal-angular@1.x.x`   | :white_check_mark: |
-| `@azure/msal-angular@0.x.x`   | :x:                |
+| `@azure/msal-angular@0.x.x`   | ✅                 |
 | `@azure/msal-angularjs@0.1.x` | :white_check_mark: |
 | `@azure/msal-react@1.x.x`     | :white_check_mark: |
 | `@azure/msal-node@1.x.x`      | :white_check_mark: |
