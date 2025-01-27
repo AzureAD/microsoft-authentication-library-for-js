@@ -56,6 +56,7 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
         // reset static variables after each test
         delete ManagedIdentityClient["identitySource"];
         delete ManagedIdentityApplication["nodeStorage"];
+        jest.restoreAllMocks();
     });
 
     test("acquires a User Assigned Client Id token", async () => {
@@ -182,8 +183,6 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
                     MANAGED_IDENTITY_SERVICE_FABRIC_NETWORK_REQUEST_400_ERROR.correlation_id as string
                 )
             ).toBe(true);
-
-            jest.restoreAllMocks();
         });
     });
 });
