@@ -164,6 +164,14 @@ export class NestedAppAuthController implements IController {
     }
 
     /**
+     * Expected to not be available in nested app auth
+     * @returns boolean
+     */
+    async isExtensionAvailable(): Promise<boolean> {
+        return Promise.resolve(false);
+    }
+
+    /**
      * Validate the incoming request and add correlationId if not present
      * @param request
      * @returns

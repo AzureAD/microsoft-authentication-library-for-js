@@ -96,6 +96,14 @@ export class PublicClientApplication implements IPublicClientApplication {
     }
 
     /**
+     * API to check for and initialize an extension if available and returns a boolean dependent on the result
+     * @returns Promise<boolean>
+     */
+    async isExtensionAvailable(): Promise<boolean> {
+        return this.controller.isExtensionAvailable();
+    }
+
+    /**
      * Use when you want to obtain an access_token for your API via opening a popup window in the user's browser
      *
      * @param request

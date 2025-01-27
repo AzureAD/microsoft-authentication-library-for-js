@@ -452,6 +452,30 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
         });
 
+        it("creates extension provider if the user checks for extension presence", async () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: false,
+                },
+            };
+            pca = new PublicClientApplication(config);
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
+            const createProviderSpy = stubProvider(config);
+            await pca.isExtensionAvailable();
+
+            expect(createProviderSpy).toHaveBeenCalled();
+            // @ts-ignore
+            expect(pca.nativeExtensionProvider).toBeInstanceOf(
+                NativeMessageHandler
+            );
+        });
+
         it("does not create extension provider if allowPlatformBroker is false", async () => {
             const createProviderSpy = jest.spyOn(
                 NativeMessageHandler,

@@ -312,6 +312,31 @@ export class StandardController implements IController {
     }
 
     /**
+     * Helper API to check for extension availability
+     * @returns {Promise<boolean>} true if browser extension is available, false otherwise
+     *
+     */
+    async isExtensionAvailable(): Promise<boolean> {
+        // nativeExtensionProvider is already set
+        if (this.nativeExtensionProvider) {
+            return true;
+        }
+
+        // Intialize nativeExtensionProvider if not already done
+        try {
+            this.nativeExtensionProvider =
+                await NativeMessageHandler.createProvider(
+                    this.logger,
+                    this.config.system.nativeBrokerHandshakeTimeout,
+                    this.performanceClient
+                );
+        } catch (e) {
+            this.logger.verbose(e as string);
+        }
+        return !!this.nativeExtensionProvider;
+    }
+
+    /**
      * Initializer function to perform async startup tasks such as connecting to WAM extension
      * @param request {?InitializeApplicationRequest} correlation id
      */
@@ -349,15 +374,14 @@ export class StandardController implements IController {
         )(initCorrelationId);
 
         if (allowPlatformBroker) {
+            // check if native message handler is available
             try {
-                this.nativeExtensionProvider =
-                    await NativeMessageHandler.createProvider(
-                        this.logger,
-                        this.config.system.nativeBrokerHandshakeTimeout,
-                        this.performanceClient
-                    );
+                await this.isExtensionAvailable();
             } catch (e) {
-                this.logger.verbose(e as string);
+                this.logger.verbose(
+                    "Error in checking extension availability: ",
+                    e as string
+                );
             }
         }
 

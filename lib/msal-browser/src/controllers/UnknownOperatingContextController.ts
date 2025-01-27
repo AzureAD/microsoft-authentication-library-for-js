@@ -141,6 +141,9 @@ export class UnknownOperatingContextController implements IController {
         this.initialized = true;
         return Promise.resolve();
     }
+    isExtensionAvailable(): Promise<boolean> {
+        return Promise.resolve(false);
+    }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         blockAPICallsBeforeInitialize(this.initialized);

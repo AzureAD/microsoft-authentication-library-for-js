@@ -116,6 +116,8 @@ export interface IController {
             | PopupRequest
     ): Promise<void>;
 
+    isExtensionAvailable(): Promise<boolean>;
+
     /** @internal */
     isBrowserEnv(): boolean;
 
