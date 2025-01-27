@@ -259,7 +259,7 @@ describe("SilentFlowClient unit tests", () => {
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config, stubPerformanceClient);
-            const authResult = await client.acquireCachedToken({
+            const response = await client.acquireCachedToken({
                 //@ts-ignore
                 scopes: undefined,
                 account: testAccount,
@@ -267,10 +267,11 @@ describe("SilentFlowClient unit tests", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
             });
+            const authResult: AuthenticationResult = response[0];
 
-            expect(authResult[0].account).toEqual(testAccount);
-            expect(authResult[0].idToken).toEqual(testIdToken.secret);
-            expect(authResult[0].accessToken).toEqual(
+            expect(authResult.account).toEqual(testAccount);
+            expect(authResult.idToken).toEqual(testIdToken.secret);
+            expect(authResult.accessToken).toEqual(
                 testAccessTokenEntity.secret
             );
         });
@@ -300,17 +301,18 @@ describe("SilentFlowClient unit tests", () => {
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config, stubPerformanceClient);
-            const authResult = await client.acquireCachedToken({
+            const response = await client.acquireCachedToken({
                 scopes: [],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
             });
+            const authResult: AuthenticationResult = response[0];
 
-            expect(authResult[0].account).toEqual(testAccount);
-            expect(authResult[0].idToken).toEqual(testIdToken.secret);
-            expect(authResult[0].accessToken).toEqual(
+            expect(authResult.account).toEqual(testAccount);
+            expect(authResult.idToken).toEqual(testIdToken.secret);
+            expect(authResult.accessToken).toEqual(
                 testAccessTokenEntity.secret
             );
         });
@@ -803,19 +805,20 @@ describe("SilentFlowClient unit tests", () => {
                 .spyOn(RefreshTokenClient.prototype, "acquireToken")
                 .mockImplementation();
 
-            const authResult = await client.acquireCachedToken(
+            const response = await client.acquireCachedToken(
                 silentFlowRequest
             );
+            const authResult: AuthenticationResult = response[0];
             expect(refreshTokenSpy).not.toHaveBeenCalled();
             const expectedScopes = testAccessTokenEntity.target.split(" ");
             expect(telemetryCacheHitSpy).toHaveBeenCalledTimes(1);
-            expect(authResult[0].uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
-            expect(authResult[0].tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
-            expect(authResult[0].scopes).toEqual(expectedScopes);
-            expect(authResult[0].account).toEqual(testAccount);
-            expect(authResult[0].idToken).toEqual(testIdToken.secret);
-            expect(authResult[0].idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
-            expect(authResult[0].accessToken).toEqual(
+            expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(authResult.scopes).toEqual(expectedScopes);
+            expect(authResult.account).toEqual(testAccount);
+            expect(authResult.idToken).toEqual(testIdToken.secret);
+            expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(authResult.accessToken).toEqual(
                 testAccessTokenEntity.secret
             );
             expect(authResult[0].state).toHaveLength(0);
