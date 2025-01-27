@@ -929,6 +929,8 @@ export interface IController {
     // @internal (undocumented)
     isBrowserEnv(): boolean;
     // (undocumented)
+    isExtensionAvailable(): Promise<boolean>;
+    // (undocumented)
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
     // (undocumented)
     loginRedirect(request?: RedirectRequest): Promise<void>;
