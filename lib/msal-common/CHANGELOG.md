@@ -1,8 +1,50 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Thu, 19 Sep 2024 23:48:30 GMT and should not be manually modified.
+<!-- This log was last generated on Wed, 22 Jan 2025 21:45:31 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 15.0.2
+
+Wed, 22 Jan 2025 21:45:31 GMT
+
+### Patches
+
+- Avoid calling class methods in their own constructors (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.0.1
+
+Wed, 15 Jan 2025 05:05:17 GMT
+
+### Patches
+
+- Rename `native` to `platformBroker` in public API and docs (sameera.gajjarapu@microsoft.com)
+- Asynchronous cache writes (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 14.16.0
+
+Tue, 05 Nov 2024 18:58:46 GMT
+
+### Minor changes
+
+- Remove NetworkManager class (thomas.norling@microsoft.com)
+- Add first order broker parameters #7348 (kshabelko@microsoft.com)
+- Make clear synchronous for msal.node (shylasummers@microsoft.com)
+- Additional network failure telemetry (thomas.norling@microsoft.com)
+- Validate crypto.subtle is available during initialization (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Move correlationId to query string on /token calls (thomas.norling@microsoft.com)
 
 ## 14.15.0
 

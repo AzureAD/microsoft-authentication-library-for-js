@@ -10,7 +10,7 @@ The `loadExternalTokens()` API can be accessed by calling `getTokenCache()` on M
 
 ```js
 const msalTokenCache = myMSALObj.getTokenCache();
-msalTokenCache.loadExternalTokens(
+await msalTokenCache.loadExternalTokens(
     silentRequest,
     serverResponse,
     loadTokenOptions
@@ -66,7 +66,7 @@ const loadTokenOptions: LoadTokenOptions = {};
 const pca = new PublicClientApplication({
     auth: { clientId: "your-client-id" },
 });
-pca.getTokenCache().loadExternalTokens(
+await pca.getTokenCache().loadExternalTokens(
     silentRequest,
     serverResponse,
     loadTokenOptions
@@ -90,7 +90,7 @@ const loadTokenOptions: LoadTokenOptions = {
 const pca = new PublicClientApplication({
     auth: { clientId: "your-client-id" },
 });
-pca.getTokenCache().loadExternalTokens(
+await pca.getTokenCache().loadExternalTokens(
     silentRequest,
     serverResponse,
     loadTokenOptions
@@ -113,7 +113,7 @@ const loadTokenOptions: LoadTokenOptions = {};
 const pca = new PublicClientApplication({
     auth: { clientId: "your-client-id" },
 });
-pca.getTokenCache().loadExternalTokens(
+await pca.getTokenCache().loadExternalTokens(
     silentRequest,
     serverResponse,
     loadTokenOptions
@@ -154,7 +154,7 @@ const loadTokenOptions: LoadTokenOptions = {
 const pca = new PublicClientApplication({
     auth: { clientId: "your-client-id" },
 });
-pca.getTokenCache().loadExternalTokens(
+await pca.getTokenCache().loadExternalTokens(
     silentRequest,
     serverResponse,
     loadTokenOptions
@@ -191,7 +191,7 @@ const loadTokenOptions: LoadTokenOptions = {};
 const pca = new PublicClientApplication({
     auth: { clientId: "your-client-id" },
 });
-pca.getTokenCache().loadExternalTokens(
+await pca.getTokenCache().loadExternalTokens(
     silentRequest,
     serverResponse,
     loadTokenOptions

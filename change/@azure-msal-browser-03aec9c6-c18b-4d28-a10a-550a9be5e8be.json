@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Replaced sinon with jest in all the msal-browser tests #7337",
-  "packageName": "@azure/msal-browser",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "none"
-}

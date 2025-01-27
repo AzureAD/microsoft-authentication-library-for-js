@@ -33,7 +33,6 @@ import {
     ClientConfigurationErrorCodes,
     CommonAuthorizationCodeRequest,
     AuthError,
-    NetworkManager,
     ProtocolUtils,
     ProtocolMode,
 } from "@azure/msal-common";
@@ -59,6 +58,7 @@ import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { BrowserAuthErrorCodes } from "../../src/index.js";
+import { FetchClient } from "../../src/network/FetchClient.js";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
@@ -287,7 +287,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
 
@@ -405,7 +405,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
 
@@ -653,8 +653,8 @@ describe("PopupClient", () => {
                     "monitorPopupForHash"
                 ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
                 jest.spyOn(
-                    NetworkManager.prototype,
-                    "sendPostRequest"
+                    FetchClient.prototype,
+                    "sendPostRequestAsync"
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
                 jest.spyOn(
                     PkceGenerator,
@@ -1181,7 +1181,7 @@ describe("PopupClient", () => {
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount);
+            await pca.browserStorage.setAccount(testAccount);
 
             jest.spyOn(
                 PopupClient.prototype,
@@ -1269,7 +1269,7 @@ describe("PopupClient", () => {
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount);
+            await pca.browserStorage.setAccount(testAccount);
 
             jest.spyOn(
                 PopupClient.prototype,
@@ -1399,7 +1399,7 @@ describe("PopupClient", () => {
             });
 
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount);
+            await pca.browserStorage.setAccount(testAccount);
             pca.setActiveAccount(testAccountInfo);
 
             await popupClient.logout(validatedLogoutRequest).then(() => {

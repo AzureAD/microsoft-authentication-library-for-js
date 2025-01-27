@@ -5,7 +5,7 @@
     "private": true,
     "main": "src/index.ts",
     "dependencies": {
-        "@azure/identity": "^4.3.0",
+        "@azure/identity": "^4.5.0",
         "axios": "^1.7.4",
         "dotenv": "^8.2.0",
         "find-process": "^1.4.4"
@@ -17,6 +17,6 @@
     "peerDependencies": {
         "jest": "^29.5.0",
         "playwright-core": "^1.31.1",
-        "puppeteer": "^20.9.0"
+        "puppeteer": "^24.1.0"
     }
 }

@@ -4,7 +4,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 
 // MSAL imports
-import { EventType } from "@azure/msal-browser";
+import { EventType, PromptValue } from "@azure/msal-browser";
 import { MsalProvider, useMsal } from "@azure/msal-react";
 import { CustomNavigationClient } from "./utils/NavigationClient";
 
@@ -14,7 +14,7 @@ import { Home } from "./pages/Home";
 import { Profile } from "./pages/Profile";
 import { Logout } from "./pages/Logout";
 
-import { b2cPolicies } from "./authConfig";
+import { b2cPolicies, loginRequest } from "./authConfig";
 
 function App({ pca }) {
   return (
@@ -76,17 +76,17 @@ function Pages() {
                   );
               
               let signUpSignInFlowRequest = {
+                  scopes: [...loginRequest.scopes],
                   authority: b2cPolicies.authorities.signUpSignIn.authority,
-                  account: originalSignInAccount
+                  account: originalSignInAccount,
+                  prompt: PromptValue.NONE
               };
-      
-              // silently login again with the signUpSignIn policy
-              instance.ssoSilent(signUpSignInFlowRequest);
+              
+              // To get the updated account information
+              instance.acquireTokenPopup(signUpSignInFlowRequest).then(() => {
+                setStatus("update success")
+              });
             }
-          }
-
-          if (event.eventType === EventType.SSO_SILENT_SUCCESS && event.payload.account) {
-            setStatus("ssoSilent success");
           }
       });
 

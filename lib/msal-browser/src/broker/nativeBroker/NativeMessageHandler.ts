@@ -372,16 +372,16 @@ export class NativeMessageHandler {
      * @param nativeExtensionProvider
      * @param authenticationScheme
      */
-    static isNativeAvailable(
+    static isPlatformBrokerAvailable(
         config: BrowserConfiguration,
         logger: Logger,
         nativeExtensionProvider?: NativeMessageHandler,
         authenticationScheme?: AuthenticationScheme
     ): boolean {
-        logger.trace("isNativeAvailable called");
-        if (!config.system.allowNativeBroker) {
+        logger.trace("isPlatformBrokerAvailable called");
+        if (!config.system.allowPlatformBroker) {
             logger.trace(
-                "isNativeAvailable: allowNativeBroker is not enabled, returning false"
+                "isPlatformBrokerAvailable: allowPlatformBroker is not enabled, returning false"
             );
             // Developer disabled WAM
             return false;
@@ -389,7 +389,7 @@ export class NativeMessageHandler {
 
         if (!nativeExtensionProvider) {
             logger.trace(
-                "isNativeAvailable: WAM extension provider is not initialized, returning false"
+                "isPlatformBrokerAvailable: Platform extension provider is not initialized, returning false"
             );
             // Extension is not available
             return false;
@@ -400,12 +400,12 @@ export class NativeMessageHandler {
                 case AuthenticationScheme.BEARER:
                 case AuthenticationScheme.POP:
                     logger.trace(
-                        "isNativeAvailable: authenticationScheme is supported, returning true"
+                        "isPlatformBrokerAvailable: authenticationScheme is supported, returning true"
                     );
                     return true;
                 default:
                     logger.trace(
-                        "isNativeAvailable: authenticationScheme is not supported, returning false"
+                        "isPlatformBrokerAvailable: authenticationScheme is not supported, returning false"
                     );
                     return false;
             }

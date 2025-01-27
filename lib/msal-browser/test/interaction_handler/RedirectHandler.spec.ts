@@ -23,9 +23,8 @@ import {
     CcsCredential,
     CcsCredentialType,
     IPerformanceClient,
-    NetworkResponse,
-    ServerAuthorizationTokenResponse,
-} from "@azure/msal-common";
+    StubPerformanceClient,
+} from "@azure/msal-common/browser";
 import {
     Configuration,
     buildConfiguration,
@@ -115,7 +114,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
             TEST_CONFIG.MSAL_CLIENT_ID,
             configObj.cache,
             browserCrypto,
-            logger
+            logger,
+            new StubPerformanceClient()
         );
         // Initialize authority after browser storage for proper use
         authorityInstance = new Authority(

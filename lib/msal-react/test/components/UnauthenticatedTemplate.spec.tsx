@@ -25,7 +25,7 @@ describe("UnauthenticatedTemplate tests", () => {
             clientId: TEST_CONFIG.MSAL_CLIENT_ID,
         },
         system: {
-            allowNativeBroker: false,
+            allowPlatformBroker: false,
         },
     };
 

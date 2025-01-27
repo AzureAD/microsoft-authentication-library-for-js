@@ -99,6 +99,7 @@ export const OIDC_SCOPES = [...OIDC_DEFAULT_SCOPES, Constants.EMAIL_SCOPE];
  */
 export const HeaderNames = {
     CONTENT_TYPE: "Content-Type",
+    CONTENT_LENGTH: "Content-Length",
     RETRY_AFTER: "Retry-After",
     CCS_HEADER: "X-AnchorMailbox",
     WWWAuthenticate: "WWW-Authenticate",
@@ -112,12 +113,6 @@ export type HeaderNames = (typeof HeaderNames)[keyof typeof HeaderNames];
  * Persistent cache keys MSAL which stay while user is logged in.
  */
 export const PersistentCacheKeys = {
-    ID_TOKEN: "idtoken",
-    CLIENT_INFO: "client.info",
-    ADAL_ID_TOKEN: "adal.idtoken",
-    ERROR: "error",
-    ERROR_DESC: "error.description",
-    ACTIVE_ACCOUNT: "active-account", // Legacy active-account cache key, use new key instead
     ACTIVE_ACCOUNT_FILTERS: "active-account-filters", // new cache entry for active_account for a more robust version for browser
 } as const;
 export type PersistentCacheKeys =

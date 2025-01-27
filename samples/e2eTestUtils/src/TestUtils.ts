@@ -529,11 +529,14 @@ export async function clickLoginPopup(
     await page.click("#SignIn");
     await screenshot.takeScreenshot(page, "signInClicked");
     // Click Sign In With Popup
-    const newPopupWindowPromise = new Promise<Page>((resolve) =>
+    const newPopupWindowPromise = new Promise<Page|null>((resolve) =>
         page.once("popup", resolve)
     );
     await page.click("#popup");
     const popupPage = await newPopupWindowPromise;
+    if (!popupPage) {
+        throw new Error('Popup window was not opened');
+      }
     const popupWindowClosed = new Promise<void>((resolve) =>
         popupPage.once("close", resolve)
     );
@@ -548,11 +551,14 @@ export async function clickLogoutPopup(
     await page.click("#SignIn");
     await screenshot.takeScreenshot(page, "signOutClicked");
     // Click Sign Out With Popup
-    const newPopupWindowPromise = new Promise<Page>((resolve) =>
+    const newPopupWindowPromise = new Promise<Page|null>((resolve) =>
         page.once("popup", resolve)
     );
     await page.click("#popup");
     const popupPage = await newPopupWindowPromise;
+    if (!popupPage) {
+        throw new Error('Popup window was not opened');
+      }
     const popupWindowClosed = new Promise<void>((resolve) =>
         popupPage.once("close", resolve)
     );

@@ -46,7 +46,7 @@ export type PopupRequest = Partial<
         | "codeChallenge"
         | "codeChallengeMethod"
         | "requestedClaimsHash"
-        | "nativeBroker"
+        | "platformBroker"
     >
 > & {
     scopes: Array<string>;

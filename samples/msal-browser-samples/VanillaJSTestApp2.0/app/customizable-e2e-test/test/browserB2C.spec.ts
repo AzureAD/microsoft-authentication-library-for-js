@@ -56,7 +56,8 @@ describe("B2C Tests", () => {
         await browser.close();
     });
 
-    describe("AAD Account", () => {
+    // TODO: Unskip when AAD client app registration is updated
+    describe.skip("AAD Account", () => {
         beforeAll(async () => {
             const labApiParams: LabApiQueryParams = {
                 azureEnvironment: AzureEnvironments.CLOUD,
@@ -76,7 +77,7 @@ describe("B2C Tests", () => {
 
         describe("login Tests", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
                 BrowserCache = new BrowserCacheUtils(
@@ -151,7 +152,7 @@ describe("B2C Tests", () => {
             let screenshot: Screenshot;
 
             beforeAll(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
                 BrowserCache = new BrowserCacheUtils(
@@ -310,7 +311,7 @@ describe("B2C Tests", () => {
 
         describe("login Tests", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
                 BrowserCache = new BrowserCacheUtils(
@@ -385,7 +386,7 @@ describe("B2C Tests", () => {
             let screenshot: Screenshot;
 
             beforeAll(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
                 BrowserCache = new BrowserCacheUtils(

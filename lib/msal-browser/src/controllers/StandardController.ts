@@ -28,6 +28,8 @@ import {
     AccountFilter,
     buildStaticAuthorityOptions,
     InteractionRequiredAuthErrorCodes,
+    PersistentCacheKeys,
+    CacheManager,
 } from "@azure/msal-common/browser";
 import {
     BrowserCacheManager,
@@ -176,6 +178,9 @@ export class StandardController implements IController {
 
     private ssoSilentMeasurement?: InProgressPerformanceEvent;
     private acquireTokenByCodeAsyncMeasurement?: InProgressPerformanceEvent;
+
+    // Flag which indicates if we're currently listening for account storage events
+    private listeningToStorageEvents: boolean;
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -228,7 +233,7 @@ export class StandardController implements IController {
             ? new CryptoOps(this.logger, this.performanceClient)
             : DEFAULT_CRYPTO_IMPLEMENTATION;
 
-        this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
+        this.eventHandler = new EventHandler(this.logger);
 
         // Initialize the browser storage class.
         this.browserStorage = this.isBrowserEnvironment
@@ -237,12 +242,13 @@ export class StandardController implements IController {
                   this.config.cache,
                   this.browserCrypto,
                   this.logger,
-                  buildStaticAuthorityOptions(this.config.auth),
-                  this.performanceClient
+                  this.performanceClient,
+                  buildStaticAuthorityOptions(this.config.auth)
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
-                  this.logger
+                  this.logger,
+                  this.performanceClient
               );
 
         // initialize in memory storage for native flows
@@ -259,7 +265,6 @@ export class StandardController implements IController {
             nativeCacheOptions,
             this.browserCrypto,
             this.logger,
-            undefined,
             this.performanceClient
         );
 
@@ -279,6 +284,11 @@ export class StandardController implements IController {
         // Register listener functions
         this.trackPageVisibilityWithMeasurement =
             this.trackPageVisibilityWithMeasurement.bind(this);
+
+        // account storage events
+        this.listeningToStorageEvents = false;
+        this.handleAccountCacheChange =
+            this.handleAccountCacheChange.bind(this);
     }
 
     static async createController(
@@ -314,16 +324,31 @@ export class StandardController implements IController {
             return;
         }
 
+        if (!this.isBrowserEnvironment) {
+            this.logger.info("in non-browser environment, exiting early.");
+            this.initialized = true;
+            this.eventHandler.emitEvent(EventType.INITIALIZE_END);
+            return;
+        }
+
         const initCorrelationId =
             request?.correlationId || this.getRequestCorrelationId();
-        const allowNativeBroker = this.config.system.allowNativeBroker;
+        const allowPlatformBroker = this.config.system.allowPlatformBroker;
         const initMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.InitializeClientApplication,
             initCorrelationId
         );
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
 
-        if (allowNativeBroker) {
+        await invokeAsync(
+            this.browserStorage.initialize.bind(this.browserStorage),
+            PerformanceEvents.InitializeCache,
+            this.logger,
+            this.performanceClient,
+            initCorrelationId
+        )(initCorrelationId);
+
+        if (allowPlatformBroker) {
             try {
                 this.nativeExtensionProvider =
                     await NativeMessageHandler.createProvider(
@@ -354,8 +379,10 @@ export class StandardController implements IController {
 
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
-
-        initMeasurement.end({ allowNativeBroker, success: true });
+        initMeasurement.end({
+            allowPlatformBroker: allowPlatformBroker,
+            success: true,
+        });
     }
 
     // #region Redirect Flow
@@ -415,7 +442,7 @@ export class StandardController implements IController {
             this.browserStorage.getCachedNativeRequest();
         const useNative =
             request &&
-            NativeMessageHandler.isNativeAvailable(
+            NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
                 this.logger,
                 this.nativeExtensionProvider
@@ -638,7 +665,10 @@ export class StandardController implements IController {
 
             let result: Promise<void>;
 
-            if (this.nativeExtensionProvider && this.canUseNative(request)) {
+            if (
+                this.nativeExtensionProvider &&
+                this.canUsePlatformBroker(request)
+            ) {
                 const nativeClient = new NativeInteractionClient(
                     this.config,
                     this.browserStorage,
@@ -752,7 +782,7 @@ export class StandardController implements IController {
 
         let result: Promise<AuthenticationResult>;
 
-        if (this.canUseNative(request)) {
+        if (this.canUsePlatformBroker(request)) {
             result = this.acquireTokenNative(
                 {
                     ...request,
@@ -765,7 +795,6 @@ export class StandardController implements IController {
                     atPopupMeasurement.end({
                         success: true,
                         isNativeBroker: true,
-                        requestId: response.requestId,
                         accountType: getAccountType(response.account),
                     });
                     return response;
@@ -818,7 +847,6 @@ export class StandardController implements IController {
 
                 atPopupMeasurement.end({
                     success: true,
-                    requestId: result.requestId,
                     accessTokenSize: result.accessToken.length,
                     idTokenSize: result.idToken.length,
                     accountType: getAccountType(result.account),
@@ -923,7 +951,7 @@ export class StandardController implements IController {
 
         let result: Promise<AuthenticationResult>;
 
-        if (this.canUseNative(validRequest)) {
+        if (this.canUsePlatformBroker(validRequest)) {
             result = this.acquireTokenNative(
                 validRequest,
                 ApiId.ssoSilent
@@ -955,7 +983,6 @@ export class StandardController implements IController {
                 this.ssoSilentMeasurement?.end({
                     success: true,
                     isNativeBroker: response.fromNativeBroker,
-                    requestId: response.requestId,
                     accessTokenSize: response.accessToken.length,
                     idTokenSize: response.idToken.length,
                     accountType: getAccountType(response.account),
@@ -1040,7 +1067,6 @@ export class StandardController implements IController {
                             atbcMeasurement.end({
                                 success: true,
                                 isNativeBroker: result.fromNativeBroker,
-                                requestId: result.requestId,
                                 accessTokenSize: result.accessToken.length,
                                 idTokenSize: result.idToken.length,
                                 accountType: getAccountType(result.account),
@@ -1073,7 +1099,9 @@ export class StandardController implements IController {
                 }
                 return await response;
             } else if (request.nativeAccountId) {
-                if (this.canUseNative(request, request.nativeAccountId)) {
+                if (
+                    this.canUsePlatformBroker(request, request.nativeAccountId)
+                ) {
                     const result = await this.acquireTokenNative(
                         {
                             ...request,
@@ -1157,7 +1185,6 @@ export class StandardController implements IController {
                     success: true,
                     fromCache: response.fromCache,
                     isNativeBroker: response.fromNativeBroker,
-                    requestId: response.requestId,
                 });
                 return response;
             })
@@ -1336,6 +1363,10 @@ export class StandardController implements IController {
      * @param logoutRequest
      */
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
+        if (!this.isBrowserEnvironment) {
+            this.logger.info("in non-browser environment, returning early.");
+            return;
+        }
         const correlationId = this.getRequestCorrelationId(logoutRequest);
         const cacheClient = this.createSilentCacheClient(correlationId);
         return cacheClient.logout(logoutRequest);
@@ -1457,7 +1488,10 @@ export class StandardController implements IController {
             result.cloudGraphHostName,
             result.msGraphHost
         );
-        this.browserStorage.setAccount(accountEntity);
+        await this.browserStorage.setAccount(
+            accountEntity,
+            result.correlationId
+        );
 
         if (result.fromNativeBroker) {
             this.logger.verbose(
@@ -1507,16 +1541,16 @@ export class StandardController implements IController {
     }
 
     /**
-     * Returns boolean indicating if this request can use the native broker
+     * Returns boolean indicating if this request can use the platform broker
      * @param request
      */
-    public canUseNative(
+    public canUsePlatformBroker(
         request: RedirectRequest | PopupRequest | SsoSilentRequest,
         accountId?: string
     ): boolean {
-        this.logger.trace("canUseNative called");
+        this.logger.trace("canUsePlatformBroker called");
         if (
-            !NativeMessageHandler.isNativeAvailable(
+            !NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
                 this.logger,
                 this.nativeExtensionProvider,
@@ -1524,7 +1558,7 @@ export class StandardController implements IController {
             )
         ) {
             this.logger.trace(
-                "canUseNative: isNativeAvailable returned false, returning false"
+                "canUsePlatformBroker: isPlatformBrokerAvailable returned false, returning false"
             );
             return false;
         }
@@ -1535,12 +1569,12 @@ export class StandardController implements IController {
                 case PromptValue.CONSENT:
                 case PromptValue.LOGIN:
                     this.logger.trace(
-                        "canUseNative: prompt is compatible with native flow"
+                        "canUsePlatformBroker: prompt is compatible with platform broker flow"
                     );
                     break;
                 default:
                     this.logger.trace(
-                        `canUseNative: prompt = ${request.prompt} is not compatible with native flow, returning false`
+                        `canUsePlatformBroker: prompt = ${request.prompt} is not compatible with platform broker flow, returning false`
                     );
                     return false;
             }
@@ -1548,7 +1582,7 @@ export class StandardController implements IController {
 
         if (!accountId && !this.getNativeAccountId(request)) {
             this.logger.trace(
-                "canUseNative: nativeAccountId is not available, returning false"
+                "canUsePlatformBroker: nativeAccountId is not available, returning false"
             );
             return false;
         }
@@ -1697,8 +1731,11 @@ export class StandardController implements IController {
      * Adds event callbacks to array
      * @param callback
      */
-    addEventCallback(callback: EventCallbackFunction): string | null {
-        return this.eventHandler.addEventCallback(callback);
+    addEventCallback(
+        callback: EventCallbackFunction,
+        eventTypes?: Array<EventType>
+    ): string | null {
+        return this.eventHandler.addEventCallback(callback, eventTypes);
     }
 
     /**
@@ -1716,6 +1753,7 @@ export class StandardController implements IController {
      * @returns {string}
      */
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
+        BrowserUtils.blockNonBrowserEnvironment();
         return this.performanceClient.addPerformanceCallback(callback);
     }
 
@@ -1733,14 +1771,89 @@ export class StandardController implements IController {
      * Adds event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
      */
     enableAccountStorageEvents(): void {
-        this.eventHandler.enableAccountStorageEvents();
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        if (!this.listeningToStorageEvents) {
+            this.logger.verbose("Adding account storage listener.");
+            this.listeningToStorageEvents = true;
+            window.addEventListener("storage", this.handleAccountCacheChange);
+        } else {
+            this.logger.verbose("Account storage listener already registered.");
+        }
     }
 
     /**
      * Removes event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
      */
     disableAccountStorageEvents(): void {
-        this.eventHandler.disableAccountStorageEvents();
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        if (this.listeningToStorageEvents) {
+            this.logger.verbose("Removing account storage listener.");
+            window.removeEventListener(
+                "storage",
+                this.handleAccountCacheChange
+            );
+            this.listeningToStorageEvents = false;
+        } else {
+            this.logger.verbose("No account storage listener registered.");
+        }
+    }
+
+    /**
+     * Emit account added/removed events when cached accounts are changed in a different tab or frame
+     */
+    protected handleAccountCacheChange(e: StorageEvent): void {
+        try {
+            // Handle active account filter change
+            if (e.key?.includes(PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS)) {
+                // This event has no payload, it only signals cross-tab app instances that the results of calling getActiveAccount() will have changed
+                this.eventHandler.emitEvent(EventType.ACTIVE_ACCOUNT_CHANGED);
+            }
+
+            // Handle account object change
+            const cacheValue = e.newValue || e.oldValue;
+            if (!cacheValue) {
+                return;
+            }
+            const parsedValue = JSON.parse(cacheValue);
+            if (
+                typeof parsedValue !== "object" ||
+                !AccountEntity.isAccountEntity(parsedValue)
+            ) {
+                return;
+            }
+            const accountEntity = CacheManager.toObject<AccountEntity>(
+                new AccountEntity(),
+                parsedValue
+            );
+            const accountInfo = accountEntity.getAccountInfo();
+            if (!e.oldValue && e.newValue) {
+                this.logger.info(
+                    "Account was added to cache in a different window"
+                );
+                this.eventHandler.emitEvent(
+                    EventType.ACCOUNT_ADDED,
+                    undefined,
+                    accountInfo
+                );
+            } else if (!e.newValue && e.oldValue) {
+                this.logger.info(
+                    "Account was removed from cache in a different window"
+                );
+                this.eventHandler.emitEvent(
+                    EventType.ACCOUNT_REMOVED,
+                    undefined,
+                    accountInfo
+                );
+            }
+        } catch (e) {
+            return;
+        }
     }
 
     /**
@@ -1802,13 +1915,6 @@ export class StandardController implements IController {
      */
     public isBrowserEnv(): boolean {
         return this.isBrowserEnvironment;
-    }
-
-    /**
-     * Returns the event handler
-     */
-    getEventHandler(): EventHandler {
-        return this.eventHandler;
     }
 
     /**
@@ -1943,7 +2049,6 @@ export class StandardController implements IController {
                         fromCache: result.fromCache,
                         isNativeBroker: result.fromNativeBroker,
                         cacheLookupPolicy: request.cacheLookupPolicy,
-                        requestId: result.requestId,
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
                     });
@@ -2131,7 +2236,6 @@ export class StandardController implements IController {
                         {
                             fromCache: response.fromCache,
                             isNativeBroker: response.fromNativeBroker,
-                            requestId: response.requestId,
                         },
                         request.correlationId
                     );
@@ -2167,7 +2271,7 @@ export class StandardController implements IController {
         cacheLookupPolicy: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
         if (
-            NativeMessageHandler.isNativeAvailable(
+            NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
                 this.logger,
                 this.nativeExtensionProvider,

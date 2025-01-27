@@ -1,0 +1,26 @@
+{
+  "name": "msal-node-client-credentials-with-certificate-from-key-vault",
+  "version": "1.0.0",
+  "description": "Command line app showing how to use client credential grant to acquire tokens from Azure AD, via a certificate retrieved from an Azure Key Vault",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "test:e2e": "jest",
+    "build": "npx tsc",
+    "start": "npm run build && node dist/client-credentials-with-cert-from-key-vault/app.js",
+    "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-node"
+  },
+  "type": "module",
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@azure/msal-node": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "e2e-test-utils": "^0.0.1",
+    "jest": "^29.5.0",
+    "jest-junit": "^16.0.0",
+    "ts-jest": "^29.1.0"
+  }
+}

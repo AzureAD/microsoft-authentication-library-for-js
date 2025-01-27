@@ -52,5 +52,5 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     prompt?: string;
     sid?: string;
     state?: string;
-    nativeBroker?: boolean;
+    platformBroker?: boolean;
 };

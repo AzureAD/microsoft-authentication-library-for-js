@@ -12,6 +12,7 @@ import {
     Constants as NodeConstants,
     ApiId,
     REGION_ENVIRONMENT_VARIABLE,
+    MSAL_FORCE_REGION,
 } from "../utils/Constants.js";
 import {
     CommonClientCredentialRequest,
@@ -27,6 +28,7 @@ import {
     ClientAuthErrorCodes,
     ClientAssertion as ClientAssertionType,
     getClientAssertion,
+    AzureRegion,
 } from "@azure/msal-common/node";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication.js";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest.js";
@@ -66,7 +68,63 @@ export class ConfidentialClientApplication
      */
     constructor(configuration: Configuration) {
         super(configuration);
-        this.setClientCredential();
+
+        const clientSecretNotEmpty = !!this.config.auth.clientSecret;
+        const clientAssertionNotEmpty = !!this.config.auth.clientAssertion;
+        const certificateNotEmpty =
+            (!!this.config.auth.clientCertificate?.thumbprint ||
+                !!this.config.auth.clientCertificate?.thumbprintSha256) &&
+            !!this.config.auth.clientCertificate?.privateKey;
+
+        /*
+         * If app developer configures this callback, they don't need a credential
+         * i.e. AzureSDK can get token from Managed Identity without a cert / secret
+         */
+        if (this.appTokenProvider) {
+            return;
+        }
+
+        // Check that at most one credential is set on the application
+        if (
+            (clientSecretNotEmpty && clientAssertionNotEmpty) ||
+            (clientAssertionNotEmpty && certificateNotEmpty) ||
+            (clientSecretNotEmpty && certificateNotEmpty)
+        ) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidClientCredential
+            );
+        }
+
+        if (this.config.auth.clientSecret) {
+            this.clientSecret = this.config.auth.clientSecret;
+            return;
+        }
+
+        if (this.config.auth.clientAssertion) {
+            this.developerProvidedClientAssertion =
+                this.config.auth.clientAssertion;
+            return;
+        }
+
+        if (!certificateNotEmpty) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidClientCredential
+            );
+        } else {
+            this.clientAssertion = !!this.config.auth.clientCertificate
+                .thumbprintSha256
+                ? ClientAssertion.fromCertificateWithSha256Thumbprint(
+                      this.config.auth.clientCertificate.thumbprintSha256,
+                      this.config.auth.clientCertificate.privateKey,
+                      this.config.auth.clientCertificate.x5c
+                  )
+                : ClientAssertion.fromCertificate(
+                      // guaranteed to be a string, due to prior error checking in this function
+                      this.config.auth.clientCertificate.thumbprint as string,
+                      this.config.auth.clientCertificate.privateKey,
+                      this.config.auth.clientCertificate.x5c
+                  );
+        }
         this.appTokenProvider = undefined;
     }
 
@@ -136,8 +194,24 @@ export class ConfidentialClientApplication
             );
         }
 
+        /*
+         * if this env variable is set, and the developer provided region isn't defined and isn't "DisableMsalForceRegion",
+         * MSAL shall opt-in to ESTS-R with the value of this variable
+         */
+        const ENV_MSAL_FORCE_REGION: AzureRegion | undefined =
+            process.env[MSAL_FORCE_REGION];
+
+        let region: AzureRegion | undefined;
+        if (validRequest.azureRegion !== "DisableMsalForceRegion") {
+            if (!validRequest.azureRegion && ENV_MSAL_FORCE_REGION) {
+                region = ENV_MSAL_FORCE_REGION;
+            } else {
+                region = validRequest.azureRegion;
+            }
+        }
+
         const azureRegionConfiguration: AzureRegionConfiguration = {
-            azureRegion: validRequest.azureRegion,
+            azureRegion: region,
             environmentRegion: process.env[REGION_ENVIRONMENT_VARIABLE],
         };
 
@@ -151,6 +225,7 @@ export class ConfidentialClientApplication
                 await this.buildOauthClientConfiguration(
                     validRequest.authority,
                     validRequest.correlationId,
+                    "",
                     serverTelemetryManager,
                     azureRegionConfiguration,
                     request.azureCloudOptions
@@ -199,6 +274,7 @@ export class ConfidentialClientApplication
             const onBehalfOfConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
                 validRequest.correlationId,
+                "",
                 undefined,
                 undefined,
                 request.azureCloudOptions
@@ -214,65 +290,6 @@ export class ConfidentialClientApplication
                 e.setCorrelationId(validRequest.correlationId);
             }
             throw e;
-        }
-    }
-
-    private setClientCredential(): void {
-        const clientSecretNotEmpty = !!this.config.auth.clientSecret;
-        const clientAssertionNotEmpty = !!this.config.auth.clientAssertion;
-        const certificateNotEmpty =
-            (!!this.config.auth.clientCertificate?.thumbprint ||
-                !!this.config.auth.clientCertificate?.thumbprintSha256) &&
-            !!this.config.auth.clientCertificate?.privateKey;
-
-        /*
-         * If app developer configures this callback, they don't need a credential
-         * i.e. AzureSDK can get token from Managed Identity without a cert / secret
-         */
-        if (this.appTokenProvider) {
-            return;
-        }
-
-        // Check that at most one credential is set on the application
-        if (
-            (clientSecretNotEmpty && clientAssertionNotEmpty) ||
-            (clientAssertionNotEmpty && certificateNotEmpty) ||
-            (clientSecretNotEmpty && certificateNotEmpty)
-        ) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.invalidClientCredential
-            );
-        }
-
-        if (this.config.auth.clientSecret) {
-            this.clientSecret = this.config.auth.clientSecret;
-            return;
-        }
-
-        if (this.config.auth.clientAssertion) {
-            this.developerProvidedClientAssertion =
-                this.config.auth.clientAssertion;
-            return;
-        }
-
-        if (!certificateNotEmpty) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.invalidClientCredential
-            );
-        } else {
-            this.clientAssertion = !!this.config.auth.clientCertificate
-                .thumbprintSha256
-                ? ClientAssertion.fromCertificateWithSha256Thumbprint(
-                      this.config.auth.clientCertificate.thumbprintSha256,
-                      this.config.auth.clientCertificate.privateKey,
-                      this.config.auth.clientCertificate.x5c
-                  )
-                : ClientAssertion.fromCertificate(
-                      // guaranteed to be a string, due to prior error checking in this function
-                      this.config.auth.clientCertificate.thumbprint as string,
-                      this.config.auth.clientCertificate.privateKey,
-                      this.config.auth.clientCertificate.x5c
-                  );
         }
     }
 }

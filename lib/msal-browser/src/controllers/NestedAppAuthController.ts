@@ -35,6 +35,7 @@ import {
     WrapperSKU,
     InteractionType,
     DEFAULT_REQUEST,
+    CacheLookupPolicy,
 } from "../utils/BrowserConstants.js";
 import { IController } from "./IController.js";
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
@@ -52,6 +53,9 @@ import {
 } from "../cache/BrowserCacheManager.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import * as AccountManager from "../cache/AccountManager.js";
+import { AccountContext } from "../naa/BridgeAccountContext.js";
+import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
+import { createNewGuid } from "../crypto/BrowserCrypto.js";
 
 export class NestedAppAuthController implements IController {
     // OperatingContext
@@ -81,6 +85,9 @@ export class NestedAppAuthController implements IController {
     // NestedAppAuthAdapter
     protected readonly nestedAppAuthAdapter: NestedAppAuthAdapter;
 
+    // currentAccount for NAA apps
+    protected currentAccountContext: AccountContext | null;
+
     constructor(operatingContext: NestedAppOperatingContext) {
         this.operatingContext = operatingContext;
         const proxy = this.operatingContext.getBridgeProxy();
@@ -101,7 +108,7 @@ export class NestedAppAuthController implements IController {
 
         // Initialize the crypto class.
         this.browserCrypto = operatingContext.isBrowserEnvironment()
-            ? new CryptoOps(this.logger, this.performanceClient)
+            ? new CryptoOps(this.logger, this.performanceClient, true)
             : DEFAULT_CRYPTO_IMPLEMENTATION;
 
         // Initialize the browser storage class.
@@ -111,14 +118,16 @@ export class NestedAppAuthController implements IController {
                   this.config.cache,
                   this.browserCrypto,
                   this.logger,
+                  this.performanceClient,
                   buildStaticAuthorityOptions(this.config.auth)
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
-                  this.logger
+                  this.logger,
+                  this.performanceClient
               );
 
-        this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
+        this.eventHandler = new EventHandler(this.logger);
 
         this.nestedAppAuthAdapter = new NestedAppAuthAdapter(
             this.config.auth.clientId,
@@ -129,23 +138,7 @@ export class NestedAppAuthController implements IController {
 
         // Set the active account if available
         const accountContext = this.bridgeProxy.getAccountContext();
-        if (accountContext) {
-            const cachedAccount = AccountManager.getAccount(
-                accountContext,
-                this.logger,
-                this.browserStorage
-            );
-
-            AccountManager.setActiveAccount(cachedAccount, this.browserStorage);
-        }
-    }
-
-    /**
-     * Returns the event handler instance
-     * @returns EventHandler
-     */
-    getEventHandler(): EventHandler {
-        return this.eventHandler;
+        this.currentAccountContext = accountContext ? accountContext : null;
     }
 
     /**
@@ -164,8 +157,9 @@ export class NestedAppAuthController implements IController {
      * Specific implementation of initialize function for NestedAppAuthController
      * @returns
      */
-    initialize(): Promise<void> {
-        // do nothing not required by this controller
+    async initialize(request?: InitializeApplicationRequest): Promise<void> {
+        const initCorrelationId = request?.correlationId || createNewGuid();
+        await this.browserStorage.initialize(initCorrelationId);
         return Promise.resolve();
     }
 
@@ -220,17 +214,24 @@ export class NestedAppAuthController implements IController {
             const response = await this.bridgeProxy.getTokenInteractive(
                 naaRequest
             );
-            const result: AuthenticationResult =
-                this.nestedAppAuthAdapter.fromNaaTokenResponse(
+            const result: AuthenticationResult = {
+                ...this.nestedAppAuthAdapter.fromNaaTokenResponse(
                     naaRequest,
                     response,
                     reqTimestamp
-                );
+                ),
+            };
 
             // cache the tokens in the response
             await this.hydrateCache(result, request);
 
-            this.browserStorage.setActiveAccount(result.account);
+            // cache the account context in memory after successful token fetch
+            this.currentAccountContext = {
+                homeAccountId: result.account.homeAccountId,
+                environment: result.account.environment,
+                tenantId: result.account.tenantId,
+            };
+
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
                 InteractionType.Popup,
@@ -285,7 +286,6 @@ export class NestedAppAuthController implements IController {
 
         // Look for tokens in the cache first
         const result = await this.acquireTokenFromCache(validRequest);
-
         if (result) {
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
@@ -325,7 +325,13 @@ export class NestedAppAuthController implements IController {
             // cache the tokens in the response
             await this.hydrateCache(result, request);
 
-            this.browserStorage.setActiveAccount(result.account);
+            // cache the account context in memory after successful token fetch
+            this.currentAccountContext = {
+                homeAccountId: result.account.homeAccountId,
+                environment: result.account.environment,
+                tenantId: result.account.tenantId,
+            };
+
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_SUCCESS,
                 InteractionType.Silent,
@@ -375,7 +381,37 @@ export class NestedAppAuthController implements IController {
             nestedAppAuthRequest: true,
         });
 
-        const result = await this.acquireTokenFromCacheInternal(request);
+        // if the request has claims, we cannot look up in the cache
+        if (request.claims) {
+            this.logger.verbose(
+                "Claims are present in the request, skipping cache lookup"
+            );
+            return null;
+        }
+
+        // if the request has forceRefresh, we cannot look up in the cache
+        if (request.forceRefresh) {
+            this.logger.verbose(
+                "forceRefresh is set to true, skipping cache lookup"
+            );
+            return null;
+        }
+
+        // respect cache lookup policy
+        let result: AuthenticationResult | null = null;
+        if (!request.cacheLookupPolicy) {
+            request.cacheLookupPolicy = CacheLookupPolicy.Default;
+        }
+
+        switch (request.cacheLookupPolicy) {
+            case CacheLookupPolicy.Default:
+            case CacheLookupPolicy.AccessToken:
+            case CacheLookupPolicy.AccessTokenAndRefreshToken:
+                result = await this.acquireTokenFromCacheInternal(request);
+                break;
+            default:
+                return null;
+        }
 
         if (result) {
             this.eventHandler.emitEvent(
@@ -417,16 +453,16 @@ export class NestedAppAuthController implements IController {
     private async acquireTokenFromCacheInternal(
         request: SilentRequest
     ): Promise<AuthenticationResult | null> {
-        const accountContext = this.bridgeProxy.getAccountContext();
-        let currentAccount = null;
+        // always prioritize the account context from the bridge
+        const accountContext =
+            this.bridgeProxy.getAccountContext() || this.currentAccountContext;
+        let currentAccount: AccountInfo | null = null;
         if (accountContext) {
-            const hubAccount = AccountManager.getAccount(
+            currentAccount = AccountManager.getAccount(
                 accountContext,
                 this.logger,
                 this.browserStorage
             );
-            // always prioritize for hub account context, the reqirement of `request.account` will be removed soon
-            currentAccount = hubAccount || request.account;
         }
 
         // fall back to brokering if no cached account is found
@@ -466,7 +502,6 @@ export class NestedAppAuthController implements IController {
         if (!cachedAccessToken) {
             this.logger.verbose("No cached access token found");
             return Promise.resolve(null);
-            // If access token has expired, remove the token from cache and return null
         } else if (
             TimeUtils.wasClockTurnedBack(cachedAccessToken.cachedAt) ||
             TimeUtils.isTokenExpired(
@@ -474,12 +509,7 @@ export class NestedAppAuthController implements IController {
                 this.config.system.tokenRenewalOffsetSeconds
             )
         ) {
-            this.logger.verbose(
-                "Cached access token has expired, deleting all related tokens from cache"
-            );
-            const accountEntity =
-                AccountEntity.createFromAccountInfo(currentAccount);
-            await this.browserStorage.removeAccountContext(accountEntity);
+            this.logger.verbose("Cached access token has expired");
             return Promise.resolve(null);
         }
 
@@ -563,7 +593,7 @@ export class NestedAppAuthController implements IController {
                       | "responseMode"
                       | "codeChallenge"
                       | "codeChallengeMethod"
-                      | "nativeBroker"
+                      | "platformBroker"
                   >
               >
             | PopupRequest,
@@ -588,9 +618,13 @@ export class NestedAppAuthController implements IController {
     /**
      * Adds event callbacks to array
      * @param callback
+     * @param eventTypes
      */
-    addEventCallback(callback: EventCallbackFunction): string | null {
-        return this.eventHandler.addEventCallback(callback);
+    addEventCallback(
+        callback: EventCallbackFunction,
+        eventTypes?: Array<EventType>
+    ): string | null {
+        return this.eventHandler.addEventCallback(callback, eventTypes);
     }
 
     /**
@@ -752,7 +786,7 @@ export class NestedAppAuthController implements IController {
                 | "responseMode"
                 | "codeChallenge"
                 | "codeChallengeMethod"
-                | "nativeBroker"
+                | "platformBroker"
             >
         >
     ): Promise<AuthenticationResult> {
@@ -833,7 +867,10 @@ export class NestedAppAuthController implements IController {
             result.cloudGraphHostName,
             result.msGraphHost
         );
-        this.browserStorage.setAccount(accountEntity);
+        await this.browserStorage.setAccount(
+            accountEntity,
+            result.correlationId
+        );
         return this.browserStorage.hydrateCache(result, request);
     }
 }

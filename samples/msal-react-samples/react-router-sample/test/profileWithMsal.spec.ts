@@ -17,21 +17,9 @@ async function verifyTokenStore(
     BrowserCache: BrowserCacheUtils,
     scopes: string[]
 ): Promise<void> {
-    const tokenStore = await BrowserCache.getTokens();
-    expect(tokenStore.idTokens.length).toBe(1);
-    expect(tokenStore.accessTokens.length).toBe(1);
-    expect(tokenStore.refreshTokens.length).toBe(1);
-    expect(
-        await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
-    ).not.toBeNull();
-    expect(
-        await BrowserCache.accessTokenForScopesExists(
-            tokenStore.accessTokens,
-            scopes
-        )
-    ).toBeTruthy;
-    const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(9);
+    await BrowserCache.verifyTokenStore({
+        scopes,
+      });
     const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry(
         "b5c2e510-4a17-4feb-b219-e55aa5b74144"
     );
@@ -72,7 +60,7 @@ describe("/profileWithMsal", () => {
     });
 
     beforeEach(async () => {
-        context = await browser.createIncognitoBrowserContext();
+        context = await browser.createBrowserContext();
         page = await context.newPage();
         page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "localStorage");
@@ -98,7 +86,7 @@ describe("/profileWithMsal", () => {
         await enterCredentials(page, screenshot, username, accountPwd);
 
         // Wait for Graph data to display
-        await page.waitForXPath("//div/ul/li[contains(., 'Name')]", {
+        await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]", {
             timeout: 5000,
         });
         await screenshot.takeScreenshot(page, "Graph data acquired");

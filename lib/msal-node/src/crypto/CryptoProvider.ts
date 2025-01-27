@@ -34,7 +34,7 @@ export class CryptoProvider implements ICrypto {
     }
     /**
      * Stringifies and base64Url encodes input public key
-     * @param inputKid
+     * @param inputKid - public key id
      * @returns Base64Url encoded public key
      */
     encodeKid(): string {
@@ -81,7 +81,7 @@ export class CryptoProvider implements ICrypto {
 
     /**
      * Removes cryptographic keypair from key store matching the keyId passed in
-     * @param kid
+     * @param kid - public key id
      */
     removeTokenBindingKey(): Promise<boolean> {
         throw new Error("Method not implemented.");

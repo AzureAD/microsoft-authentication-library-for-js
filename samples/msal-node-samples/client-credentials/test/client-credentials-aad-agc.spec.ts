@@ -47,16 +47,12 @@ describe("Client Credentials AAD AGC Tests", () => {
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
-        afterAll(async () => {
-            if (server) await server.close();
-        });
-
         it("Performs acquire token", async () => {
             confidentialClientApplication = new ConfidentialClientApplication({
                 auth: authOptions,
                 cache: { cachePlugin },
             });
-            server = await getClientCredentialsToken(
+            await getClientCredentialsToken(
                 confidentialClientApplication,
                 clientCredentialRequestScopes
             );
@@ -71,7 +67,7 @@ describe("Client Credentials AAD AGC Tests", () => {
                 auth: authOptions,
                 cache: { cachePlugin },
             });
-            server = await getClientCredentialsToken(
+            await getClientCredentialsToken(
                 confidentialClientApplication,
                 clientCredentialRequestScopes,
                 { region: "usseceast" }
