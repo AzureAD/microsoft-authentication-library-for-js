@@ -298,54 +298,29 @@ export abstract class ClientApplication {
                 validRequest.correlationId
             );
 
-            return await this.handleCachedTokenFlow(
-                validRequest,
-                silentFlowClient,
-                clientConfiguration
-            );
+            try {
+                if (this.tokenCache.persistence) {
+                    await this.tokenCache.overwriteCache();
+                }
+
+                return await this.acquireCachedTokenSilent(
+                    validRequest,
+                    silentFlowClient,
+                    clientConfiguration
+                );
+            } catch (e) {
+                return this.handleRefreshTokenFlow(
+                    validRequest,
+                    clientConfiguration,
+                    e as Error
+                );
+            }
         } catch (error) {
             if (error instanceof AuthError) {
                 error.setCorrelationId(validRequest.correlationId);
             }
             serverTelemetryManager.cacheFailedRequest(error);
             throw error;
-        }
-    }
-
-    private async handleCachedTokenFlow(
-        validRequest: CommonSilentFlowRequest,
-        silentFlowClient: SilentFlowClient,
-        clientConfiguration: ClientConfiguration
-    ): Promise<AuthenticationResult> {
-        try {
-            return await this.acquireCachedTokenSilent(
-                validRequest,
-                silentFlowClient,
-                clientConfiguration
-            );
-        } catch (error) {
-            if (this.tokenCache.persistence) {
-                try {
-                    await this.tokenCache.overwriteCache();
-                    this.logger.info("Searching again for a valid token");
-                    return await this.acquireCachedTokenSilent(
-                        validRequest,
-                        silentFlowClient,
-                        clientConfiguration
-                    );
-                } catch (overwriteError) {
-                    return this.handleRefreshTokenFlow(
-                        validRequest,
-                        clientConfiguration,
-                        overwriteError as Error
-                    );
-                }
-            }
-            return this.handleRefreshTokenFlow(
-                validRequest,
-                clientConfiguration,
-                error as Error
-            );
         }
     }
 
