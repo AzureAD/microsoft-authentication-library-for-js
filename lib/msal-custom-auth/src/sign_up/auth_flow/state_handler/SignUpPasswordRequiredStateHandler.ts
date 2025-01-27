@@ -30,7 +30,7 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
         password: string,
     ): Promise<SignUpSubmitPasswordResult> {
         if (!password) {
-            this.logger.error("Password is required for sign-up.");
+            this.logger.error("Password parameter is required for sign-up.");
 
             return Promise.resolve(
                 SignUpSubmitPasswordResult.createWithError(

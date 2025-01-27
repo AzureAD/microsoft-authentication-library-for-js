@@ -32,7 +32,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
      */
     async submitCode(code: string): Promise<SignUpSubmitCodeResult> {
         if (!code) {
-            this.logger.error("Code is required for sign-up.");
+            this.logger.error("Code parameter is required for sign-up.");
 
             return Promise.resolve(
                 SignUpSubmitCodeResult.createWithError(
@@ -72,7 +72,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
                     ),
                 );
             } else if (result instanceof SignUpAttributesRequiredResult) {
-                // Password required
+                // Attributes required
                 this.logger.info("Attributes required for sign-up.");
 
                 return new SignUpSubmitCodeResult(

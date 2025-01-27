@@ -3,6 +3,10 @@
  * Licensed under the MIT License.
  */
 
-export static class AuthFlowStateHandlerFactory {
+import { AuthFlowStateHandlerBase } from "./AuthFlowStateHandlerBase.js";
 
+export class AuthFlowStateHandlerFactory {
+    public create(state: AuthFlowStateBase): AuthFlowStateHandlerBase {
+        if (state instanceof)
+    }
 }

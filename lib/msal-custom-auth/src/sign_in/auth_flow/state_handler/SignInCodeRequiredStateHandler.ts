@@ -28,7 +28,7 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
      */
     async submitCode(code: string): Promise<SignInSubmitCodeResult> {
         if (!code) {
-            this.logger.error("Code is required for sign-in.");
+            this.logger.error("Code parameter is required for sign-in.");
 
             const result = SignInSubmitCodeResult.createWithError(
                 new InvalidArgumentError("code", this.correlationId),

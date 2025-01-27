@@ -310,6 +310,7 @@ export class CustomAuthStandardController
                     new SignUpCodeRequiredStateHandler(
                         signUpInputs.username,
                         this.signUpClient,
+                        this.signInClient,
                         correlationId,
                         this.logger,
                         startResult.continuationToken,
@@ -324,6 +325,7 @@ export class CustomAuthStandardController
                     new SignUpPasswordRequiredStateHandler(
                         signUpInputs.username,
                         this.signUpClient,
+                        this.signInClient,
                         correlationId,
                         this.logger,
                         startResult.continuationToken,
@@ -338,6 +340,7 @@ export class CustomAuthStandardController
                     new SignUpAttributesRequiredStateHandler(
                         signUpInputs.username,
                         this.signUpClient,
+                        this.signInClient,
                         correlationId,
                         this.logger,
                         startResult.continuationToken,
