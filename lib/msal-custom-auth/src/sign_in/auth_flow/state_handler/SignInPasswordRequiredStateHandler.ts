@@ -23,6 +23,8 @@ export class SignInPasswordRequiredStateHandler extends SignInStateHandler {
         password: string,
     ): Promise<SignInSubmitPasswordResult> {
         if (!password) {
+            this.logger.error("Password parameter is required for sign-in.");
+
             const result = SignInSubmitPasswordResult.createWithError(
                 new InvalidArgumentError("password", this.correlationId),
                 SignInSubmitPasswordError,

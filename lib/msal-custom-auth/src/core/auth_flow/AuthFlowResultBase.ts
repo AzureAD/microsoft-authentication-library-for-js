@@ -6,34 +6,26 @@
 import { CustomAuthError } from "../error/CustomAuthError.js";
 import { UnexpectedError } from "../error/UnexpectedError.js";
 import { AuthFlowErrorBase } from "./AuthFlowErrorBase.js";
-import { AuthFlowStateHandlerBase } from "./AuthFlowStateHandlerBase.js";
+import { AuthFlowStateBase } from "./AuthFlowStateBase.js";
 
 /*
  * Base class for a result of an authentication operation.
  * @typeParam TState - The type of the result data.
  * @typeParam TStateHandler - The type of state handler.
  */
-export abstract class ResultBase<
-    TState,
+export abstract class AuthFlowResultBase<
+    TState extends AuthFlowStateBase,
     TError extends AuthFlowErrorBase,
     TData = void,
-    TStateHandler extends AuthFlowStateHandlerBase | void = void,
 > {
     /*
-     * The state of the authentication operation.
-     */
-    protected _state?: TState;
-
-    /*
      *constructor for ResultBase
-     * @param data - The result data.
      * @param state - The state.
-     * @typeParam TData - The type of the result data.
-     * @typeParam TState - The type of state.
+     * @param data - The result data.
      */
     constructor(
+        public state?: TState,
         public data?: TData,
-        public stateHandler?: TStateHandler,
     ) {}
 
     /*
@@ -42,24 +34,15 @@ export abstract class ResultBase<
     error?: TError;
 
     /*
-     * Gets current state of the authentication operation.
-     */
-    abstract get state(): TState;
-
-    /*
      * Creates a result with an error.
      * @param error - The error that occurred.
      * @returns The result.
-     * @typeParam TData - The type of the result data.
-     * @typeParam TState - The type of state.
-     * @typeParam TActionResult - The type of the result.
      */
     static createWithError<
         TData,
-        TStateHandler extends AuthFlowStateHandlerBase | void,
-        TState,
+        TState extends AuthFlowStateBase,
         TError extends AuthFlowErrorBase,
-        TActionResult extends ResultBase<TState, TError, TData, TStateHandler>,
+        TActionResult extends AuthFlowResultBase<TState, TError, TData>,
     >(
         this: new () => TActionResult,
         error: unknown,

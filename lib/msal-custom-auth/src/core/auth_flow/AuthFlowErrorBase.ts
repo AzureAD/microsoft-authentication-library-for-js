@@ -5,6 +5,7 @@
 
 import {
     CustomAuthApiError,
+    CustomAuthApiErrorCode,
     RedirectError,
 } from "../error/CustomAuthApiError.js";
 import { CustomAuthError } from "../error/CustomAuthError.js";
@@ -29,18 +30,19 @@ export class AuthFlowErrorBase {
 
     protected isUnsupportedChallengeTypeError(): boolean {
         return (
-            (this.errorData.error === this.errorCodes.INVALID_REQUEST &&
+            (this.errorData.error === CustomAuthApiErrorCode.INVALID_REQUEST &&
                 (this.errorData.errorDescription?.includes(
                     "The challenge_type list parameter contains an unsupported challenge type",
                 ) ??
                     false)) ||
-            this.errorData.error === this.errorCodes.UNSUPPORTED_CHALLENGE_TYPE
+            this.errorData.error ===
+                CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE
         );
     }
 
     protected isInvalidPasswordError(): boolean {
         return (
-            (this.errorData.error === this.errorCodes.INVALID_GRANT &&
+            (this.errorData.error === CustomAuthApiErrorCode.INVALID_GRANT &&
                 this.errorData instanceof CustomAuthApiError &&
                 (this.errorData.errorCodes ?? []).includes(50126)) ||
             (this.errorData instanceof InvalidArgumentError &&
@@ -50,10 +52,10 @@ export class AuthFlowErrorBase {
 
     protected isInvalidCodeError(): boolean {
         return (
-            (this.errorData.error === this.errorCodes.INVALID_GRANT &&
+            (this.errorData.error === CustomAuthApiErrorCode.INVALID_GRANT &&
                 this.errorData instanceof CustomAuthApiError &&
                 this.errorData.subError ===
-                    this.errorCodes.INVALID_OOB_VALUE) ||
+                    CustomAuthApiErrorCode.INVALID_OOB_VALUE) ||
             (this.errorData instanceof InvalidArgumentError &&
                 this.errorData.errorDescription?.includes("code") === true)
         );
@@ -62,12 +64,4 @@ export class AuthFlowErrorBase {
     protected isRedirectError(): boolean {
         return this.errorData instanceof RedirectError;
     }
-
-    protected errorCodes = {
-        INVALID_REQUEST: "invalid_request",
-        UNSUPPORTED_CHALLENGE_TYPE: "unsupported_challenge_type",
-        USER_NOT_FOUND: "user_not_found",
-        INVALID_GRANT: "invalid_grant",
-        INVALID_OOB_VALUE: "invalid_oob_value",
-    } as const;
 }

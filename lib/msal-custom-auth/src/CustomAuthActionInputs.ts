@@ -20,7 +20,7 @@ export type SignInInputs = CustomAuthActionInputs & {
 export type SignUpInputs = CustomAuthActionInputs & {
     username: string;
     password?: string;
-    attribute?: UserAccountAttributes;
+    attributes?: UserAccountAttributes;
 };
 
 export type ResetPasswordInputs = CustomAuthActionInputs & {

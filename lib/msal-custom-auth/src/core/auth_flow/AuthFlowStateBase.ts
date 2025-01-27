@@ -3,6 +3,28 @@
  * Licensed under the MIT License.
  */
 
+import { Logger } from "@azure/msal-browser";
+import { CustomAuthBrowserConfiguration } from "../../configuration/CustomAuthConfiguration.js";
+
+/*
+ * Base state for the auth flow.
+ */
+export class AuthFlowStateBase {
+    constructor(
+        public type:
+            | SignInState
+            | SignUpState
+            | ResetPasswordState
+            | GetAccountState
+            | GetAccessTokenState
+            | SignOutState,
+        protected correlationId: string,
+        protected continuationToken: string,
+        protected logger: Logger,
+        protected config: CustomAuthBrowserConfiguration,
+    ) {}
+}
+
 export enum SignInState {
     CodeRequired,
     PasswordRequired,

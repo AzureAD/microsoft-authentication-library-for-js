@@ -34,11 +34,20 @@ import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import { FetchHttpClient } from "../core/network_client/http_client/FetchHttpClient.js";
 import {
     SignInCodeSendResult,
-    SignInContinuationTokenResult,
+    SignInPasswordRequiredResult,
 } from "../sign_in/interaction_client/result/SignInActionResult.js";
 import { SignInError } from "../sign_in/auth_flow/error_type/SignInError.js";
 import { SignUpError } from "../sign_up/auth_flow/error_type/SignUpError.js";
 import { ResetPasswordError } from "../reset_password/auth_flow/error_type/ResetPasswordError.js";
+import { SignUpClient } from "../sign_up/interaction_client/SignUpClient.js";
+import { CustomAuthInterationClientFactory } from "../core/interaction_client/CustomAuthInterationClientFactory.js";
+import {
+    SignUpAttributesRequiredResult,
+    SignUpCodeRequiredResult,
+} from "../sign_up/interaction_client/result/SignUpActionResult.js";
+import { SignUpCodeRequiredStateHandler } from "../sign_up/auth_flow/state_handler/SignUpCodeRequiredStateHandler.js";
+import { SignUpPasswordRequiredStateHandler } from "../sign_up/auth_flow/state_handler/SignUpPasswordRequiredStateHandler.js";
+import { SignUpAttributesRequiredStateHandler } from "../sign_up/auth_flow/state_handler/SignUpAttributesRequiredStateHandler.js";
 
 /*
  * Controller for standard native auth operations.
@@ -50,7 +59,12 @@ export class CustomAuthStandardController
     /*
      * The client to use for sign-in operations.
      */
-    private readonly signInClient: SigninClient; // More clients will be added for sign-up, reset password, etc.
+    private readonly signInClient: SigninClient;
+
+    /**
+     * The client to use for sign-up operations.
+     */
+    private readonly signUpClient: SignUpClient;
 
     /*
      * The configuration for the client.
@@ -86,7 +100,7 @@ export class CustomAuthStandardController
             ),
         );
 
-        this.signInClient = new SigninClient(
+        const interactionClientFactory = new CustomAuthInterationClientFactory(
             this.customAuthConfig,
             this.browserStorage,
             this.browserCrypto,
@@ -97,6 +111,10 @@ export class CustomAuthStandardController
             customAuthApiClient,
             this.authority,
         );
+
+        this.signInClient = interactionClientFactory.create(SigninClient);
+        this.signUpClient = interactionClientFactory.create(SignUpClient);
+
         // Create more interaction clients here, such as SignUpClient, ResetPasswordClient, etc.
     }
 
@@ -176,7 +194,7 @@ export class CustomAuthStandardController
                         signInInputs.scopes,
                     ),
                 );
-            } else if (startResult instanceof SignInContinuationTokenResult) {
+            } else if (startResult instanceof SignInPasswordRequiredResult) {
                 // require password
                 this.logger.info("Password required for sign-in.");
 
@@ -227,15 +245,17 @@ export class CustomAuthStandardController
                 );
 
                 return new SignInResult(accountInfo);
-            } else {
-                this.logger.error(
-                    "Unexpected sign-in result type. Returning error.",
-                );
-
-                throw new UnexpectedError("Unknow sign-in result type");
             }
+
+            this.logger.error(
+                "Unexpected sign-in result type. Returning error.",
+            );
+
+            throw new UnexpectedError("Unknow sign-in result type");
         } catch (error) {
-            this.logger.error(`An error occurred during sign-in: ${error}`);
+            this.logger.error(
+                `An error occurred during starting sign-in: ${error}`,
+            );
 
             return SignInResult.createWithError(error, SignInError);
         }
@@ -261,9 +281,83 @@ export class CustomAuthStandardController
             );
         }
 
-        throw new Error(
-            `Method not implemented with Parameter ${correlationId}.`,
-        );
+        try {
+            this.logger.info(
+                `Starting sign-up flow${
+                    !!signUpInputs.password
+                        ? ` with ${!!signUpInputs.attributes ? "password and attributes" : "password"}`
+                        : ""
+                }.`,
+            );
+
+            const startResult = await this.signUpClient.start({
+                clientId: this.config.auth.clientId,
+                correlationId: correlationId,
+                challengeType:
+                    this.customAuthConfig.customAuth.challengeTypes ?? [],
+                username: signUpInputs.username,
+                password: signUpInputs.password,
+                attributes: signUpInputs.attributes?.toRecord(),
+            });
+
+            this.logger.info("Sign-up flow started.");
+
+            if (startResult instanceof SignUpCodeRequiredResult) {
+                // Code required
+                this.logger.info("Code required for sign-up.");
+
+                return new SignUpResult(
+                    new SignUpCodeRequiredStateHandler(
+                        signUpInputs.username,
+                        this.signUpClient,
+                        correlationId,
+                        this.logger,
+                        startResult.continuationToken,
+                        this.customAuthConfig,
+                    ),
+                );
+            } else if (startResult instanceof SignInPasswordRequiredResult) {
+                // Password required
+                this.logger.info("Password required for sign-up.");
+
+                return new SignUpResult(
+                    new SignUpPasswordRequiredStateHandler(
+                        signUpInputs.username,
+                        this.signUpClient,
+                        correlationId,
+                        this.logger,
+                        startResult.continuationToken,
+                        this.customAuthConfig,
+                    ),
+                );
+            } else if (startResult instanceof SignUpAttributesRequiredResult) {
+                // Attributes required
+                this.logger.info("Attributes required for sign-up.");
+
+                return new SignUpResult(
+                    new SignUpAttributesRequiredStateHandler(
+                        signUpInputs.username,
+                        this.signUpClient,
+                        correlationId,
+                        this.logger,
+                        startResult.continuationToken,
+                        this.customAuthConfig,
+                    ),
+                );
+            }
+
+            this.logger.error(
+                "Unexpected sign-up result type. Returning error.",
+            );
+
+            throw new UnexpectedError("Unknown sign-up result type");
+        } catch (error) {
+            this.logger.error(
+                `An error occurred during starting sign-up: ${error}`,
+            );
+
+            return SignUpResult.createWithError(error, SignUpError);
+        }
     }
 
     /*

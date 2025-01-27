@@ -53,4 +53,10 @@ export const CustomAuthApiErrorCode = {
     INVALID_EXPIRES_IN: "invalid_expires_in",
     INVALID_TOKEN_TYPE: "invalid_token_type",
     HTTP_REQUEST_FAILED: "http_request_failed",
+    INVALID_REQUEST: "invalid_request",
+    USER_NOT_FOUND: "user_not_found",
+    INVALID_GRANT: "invalid_grant",
+    INVALID_OOB_VALUE: "invalid_oob_value",
+    CREDENTIAL_REQUIRED: "credential_required",
+    ATTRIBUTES_REQUIRED: "attributes_required",
 } as const;

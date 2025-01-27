@@ -4,13 +4,13 @@
  */
 
 import { SignOutState } from "../../../core/auth_flow/AuthFlowState.js";
-import { ResultBase } from "../../../core/auth_flow/ResultBase.js";
+import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { SignOutError } from "../error_type/GetAccountError.js";
 
 /*
  * Result of a sign-out operation.
  */
-export class SignOutResult extends ResultBase<
+export class SignOutResult extends AuthFlowResultBase<
     SignOutState,
     SignOutError,
     void,

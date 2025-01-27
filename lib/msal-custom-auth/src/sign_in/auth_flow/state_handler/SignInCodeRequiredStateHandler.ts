@@ -90,7 +90,11 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
                 username: this.username,
             };
 
+            this.logger.info("Resending code for sign-in.");
+
             const result = await this.signInClient.resendCode(submitCodeParams);
+
+            this.logger.info("Code resent for sign-in.");
 
             return new SignInResendCodeResult(
                 new SignInCodeRequiredStateHandler(

@@ -7,28 +7,25 @@ import { SignUpState } from "../../../core/auth_flow/AuthFlowState.js";
 import { SignUpCodeRequiredStateHandler } from "../state_handler/SignUpCodeRequiredStateHandler.js";
 import { SignUpPasswordRequiredStateHandler } from "../state_handler/SignUpPasswordRequiredStateHandler.js";
 import { SignUpAttributesRequiredStateHandler } from "../state_handler/SignUpAttributesRequiredStateHandler.js";
-import { ResultBase } from "../../../core/auth_flow/ResultBase.js";
-import { SignInContinuationStateHandler } from "../../../sign_in/auth_flow/state_handler/SignInContinuationStateHandler.js";
+import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { SignUpError } from "../error_type/SignUpError.js";
 
 /*
  * Result of a sign-up operation.
  */
-export class SignUpResult extends ResultBase<
+export class SignUpResult extends AuthFlowResultBase<
     SignUpState,
     SignUpError,
     void,
     | SignUpCodeRequiredStateHandler
     | SignUpPasswordRequiredStateHandler
     | SignUpAttributesRequiredStateHandler
-    | SignInContinuationStateHandler
 > {
     constructor(
         stateHandler?:
             | SignUpCodeRequiredStateHandler
             | SignUpPasswordRequiredStateHandler
-            | SignUpAttributesRequiredStateHandler
-            | SignInContinuationStateHandler,
+            | SignUpAttributesRequiredStateHandler,
     ) {
         super(undefined, stateHandler);
 
@@ -42,10 +39,6 @@ export class SignUpResult extends ResultBase<
             this.stateHandler instanceof SignUpAttributesRequiredStateHandler
         ) {
             this._state = SignUpState.AttributesRequired;
-        } else if (
-            this.stateHandler instanceof SignInContinuationStateHandler
-        ) {
-            this._state = SignUpState.Completed;
         }
     }
 

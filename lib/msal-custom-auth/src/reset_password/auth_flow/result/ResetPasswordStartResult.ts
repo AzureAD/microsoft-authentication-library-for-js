@@ -4,14 +4,14 @@
  */
 
 import { ResetPasswordState } from "../../../core/auth_flow/AuthFlowState.js";
-import { ResultBase } from "../../../core/auth_flow/ResultBase.js";
+import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { ResetPasswordError } from "../error_type/ResetPasswordError.js";
 import { ResetPasswordCodeRequiredStateHandler } from "../state_handler/ResetPasswordCodeRequiredStateHandler.js";
 
 /*
  * Result of a reset password operation.
  */
-export class ResetPasswordStartResult extends ResultBase<
+export class ResetPasswordStartResult extends AuthFlowResultBase<
     ResetPasswordState,
     ResetPasswordError,
     void,
