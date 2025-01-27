@@ -819,7 +819,7 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.accessToken).toEqual(
                 testAccessTokenEntity.secret
             );
-            expect(authResult[0].state).toHaveLength(0);
+            expect(authResult.state).toHaveLength(0);
         });
 
         it("Throws error if max age is equal to 0 or has transpired since the last end-user authentication", async () => {
