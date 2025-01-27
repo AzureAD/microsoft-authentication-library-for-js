@@ -245,7 +245,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                         Metadata: "true",
                     },
                 }
-            ); 
+            );
         });
     });
 
