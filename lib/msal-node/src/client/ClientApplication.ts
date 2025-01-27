@@ -392,11 +392,13 @@ export abstract class ClientApplication {
                 await refreshTokenClient.acquireTokenByRefreshToken(
                     validRequest
                 );
-            } finally {
-                // return the cached token
-                return authResponse;
+            } catch {
+                // do nothing, this is running in the background and no action is to be taken upon success or failure
             }
         }
+
+        // return the cached token
+        return authResponse;
     }
 
     /**

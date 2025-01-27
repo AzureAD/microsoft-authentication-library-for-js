@@ -805,9 +805,7 @@ describe("SilentFlowClient unit tests", () => {
                 .spyOn(RefreshTokenClient.prototype, "acquireToken")
                 .mockImplementation();
 
-            const response = await client.acquireCachedToken(
-                silentFlowRequest
-            );
+            const response = await client.acquireCachedToken(silentFlowRequest);
             const authResult: AuthenticationResult = response[0];
             expect(refreshTokenSpy).not.toHaveBeenCalled();
             const expectedScopes = testAccessTokenEntity.target.split(" ");
