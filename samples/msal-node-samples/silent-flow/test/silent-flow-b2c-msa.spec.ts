@@ -81,9 +81,6 @@ describe("Silent Flow B2C Tests (msa account)", () => {
             labClient
         );
 
-        // TODO: Remove when B2C MSA account is available in the lab
-        username = B2C_MSA_TEST_UPN;
-
         publicClientApplication = new PublicClientApplication({
             auth: config.authOptions,
             cache: { cachePlugin },
