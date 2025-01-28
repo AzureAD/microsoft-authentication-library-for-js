@@ -9,7 +9,6 @@ import {
   UserTypes,
   B2cProviders,
   BrowserCacheUtils,
-  B2C_MSA_TEST_UPN,
 } from 'e2e-test-utils';
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/msa-account-tests`;
@@ -40,8 +39,6 @@ describe('B2C user-flow tests (msa account)', () => {
 
     [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
 
-    // TODO: Remove when B2C MSA account is available in the lab
-    username = B2C_MSA_TEST_UPN;
   });
 
   beforeEach(async () => {
