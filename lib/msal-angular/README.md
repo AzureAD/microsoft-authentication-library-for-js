@@ -34,7 +34,7 @@ The current `@azure/msal-angular` library improves upon the previous version and
 
 ## Guides
 
-- MSAL Angular v4 includes security updates from msal-browser. Please see the msal-browser [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v3-migration.md) for more details on what's changed in v4.
+- [Upgrade Guide (v3-v4)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v3-v4-upgrade-guide.md)
 - [Upgrade Guide (v2-v3)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-v3-upgrade-guide.md)
 - [Upgrade Guide (v1-v2)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v1-v2-upgrade-guide.md)
 - [Upgrade Guide (v0-v1)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v0-v1-upgrade-guide.md)
