@@ -18,7 +18,6 @@ import {
     LabApiQueryParams,
     B2cProviders,
     UserTypes,
-    B2C_MSA_TEST_UPN,
 } from "e2e-test-utils";
 
 import { ConfidentialClientApplication } from "@azure/msal-node";
