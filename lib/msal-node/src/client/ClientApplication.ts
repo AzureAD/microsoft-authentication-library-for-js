@@ -297,23 +297,29 @@ export abstract class ClientApplication {
                 "Silent flow client created",
                 validRequest.correlationId
             );
-
             try {
                 if (this.tokenCache.persistence) {
                     await this.tokenCache.overwriteCache();
                 }
-
                 return await this.acquireCachedTokenSilent(
                     validRequest,
                     silentFlowClient,
                     clientConfiguration
                 );
-            } catch (e) {
-                return this.handleRefreshTokenFlow(
-                    validRequest,
-                    clientConfiguration,
-                    e as Error
-                );
+            } catch (error) {
+                if (
+                    error instanceof ClientAuthError &&
+                    error.errorCode ===
+                        ClientAuthErrorCodes.tokenRefreshRequired
+                ) {
+                    const refreshTokenClient = new RefreshTokenClient(
+                        clientConfiguration
+                    );
+                    return refreshTokenClient.acquireTokenByRefreshToken(
+                        validRequest
+                    );
+                }
+                throw error;
             }
         } catch (error) {
             if (error instanceof AuthError) {
@@ -322,23 +328,6 @@ export abstract class ClientApplication {
             serverTelemetryManager.cacheFailedRequest(error);
             throw error;
         }
-    }
-
-    private async handleRefreshTokenFlow(
-        validRequest: CommonSilentFlowRequest,
-        clientConfiguration: ClientConfiguration,
-        error: Error
-    ): Promise<AuthenticationResult> {
-        if (
-            error instanceof ClientAuthError &&
-            error.errorCode === ClientAuthErrorCodes.tokenRefreshRequired
-        ) {
-            const refreshTokenClient = new RefreshTokenClient(
-                clientConfiguration
-            );
-            return refreshTokenClient.acquireTokenByRefreshToken(validRequest);
-        }
-        throw error;
     }
 
     private async acquireCachedTokenSilent(
