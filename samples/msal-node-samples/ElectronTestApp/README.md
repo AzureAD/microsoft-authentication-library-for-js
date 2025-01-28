@@ -1,6 +1,6 @@
 # MSAL Node Electron Sample
 
-An Electron application built with TypeScript that uses the MSAL Node library to acquire and store access tokens to authenticate with the Microsoft Graph API. 
+An Electron application built with TypeScript that uses the MSAL Node library to acquire and store access tokens to authenticate with the Microsoft Graph API.
 
 > :warning: This sample doesn't follow the best practices for native application authentication using an external user agent for handling the authentication/authorization requests. To follow the best practices, please see the [Electron System Browser Sample](../ElectronSystemBrowserTestApp/README.md).
 
@@ -29,17 +29,22 @@ $ git clone https://github.com/AzureAD/microsoft-authentication-library-for-js.g
 You can also download the repository as a zip file by selecting "Download ZIP" from the root repository's dropdown "Code" menu. Once you've downloaded the ZIP file, you can decompress it locally and explore the code.
 
 ### Pre-requisites
-- By using MSAL Node, you are working with the Microsoft Identity ecosystem. Read about [App Registrations](https://docs.microsoft.com/en-us/graph/auth-register-app-v2) and register one for use with this code.
-- Install [Node.js](https://nodejs.org/en/), [Electron.js](https://www.electronjs.org/) and [TypeScript](https://www.typescriptlang.org/) if needed.
-- Install the MSAL Node package:  
+
+-   By using MSAL Node, you are working with the Microsoft Identity ecosystem. Read about [App Registrations](https://docs.microsoft.com/en-us/graph/auth-register-app-v2) and register one for use with this code.
+-   Install [Node.js](https://nodejs.org/en/), [Electron.js](https://www.electronjs.org/) and [TypeScript](https://www.typescriptlang.org/) if needed.
+-   Install the MSAL Node package:
+
 ```bash
 npm install @azure/msal-node
 ```
-- If you are customizing or building locally, navigate to the `lib/msal-node` directory and build it using the following command:
+
+-   If you are customizing or building locally, navigate to the `lib/msal-node` directory and build it using the following command:
+
 ```bash
 npm run build:package
 ```
-- From the repository's root directory, navigate to the Electron sample application:
+
+-   From the repository's root directory, navigate to the Electron sample application:
 
 ```bash
 $ cd samples/msal-node-samples/standalone-samples/ElectronTestApp
@@ -50,11 +55,12 @@ $ cd samples/msal-node-samples/standalone-samples/ElectronTestApp
 The MSAL configuration object in the `ElectronTestApp` is defined in the `AuthProvider.ts` file. However, the configuration values used to build the object are defined in and imported from JSON files in the `config/` directory. The `ElectronTestApp` loads the `config/customConfig.json` configuration by default. You can update the configuration attributes to match your [App Registration](https://docs.microsoft.com/en-us/graph/auth-register-app-v2) directly in the `config/customConfg.json` file, or you can add your own configuration file and change the import path like so:
 
 AuthProvider.ts
+
 ```javascript
 // Change this to load the desired MSAL Client Configuration
 import * as APP_CONFIG from "./config/customConfig.json"; // Change this
 
-import  * as APP_CONFIG from "./config/YOUR_CUSTOM_CONFIG_FILE.json"; // To this
+import * as APP_CONFIG from "./config/YOUR_CUSTOM_CONFIG_FILE.json"; // To this
 ```
 
 This application uses the `User.Read` and `Mail.Read` Microsoft Graph Scopes, so make sure they are enabled in your App Registration.
@@ -113,16 +119,16 @@ For example, the following pairs of values should work:
 
 ```typescript
 /// Ex 1:
-const CUSTOM_FILE_PROTOCOL = "msal"
-const redirectUri = "msal://auth"
+const CUSTOM_FILE_PROTOCOL = "msal";
+const redirectUri = "msal://auth";
 
 /// Ex 2:
-const CUSTOM_FILE_PROTOCOL = "sampleapp"
-const redirectUri = "sampleapp://redirect"
+const CUSTOM_FILE_PROTOCOL = "sampleapp";
+const redirectUri = "sampleapp://redirect";
 
 /// Ex 3:
-const CUSTOM_FILE_PROTOCOL = "com.sampleapp"
-const redirectUri = "com.sampleapp://auth"
+const CUSTOM_FILE_PROTOCOL = "com.sampleapp";
+const redirectUri = "com.sampleapp://auth";
 ```
 
 #### Registering a custom file protocol URI as a Redirect URI

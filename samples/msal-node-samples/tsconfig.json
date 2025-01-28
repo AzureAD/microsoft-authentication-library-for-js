@@ -22,6 +22,7 @@
             "node",
             "jest"
         ],
+        "outDir": "dist",
     },
     "include": [
         "**/test/*.spec.ts"

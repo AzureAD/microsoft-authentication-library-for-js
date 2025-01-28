@@ -2,20 +2,7 @@ import { EventMessage } from "../../src/event/EventMessage.js";
 import { EventType } from "../../src/event/EventType.js";
 import { InteractionType } from "../../src/utils/BrowserConstants.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
-import {
-    Logger,
-    LogLevel,
-    AccountInfo,
-    AccountEntity,
-} from "../../src/index.js";
-import { CryptoOps } from "../../src/crypto/CryptoOps.js";
-import { buildAccountFromIdTokenClaims } from "msal-test-utils";
-import {
-    ID_TOKEN_ALT_CLAIMS,
-    ID_TOKEN_CLAIMS,
-    TEST_CONFIG,
-} from "../utils/StringConstants.js";
-import { Constants, PersistentCacheKeys } from "@azure/msal-common";
+import { Logger, LogLevel } from "../../src/index.js";
 
 describe("Event API tests", () => {
     afterEach(() => {
@@ -35,7 +22,6 @@ describe("Event API tests", () => {
         piiLoggingEnabled: true,
     };
     const logger = new Logger(loggerOptions);
-    const browserCrypto = new CryptoOps(logger);
 
     it("can add an event callback and broadcast to it", (done) => {
         const subscriber = (message: EventMessage) => {
@@ -44,7 +30,7 @@ describe("Event API tests", () => {
             done();
         };
 
-        const eventHandler = new EventHandler(logger, browserCrypto);
+        const eventHandler = new EventHandler(logger);
 
         eventHandler.addEventCallback(subscriber);
         eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
@@ -58,7 +44,7 @@ describe("Event API tests", () => {
 
         const callbackSpy = jest.fn(subscriber);
 
-        const eventHandler = new EventHandler(logger, browserCrypto);
+        const eventHandler = new EventHandler(logger);
 
         const callbackId = eventHandler.addEventCallback(callbackSpy);
         eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
@@ -80,7 +66,7 @@ describe("Event API tests", () => {
             done();
         };
 
-        const eventHandler = new EventHandler(logger, browserCrypto);
+        const eventHandler = new EventHandler(logger);
 
         eventHandler.addEventCallback(subscriber1);
         eventHandler.addEventCallback(subscriber2);
@@ -100,7 +86,7 @@ describe("Event API tests", () => {
             done();
         };
 
-        const eventHandler = new EventHandler(logger, browserCrypto);
+        const eventHandler = new EventHandler(logger);
 
         eventHandler.addEventCallback(subscriber);
         eventHandler.emitEvent(EventType.LOGIN_START);
@@ -116,7 +102,7 @@ describe("Event API tests", () => {
             done();
         };
 
-        const eventHandler = new EventHandler(logger, browserCrypto);
+        const eventHandler = new EventHandler(logger);
 
         eventHandler.addEventCallback(subscriber);
         eventHandler.emitEvent(
@@ -127,158 +113,40 @@ describe("Event API tests", () => {
         );
     });
 
-    describe("handleAccountCacheChange", () => {
-        it("ACCOUNT_ADDED event raised when an account logs in in another tab", (done) => {
-            const subscriber = (message: EventMessage) => {
-                expect(message.eventType).toEqual(EventType.ACCOUNT_ADDED);
-                expect(message.interactionType).toBeNull();
-                expect(message.payload).toEqual(accountEntity.getAccountInfo());
-                expect(message.error).toBeNull();
-                expect(message.timestamp).not.toBeNull();
-                done();
-            };
+    it("passing in eventTypes limits which events invoke callback", () => {
+        const callback1Events: EventType[] = [];
+        const subscriber1 = (message: EventMessage) => {
+            callback1Events.push(message.eventType);
+        };
 
-            const eventHandler = new EventHandler(logger, browserCrypto);
-            eventHandler.addEventCallback(subscriber);
+        const callback2Events: EventType[] = [];
+        const subscriber2 = (message: EventMessage) => {
+            callback2Events.push(message.eventType);
+        };
 
-            const accountEntity: AccountEntity =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+        const eventHandler = new EventHandler(logger);
 
-            const account: AccountInfo = accountEntity.getAccountInfo();
+        eventHandler.addEventCallback(subscriber1, [
+            EventType.ACQUIRE_TOKEN_START,
+        ]);
+        eventHandler.addEventCallback(subscriber2, [
+            EventType.ACQUIRE_TOKEN_SUCCESS,
+        ]);
+        eventHandler.emitEvent(
+            EventType.ACQUIRE_TOKEN_START,
+            InteractionType.Redirect
+        );
+        expect(callback1Events.length).toBe(1);
+        expect(callback2Events.length).toBe(0);
+        expect(callback1Events[0]).toBe(EventType.ACQUIRE_TOKEN_START);
 
-            const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
-
-            // @ts-ignore
-            eventHandler.handleAccountCacheChange({
-                key: cacheKey1,
-                oldValue: null,
-                newValue: JSON.stringify(accountEntity),
-            });
-        });
-
-        it("ACCOUNT_REMOVED event raised when an account logs out in another tab", (done) => {
-            const subscriber = (message: EventMessage) => {
-                expect(message.eventType).toEqual(EventType.ACCOUNT_REMOVED);
-                expect(message.interactionType).toBeNull();
-                expect(message.payload).toEqual(account);
-                expect(message.error).toBeNull();
-                expect(message.timestamp).not.toBeNull();
-                done();
-            };
-
-            const eventHandler = new EventHandler(logger, browserCrypto);
-            eventHandler.addEventCallback(subscriber);
-
-            const accountEntity: AccountEntity =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-
-            const account: AccountInfo = accountEntity.getAccountInfo();
-
-            const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
-
-            // @ts-ignore
-            eventHandler.handleAccountCacheChange({
-                key: cacheKey1,
-                oldValue: JSON.stringify(accountEntity),
-                newValue: null,
-            });
-        });
-
-        it("No event raised if cache value is not JSON", () => {
-            const subscriber = (message: EventMessage) => {};
-            const eventHandler = new EventHandler(logger, browserCrypto);
-            eventHandler.addEventCallback(subscriber);
-
-            const emitEventSpy = jest.spyOn(eventHandler, "emitEvent");
-            // @ts-ignore
-            eventHandler.handleAccountCacheChange({
-                key: "testCacheKey",
-                oldValue: "not JSON",
-                newValue: null,
-            });
-
-            expect(emitEventSpy).toHaveBeenCalledTimes(0);
-        });
-
-        it("No event raised if cache value is not an account", () => {
-            const subscriber = (message: EventMessage) => {};
-            const eventHandler = new EventHandler(logger, browserCrypto);
-            eventHandler.addEventCallback(subscriber);
-
-            const emitEventSpy = jest.spyOn(eventHandler, "emitEvent");
-            // @ts-ignore
-            eventHandler.handleAccountCacheChange({
-                key: "testCacheKey",
-                oldValue: JSON.stringify({
-                    testKey: "this is not an account object",
-                }),
-                newValue: null,
-            });
-
-            expect(emitEventSpy).toHaveBeenCalledTimes(0);
-        });
-
-        it("No event raised if both oldValue and newValue are falsey", () => {
-            const subscriber = (message: EventMessage) => {};
-            const eventHandler = new EventHandler(logger, browserCrypto);
-            eventHandler.addEventCallback(subscriber);
-
-            const emitEventSpy = jest.spyOn(eventHandler, "emitEvent");
-            // @ts-ignore
-            eventHandler.handleAccountCacheChange({
-                key: "testCacheKey",
-                oldValue: null,
-                newValue: null,
-            });
-
-            expect(emitEventSpy).toHaveBeenCalledTimes(0);
-        });
-
-        it("ACTIVE_ACCOUNT_CHANGED event raised when active account is changed in another tab", (done) => {
-            const subscriber = (message: EventMessage) => {
-                expect(message.eventType).toEqual(
-                    EventType.ACTIVE_ACCOUNT_CHANGED
-                );
-                expect(message.interactionType).toBeNull();
-                expect(message.payload).toBeNull();
-                expect(message.error).toBeNull();
-                expect(message.timestamp).not.toBeNull();
-                done();
-            };
-
-            const eventHandler = new EventHandler(logger, browserCrypto);
-            eventHandler.addEventCallback(subscriber);
-
-            const activeAccountEntity: AccountEntity =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-            const newActiveAccountEntity: AccountEntity =
-                buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
-
-            const activeAccount: AccountInfo =
-                activeAccountEntity.getAccountInfo();
-            const newActiveAccount: AccountInfo =
-                newActiveAccountEntity.getAccountInfo();
-
-            const previousActiveAccountFilters = {
-                homeAccountId: activeAccount.homeAccountId,
-                localAccountId: activeAccount.localAccountId,
-                tenantId: activeAccount.tenantId,
-            };
-
-            const newActiveAccountFilters = {
-                homeAccountId: newActiveAccount.homeAccountId,
-                localAccountId: newActiveAccount.localAccountId,
-                tenantId: newActiveAccount.tenantId,
-            };
-
-            const activeAccountKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS}`;
-
-            // @ts-ignore
-            eventHandler.handleAccountCacheChange({
-                key: activeAccountKey,
-                oldValue: JSON.stringify(previousActiveAccountFilters),
-                newValue: JSON.stringify(newActiveAccountFilters),
-            });
-        });
+        eventHandler.emitEvent(
+            EventType.ACQUIRE_TOKEN_SUCCESS,
+            InteractionType.Redirect
+        );
+        expect(callback1Events.length).toBe(1);
+        expect(callback2Events.length).toBe(1);
+        expect(callback1Events[0]).toBe(EventType.ACQUIRE_TOKEN_START);
+        expect(callback2Events[0]).toBe(EventType.ACQUIRE_TOKEN_SUCCESS);
     });
 });

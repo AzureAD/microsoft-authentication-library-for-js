@@ -45,7 +45,7 @@ async function isServerUp(port, timeout) {
                 host: "localhost",
                 port: port,
                 family: 4,
-                rejectUnauthorized: false,
+                rejectUnauthorized: false, // codeql[js/disabling-certificate-validation]: This line is necessary for first-party HTTPS samples using self-signed SSL certificates. It is safe to ignore this finding as it is only used in MSAL.js samples and never hits the production environment.
             };
 
             https
@@ -130,14 +130,14 @@ async function killServers(jestOptions) {
     if (jestOptions.projects && jestOptions.projects.length > 0) {
         for (let i = 0; i < jestOptions.projects.length; i++) {
             const project = jestOptions.projects[i];
-            const jestConfig = require(path.resolve(project, "jest.config.js"));
+            const jestConfig = require(path.resolve(project, "jest.config.cjs"));
             const port = jestConfig.globals.__PORT__;
             await killServer(port);
         }
     } else {
         const jestConfig = require(path.resolve(
             jestOptions.rootDir,
-            "jest.config.js"
+            "jest.config.cjs"
         ));
         await killServer(jestConfig.globals.__PORT__);
     }

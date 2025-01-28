@@ -3,14 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication";
+import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication.js";
 import {
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     MANAGED_IDENTITY_CLOUD_SHELL_NETWORK_REQUEST_400_ERROR,
     MANAGED_IDENTITY_RESOURCE,
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR,
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR_MESSAGE,
-} from "../../test_kit/StringConstants";
+} from "../../test_kit/StringConstants.js";
 
 import {
     userAssignedClientIdConfig,
@@ -18,21 +18,21 @@ import {
     systemAssignedConfig,
     ManagedIdentityNetworkErrorClient,
     networkClient,
-} from "../../test_kit/ManagedIdentityTestUtils";
+} from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
     AuthenticationResult,
     HttpStatus,
     ServerError,
 } from "@azure/msal-common";
-import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient";
+import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient.js";
 import {
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentitySourceNames,
-} from "../../../src/utils/Constants";
+} from "../../../src/utils/Constants.js";
 import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
-} from "../../../src/error/ManagedIdentityError";
+} from "../../../src/error/ManagedIdentityError.js";
 
 describe("Acquires a token successfully via an App Service Managed Identity", () => {
     beforeAll(() => {

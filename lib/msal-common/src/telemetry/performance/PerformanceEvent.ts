@@ -116,6 +116,7 @@ export const PerformanceEvents = {
     /**
      * Time spent sending/waiting for the response of a request to the token endpoint
      */
+    NetworkClientSendPostRequestAsync: "networkClientSendPostRequestAsync",
     RefreshTokenClientExecutePostToTokenEndpoint:
         "refreshTokenClientExecutePostToTokenEndpoint",
     AuthorizationCodeClientExecutePostToTokenEndpoint:
@@ -188,6 +189,8 @@ export const PerformanceEvents = {
     InitializeSilentRequest: "initializeSilentRequest",
 
     InitializeClientApplication: "initializeClientApplication",
+
+    InitializeCache: "initializeCache",
 
     /**
      * Helper function in SilentIframeClient class (msal-browser).
@@ -296,6 +299,8 @@ export const PerformanceEvents = {
      */
     ClearTokensAndKeysWithClaims: "clearTokensAndKeysWithClaims",
     CacheManagerGetRefreshToken: "cacheManagerGetRefreshToken",
+    ImportExistingCache: "importExistingCache",
+    SetUserData: "setUserData",
 
     /**
      * Crypto Operations
@@ -305,6 +310,12 @@ export const PerformanceEvents = {
     GenerateCodeChallengeFromVerifier: "generateCodeChallengeFromVerifier",
     Sha256Digest: "sha256Digest",
     GetRandomValues: "getRandomValues",
+    GenerateHKDF: "generateHKDF",
+    GenerateBaseKey: "generateBaseKey",
+    Base64Decode: "base64Decode",
+    UrlEncodeArr: "urlEncodeArr",
+    Encrypt: "encrypt",
+    Decrypt: "decrypt",
 } as const;
 export type PerformanceEvents =
     (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
@@ -341,6 +352,10 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         [
             PerformanceEvents.BaseClientCreateTokenRequestHeaders,
             "BaseClientCreateTReqHead",
+        ],
+        [
+            PerformanceEvents.NetworkClientSendPostRequestAsync,
+            "NetClientSendPost",
         ],
         [
             PerformanceEvents.RefreshTokenClientExecutePostToTokenEndpoint,
@@ -389,6 +404,9 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
             PerformanceEvents.InitializeClientApplication,
             "InitClientApplication",
         ],
+        [PerformanceEvents.InitializeCache, "InitCache"],
+        [PerformanceEvents.ImportExistingCache, "importCache"],
+        [PerformanceEvents.SetUserData, "setUserData"],
         [PerformanceEvents.SilentIframeClientTokenHelper, "SIClientTHelper"],
         [
             PerformanceEvents.SilentHandlerInitiateAuthRequest,
@@ -526,6 +544,12 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         ],
         [PerformanceEvents.Sha256Digest, "Sha256Digest"],
         [PerformanceEvents.GetRandomValues, "GetRandomValues"],
+        [PerformanceEvents.GenerateHKDF, "genHKDF"],
+        [PerformanceEvents.GenerateBaseKey, "genBaseKey"],
+        [PerformanceEvents.Base64Decode, "b64Decode"],
+        [PerformanceEvents.UrlEncodeArr, "urlEncArr"],
+        [PerformanceEvents.Encrypt, "encrypt"],
+        [PerformanceEvents.Decrypt, "decrypt"],
     ]);
 
 /**
@@ -790,12 +814,19 @@ export type PerformanceEvent = {
     matsSilentStatus?: number;
     matsHttpStatus?: number;
     matsHttpEventCount?: number;
-    httpVerToken?: string;
 
     /**
-     * Native broker fields
+     * Http POST metadata
      */
-    allowNativeBroker?: boolean;
+    httpVerToken?: string;
+    httpStatus?: number;
+    contentTypeHeader?: string;
+    contentLengthHeader?: string;
+
+    /**
+     * Platform broker fields
+     */
+    allowPlatformBroker?: boolean;
     extensionInstalled?: boolean;
     extensionHandshakeTimeoutMs?: number;
     extensionHandshakeTimedOut?: boolean;
@@ -834,6 +865,9 @@ export type PerformanceEvent = {
      * @type {string}
      */
     retryError?: string;
+
+    embeddedClientId?: string;
+    embeddedRedirectUri?: string;
 };
 
 export type PerformanceEventContext = {
@@ -861,4 +895,6 @@ export const IntFields: ReadonlySet<string> = new Set([
     "multiMatchedAT",
     "multiMatchedID",
     "multiMatchedRT",
+    "unencryptedCacheCount",
+    "encryptedCacheExpiredCount",
 ]);

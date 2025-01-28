@@ -9,6 +9,7 @@ import {
     UserTypes,
     B2cProviders,
     BrowserCacheUtils,
+    B2C_MSA_TEST_UPN,
 } from "e2e-test-utils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/msa-account-tests`;
@@ -31,7 +32,7 @@ describe("B2C user-flow tests (msa account)", () => {
 
         const labApiParams: LabApiQueryParams = {
             userType: UserTypes.B2C,
-            b2cProvider: B2cProviders.TWITTER,
+            b2cProvider: B2cProviders.MICROSOFT,
         };
 
         const labClient = new LabClient();
@@ -43,10 +44,13 @@ describe("B2C user-flow tests (msa account)", () => {
             envResponse[0],
             labClient
         );
+
+        // TODO: Remove when B2C MSA account is available in the lab
+        username = B2C_MSA_TEST_UPN;
     });
 
     beforeEach(async () => {
-        context = await browser.createIncognitoBrowserContext();
+        context = await browser.createBrowserContext();
         page = await context.newPage();
         page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "localStorage");
@@ -85,7 +89,7 @@ describe("B2C user-flow tests (msa account)", () => {
         );
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]");
         await screenshot.takeScreenshot(page, "Signed in with the policy");
 
         // Verify tokens are in cache
@@ -94,9 +98,7 @@ describe("B2C user-flow tests (msa account)", () => {
         expect(tokenStoreBeforeEdit.accessTokens.length).toBe(1);
         expect(tokenStoreBeforeEdit.refreshTokens.length).toBe(1);
         expect(
-            await BrowserCache.getAccountFromCache(
-                tokenStoreBeforeEdit.idTokens[0]
-            )
+            await BrowserCache.getAccountFromCache()
         ).not.toBeNull();
         expect(
             await BrowserCache.accessTokenForScopesExists(
@@ -123,8 +125,8 @@ describe("B2C user-flow tests (msa account)", () => {
                 `window.location.href.startsWith("http://localhost:${port}")`
             ),
             page.waitForSelector("#idTokenClaims"),
-            page.waitForXPath(
-                "//*[@id=\"interactionStatus\"]/center[contains(., 'ssoSilent success')]",
+            page.waitForSelector(
+                "::-p-xpath(//*[@id=\"interactionStatus\"]/center[contains(., 'update success')])",
                 { timeout: 4000 }
             ),
         ]);
@@ -141,14 +143,10 @@ describe("B2C user-flow tests (msa account)", () => {
         expect(tokenStoreAfterEdit.accessTokens.length).toBe(1);
         expect(tokenStoreAfterEdit.refreshTokens.length).toBe(2); // 1 for each policy
         expect(
-            await BrowserCache.getAccountFromCache(
-                tokenStoreAfterEdit.idTokens[0]
-            )
+            await BrowserCache.getAccountFromCache()
         ).not.toBeNull();
         expect(
-            await BrowserCache.getAccountFromCache(
-                tokenStoreAfterEdit.idTokens[1]
-            )
+            await BrowserCache.getAccountFromCache()
         ).not.toBeNull(); // new account after edit
         expect(
             await BrowserCache.accessTokenForScopesExists(

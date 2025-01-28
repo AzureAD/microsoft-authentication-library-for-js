@@ -24,5 +24,5 @@ export const missingNonceAuthenticationHeader =
     "missing_nonce_authentication_header";
 export const invalidAuthenticationHeader = "invalid_authentication_header";
 export const cannotSetOIDCOptions = "cannot_set_OIDCOptions";
-export const cannotAllowNativeBroker = "cannot_allow_native_broker";
+export const cannotAllowPlatformBroker = "cannot_allow_platform_broker";
 export const authorityMismatch = "authority_mismatch";

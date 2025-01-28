@@ -43,22 +43,15 @@ export class BrowserCacheUtils {
         };
         Object.keys(storage).forEach(async (key) => {
             if (
-                key.includes("idtoken") &&
-                BrowserCacheUtils.validateToken(storage[key], "IdToken")
+                key.includes("idtoken")
             ) {
                 tokenKeys.idTokens.push(key);
             } else if (
-                key.includes("accesstoken") &&
-                (BrowserCacheUtils.validateToken(storage[key], "AccessToken") ||
-                    BrowserCacheUtils.validateToken(
-                        storage[key],
-                        "AccessToken_With_AuthScheme"
-                    ))
+                key.includes("accesstoken")
             ) {
                 tokenKeys.accessTokens.push(key);
             } else if (
-                key.includes("refreshtoken") &&
-                BrowserCacheUtils.validateToken(storage[key], "RefreshToken")
+                key.includes("refreshtoken")
             ) {
                 tokenKeys.refreshTokens.push(key);
             }
@@ -115,19 +108,14 @@ export class BrowserCacheUtils {
         scopes: Array<String>,
         targetTokenMatchesNumber: number = 1
     ): Promise<boolean> {
-        const storage = await this.getWindowStorage();
-
         const matches = accessTokenKeys
             .filter((key) => {
                 // Ignore PoP tokens
                 return key.indexOf("accesstoken_with_authscheme") === -1;
             })
             .filter((key) => {
-                const tokenVal = JSON.parse(storage[key]);
-                const tokenScopes = tokenVal.target.toLowerCase().split(" ");
-
                 return scopes.every((scope) => {
-                    return tokenScopes.includes(scope.toLowerCase());
+                    return key.includes(scope.toLowerCase());
                 });
             });
 
@@ -138,16 +126,11 @@ export class BrowserCacheUtils {
         accessTokenKeys: Array<string>,
         scopes: Array<String>
     ): Promise<boolean> {
-        const storage = await this.getWindowStorage();
-
         return accessTokenKeys
             .filter((key) => key.indexOf("accesstoken_with_authscheme") !== -1)
             .some((key) => {
-                const tokenVal = JSON.parse(storage[key]);
-                const tokenScopes = tokenVal.target.toLowerCase().split(" ");
-
                 return scopes.every((scope) => {
-                    return tokenScopes.includes(scope.toLowerCase());
+                    return key.includes(scope.toLowerCase());
                 });
             });
     }
@@ -174,20 +157,11 @@ export class BrowserCacheUtils {
         }
     }
 
-    async getAccountFromCache(idTokenKey: string): Promise<Object | null> {
+    async getAccountFromCache(): Promise<Array<string> | null> {
         const storage = await this.getWindowStorage();
-        const tokenVal = JSON.parse(storage[idTokenKey]);
-        const accountKey =
-            tokenVal.homeAccountId +
-            "-" +
-            tokenVal.environment +
-            "-" +
-            tokenVal.homeAccountId.split(".")[1];
+        const accountKeys = storage["msal.account.keys"];
 
-        if (Object.keys(storage).includes(accountKey)) {
-            return JSON.parse(storage[accountKey]);
-        }
-        return null;
+        return JSON.parse(accountKeys);
     }
 
     async getTelemetryCacheEntry(
@@ -224,20 +198,9 @@ export class BrowserCacheUtils {
         expect(tokenStore.accessTokens).toHaveLength(totalAccessTokens);
         expect(tokenStore.refreshTokens).toHaveLength(refreshTokens || 1);
 
-        const account = await this.getAccountFromCache(tokenStore.idTokens[0]);
-        expect(account).toBeDefined();
-        if (account) {
-            if (account.hasOwnProperty("tenantProfiles")) {
-                // @ts-ignore
-                expect(account["tenantProfiles"]).toHaveLength(numberOfTenants);
-            } else {
-                throw new Error(
-                    "Account does not have a tenantProfiles property"
-                );
-            }
-        } else {
-            throw new Error("Account is null");
-        }
+        const accountKeys = await this.getAccountFromCache();
+        expect(accountKeys).toHaveLength(1);
+
         expect(
             await this.accessTokenForScopesExists(
                 tokenStore.accessTokens,
@@ -245,9 +208,5 @@ export class BrowserCacheUtils {
                 totalAccessTokens
             )
         ).toBeTruthy();
-        const storage = await this.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(
-            totalIdTokens + totalAccessTokens + totalRefreshTokens + 5 // 1 Account + 1 Account Keys + 1 Token Keys + 2 active token filters = 5
-        );
     }
 }

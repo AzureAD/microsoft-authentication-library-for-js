@@ -24,7 +24,7 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
 import { StringUtils } from "../utils/StringUtils.js";
 import { RequestThumbprint } from "../network/RequestThumbprint.js";
-import { NetworkResponse } from "../network/NetworkManager.js";
+import { NetworkResponse } from "../network/NetworkResponse.js";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest.js";
 import {
     createClientConfigurationError,
@@ -345,10 +345,14 @@ export class RefreshTokenClient extends BaseClient {
         );
 
         const correlationId = request.correlationId;
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameterBuilder = new RequestParameterBuilder(
+            correlationId,
+            this.performanceClient
+        );
 
         parameterBuilder.addClientId(
-            request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
+            request.embeddedClientId ||
+                request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
                 this.config.authOptions.clientId
         );
 
@@ -375,8 +379,6 @@ export class RefreshTokenClient extends BaseClient {
         if (this.serverTelemetryManager && !isOidcProtocolMode(this.config)) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
-
-        parameterBuilder.addCorrelationId(correlationId);
 
         parameterBuilder.addRefreshToken(request.refreshToken);
 
@@ -470,6 +472,13 @@ export class RefreshTokenClient extends BaseClient {
                     );
                     break;
             }
+        }
+
+        if (request.embeddedClientId) {
+            parameterBuilder.addBrokerParameters({
+                brokerClientId: this.config.authOptions.clientId,
+                brokerRedirectUri: this.config.authOptions.redirectUri,
+            });
         }
 
         if (request.tokenBodyParameters) {

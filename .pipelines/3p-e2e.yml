@@ -26,6 +26,10 @@ parameters:
       displayName: "Run Angular Tests"
       type: boolean
       default: true
+    - name: "npmInstallTimeout"
+      displayName: "NPM Install Timeout (Tests)"
+      type: number
+      default: 15
 
 variables:
     CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
@@ -74,6 +78,7 @@ extends:
                             - "pop"
                             - "customizable-e2e-test"
                         debug: ${{ parameters.debug }}
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                 - ${{ if eq(parameters.runNodeTests, true) }}:
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
@@ -89,11 +94,13 @@ extends:
                             - "auth-code"
                             - "auth-code-cli-app"
                             - "client-credentials"
+                            - "client-credentials-with-cert-from-key-vault"
                             - "device-code"
                             - "silent-flow"
                             - "b2c-user-flows"
                             # - "on-behalf-of"
                         debug: ${{ parameters.debug }}
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                 - ${{ if eq(parameters.runReactTests, true) }}:
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
@@ -110,6 +117,7 @@ extends:
                             - "typescript-sample"
                             - "b2c-sample"
                         debug: ${{ parameters.debug }}
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                 - ${{ if eq(parameters.runAngularTests, true) }}:
                   - template: .pipelines/templates/e2e-tests.yml@1P
                     parameters:
@@ -119,11 +127,10 @@ extends:
                         stage: "CI"
                         sourceRepo: ${{ variables.sourceRepo }}
                         sourceBranch: ${{ variables.sourceBranch }}
-                        workspace: "samples/msal-angular-v3-samples"
+                        workspace: "samples/msal-angular-samples"
                         samples:
-                            - "angular15-sample-app"
-                            - "angular16-sample-app"
-                            - "angular-b2c-sample-app"
+                            - "angular-b2c-sample"
+                            - "angular-modules-sample"
                             - "angular-standalone-sample"
-                            - "angular17-standalone-sample"
                         debug: ${{ parameters.debug }}
+                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}

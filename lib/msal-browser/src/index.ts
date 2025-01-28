@@ -74,7 +74,9 @@ export { ITokenCache } from "./cache/ITokenCache.js";
 
 // Storage
 export { MemoryStorage } from "./cache/MemoryStorage.js";
-export { BrowserStorage } from "./cache/BrowserStorage.js";
+export { LocalStorage } from "./cache/LocalStorage.js";
+export { SessionStorage } from "./cache/SessionStorage.js";
+export { IWindowStorage } from "./cache/IWindowStorage.js";
 
 // Events
 export {
@@ -86,6 +88,7 @@ export {
     PopupEvent,
 } from "./event/EventMessage.js";
 export { EventType } from "./event/EventType.js";
+export { EventHandler } from "./event/EventHandler.js";
 
 export {
     SignedHttpRequest,

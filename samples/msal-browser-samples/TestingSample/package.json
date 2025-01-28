@@ -9,7 +9,7 @@
     "test": "npx playwright test"
   },
   "dependencies": {
-    "@azure/msal-node": "^2.1.0",
+    "@azure/msal-node": "^3.0.0",
     "express": "^4.20.0",
     "path": "^0.11.14"
   },

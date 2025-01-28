@@ -116,6 +116,7 @@ export class PublicClientApplication
             const deviceCodeConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
                 validRequest.correlationId,
+                "",
                 serverTelemetryManager,
                 undefined,
                 request.azureCloudOptions
@@ -238,7 +239,7 @@ export class PublicClientApplication
 
     /**
      * Returns a token retrieved either from the cache or by exchanging the refresh token for a fresh access token. If brokering is enabled the token request will be serviced by the broker.
-     * @param request
+     * @param request - developer provided SilentFlowRequest
      * @returns
      */
     async acquireTokenSilent(
@@ -271,7 +272,7 @@ export class PublicClientApplication
 
     /**
      * Removes cache artifacts associated with the given account
-     * @param request
+     * @param request - developer provided SignOutRequest
      * @returns
      */
     async signOut(request: SignOutRequest): Promise<void> {
@@ -307,7 +308,7 @@ export class PublicClientApplication
 
     /**
      * Attempts to retrieve the redirectUri from the loopback server. If the loopback server does not start listening for requests within the timeout this will throw.
-     * @param loopbackClient
+     * @param loopbackClient - developer provided custom loopback server implementation
      * @returns
      */
     private async waitForRedirectUri(

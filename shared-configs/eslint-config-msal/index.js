@@ -11,7 +11,8 @@ module.exports = {
         "security",
         "import",
         "header",
-        "react"
+        "react",
+        "custom-msal"
     ],
     "extends": [
         "plugin:@angular-eslint/base",
@@ -64,6 +65,7 @@ module.exports = {
         "@typescript-eslint/prefer-interface": 0,
         "@typescript-eslint/no-floating-promises": 2,
         "@typescript-eslint/return-await": 2,
+        "custom-msal/no-class-methods-in-constructor": 2,
         "eol-last": 2,
         "eqeqeq": 2,
         "header/header": [

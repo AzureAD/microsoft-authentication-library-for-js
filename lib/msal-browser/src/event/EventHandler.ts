@@ -3,13 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    ICrypto,
-    Logger,
-    AccountEntity,
-    CacheManager,
-    PersistentCacheKeys,
-} from "@azure/msal-common/browser";
+import { Logger } from "@azure/msal-common/browser";
 import { InteractionType } from "../utils/BrowserConstants.js";
 import {
     EventCallbackFunction,
@@ -18,37 +12,44 @@ import {
     EventPayload,
 } from "./EventMessage.js";
 import { EventType } from "./EventType.js";
-import { createNewGuid } from "../crypto/BrowserCrypto.js";
+import { createGuid } from "../utils/BrowserUtils.js";
 
 export class EventHandler {
     // Callback for subscribing to events
-    private eventCallbacks: Map<string, EventCallbackFunction>;
+    private eventCallbacks: Map<
+        string,
+        [EventCallbackFunction, Array<EventType>]
+    >;
     private logger: Logger;
-    private browserCrypto: ICrypto;
-    private listeningToStorageEvents: boolean;
 
-    constructor(logger: Logger, browserCrypto: ICrypto) {
+    constructor(logger?: Logger) {
         this.eventCallbacks = new Map();
-        this.logger = logger;
-        this.browserCrypto = browserCrypto;
-        this.listeningToStorageEvents = false;
-        this.handleAccountCacheChange =
-            this.handleAccountCacheChange.bind(this);
+        this.logger = logger || new Logger({});
     }
 
     /**
      * Adds event callbacks to array
-     * @param callback
+     * @param callback - callback to be invoked when an event is raised
+     * @param eventTypes - list of events that this callback will be invoked for, if not provided callback will be invoked for all events
+     * @param callbackId - Identifier for the callback, used to locate and remove the callback when no longer required
      */
-    addEventCallback(callback: EventCallbackFunction): string | null {
+    addEventCallback(
+        callback: EventCallbackFunction,
+        eventTypes?: Array<EventType>,
+        callbackId?: string
+    ): string | null {
         if (typeof window !== "undefined") {
-            const callbackId = createNewGuid();
-            this.eventCallbacks.set(callbackId, callback);
-            this.logger.verbose(
-                `Event callback registered with id: ${callbackId}`
-            );
+            const id = callbackId || createGuid();
+            if (this.eventCallbacks.has(id)) {
+                this.logger.error(
+                    `Event callback with id: ${id} is already registered. Please provide a unique id or remove the existing callback and try again.`
+                );
+                return null;
+            }
+            this.eventCallbacks.set(id, [callback, eventTypes || []]);
+            this.logger.verbose(`Event callback registered with id: ${id}`);
 
-            return callbackId;
+            return id;
         }
 
         return null;
@@ -61,43 +62,6 @@ export class EventHandler {
     removeEventCallback(callbackId: string): void {
         this.eventCallbacks.delete(callbackId);
         this.logger.verbose(`Event callback ${callbackId} removed.`);
-    }
-
-    /**
-     * Adds event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
-     */
-    enableAccountStorageEvents(): void {
-        if (typeof window === "undefined") {
-            return;
-        }
-
-        if (!this.listeningToStorageEvents) {
-            this.logger.verbose("Adding account storage listener.");
-            this.listeningToStorageEvents = true;
-            window.addEventListener("storage", this.handleAccountCacheChange);
-        } else {
-            this.logger.verbose("Account storage listener already registered.");
-        }
-    }
-
-    /**
-     * Removes event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
-     */
-    disableAccountStorageEvents(): void {
-        if (typeof window === "undefined") {
-            return;
-        }
-
-        if (this.listeningToStorageEvents) {
-            this.logger.verbose("Removing account storage listener.");
-            window.removeEventListener(
-                "storage",
-                this.handleAccountCacheChange
-            );
-            this.listeningToStorageEvents = false;
-        } else {
-            this.logger.verbose("No account storage listener registered.");
-        }
     }
 
     /**
@@ -122,64 +86,25 @@ export class EventHandler {
                 timestamp: Date.now(),
             };
 
-            this.logger.info(`Emitting event: ${eventType}`);
-
             this.eventCallbacks.forEach(
-                (callback: EventCallbackFunction, callbackId: string) => {
-                    this.logger.verbose(
-                        `Emitting event to callback ${callbackId}: ${eventType}`
-                    );
-                    callback.apply(null, [message]);
+                (
+                    [callback, eventTypes]: [
+                        EventCallbackFunction,
+                        Array<EventType>
+                    ],
+                    callbackId: string
+                ) => {
+                    if (
+                        eventTypes.length === 0 ||
+                        eventTypes.includes(eventType)
+                    ) {
+                        this.logger.verbose(
+                            `Emitting event to callback ${callbackId}: ${eventType}`
+                        );
+                        callback.apply(null, [message]);
+                    }
                 }
             );
-        }
-    }
-
-    /**
-     * Emit account added/removed events when cached accounts are changed in a different tab or frame
-     */
-    private handleAccountCacheChange(e: StorageEvent): void {
-        try {
-            // Handle active account filter change
-            if (e.key?.includes(PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS)) {
-                // This event has no payload, it only signals cross-tab app instances that the results of calling getActiveAccount() will have changed
-                this.emitEvent(EventType.ACTIVE_ACCOUNT_CHANGED);
-            }
-
-            // Handle account object change
-            const cacheValue = e.newValue || e.oldValue;
-            if (!cacheValue) {
-                return;
-            }
-            const parsedValue = JSON.parse(cacheValue);
-            if (
-                typeof parsedValue !== "object" ||
-                !AccountEntity.isAccountEntity(parsedValue)
-            ) {
-                return;
-            }
-            const accountEntity = CacheManager.toObject<AccountEntity>(
-                new AccountEntity(),
-                parsedValue
-            );
-            const accountInfo = accountEntity.getAccountInfo();
-            if (!e.oldValue && e.newValue) {
-                this.logger.info(
-                    "Account was added to cache in a different window"
-                );
-                this.emitEvent(EventType.ACCOUNT_ADDED, undefined, accountInfo);
-            } else if (!e.newValue && e.oldValue) {
-                this.logger.info(
-                    "Account was removed from cache in a different window"
-                );
-                this.emitEvent(
-                    EventType.ACCOUNT_REMOVED,
-                    undefined,
-                    accountInfo
-                );
-            }
-        } catch (e) {
-            return;
         }
     }
 }

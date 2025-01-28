@@ -15,6 +15,7 @@
         "beachball": "^2.22.4",
         "dotenv": "^8.2.0",
         "eslint": "^7.8.1",
+        "eslint-import-resolver-typescript": "^3.7.0",
         "gh-pages": "^5.0.0",
         "jest-junit": "^16.0.0",
         "npm-run-all": "^4.1.5",
@@ -44,6 +45,7 @@
         "beachball:release": "node ./.github/create-releases.js"
     },
     "workspaces": [
+        "shared-configs/eslint-plugin-custom-msal",
         "shared-configs/eslint-config-msal",
         "shared-configs/rollup-msal",
         "lib/msal-common",
@@ -56,8 +58,9 @@
         "shared-test-utils",
         "samples/e2eTestUtils",
         "samples/msal-browser-samples/*",
-        "samples/msal-angular-v3-samples/*",
+        "samples/msal-angular-samples/*",
         "samples/msal-react-samples/*",
-        "samples/msal-node-samples/*"
+        "samples/msal-node-samples/*",
+        "regression-tests/msal-node/client-credential"
     ]
 }

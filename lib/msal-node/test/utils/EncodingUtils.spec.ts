@@ -1,4 +1,9 @@
-import { EncodingUtils } from "../../src/utils/EncodingUtils";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { EncodingUtils } from "../../src/utils/EncodingUtils.js";
 
 describe("Base64Decode() tests", () => {
     describe("test Base64 encode decode", () => {

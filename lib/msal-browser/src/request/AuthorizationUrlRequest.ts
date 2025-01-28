@@ -10,7 +10,7 @@ import { CommonAuthorizationUrlRequest } from "@azure/msal-common/browser";
  */
 export type AuthorizationUrlRequest = Omit<
     CommonAuthorizationUrlRequest,
-    "state" | "nonce" | "requestedClaimsHash" | "nativeBroker"
+    "state" | "nonce" | "requestedClaimsHash" | "platformBroker"
 > & {
     state: string;
     nonce: string;
