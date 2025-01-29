@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node index.js | tee output.txt",
-    "build:all": "npm install --workspace=@azure/msal-common --workspace=@azure/msal-node --workspace=regression-tests/msal-node/client-credential",
+    "build:all": "cd ../../../ && npm install --workspace=@azure/msal-common --workspace=@azure/msal-node --workspace=regression-tests/msal-node/client-credential",
     "start:build": "npm run build:all && npm start"
   },
   "author": "",
