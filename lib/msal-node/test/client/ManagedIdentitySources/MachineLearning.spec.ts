@@ -52,6 +52,7 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
         delete ManagedIdentityClient["identitySource"];
         delete ManagedIdentityClient["sourceName"];
         delete ManagedIdentityApplication["nodeStorage"];
+        jest.restoreAllMocks();
     });
 
     describe("User Assigned", () => {
@@ -106,8 +107,6 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
                     ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID_NON_IMDS
                 )
             ).toEqual(MANAGED_IDENTITY_RESOURCE_ID);
-
-            jest.restoreAllMocks();
         });
 
         test("ensures that App Service is selected as the Managed Identity source when all App Service and Machine Learning environment variables are present", async () => {
@@ -218,8 +217,6 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
                     MANAGED_IDENTITY_MACHINE_LEARNING_NETWORK_REQUEST_400_ERROR.correlation_id as string
                 )
             ).toBe(true);
-
-            jest.restoreAllMocks();
         });
     });
 });
