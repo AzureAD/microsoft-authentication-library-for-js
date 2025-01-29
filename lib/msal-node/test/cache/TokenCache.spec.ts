@@ -265,28 +265,19 @@ describe("TokenCache tests", () => {
 
         const tokenCache = new TokenCache(storage, logger, cachePlugin);
 
-        const mockTokenCacheContextInstance = {
-            hasChanged: false,
-            cache: tokenCache,
-            cacheHasChanged: false,
-            tokenCache,
-        };
-
-        jest.spyOn(msalCommon, "TokenCacheContext").mockImplementation(
-            () => mockTokenCacheContextInstance as unknown as TokenCacheContext
-        );
-
         const clearSpy = jest.spyOn(NodeStorage.prototype, "clear");
-        const setSpy = jest.spyOn(NodeStorage.prototype, "setCache");
-        const snapshotSpy = jest.spyOn(
-            TokenCache.prototype,
-            "getCacheSnapshot"
+        // persistent cache in CacheKVStore format
+        const deserializedCacheSpy = jest.spyOn(
+            NodeStorage.prototype,
+            "inMemoryCacheToCache"
         );
 
         await tokenCache.overwriteCache();
-        // overwriting means both clearing and setting the in-memory cache to the persistent cache, we check for both
         expect(clearSpy).toHaveBeenCalled();
-        expect(setSpy).toHaveBeenCalledWith(snapshotSpy.mock.results[0].value);
+        expect(deserializedCacheSpy).toHaveBeenCalledTimes(2); // first call returns serialized cache, second call returns deserialized cache
+        expect(deserializedCacheSpy.mock.results[1].value).toBe(
+            tokenCache.getKVStore()
+        );
     });
 
     it("overwriteCache should not throw and simply return if persistent cache does not exist", async () => {

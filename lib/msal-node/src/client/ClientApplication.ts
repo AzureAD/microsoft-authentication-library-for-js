@@ -298,9 +298,8 @@ export abstract class ClientApplication {
                 validRequest.correlationId
             );
             try {
-                if (this.tokenCache.persistence) {
-                    await this.tokenCache.overwriteCache();
-                }
+                // always overwrite the in-memory cache with the persistence cache (if it exists) before a cache lookup
+                await this.tokenCache.overwriteCache();
                 return await this.acquireCachedTokenSilent(
                     validRequest,
                     silentFlowClient,
