@@ -22,7 +22,7 @@ jobs:
               run: npm install --workspace=lib/msal-common --workspace=lib/msal-node --workspace=regression-tests/msal-node/client-credential
 
             - name: Run benchmark
-              run: npm run start
+              run: node index.js | tee output.txt
               working-directory: regression-tests/msal-node/client-credential
 
             # gh-pages branch is updated and pushed automatically with extracted benchmark data
