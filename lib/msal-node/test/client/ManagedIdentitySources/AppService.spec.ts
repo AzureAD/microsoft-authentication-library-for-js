@@ -53,6 +53,7 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
         // reset static variables after each test
         delete ManagedIdentityClient["identitySource"];
         delete ManagedIdentityApplication["nodeStorage"];
+        jest.restoreAllMocks();
     });
 
     describe("User Assigned", () => {
@@ -197,8 +198,6 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
                     MANAGED_IDENTITY_APP_SERVICE_NETWORK_REQUEST_400_ERROR.correlation_id as string
                 )
             ).toBe(true);
-
-            jest.restoreAllMocks();
         });
     });
 });
