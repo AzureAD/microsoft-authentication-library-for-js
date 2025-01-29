@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node index.js | tee output.txt",
-    "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-node",
+    "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-common --workspace=lib/msal-node --workspace=regression-tests/msal-node/client-credential",
     "start:build": "npm run build:package && npm start"
   },
   "author": "",

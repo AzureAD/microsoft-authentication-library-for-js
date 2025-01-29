@@ -18,7 +18,8 @@ jobs:
             - uses: actions/checkout@v4
             - uses: actions/setup-node@v4
             - name: Run benchmark
-              run: cd regression-tests/msal-node/client-credential && npm run start:build
+              - run: npm install --workspace=lib/msal-common --workspace=lib/msal-node --workspace=regression-tests/msal-node/client-credential && npm run start:build
+                working-directory: regression-tests/msal-node/client-credential
 
             # gh-pages branch is updated and pushed automatically with extracted benchmark data
             # By default, this action assumes that gh-pages is the GitHub Pages branch and that
