@@ -3,30 +3,27 @@
  * Licensed under the MIT License.
  */
 
-import { SignInState } from "../../../core/auth_flow/AuthFlowState.js";
 import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { SignInResendCodeError } from "../error_type/SignInError.js";
-import { SignInCodeRequiredStateHandler } from "../state_handler/SignInCodeRequiredStateHandler.js";
+import { SignInCodeRequired } from "../state/SignInCodeRequired.js";
+import { SignInFailed } from "../state/SignInFailed.js";
 
 export class SignInResendCodeResult extends AuthFlowResultBase<
-    SignInState,
+    SignInCodeRequired | SignInFailed,
     SignInResendCodeError,
-    void,
-    SignInCodeRequiredStateHandler
+    void
 > {
-    constructor(stateHandler?: SignInCodeRequiredStateHandler) {
-        super(undefined, stateHandler);
+    constructor(state?: SignInCodeRequired) {
+        super(state);
     }
 
-    get state(): SignInState {
-        if (!!this.error) {
-            return SignInState.Failed;
-        }
+    static createWithError(error: unknown): SignInResendCodeResult {
+        const result = new SignInResendCodeResult();
+        result.state = new SignInFailed();
+        result.error = new SignInResendCodeError(
+            SignInResendCodeResult.createErrorData(error),
+        );
 
-        if (!!this.stateHandler) {
-            return SignInState.CodeRequired;
-        }
-
-        return SignInState.Unknown;
+        return result;
     }
 }

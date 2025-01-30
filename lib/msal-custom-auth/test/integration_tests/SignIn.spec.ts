@@ -3,17 +3,17 @@
  * Licensed under the MIT License.
  */
 
-import { error } from "console";
 import { AccountInfo } from "../../src/account/auth_flow/model/AccountInfo.js";
-import { SignInState } from "../../src/core/auth_flow/AuthFlowState.js";
 import { CustomAuthPublicClientApplication } from "../../src/CustomAuthPublicClientApplication.js";
 import { ICustomAuthPublicClientApplication } from "../../src/ICustomAuthPublicClientApplication.js";
 import { SignInResult } from "../../src/sign_in/auth_flow/result/SignInResult.js";
 import { SignInSubmitCodeResult } from "../../src/sign_in/auth_flow/result/SignInSubmitCodeResult.js";
 import { SignInSubmitPasswordResult } from "../../src/sign_in/auth_flow/result/SignInSubmitPasswordResult.js";
-import { SignInCodeRequiredStateHandler } from "../../src/sign_in/auth_flow/state_handler/SignInCodeRequiredStateHandler.js";
-import { SignInPasswordRequiredStateHandler } from "../../src/sign_in/auth_flow/state_handler/SignInPasswordRequiredStateHandler.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
+import { SignInState } from "../../src/core/auth_flow/AuthFlowStateBase.js";
+import { AuthFlowStateHandlerFactory } from "../../src/core/auth_flow/AuthFlowStateHandlerFactory.js";
+import { SignInCodeRequired } from "../../src/sign_in/auth_flow/state/SignInCodeRequired.js";
+import { SignInPasswordRequired } from "../../src/sign_in/auth_flow/state/SignInPasswordRequired.js";
 
 describe("Sign in", () => {
     let app: ICustomAuthPublicClientApplication;
@@ -80,8 +80,7 @@ describe("Sign in", () => {
 
         expect(result).toBeInstanceOf(SignInResult);
         expect(result.error).toBeUndefined();
-        expect(result.state).toStrictEqual(SignInState.Completed);
-        expect(result.stateHandler).toBeUndefined();
+        expect(result.state?.type).toStrictEqual(SignInState.Completed);
         expect(result.data).toBeDefined();
         expect(result.data).toBeInstanceOf(AccountInfo);
     });
@@ -136,14 +135,12 @@ describe("Sign in", () => {
 
         expect(signInResult).toBeInstanceOf(SignInResult);
         expect(signInResult.error).toBeUndefined();
-        expect(signInResult.state).toStrictEqual(SignInState.CodeRequired);
-        expect(signInResult.stateHandler).toBeDefined();
-        expect(signInResult.stateHandler).toBeInstanceOf(
-            SignInCodeRequiredStateHandler,
+        expect(signInResult.state?.type).toStrictEqual(
+            SignInState.CodeRequired,
         );
 
-        const handler =
-            signInResult.stateHandler as SignInCodeRequiredStateHandler;
+        const state = signInResult.state as SignInCodeRequired;
+        const handler = AuthFlowStateHandlerFactory.create(state);
 
         const submitCodeResult = await handler.submitCode("valid-code");
 
@@ -202,14 +199,12 @@ describe("Sign in", () => {
 
         expect(signInResult).toBeInstanceOf(SignInResult);
         expect(signInResult.error).toBeUndefined();
-        expect(signInResult.state).toStrictEqual(SignInState.PasswordRequired);
-        expect(signInResult.stateHandler).toBeDefined();
-        expect(signInResult.stateHandler).toBeInstanceOf(
-            SignInPasswordRequiredStateHandler,
+        expect(signInResult.state?.type).toStrictEqual(
+            SignInState.PasswordRequired,
         );
 
-        const handler =
-            signInResult.stateHandler as SignInPasswordRequiredStateHandler;
+        const state = signInResult.state as SignInPasswordRequired;
+        const handler = AuthFlowStateHandlerFactory.create(state);
 
         const submitCodeResult = await handler.submitPassword("valid-password");
 
@@ -251,7 +246,7 @@ describe("Sign in", () => {
 
         expect(signInResult).toBeInstanceOf(SignInResult);
         expect(signInResult.error).toBeDefined();
-        expect(signInResult.state).toStrictEqual(SignInState.Failed);
+        expect(signInResult.state?.type).toStrictEqual(SignInState.Failed);
         expect(signInResult.error?.isRedirect()).toBe(true);
     });
 
@@ -275,7 +270,7 @@ describe("Sign in", () => {
 
         expect(signInResult).toBeInstanceOf(SignInResult);
         expect(signInResult.error).toBeDefined();
-        expect(signInResult.state).toStrictEqual(SignInState.Failed);
+        expect(signInResult.state?.type).toStrictEqual(SignInState.Failed);
         expect(signInResult.error?.isUserNotFound()).toBe(true);
     });
 
@@ -327,7 +322,7 @@ describe("Sign in", () => {
 
         expect(signInResult).toBeInstanceOf(SignInResult);
         expect(signInResult.error).toBeDefined();
-        expect(signInResult.state).toStrictEqual(SignInState.Failed);
+        expect(signInResult.state?.type).toStrictEqual(SignInState.Failed);
         expect(signInResult.error?.isInvalidPassword()).toBe(true);
     });
 
@@ -379,14 +374,12 @@ describe("Sign in", () => {
 
         expect(signInResult).toBeInstanceOf(SignInResult);
         expect(signInResult.error).toBeUndefined();
-        expect(signInResult.state).toStrictEqual(SignInState.CodeRequired);
-        expect(signInResult.stateHandler).toBeDefined();
-        expect(signInResult.stateHandler).toBeInstanceOf(
-            SignInCodeRequiredStateHandler,
+        expect(signInResult.state?.type).toStrictEqual(
+            SignInState.CodeRequired,
         );
 
-        const handler =
-            signInResult.stateHandler as SignInCodeRequiredStateHandler;
+        const state = signInResult.state as SignInCodeRequired;
+        const handler = AuthFlowStateHandlerFactory.create(state);
 
         const submitCodeResult = await handler.submitCode("invalid-code");
 

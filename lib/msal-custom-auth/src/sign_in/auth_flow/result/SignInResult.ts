@@ -4,51 +4,36 @@
  */
 
 import { AccountInfo } from "../../../account/auth_flow/model/AccountInfo.js";
-import { SignInState } from "../../../core/auth_flow/AuthFlowState.js";
 import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { SignInError } from "../error_type/SignInError.js";
-import { SignInCodeRequiredStateHandler } from "../state_handler/SignInCodeRequiredStateHandler.js";
-import { SignInPasswordRequiredStateHandler } from "../state_handler/SignInPasswordRequiredStateHandler.js";
+import { SignInCodeRequired } from "../state/SignInCodeRequired.js";
+import { SignInCompleted } from "../state/SignInCompleted.js";
+import { SignInFailed } from "../state/SignInFailed.js";
+import { SignInPasswordRequired } from "../state/SignInPasswordRequired.js";
 
 /*
  * Result of a sign-in operation.
  */
 export class SignInResult extends AuthFlowResultBase<
-    SignInState,
+    | SignInCodeRequired
+    | SignInPasswordRequired
+    | SignInFailed
+    | SignInCompleted,
     SignInError,
-    AccountInfo,
-    SignInCodeRequiredStateHandler | SignInPasswordRequiredStateHandler
+    AccountInfo
 > {
     constructor(
+        state?: SignInCodeRequired | SignInPasswordRequired | SignInCompleted,
         resultData?: AccountInfo,
-        stateHandler?:
-            | SignInCodeRequiredStateHandler
-            | SignInPasswordRequiredStateHandler,
     ) {
-        super(resultData, stateHandler);
-
-        if (this.stateHandler instanceof SignInCodeRequiredStateHandler) {
-            this._state = SignInState.CodeRequired;
-        } else if (
-            this.stateHandler instanceof SignInPasswordRequiredStateHandler
-        ) {
-            this._state = SignInState.PasswordRequired;
-        }
+        super(state, resultData);
     }
 
-    get state(): SignInState {
-        if (this.error) {
-            return SignInState.Failed;
-        }
+    static createWithError(error: unknown): SignInResult {
+        const result = new SignInResult();
+        result.error = new SignInError(SignInResult.createErrorData(error));
+        result.state = new SignInFailed();
 
-        if (this._state !== undefined && this._state !== null) {
-            return this._state;
-        }
-
-        if (this.data) {
-            return SignInState.Completed;
-        }
-
-        return SignInState.Unknown;
+        return result;
     }
 }

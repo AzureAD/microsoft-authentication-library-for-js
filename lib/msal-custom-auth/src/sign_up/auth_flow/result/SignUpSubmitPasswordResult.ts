@@ -3,54 +3,41 @@
  * Licensed under the MIT License.
  */
 
-import { SignUpAttributesRequiredStateHandler } from "../state_handler/SignUpAttributesRequiredStateHandler.js";
-import { SignUpState } from "../../../core/auth_flow/AuthFlowState.js";
 import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
-import { SignInContinuationStateHandler } from "../../../sign_in/auth_flow/state_handler/SignInContinuationStateHandler.js";
 import { SignUpSubmitPasswordError } from "../error_type/SignUpError.js";
-import { SignUpCodeRequiredStateHandler } from "../state_handler/SignUpCodeRequiredStateHandler.js";
+import { SignUpCodeRequired } from "../state/SignUpCodeRequired.js";
+import { SignUpAttributesRequired } from "../state/SignUpAttributesRequired.js";
+import { SignUpCompleted } from "../state/SignUpCompleted.js";
+import { SignUpFailed } from "../state/SignUpFailed.js";
 
 /*
  * Result of a sign-up operation that requires a password.
  */
 export class SignUpSubmitPasswordResult extends AuthFlowResultBase<
-    SignUpState,
+    | SignUpCodeRequired
+    | SignUpAttributesRequired
+    | SignUpCompleted
+    | SignUpFailed,
     SignUpSubmitPasswordError,
-    void,
-    | SignUpAttributesRequiredStateHandler
-    | SignUpCodeRequiredStateHandler
-    | SignInContinuationStateHandler
+    void
 > {
     constructor(
-        stateHandler?:
-            | SignUpAttributesRequiredStateHandler
-            | SignUpCodeRequiredStateHandler
-            | SignInContinuationStateHandler,
+        state?:
+            | SignUpCodeRequired
+            | SignUpAttributesRequired
+            | SignUpCompleted
+            | SignUpFailed,
     ) {
-        super(undefined, stateHandler);
-
-        if (this.stateHandler instanceof SignUpAttributesRequiredStateHandler) {
-            this._state = SignUpState.AttributesRequired;
-        } else if (
-            this.stateHandler instanceof SignUpCodeRequiredStateHandler
-        ) {
-            this._state = SignUpState.CodeRequired;
-        } else if (
-            this.stateHandler instanceof SignInContinuationStateHandler
-        ) {
-            this._state = SignUpState.Completed;
-        }
+        super(state);
     }
 
-    get state(): SignUpState {
-        if (!!this.error) {
-            return SignUpState.Failed;
-        }
+    static createWithError(error: unknown): SignUpSubmitPasswordResult {
+        const result = new SignUpSubmitPasswordResult();
+        result.error = new SignUpSubmitPasswordError(
+            SignUpSubmitPasswordResult.createErrorData(error),
+        );
+        result.state = new SignUpFailed();
 
-        if (this._state !== undefined && this._state !== null) {
-            return this._state;
-        }
-
-        return SignUpState.Unknown;
+        return result;
     }
 }

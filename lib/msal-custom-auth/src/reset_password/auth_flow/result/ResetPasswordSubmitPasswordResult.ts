@@ -3,33 +3,30 @@
  * Licensed under the MIT License.
  */
 
-import { ResetPasswordState } from "../../../core/auth_flow/AuthFlowState.js";
 import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
-import { SignInContinuationStateHandler } from "../../../sign_in/auth_flow/state_handler/SignInContinuationStateHandler.js";
 import { ResetPasswordSubmitPasswordError } from "../error_type/ResetPasswordError.js";
+import { ResetPasswordCompleted } from "../state/ResetPasswordCompleted.js";
+import { ResetPasswordFailed } from "../state/ResetPasswordFailed.js";
 
 /*
  * Result of a reset password operation that requires a password.
  */
 export class ResetPasswordSubmitPasswordResult extends AuthFlowResultBase<
-    ResetPasswordState,
+    ResetPasswordCompleted | ResetPasswordFailed,
     ResetPasswordSubmitPasswordError,
-    void,
-    SignInContinuationStateHandler
+    void
 > {
-    constructor(stateHandler?: SignInContinuationStateHandler) {
-        super(undefined, stateHandler);
+    constructor(state?: ResetPasswordCompleted | ResetPasswordFailed) {
+        super(state);
     }
 
-    get state(): ResetPasswordState {
-        if (!!this.error) {
-            return ResetPasswordState.Failed;
-        }
+    static createWithError(error: unknown): ResetPasswordSubmitPasswordResult {
+        const result = new ResetPasswordSubmitPasswordResult();
+        result.error = new ResetPasswordSubmitPasswordError(
+            ResetPasswordSubmitPasswordResult.createErrorData(error),
+        );
+        result.state = new ResetPasswordFailed();
 
-        if (!!this.stateHandler) {
-            return ResetPasswordState.Completed;
-        }
-
-        return ResetPasswordState.Unknown;
+        return result;
     }
 }

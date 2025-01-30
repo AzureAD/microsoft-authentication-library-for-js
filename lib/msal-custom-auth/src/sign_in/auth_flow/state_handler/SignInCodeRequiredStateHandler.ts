@@ -3,24 +3,46 @@
  * Licensed under the MIT License.
  */
 
+import { Logger } from "@azure/msal-browser";
 import { AccountInfo } from "../../../account/auth_flow/model/AccountInfo.js";
+import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
 import {
     SignInResendCodeParams,
     SignInSubmitCodeParams,
 } from "../../interaction_client/parameter/SignInParams.js";
-import {
-    SignInResendCodeError,
-    SignInSubmitCodeError,
-} from "../error_type/SignInError.js";
+import { SignInClient } from "../../interaction_client/SignInClient.js";
 import { SignInResendCodeResult } from "../result/SignInResendCodeResult.js";
 import { SignInSubmitCodeResult } from "../result/SignInSubmitCodeResult.js";
 import { SignInStateHandler } from "./SignInStateHandler.js";
+import { SignInCompleted } from "../state/SignInCompleted.js";
+import { SignInCodeRequired } from "../state/SignInCodeRequired.js";
 
 /*
  * Sign-in handler for the state which requires a code.
  */
 export class SignInCodeRequiredStateHandler extends SignInStateHandler {
+    constructor(
+        username: string,
+        signInClient: SignInClient,
+        correlationId: string,
+        logger: Logger,
+        continuationToken: string,
+        config: CustomAuthBrowserConfiguration,
+        public codeLength: number,
+        public codeResendInterval: number,
+        public scopes?: string[],
+    ) {
+        super(
+            username,
+            signInClient,
+            correlationId,
+            logger,
+            continuationToken,
+            config,
+        );
+    }
+
     /*
      * Submits a code for sign-in.
      * @param code - The code to submit.
@@ -32,7 +54,6 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
 
             const result = SignInSubmitCodeResult.createWithError(
                 new InvalidArgumentError("code", this.correlationId),
-                SignInSubmitCodeError,
             );
 
             return Promise.resolve(result);
@@ -62,16 +83,16 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
                 this.config,
             );
 
-            return new SignInSubmitCodeResult(accountManager);
+            return new SignInSubmitCodeResult(
+                new SignInCompleted(),
+                accountManager,
+            );
         } catch (error) {
             this.logger.error(
                 `Failed to submit code for sign-in. Error: ${error}.`,
             );
 
-            return SignInSubmitCodeResult.createWithError(
-                error,
-                SignInSubmitCodeError,
-            );
+            return SignInSubmitCodeResult.createWithError(error);
         }
     }
 
@@ -97,21 +118,20 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
             this.logger.info("Code resent for sign-in.");
 
             return new SignInResendCodeResult(
-                new SignInCodeRequiredStateHandler(
-                    this.username,
-                    this.signInClient,
+                new SignInCodeRequired(
                     result.correlationId,
-                    this.logger,
                     result.continuationToken,
+                    this.logger,
                     this.config,
-                    this.scopes,
+                    this.signInClient,
+                    this.username,
+                    result.codeLength,
+                    result.interval,
+                    this.scopes ?? [],
                 ),
             );
         } catch (error) {
-            return SignInResendCodeResult.createWithError(
-                error,
-                SignInResendCodeError,
-            );
+            return SignInResendCodeResult.createWithError(error);
         }
     }
 }

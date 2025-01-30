@@ -1,13 +1,13 @@
 import { Logger } from "@azure/msal-browser";
 import { AccountInfo } from "../../../../src/account/auth_flow/model/AccountInfo.js";
 import { CustomAuthBrowserConfiguration } from "../../../../src/configuration/CustomAuthConfiguration.js";
-import { SignInState } from "../../../../src/core/auth_flow/AuthFlowState.js";
 import { InvalidArgumentError } from "../../../../src/core/error/InvalidArgumentError.js";
 import { SignInSubmitPasswordError } from "../../../../src/sign_in/auth_flow/error_type/SignInError.js";
 import { SignInSubmitPasswordResult } from "../../../../src/sign_in/auth_flow/result/SignInSubmitPasswordResult.js";
 import { SignInPasswordRequiredStateHandler } from "../../../../src/sign_in/auth_flow/state_handler/SignInPasswordRequiredStateHandler.js";
 import { SignInCompleteResult } from "../../../../src/sign_in/interaction_client/result/SignInActionResult.js";
-import { SigninClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
+import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
+import { SignInState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";
 
 describe("SignInPasswordRequiredStateHandler", () => {
     const mockConfig = {
@@ -17,7 +17,7 @@ describe("SignInPasswordRequiredStateHandler", () => {
 
     const mockSignInClient = {
         submitPassword: jest.fn(),
-    } as unknown as jest.Mocked<SigninClient>;
+    } as unknown as jest.Mocked<SignInClient>;
 
     const mockLogger = {
         info: jest.fn(),
@@ -49,7 +49,7 @@ describe("SignInPasswordRequiredStateHandler", () => {
     it("should return an error result if password is empty", async () => {
         const result = await handler.submitPassword("");
 
-        expect(result.state).toBe(SignInState.Failed);
+        expect(result.state?.type).toBe(SignInState.Failed);
         expect(result.error).toBeInstanceOf(SignInSubmitPasswordError);
         expect(result.error?.errorData).toBeInstanceOf(InvalidArgumentError);
         expect(result.error?.errorData?.errorDescription).toContain("password");
@@ -85,6 +85,7 @@ describe("SignInPasswordRequiredStateHandler", () => {
 
         expect(result).toBeDefined();
         expect(result).toBeInstanceOf(SignInSubmitPasswordResult);
+        expect(result.state?.type).toBe(SignInState.Completed);
         expect(result.data).toBeInstanceOf(AccountInfo);
         expect(mockSignInClient.submitPassword).toHaveBeenCalledWith({
             clientId: "test-client-id",

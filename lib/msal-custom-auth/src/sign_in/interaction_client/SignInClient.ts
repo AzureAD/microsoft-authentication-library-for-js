@@ -33,7 +33,7 @@ import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
 import { SignInTokenResponse } from "../../core/network_client/custom_auth_api/response/ApiResponse.js";
 import { CustomAuthAuthenticationResult } from "../../core/interaction_client/CustomAuthAuthenticationResult.js";
 
-export class SigninClient extends CustomAuthInteractionClientBase {
+export class SignInClient extends CustomAuthInteractionClientBase {
     /**
      * Starts the signin flow.
      * @param parameters The parameters required to start the sign-in flow.

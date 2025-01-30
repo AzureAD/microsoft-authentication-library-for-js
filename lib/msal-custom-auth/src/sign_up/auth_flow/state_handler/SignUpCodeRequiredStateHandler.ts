@@ -3,28 +3,51 @@
  * Licensed under the MIT License.
  */
 
+import { Logger } from "@azure/msal-browser";
 import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
 import { UnexpectedError } from "../../../core/error/UnexpectedError.js";
-import { SignInContinuationStateHandler } from "../../../sign_in/auth_flow/state_handler/SignInContinuationStateHandler.js";
+import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
 import {
     SignUpAttributesRequiredResult,
     SignUpCompletedResult,
     SignUpPasswordRequiredResult,
 } from "../../interaction_client/result/SignUpActionResult.js";
-import {
-    SignUpResendCodeError,
-    SignUpSubmitCodeError,
-} from "../error_type/SignUpError.js";
+import { SignUpClient } from "../../interaction_client/SignUpClient.js";
 import { SignUpResendCodeResult } from "../result/SignUpResendCodeResult.js";
 import { SignUpSubmitCodeResult } from "../result/SignUpSubmitCodeResult.js";
-import { SignUpAttributesRequiredStateHandler } from "./SignUpAttributesRequiredStateHandler.js";
-import { SignUpPasswordRequiredStateHandler } from "./SignUpPasswordRequiredStateHandler.js";
 import { SignUpStateHandler } from "./SignUpStateHandler.js";
+import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
+import { SignUpCodeRequired } from "../state/SignUpCodeRequired.js";
+import { SignUpCompleted } from "../state/SignUpCompleted.js";
+import { SignUpPasswordRequired } from "../state/SignUpPasswordRequired.js";
+import { SignUpAttributesRequired } from "../state/SignUpAttributesRequired.js";
 
 /*
  * Sign-up handler used for the state of code required.
  */
 export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
+    constructor(
+        username: string,
+        signUpClient: SignUpClient,
+        signInClient: SignInClient,
+        correlationId: string,
+        logger: Logger,
+        continuationToken: string,
+        config: CustomAuthBrowserConfiguration,
+        public codeLength: number,
+        public codeResendInterval: number,
+    ) {
+        super(
+            username,
+            signUpClient,
+            signInClient,
+            correlationId,
+            logger,
+            continuationToken,
+            config,
+        );
+    }
+
     /*
      * Submits a code for sign-up.
      * @param code - The code to submit.
@@ -37,7 +60,6 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
             return Promise.resolve(
                 SignUpSubmitCodeResult.createWithError(
                     new InvalidArgumentError("code", this.correlationId),
-                    SignUpSubmitCodeError,
                 ),
             );
         }
@@ -61,14 +83,14 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
                 this.logger.info("Password required for sign-up.");
 
                 return new SignUpSubmitCodeResult(
-                    new SignUpPasswordRequiredStateHandler(
-                        this.username,
-                        this.signUpClient,
-                        this.signInClient,
+                    new SignUpPasswordRequired(
                         result.correlationId,
-                        this.logger,
                         result.continuationToken,
+                        this.logger,
                         this.config,
+                        this.signInClient,
+                        this.signUpClient,
+                        this.username,
                     ),
                 );
             } else if (result instanceof SignUpAttributesRequiredResult) {
@@ -76,14 +98,15 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
                 this.logger.info("Attributes required for sign-up.");
 
                 return new SignUpSubmitCodeResult(
-                    new SignUpAttributesRequiredStateHandler(
-                        this.username,
-                        this.signUpClient,
-                        this.signInClient,
+                    new SignUpAttributesRequired(
                         result.correlationId,
-                        this.logger,
                         result.continuationToken,
+                        this.logger,
                         this.config,
+                        this.signInClient,
+                        this.signUpClient,
+                        this.username,
+                        result.requiredAttributes,
                     ),
                 );
             } else if (result instanceof SignUpCompletedResult) {
@@ -91,30 +114,26 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
                 this.logger.info("Sign-up completed.");
 
                 return new SignUpSubmitCodeResult(
-                    new SignInContinuationStateHandler(
-                        this.username,
-                        this.signInClient,
+                    new SignUpCompleted(
                         result.correlationId,
-                        this.logger,
                         result.continuationToken,
+                        this.logger,
                         this.config,
+                        this.signInClient,
+                        this.username,
                     ),
                 );
             }
 
             return SignUpSubmitCodeResult.createWithError(
                 new UnexpectedError("Unknown sign-up result type."),
-                SignUpSubmitCodeError,
             );
         } catch (error) {
             this.logger.error(
                 `Failed to submit code for sign up. Error: ${error}.`,
             );
 
-            return SignUpSubmitCodeResult.createWithError(
-                error,
-                SignUpSubmitCodeError,
-            );
+            return SignUpSubmitCodeResult.createWithError(error);
         }
     }
 
@@ -137,21 +156,20 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
             this.logger.info("Code resent for sign-up.");
 
             return new SignUpResendCodeResult(
-                new SignUpCodeRequiredStateHandler(
-                    this.username,
-                    this.signUpClient,
-                    this.signInClient,
+                new SignUpCodeRequired(
                     result.correlationId,
-                    this.logger,
                     result.continuationToken,
+                    this.logger,
                     this.config,
+                    this.signInClient,
+                    this.signUpClient,
+                    this.username,
+                    result.codeLength,
+                    result.interval,
                 ),
             );
         } catch (error) {
-            return SignUpResendCodeResult.createWithError(
-                error,
-                SignUpResendCodeError,
-            );
+            return SignUpResendCodeResult.createWithError(error);
         }
     }
 }

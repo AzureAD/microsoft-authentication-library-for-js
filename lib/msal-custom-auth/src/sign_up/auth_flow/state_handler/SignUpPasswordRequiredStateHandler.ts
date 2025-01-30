@@ -5,16 +5,15 @@
 
 import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
 import { UnexpectedError } from "../../../core/error/UnexpectedError.js";
-import { SignInContinuationStateHandler } from "../../../sign_in/auth_flow/state_handler/SignInContinuationStateHandler.js";
 import {
     SignUpAttributesRequiredResult,
     SignUpCodeRequiredResult,
     SignUpCompletedResult,
 } from "../../interaction_client/result/SignUpActionResult.js";
-import { SignUpSubmitPasswordError } from "../error_type/SignUpError.js";
 import { SignUpSubmitPasswordResult } from "../result/SignUpSubmitPasswordResult.js";
-import { SignUpAttributesRequiredStateHandler } from "./SignUpAttributesRequiredStateHandler.js";
-import { SignUpCodeRequiredStateHandler } from "./SignUpCodeRequiredStateHandler.js";
+import { SignUpAttributesRequired } from "../state/SignUpAttributesRequired.js";
+import { SignUpCodeRequired } from "../state/SignUpCodeRequired.js";
+import { SignUpCompleted } from "../state/SignUpCompleted.js";
 import { SignUpStateHandler } from "./SignUpStateHandler.js";
 
 /*
@@ -35,7 +34,6 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
             return Promise.resolve(
                 SignUpSubmitPasswordResult.createWithError(
                     new InvalidArgumentError("password", this.correlationId),
-                    SignUpSubmitPasswordError,
                 ),
             );
         }
@@ -59,14 +57,16 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
                 this.logger.info("Code required for sign-up.");
 
                 return new SignUpSubmitPasswordResult(
-                    new SignUpCodeRequiredStateHandler(
-                        this.username,
-                        this.signUpClient,
-                        this.signInClient,
+                    new SignUpCodeRequired(
                         result.correlationId,
-                        this.logger,
                         result.continuationToken,
+                        this.logger,
                         this.config,
+                        this.signInClient,
+                        this.signUpClient,
+                        this.username,
+                        result.codeLength,
+                        result.interval,
                     ),
                 );
             } else if (result instanceof SignUpAttributesRequiredResult) {
@@ -74,14 +74,15 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
                 this.logger.info("Attributes required for sign-up.");
 
                 return new SignUpSubmitPasswordResult(
-                    new SignUpAttributesRequiredStateHandler(
-                        this.username,
-                        this.signUpClient,
-                        this.signInClient,
+                    new SignUpAttributesRequired(
                         result.correlationId,
-                        this.logger,
                         result.continuationToken,
+                        this.logger,
                         this.config,
+                        this.signInClient,
+                        this.signUpClient,
+                        this.username,
+                        result.requiredAttributes,
                     ),
                 );
             } else if (result instanceof SignUpCompletedResult) {
@@ -89,30 +90,26 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
                 this.logger.info("Sign-up completed.");
 
                 return new SignUpSubmitPasswordResult(
-                    new SignInContinuationStateHandler(
-                        this.username,
-                        this.signInClient,
+                    new SignUpCompleted(
                         result.correlationId,
-                        this.logger,
                         result.continuationToken,
+                        this.logger,
                         this.config,
+                        this.signInClient,
+                        this.username,
                     ),
                 );
             }
 
             return SignUpSubmitPasswordResult.createWithError(
                 new UnexpectedError("Unknown sign-up result type."),
-                SignUpSubmitPasswordError,
             );
         } catch (error) {
             this.logger.error(
                 `Failed to submit password for sign up. Error: ${error}.`,
             );
 
-            return SignUpSubmitPasswordResult.createWithError(
-                error,
-                SignUpSubmitPasswordError,
-            );
+            return SignUpSubmitPasswordResult.createWithError(error);
         }
     }
 }

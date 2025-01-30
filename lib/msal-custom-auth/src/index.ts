@@ -45,7 +45,7 @@ export {
     ResetPasswordState,
     GetAccessTokenState,
     GetAccountState,
-} from "./core/auth_flow/AuthFlowState.js";
+} from "./core/auth_flow/AuthFlowStateBase.js";
 export { AccountInfo } from "./account/auth_flow/model/AccountInfo.js";
 export { ICustomAuthStandardController } from "./controller/ICustomAuthStandardController.js";
 export { CustomAuthStandardController } from "./controller/CustomAuthStandardController.js";

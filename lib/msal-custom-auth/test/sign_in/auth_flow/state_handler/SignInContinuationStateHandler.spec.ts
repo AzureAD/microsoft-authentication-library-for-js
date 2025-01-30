@@ -5,7 +5,7 @@ import { SignInError } from "../../../../src/sign_in/auth_flow/error_type/SignIn
 import { SignInResult } from "../../../../src/sign_in/auth_flow/result/SignInResult.js";
 import { SignInContinuationStateHandler } from "../../../../src/sign_in/auth_flow/state_handler/SignInContinuationStateHandler.js";
 import { SignInCompleteResult } from "../../../../src/sign_in/interaction_client/result/SignInActionResult.js";
-import { SigninClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
+import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 
 describe("SignInContinuationStateHandler", () => {
     const mockConfig = {
@@ -15,7 +15,7 @@ describe("SignInContinuationStateHandler", () => {
 
     const mockSignInClient = {
         signInWithContinuationToken: jest.fn(),
-    } as unknown as jest.Mocked<SigninClient>;
+    } as unknown as jest.Mocked<SignInClient>;
 
     const mockLogger = {
         info: jest.fn(),
@@ -36,7 +36,6 @@ describe("SignInContinuationStateHandler", () => {
             mockLogger,
             continuationToken,
             mockConfig,
-            ["scope1", "scope2"],
         );
     });
 
@@ -70,7 +69,7 @@ describe("SignInContinuationStateHandler", () => {
             }),
         );
 
-        const result = await handler.signIn();
+        const result = await handler.signIn(["scope1", "scope2"]);
 
         expect(result).toBeDefined();
         expect(result).toBeInstanceOf(SignInResult);

@@ -3,28 +3,28 @@
  * Licensed under the MIT License.
  */
 
-import { SignOutState } from "../../../core/auth_flow/AuthFlowState.js";
 import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { SignOutError } from "../error_type/GetAccountError.js";
+import { SignOutCompleted } from "../state/SignOutCompleted.js";
+import { SignOutFailed } from "../state/SignOutFailed.js";
 
 /*
  * Result of a sign-out operation.
  */
 export class SignOutResult extends AuthFlowResultBase<
-    SignOutState,
+    SignOutCompleted | SignOutFailed,
     SignOutError,
-    void,
     void
 > {
     constructor() {
-        super(undefined, undefined);
+        super(new SignOutCompleted());
     }
 
-    get state(): SignOutState {
-        if (!!this.error) {
-            return SignOutState.Error;
-        }
+    static createWithError(error: unknown): SignOutResult {
+        const result = new SignOutResult();
+        result.error = new SignOutError(SignOutResult.createErrorData(error));
+        result.state = new SignOutFailed();
 
-        return SignOutState.Completed;
+        return result;
     }
 }

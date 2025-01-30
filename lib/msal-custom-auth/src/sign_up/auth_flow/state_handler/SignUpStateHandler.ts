@@ -8,7 +8,7 @@ import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAut
 import { AuthFlowStateHandlerBase } from "../../../core/auth_flow/AuthFlowStateHandlerBase.js";
 import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 import { SignUpClient } from "../../interaction_client/SignUpClient.js";
-import { SigninClient } from "../../../sign_in/interaction_client/SignInClient.js";
+import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
 
 /*
  * Base state handler for sign-up flow.
@@ -27,7 +27,7 @@ export abstract class SignUpStateHandler extends AuthFlowStateHandlerBase {
     constructor(
         protected username: string,
         protected signUpClient: SignUpClient,
-        protected signInClient: SigninClient,
+        protected signInClient: SignInClient,
         correlationId: string,
         logger: Logger,
         continuationToken: string,

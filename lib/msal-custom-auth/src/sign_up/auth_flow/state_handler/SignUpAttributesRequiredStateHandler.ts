@@ -3,25 +3,50 @@
  * Licensed under the MIT License.
  */
 
+import { Logger } from "@azure/msal-browser";
 import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
 import { UnexpectedError } from "../../../core/error/UnexpectedError.js";
-import { SignInContinuationStateHandler } from "../../../sign_in/auth_flow/state_handler/SignInContinuationStateHandler.js";
+import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
 import { UserAccountAttributes } from "../../../UserAccountAttributes.js";
 import {
     SignUpCodeRequiredResult,
     SignUpCompletedResult,
     SignUpPasswordRequiredResult,
 } from "../../interaction_client/result/SignUpActionResult.js";
-import { SignUpSubmitAttributesError } from "../error_type/SignUpError.js";
+import { SignUpClient } from "../../interaction_client/SignUpClient.js";
 import { SignUpSubmitAttributesResult } from "../result/SignUpSubmitAttributesResult.js";
-import { SignUpCodeRequiredStateHandler } from "./SignUpCodeRequiredStateHandler.js";
-import { SignUpPasswordRequiredStateHandler } from "./SignUpPasswordRequiredStateHandler.js";
 import { SignUpStateHandler } from "./SignUpStateHandler.js";
+import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
+import { UserAttribute } from "../../../core/network_client/custom_auth_api/response/UserAttribute.js";
+import { SignUpCodeRequired } from "../state/SignUpCodeRequired.js";
+import { SignUpPasswordRequired } from "../state/SignUpPasswordRequired.js";
+import { SignUpCompleted } from "../state/SignUpCompleted.js";
 
 /*
  * Sign-up handler used for the state of attributes required.
  */
 export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
+    constructor(
+        username: string,
+        signUpClient: SignUpClient,
+        signInClient: SignInClient,
+        correlationId: string,
+        logger: Logger,
+        continuationToken: string,
+        config: CustomAuthBrowserConfiguration,
+        public requiredAttributes: Array<UserAttribute>,
+    ) {
+        super(
+            username,
+            signUpClient,
+            signInClient,
+            correlationId,
+            logger,
+            continuationToken,
+            config,
+        );
+    }
+
     /*
      * Submits attributes for sign-up.
      * @param attributes - The attributes to submit.
@@ -36,7 +61,6 @@ export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
             return Promise.resolve(
                 SignUpSubmitAttributesResult.createWithError(
                     new InvalidArgumentError("attributes", this.correlationId),
-                    SignUpSubmitAttributesError,
                 ),
             );
         }
@@ -60,14 +84,16 @@ export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
                 this.logger.info("Code required for sign-up.");
 
                 return new SignUpSubmitAttributesResult(
-                    new SignUpCodeRequiredStateHandler(
-                        this.username,
-                        this.signUpClient,
-                        this.signInClient,
+                    new SignUpCodeRequired(
                         result.correlationId,
-                        this.logger,
                         result.continuationToken,
+                        this.logger,
                         this.config,
+                        this.signInClient,
+                        this.signUpClient,
+                        this.username,
+                        result.codeLength,
+                        result.interval,
                     ),
                 );
             } else if (result instanceof SignUpPasswordRequiredResult) {
@@ -75,14 +101,14 @@ export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
                 this.logger.info("Password required for sign-up.");
 
                 return new SignUpSubmitAttributesResult(
-                    new SignUpPasswordRequiredStateHandler(
-                        this.username,
-                        this.signUpClient,
-                        this.signInClient,
+                    new SignUpPasswordRequired(
                         result.correlationId,
-                        this.logger,
                         result.continuationToken,
+                        this.logger,
                         this.config,
+                        this.signInClient,
+                        this.signUpClient,
+                        this.username,
                     ),
                 );
             } else if (result instanceof SignUpCompletedResult) {
@@ -90,30 +116,26 @@ export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
                 this.logger.info("Sign-up completed.");
 
                 return new SignUpSubmitAttributesResult(
-                    new SignInContinuationStateHandler(
-                        this.username,
-                        this.signInClient,
+                    new SignUpCompleted(
                         result.correlationId,
-                        this.logger,
                         result.continuationToken,
+                        this.logger,
                         this.config,
+                        this.signInClient,
+                        this.username,
                     ),
                 );
             }
 
             return SignUpSubmitAttributesResult.createWithError(
                 new UnexpectedError("Unknown sign-up result type."),
-                SignUpSubmitAttributesError,
             );
         } catch (error) {
             this.logger.error(
                 `Failed to submit attributes for sign up. Error: ${error}.`,
             );
 
-            return SignUpSubmitAttributesResult.createWithError(
-                error,
-                SignUpSubmitAttributesError,
-            );
+            return SignUpSubmitAttributesResult.createWithError(error);
         }
     }
 }

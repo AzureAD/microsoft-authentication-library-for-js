@@ -5,8 +5,8 @@
 
 import { AccountInfo } from "../../../account/auth_flow/model/AccountInfo.js";
 import { SignInContinuationTokenParams } from "../../interaction_client/parameter/SignInParams.js";
-import { SignInError } from "../error_type/SignInError.js";
 import { SignInResult } from "../result/SignInResult.js";
+import { SignInCompleted } from "../state/SignInCompleted.js";
 import { SignInStateHandler } from "./SignInStateHandler.js";
 
 /*
@@ -17,13 +17,13 @@ export class SignInContinuationStateHandler extends SignInStateHandler {
      * Initiates the sign-in flow with continuation token.
      * @returns The result of the operation.
      */
-    async signIn(): Promise<SignInResult> {
+    async signIn(scopes?: string[]): Promise<SignInResult> {
         try {
             const continuationTokenParams: SignInContinuationTokenParams = {
                 clientId: this.config.auth.clientId,
                 correlationId: this.correlationId,
                 challengeType: this.config.customAuth.challengeTypes ?? [],
-                scopes: this.scopes ?? [],
+                scopes: scopes ?? [],
                 continuationToken: this.continuationToken ?? "",
                 username: this.username,
             };
@@ -43,13 +43,13 @@ export class SignInContinuationStateHandler extends SignInStateHandler {
                 this.config,
             );
 
-            return new SignInResult(accountInfo);
+            return new SignInResult(new SignInCompleted(), accountInfo);
         } catch (error) {
             this.logger.error(
                 `Failed to sign in with continuation token. Error: ${error}.`,
             );
 
-            return SignInResult.createWithError(error, SignInError);
+            return SignInResult.createWithError(error);
         }
     }
 }

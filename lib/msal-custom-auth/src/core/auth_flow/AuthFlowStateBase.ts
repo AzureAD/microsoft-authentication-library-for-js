@@ -18,10 +18,10 @@ export class AuthFlowStateBase {
             | GetAccountState
             | GetAccessTokenState
             | SignOutState,
-        protected correlationId: string,
-        protected continuationToken: string,
-        protected logger: Logger,
-        protected config: CustomAuthBrowserConfiguration,
+        public correlationId?: string,
+        public continuationToken?: string,
+        public logger?: Logger,
+        public config?: CustomAuthBrowserConfiguration,
     ) {}
 }
 
@@ -30,12 +30,11 @@ export enum SignInState {
     PasswordRequired,
     Completed,
     Failed,
-    Unknown,
 }
 
 export enum SignOutState {
     Completed,
-    Error,
+    Failed,
 }
 
 export enum SignUpState {
@@ -44,7 +43,6 @@ export enum SignUpState {
     AttributesRequired,
     Completed,
     Failed,
-    Unknown,
 }
 
 export enum ResetPasswordState {
@@ -52,17 +50,14 @@ export enum ResetPasswordState {
     PasswordRequired,
     Completed,
     Failed,
-    Unknown,
 }
 
 export enum GetAccountState {
     Completed,
     Failed,
-    Unknown,
 }
 
 export enum GetAccessTokenState {
     Completed,
     Failed,
-    Unknown,
 }

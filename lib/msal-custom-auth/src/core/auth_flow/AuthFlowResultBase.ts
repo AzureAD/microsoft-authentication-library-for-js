@@ -34,31 +34,13 @@ export abstract class AuthFlowResultBase<
     error?: TError;
 
     /*
-     * Creates a result with an error.
+     * Creates a CustomAuthError with an error.
      * @param error - The error that occurred.
-     * @returns The result.
+     * @returns The auth error.
      */
-    static createWithError<
-        TData,
-        TState extends AuthFlowStateBase,
-        TError extends AuthFlowErrorBase,
-        TActionResult extends AuthFlowResultBase<TState, TError, TData>,
-    >(
-        this: new () => TActionResult,
-        error: unknown,
-        errorConstructor: new (errorData: CustomAuthError) => TError,
-    ): TActionResult {
-        let customAuthError: CustomAuthError;
-
-        if (error instanceof CustomAuthError) {
-            customAuthError = error;
-        } else {
-            customAuthError = new UnexpectedError(error);
-        }
-
-        const errorResult = new this();
-
-        errorResult.error = new errorConstructor(customAuthError);
-        return errorResult;
+    protected static createErrorData(error: unknown): CustomAuthError {
+        return error instanceof CustomAuthError
+            ? error
+            : new UnexpectedError(error);
     }
 }

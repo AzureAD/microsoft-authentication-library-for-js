@@ -9,19 +9,19 @@ import {
     Logger,
 } from "@azure/msal-browser";
 import { ICustomAuthApiClient } from "../../../src/core/network_client/custom_auth_api/ICustomAuthApiClient.js";
-import { SigninClient } from "../../../src/sign_in/interaction_client/SignInClient.js";
+import { SignInClient } from "../../../src/sign_in/interaction_client/SignInClient.js";
 import { customAuthConfig } from "../../test_resources/CustomAuthConfig.js";
 import { CustomAuthAuthority } from "../../../src/core/CustomAuthAuthority.js";
 import { ChallengeType } from "../../../src/CustomAuthConstants.js";
 import {
     SignInCodeSendResult,
     SignInCompleteResult,
-    SignInContinuationTokenResult,
+    SignInPasswordRequiredResult,
 } from "../../../src/sign_in/interaction_client/result/SignInActionResult.js";
 import { info } from "console";
 
 describe("SigninClient", () => {
-    let client: SigninClient;
+    let client: SignInClient;
     let mockApiClient: jest.Mocked<ICustomAuthApiClient>;
     let authority: CustomAuthAuthority;
 
@@ -75,7 +75,7 @@ describe("SigninClient", () => {
         } as unknown as jest.Mocked<Logger>;
         mockLogger.clone.mockReturnValue(mockLogger);
 
-        client = new SigninClient(
+        client = new SignInClient(
             mockBrowserConfiguration,
             mockCacheManager,
             mockCrypto,
@@ -121,7 +121,6 @@ describe("SigninClient", () => {
             expect(result).toBeInstanceOf(SignInCodeSendResult);
 
             const codeSendResult = result as SignInCodeSendResult;
-            expect(codeSendResult.challengeType).toBe(ChallengeType.OOB);
             expect(codeSendResult.correlationId).toBe("corr123");
             expect(codeSendResult.continuationToken).toBe(
                 "continuation_token_2",
@@ -153,8 +152,7 @@ describe("SigninClient", () => {
                 scopes: [],
             });
 
-            expect(result).toBeInstanceOf(SignInContinuationTokenResult);
-            expect(result.challengeType).toBe(ChallengeType.PASSWORD);
+            expect(result).toBeInstanceOf(SignInPasswordRequiredResult);
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
         });
@@ -285,7 +283,6 @@ describe("SigninClient", () => {
             });
 
             expect(result).toBeInstanceOf(SignInCodeSendResult);
-            expect(result.challengeType).toBe(ChallengeType.OOB);
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
             expect(result.codeLength).toBe(6);

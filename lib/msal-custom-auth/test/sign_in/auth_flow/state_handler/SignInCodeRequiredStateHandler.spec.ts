@@ -1,7 +1,6 @@
 import { error, info } from "console";
 import { AccountInfo } from "../../../../src/account/auth_flow/model/AccountInfo.js";
 import { CustomAuthBrowserConfiguration } from "../../../../src/configuration/CustomAuthConfiguration.js";
-import { SignInState } from "../../../../src/core/auth_flow/AuthFlowState.js";
 import { InvalidArgumentError } from "../../../../src/core/error/InvalidArgumentError.js";
 import {
     SignInResendCodeError,
@@ -14,8 +13,9 @@ import {
     SignInCodeSendResult,
     SignInCompleteResult,
 } from "../../../../src/sign_in/interaction_client/result/SignInActionResult.js";
-import { SigninClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
+import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { Logger } from "@azure/msal-browser";
+import { SignInState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";
 
 describe("SignInCodeRequiredStateHandler", () => {
     const mockConfig = {
@@ -26,7 +26,7 @@ describe("SignInCodeRequiredStateHandler", () => {
     const mockSignInClient = {
         submitCode: jest.fn(),
         resendCode: jest.fn(),
-    } as unknown as jest.Mocked<SigninClient>;
+    } as unknown as jest.Mocked<SignInClient>;
 
     const mockLogger = {
         info: jest.fn(),
@@ -47,6 +47,8 @@ describe("SignInCodeRequiredStateHandler", () => {
             mockLogger,
             continuationToken,
             mockConfig,
+            200,
+            60,
             ["scope1", "scope2"],
         );
     });
@@ -59,7 +61,7 @@ describe("SignInCodeRequiredStateHandler", () => {
         it("should return an error result if code is empty", async () => {
             const result = await handler.submitCode("");
 
-            expect(result.state).toBe(SignInState.Failed);
+            expect(result.state?.type).toBe(SignInState.Failed);
             expect(result.error).toBeInstanceOf(SignInSubmitCodeError);
             expect(result.error?.isInvalidCode()).toBe(true);
             expect(result.error?.errorData).toBeInstanceOf(
@@ -131,8 +133,8 @@ describe("SignInCodeRequiredStateHandler", () => {
                     "new-continuation-token",
                     "code",
                     "email",
-                    "email",
                     6,
+                    60,
                 ),
             );
 
@@ -141,11 +143,7 @@ describe("SignInCodeRequiredStateHandler", () => {
             expect(result).toBeDefined();
             expect(result).toBeInstanceOf(SignInResendCodeResult);
             expect(result.data).toBeUndefined();
-            expect(result.state).toBe(SignInState.CodeRequired);
-            expect(result.stateHandler).toBeDefined();
-            expect(result.stateHandler).toBeInstanceOf(
-                SignInCodeRequiredStateHandler,
-            );
+            expect(result.state?.type).toBe(SignInState.CodeRequired);
         });
 
         it("should return an error result if resendCode throws an error", async () => {

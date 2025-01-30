@@ -4,7 +4,6 @@
  */
 
 import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
-import { ResetPasswordSubmitPasswordError } from "../error_type/ResetPasswordError.js";
 import { ResetPasswordSubmitPasswordResult } from "../result/ResetPasswordSubmitPasswordResult.js";
 import { ResetPasswordStateHandler } from "./ResetPasswordStateHandler.js";
 
@@ -24,7 +23,6 @@ export class ResetPasswordPasswordRequiredStateHandler extends ResetPasswordStat
             return Promise.resolve(
                 ResetPasswordSubmitPasswordResult.createWithError(
                     new InvalidArgumentError("password", this.correlationId),
-                    ResetPasswordSubmitPasswordError,
                 ),
             );
         }

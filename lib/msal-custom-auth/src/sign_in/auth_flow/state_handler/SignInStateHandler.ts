@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { SigninClient } from "../../interaction_client/SignInClient.js";
+import { SignInClient } from "../../interaction_client/SignInClient.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { AuthFlowStateHandlerBase } from "../../../core/auth_flow/AuthFlowStateHandlerBase.js";
 import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
@@ -24,12 +24,11 @@ export abstract class SignInStateHandler extends AuthFlowStateHandlerBase {
      */
     constructor(
         protected username: string,
-        protected signInClient: SigninClient,
+        protected signInClient: SignInClient,
         correlationId: string,
         logger: Logger,
         continuationToken: string,
         protected config: CustomAuthBrowserConfiguration,
-        protected scopes?: Array<string>,
     ) {
         super(correlationId, logger, continuationToken);
 
