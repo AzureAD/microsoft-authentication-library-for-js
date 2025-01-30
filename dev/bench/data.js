@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1738199632504,
+  "lastUpdate": 1738257760052,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -14348,6 +14348,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.01%",
             "unit": "ops/sec",
             "extra": "212 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shylasummers@users.noreply.github.com",
+            "name": "shylasummers",
+            "username": "shylasummers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9ae4c0ef2926e389f3637c260ea4d4de3e294517",
+          "message": "msal-node bug fix: acquireTokenSilent doesn't look in persistent cache (#7469)\n\nFixed a bug in msal-node where acquireTokenSilent doesn't look in the\r\npersistent cache for a token if a valid token is not present in the\r\nin-memory cache.\r\n\r\n- With the bug, if a valid token is not found in the in-memory cache,\r\nmsal-node will make a network request\r\n- With the fix, if a persistent cache is present, msal-node will\r\noverwrite the in-memory cache with the persistent cache and search for\r\nthe token there before making a network request. This also keeps the\r\nin-memory cache in sync with the persistent cache\r\n\r\n---------\r\n\r\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>",
+          "timestamp": "2025-01-30T09:16:19-08:00",
+          "tree_id": "f04e348f0fdb343971200156dd1f0b8881baf9af",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/9ae4c0ef2926e389f3637c260ea4d4de3e294517"
+        },
+        "date": 1738257757992,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 250781,
+            "range": "±0.68%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 249438,
+            "range": "±0.88%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
