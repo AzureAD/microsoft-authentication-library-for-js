@@ -19,7 +19,10 @@ jobs:
             - uses: actions/setup-node@v4
 
             - name: Install dependencies
-              run: npm install --workspace=lib/msal-common --workspace=lib/msal-node --workspace=regression-tests/msal-node/client-credential
+              run: npm install
+
+            - name: Build Packages
+              run: npm run build --workspace=lib/msal-common --workspace=lib/msal-node
 
             - name: Run benchmark
               run: node index.js | tee output.txt
