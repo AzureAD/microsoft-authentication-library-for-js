@@ -103,6 +103,12 @@ export class PopupClient extends StandardInteractionClient {
                 popupWindowParent: request.popupWindowParent ?? window,
             };
 
+            request.correlationId &&
+                this.performanceClient.addFields(
+                    { isAsyncPopup: this.config.system.asyncPopups },
+                    request.correlationId
+                );
+
             // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
             if (this.config.system.asyncPopups) {
                 this.logger.verbose("asyncPopups set to true, acquiring token");

@@ -642,6 +642,10 @@ export class RequestParameterBuilder {
         this.addExtraQueryParameters(brokerParams);
     }
 
+    hasParameter(parameter: string): boolean {
+        return this.parameters.has(parameter);
+    }
+
     /**
      * Utility to create a URL from the params map
      */

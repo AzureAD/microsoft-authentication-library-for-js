@@ -666,6 +666,19 @@ export class AuthorizationCodeClient extends BaseClient {
             );
         }
 
+        this.performanceClient?.addFields(
+            {
+                useLoginHint: parameterBuilder.hasParameter(
+                    AADServerParamKeys.LOGIN_HINT
+                ),
+                useDomainHint: parameterBuilder.hasParameter(
+                    AADServerParamKeys.DOMAIN_HINT
+                ),
+                useSid: parameterBuilder.hasParameter(AADServerParamKeys.SID),
+            },
+            correlationId
+        );
+
         if (request.nonce) {
             parameterBuilder.addNonce(request.nonce);
         }

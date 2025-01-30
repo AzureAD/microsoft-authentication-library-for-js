@@ -868,6 +868,14 @@ export type PerformanceEvent = {
 
     embeddedClientId?: string;
     embeddedRedirectUri?: string;
+
+    isAsyncPopup?: boolean;
+
+    rtExpiresOn?: number;
+
+    useSid?: boolean;
+    useLoginHint?: boolean;
+    useDomainHint?: boolean;
 };
 
 export type PerformanceEventContext = {
