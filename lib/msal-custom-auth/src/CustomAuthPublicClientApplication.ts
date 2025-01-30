@@ -105,9 +105,7 @@ export class CustomAuthPublicClientApplication
      * @returns - A promise that resolves to SignUpResult
      */
     signUp(signUpInputs: SignUpInputs): Promise<SignUpResult> {
-        throw new Error(
-            `Method not implemented with parameter ${signUpInputs}`,
-        );
+        return this.customAuthController.signUp(signUpInputs);
     }
 
     /*
@@ -118,9 +116,7 @@ export class CustomAuthPublicClientApplication
     resetPassword(
         resetPasswordInputs: ResetPasswordInputs,
     ): Promise<ResetPasswordStartResult> {
-        throw new Error(
-            `Method not implemented with parameter ${resetPasswordInputs}`,
-        );
+        return this.customAuthController.resetPassword(resetPasswordInputs);
     }
 
     /**

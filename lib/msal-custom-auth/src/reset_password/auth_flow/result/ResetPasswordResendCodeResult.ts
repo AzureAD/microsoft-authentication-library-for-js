@@ -3,33 +3,30 @@
  * Licensed under the MIT License.
  */
 
-import { ResetPasswordState } from "../../../core/auth_flow/AuthFlowState.js";
-import { ResultBase } from "../../../core/auth_flow/ResultBase.js";
+import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { ResetPasswordResendCodeError } from "../error_type/ResetPasswordError.js";
-import { ResetPasswordCodeRequiredStateHandler } from "../state_handler/ResetPasswordCodeRequiredStateHandler.js";
+import { ResetPasswordCodeRequired } from "../state/ResetPasswordCodeRequired.js";
+import { ResetPasswordFailed } from "../state/ResetPasswordFailed.js";
 
 /*
  * Result of resending code in a reset password operation.
  */
-export class ResetPasswordResendCodeResult extends ResultBase<
-    ResetPasswordState,
+export class ResetPasswordResendCodeResult extends AuthFlowResultBase<
+    ResetPasswordCodeRequired | ResetPasswordFailed,
     ResetPasswordResendCodeError,
-    void,
-    ResetPasswordCodeRequiredStateHandler
+    void
 > {
-    constructor(stateHandler?: ResetPasswordCodeRequiredStateHandler) {
-        super(undefined, stateHandler);
+    constructor(state?: ResetPasswordCodeRequired | ResetPasswordFailed) {
+        super(state);
     }
 
-    get state(): ResetPasswordState {
-        if (!!this.error) {
-            return ResetPasswordState.Failed;
-        }
+    static createWithError(error: unknown): ResetPasswordResendCodeResult {
+        const result = new ResetPasswordResendCodeResult();
+        result.error = new ResetPasswordResendCodeError(
+            ResetPasswordResendCodeResult.createErrorData(error),
+        );
+        result.state = new ResetPasswordFailed();
 
-        if (!!this.stateHandler) {
-            return ResetPasswordState.CodeRequired;
-        }
-
-        return ResetPasswordState.Unknown;
+        return result;
     }
 }

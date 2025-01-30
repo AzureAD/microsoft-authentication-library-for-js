@@ -43,6 +43,10 @@ export class SignUpSubmitAttributesError extends AuthFlowErrorBase {
     isInvalidAtrtributes(): boolean {
         return false;
     }
+
+    isMissingRequiredAttributes(): boolean {
+        return false;
+    }
 }
 
 export class SignUpResendCodeError extends AuthFlowErrorBase {}

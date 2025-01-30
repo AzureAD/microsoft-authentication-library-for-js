@@ -63,7 +63,7 @@ export class UserAccountAttributes {
         this.attributes["surname"] = value;
     }
 
-    toMap(): Record<string, string> {
+    toRecord(): Record<string, string> {
         return this.attributes;
     }
 }

@@ -13,6 +13,7 @@ export abstract class AuthFlowStateHandlerBase {
     /**
      * Creates a new instance of AuthFlowStateHandlerBase.
      * @param correlationId The correlation ID for the authentication flow.
+     * @param logger The logger for the authentication flow.
      * @param continuationToken The continuation token for the authentication flow.
      */
     protected constructor(
@@ -24,5 +25,7 @@ export abstract class AuthFlowStateHandlerBase {
             "correlationId",
             correlationId,
         );
+
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("logger", logger);
     }
 }

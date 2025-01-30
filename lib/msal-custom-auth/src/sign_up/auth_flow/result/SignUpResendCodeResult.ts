@@ -3,33 +3,30 @@
  * Licensed under the MIT License.
  */
 
-import { SignUpCodeRequiredStateHandler } from "../state_handler/SignUpCodeRequiredStateHandler.js";
-import { SignUpState } from "../../../core/auth_flow/AuthFlowState.js";
-import { ResultBase } from "../../../core/auth_flow/ResultBase.js";
+import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { SignUpResendCodeError } from "../error_type/SignUpError.js";
+import { SignUpCodeRequired } from "../state/SignUpCodeRequired.js";
+import { SignUpFailed } from "../state/SignUpFailed.js";
 
 /*
  * Result of resending code in a sign-up operation.
  */
-export class SignUpResendCodeResult extends ResultBase<
-    SignUpState,
+export class SignUpResendCodeResult extends AuthFlowResultBase<
+    SignUpCodeRequired | SignUpFailed,
     SignUpResendCodeError,
-    void,
-    SignUpCodeRequiredStateHandler
+    void
 > {
-    constructor(stateHandler?: SignUpCodeRequiredStateHandler) {
-        super(undefined, stateHandler);
+    constructor(state?: SignUpCodeRequired) {
+        super(state);
     }
 
-    get state(): SignUpState {
-        if (!!this.error) {
-            return SignUpState.Failed;
-        }
+    static createWithError(error: unknown): SignUpResendCodeResult {
+        const result = new SignUpResendCodeResult();
+        result.error = new SignUpResendCodeError(
+            SignUpResendCodeResult.createErrorData(error),
+        );
+        result.state = new SignUpFailed();
 
-        if (!!this.stateHandler) {
-            return SignUpState.CodeRequired;
-        }
-
-        return SignUpState.Unknown;
+        return result;
     }
 }

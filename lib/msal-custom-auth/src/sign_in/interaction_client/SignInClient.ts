@@ -26,14 +26,14 @@ import {
 import {
     SignInCodeSendResult,
     SignInCompleteResult,
-    SignInContinuationTokenResult,
+    SignInPasswordRequiredResult,
 } from "./result/SignInActionResult.js";
 import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
 import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
 import { SignInTokenResponse } from "../../core/network_client/custom_auth_api/response/ApiResponse.js";
 import { CustomAuthAuthenticationResult } from "../../core/interaction_client/CustomAuthAuthenticationResult.js";
 
-export class SigninClient extends CustomAuthInteractionClientBase {
+export class SignInClient extends CustomAuthInteractionClientBase {
     /**
      * Starts the signin flow.
      * @param parameters The parameters required to start the sign-in flow.
@@ -41,7 +41,7 @@ export class SigninClient extends CustomAuthInteractionClientBase {
      */
     async start(
         parameters: SignInStartParams,
-    ): Promise<SignInContinuationTokenResult | SignInCodeSendResult> {
+    ): Promise<SignInPasswordRequiredResult | SignInCodeSendResult> {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
@@ -75,52 +75,14 @@ export class SigninClient extends CustomAuthInteractionClientBase {
             telemetryManager,
         );
 
-        // Call challenge endpoint.
-        this.logger.info("Calling challenge endpoint for sign in.");
-
-        const challengeResponse =
-            await this.customAuthApiClient.performSignInChallengeRequest(
-                challengeRequest,
-            );
-
-        this.logger.info("Challenge endpoint called for sign in.");
-
-        if (challengeResponse.challenge_type === ChallengeType.OOB) {
-            // Code is required
-            this.logger.info("Challenge type is oob for sign in.");
-
-            return new SignInCodeSendResult(
-                challengeResponse.correlation_id ?? "",
-                challengeResponse.continuation_token ?? "",
-                challengeResponse.challenge_type ?? "",
-                challengeResponse.challenge_channel ?? "",
-                challengeResponse.target_challenge_label ?? "",
-                challengeResponse.code_length ?? 0,
-            );
-        }
-
-        if (challengeResponse.challenge_type === ChallengeType.PASSWORD) {
-            // Password is required
-            this.logger.info("Challenge type is password for sign in.");
-
-            return new SignInContinuationTokenResult(
-                challengeResponse.correlation_id ?? "",
-                challengeResponse.continuation_token ?? "",
-                challengeResponse.challenge_type,
-            );
-        }
-
-        this.logger.error(
-            `Unsupported challenge type '${challengeResponse.challenge_type}' for sign in.`,
-        );
-
-        throw new CustomAuthApiError(
-            CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
-            `Unsupported challenge type '${challengeResponse.challenge_type}'.`,
-            parameters.correlationId,
-        );
+        return this.performChallengeRequest(challengeRequest);
     }
 
+    /**
+     * Submits the code for sign-in flow.
+     * @param parameters The parameters required to submit the code.
+     * @returns The result of the sign-in submit code action.
+     */
     async submitCode(
         parameters: SignInSubmitCodeParams,
     ): Promise<SignInCompleteResult> {
@@ -164,6 +126,11 @@ export class SigninClient extends CustomAuthInteractionClientBase {
         );
     }
 
+    /**
+     * Submits the password for sign-in flow.
+     * @param parameters The parameters required to submit the password.
+     * @returns The result of the sign-in submit password action.
+     */
     async submitPassword(
         parameters: SignInSubmitPasswordParams,
     ): Promise<SignInCompleteResult> {
@@ -207,6 +174,11 @@ export class SigninClient extends CustomAuthInteractionClientBase {
         );
     }
 
+    /**
+     * Resends the code for sign-in flow.
+     * @param parameters The parameters required to resend the code.
+     * @returns The result of the sign-in resend code action.
+     */
     async resendCode(
         parameters: SignInResendCodeParams,
     ): Promise<SignInCodeSendResult> {
@@ -225,30 +197,28 @@ export class SigninClient extends CustomAuthInteractionClientBase {
             telemetryManager,
         );
 
-        // Call challenge endpoint.
-        this.logger.info(
-            "Calling challenge endpoint to resend code for sign in.",
-        );
+        const result = await this.performChallengeRequest(request);
 
-        const challengeResponse =
-            await this.customAuthApiClient.performSignInChallengeRequest(
-                request,
+        if (result instanceof SignInPasswordRequiredResult) {
+            this.logger.error(
+                "Resend code operation failed due to the challenge type 'password' is not supported.",
             );
 
-        this.logger.info(
-            "Challenge endpoint called to resend code for sign in.",
-        );
+            throw new CustomAuthApiError(
+                CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
+                "Unsupported challenge type 'password'.",
+                result.correlationId,
+            );
+        }
 
-        return new SignInCodeSendResult(
-            challengeResponse.correlation_id ?? "",
-            challengeResponse.continuation_token ?? "",
-            challengeResponse.challenge_type ?? "",
-            challengeResponse.challenge_channel ?? "",
-            challengeResponse.target_challenge_label ?? "",
-            challengeResponse.code_length ?? 0,
-        );
+        return result;
     }
 
+    /**
+     * Signs in with continuation token.
+     * @param parameters The parameters required to sign in with continuation token.
+     * @returns The result of the sign-in complete action.
+     */
     async signInWithContinuationToken(
         parameters: SignInContinuationTokenParams,
     ): Promise<SignInCompleteResult> {
@@ -319,5 +289,53 @@ export class SigninClient extends CustomAuthInteractionClientBase {
             fromCache: false,
             uniqueId: this.browserCrypto.createNewGuid(),
         };
+    }
+
+    private async performChallengeRequest(
+        request: SignInChallengeRequest,
+    ): Promise<SignInPasswordRequiredResult | SignInCodeSendResult> {
+        // Call challenge endpoint.
+        this.logger.info("Calling challenge endpoint for sign in.");
+
+        const challengeResponse =
+            await this.customAuthApiClient.performSignInChallengeRequest(
+                request,
+            );
+
+        this.logger.info("Challenge endpoint called for sign in.");
+
+        if (challengeResponse.challenge_type === ChallengeType.OOB) {
+            // Code is required
+            this.logger.info("Challenge type is oob for sign in.");
+
+            return new SignInCodeSendResult(
+                challengeResponse.correlation_id ?? "",
+                challengeResponse.continuation_token ?? "",
+                challengeResponse.challenge_channel ?? "",
+                challengeResponse.target_challenge_label ?? "",
+                challengeResponse.code_length ?? 0,
+                challengeResponse.interval ?? 0,
+            );
+        }
+
+        if (challengeResponse.challenge_type === ChallengeType.PASSWORD) {
+            // Password is required
+            this.logger.info("Challenge type is password for sign in.");
+
+            return new SignInPasswordRequiredResult(
+                challengeResponse.correlation_id ?? "",
+                challengeResponse.continuation_token ?? "",
+            );
+        }
+
+        this.logger.error(
+            `Unsupported challenge type '${challengeResponse.challenge_type}' for sign in.`,
+        );
+
+        throw new CustomAuthApiError(
+            CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
+            `Unsupported challenge type '${challengeResponse.challenge_type}'.`,
+            challengeResponse.correlation_id ?? request.correlationId,
+        );
     }
 }

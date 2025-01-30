@@ -3,17 +3,39 @@
  * Licensed under the MIT License.
  */
 
+import { Logger } from "@azure/msal-browser";
 import { AccountInfo } from "../../../account/auth_flow/model/AccountInfo.js";
 import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
 import { SignInSubmitPasswordParams } from "../../interaction_client/parameter/SignInParams.js";
-import { SignInSubmitPasswordError } from "../error_type/SignInError.js";
+import { SignInClient } from "../../interaction_client/SignInClient.js";
 import { SignInSubmitPasswordResult } from "../result/SignInSubmitPasswordResult.js";
+import { SignInCompleted } from "../state/SignInCompleted.js";
 import { SignInStateHandler } from "./SignInStateHandler.js";
+import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 
 /*
  * Sign-in handler for the state which requires a password.
  */
 export class SignInPasswordRequiredStateHandler extends SignInStateHandler {
+    constructor(
+        username: string,
+        signInClient: SignInClient,
+        correlationId: string,
+        logger: Logger,
+        continuationToken: string,
+        config: CustomAuthBrowserConfiguration,
+        public scopes?: string[],
+    ) {
+        super(
+            username,
+            signInClient,
+            correlationId,
+            logger,
+            continuationToken,
+            config,
+        );
+    }
+
     /*
      * Submits a password for sign-in.
      * @param password - The password to submit.
@@ -23,9 +45,10 @@ export class SignInPasswordRequiredStateHandler extends SignInStateHandler {
         password: string,
     ): Promise<SignInSubmitPasswordResult> {
         if (!password) {
+            this.logger.error("Password parameter is required for sign-in.");
+
             const result = SignInSubmitPasswordResult.createWithError(
                 new InvalidArgumentError("password", this.correlationId),
-                SignInSubmitPasswordError,
             );
 
             return Promise.resolve(result);
@@ -55,16 +78,16 @@ export class SignInPasswordRequiredStateHandler extends SignInStateHandler {
                 this.config,
             );
 
-            return new SignInSubmitPasswordResult(accountInfo);
+            return new SignInSubmitPasswordResult(
+                new SignInCompleted(),
+                accountInfo,
+            );
         } catch (error) {
             this.logger.error(
                 `Failed to sign in after submitting password. Error: ${error}.`,
             );
 
-            return SignInSubmitPasswordResult.createWithError(
-                error,
-                SignInSubmitPasswordError,
-            );
+            return SignInSubmitPasswordResult.createWithError(error);
         }
     }
 }

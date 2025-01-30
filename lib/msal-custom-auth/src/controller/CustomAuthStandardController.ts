@@ -11,7 +11,7 @@ import {
     SignInStartParams,
     SignInSubmitPasswordParams,
 } from "../sign_in/interaction_client/parameter/SignInParams.js";
-import { SigninClient } from "../sign_in/interaction_client/SignInClient.js";
+import { SignInClient } from "../sign_in/interaction_client/SignInClient.js";
 import {
     GetAccountInputs,
     SignInInputs,
@@ -24,9 +24,7 @@ import { CustomAuthApiClient } from "../core/network_client/custom_auth_api/Cust
 import { CustomAuthOperatingContext } from "../operating_context/CustomAuthOperatingContext.js";
 import { ICustomAuthStandardController } from "./ICustomAuthStandardController.js";
 import { InvalidArgumentError } from "../core/error/InvalidArgumentError.js";
-import { SignInPasswordRequiredStateHandler } from "../sign_in/auth_flow/state_handler/SignInPasswordRequiredStateHandler.js";
 import { AccountInfo } from "../account/auth_flow/model/AccountInfo.js";
-import { SignInCodeRequiredStateHandler } from "../sign_in/auth_flow/state_handler/SignInCodeRequiredStateHandler.js";
 import { UnexpectedError } from "../core/error/UnexpectedError.js";
 import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
@@ -34,11 +32,20 @@ import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import { FetchHttpClient } from "../core/network_client/http_client/FetchHttpClient.js";
 import {
     SignInCodeSendResult,
-    SignInContinuationTokenResult,
+    SignInPasswordRequiredResult,
 } from "../sign_in/interaction_client/result/SignInActionResult.js";
-import { SignInError } from "../sign_in/auth_flow/error_type/SignInError.js";
-import { SignUpError } from "../sign_up/auth_flow/error_type/SignUpError.js";
-import { ResetPasswordError } from "../reset_password/auth_flow/error_type/ResetPasswordError.js";
+import { SignUpClient } from "../sign_up/interaction_client/SignUpClient.js";
+import { CustomAuthInterationClientFactory } from "../core/interaction_client/CustomAuthInterationClientFactory.js";
+import {
+    SignUpAttributesRequiredResult,
+    SignUpCodeRequiredResult,
+} from "../sign_up/interaction_client/result/SignUpActionResult.js";
+import { SignUpCodeRequired } from "../sign_up/auth_flow/state/SignUpCodeRequired.js";
+import { SignUpPasswordRequired } from "../sign_up/auth_flow/state/SignUpPasswordRequired.js";
+import { SignUpAttributesRequired } from "../sign_up/auth_flow/state/SignUpAttributesRequired.js";
+import { SignInCodeRequired } from "../sign_in/auth_flow/state/SignInCodeRequired.js";
+import { SignInPasswordRequired } from "../sign_in/auth_flow/state/SignInPasswordRequired.js";
+import { SignInCompleted } from "../sign_in/auth_flow/state/SignInCompleted.js";
 
 /*
  * Controller for standard native auth operations.
@@ -50,7 +57,12 @@ export class CustomAuthStandardController
     /*
      * The client to use for sign-in operations.
      */
-    private readonly signInClient: SigninClient; // More clients will be added for sign-up, reset password, etc.
+    private readonly signInClient: SignInClient;
+
+    /**
+     * The client to use for sign-up operations.
+     */
+    private readonly signUpClient: SignUpClient;
 
     /*
      * The configuration for the client.
@@ -86,7 +98,7 @@ export class CustomAuthStandardController
             ),
         );
 
-        this.signInClient = new SigninClient(
+        const interactionClientFactory = new CustomAuthInterationClientFactory(
             this.customAuthConfig,
             this.browserStorage,
             this.browserCrypto,
@@ -97,6 +109,10 @@ export class CustomAuthStandardController
             customAuthApiClient,
             this.authority,
         );
+
+        this.signInClient = interactionClientFactory.create(SignInClient);
+        this.signUpClient = interactionClientFactory.create(SignUpClient);
+
         // Create more interaction clients here, such as SignUpClient, ResetPasswordClient, etc.
     }
 
@@ -132,7 +148,6 @@ export class CustomAuthStandardController
                         "signUpInputs.username",
                         correlationId,
                     ),
-                    SignInError,
                 ),
             );
         }
@@ -165,18 +180,19 @@ export class CustomAuthStandardController
                 this.logger.info("Code required for sign-in.");
 
                 return new SignInResult(
-                    undefined,
-                    new SignInCodeRequiredStateHandler(
-                        signInInputs.username,
-                        this.signInClient,
-                        correlationId,
-                        this.logger,
+                    new SignInCodeRequired(
+                        startResult.correlationId,
                         startResult.continuationToken,
+                        this.logger,
                         this.customAuthConfig,
-                        signInInputs.scopes,
+                        this.signInClient,
+                        signInInputs.username,
+                        startResult.codeLength,
+                        startResult.interval,
+                        signInInputs.scopes ?? [],
                     ),
                 );
-            } else if (startResult instanceof SignInContinuationTokenResult) {
+            } else if (startResult instanceof SignInPasswordRequiredResult) {
                 // require password
                 this.logger.info("Password required for sign-in.");
 
@@ -186,15 +202,14 @@ export class CustomAuthStandardController
                     );
 
                     return new SignInResult(
-                        undefined,
-                        new SignInPasswordRequiredStateHandler(
-                            signInInputs.username,
-                            this.signInClient,
-                            correlationId,
-                            this.logger,
+                        new SignInPasswordRequired(
+                            startResult.correlationId,
                             startResult.continuationToken,
+                            this.logger,
                             this.customAuthConfig,
-                            signInInputs.scopes,
+                            this.signInClient,
+                            signInInputs.username,
+                            signInInputs.scopes ?? [],
                         ),
                     );
                 }
@@ -226,18 +241,20 @@ export class CustomAuthStandardController
                     this.customAuthConfig,
                 );
 
-                return new SignInResult(accountInfo);
-            } else {
-                this.logger.error(
-                    "Unexpected sign-in result type. Returning error.",
-                );
-
-                throw new UnexpectedError("Unknow sign-in result type");
+                return new SignInResult(new SignInCompleted(), accountInfo);
             }
-        } catch (error) {
-            this.logger.error(`An error occurred during sign-in: ${error}`);
 
-            return SignInResult.createWithError(error, SignInError);
+            this.logger.error(
+                "Unexpected sign-in result type. Returning error.",
+            );
+
+            throw new UnexpectedError("Unknow sign-in result type");
+        } catch (error) {
+            this.logger.error(
+                `An error occurred during starting sign-in: ${error}`,
+            );
+
+            return SignInResult.createWithError(error);
         }
     }
 
@@ -256,14 +273,93 @@ export class CustomAuthStandardController
                         "signUpInputs.username",
                         correlationId,
                     ),
-                    SignUpError,
                 ),
             );
         }
 
-        throw new Error(
-            `Method not implemented with Parameter ${correlationId}.`,
-        );
+        try {
+            this.logger.info(
+                `Starting sign-up flow${
+                    !!signUpInputs.password
+                        ? ` with ${!!signUpInputs.attributes ? "password and attributes" : "password"}`
+                        : ""
+                }.`,
+            );
+
+            const startResult = await this.signUpClient.start({
+                clientId: this.config.auth.clientId,
+                correlationId: correlationId,
+                challengeType:
+                    this.customAuthConfig.customAuth.challengeTypes ?? [],
+                username: signUpInputs.username,
+                password: signUpInputs.password,
+                attributes: signUpInputs.attributes?.toRecord(),
+            });
+
+            this.logger.info("Sign-up flow started.");
+
+            if (startResult instanceof SignUpCodeRequiredResult) {
+                // Code required
+                this.logger.info("Code required for sign-up.");
+
+                return new SignUpResult(
+                    new SignUpCodeRequired(
+                        startResult.correlationId,
+                        startResult.continuationToken,
+                        this.logger,
+                        this.customAuthConfig,
+                        this.signInClient,
+                        this.signUpClient,
+                        signUpInputs.username,
+                        startResult.codeLength,
+                        startResult.interval,
+                    ),
+                );
+            } else if (startResult instanceof SignInPasswordRequiredResult) {
+                // Password required
+                this.logger.info("Password required for sign-up.");
+
+                return new SignUpResult(
+                    new SignUpPasswordRequired(
+                        startResult.correlationId,
+                        startResult.continuationToken,
+                        this.logger,
+                        this.customAuthConfig,
+                        this.signInClient,
+                        this.signUpClient,
+                        signUpInputs.username,
+                    ),
+                );
+            } else if (startResult instanceof SignUpAttributesRequiredResult) {
+                // Attributes required
+                this.logger.info("Attributes required for sign-up.");
+
+                return new SignUpResult(
+                    new SignUpAttributesRequired(
+                        startResult.correlationId,
+                        startResult.continuationToken,
+                        this.logger,
+                        this.customAuthConfig,
+                        this.signInClient,
+                        this.signUpClient,
+                        signUpInputs.username,
+                        startResult.requiredAttributes,
+                    ),
+                );
+            }
+
+            this.logger.error(
+                "Unexpected sign-up result type. Returning error.",
+            );
+
+            throw new UnexpectedError("Unknown sign-up result type");
+        } catch (error) {
+            this.logger.error(
+                `An error occurred during starting sign-up: ${error}`,
+            );
+
+            return SignUpResult.createWithError(error);
+        }
     }
 
     /*
@@ -283,7 +379,6 @@ export class CustomAuthStandardController
                         "resetPasswordInputs.username",
                         correlationId,
                     ),
-                    ResetPasswordError,
                 ),
             );
         }

@@ -3,33 +3,37 @@
  * Licensed under the MIT License.
  */
 
-import { SignUpState } from "../../../core/auth_flow/AuthFlowState.js";
-import { ResultBase } from "../../../core/auth_flow/ResultBase.js";
-import { SignInContinuationStateHandler } from "../../../sign_in/auth_flow/state_handler/SignInContinuationStateHandler.js";
+import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { SignUpSubmitAttributesError } from "../error_type/SignUpError.js";
+import { SignUpCodeRequired } from "../state/SignUpCodeRequired.js";
+import { SignUpCompleted } from "../state/SignUpCompleted.js";
+import { SignUpFailed } from "../state/SignUpFailed.js";
+import { SignUpPasswordRequired } from "../state/SignUpPasswordRequired.js";
 
 /*
  * Result of a sign-up operation that requires attributes.
  */
-export class SignUpSubmitAttributesResult extends ResultBase<
-    SignUpState,
+export class SignUpSubmitAttributesResult extends AuthFlowResultBase<
+    | SignUpCodeRequired
+    | SignUpPasswordRequired
+    | SignUpCompleted
+    | SignUpFailed,
     SignUpSubmitAttributesError,
-    void,
-    SignInContinuationStateHandler
+    void
 > {
-    constructor(stateHandler?: SignInContinuationStateHandler) {
-        super(undefined, stateHandler);
+    constructor(
+        state?: SignUpCodeRequired | SignUpPasswordRequired | SignUpCompleted,
+    ) {
+        super(state);
     }
 
-    get state(): SignUpState {
-        if (!!this.error) {
-            return SignUpState.Failed;
-        }
+    static createWithError(error: unknown): SignUpSubmitAttributesResult {
+        const result = new SignUpSubmitAttributesResult();
+        result.error = new SignUpSubmitAttributesError(
+            SignUpSubmitAttributesResult.createErrorData(error),
+        );
+        result.state = new SignUpFailed();
 
-        if (!!this.stateHandler) {
-            return SignUpState.Completed;
-        }
-
-        return SignUpState.Unknown;
+        return result;
     }
 }

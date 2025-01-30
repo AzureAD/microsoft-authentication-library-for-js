@@ -4,11 +4,10 @@ import { CustomAuthOperatingContext } from "../../src/operating_context/CustomAu
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { SignInError } from "../../src/sign_in/auth_flow/error_type/SignInError.js";
 import { SignInResult } from "../../src/sign_in/auth_flow/result/SignInResult.js";
-import { SignInState } from "../../src/core/auth_flow/AuthFlowState.js";
 import { SignInCodeRequiredStateHandler } from "../../src/sign_in/auth_flow/state_handler/SignInCodeRequiredStateHandler.js";
 import { SignInPasswordRequiredStateHandler } from "../../src/sign_in/auth_flow/state_handler/SignInPasswordRequiredStateHandler.js";
-import { CustomAuthAuthenticationResult } from "../../src/core/interaction_client/CustomAuthAuthenticationResult.js";
-import { AccountInfo } from "../../src/index.js";
+import { SignInState } from "../../src/core/auth_flow/AuthFlowStateBase.js";
+import { AccountInfo } from "../../src/account/auth_flow/model/AccountInfo.js";
 
 describe("CustomAuthStandardController", () => {
     let controller: CustomAuthStandardController;
@@ -73,11 +72,7 @@ describe("CustomAuthStandardController", () => {
 
             expect(result).toBeInstanceOf(SignInResult);
             expect(result.error).toBeUndefined();
-            expect(result.state).toStrictEqual(SignInState.CodeRequired);
-            expect(result.stateHandler).toBeInstanceOf(
-                SignInCodeRequiredStateHandler,
-            );
-            expect(result.stateHandler).toBeDefined();
+            expect(result.state?.type).toStrictEqual(SignInState.CodeRequired);
         });
 
         it("should return password required result if the challenge type is password", async () => {
@@ -114,11 +109,9 @@ describe("CustomAuthStandardController", () => {
 
             expect(result).toBeInstanceOf(SignInResult);
             expect(result.error).toBeUndefined();
-            expect(result.state).toStrictEqual(SignInState.PasswordRequired);
-            expect(result.stateHandler).toBeInstanceOf(
-                SignInPasswordRequiredStateHandler,
+            expect(result.state?.type).toStrictEqual(
+                SignInState.PasswordRequired,
             );
-            expect(result.stateHandler).toBeDefined();
         });
 
         it("should return correct completed result if the challenge type is password and password is provided", async () => {
@@ -172,8 +165,7 @@ describe("CustomAuthStandardController", () => {
 
             expect(result).toBeInstanceOf(SignInResult);
             expect(result.error).toBeUndefined();
-            expect(result.state).toStrictEqual(SignInState.Completed);
-            expect(result.stateHandler).toBeUndefined();
+            expect(result.state?.type).toStrictEqual(SignInState.Completed);
             expect(result.data).toBeDefined();
             expect(result.data).toBeInstanceOf(AccountInfo);
         });
@@ -203,7 +195,7 @@ describe("CustomAuthStandardController", () => {
             expect(result.error).toBeDefined();
             expect(result.error?.errorData).toBeDefined();
             expect(result.error?.isRedirect()).toEqual(true);
-            expect(result.state).toStrictEqual(SignInState.Failed);
+            expect(result.state?.type).toStrictEqual(SignInState.Failed);
         });
     });
 });

@@ -4,31 +4,30 @@
  */
 
 import { AuthenticationResult } from "@azure/msal-browser";
-import { GetAccessTokenState } from "../../../core/auth_flow/AuthFlowState.js";
-import { ResultBase } from "../../../core/auth_flow/ResultBase.js";
+import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { GetAccessTokenError } from "../error_type/GetAccountError.js";
+import { GetAccessTokenCompleted } from "../state/GetAccessTokenCompleted.js";
+import { GetAccessTokenFailed } from "../state/GetAccessTokenFailed.js";
 
 /*
  * Result of getting an access token.
  */
-export class GetAccessTokenResult extends ResultBase<
-    GetAccessTokenState,
+export class GetAccessTokenResult extends AuthFlowResultBase<
+    GetAccessTokenCompleted | GetAccessTokenFailed,
     GetAccessTokenError,
     AuthenticationResult
 > {
     constructor(resultData?: AuthenticationResult) {
-        super(resultData);
+        super(new GetAccessTokenCompleted(), resultData);
     }
 
-    get state(): GetAccessTokenState {
-        if (!!this.error) {
-            return GetAccessTokenState.Failed;
-        }
+    static createWithError(error: unknown): GetAccessTokenResult {
+        const result = new GetAccessTokenResult();
+        result.error = new GetAccessTokenError(
+            GetAccessTokenResult.createErrorData(error),
+        );
+        result.state = new GetAccessTokenFailed();
 
-        if (!!this.data) {
-            return GetAccessTokenState.Completed;
-        }
-
-        return GetAccessTokenState.Unknown;
+        return result;
     }
 }

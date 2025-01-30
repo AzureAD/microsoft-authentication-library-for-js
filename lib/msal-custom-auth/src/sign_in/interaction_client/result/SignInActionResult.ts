@@ -12,23 +12,24 @@ export class SignInCompleteResult {
     ) {}
 }
 
-export class SignInContinuationTokenResult {
+class SignInContinuationTokenResult {
     constructor(
         public correlationId: string,
         public continuationToken: string,
-        public challengeType: string,
     ) {}
 }
+
+export class SignInPasswordRequiredResult extends SignInContinuationTokenResult {}
 
 export class SignInCodeSendResult extends SignInContinuationTokenResult {
     constructor(
         correlationId: string,
         continuationToken: string,
-        challengeType: string,
         public challengeChannel: string,
         public challengeTargetLabel: string,
         public codeLength: number,
+        public interval: number,
     ) {
-        super(correlationId, continuationToken, challengeType);
+        super(correlationId, continuationToken);
     }
 }
