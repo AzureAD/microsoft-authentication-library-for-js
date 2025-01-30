@@ -29,6 +29,17 @@ import {
     AuthorityFactory,
     ProtocolMode,
     AADServerParamKeys,
+    CacheOutcome,
+    TokenCacheContext,
+    Authority,
+    IdTokenEntity,
+    CredentialType,
+    AccessTokenEntity,
+    TimeUtils,
+    AuthenticationScheme,
+    RefreshTokenEntity,
+    CacheManager,
+    CommonSilentFlowRequest,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -58,10 +69,17 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
 } from "@azure/msal-common/node";
-import { TEST_CONFIG } from "../test_kit/StringConstants.js";
+import {
+    AUTHENTICATION_RESULT,
+    TEST_CONFIG,
+    TEST_TOKENS,
+} from "../test_kit/StringConstants.js";
 import { HttpClient } from "../../src/network/HttpClient.js";
 import { MockStorageClass } from "./ClientTestUtils.js";
 import { Constants } from "../../src/utils/Constants.js";
+import { NodeStorage } from "../../src/cache/NodeStorage.js";
+import { TokenCache } from "../../src/index.js";
+import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 
 const msalCommon: MSALCommonModule = jest.requireActual(
     "@azure/msal-common/node"
@@ -222,6 +240,54 @@ describe("PublicClientApplication", () => {
     });
 
     describe("acquireTokenSilent tests", () => {
+        const testAccountEntity: AccountEntity =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+        const testAccount: AccountInfo = {
+            ...testAccountEntity.getAccountInfo(),
+            idTokenClaims: ID_TOKEN_CLAIMS,
+            idToken: TEST_TOKENS.IDTOKEN_V2,
+        };
+        const testIdToken: IdTokenEntity = {
+            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            environment: testAccountEntity.environment,
+            realm: ID_TOKEN_CLAIMS.tid,
+            secret: AUTHENTICATION_RESULT.body.id_token,
+            credentialType: CredentialType.ID_TOKEN,
+        };
+        const testAccessTokenEntity: AccessTokenEntity = {
+            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            environment: testAccountEntity.environment,
+            realm: ID_TOKEN_CLAIMS.tid,
+            secret: AUTHENTICATION_RESULT.body.access_token,
+            target:
+                TEST_CONFIG.DEFAULT_SCOPES.join(" ") +
+                " " +
+                TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
+            credentialType: CredentialType.ACCESS_TOKEN,
+            cachedAt: `${TimeUtils.nowSeconds()}`,
+            expiresOn: (
+                TimeUtils.nowSeconds() + AUTHENTICATION_RESULT.body.expires_in
+            ).toString(),
+            tokenType: AuthenticationScheme.BEARER,
+        };
+        const testRefreshTokenEntity: RefreshTokenEntity = {
+            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            environment: testAccountEntity.environment,
+            realm: ID_TOKEN_CLAIMS.tid,
+            secret: AUTHENTICATION_RESULT.body.refresh_token,
+            credentialType: CredentialType.REFRESH_TOKEN,
+        };
+        testAccessTokenEntity.refreshOn = `${
+            Number(testAccessTokenEntity.cachedAt) - 1
+        }`;
+        testAccessTokenEntity.expiresOn = `${
+            Number(testAccessTokenEntity.cachedAt) +
+            AUTHENTICATION_RESULT.body.expires_in
+        }`;
+
         test("acquireTokenSilent succeeds", async () => {
             const request: SilentFlowRequest = {
                 account: mockAccountInfo,
@@ -232,6 +298,13 @@ describe("PublicClientApplication", () => {
             jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
                 (config) => new silentFlowClient(config)
             );
+            jest.spyOn(
+                silentFlowClient.prototype,
+                "acquireCachedToken"
+            ).mockResolvedValue([
+                mockAuthenticationResult,
+                CacheOutcome.NOT_APPLICABLE,
+            ]);
 
             const authApp = new PublicClientApplication(appConfig);
             await authApp.acquireTokenSilent(request);
@@ -294,7 +367,7 @@ describe("PublicClientApplication", () => {
             );
         });
 
-        test("acquireTokenSilent - calls into NativeBrokerPlugin and throws", (done) => {
+        test("acquireTokenSilent calls into NativeBrokerPlugin and throws", (done) => {
             const authApp = new PublicClientApplication({
                 ...appConfig,
                 broker: {
@@ -319,6 +392,231 @@ describe("PublicClientApplication", () => {
                 expect(brokerSpy).toHaveBeenCalled();
                 expect(e).toBe(testError);
                 done();
+            });
+        });
+
+        test("acquireTokenSilent calls overwriteCache if persistence exists", async () => {
+            const beforeCacheAccess = jest
+                .fn()
+                .mockImplementation((cacheContext: TokenCacheContext) => {
+                    //@ts-ignore
+                    cacheContext.cache.cacheSnapshot = "{}";
+                });
+            const afterCacheAccess = jest
+                .fn()
+                .mockImplementation((cacheContext: TokenCacheContext) => {
+                    //@ts-ignore
+                    cacheContext.cache.cacheSnapshot = "{}";
+                });
+
+            const authApp = new PublicClientApplication({
+                ...appConfig,
+                cache: { cachePlugin: { beforeCacheAccess, afterCacheAccess } },
+            });
+
+            const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
+            jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
+                (config) => new silentFlowClient(config)
+            );
+
+            let acquireCachedTokenSpy = jest
+                .spyOn(silentFlowClient.prototype, "acquireCachedToken")
+                .mockResolvedValue([
+                    mockAuthenticationResult,
+                    CacheOutcome.NOT_APPLICABLE,
+                ]);
+
+            let cacheSpy = jest.spyOn(TokenCache.prototype, "overwriteCache");
+
+            const request: SilentFlowRequest = {
+                account: mockAccountInfo,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            };
+
+            const response = await authApp.acquireTokenSilent(request);
+            expect(response).toEqual(mockAuthenticationResult);
+            expect(acquireCachedTokenSpy).toHaveBeenCalled();
+            expect(cacheSpy).toHaveBeenCalled();
+        });
+
+        it("acquireTokenSilent refreshes token if refreshOn time has passed", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            AUTHENTICATION_RESULT.body.client_info =
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            ).mockResolvedValue(AUTHENTICATION_RESULT);
+            jest.spyOn(
+                CacheManager.prototype,
+                "readAccountFromCache"
+            ).mockReturnValue(testAccountEntity);
+            jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
+                testIdToken
+            );
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAccessToken"
+            ).mockReturnValue(testAccessTokenEntity);
+            jest.spyOn(
+                CacheManager.prototype,
+                "getRefreshToken"
+            ).mockReturnValue(testRefreshTokenEntity);
+            jest.spyOn(NodeStorage.prototype, "getAccount").mockReturnValue(
+                testAccountEntity
+            );
+
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            };
+
+            const appConfiguration: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
+                },
+            };
+            const authApp = new PublicClientApplication(appConfiguration);
+            //@ts-ignore
+            if (!authApp.storage) {
+                fail("authApp.storage is undefined");
+            }
+
+            // The cached token returned from acquireCachedToken below is mocked, which means it won't exist in the cache at this point
+            //@ts-ignore
+            const accessTokenKey: string | undefined = authApp.storage
+                .getKeys()
+                .find((value) => value.indexOf("accesstoken") >= 0);
+            expect(accessTokenKey).toBeUndefined();
+
+            // Acquire a token (from the cache). The refresh_in value is expired, so there will be an asynchronous network request
+            // to refresh the token. That result will be stored in the cache.
+            await authApp.acquireTokenSilent(silentFlowRequest);
+
+            /**
+             * @param cache config.storageInterface
+             * @returns AccessTokenEntity - the access token in the cache
+             */
+            const waitUntilAccessTokenInCacheThenReturnIt = async (
+                cache: NodeStorage
+            ): Promise<AccessTokenEntity | null> => {
+                let counter: number = 0;
+                return await new Promise((resolve) => {
+                    const interval = setInterval(() => {
+                        // look for the access token's key in the cache
+                        const accessTokenKey = cache
+                            .getKeys()
+                            .find((value) => value.indexOf("accesstoken") >= 0);
+                        // if the access token's key is in the cache
+                        if (accessTokenKey) {
+                            // use it to get the access token (from the cache)
+                            const accessTokenFromCache: AccessTokenEntity | null =
+                                cache.getAccessTokenCredential(accessTokenKey);
+                            // return it and clear the interval
+                            resolve(accessTokenFromCache);
+                            clearInterval(interval);
+                            // otherwise, if the access token's key is NOT in the cache (yet)
+                        } else {
+                            counter++;
+                            // exit the interval so that this test doesn't time out
+                            if (counter === 400) {
+                                clearInterval(interval);
+                                resolve(null);
+                            }
+                        }
+                    }, 1); // wait 1 millisecond
+                });
+            };
+            const accessTokenFromCache: AccessTokenEntity | null =
+                await waitUntilAccessTokenInCacheThenReturnIt(
+                    //@ts-ignore
+                    authApp.storage
+                );
+
+            expect(accessTokenFromCache?.clientId).toEqual(
+                testAccessTokenEntity.clientId
+            );
+        });
+
+        it("Adds tokenQueryParameters to the /token request", (done) => {
+            AUTHENTICATION_RESULT.body.client_info =
+                TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+            jest.spyOn(
+                RefreshTokenClient.prototype,
+                <any>"executePostToTokenEndpoint"
+            )
+                // @ts-expect-error
+                .mockImplementation((url: string) => {
+                    try {
+                        expect(
+                            url.includes(
+                                "/token?testParam1=testValue1&testParam3=testValue3"
+                            )
+                        ).toBeTruthy();
+                        expect(
+                            !url.includes("/token?testParam2=")
+                        ).toBeTruthy();
+                        done();
+                        return AUTHENTICATION_RESULT;
+                    } catch (error) {
+                        done(error);
+                        return error;
+                    }
+                });
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            testAccessTokenEntity.refreshOn = `${
+                Number(testAccessTokenEntity.cachedAt) - 1
+            }`;
+            testAccessTokenEntity.expiresOn = `${
+                Number(testAccessTokenEntity.cachedAt) +
+                AUTHENTICATION_RESULT.body.expires_in
+            }`;
+            jest.spyOn(
+                CacheManager.prototype,
+                "readAccountFromCache"
+            ).mockReturnValue(testAccountEntity);
+            jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
+                testIdToken
+            );
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAccessToken"
+            ).mockReturnValue(testAccessTokenEntity);
+            jest.spyOn(
+                CacheManager.prototype,
+                "getRefreshToken"
+            ).mockReturnValue(testRefreshTokenEntity);
+            jest.spyOn(
+                MockStorageClass.prototype,
+                "getAccount"
+            ).mockReturnValue(testAccountEntity);
+
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+                tokenQueryParameters: {
+                    testParam1: "testValue1",
+                    testParam2: "",
+                    testParam3: "testValue3",
+                },
+            };
+
+            const authApp = new PublicClientApplication(appConfig);
+            authApp.acquireTokenSilent(silentFlowRequest).catch(() => {
+                // Catch errors thrown after the function call this test is testing
             });
         });
     });
@@ -928,21 +1226,25 @@ describe("PublicClientApplication", () => {
         jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
             (config) => new silentFlowClient(config)
         );
+        const acquireCachedTokenSpy = jest
+            .spyOn(silentFlowClient.prototype, "acquireCachedToken")
+            .mockResolvedValue([
+                mockAuthenticationResult,
+                CacheOutcome.NOT_APPLICABLE,
+            ]);
 
-        const acquireTokenSpy = jest.spyOn(
-            silentFlowClient.prototype,
-            "acquireToken"
-        );
         const authApp = new PublicClientApplication({
             ...appConfig,
             cache: { claimsBasedCachingEnabled: true },
         });
         await authApp.acquireTokenSilent(request);
-        expect(silentFlowClient.prototype.acquireToken).toHaveBeenCalledWith(
+        expect(
+            silentFlowClient.prototype.acquireCachedToken
+        ).toHaveBeenCalledWith(
             expect.objectContaining({ requestedClaimsHash: expect.any(String) })
         );
 
-        const submittedRequest = acquireTokenSpy.mock.calls[0][0];
+        const submittedRequest = acquireCachedTokenSpy.mock.calls[0][0];
         expect(
             (submittedRequest as any)?.requestedClaimsHash?.length
         ).toBeGreaterThan(0);
@@ -968,20 +1270,24 @@ describe("PublicClientApplication", () => {
         jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
             (config) => new silentFlowClient(config)
         );
+        const acquireCachedTokenSpy = jest
+            .spyOn(silentFlowClient.prototype, "acquireCachedToken")
+            .mockResolvedValue([
+                mockAuthenticationResult,
+                CacheOutcome.NOT_APPLICABLE,
+            ]);
 
-        const acquireTokenSpy = jest.spyOn(
-            silentFlowClient.prototype,
-            "acquireToken"
-        );
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenSilent(request);
-        expect(silentFlowClient.prototype.acquireToken).toHaveBeenCalledWith(
+        expect(
+            silentFlowClient.prototype.acquireCachedToken
+        ).toHaveBeenCalledWith(
             expect.not.objectContaining({
                 requestedClaimsHash: expect.any(String),
             })
         );
 
-        const submittedRequest = acquireTokenSpy.mock.calls[0][0];
+        const submittedRequest = acquireCachedTokenSpy.mock.calls[0][0];
         expect((submittedRequest as any)?.requestedClaimsHash).toBe(undefined);
     });
 

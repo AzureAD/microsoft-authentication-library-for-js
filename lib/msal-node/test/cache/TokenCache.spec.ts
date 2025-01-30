@@ -246,4 +246,49 @@ describe("TokenCache tests", () => {
             }
         );
     });
+
+    it("overwriteCache should overwrite the in-memory cache with persistent cache if exists", async () => {
+        const cachePath = "./test/cache/cache-test-files/default-cache.json";
+        const beforeCacheAccess = async (context: TokenCacheContext) => {
+            context.tokenCache.deserialize(
+                await promises.readFile(cachePath, "utf-8")
+            );
+        };
+        const afterCacheAccess = async (context: TokenCacheContext) => {
+            await promises.writeFile(cachePath, context.tokenCache.serialize());
+        };
+
+        const cachePlugin: ICachePlugin = {
+            beforeCacheAccess,
+            afterCacheAccess,
+        };
+
+        const tokenCache = new TokenCache(storage, logger, cachePlugin);
+
+        const clearSpy = jest.spyOn(NodeStorage.prototype, "clear");
+        // persistent cache in CacheKVStore format
+        const deserializedCacheSpy = jest.spyOn(
+            NodeStorage.prototype,
+            "inMemoryCacheToCache"
+        );
+
+        await tokenCache.overwriteCache();
+        expect(clearSpy).toHaveBeenCalled();
+        expect(deserializedCacheSpy).toHaveBeenCalledTimes(2); // first call returns serialized cache, second call returns deserialized cache
+        expect(deserializedCacheSpy.mock.results[1].value).toBe(
+            tokenCache.getKVStore()
+        );
+    });
+
+    it("overwriteCache should not throw and simply return if persistent cache does not exist", async () => {
+        const tokenCache = new TokenCache(storage, logger);
+
+        const clearSpy = jest.spyOn(NodeStorage.prototype, "clear");
+        const setSpy = jest.spyOn(NodeStorage.prototype, "setCache");
+
+        await tokenCache.overwriteCache();
+        expect(clearSpy).not.toHaveBeenCalled();
+        expect(setSpy).not.toHaveBeenCalled();
+        expect(tokenCache.getKVStore()).toEqual({});
+    });
 });
