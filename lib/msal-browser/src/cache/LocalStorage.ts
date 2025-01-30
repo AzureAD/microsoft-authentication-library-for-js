@@ -36,6 +36,7 @@ import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
 import { StaticCacheKeys } from "../utils/BrowserConstants.js";
 
 const ENCRYPTION_KEY = "msal.cache.encryption";
+const BROADCAST_CHANNEL_NAME = "msal.broadcast.cache";
 
 type EncryptionCookie = {
     id: string;
@@ -55,6 +56,7 @@ export class LocalStorage implements IWindowStorage<string> {
     private performanceClient: IPerformanceClient;
     private logger: Logger;
     private encryptionCookie?: EncryptionCookie;
+    private broadcast: BroadcastChannel;
 
     constructor(
         clientId: string,
@@ -71,6 +73,7 @@ export class LocalStorage implements IWindowStorage<string> {
         this.clientId = clientId;
         this.logger = logger;
         this.performanceClient = performanceClient;
+        this.broadcast = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
     }
 
     async initialize(correlationId: string): Promise<void> {
@@ -145,6 +148,9 @@ export class LocalStorage implements IWindowStorage<string> {
             };
             cookies.setItem(ENCRYPTION_KEY, JSON.stringify(cookieData));
         }
+
+        // Register listener for cache updates in other tabs
+        this.broadcast.addEventListener("message", this.updateCache.bind(this));
     }
 
     getItem(key: string): string | null {
@@ -190,10 +196,16 @@ export class LocalStorage implements IWindowStorage<string> {
 
         this.memoryStorage.setItem(key, value);
         this.setItem(key, JSON.stringify(encryptedData));
+
+        // Notify other frames to update their in-memory cache
+        this.broadcast.postMessage({ key: key, value: value });
     }
 
     removeItem(key: string): void {
-        this.memoryStorage.removeItem(key);
+        if (this.memoryStorage.containsKey(key)) {
+            this.memoryStorage.removeItem(key);
+            this.broadcast.postMessage({ key: key, value: null });
+        }
         window.localStorage.removeItem(key);
     }
 
@@ -365,5 +377,31 @@ export class LocalStorage implements IWindowStorage<string> {
         }
 
         return context;
+    }
+
+    private updateCache(event: MessageEvent): void {
+        this.logger.trace("Updating internal cache from broadcast event");
+        const { key, value } = event.data;
+        if (!key) {
+            this.logger.error("Broadcast event missing key");
+            return;
+        }
+
+        const context = this.getContext(key);
+        if (context && context !== this.clientId) {
+            this.logger.trace(
+                "Ignoring broadcast event from different client id"
+            );
+            return;
+        }
+
+        if (!value) {
+            this.memoryStorage.removeItem(key);
+            this.logger.verbose("Removed item from internal cache");
+            return;
+        } else {
+            this.memoryStorage.setItem(key, value);
+            this.logger.verbose("Updated item in internal cache");
+        }
     }
 }
