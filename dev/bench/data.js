@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1736895985691,
+  "lastUpdate": 1738199632504,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -14310,6 +14310,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.87%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b86043333ce4931746cbf8361dd3bd091272b890",
+          "message": "Fix Client Credential Regression Test (#7541)\n\nThe regression test wasn't part of workspaces; It was never pointing to\r\nthe local msal-node version and instead was pulling msal-node from npm.",
+          "timestamp": "2025-01-29T20:07:47-05:00",
+          "tree_id": "479acff378f7bae8cee7ff744d7440d9274d127b",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/b86043333ce4931746cbf8361dd3bd091272b890"
+        },
+        "date": 1738199631298,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 247842,
+            "range": "±0.89%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 249481,
+            "range": "±1.01%",
+            "unit": "ops/sec",
+            "extra": "212 samples"
           }
         ]
       }
