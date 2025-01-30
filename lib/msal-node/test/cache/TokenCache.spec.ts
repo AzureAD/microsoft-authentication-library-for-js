@@ -283,22 +283,12 @@ describe("TokenCache tests", () => {
     it("overwriteCache should not throw and simply return if persistent cache does not exist", async () => {
         const tokenCache = new TokenCache(storage, logger);
 
-        const mockTokenCacheContextInstance = {
-            hasChanged: false,
-            cache: tokenCache,
-            cacheHasChanged: false,
-            tokenCache,
-        };
-
-        jest.spyOn(msalCommon, "TokenCacheContext").mockImplementation(
-            () => mockTokenCacheContextInstance as unknown as TokenCacheContext
-        );
-
         const clearSpy = jest.spyOn(NodeStorage.prototype, "clear");
         const setSpy = jest.spyOn(NodeStorage.prototype, "setCache");
 
         await tokenCache.overwriteCache();
         expect(clearSpy).not.toHaveBeenCalled();
         expect(setSpy).not.toHaveBeenCalled();
+        expect(tokenCache.getKVStore()).toEqual({});
     });
 });
