@@ -594,8 +594,12 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
     getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null>;
     getAllAccounts(): Promise<AccountInfo[]>;
+    getCacheSnapshot(): CacheKVStore;
     getKVStore(): CacheKVStore;
     hasChanged(): boolean;
+    overwriteCache(): Promise<void>;
+    // (undocumented)
+    readonly persistence: ICachePlugin;
     removeAccount(account: AccountInfo): Promise<void>;
     serialize(): string;
 }
