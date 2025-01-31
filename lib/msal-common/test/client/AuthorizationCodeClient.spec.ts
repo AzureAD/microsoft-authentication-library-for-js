@@ -342,11 +342,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
             rootMeasurement.end({ success: true });
             // @ts-ignore
-            expect(resEvents[0].useLoginHint).toBeTruthy();
-            // @ts-ignore
-            expect(resEvents[0].useDomainHint).toBeFalsy();
-            // @ts-ignore
-            expect(resEvents[0].useSid).toBeFalsy();
+            const event = resEvents[0];
+            expect(event.loginHintFromRequest).toBeTruthy();
+            expect(event.loginHintFromUpn).toBeFalsy();
+            expect(event.loginHintFromClaim).toBeFalsy();
         });
 
         it("Adds CCS entry if account is provided", async () => {
@@ -423,9 +422,14 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
+            const mockPerfClient = new MockPerformanceClient();
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(config, mockPerfClient);
+            let resEvents;
+            mockPerfClient.addPerformanceCallback((events) => {
+                resEvents = events;
+            });
             const testAccount = TEST_ACCOUNT_INFO;
             // @ts-ignore
             const testTokenClaims: Required<
@@ -467,6 +471,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 responseMode: ResponseMode.FRAGMENT,
             };
+            const rootMeasurement = mockPerfClient.startMeasurement(
+                "root-measurement",
+                authCodeUrlRequest.correlationId
+            );
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(
                 loginUrl.includes(
@@ -489,6 +497,16 @@ describe("AuthorizationCodeClient unit tests", () => {
                     )}`
                 )
             ).toBe(true);
+
+            rootMeasurement.end({ success: true });
+            // @ts-ignore
+            const event = resEvents[0];
+            expect(event.loginHintFromUpn).toBeFalsy();
+            expect(event.loginHintFromClaim).toBeTruthy();
+            expect(event.loginHintFromRequest).toBeFalsy();
+            expect(event.domainHintFromRequest).toBeFalsy();
+            expect(event.sidFromClaim).toBeFalsy();
+            expect(event.sidFromRequest).toBeFalsy();
         });
 
         it("skips login_hint claim if domainHint param is set", async () => {
@@ -582,11 +600,13 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             rootMeasurement.end({ success: true });
             // @ts-ignore
-            expect(resEvents[0].useLoginHint).toBeTruthy();
-            // @ts-ignore
-            expect(resEvents[0].useDomainHint).toBeTruthy();
-            // @ts-ignore
-            expect(resEvents[0].useSid).toBeFalsy();
+            const event = resEvents[0];
+            expect(event.loginHintFromUpn).toBeTruthy();
+            expect(event.loginHintFromClaim).toBeFalsy();
+            expect(event.loginHintFromRequest).toBeFalsy();
+            expect(event.domainHintFromRequest).toBeTruthy();
+            expect(event.sidFromClaim).toBeFalsy();
+            expect(event.sidFromRequest).toBeFalsy();
         });
 
         it("picks up both loginHint and domainHint params", async () => {
@@ -714,11 +734,14 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             rootMeasurement.end({ success: true });
             // @ts-ignore
-            expect(resEvents[0].useLoginHint).toBeFalsy();
-            // @ts-ignore
-            expect(resEvents[0].useDomainHint).toBeFalsy();
-            // @ts-ignore
-            expect(resEvents[0].useSid).toBeTruthy();
+            const event = resEvents[0];
+            expect(event.loginHintFromRequest).toBeFalsy();
+            expect(event.loginHintFromClaim).toBeFalsy();
+            expect(event.loginHintFromUpn).toBeFalsy();
+            expect(event.domainHintFromRequest).toBeFalsy();
+            expect(event.sidFromRequest).toBeTruthy();
+            expect(event.sidFromRequest).toBeTruthy();
+            expect(event.prompt).toEqual(PromptValue.NONE);
         });
 
         it("Prefers loginHint over sid if both provided and prompt!=None", async () => {
@@ -764,9 +787,14 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
+            const mockPerfClient = new MockPerformanceClient();
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
-            const client = new AuthorizationCodeClient(config);
+            const client = new AuthorizationCodeClient(config, mockPerfClient);
+            let resEvents;
+            mockPerfClient.addPerformanceCallback((events) => {
+                resEvents = events;
+            });
 
             const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
@@ -781,11 +809,26 @@ describe("AuthorizationCodeClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 responseMode: ResponseMode.FRAGMENT,
             };
+            const rootMeasurement = mockPerfClient.startMeasurement(
+                "root-measurement",
+                authCodeUrlRequest.correlationId
+            );
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl.includes(`${AADServerParamKeys.LOGIN_HINT}=`)).toBe(
                 false
             );
             expect(loginUrl.includes(`${AADServerParamKeys.SID}=`)).toBe(false);
+
+            rootMeasurement.end({ success: true });
+            // @ts-ignore
+            const event = resEvents[0];
+            expect(event.loginHintFromUpn).toBeFalsy();
+            expect(event.loginHintFromClaim).toBeFalsy();
+            expect(event.loginHintFromRequest).toBeFalsy();
+            expect(event.domainHintFromRequest).toBeFalsy();
+            expect(event.sidFromClaim).toBeFalsy();
+            expect(event.sidFromRequest).toBeFalsy();
+            expect(event.prompt).toEqual(PromptValue.LOGIN);
         });
 
         it("Prefers loginHint over Account if both provided and account does not have token claims", async () => {

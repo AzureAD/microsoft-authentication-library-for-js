@@ -871,11 +871,16 @@ export type PerformanceEvent = {
 
     isAsyncPopup?: boolean;
 
-    rtExpiresOn?: number;
+    rtExpiresOnMs?: number;
 
-    useSid?: boolean;
-    useLoginHint?: boolean;
-    useDomainHint?: boolean;
+    sidFromClaims?: boolean;
+    sidFromRequest?: boolean;
+    loginHintFromRequest?: boolean;
+    loginHintUpn?: boolean;
+    loginHintFromClaim?: boolean;
+    domainHintFromRequest?: boolean;
+
+    prompt?: string;
 };
 
 export type PerformanceEventContext = {

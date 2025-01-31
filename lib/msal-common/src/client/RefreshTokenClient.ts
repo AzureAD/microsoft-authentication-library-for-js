@@ -231,7 +231,7 @@ export class RefreshTokenClient extends BaseClient {
             )
         ) {
             this.performanceClient?.addFields(
-                { rtExpiresOn: Number(refreshToken.expiresOn) },
+                { rtExpiresOnMs: Number(refreshToken.expiresOn) },
                 request.correlationId
             );
             throw createInteractionRequiredAuthError(
@@ -262,7 +262,7 @@ export class RefreshTokenClient extends BaseClient {
         } catch (e) {
             if (e instanceof InteractionRequiredAuthError) {
                 this.performanceClient?.addFields(
-                    { rtExpiresOn: Number(refreshToken.expiresOn) },
+                    { rtExpiresOnMs: Number(refreshToken.expiresOn) },
                     request.correlationId
                 );
 
