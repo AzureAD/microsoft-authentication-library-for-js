@@ -19,6 +19,7 @@ import {
     createClientAuthError,
     AuthenticationResult,
     UrlString,
+    isIso8601,
 } from "@azure/msal-common/node";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
@@ -84,6 +85,15 @@ export abstract class BaseManagedIdentitySource {
     ): ServerAuthorizationTokenResponse {
         let refreshIn, expiresIn: number | undefined;
         if (response.body.expires_on) {
+            // if the expires_on field in the response body is a string and in ISO 8601 format, convert it to a Unix timestamp (seconds since epoch)
+            if (
+                typeof response.body.expires_on === "string" &&
+                isIso8601(response.body.expires_on)
+            ) {
+                response.body.expires_on =
+                    new Date(response.body.expires_on).getTime() / 1000;
+            }
+
             expiresIn = response.body.expires_on - TimeUtils.nowSeconds();
 
             // compute refresh_in as 1/2 of expires_in, but only if expires_in > 2h
