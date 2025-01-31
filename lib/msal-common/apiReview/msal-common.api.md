@@ -3067,7 +3067,7 @@ export type PerformanceEvent = {
     sidFromClaims?: boolean;
     sidFromRequest?: boolean;
     loginHintFromRequest?: boolean;
-    loginHintUpn?: boolean;
+    loginHintFromUpn?: boolean;
     loginHintFromClaim?: boolean;
     domainHintFromRequest?: boolean;
     prompt?: string;
