@@ -31,7 +31,7 @@ export type ServerAuthorizationTokenResponse = {
     // Success
     token_type?: AuthenticationScheme;
     scope?: string;
-    expires_in?: number; // 4, "4" parseInt()
+    expires_in?: number;
     refresh_in?: number;
     ext_expires_in?: number;
     access_token?: string;

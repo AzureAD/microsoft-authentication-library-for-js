@@ -694,7 +694,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             jest.spyOn(
                 networkClient,
                 <any>"sendGetRequestAsync"
-            ).mockReturnValueOnce(networkClient.getSuccessResponse(isoDate));
+            ).mockReturnValue(networkClient.getSuccessResponse(isoDate));
 
             const { expiresOn } =
                 await systemAssignedManagedIdentityApplication.acquireToken(
