@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "tweaks",
+  "comment": "ManagedIdentityTokenResponse's expires_in can now be accepted in ISO 8601 date format #7544",
   "packageName": "@azure/msal-common",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
