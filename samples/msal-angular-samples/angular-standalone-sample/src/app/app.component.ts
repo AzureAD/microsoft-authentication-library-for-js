@@ -1,5 +1,5 @@
-import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -19,38 +19,34 @@ import {
   EventMessage,
   EventType,
 } from '@azure/msal-browser';
-import { Subject } from 'rxjs';
-import { filter, takeUntil } from 'rxjs/operators';
+import { filter } from 'rxjs/operators';
 
 @Component({
-    selector: 'app-root',
-    templateUrl: './app.component.html',
-    styleUrls: ['./app.component.css'],
-    imports: [
-        CommonModule,
-        MsalModule,
-        RouterOutlet,
-        RouterLink,
-        MatToolbarModule,
-        MatButtonModule,
-        MatMenuModule,
-    ]
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css',
+  imports: [
+    MsalModule,
+    RouterOutlet,
+    RouterLink,
+    MatToolbarModule,
+    MatButtonModule,
+    MatMenuModule,
+  ]
 })
-export class AppComponent implements OnInit, OnDestroy {
+export class AppComponent implements OnInit {
+  private destroyRef = inject(DestroyRef);
+  private msalGuardConfig = inject<MsalGuardConfiguration>(MSAL_GUARD_CONFIG);
+  private authService = inject(MsalService);
+  private msalBroadcastService = inject(MsalBroadcastService);
+
   title = 'Angular Standalone Sample - MSAL Angular';
   isIframe = false;
   loginDisplay = false;
-  private readonly _destroying$ = new Subject<void>();
-
-  constructor(
-    @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
-    private authService: MsalService,
-    private msalBroadcastService: MsalBroadcastService
-  ) {}
 
   ngOnInit(): void {
     this.authService.handleRedirectObservable().subscribe();
-    
+
     this.isIframe = window !== window.parent && !window.opener; // Remove this line to use Angular Universal
 
     this.authService.instance.enableAccountStorageEvents(); // Optional - This will enable ACCOUNT_ADDED and ACCOUNT_REMOVED events emitted when a user logs in or out of another tab or window
@@ -75,7 +71,7 @@ export class AppComponent implements OnInit, OnDestroy {
         filter(
           (status: InteractionStatus) => status === InteractionStatus.None
         ),
-        takeUntil(this._destroying$)
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {
         this.setLoginDisplay();
@@ -138,10 +134,5 @@ export class AppComponent implements OnInit, OnDestroy {
     } else {
       this.authService.logoutRedirect();
     }
-  }
-
-  ngOnDestroy(): void {
-    this._destroying$.next(undefined);
-    this._destroying$.complete();
   }
 }
