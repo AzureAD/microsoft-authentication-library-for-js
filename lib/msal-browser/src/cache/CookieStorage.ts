@@ -12,6 +12,13 @@ import { IWindowStorage } from "./IWindowStorage.js";
 // Cookie life calculation (hours * minutes * seconds * ms)
 const COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
 
+export const SameSiteOptions = {
+    Lax: "Lax",
+    None: "None",
+} as const;
+export type SameSiteOptions =
+    (typeof SameSiteOptions)[keyof typeof SameSiteOptions];
+
 export class CookieStorage implements IWindowStorage<string> {
     initialize(): Promise<void> {
         return Promise.resolve();
@@ -40,11 +47,12 @@ export class CookieStorage implements IWindowStorage<string> {
         key: string,
         value: string,
         cookieLifeDays?: number,
-        secure: boolean = true
+        secure: boolean = true,
+        sameSite: SameSiteOptions = SameSiteOptions.Lax
     ): void {
         let cookieStr = `${encodeURIComponent(key)}=${encodeURIComponent(
             value
-        )};path=/;SameSite=Lax;`;
+        )};path=/;SameSite=${sameSite};`;
 
         if (cookieLifeDays) {
             const expireTime = getCookieExpirationTime(cookieLifeDays);
@@ -52,6 +60,7 @@ export class CookieStorage implements IWindowStorage<string> {
         }
 
         if (secure) {
+            // SameSite None requires Secure flag
             cookieStr += "Secure;";
         }
 
