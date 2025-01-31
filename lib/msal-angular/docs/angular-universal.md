@@ -4,13 +4,13 @@ Angular Universal is minimally supported in `@azure/msal-angular`. As `@azure/ms
 
 Please see instructions from the [Angular docs](https://angular.io/guide/universal) on how to install Angular Universal with an existing application, and for more information on [browser-only global objects](https://angular.io/guide/universal#working-around-the-browser-apis).
 
-**Note:** MSAL Angular does not officially support Angular 17 and 18's server-side and prerendering capabilities. Using SSR with MSAL Angular may break your app.
+**Note:** MSAL Angular does not officially support server-side and prerendering capabilities. Using SSR with MSAL Angular may break your app.
 
 ## Using MSAL Angular with Angular Universal
 
 To use `@azure/msal-angular` with Angular Universal, make the following adjustments:
 
-1. Remove references to browser-only objects. Our [Angular 15 sample app](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular15-sample-app) has comments next to relevant lines that should be removed to render server-side. Removing these lines will not affect the sample app if using Angular Universal.
+1. Remove references to browser-only objects. Our [Angular Modules Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-samples/angular-modules-sample) has comments next to relevant lines that should be removed to render server-side. Removing these lines will not affect the sample app if using Angular Universal.
 
     ```ts 
     this.isIframe = window !== window.parent && !window.opener; // Remove this line to use Angular Universal

@@ -50,10 +50,16 @@ export class CryptoOps implements ICrypto {
     private static EXTRACTABLE: boolean = true;
     private cache: AsyncMemoryStorage<CachedKeyPair>;
 
-    constructor(logger: Logger, performanceClient?: IPerformanceClient) {
+    constructor(
+        logger: Logger,
+        performanceClient?: IPerformanceClient,
+        skipValidateSubtleCrypto?: boolean
+    ) {
         this.logger = logger;
         // Browser crypto needs to be validated first before any other classes can be set.
-        BrowserCrypto.validateCryptoAvailable();
+        BrowserCrypto.validateCryptoAvailable(
+            skipValidateSubtleCrypto ?? false
+        );
         this.cache = new AsyncMemoryStorage<CachedKeyPair>(this.logger);
         this.performanceClient = performanceClient;
     }

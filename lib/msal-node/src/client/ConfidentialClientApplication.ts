@@ -68,7 +68,63 @@ export class ConfidentialClientApplication
      */
     constructor(configuration: Configuration) {
         super(configuration);
-        this.setClientCredential();
+
+        const clientSecretNotEmpty = !!this.config.auth.clientSecret;
+        const clientAssertionNotEmpty = !!this.config.auth.clientAssertion;
+        const certificateNotEmpty =
+            (!!this.config.auth.clientCertificate?.thumbprint ||
+                !!this.config.auth.clientCertificate?.thumbprintSha256) &&
+            !!this.config.auth.clientCertificate?.privateKey;
+
+        /*
+         * If app developer configures this callback, they don't need a credential
+         * i.e. AzureSDK can get token from Managed Identity without a cert / secret
+         */
+        if (this.appTokenProvider) {
+            return;
+        }
+
+        // Check that at most one credential is set on the application
+        if (
+            (clientSecretNotEmpty && clientAssertionNotEmpty) ||
+            (clientAssertionNotEmpty && certificateNotEmpty) ||
+            (clientSecretNotEmpty && certificateNotEmpty)
+        ) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidClientCredential
+            );
+        }
+
+        if (this.config.auth.clientSecret) {
+            this.clientSecret = this.config.auth.clientSecret;
+            return;
+        }
+
+        if (this.config.auth.clientAssertion) {
+            this.developerProvidedClientAssertion =
+                this.config.auth.clientAssertion;
+            return;
+        }
+
+        if (!certificateNotEmpty) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.invalidClientCredential
+            );
+        } else {
+            this.clientAssertion = !!this.config.auth.clientCertificate
+                .thumbprintSha256
+                ? ClientAssertion.fromCertificateWithSha256Thumbprint(
+                      this.config.auth.clientCertificate.thumbprintSha256,
+                      this.config.auth.clientCertificate.privateKey,
+                      this.config.auth.clientCertificate.x5c
+                  )
+                : ClientAssertion.fromCertificate(
+                      // guaranteed to be a string, due to prior error checking in this function
+                      this.config.auth.clientCertificate.thumbprint as string,
+                      this.config.auth.clientCertificate.privateKey,
+                      this.config.auth.clientCertificate.x5c
+                  );
+        }
         this.appTokenProvider = undefined;
     }
 
@@ -234,65 +290,6 @@ export class ConfidentialClientApplication
                 e.setCorrelationId(validRequest.correlationId);
             }
             throw e;
-        }
-    }
-
-    private setClientCredential(): void {
-        const clientSecretNotEmpty = !!this.config.auth.clientSecret;
-        const clientAssertionNotEmpty = !!this.config.auth.clientAssertion;
-        const certificateNotEmpty =
-            (!!this.config.auth.clientCertificate?.thumbprint ||
-                !!this.config.auth.clientCertificate?.thumbprintSha256) &&
-            !!this.config.auth.clientCertificate?.privateKey;
-
-        /*
-         * If app developer configures this callback, they don't need a credential
-         * i.e. AzureSDK can get token from Managed Identity without a cert / secret
-         */
-        if (this.appTokenProvider) {
-            return;
-        }
-
-        // Check that at most one credential is set on the application
-        if (
-            (clientSecretNotEmpty && clientAssertionNotEmpty) ||
-            (clientAssertionNotEmpty && certificateNotEmpty) ||
-            (clientSecretNotEmpty && certificateNotEmpty)
-        ) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.invalidClientCredential
-            );
-        }
-
-        if (this.config.auth.clientSecret) {
-            this.clientSecret = this.config.auth.clientSecret;
-            return;
-        }
-
-        if (this.config.auth.clientAssertion) {
-            this.developerProvidedClientAssertion =
-                this.config.auth.clientAssertion;
-            return;
-        }
-
-        if (!certificateNotEmpty) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.invalidClientCredential
-            );
-        } else {
-            this.clientAssertion = !!this.config.auth.clientCertificate
-                .thumbprintSha256
-                ? ClientAssertion.fromCertificateWithSha256Thumbprint(
-                      this.config.auth.clientCertificate.thumbprintSha256,
-                      this.config.auth.clientCertificate.privateKey,
-                      this.config.auth.clientCertificate.x5c
-                  )
-                : ClientAssertion.fromCertificate(
-                      // guaranteed to be a string, due to prior error checking in this function
-                      this.config.auth.clientCertificate.thumbprint as string,
-                      this.config.auth.clientCertificate.privateKey,
-                      this.config.auth.clientCertificate.x5c
-                  );
         }
     }
 }

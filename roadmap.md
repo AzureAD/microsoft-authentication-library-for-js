@@ -14,10 +14,8 @@ If you don't see a feature listed on the roadmap, check our [Release Notes](http
 ### In Development
 
 ### Up Next
-- Angular 19 support 
 - Improve support for use in Teams Apps (Tabs) and Office Add-Ins
   
-
 ### Under Consideration
 - Identity provider agnostic support  
 - Supporting more JavaScript frameworks: [Ionic](https://github.com/AzureAD/microsoft-authentication-library-for-js/.issues/4290), [Flutter](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/5409), [React Native](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/4735)

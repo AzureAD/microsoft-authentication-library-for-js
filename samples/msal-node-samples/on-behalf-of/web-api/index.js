@@ -35,9 +35,9 @@ const acquireTokenObo = (cca, webApiPort, clientId, authority, discoveryKeysEndp
                 issuer: `${authority}/v2.0`, // v2.0 token
             };
 
-            jwt.verify(token, getSigningKeys, validationOptions, (err, payload) => {
-                if (err) {
-                    console.log(err);
+            jwt.verify(token, getSigningKeys, validationOptions, (error, payload) => {
+                if (error) {
+                    console.error(error);
                     return res.sendStatus(403);
                 }
 
@@ -53,7 +53,7 @@ const acquireTokenObo = (cca, webApiPort, clientId, authority, discoveryKeysEndp
             jwksUri: discoveryKeysEndpoint,
         });
 
-        client.getSigningKey(header.kid, function (err, key) {
+        client.getSigningKey(header.kid, function (error, key) {
             var signingKey = key.publicKey || key.rsaPublicKey;
             callback(null, signingKey);
         });
@@ -68,12 +68,11 @@ const acquireTokenObo = (cca, webApiPort, clientId, authority, discoveryKeysEndp
         };
 
         cca.acquireTokenOnBehalfOf(oboRequest).then((response) => {
-            console.log(response);
             callGraph(response.accessToken, (graphResponse) => {
                 res.status(200).send(graphResponse);
             });
         }).catch((error) => {
-            res.status(500).send(error);
+            res.status(500).send(error.errorMessage);
         });
     });
 
@@ -91,8 +90,8 @@ const acquireTokenObo = (cca, webApiPort, clientId, authority, discoveryKeysEndp
                 callback(chunk);
             });
         });
-        req.on("error", (err) => {
-            console.log(err);
+        req.on("error", (error) => {
+            console.error(error.errorMessage);
         });
         req.end();
     }

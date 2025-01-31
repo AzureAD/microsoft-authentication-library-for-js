@@ -99,7 +99,7 @@ describe("Silent Flow AAD AGC Public Tests", () => {
 
     describe("AcquireToken", () => {
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             await page.goto(homeRoute, { waitUntil: "networkidle0" });
@@ -135,6 +135,29 @@ describe("Silent Flow AAD AGC Public Tests", () => {
             await clickSignIn(page, screenshot);
             await enterCredentials(page, screenshot, username, password);
             await page.waitForSelector("#acquireTokenSilent");
+            await screenshot.takeScreenshot(page, "ATS");
+            await page.click("#acquireTokenSilent");
+            await page.waitForSelector(
+                `#${SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID}`
+            );
+            await page.click("#callGraph");
+            await page.waitForSelector("#graph-called-successfully");
+            await screenshot.takeScreenshot(
+                page,
+                "acquireTokenSilentGotTokens"
+            );
+            const htmlBody = await page.evaluate(() => document.body.innerHTML);
+            expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
+        });
+
+        it("Performs acquire token silent when tokens are only present in persistent cache", async () => {
+            const screenshot = new Screenshot(
+                `${screenshotFolder}/AcquireTokenSilentFromPersistent`
+            );
+            await clickSignIn(page, screenshot);
+            await enterCredentials(page, screenshot, username, password);
+            await page.waitForSelector("#acquireTokenSilent");
+            publicClientApplication.clearCache();
             await screenshot.takeScreenshot(page, "ATS");
             await page.click("#acquireTokenSilent");
             await page.waitForSelector(
@@ -202,7 +225,7 @@ describe("Silent Flow AAD AGC Public Tests", () => {
     describe("Get All Accounts", () => {
         describe("Authenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await page.goto(homeRoute, { waitUntil: "networkidle0" });
             });
@@ -247,7 +270,7 @@ describe("Silent Flow AAD AGC Public Tests", () => {
 
         describe("Unauthenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await publicClientApplication.clearCache();
             });

@@ -7,7 +7,7 @@
     "start:app": "npm run build && node dist/index.js"
   },
   "dependencies": {
-    "@azure/msal-node": "^2.11.0",
+    "@azure/msal-node": "^3.0.0",
     "dotenv": "^16.4.5"
   },
   "devDependencies": {

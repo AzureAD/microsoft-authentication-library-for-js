@@ -103,6 +103,11 @@ export class PopupClient extends StandardInteractionClient {
                 popupWindowParent: request.popupWindowParent ?? window,
             };
 
+            this.performanceClient.addFields(
+                { isAsyncPopup: this.config.system.asyncPopups },
+                this.correlationId
+            );
+
             // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
             if (this.config.system.asyncPopups) {
                 this.logger.verbose("asyncPopups set to true, acquiring token");
@@ -227,15 +232,16 @@ export class PopupClient extends StandardInteractionClient {
                 account: validRequest.account,
             });
 
-            const isNativeBroker = NativeMessageHandler.isNativeAvailable(
-                this.config,
-                this.logger,
-                this.nativeMessageHandler,
-                request.authenticationScheme
-            );
+            const isPlatformBroker =
+                NativeMessageHandler.isPlatformBrokerAvailable(
+                    this.config,
+                    this.logger,
+                    this.nativeMessageHandler,
+                    request.authenticationScheme
+                );
             // Start measurement for server calls with native brokering enabled
             let fetchNativeAccountIdMeasurement;
-            if (isNativeBroker) {
+            if (isPlatformBroker) {
                 fetchNativeAccountIdMeasurement =
                     this.performanceClient.startMeasurement(
                         PerformanceEvents.FetchAccountIdWithNativeBroker,
@@ -246,7 +252,7 @@ export class PopupClient extends StandardInteractionClient {
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl({
                 ...validRequest,
-                nativeBroker: isNativeBroker,
+                platformBroker: isPlatformBroker,
             });
 
             // Create popup interaction handler.

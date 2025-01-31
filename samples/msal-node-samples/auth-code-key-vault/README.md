@@ -19,20 +19,23 @@ Locate the folder where `package.json` resides in your terminal. Then type:
 1. Navigate to the [Microsoft Entra admin center](https://entra.microsoft.com) and select the **Microsoft Entra ID** service.
 1. Select the **App Registrations** blade on the left, then select **New registration**.
 1. In the **Register an application page** that appears, enter your application's registration information:
-   - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `msal-node-webapp`.
-   - Under **Supported account types**, select **Accounts in this organizational directory only**.
-   - In the **Redirect URI (optional)** section, select **Web** in the combo-box and enter the following redirect URI: `http://localhost:3000/redirect`.
+    - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `msal-node-webapp`.
+    - Under **Supported account types**, select **Accounts in this organizational directory only**.
+    - In the **Redirect URI (optional)** section, select **Web** in the combo-box and enter the following redirect URI: `http://localhost:3000/redirect`.
 1. Select **Register** to create the application.
 1. In the app's registration screen, find and note the **Application (client) ID** and **Directory (Tenant) ID**. You use these values in your app's configuration file(s) later.
 1. In the app's registration screen, select the **Certificates & secrets** blade in the left.
-   - Click on **Upload** certificate and select the certificate file to upload.
-   - Click **Add**. Once the certificate is uploaded, the *thumbprint*, *start date*, and *expiration* values are displayed.
+    - Click on **Upload** certificate and select the certificate file to upload.
+    - Click **Add**. Once the certificate is uploaded, the _thumbprint_, _start date_, and _expiration_ values are displayed.
 
 Before running the sample, you will need to replace the values in the config:
 
 ```javascript
-const KEY_VAULT_NAME = process.env["KEY_VAULT_NAME"] || "ENTER_YOUR_KEY_VAULT_NAME";
-const CERTIFICATE_NAME = process.env["CERTIFICATE_NAME"] || "ENTER_THE_NAME_OF_YOUR_CERTIFICATE_ON_KEY_VAULT";
+const KEY_VAULT_NAME =
+    process.env["KEY_VAULT_NAME"] || "ENTER_YOUR_KEY_VAULT_NAME";
+const CERTIFICATE_NAME =
+    process.env["CERTIFICATE_NAME"] ||
+    "ENTER_THE_NAME_OF_YOUR_CERTIFICATE_ON_KEY_VAULT";
 
 const config = {
     auth: {
@@ -54,4 +57,4 @@ The server should start at port **3000**. Navigate to `https://localhost:3000` i
 
 ## More information
 
-- [Microsoft identity platform application authentication certificate credentials](https://docs.microsoft.com/azure/active-directory/develop/active-directory-certificate-credentials)
+-   [Microsoft identity platform application authentication certificate credentials](https://docs.microsoft.com/azure/active-directory/develop/active-directory-certificate-credentials)

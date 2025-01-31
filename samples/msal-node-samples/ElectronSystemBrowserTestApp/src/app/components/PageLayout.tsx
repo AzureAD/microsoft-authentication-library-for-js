@@ -5,7 +5,6 @@ import { NavigationBar } from "./NavigationBar";
 type PageLayoutProps = {
     account: AccountInfo;
     children: JSX.Element;
-
 };
 
 export const PageLayout = (props: PageLayoutProps) => {
@@ -18,4 +17,4 @@ export const PageLayout = (props: PageLayoutProps) => {
             <br />
         </>
     );
-}
+};

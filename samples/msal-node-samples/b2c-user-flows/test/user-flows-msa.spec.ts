@@ -18,7 +18,6 @@ import {
     LabApiQueryParams,
     B2cProviders,
     UserTypes,
-    B2C_MSA_TEST_UPN,
 } from "e2e-test-utils";
 
 import { ConfidentialClientApplication } from "@azure/msal-node";
@@ -74,9 +73,6 @@ describe("B2C User Flow Tests", () => {
             envResponse[0],
             labClient
         );
-        
-        // TODO: Remove when B2C MSA account is available in the lab
-        username = B2C_MSA_TEST_UPN;
     });
 
     afterAll(async () => {
@@ -112,7 +108,7 @@ describe("B2C User Flow Tests", () => {
         });
 
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(5000);
             page.on("dialog", async (dialog) => {

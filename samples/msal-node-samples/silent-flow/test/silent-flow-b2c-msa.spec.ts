@@ -21,7 +21,6 @@ import {
     LabApiQueryParams,
     B2cProviders,
     UserTypes,
-    B2C_MSA_TEST_UPN,
 } from "e2e-test-utils";
 
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
@@ -81,9 +80,6 @@ describe("Silent Flow B2C Tests (msa account)", () => {
             labClient
         );
 
-        // TODO: Remove when B2C MSA account is available in the lab
-        username = B2C_MSA_TEST_UPN;
-
         publicClientApplication = new PublicClientApplication({
             auth: config.authOptions,
             cache: { cachePlugin },
@@ -108,7 +104,7 @@ describe("Silent Flow B2C Tests (msa account)", () => {
 
     describe("AcquireToken", () => {
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             await page.goto(homeRoute, { waitUntil: "networkidle0" });
@@ -218,7 +214,7 @@ describe("Silent Flow B2C Tests (msa account)", () => {
     describe("Get All Accounts", () => {
         describe("Authenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await page.goto(homeRoute, { waitUntil: "networkidle0" });
             });
@@ -268,7 +264,7 @@ describe("Silent Flow B2C Tests (msa account)", () => {
 
         describe("Unauthenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await publicClientApplication.clearCache();
             });

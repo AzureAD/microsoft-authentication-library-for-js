@@ -12,7 +12,7 @@ const msalConfig = {
             storeAuthStateInCookie: false,
         },
         system: {
-            allowNativeBroker: false,
+            allowPlatformBroker: false,
             loggerOptions: {
                 logLevel: msal.LogLevel.Trace,
                 loggerCallback: (level, message, containsPii) => {

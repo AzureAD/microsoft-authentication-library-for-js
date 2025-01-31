@@ -38,7 +38,8 @@ import {
 export const ManagedIdentityUserAssignedIdQueryParameterNames = {
     MANAGED_IDENTITY_CLIENT_ID: "client_id",
     MANAGED_IDENTITY_OBJECT_ID: "object_id",
-    MANAGED_IDENTITY_RESOURCE_ID: "mi_res_id",
+    MANAGED_IDENTITY_RESOURCE_ID_IMDS: "msi_res_id",
+    MANAGED_IDENTITY_RESOURCE_ID_NON_IMDS: "mi_res_id",
 } as const;
 export type ManagedIdentityUserAssignedIdQueryParameterNames =
     (typeof ManagedIdentityUserAssignedIdQueryParameterNames)[keyof typeof ManagedIdentityUserAssignedIdQueryParameterNames];
@@ -201,7 +202,8 @@ export abstract class BaseManagedIdentitySource {
     }
 
     public getManagedIdentityUserAssignedIdQueryParameterKey(
-        managedIdentityIdType: ManagedIdentityIdType
+        managedIdentityIdType: ManagedIdentityIdType,
+        imds?: boolean
     ): string {
         switch (managedIdentityIdType) {
             case ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID:
@@ -214,7 +216,9 @@ export abstract class BaseManagedIdentitySource {
                 this.logger.info(
                     "[Managed Identity] Adding user assigned resource id to the request."
                 );
-                return ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID;
+                return imds
+                    ? ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID_IMDS
+                    : ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID_NON_IMDS;
 
             case ManagedIdentityIdType.USER_ASSIGNED_OBJECT_ID:
                 this.logger.info(

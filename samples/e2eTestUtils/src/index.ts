@@ -42,7 +42,6 @@ export {
     FederationProviders,
     UserTypes,
     B2cProviders,
-    B2C_MSA_TEST_UPN,
 } from "./Constants";
 export { BrowserCacheUtils } from "./BrowserCacheTestUtils";
 export { Browser, Page, BrowserContext } from "puppeteer";
