@@ -150,6 +150,29 @@ describe("Silent Flow AAD AGC Public Tests", () => {
             expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
         });
 
+        it("Performs acquire token silent when tokens are only present in persistent cache", async () => {
+            const screenshot = new Screenshot(
+                `${screenshotFolder}/AcquireTokenSilentFromPersistent`
+            );
+            await clickSignIn(page, screenshot);
+            await enterCredentials(page, screenshot, username, password);
+            await page.waitForSelector("#acquireTokenSilent");
+            publicClientApplication.clearCache();
+            await screenshot.takeScreenshot(page, "ATS");
+            await page.click("#acquireTokenSilent");
+            await page.waitForSelector(
+                `#${SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID}`
+            );
+            await page.click("#callGraph");
+            await page.waitForSelector("#graph-called-successfully");
+            await screenshot.takeScreenshot(
+                page,
+                "acquireTokenSilentGotTokens"
+            );
+            const htmlBody = await page.evaluate(() => document.body.innerHTML);
+            expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
+        });
+
         it("Refreshes an expired access token", async () => {
             const screenshot = new Screenshot(
                 `${screenshotFolder}/RefreshExpiredToken`
