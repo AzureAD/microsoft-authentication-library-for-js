@@ -246,7 +246,9 @@ describe("PopupClient", () => {
                 //@ts-ignore
                 pca.performanceClient,
                 //@ts-ignore
-                pca.nativeInternalStorage
+                pca.nativeInternalStorage,
+                undefined,
+                TEST_CONFIG.CORRELATION_ID
             );
 
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -293,8 +295,10 @@ describe("PopupClient", () => {
             expect(popupSpy.mock.calls[0][0]).toContain(
                 `login_hint=${encodeURIComponent(request.loginHint || "")}`
             );
+
             // @ts-ignore
-            expect(resEvents[0].isAsyncPopup).toBeTruthy();
+            const event = resEvents[0];
+            expect(event.isAsyncPopup).toBeTruthy();
         });
 
         it("calls native broker if server responds with accountId", async () => {
