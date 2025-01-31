@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1738257760052,
+  "lastUpdate": 1738344564004,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -14386,6 +14386,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.88%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fb0dc4777a55e21a46fe9e6bc4de48d95b189bb0",
+          "message": "Instrument additional data points (#7543)\n\n- Instrument RT expiration time when running into interaction_required\r\nerrors.\r\n- Instrument `system.asyncPopups` config param.\r\n- Instrument usage of loginHint, domainHint and SID.\r\n- Instrument prompt.",
+          "timestamp": "2025-01-31T12:22:36-05:00",
+          "tree_id": "684bb9c1e248db761b6730b1e8e9eb43b7897083",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/fb0dc4777a55e21a46fe9e6bc4de48d95b189bb0"
+        },
+        "date": 1738344562594,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 242880,
+            "range": "±1.20%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 245357,
+            "range": "±0.77%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
