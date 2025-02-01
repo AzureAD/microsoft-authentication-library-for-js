@@ -15,18 +15,17 @@ import { CustomAuthAuthority } from "../../../src/core/CustomAuthAuthority.js";
 import { ChallengeType } from "../../../src/CustomAuthConstants.js";
 import {
     SignInCodeSendResult,
-    SignInCompleteResult,
+    SignInCompletedResult,
     SignInPasswordRequiredResult,
 } from "../../../src/sign_in/interaction_client/result/SignInActionResult.js";
-import { info } from "console";
 
-describe("SigninClient", () => {
+describe("SignInClient", () => {
     let client: SignInClient;
-    let mockApiClient: jest.Mocked<ICustomAuthApiClient>;
+    let mockedApiClient: jest.Mocked<ICustomAuthApiClient>;
     let authority: CustomAuthAuthority;
 
     beforeEach(() => {
-        mockApiClient = {
+        mockedApiClient = {
             performSignInInitiateRequest: jest.fn(),
             performSignInChallengeRequest: jest.fn(),
             performSignInOobTokenRequest: jest.fn(),
@@ -83,7 +82,7 @@ describe("SigninClient", () => {
             mockEventHandler,
             mockNavigationClient,
             mockPerformanceClient,
-            mockApiClient,
+            mockedApiClient,
             authority,
         );
     });
@@ -94,10 +93,10 @@ describe("SigninClient", () => {
 
     describe("start", () => {
         it("should return SignInCodeSendResult when challenge type is OOB", async () => {
-            mockApiClient.performSignInInitiateRequest.mockResolvedValue({
+            mockedApiClient.performSignInInitiateRequest.mockResolvedValue({
                 continuation_token: "continuation_token_1",
             });
-            mockApiClient.performSignInChallengeRequest.mockResolvedValue({
+            mockedApiClient.performSignInChallengeRequest.mockResolvedValue({
                 challenge_type: ChallengeType.OOB,
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
@@ -131,10 +130,10 @@ describe("SigninClient", () => {
         });
 
         it("should return SignInContinuationTokenResult when challenge type is PASSWORD", async () => {
-            mockApiClient.performSignInInitiateRequest.mockResolvedValue({
+            mockedApiClient.performSignInInitiateRequest.mockResolvedValue({
                 continuation_token: "continuation_token_1",
             });
-            mockApiClient.performSignInChallengeRequest.mockResolvedValue({
+            mockedApiClient.performSignInChallengeRequest.mockResolvedValue({
                 challenge_type: ChallengeType.PASSWORD,
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
@@ -160,7 +159,7 @@ describe("SigninClient", () => {
 
     describe("submitCode", () => {
         it("should return SignInCompleteResult for valid code", async () => {
-            mockApiClient.performSignInOobTokenRequest.mockResolvedValue({
+            mockedApiClient.performSignInOobTokenRequest.mockResolvedValue({
                 correlation_id: "test-correlation-id",
                 access_token: "test-access-token",
                 refresh_token: "test-refresh-token",
@@ -183,7 +182,7 @@ describe("SigninClient", () => {
                 scopes: [],
             });
 
-            expect(result).toBeInstanceOf(SignInCompleteResult);
+            expect(result).toBeInstanceOf(SignInCompletedResult);
             expect(result.correlationId).toBe("test-correlation-id");
             expect(result.authenticationResult).toBeDefined();
             expect(result.authenticationResult.accessToken).toBe(
@@ -210,14 +209,16 @@ describe("SigninClient", () => {
 
     describe("submitPassword", () => {
         it("should return SignInCompleteResult for valid password", async () => {
-            mockApiClient.performSignInPasswordTokenRequest.mockResolvedValue({
-                correlation_id: "test-correlation-id",
-                access_token: "test-access-token",
-                refresh_token: "test-refresh-token",
-                id_token: "test-id-token",
-                expires_in: 3600,
-                token_type: "Bearer",
-            });
+            mockedApiClient.performSignInPasswordTokenRequest.mockResolvedValue(
+                {
+                    correlation_id: "test-correlation-id",
+                    access_token: "test-access-token",
+                    refresh_token: "test-refresh-token",
+                    id_token: "test-id-token",
+                    expires_in: 3600,
+                    token_type: "Bearer",
+                },
+            );
 
             const result = await client.submitPassword({
                 password: "123456",
@@ -233,7 +234,7 @@ describe("SigninClient", () => {
                 scopes: [],
             });
 
-            expect(result).toBeInstanceOf(SignInCompleteResult);
+            expect(result).toBeInstanceOf(SignInCompletedResult);
             expect(result.correlationId).toBe("test-correlation-id");
             expect(result.authenticationResult).toBeDefined();
             expect(result.authenticationResult.accessToken).toBe(
@@ -260,7 +261,7 @@ describe("SigninClient", () => {
 
     describe("resendCode", () => {
         it("should return SignInCodeSendResult", async () => {
-            mockApiClient.performSignInChallengeRequest.mockResolvedValue({
+            mockedApiClient.performSignInChallengeRequest.mockResolvedValue({
                 challenge_type: ChallengeType.OOB,
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
@@ -293,7 +294,7 @@ describe("SigninClient", () => {
 
     describe("signInWithContinuationToken", () => {
         it("should return SignInCompleteResult", async () => {
-            mockApiClient.performSignInContinuationTokenRequest.mockResolvedValue(
+            mockedApiClient.performSignInContinuationTokenRequest.mockResolvedValue(
                 {
                     correlation_id: "test-correlation-id",
                     access_token: "test-access-token",
@@ -317,7 +318,7 @@ describe("SigninClient", () => {
                 scopes: [],
             });
 
-            expect(result).toBeInstanceOf(SignInCompleteResult);
+            expect(result).toBeInstanceOf(SignInCompletedResult);
             expect(result.correlationId).toBe("test-correlation-id");
             expect(result.authenticationResult).toBeDefined();
             expect(result.authenticationResult.accessToken).toBe(

@@ -7,7 +7,7 @@ import { AuthFlowErrorBase } from "../../../core/auth_flow/AuthFlowErrorBase.js"
 
 export class SignUpError extends AuthFlowErrorBase {
     isUserAlreadyExists(): boolean {
-        return false;
+        return this.isUserAlreadyExistsError();
     }
 
     isInvalidUsername(): boolean {
@@ -15,38 +15,64 @@ export class SignUpError extends AuthFlowErrorBase {
     }
 
     isInvalidPassword(): boolean {
-        return false;
+        return this.isInvalidNewPasswordError();
     }
 
-    isInvalidAttributes(): boolean {
-        return false;
+    isMissingRequiredAttributes(): boolean {
+        return this.isAttributeRequiredError();
+    }
+
+    isAttributesValidationFailed(): boolean {
+        return this.isAttributeValidationFailedError();
     }
 
     isUnsupportedChallengeType(): boolean {
         return this.isUnsupportedChallengeTypeError();
     }
+
+    isRedirect(): boolean {
+        return this.isRedirectError();
+    }
 }
 
 export class SignUpSubmitPasswordError extends AuthFlowErrorBase {
     isInvalidPassword(): boolean {
-        return false;
+        return (
+            this.isPasswordIncorrectError() || this.isInvalidNewPasswordError()
+        );
+    }
+
+    isRedirect(): boolean {
+        return this.isRedirectError();
     }
 }
 
 export class SignUpSubmitCodeError extends AuthFlowErrorBase {
     isInvalidCode(): boolean {
-        return false;
+        return this.isInvalidCodeError();
+    }
+
+    isRedirect(): boolean {
+        return this.isRedirectError();
     }
 }
 
 export class SignUpSubmitAttributesError extends AuthFlowErrorBase {
-    isInvalidAtrtributes(): boolean {
-        return false;
+    isMissingRequiredAttributes(): boolean {
+        return this.isAttributeRequiredError();
     }
 
-    isMissingRequiredAttributes(): boolean {
-        return false;
+    isAttributesValidationFailed(): boolean {
+        return this.isAttributeValidationFailedError();
+    }
+
+    isRedirect(): boolean {
+        return this.isRedirectError();
     }
 }
 
-export class SignUpResendCodeError extends AuthFlowErrorBase {}
+export class SignUpResendCodeError extends AuthFlowErrorBase {
+    isRedirect(): boolean {
+        return this.isRedirectError();
+    }
+}

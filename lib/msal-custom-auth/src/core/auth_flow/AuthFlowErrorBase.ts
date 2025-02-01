@@ -6,6 +6,7 @@
 import {
     CustomAuthApiError,
     CustomAuthApiErrorCode,
+    CustomAuthApiSuberror,
     RedirectError,
 } from "../error/CustomAuthApiError.js";
 import { CustomAuthError } from "../error/CustomAuthError.js";
@@ -19,12 +20,13 @@ export class AuthFlowErrorBase {
 
     protected isUserInvalidError(): boolean {
         return (
-            !!this.errorData.errorDescription &&
-            ((this.errorData instanceof InvalidArgumentError &&
-                this.errorData.errorDescription.includes("username")) ||
-                this.errorData.errorDescription.includes(
+            (this.errorData instanceof InvalidArgumentError &&
+                this.errorData.errorDescription?.includes("username")) ||
+            (this.errorData instanceof CustomAuthApiError &&
+                !!this.errorData.errorDescription?.includes(
                     "username parameter is empty or not valid",
-                ))
+                ) &&
+                !!this.errorData.errorCodes?.includes(90100))
         );
     }
 
@@ -40,14 +42,17 @@ export class AuthFlowErrorBase {
         );
     }
 
-    protected isInvalidPasswordError(): boolean {
-        return (
-            (this.errorData.error === CustomAuthApiErrorCode.INVALID_GRANT &&
-                this.errorData instanceof CustomAuthApiError &&
-                (this.errorData.errorCodes ?? []).includes(50126)) ||
-            (this.errorData instanceof InvalidArgumentError &&
-                this.errorData.errorDescription?.includes("password") === true)
-        );
+    protected isPasswordIncorrectError(): boolean {
+        const isIncorrectPassword =
+            this.errorData.error === CustomAuthApiErrorCode.INVALID_GRANT &&
+            this.errorData instanceof CustomAuthApiError &&
+            (this.errorData.errorCodes ?? []).includes(50126);
+
+        const isPasswordEmpty =
+            this.errorData instanceof InvalidArgumentError &&
+            this.errorData.errorDescription?.includes("password") === true;
+
+        return isIncorrectPassword || isPasswordEmpty;
     }
 
     protected isInvalidCodeError(): boolean {
@@ -55,7 +60,7 @@ export class AuthFlowErrorBase {
             (this.errorData.error === CustomAuthApiErrorCode.INVALID_GRANT &&
                 this.errorData instanceof CustomAuthApiError &&
                 this.errorData.subError ===
-                    CustomAuthApiErrorCode.INVALID_OOB_VALUE) ||
+                    CustomAuthApiSuberror.INVALID_OOB_VALUE) ||
             (this.errorData instanceof InvalidArgumentError &&
                 this.errorData.errorDescription?.includes("code") === true)
         );
@@ -63,5 +68,46 @@ export class AuthFlowErrorBase {
 
     protected isRedirectError(): boolean {
         return this.errorData instanceof RedirectError;
+    }
+
+    protected isInvalidNewPasswordError(): boolean {
+        return (
+            this.errorData instanceof CustomAuthApiError &&
+            this.errorData.error === CustomAuthApiErrorCode.INVALID_GRANT &&
+            [
+                CustomAuthApiSuberror.PASSWORD_BANNED,
+                CustomAuthApiSuberror.PASSWORD_IS_INVALID,
+                CustomAuthApiSuberror.PASSWORD_RECENTLY_USED,
+                CustomAuthApiSuberror.PASSWORD_TOO_LONG,
+                CustomAuthApiSuberror.PASSWORD_TOO_SHORT,
+                CustomAuthApiSuberror.PASSWORD_TOO_WEAK,
+            ].includes(this.errorData.subError ?? "")
+        );
+    }
+
+    protected isUserAlreadyExistsError(): boolean {
+        return (
+            this.errorData instanceof CustomAuthApiError &&
+            this.errorData.error === CustomAuthApiErrorCode.USER_ALREADY_EXISTS
+        );
+    }
+
+    protected isAttributeRequiredError(): boolean {
+        return (
+            this.errorData instanceof CustomAuthApiError &&
+            this.errorData.error === CustomAuthApiErrorCode.ATTRIBUTES_REQUIRED
+        );
+    }
+
+    protected isAttributeValidationFailedError(): boolean {
+        return (
+            (this.errorData instanceof CustomAuthApiError &&
+                this.errorData.error === CustomAuthApiErrorCode.INVALID_GRANT &&
+                this.errorData.subError ===
+                    CustomAuthApiSuberror.ATTRIBUTE_VALIATION_FAILED) ||
+            (this.errorData instanceof InvalidArgumentError &&
+                this.errorData.errorDescription?.includes("attributes") ===
+                    true)
+        );
     }
 }

@@ -169,6 +169,10 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
                 ),
             );
         } catch (error) {
+            this.logger.error(
+                `Failed to resend code for sign up. Error: ${error}.`,
+            );
+
             return SignUpResendCodeResult.createWithError(error);
         }
     }

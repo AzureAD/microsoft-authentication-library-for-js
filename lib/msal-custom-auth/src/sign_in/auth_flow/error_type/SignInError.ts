@@ -15,8 +15,8 @@ export class SignInError extends AuthFlowErrorBase {
         return this.isUserInvalidError();
     }
 
-    isInvalidPassword(): boolean {
-        return this.isInvalidPasswordError();
+    isPasswordIncorrect(): boolean {
+        return this.isPasswordIncorrectError();
     }
 
     isUnsupportedChallengeType(): boolean {
@@ -30,7 +30,7 @@ export class SignInError extends AuthFlowErrorBase {
 
 export class SignInSubmitPasswordError extends AuthFlowErrorBase {
     isInvalidPassword(): boolean {
-        return this.isInvalidPasswordError();
+        return this.isPasswordIncorrectError();
     }
 }
 

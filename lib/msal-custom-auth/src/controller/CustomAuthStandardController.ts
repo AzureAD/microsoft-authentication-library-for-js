@@ -37,15 +37,15 @@ import {
 import { SignUpClient } from "../sign_up/interaction_client/SignUpClient.js";
 import { CustomAuthInterationClientFactory } from "../core/interaction_client/CustomAuthInterationClientFactory.js";
 import {
-    SignUpAttributesRequiredResult,
     SignUpCodeRequiredResult,
+    SignUpPasswordRequiredResult,
 } from "../sign_up/interaction_client/result/SignUpActionResult.js";
 import { SignUpCodeRequired } from "../sign_up/auth_flow/state/SignUpCodeRequired.js";
 import { SignUpPasswordRequired } from "../sign_up/auth_flow/state/SignUpPasswordRequired.js";
-import { SignUpAttributesRequired } from "../sign_up/auth_flow/state/SignUpAttributesRequired.js";
 import { SignInCodeRequired } from "../sign_in/auth_flow/state/SignInCodeRequired.js";
 import { SignInPasswordRequired } from "../sign_in/auth_flow/state/SignInPasswordRequired.js";
 import { SignInCompleted } from "../sign_in/auth_flow/state/SignInCompleted.js";
+import { ICustomAuthApiClient } from "../core/network_client/custom_auth_api/ICustomAuthApiClient.js";
 
 /*
  * Controller for standard native auth operations.
@@ -77,8 +77,12 @@ export class CustomAuthStandardController
     /*
      * Constructor for CustomAuthStandardController.
      * @param operatingContext - The operating context for the controller.
+     * @param customAuthApiClient - The client to use for custom auth API operations.
      */
-    constructor(operatingContext: CustomAuthOperatingContext) {
+    constructor(
+        operatingContext: CustomAuthOperatingContext,
+        customAuthApiClient?: ICustomAuthApiClient,
+    ) {
         super(operatingContext);
 
         this.logger = this.logger.clone(
@@ -91,13 +95,6 @@ export class CustomAuthStandardController
             this.customAuthConfig.customAuth?.authApiProxyUrl,
         );
 
-        const customAuthApiClient = new CustomAuthApiClient(
-            new FetchHttpClient(
-                this.logger,
-                this.authority.getCustomAuthDomain(),
-            ),
-        );
-
         const interactionClientFactory = new CustomAuthInterationClientFactory(
             this.customAuthConfig,
             this.browserStorage,
@@ -106,7 +103,13 @@ export class CustomAuthStandardController
             this.eventHandler,
             this.navigationClient,
             this.performanceClient,
-            customAuthApiClient,
+            customAuthApiClient ??
+                new CustomAuthApiClient(
+                    new FetchHttpClient(
+                        this.logger,
+                        this.authority.getCustomAuthDomain(),
+                    ),
+                ),
             this.authority,
         );
 
@@ -315,7 +318,7 @@ export class CustomAuthStandardController
                         startResult.interval,
                     ),
                 );
-            } else if (startResult instanceof SignInPasswordRequiredResult) {
+            } else if (startResult instanceof SignUpPasswordRequiredResult) {
                 // Password required
                 this.logger.info("Password required for sign-up.");
 
@@ -328,22 +331,6 @@ export class CustomAuthStandardController
                         this.signInClient,
                         this.signUpClient,
                         signUpInputs.username,
-                    ),
-                );
-            } else if (startResult instanceof SignUpAttributesRequiredResult) {
-                // Attributes required
-                this.logger.info("Attributes required for sign-up.");
-
-                return new SignUpResult(
-                    new SignUpAttributesRequired(
-                        startResult.correlationId,
-                        startResult.continuationToken,
-                        this.logger,
-                        this.customAuthConfig,
-                        this.signInClient,
-                        this.signUpClient,
-                        signUpInputs.username,
-                        startResult.requiredAttributes,
                     ),
                 );
             }

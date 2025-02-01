@@ -4,7 +4,7 @@ import { CustomAuthBrowserConfiguration } from "../../../../src/configuration/Cu
 import { SignInError } from "../../../../src/sign_in/auth_flow/error_type/SignInError.js";
 import { SignInResult } from "../../../../src/sign_in/auth_flow/result/SignInResult.js";
 import { SignInContinuationStateHandler } from "../../../../src/sign_in/auth_flow/state_handler/SignInContinuationStateHandler.js";
-import { SignInCompleteResult } from "../../../../src/sign_in/interaction_client/result/SignInActionResult.js";
+import { SignInCompletedResult } from "../../../../src/sign_in/interaction_client/result/SignInActionResult.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 
 describe("SignInContinuationStateHandler", () => {
@@ -45,7 +45,7 @@ describe("SignInContinuationStateHandler", () => {
 
     it("should successfully sign in and return a result", async () => {
         mockSignInClient.signInWithContinuationToken.mockResolvedValue(
-            new SignInCompleteResult(correlationId, {
+            new SignInCompletedResult(correlationId, {
                 accessToken: "test-access-token",
                 idToken: "test-id-token",
                 refreshToken: "test-refresh-token",

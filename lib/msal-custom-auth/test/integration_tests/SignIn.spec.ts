@@ -323,7 +323,7 @@ describe("Sign in", () => {
         expect(signInResult).toBeInstanceOf(SignInResult);
         expect(signInResult.error).toBeDefined();
         expect(signInResult.state?.type).toStrictEqual(SignInState.Failed);
-        expect(signInResult.error?.isInvalidPassword()).toBe(true);
+        expect(signInResult.error?.isPasswordIncorrect()).toBe(true);
     });
 
     it("should sign in failed if the challenge type is oob but given code is incorrect", async () => {

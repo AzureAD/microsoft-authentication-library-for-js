@@ -44,11 +44,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
      */
     async start(
         parameters: SignUpStartParams,
-    ): Promise<
-        | SignUpPasswordRequiredResult
-        | SignUpCodeRequiredResult
-        | SignUpAttributesRequiredResult
-    > {
+    ): Promise<SignUpPasswordRequiredResult | SignUpCodeRequiredResult> {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
@@ -64,47 +60,18 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             telemetryManager,
         );
 
-        let continuationToken: string;
+        this.logger.info("Calling start endpoint for sign up.");
 
-        try {
-            this.logger.info("Calling start endpoint for sign up.");
+        const startResponse =
+            await this.customAuthApiClient.performSignUpStartRequest(
+                startRequest,
+            );
 
-            const startResponse =
-                await this.customAuthApiClient.performSignUpStartRequest(
-                    startRequest,
-                );
-
-            this.logger.info("Start endpoint called for sign up.");
-
-            continuationToken = startResponse.continuation_token ?? "";
-        } catch (error) {
-            if (error instanceof CustomAuthApiError) {
-                if (
-                    this.isAttributesRequiredError(
-                        error,
-                        startRequest.correlationId,
-                    )
-                ) {
-                    return new SignUpAttributesRequiredResult(
-                        error.correlationId ?? startRequest.correlationId,
-                        error.continuationToken ?? "",
-                        error.attributes ?? [],
-                    );
-                }
-
-                throw error;
-            } else {
-                this.logger.error(
-                    `Called start endpoint for sign up is failed. Error: ${error}`,
-                );
-
-                throw new UnexpectedError(error, startRequest.correlationId);
-            }
-        }
+        this.logger.info("Start endpoint called for sign up.");
 
         const challengeRequest = SignUpChallengeRequest.create(
             parameters,
-            continuationToken,
+            startResponse.continuation_token ?? "",
             telemetryManager,
         );
 
@@ -230,7 +197,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             telemetryManager,
         );
 
-        const result = this.performContinueRequest(
+        const result = await this.performContinueRequest(
             "SignUpClient.submitAttributes",
             parameter,
             telemetryManager,

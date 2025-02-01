@@ -22,10 +22,13 @@ describe("SignInError", () => {
     });
 
     it("should return true for isInvalidUsername when errorDescription mentions username", () => {
-        const errorData = {
-            ...mockErrorData,
-            errorDescription: "username parameter is empty or not valid",
-        };
+        const errorData = new CustomAuthApiError(
+            "invalid_request",
+            "username parameter is empty or not valid",
+            "correlation-id",
+            [90100],
+        );
+
         const signInError = new SignInError(errorData as any);
         expect(signInError.isInvalidUsername()).toBe(true);
     });
@@ -38,13 +41,13 @@ describe("SignInError", () => {
             [50126],
         );
         const signInError = new SignInError(errorData);
-        expect(signInError.isInvalidPassword()).toBe(true);
+        expect(signInError.isPasswordIncorrect()).toBe(true);
     });
 
     it("should return true for isInvalidPassword when error is InvalidArgumentError and message includes 'password'", () => {
         const errorData = new InvalidArgumentError("password");
         const signInError = new SignInError(errorData);
-        expect(signInError.isInvalidPassword()).toBe(true);
+        expect(signInError.isPasswordIncorrect()).toBe(true);
     });
 
     it("should return true for isUnsupportedChallengeType when error matches unsupported types", () => {
@@ -68,7 +71,7 @@ describe("SignInError", () => {
 
         expect(signInError.isUserNotFound()).toBe(false);
         expect(signInError.isInvalidUsername()).toBe(false);
-        expect(signInError.isInvalidPassword()).toBe(false);
+        expect(signInError.isPasswordIncorrect()).toBe(false);
         expect(signInError.isUnsupportedChallengeType()).toBe(false);
         expect(signInError.isRedirect()).toBe(false);
     });

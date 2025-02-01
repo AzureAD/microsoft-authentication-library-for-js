@@ -25,7 +25,7 @@ import {
 } from "./parameter/SignInParams.js";
 import {
     SignInCodeSendResult,
-    SignInCompleteResult,
+    SignInCompletedResult,
     SignInPasswordRequiredResult,
 } from "./result/SignInActionResult.js";
 import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
@@ -85,7 +85,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
      */
     async submitCode(
         parameters: SignInSubmitCodeParams,
-    ): Promise<SignInCompleteResult> {
+    ): Promise<SignInCompletedResult> {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
@@ -116,7 +116,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
 
         this.logger.info("Token endpoint called with code for sign in.");
 
-        return new SignInCompleteResult(
+        return new SignInCompletedResult(
             response.correlation_id ?? "",
             this.createAuthenticationResult(
                 response,
@@ -133,7 +133,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
      */
     async submitPassword(
         parameters: SignInSubmitPasswordParams,
-    ): Promise<SignInCompleteResult> {
+    ): Promise<SignInCompletedResult> {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
@@ -164,7 +164,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
 
         this.logger.info("Token endpoint called with password for sign in.");
 
-        return new SignInCompleteResult(
+        return new SignInCompletedResult(
             response.correlation_id ?? "",
             this.createAuthenticationResult(
                 response,
@@ -221,7 +221,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
      */
     async signInWithContinuationToken(
         parameters: SignInContinuationTokenParams,
-    ): Promise<SignInCompleteResult> {
+    ): Promise<SignInCompletedResult> {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
@@ -250,7 +250,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             "Token endpoint called with continuation token for sign in.",
         );
 
-        return new SignInCompleteResult(
+        return new SignInCompletedResult(
             response.correlation_id ?? "",
             this.createAuthenticationResult(
                 response,
