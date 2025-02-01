@@ -198,13 +198,21 @@ export class LocalStorage implements IWindowStorage<string> {
         this.setItem(key, JSON.stringify(encryptedData));
 
         // Notify other frames to update their in-memory cache
-        this.broadcast.postMessage({ key: key, value: value, context: this.getContext(key) });
+        this.broadcast.postMessage({
+            key: key,
+            value: value,
+            context: this.getContext(key),
+        });
     }
 
     removeItem(key: string): void {
         if (this.memoryStorage.containsKey(key)) {
             this.memoryStorage.removeItem(key);
-            this.broadcast.postMessage({ key: key, value: null, context: this.getContext(key) });
+            this.broadcast.postMessage({
+                key: key,
+                value: null,
+                context: this.getContext(key),
+            });
         }
         window.localStorage.removeItem(key);
     }
@@ -381,13 +389,15 @@ export class LocalStorage implements IWindowStorage<string> {
 
     private updateCache(event: MessageEvent): void {
         this.logger.trace("Updating internal cache from broadcast event");
-        const perfMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.LocalStorageUpdated);
+        const perfMeasurement = this.performanceClient.startMeasurement(
+            PerformanceEvents.LocalStorageUpdated
+        );
         perfMeasurement.add({ isBackground: true });
 
         const { key, value, context } = event.data;
         if (!key) {
             this.logger.error("Broadcast event missing key");
-            perfMeasurement.end({ success: false, errorCode: "noKey"})
+            perfMeasurement.end({ success: false, errorCode: "noKey" });
             return;
         }
 
@@ -395,7 +405,10 @@ export class LocalStorage implements IWindowStorage<string> {
             this.logger.trace(
                 `Ignoring broadcast event from clientId: ${context}`
             );
-            perfMeasurement.end({ success: false, errorCode: "contextMismatch"})
+            perfMeasurement.end({
+                success: false,
+                errorCode: "contextMismatch",
+            });
             return;
         }
 
