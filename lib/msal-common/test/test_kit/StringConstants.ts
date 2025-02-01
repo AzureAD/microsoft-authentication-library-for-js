@@ -5,9 +5,11 @@
 
 // This file contains the string constants used by the test classes.
 
-import { AuthenticationScheme, Constants } from "../../src/utils/Constants";
-import { RequestThumbprint, ThrottlingEntity, AccountInfo } from "../../src";
-import { NetworkRequestOptions } from "../../src/network/INetworkModule";
+import { AuthenticationScheme, Constants } from "../../src/utils/Constants.js";
+import { AccountInfo } from "../../src/account/AccountInfo.js";
+import { RequestThumbprint } from "../../src/network/RequestThumbprint.js";
+import { ThrottlingEntity } from "../../src/cache/entities/ThrottlingEntity.js";
+import { NetworkRequestOptions } from "../../src/network/INetworkModule.js";
 
 // Test Tokens
 export const TEST_TOKENS = {
@@ -508,8 +510,8 @@ export const AUTHENTICATION_RESULT = {
     body: {
         token_type: AuthenticationScheme.BEARER,
         scope: "openid profile User.Read email",
-        expires_in: 3599,
-        ext_expires_in: 3599,
+        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         access_token: "thisIs.an.accessT0ken",
         refresh_token: "thisIsARefreshT0ken",
         id_token: TEST_TOKENS.IDTOKEN_V2,
@@ -522,8 +524,8 @@ export const AUTHENTICATION_RESULT_NO_REFRESH_TOKEN = {
     body: {
         token_type: AuthenticationScheme.BEARER,
         scope: "openid profile User.Read email",
-        expires_in: 3599,
-        ext_expires_in: 3599,
+        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         access_token: "thisIs.an.accessT0ken",
         refresh_token: "",
         id_token:
@@ -537,8 +539,8 @@ export const POP_AUTHENTICATION_RESULT = {
     body: {
         token_type: AuthenticationScheme.POP,
         scope: "openid profile User.Read email",
-        expires_in: 3599,
-        ext_expires_in: 3599,
+        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         access_token: `${TEST_POP_VALUES.SAMPLE_POP_AT}`,
         refresh_token: "thisIsARefreshT0ken",
         id_token:
@@ -552,8 +554,8 @@ export const SSH_AUTHENTICATION_RESULT = {
     body: {
         token_type: AuthenticationScheme.SSH,
         scope: "https://pas.windows.net/CheckMyAccess/Linux/user_impersonation https://pas.windows.net/CheckMyAccess/Linux/.default",
-        "expires}_in": 3599,
-        ext_expires_in: 3599,
+        "expires}_in": TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         access_token:
             "AAAAHHNzaC1yc2EtY2VydC12MDFAb3BlbnNzaC5jb20AAAAgrk+wGrNoM6ZcU8/aVc+O9nMQArnTpgQcN2nDOojq3LwAAAADAQABAAABAQCiPcGP8PriIUKC1EAiepduIitPFswHDoPpAUJqbzgKNLdTdy86OoGFpY9yKo9kVgCTdPj/v8cO76/+I1vlHk1p7Q9DeFe333LefRnBUT8tDiFC4wtYJDxhpCcuOsEIlHVhYPp33ZQZePomb9rzTCatzFnrP9b62FRpx0Y3pjk/lstOr50Bh/3ZlDFPH36chXwEDSOcW3QX+0y4FT6x5zxna9KrwpCOWVaBdqsHpoqruDhGwkCAaoL6RXCyQTZatcqJNWCcD6a8GFHAkTZMxh2LR0xPZ4JkIDofKbauP/s9FPlAJN+VhY+HthrduVzgRP3ELxqSCE8xmNV8R/AVv1OxAAAAAAAAAAAAAAABAAAASTE4ZmRhY2MyLThkMWEtNDMzOC04NWM4LTAwMjY1ZmI2NWVmNkA3MmY5ODhiZi04NmYxLTQxYWYtOTFhYi0yZDdjZDAxMWRiNDcAAAAZAAAAFWhlbW9yYWxAbWljcm9zb2Z0LmNvbQAAAABhcFyFAAAAAGFwa8EAAAAAAAABTAAAACBkaXNwbGF5bmFtZUBzc2hzZXJ2aWNlLmF6dXJlLm5ldAAAABIAAAAOSGVjdG9yIE1vcmFsZXMAAAAYb2lkQHNzaHNlcnZpY2UuYXp1cmUubmV0AAAAKAAAACQxOGZkYWNjMi04ZDFhLTQzMzgtODVjOC0wMDI2NWZiNjVlZjYAAAAVcGVybWl0LVgxMS1mb3J3YXJkaW5nAAAAAAAAABdwZXJtaXQtYWdlbnQtZm9yd2FyZGluZwAAAAAAAAAWcGVybWl0LXBvcnQtZm9yd2FyZGluZwAAAAAAAAAKcGVybWl0LXB0eQAAAAAAAAAOcGVybWl0LXVzZXItcmMAAAAAAAAAGHRpZEBzc2hzZXJ2aWNlLmF6dXJlLm5ldAAAACgAAAAkNzJmOTg4YmYtODZmMS00MWFmLTkxYWItMmQ3Y2QwMTFkYjQ3AAAAAAAAARcAAAAHc3NoLXJzYQAAAAMBAAEAAAEBALH7FzF1rjvnZ4i2iBC2tz8qs/WP61n3/wFawgJxUnTx2vP/z5pG7f8qvumd7taOII0aSlp648SIfMw59WdUUtup5CnDYOcX1sUdivAj20m2PIDK6f+KWZ+7YKxJqCzJMH4GGlQvuDIhRKNT9oHfZgnYCCAmjXmJBtWyD052qqrkzOSn0/e9TKbjlTnTNcrIno3XDQ7xG+79vOD2GZMNopsKogWNxUdLFRu44ClKLRb4Xe00eVrANtBkv+mSJFFJS1Gxv611hpdGI2S0v1H+KvB26O7vuzGhZ/AevRemGhXQ5V5vwNEqXnVRVkBRszLKeN/+rxM436xQyVQGJMG+sVEAAAEUAAAADHJzYS1zaGEyLTI1NgAAAQBlbiFgkvtKprsj96PD2uIJ7ZypzE/t/iba7/eDvXXc3ixI8fBns2bSuNx7LF3i2vlAUgz6UHe4xW0voc+jmZKEI8jXj91C84npo7J4kCxAkfO4GmdwGhQMjNRoN+pZliPNtj5jQLsuVxgXoJARAEP8nSp372i2bn7iFzolXWPiWkF1MVFV9BLwL3uPDeqTZqurYcpXJnSX30owMyC9qf913MGvWujN2AKNyoX1OIm19EKUSVLMM7S65A5nuuOMrkaajumdEgCgiVQSgHjqD5gDix+EZy7w6L6b8nKqT2mu481dM2yMqejAWxgife4oPI07sGXf1kIOn8kTuZAHkiSH",
         refresh_token:
@@ -571,8 +573,8 @@ export const AUTHENTICATION_RESULT_WITH_FOCI = {
     body: {
         token_type: AuthenticationScheme.BEARER,
         scope: "openid profile User.Read email",
-        expires_in: 3599,
-        ext_expires_in: 3599,
+        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         access_token: "thisIs.an.accessT0ken",
         refresh_token: "thisIsARefreshT0ken",
         id_token: TEST_TOKENS.IDTOKEN_V2,
@@ -586,8 +588,8 @@ export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
     body: {
         token_type: AuthenticationScheme.BEARER,
         scope: "openid profile offline_access User.Read",
-        expires_in: 3599,
-        ext_expires_in: 3599,
+        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         access_token: "thisIs.an.accessT0ken",
         refresh_token: "thisIsARefreshT0ken",
         id_token:
@@ -610,8 +612,8 @@ export const AUTHENTICATION_RESULT_WITH_HEADERS = {
     body: {
         token_type: AuthenticationScheme.BEARER,
         scope: "openid profile offline_access User.Read",
-        expires_in: 3599,
-        ext_expires_in: 3599,
+        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         access_token: "thisIs.an.accessT0ken",
         refresh_token: "thisIsARefreshT0ken",
         id_token:
@@ -624,8 +626,8 @@ export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
     status: 200,
     body: {
         token_type: AuthenticationScheme.BEARER,
-        expires_in: 3599,
-        ext_expires_in: 3599,
+        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         access_token: "thisIs.an.accessT0ken",
     },
 };
