@@ -59,7 +59,7 @@ export class CookieStorage implements IWindowStorage<string> {
             cookieStr += `expires=${expireTime};`;
         }
 
-        if (secure) {
+        if (secure || sameSite === SameSiteOptions.None) {
             // SameSite None requires Secure flag
             cookieStr += "Secure;";
         }
