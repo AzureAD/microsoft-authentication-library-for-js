@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Search in persistent cache for cached token",
-  "packageName": "@azure/msal-node",
-  "email": "shylasummers@microsoft.com",
-  "dependentChangeType": "patch"
-}
