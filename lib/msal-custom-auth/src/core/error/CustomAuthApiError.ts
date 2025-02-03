@@ -56,7 +56,18 @@ export const CustomAuthApiErrorCode = {
     INVALID_REQUEST: "invalid_request",
     USER_NOT_FOUND: "user_not_found",
     INVALID_GRANT: "invalid_grant",
-    INVALID_OOB_VALUE: "invalid_oob_value",
     CREDENTIAL_REQUIRED: "credential_required",
     ATTRIBUTES_REQUIRED: "attributes_required",
+    USER_ALREADY_EXISTS: "user_already_exists",
 } as const;
+
+export const CustomAuthApiSuberror = {
+    PASSWORD_TOO_WEAK: "password_too_weak",
+    PASSWORD_TOO_SHORT: "password_too_short",
+    PASSWORD_TOO_LONG: "password_too_long",
+    PASSWORD_RECENTLY_USED: "password_recently_used",
+    PASSWORD_BANNED: "password_banned",
+    PASSWORD_IS_INVALID: "password_is_invalid",
+    INVALID_OOB_VALUE: "invalid_oob_value",
+    ATTRIBUTE_VALIATION_FAILED: "attribute_validation_failed",
+};

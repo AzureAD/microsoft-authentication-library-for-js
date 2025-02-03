@@ -1,20 +1,49 @@
 import { CustomAuthStandardController } from "../../src/controller/CustomAuthStandardController.js";
-import { SignInInputs } from "../../src/CustomAuthActionInputs.js";
+import {
+    SignInInputs,
+    SignUpInputs,
+} from "../../src/CustomAuthActionInputs.js";
 import { CustomAuthOperatingContext } from "../../src/operating_context/CustomAuthOperatingContext.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { SignInError } from "../../src/sign_in/auth_flow/error_type/SignInError.js";
 import { SignInResult } from "../../src/sign_in/auth_flow/result/SignInResult.js";
-import { SignInCodeRequiredStateHandler } from "../../src/sign_in/auth_flow/state_handler/SignInCodeRequiredStateHandler.js";
-import { SignInPasswordRequiredStateHandler } from "../../src/sign_in/auth_flow/state_handler/SignInPasswordRequiredStateHandler.js";
-import { SignInState } from "../../src/core/auth_flow/AuthFlowStateBase.js";
+import {
+    SignInState,
+    SignUpState,
+} from "../../src/core/auth_flow/AuthFlowStateBase.js";
 import { AccountInfo } from "../../src/account/auth_flow/model/AccountInfo.js";
+import { SignUpError } from "../../src/sign_up/auth_flow/error_type/SignUpError.js";
+import { ICustomAuthApiClient } from "../../src/core/network_client/custom_auth_api/ICustomAuthApiClient.js";
+import { ChallengeType } from "../../src/CustomAuthConstants.js";
+import {
+    CustomAuthApiError,
+    CustomAuthApiErrorCode,
+    CustomAuthApiSuberror,
+    RedirectError,
+} from "../../src/core/error/CustomAuthApiError.js";
+import { SignUpResult } from "../../src/sign_up/auth_flow/result/SignUpResult.js";
 
 describe("CustomAuthStandardController", () => {
     let controller: CustomAuthStandardController;
+    let mockedApiClient: jest.Mocked<ICustomAuthApiClient>;
 
     beforeEach(() => {
         const context = new CustomAuthOperatingContext(customAuthConfig);
-        controller = new CustomAuthStandardController(context);
+
+        mockedApiClient = {
+            performSignInInitiateRequest: jest.fn(),
+            performSignInChallengeRequest: jest.fn(),
+            performSignInOobTokenRequest: jest.fn(),
+            performSignInPasswordTokenRequest: jest.fn(),
+            performSignInContinuationTokenRequest: jest.fn(),
+            performSignUpStartRequest: jest.fn(),
+            performSignUpChallengeRequest: jest.fn(),
+            performSignUpSubmitCodeRequest: jest.fn(),
+            performSignUpSubmitPasswordRequest: jest.fn(),
+            performSignUpSubmitUserAttributesRequest: jest.fn(),
+        } as unknown as jest.Mocked<ICustomAuthApiClient>;
+
+        controller = new CustomAuthStandardController(context, mockedApiClient);
 
         global.fetch = jest.fn(); // Mock the fetch API
     });
@@ -39,28 +68,16 @@ describe("CustomAuthStandardController", () => {
         });
 
         it("should return code required result if the challenge type is oob", async () => {
-            (fetch as jest.Mock).mockResolvedValueOnce({
-                status: 200,
-                json: async () => {
-                    return {
-                        correlation_id: "test-correlation-id",
-                        continuation_token: "test-continuation-token-1",
-                        challenge_type: "oob password redirect",
-                    };
-                },
-                headers: new Headers({ "content-type": "application/json" }),
+            mockedApiClient.performSignInInitiateRequest.mockResolvedValue({
+                continuation_token: "continuation_token_1",
             });
-
-            (fetch as jest.Mock).mockResolvedValueOnce({
-                status: 200,
-                json: async () => {
-                    return {
-                        correlation_id: "test-correlation-id",
-                        continuation_token: "test-continuation-token-2",
-                        challenge_type: "oob",
-                    };
-                },
-                headers: new Headers({ "content-type": "application/json" }),
+            mockedApiClient.performSignInChallengeRequest.mockResolvedValue({
+                challenge_type: ChallengeType.OOB,
+                correlation_id: "corr123",
+                continuation_token: "continuation_token_2",
+                code_length: 6,
+                challenge_channel: "email",
+                target_challenge_label: "email",
             });
 
             const signInInputs: SignInInputs = {
@@ -76,28 +93,13 @@ describe("CustomAuthStandardController", () => {
         });
 
         it("should return password required result if the challenge type is password", async () => {
-            (fetch as jest.Mock).mockResolvedValueOnce({
-                status: 200,
-                json: async () => {
-                    return {
-                        correlation_id: "test-correlation-id",
-                        continuation_token: "test-continuation-token-1",
-                        challenge_type: "oob password redirect",
-                    };
-                },
-                headers: new Headers({ "content-type": "application/json" }),
+            mockedApiClient.performSignInInitiateRequest.mockResolvedValue({
+                continuation_token: "continuation_token_1",
             });
-
-            (fetch as jest.Mock).mockResolvedValueOnce({
-                status: 200,
-                json: async () => {
-                    return {
-                        correlation_id: "test-correlation-id",
-                        continuation_token: "test-continuation-token-2",
-                        challenge_type: "password",
-                    };
-                },
-                headers: new Headers({ "content-type": "application/json" }),
+            mockedApiClient.performSignInChallengeRequest.mockResolvedValue({
+                challenge_type: ChallengeType.PASSWORD,
+                correlation_id: "corr123",
+                continuation_token: "continuation_token_2",
             });
 
             const signInInputs: SignInInputs = {
@@ -115,45 +117,24 @@ describe("CustomAuthStandardController", () => {
         });
 
         it("should return correct completed result if the challenge type is password and password is provided", async () => {
-            (fetch as jest.Mock).mockResolvedValueOnce({
-                status: 200,
-                json: async () => {
-                    return {
-                        correlation_id: "test-correlation-id",
-                        continuation_token: "test-continuation-token-1",
-                        challenge_type: "oob password redirect",
-                    };
-                },
-                headers: new Headers({ "content-type": "application/json" }),
+            mockedApiClient.performSignInInitiateRequest.mockResolvedValue({
+                continuation_token: "continuation_token_1",
             });
-
-            (fetch as jest.Mock).mockResolvedValueOnce({
-                status: 200,
-                json: async () => {
-                    return {
-                        correlation_id: "test-correlation-id",
-                        continuation_token: "test-continuation-token-2",
-                        challenge_type: "password",
-                    };
-                },
-                headers: new Headers({ "content-type": "application/json" }),
+            mockedApiClient.performSignInChallengeRequest.mockResolvedValue({
+                challenge_type: ChallengeType.PASSWORD,
+                correlation_id: "corr123",
+                continuation_token: "continuation_token_2",
             });
-
-            (fetch as jest.Mock).mockResolvedValueOnce({
-                status: 200,
-                json: async () => {
-                    return {
-                        correlation_id: "test-correlation-id",
-                        token_type: "Bearer",
-                        scopes: "test-scope",
-                        expires_in: 3600,
-                        id_token: "test-id-token",
-                        access_token: "test-access-token",
-                        refresh_token: "test-refresh-token",
-                    };
+            mockedApiClient.performSignInPasswordTokenRequest.mockResolvedValue(
+                {
+                    correlation_id: "test-correlation-id",
+                    access_token: "test-access-token",
+                    refresh_token: "test-refresh-token",
+                    id_token: "test-id-token",
+                    expires_in: 3600,
+                    token_type: "Bearer",
                 },
-                headers: new Headers({ "content-type": "application/json" }),
-            });
+            );
 
             const signInInputs: SignInInputs = {
                 correlationId: "correlation-id",
@@ -171,17 +152,9 @@ describe("CustomAuthStandardController", () => {
         });
 
         it("should return failed result if the challenge type is redirect", async () => {
-            (fetch as jest.Mock).mockResolvedValueOnce({
-                status: 200,
-                json: async () => {
-                    return {
-                        correlation_id: "test-correlation-id",
-                        continuation_token: "test-continuation-token-1",
-                        challenge_type: "redirect",
-                    };
-                },
-                headers: new Headers({ "content-type": "application/json" }),
-            });
+            mockedApiClient.performSignInInitiateRequest.mockRejectedValue(
+                new RedirectError(),
+            );
 
             const signInInputs: SignInInputs = {
                 correlationId: "correlation-id",
@@ -196,6 +169,151 @@ describe("CustomAuthStandardController", () => {
             expect(result.error?.errorData).toBeDefined();
             expect(result.error?.isRedirect()).toEqual(true);
             expect(result.state?.type).toStrictEqual(SignInState.Failed);
+        });
+    });
+
+    describe("signUp", () => {
+        it("should return error result if provided username is empty", async () => {
+            const signUpInputs: SignUpInputs = {
+                correlationId: "correlation-id",
+                username: "",
+            };
+
+            const result = await controller.signUp(signUpInputs);
+
+            expect(result.error).toBeDefined();
+            expect(result.error).toBeInstanceOf(SignUpError);
+
+            expect(result.error?.isInvalidUsername()).toBe(true);
+        });
+
+        it("should return error result if provided username is invalid", async () => {
+            const signUpInputs: SignUpInputs = {
+                correlationId: "correlation-id",
+                username: "agc@",
+            };
+
+            const result = await controller.signUp(signUpInputs);
+
+            expect(result.error).toBeDefined();
+            expect(result.error).toBeInstanceOf(SignUpError);
+
+            expect(result.error?.isInvalidUsername()).toBe(true);
+        });
+
+        it("should return result with code required state if the challenge type is oob", async () => {
+            mockedApiClient.performSignUpStartRequest.mockResolvedValue({
+                continuation_token: "continuation_token_1",
+            });
+            mockedApiClient.performSignUpChallengeRequest.mockResolvedValue({
+                challenge_type: ChallengeType.OOB,
+                correlation_id: "corr123",
+                continuation_token: "continuation_token_2",
+                code_length: 6,
+                challenge_channel: "email",
+                target_challenge_label: "email",
+            });
+
+            const signUpInputs: SignUpInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+            };
+
+            const result = await controller.signUp(signUpInputs);
+
+            expect(result).toBeInstanceOf(SignUpResult);
+            expect(result.error).toBeUndefined();
+            expect(result.state?.type).toStrictEqual(SignUpState.CodeRequired);
+        });
+
+        it("should return result with password required state if the challenge type is password", async () => {
+            mockedApiClient.performSignUpStartRequest.mockResolvedValue({
+                continuation_token: "continuation_token_1",
+            });
+            mockedApiClient.performSignUpChallengeRequest.mockResolvedValue({
+                challenge_type: ChallengeType.PASSWORD,
+                correlation_id: "corr123",
+                continuation_token: "continuation_token_2",
+            });
+
+            const signUpInputs: SignUpInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+            };
+
+            const result = await controller.signUp(signUpInputs);
+
+            expect(result).toBeInstanceOf(SignUpResult);
+            expect(result.error).toBeUndefined();
+            expect(result.state?.type).toStrictEqual(
+                SignUpState.PasswordRequired,
+            );
+        });
+
+        it("should return failed result if the start endpoint returns redirect challenge type", async () => {
+            mockedApiClient.performSignUpStartRequest.mockRejectedValue(
+                new RedirectError(),
+            );
+
+            const signUpInputs: SignUpInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+            };
+
+            const result = await controller.signUp(signUpInputs);
+
+            expect(result).toBeInstanceOf(SignUpResult);
+            expect(result.error).toBeDefined();
+            expect(result.error?.errorData).toBeDefined();
+            expect(result.error?.isRedirect()).toEqual(true);
+            expect(result.state?.type).toStrictEqual(SignUpState.Failed);
+        });
+
+        it("should return failed result if the challenge endpoint returns redirect challenge type", async () => {
+            mockedApiClient.performSignUpStartRequest.mockResolvedValue({
+                continuation_token: "continuation_token_1",
+            });
+            mockedApiClient.performSignUpChallengeRequest.mockRejectedValue(
+                new RedirectError(),
+            );
+
+            const signUpInputs: SignUpInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+            };
+
+            const result = await controller.signUp(signUpInputs);
+
+            expect(result).toBeInstanceOf(SignUpResult);
+            expect(result.error).toBeDefined();
+            expect(result.error?.errorData).toBeDefined();
+            expect(result.error?.isRedirect()).toEqual(true);
+            expect(result.state?.type).toStrictEqual(SignUpState.Failed);
+        });
+
+        it("should return failed result if the password is too weak", async () => {
+            mockedApiClient.performSignUpStartRequest.mockRejectedValue(
+                new CustomAuthApiError(
+                    CustomAuthApiErrorCode.INVALID_GRANT,
+                    "Password is too weak",
+                    "correlation-id",
+                    [],
+                    CustomAuthApiSuberror.PASSWORD_TOO_WEAK,
+                ),
+            );
+
+            const signUpInputs: SignUpInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+            };
+
+            const result = await controller.signUp(signUpInputs);
+
+            expect(result).toBeInstanceOf(SignUpResult);
+            expect(result.error).toBeDefined();
+            expect(result.error?.errorData).toBeDefined();
+            expect(result.error?.isInvalidPassword()).toEqual(true);
+            expect(result.state?.type).toStrictEqual(SignUpState.Failed);
         });
     });
 });

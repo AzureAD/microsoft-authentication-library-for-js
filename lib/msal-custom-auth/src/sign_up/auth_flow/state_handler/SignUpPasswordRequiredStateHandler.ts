@@ -25,7 +25,7 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
      * @param password - The password to submit.
      * @returns The result of the operation.
      */
-    async sumbmitPassword(
+    async submitPassword(
         password: string,
     ): Promise<SignUpSubmitPasswordResult> {
         if (!password) {

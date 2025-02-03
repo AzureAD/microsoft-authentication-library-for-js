@@ -5,7 +5,7 @@ import { InvalidArgumentError } from "../../../../src/core/error/InvalidArgument
 import { SignInSubmitPasswordError } from "../../../../src/sign_in/auth_flow/error_type/SignInError.js";
 import { SignInSubmitPasswordResult } from "../../../../src/sign_in/auth_flow/result/SignInSubmitPasswordResult.js";
 import { SignInPasswordRequiredStateHandler } from "../../../../src/sign_in/auth_flow/state_handler/SignInPasswordRequiredStateHandler.js";
-import { SignInCompleteResult } from "../../../../src/sign_in/interaction_client/result/SignInActionResult.js";
+import { SignInCompletedResult } from "../../../../src/sign_in/interaction_client/result/SignInActionResult.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { SignInState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";
 
@@ -57,7 +57,7 @@ describe("SignInPasswordRequiredStateHandler", () => {
 
     it("should successfully submit a password and return a result", async () => {
         mockSignInClient.submitPassword.mockResolvedValue(
-            new SignInCompleteResult(correlationId, {
+            new SignInCompletedResult(correlationId, {
                 accessToken: "test-access-token",
                 idToken: "test-id-token",
                 refreshToken: "test-refresh-token",

@@ -5,7 +5,7 @@
 
 import { CustomAuthAuthenticationResult } from "../../../core/interaction_client/CustomAuthAuthenticationResult.js";
 
-export class SignInCompleteResult {
+export class SignInCompletedResult {
     constructor(
         public correlationId: string,
         public authenticationResult: CustomAuthAuthenticationResult,

@@ -52,10 +52,10 @@ export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
      * @param attributes - The attributes to submit.
      * @returns The result of the operation.
      */
-    async sumbmitAttributes(
+    async submitAttributes(
         attributes: UserAccountAttributes,
     ): Promise<SignUpSubmitAttributesResult> {
-        if (!attributes) {
+        if (!attributes || Object.keys(attributes.toRecord()).length === 0) {
             this.logger.error("Attributes are required for sign-up.");
 
             return Promise.resolve(

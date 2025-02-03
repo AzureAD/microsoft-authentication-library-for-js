@@ -1,4 +1,3 @@
-import { error, info } from "console";
 import { AccountInfo } from "../../../../src/account/auth_flow/model/AccountInfo.js";
 import { CustomAuthBrowserConfiguration } from "../../../../src/configuration/CustomAuthConfiguration.js";
 import { InvalidArgumentError } from "../../../../src/core/error/InvalidArgumentError.js";
@@ -11,7 +10,7 @@ import { SignInSubmitCodeResult } from "../../../../src/sign_in/auth_flow/result
 import { SignInCodeRequiredStateHandler } from "../../../../src/sign_in/auth_flow/state_handler/SignInCodeRequiredStateHandler.js";
 import {
     SignInCodeSendResult,
-    SignInCompleteResult,
+    SignInCompletedResult,
 } from "../../../../src/sign_in/interaction_client/result/SignInActionResult.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { Logger } from "@azure/msal-browser";
@@ -72,7 +71,7 @@ describe("SignInCodeRequiredStateHandler", () => {
 
         it("should successfully submit a code and return a result", async () => {
             mockSignInClient.submitCode.mockResolvedValue(
-                new SignInCompleteResult(correlationId, {
+                new SignInCompletedResult(correlationId, {
                     accessToken: "test-access-token",
                     idToken: "test-id-token",
                     refreshToken: "test-refresh-token",
