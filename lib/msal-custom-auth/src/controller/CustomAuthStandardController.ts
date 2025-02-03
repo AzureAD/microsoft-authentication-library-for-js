@@ -46,6 +46,9 @@ import { SignInCodeRequired } from "../sign_in/auth_flow/state/SignInCodeRequire
 import { SignInPasswordRequired } from "../sign_in/auth_flow/state/SignInPasswordRequired.js";
 import { SignInCompleted } from "../sign_in/auth_flow/state/SignInCompleted.js";
 import { ICustomAuthApiClient } from "../core/network_client/custom_auth_api/ICustomAuthApiClient.js";
+import { SingInApiClient } from "../core/network_client/SingInApiClient.js";
+import { SignupApiClient } from "../core/network_client/SignupApiClient.js";
+import { ResetPasswordApiClient } from "../core/network_client/ResetPasswordApiClient.js";
 
 /*
  * Controller for standard native auth operations.
@@ -95,6 +98,10 @@ export class CustomAuthStandardController
             this.customAuthConfig.customAuth?.authApiProxyUrl,
         );
 
+        const signinApiClient = new SingInApiClient();
+        const signUpApiClient = new SignupApiClient();
+        const resetpwdApiClient = new ResetPasswordApiClient();
+
         const interactionClientFactory = new CustomAuthInterationClientFactory(
             this.customAuthConfig,
             this.browserStorage,
@@ -105,10 +112,9 @@ export class CustomAuthStandardController
             this.performanceClient,
             customAuthApiClient ??
                 new CustomAuthApiClient(
-                    new FetchHttpClient(
-                        this.logger,
-                        this.authority.getCustomAuthDomain(),
-                    ),
+                    signinApiClient,
+                    signUpApiClient,
+                    resetpwdApiClient,
                 ),
             this.authority,
         );
