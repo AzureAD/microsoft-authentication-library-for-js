@@ -29,6 +29,12 @@ export enum SignupContinueErrorType {
     INVALID_GRANT = "invalid_grant",
 }
 
+export enum GenericErrorType {
+    UNKNOWN_ERROR = "unknown_error",
+    INVALID_JSON_RESPONSE = "invalid_json_response",
+}
+
+export type ApiFieldErrorType = SignupErrorType | SignupErrorChallengeType | SignupContinueErrorType | GenericErrorType;
 /**
  * Enum for invalid client suberrors
  */
@@ -63,16 +69,13 @@ export interface InvalidAttribute {
 /**
  * Detailed error interface for Microsoft Entra signup errors
  */
-export interface SignUpErrorResponse {
-    error: SignupErrorType | SignupErrorChallengeType | SignupContinueErrorType;
+export interface ApiErrorResponse {
+    error: ApiFieldErrorType;
     error_description: string;
     error_codes: number[];
     timestamp: string;
     trace_id: string;
     correlation_id: string;
-    suberror?:
-        | InvalidClientSuberror
-        | InvalidGrantSuberror
-        | InvalidContinueSuberror;
+    suberror?: InvalidClientSuberror | InvalidGrantSuberror | InvalidContinueSuberror;
     invalid_attributes?: InvalidAttribute[];
 }

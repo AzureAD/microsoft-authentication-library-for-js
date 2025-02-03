@@ -3,11 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    InvalidGrantSuberror,
-    SignUpErrorResponse,
-    SignupErrorType,
-} from "./types/SignUpErrorsTypes.js";
+import { InvalidGrantSuberror, SignUpErrorResponse, SignupErrorType } from "./types/ApiErrorResponseTypes.js";
 
 export class SignupErrorHandler extends Error {
     public errorDetails: SignUpErrorResponse;

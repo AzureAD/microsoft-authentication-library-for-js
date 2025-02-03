@@ -9,6 +9,8 @@ import {
     ServerTelemetryManager,
 } from "@azure/msal-browser";
 import { DefaultPackageInfo } from "../../CustomAuthConstants.js";
+import { ApiErrorResponse } from "./types/ApiErrorResponseTypes.js";
+import { ApiError, NotFoundError, UnauthorizedError } from "./ApiErrorHandlers.js";
 
 export abstract class BaseApiClient {
     protected readonly baseUrl: string;
@@ -39,42 +41,31 @@ export abstract class BaseApiClient {
             ...data,
         });
         const headers = this.getCommonHeaders(correlationId);
-        const response = await fetch(`${this.baseUrl}/${endpoint}`, {
-            method,
-            headers,
-            body: formData,
-        });
-        const endTime = performance.now();
-        this.logger.trace(`Request to ${endpoint} completed in ${endTime - startTime}ms`, correlationId);
-        if (!response.ok) {
-            throw await this.handleError(response);
+        try {
+            const response = await fetch(`${this.baseUrl}/${endpoint}`, {
+                method,
+                headers,
+                body: formData,
+            });
+            const endTime = performance.now();
+            this.logger.trace(`Request to ${endpoint} completed in ${endTime - startTime}ms`, correlationId);
+            if (!response.ok) {
+                const errorResponse: ApiErrorResponse = await response.json();
+                switch (response.status) {
+                    case 401:
+                        throw new UnauthorizedError(response, errorResponse);
+                    case 404:
+                        throw new NotFoundError(response, errorResponse);
+                    default:
+                        throw new ApiError(response, errorResponse, "An error occurred");
+                }
+            }
+
+            return await response.json();
+        } catch (error) {
+            this.logger.error(`Request to ${endpoint} failed`, correlationId, error);
+            throw error;
         }
-
-        /*
-         * this.logger.error(
-         *     `Failed to send request: ${e}`,
-         *     request.correlationId,
-         * );
-         */
-
-        /*
-         * if (!window.navigator.onLine) {
-         *     throw new HttpError(
-         *         NoNetworkConnectivity,
-         *         `No network connectivity: ${e}`,
-         *         request.correlationId,
-         *     );
-         * }
-         */
-
-        /*
-         * throw new HttpError(
-         *     FailedSendRequest,
-         *     `Failed to send request: ${e}`,
-         *     request.correlationId,
-         * );
-         */
-        return response.json();
     }
 
     private getCommonHeaders(correlationId: string) {
