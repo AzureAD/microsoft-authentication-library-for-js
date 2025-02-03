@@ -1,0 +1,36 @@
+6import bpy
+
+# Load the image
+image_path = "path/to/your/image.jpg"
+bpy.ops.import_image.to_plane(files=[{"name": image_path}])
+
+# Create a 3D model from the image
+bpy.ops.object.modifier_add(type='SUBSURF')
+bpy.ops.object.shade_smooth()
+
+# Apply gradient rendering (simplified example)
+material = bpy.data.materials.new(name="GradientMaterial")
+material.use_nodes = True
+nodes = material.node_tree.nodes
+nodes.clear()
+
+# Add nodes for gradient
+node_output = nodes.new(type='ShaderNodeOutputMaterial')
+node_shader = nodes.new(type='ShaderNodeBsdfDiffuse')
+node_gradient = nodes.new(type='ShaderNodeTexGradient')
+
+# Connect nodes
+links = material.node_tree.links
+links.new(node_gradient.outputs[0], node_shader.inputs[0])
+links.new(node_shader.outputs[0], node_output.inputs[0])
+
+# Assign material to object
+obj = bpy.context.active_object
+if obj.data.materials:
+    obj.data.materials[0] = material
+else:
+    obj.data.materials.append(material)
+
+# Save the rendered image
+bpy.ops.render.render(write_still=True)
+bpy.data.images['Render Result'].save_render(filepath="path/to/save/rendered_image.png")
