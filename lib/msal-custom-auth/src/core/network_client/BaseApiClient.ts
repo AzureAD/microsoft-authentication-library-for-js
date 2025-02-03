@@ -19,7 +19,6 @@ export abstract class BaseApiClient {
     constructor(
         clientId: string,
         tenantSubdomain: string,
-        private telemetryManager: ServerTelemetryManager,
         private logger: Logger,
     ) {
         this.clientId = clientId;
@@ -29,18 +28,19 @@ export abstract class BaseApiClient {
 
     async request<T>(
         endpoint: string,
-        data: Record<string, string>,
+        data: Record<string, string | ServerTelemetryManager>,
         correlationId: string = "",
         method: "GET" | "POST" = "POST",
     ): Promise<T> {
         this.logger.trace(`Sending request to ${endpoint}`, correlationId);
 
+        const telemetryManager = data.telemetryManager as ServerTelemetryManager;
         const startTime = performance.now();
         const formData = new URLSearchParams({
             client_id: this.clientId,
             ...data,
         });
-        const headers = this.getCommonHeaders(correlationId);
+        const headers = this.getCommonHeaders(correlationId, telemetryManager);
         try {
             const response = await fetch(`${this.baseUrl}/${endpoint}`, {
                 method,
@@ -68,15 +68,15 @@ export abstract class BaseApiClient {
         }
     }
 
-    private getCommonHeaders(correlationId: string) {
+    private getCommonHeaders(correlationId: string, telemetryManager: ServerTelemetryManager): Record<string, string> {
         return {
             "Content-Type": "application/x-www-form-urlencoded",
             [AADServerParamKeys.X_CLIENT_SKU]: DefaultPackageInfo.SKU,
             [AADServerParamKeys.X_CLIENT_VER]: DefaultPackageInfo.VERSION,
             [AADServerParamKeys.X_CLIENT_OS]: DefaultPackageInfo.OS,
             [AADServerParamKeys.X_CLIENT_CPU]: DefaultPackageInfo.CPU,
-            [AADServerParamKeys.X_CLIENT_CURR_TELEM]: this.telemetryManager.generateCurrentRequestHeaderValue(),
-            [AADServerParamKeys.X_CLIENT_LAST_TELEM]: this.telemetryManager.generateLastRequestHeaderValue(),
+            [AADServerParamKeys.X_CLIENT_CURR_TELEM]: telemetryManager.generateCurrentRequestHeaderValue(),
+            [AADServerParamKeys.X_CLIENT_LAST_TELEM]: telemetryManager.generateLastRequestHeaderValue(),
             [AADServerParamKeys.CLIENT_REQUEST_ID]: correlationId,
         };
     }
