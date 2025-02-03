@@ -46,9 +46,6 @@ import { SignUpAttributesRequired } from "../sign_up/auth_flow/state/SignUpAttri
 import { SignInCodeRequired } from "../sign_in/auth_flow/state/SignInCodeRequired.js";
 import { SignInPasswordRequired } from "../sign_in/auth_flow/state/SignInPasswordRequired.js";
 import { SignInCompleted } from "../sign_in/auth_flow/state/SignInCompleted.js";
-import { SingInApiClient } from "../core/network_client/SingInApiClient.js";
-import { SignupApiClient } from "../core/network_client/SignupApiClient.js";
-import { ResetPasswordApiClient } from "../core/network_client/ResetPasswordApiClient.js";
 
 /*
  * Controller for standard native auth operations.
@@ -93,22 +90,12 @@ export class CustomAuthStandardController
             this.config.auth.authority,
             this.customAuthConfig.customAuth?.authApiProxyUrl,
         );
-        const baseUrl = this.authority.getCustomAuthDomain();
 
-        const signInApiClient = new SingInApiClient(
-            this.config.auth.clientId,
-            baseUrl,
-            this.logger,
-        );
-        const signUpApiClient = new SignupApiClient(
-            this.config.auth.clientId,
-            baseUrl,
-            this.logger,
-        );
-        const resetpwd = new ResetPasswordApiClient(
-            this.config.auth.clientId,
-            baseUrl,
-            this.logger,
+        const customAuthApiClient = new CustomAuthApiClient(
+            new FetchHttpClient(
+                this.logger,
+                this.authority.getCustomAuthDomain(),
+            ),
         );
 
         const interactionClientFactory = new CustomAuthInterationClientFactory(
@@ -119,14 +106,12 @@ export class CustomAuthStandardController
             this.eventHandler,
             this.navigationClient,
             this.performanceClient,
+            customAuthApiClient,
             this.authority,
         );
 
-        this.signInClient =
-            interactionClientFactory.createSignInClient(signInApiClient);
-        this.signUpClient =
-            interactionClientFactory.createSignUpClient(signUpApiClient);
-        // this.resetpasswordClient = interactionClientFactory.create(resetpwd);
+        this.signInClient = interactionClientFactory.create(SignInClient);
+        this.signUpClient = interactionClientFactory.create(SignUpClient);
 
         // Create more interaction clients here, such as SignUpClient, ResetPasswordClient, etc.
     }

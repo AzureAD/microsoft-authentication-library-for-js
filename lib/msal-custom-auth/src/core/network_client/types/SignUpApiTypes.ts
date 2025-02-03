@@ -41,15 +41,13 @@ export interface SignUpStartRequest {
     /**
      * The password of the user to sign up.
      */
-    password: string;
+    password?: string;
 
     /**
      * The attributes of the user to sign up.
      */
-    attributes: { [key: string]: string };
-
+    attributes?: { [key: string]: string };
     challenge_type: string;
-
     client_id: string;
 }
 
@@ -61,9 +59,10 @@ export interface SignUpChallengeRequest {
 
 export interface SignUpContinueRequest {
     continuation_token: string;
-    grant_type: string;
     client_id: string;
-    oob: GrantType;
+    grant_type: GrantType;
+    attributes?: { [key: string]: string };
+    oob?: string;
 }
 
 /**
