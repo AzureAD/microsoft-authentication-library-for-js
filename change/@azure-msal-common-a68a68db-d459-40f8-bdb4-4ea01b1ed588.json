@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Instrument additional data points #7543",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
