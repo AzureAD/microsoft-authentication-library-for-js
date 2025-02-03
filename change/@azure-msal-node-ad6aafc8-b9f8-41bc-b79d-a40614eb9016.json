@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fixed some test constants and imports #7545",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}
