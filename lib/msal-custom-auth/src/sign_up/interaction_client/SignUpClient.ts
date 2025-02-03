@@ -70,9 +70,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             this.logger.info("Calling start endpoint for sign up.");
 
             const startResponse =
-                await this.customAuthApiClient.performSignUpStartRequest(
-                    startRequest,
-                );
+                await this.customAuthApiClient.initiate(startRequest);
 
             this.logger.info("Start endpoint called for sign up.");
 

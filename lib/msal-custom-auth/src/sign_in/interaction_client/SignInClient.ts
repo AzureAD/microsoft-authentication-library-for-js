@@ -62,7 +62,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         this.logger.info("Calling initiate endpoint for sign in.");
 
         const initiateResponse =
-            await this.customAuthApiClient.performSignInInitiateRequest(
+            await this.customAuthApiClient.signInApiClient.initiate(
                 initiateRequest,
             );
 
@@ -110,7 +110,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         this.logger.info("Calling token endpoint with code for sign in.");
 
         const response =
-            await this.customAuthApiClient.performSignInOobTokenRequest(
+            await this.customAuthApiClient.signInApiClient.requestTokens(
                 request,
             );
 
@@ -158,7 +158,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         this.logger.info("Calling token endpoint with password for sign in.");
 
         const response =
-            await this.customAuthApiClient.performSignInPasswordTokenRequest(
+            await this.customAuthApiClient.signInApiClient.requestTokens(
                 request,
             );
 
@@ -242,7 +242,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         );
 
         const response =
-            await this.customAuthApiClient.performSignInContinuationTokenRequest(
+            await this.customAuthApiClient.signInApiClient.requestChallenge(
                 request,
             );
 
@@ -298,7 +298,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         this.logger.info("Calling challenge endpoint for sign in.");
 
         const challengeResponse =
-            await this.customAuthApiClient.performSignInChallengeRequest(
+            await this.customAuthApiClient.signInApiClient.requestChallenge(
                 request,
             );
 
