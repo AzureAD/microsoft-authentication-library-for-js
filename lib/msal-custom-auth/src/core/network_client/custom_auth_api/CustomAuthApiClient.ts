@@ -21,17 +21,8 @@ import {
 import { SingInApiClient } from "../SingInApiClient.js";
 import { SignupApiClient } from "../SignupApiClient.js";
 import { ResetPasswordApiClient } from "../ResetPasswordApiClient.js";
-import {
-    SignInInitiateSuccessResponse,
-    SingInChallengeSuccessResponse,
-    TokenSuccessResponse,
-} from "../types/SignInApiTypes.js";
-import {
-    ChallengeResponse,
-    GrantType,
-    SignUpContinueResponse,
-    SignUpStartResponse,
-} from "../types/SignUpApiTypes.js";
+import { SignInInitiateSuccessResponse, SingInChallengeCodeResponse, SignInTokenSuccessResponse } from "../types/SignInApiTypes.js";
+import { ChallengeResponse, GrantType, SignUpContinueResponse, SignUpStartResponse } from "../types/SignUpApiTypes.js";
 
 /**
  * Custom Auth Client which can be used to make requests to the Custom Auth service.
@@ -43,9 +34,7 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
         public resetPasswordApiClient: ResetPasswordApiClient,
     ) {}
 
-    async performSignInInitiateRequest(
-        request: SignInInitiateRequest,
-    ): Promise<SignInInitiateSuccessResponse> {
+    async performSignInInitiateRequest(request: SignInInitiateRequest): Promise<SignInInitiateSuccessResponse> {
         return this.signInApiClient.initiate({
             client_id: request.parameters.clientId,
             challenge_type: request.parameters.challengeType,
@@ -53,9 +42,7 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
         });
     }
 
-    async performSignInChallengeRequest(
-        request: SignInChallengeRequest,
-    ): Promise<SingInChallengeSuccessResponse> {
+    async performSignInChallengeRequest(request: SignInChallengeRequest): Promise<SingInChallengeCodeResponse> {
         return this.signInApiClient.requestChallenge({
             client_id: request.parameters.clientId,
             challenge_type: request.parameters.challengeType,
@@ -63,9 +50,7 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
         });
     }
 
-    async performSignInOobTokenRequest(
-        request: SignInOobTokenRequest,
-    ): Promise<TokenSuccessResponse> {
+    async performSignInOobTokenRequest(request: SignInOobTokenRequest): Promise<SignInTokenSuccessResponse> {
         return this.signInApiClient.requestTokens({
             client_id: request.parameters.clientId,
             continuation_token: request.parameters.continuationToken,
@@ -75,9 +60,7 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
         });
     }
 
-    async performSignInPasswordTokenRequest(
-        request: SignInPasswordTokenRequest,
-    ): Promise<TokenSuccessResponse> {
+    async performSignInPasswordTokenRequest(request: SignInPasswordTokenRequest): Promise<SignInTokenSuccessResponse> {
         return this.signInApiClient.requestTokens({
             client_id: request.parameters.clientId,
             continuation_token: request.parameters.continuationToken,
@@ -87,9 +70,7 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
         });
     }
 
-    performSignUpStartRequest(
-        request: SignUpStartRequest,
-    ): Promise<SignUpStartResponse> {
+    performSignUpStartRequest(request: SignUpStartRequest): Promise<SignUpStartResponse> {
         return this.signUpApiClient.start({
             client_id: request.parameters.clientId,
             challenge_type: request.parameters.challengeType,
@@ -99,9 +80,7 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
         });
     }
 
-    performSignUpChallengeRequest(
-        request: SignUpChallengeRequest,
-    ): Promise<ChallengeResponse> {
+    performSignUpChallengeRequest(request: SignUpChallengeRequest): Promise<ChallengeResponse> {
         return this.signUpApiClient.requestChallenge({
             challenge_type: request.parameters.challengeType,
             client_id: request.parameters.clientId,
@@ -109,9 +88,7 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
         });
     }
 
-    performSignUpSubmitCodeRequest(
-        request: SignUpSubmitCodeRequest,
-    ): Promise<SignUpContinueResponse> {
+    performSignUpSubmitCodeRequest(request: SignUpSubmitCodeRequest): Promise<SignUpContinueResponse> {
         return this.signUpApiClient.continue({
             client_id: request.parameters.clientId,
             continuation_token: request.parameters.continuationToken,
@@ -120,17 +97,11 @@ export class CustomAuthApiClient implements ICustomAuthApiClient {
         });
     }
 
-    performSignUpSubmitPasswordRequest(
-        request: SignUpSubmitPasswordRequest,
-    ): Promise<SignUpContinueResponse> {
-        throw new Error(
-            `Method not implemented with parameter request '${request}'.`,
-        );
+    performSignUpSubmitPasswordRequest(request: SignUpSubmitPasswordRequest): Promise<SignUpContinueResponse> {
+        throw new Error(`Method not implemented with parameter request '${request}'.`);
     }
 
-    performSignUpSubmitUserAttributesRequest(
-        request: SignUpSubmitUserAttributesRequest,
-    ): Promise<SignUpContinueResponse> {
+    performSignUpSubmitUserAttributesRequest(request: SignUpSubmitUserAttributesRequest): Promise<SignUpContinueResponse> {
         return this.signUpApiClient.continue({
             client_id: request.parameters.clientId,
             continuation_token: request.parameters.continuationToken,

@@ -98,7 +98,10 @@ export class CustomAuthStandardController
             this.customAuthConfig.customAuth?.authApiProxyUrl,
         );
 
-        const signinApiClient = new SingInApiClient();
+        const signinApiClient = new SingInApiClient(
+            this.config.auth.clientId,
+            this.config.auth.authority,
+        );
         const signUpApiClient = new SignupApiClient();
         const resetpwdApiClient = new ResetPasswordApiClient();
 

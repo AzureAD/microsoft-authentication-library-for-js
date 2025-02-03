@@ -3,9 +3,7 @@
  * Licensed under the MIT License.
  */
 
-export interface BaseRequest {
-    client_id: string;
-}
+import { BaseApiRequest } from "./BaseApiTypes.js";
 
 export interface BaseResponse {
     continuation_token: string;
@@ -40,7 +38,7 @@ export type PasswordResetSubError =
     | "password_is_invalid"; // For invalid_grant error during submit
 
 // /start endpoint types
-export interface StartResetPasswordRequest extends BaseRequest {
+export interface StartResetPasswordRequest extends BaseApiRequest {
     challenge_type: string; // Must be 'oob redirect'
     username: string; // User's email
 }
@@ -52,7 +50,7 @@ export type StartResetPasswordResponse =
       };
 
 // /challenge endpoint types
-export interface ChallengeResetPasswordRequest extends BaseRequest {
+export interface ChallengeResetPasswordRequest extends BaseApiRequest {
     challenge_type: string; // Must be 'oob redirect'
     continuation_token: string;
 }
@@ -72,7 +70,7 @@ export type ChallengeResetPasswordResponse =
       };
 
 // /continue endpoint types
-export interface ContinueResetPasswordRequest extends BaseRequest {
+export interface ContinueResetPasswordRequest extends BaseApiRequest {
     continuation_token: string;
     grant_type: "oob";
     oob: string; // One-time passcode
@@ -83,7 +81,7 @@ export interface ContinueResetPasswordResponse extends BaseResponse {
 }
 
 // /submit endpoint types
-export interface SubmitResetPasswordRequest extends BaseRequest {
+export interface SubmitResetPasswordRequest extends BaseApiRequest {
     continuation_token: string;
     new_password: string;
 }
@@ -93,7 +91,7 @@ export interface SubmitResetPasswordResponse extends BaseResponse {
 }
 
 // /poll_completion endpoint types
-export interface PollCompletionRequest extends BaseRequest {
+export interface PollCompletionRequest extends BaseApiRequest {
     continuation_token: string;
 }
 

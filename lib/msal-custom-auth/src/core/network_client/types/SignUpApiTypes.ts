@@ -3,36 +3,12 @@
  * Licensed under the MIT License.
  */
 
-export enum GrantType {
-    OOB = "oob",
-    PASSWORD = "password",
-    ATTRIBUTES = "attributes",
-}
-
-export enum ChallengeType {
-    OOB = "oob",
-    PASSWORD = "password",
-    REDIRECT = "redirect",
-}
-
-/**
- * Enum for challenge binding methods
- */
-export enum BindingMethod {
-    PROMPT = "prompt",
-}
-
-/**
- * Enum for challenge channels
- */
-export enum ChallengeChannel {
-    EMAIL = "email",
-}
+import { BaseApiRequest, BindingMethod, ChallengeChannel, ChallengeType, GrantType } from "./BaseApiTypes.js";
 
 /**
  * Request types to initiate sign-up flow
  */
-export interface SignUpStartRequest {
+export interface SignUpStartRequest extends BaseApiRequest {
     /**
      * The email address of the user to sign up.
      */
@@ -69,13 +45,13 @@ export interface SignUpContinueRequest {
  * Response types for sign-up flow
  */
 export interface RedirectChallengeResponse {
-    challenge_type: ChallengeType.REDIRECT;
+    challenge_type: ChallengeType;
 }
 
 export interface SignUpChallengeResponse {
     interval: number;
     continuation_token: string;
-    challenge_type: ChallengeType.OOB;
+    challenge_type: ChallengeType;
     binding_method: BindingMethod;
     challenge_channel: ChallengeChannel;
     challenge_target_label: string;

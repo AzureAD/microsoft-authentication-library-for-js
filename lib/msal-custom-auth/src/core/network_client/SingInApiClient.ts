@@ -5,14 +5,15 @@
 
 import { BaseApiClient } from "./BaseApiClient.js";
 import { CustomAuthApiEndpoint } from "./CustomAuthApiEndpoint.js";
+import { GrantType } from "./types/BaseApiTypes.js";
 import {
-    GrantType,
     SignInChallengeRequest,
     SignInInitiateRequest,
-    TokenRequest,
     SignInInitiateSuccessResponse,
-    SingInChallengeSuccessResponse,
-    TokenSuccessResponse,
+    SingInChallengeCodeResponse,
+    SignInTokenSuccessResponse,
+    PasswordTokenRequest,
+    OTPTokenRequest,
 } from "./types/SignInApiTypes.js";
 
 // https://learn.microsoft.com/en-us/entra/identity-platform/reference-native-authentication-api?tabs=emailOtp#sign-in-challenge-types
@@ -23,15 +24,14 @@ export class SingInApiClient extends BaseApiClient {
      * @param username User's email
      * @param authMethod 'email-otp' | 'email-password'
      */
-    async initiate(
-        params: SignInInitiateRequest,
-    ): Promise<SignInInitiateSuccessResponse> {
+    async initiate(params: SignInInitiateRequest): Promise<SignInInitiateSuccessResponse> {
         return this.request<SignInInitiateSuccessResponse>(
             CustomAuthApiEndpoint.SIGNIN_INITIATE,
             {
                 username: params.username,
                 challenge_type: params.challenge_type,
             },
+            params.correlationId,
         );
     }
 
@@ -40,15 +40,14 @@ export class SingInApiClient extends BaseApiClient {
      * @param continuationToken Token from initiate response
      * @param authMethod 'email-otp' | 'email-password'
      */
-    async requestChallenge(
-        params: SignInChallengeRequest,
-    ): Promise<SingInChallengeSuccessResponse> {
-        return this.request<SingInChallengeSuccessResponse>(
+    async requestChallenge(params: SignInChallengeRequest): Promise<SingInChallengeCodeResponse> {
+        return this.request<SingInChallengeCodeResponse>(
             CustomAuthApiEndpoint.SIGNIN_INITIATE,
             {
                 continuation_token: params.continuation_token,
                 challenge_type: params.challenge_type,
             },
+            params.correlationId,
         );
     }
 
@@ -58,32 +57,32 @@ export class SingInApiClient extends BaseApiClient {
      * @param credentials Password or OTP
      * @param authMethod 'email-otp' | 'email-password'
      */
-    async requestTokens(params: TokenRequest): Promise<TokenSuccessResponse> {
-        const baseParams = {
-            continuation_token: params.continuation_token,
-            client_id: params.client_id,
-            grant_type: params.grant_type,
-            scope: params.scope,
-        };
+    async requestTokensWithPassword(params: PasswordTokenRequest): Promise<SignInTokenSuccessResponse> {
+        return this.request<SignInTokenSuccessResponse>(
+            CustomAuthApiEndpoint.SIGNIN_TOKEN,
+            {
+                continuation_token: params.continuation_token,
+                client_id: params.client_id,
+                grant_type: GrantType.PASSWORD,
+                scope: params.scope,
+                password: params.password,
+            },
+            params.correlationId,
+        );
+    }
 
-        // Type guard to check which type of request it is
-        if (params.grant_type === GrantType.OOB) {
-            return this.request<TokenSuccessResponse>(
-                CustomAuthApiEndpoint.SIGNIN_TOKEN,
-                {
-                    ...baseParams,
-                    oob: params.oob,
-                },
-            );
-        } else {
-            return this.request<TokenSuccessResponse>(
-                CustomAuthApiEndpoint.SIGNIN_TOKEN,
-                {
-                    ...baseParams,
-                    password: params.password,
-                },
-            );
-        }
+    async requestTokensWithOTP(params: OTPTokenRequest): Promise<SignInTokenSuccessResponse> {
+        return this.request<SignInTokenSuccessResponse>(
+            CustomAuthApiEndpoint.SIGNIN_TOKEN,
+            {
+                continuation_token: params.continuation_token,
+                client_id: params.client_id,
+                scope: params.scope,
+                oob: params.oob,
+                grant_type: GrantType.OOB,
+            },
+            params.correlationId,
+        );
     }
 
     protected async handleError<T>(response: Response): Promise<T> {
