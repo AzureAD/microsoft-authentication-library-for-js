@@ -189,11 +189,15 @@ export class BrowserCacheUtils {
         numberOfTenants?: number;
     }): Promise<void> {
         if (this.storageType === "localStorage") {
-            let cookies;
-            await this.page.evaluate(() => {
-                cookies = document.cookie;
+            const cookies = await this.page.browserContext().cookies();
+            const matchingCookies = cookies.filter((cookie) => {
+                return cookie.name === "msal.cache.encryption" && 
+                cookie.domain === "localhost" &&
+                cookie.sameSite === "None" && 
+                cookie.secure === true && 
+                cookie.session === true
             });
-            expect(cookies).toContain("msal.cache.encryption");
+            expect(matchingCookies).toHaveLength(1);
         }
         
         const tokenStore = await this.getTokens();
