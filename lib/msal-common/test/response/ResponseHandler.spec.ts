@@ -236,16 +236,11 @@ describe("ResponseHandler.ts", () => {
             let beforeCache, afterCache;
             const beforeCacheAccess = async (context: TokenCacheContext) => {
                 beforeCache = await promises.readFile(cachePath, "utf-8");
-                context.tokenCache.deserialize(
-                    beforeCache
-                );
+                context.tokenCache.deserialize(beforeCache);
             };
             const afterCacheAccess = async (context: TokenCacheContext) => {
                 afterCache = context.tokenCache.serialize();
-                await promises.writeFile(
-                    cachePath,
-                    afterCache
-                );
+                await promises.writeFile(cachePath, afterCache);
             };
             const cachePlugin: ICachePlugin = {
                 beforeCacheAccess,
