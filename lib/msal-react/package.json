@@ -45,7 +45,7 @@
   "scripts": {
     "build": "rollup -c --strictDeprecations --bundleConfigAsCjs",
     "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
-    "test": "jest",
+    "test": "jest --forceExit",
     "test:coverage": "jest --coverage",
     "lint": "eslint src --ext .ts --ext .tsx",
     "lint:fix": "npm run lint -- --fix",
