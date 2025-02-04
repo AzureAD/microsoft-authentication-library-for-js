@@ -47,6 +47,10 @@ import {
 } from "../../src/error/CacheError.js";
 import { CacheManager } from "../../src/cache/CacheManager.js";
 import { cacheQuotaExceededErrorCode } from "../../src/error/CacheErrorCodes.js";
+import { ICachePlugin, TokenCacheContext } from "../../src/index.js";
+import { buildAccountFromIdTokenClaims } from "msal-test-utils";
+import { ISerializableTokenCache } from "../../lib/types/exports-node-only.js";
+import { promises } from "fs";
 
 const networkInterface: INetworkModule = {
     sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
@@ -210,6 +214,84 @@ describe("ResponseHandler.ts", () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
+    });
+
+    describe("handleServerTokenResponse", () => {
+        it("if account is present in in-memory cache but not persistent cache, remove from in-memory cache and do not re-log in", async () => {
+            class mockSerializableCache implements ISerializableTokenCache {
+                public cacheSnapshot: string;
+                public cacheJSON: JSON;
+                deserialize = (cache: string) => {
+                    this.cacheSnapshot = cache;
+                    this.cacheJSON = JSON.parse(this.cacheSnapshot);
+                };
+                serialize = () => {
+                    this.cacheSnapshot = JSON.stringify(this.cacheJSON);
+                    return this.cacheSnapshot;
+                };
+            }
+            const serializableCache = new mockSerializableCache();
+
+            const cachePath = "./test/cache/emptyCache.json";
+            const beforeCacheAccess = async (context: TokenCacheContext) => {
+                context.tokenCache.deserialize(
+                    await promises.readFile(cachePath, "utf-8")
+                );
+            };
+            const afterCacheAccess = async (context: TokenCacheContext) => {
+                await promises.writeFile(
+                    cachePath,
+                    context.tokenCache.serialize()
+                );
+            };
+            const cachePlugin: ICachePlugin = {
+                beforeCacheAccess,
+                afterCacheAccess,
+            };
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                serializableCache,
+                cachePlugin
+            );
+            
+            const baseAccount: AccountEntity =
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+            await testCacheManager.setAccount(baseAccount);
+            expect(
+                testCacheManager.getAccount(baseAccount.generateAccountKey())
+            ).not.toBeNull();
+            const removeSpy = jest.spyOn(
+                CacheManager.prototype,
+                "removeAccount"
+            );
+
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+            };
+            testResponse.access_token = undefined;
+
+            const timestamp = TimeUtils.nowSeconds();
+            await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                timestamp,
+                testRequest
+            );
+
+            expect(
+                testCacheManager.getAccount(baseAccount.generateAccountKey())
+            ).toBeNull();
+            expect(removeSpy).toHaveBeenCalled();
+        });
     });
 
     describe("generateCacheRecord", () => {

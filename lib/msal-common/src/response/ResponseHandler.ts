@@ -353,7 +353,7 @@ export class ResponseHandler {
             authCodePayload
         );
         let cacheContext;
-        let persistentCache
+        let persistentCache;
         try {
             if (this.persistencePlugin && this.serializableCache) {
                 this.logger.verbose(
@@ -365,26 +365,40 @@ export class ResponseHandler {
                 );
                 await this.persistencePlugin.beforeCacheAccess(cacheContext);
                 //@ts-ignore
-                persistentCache = (cacheContext.tokenCache.cacheSnapshot == undefined || cacheContext.tokenCache.cacheSnapshot == "") ? null : cacheContext.tokenCache.cacheSnapshot;
+                let cacheSnapshot = cacheContext.tokenCache.cacheSnapshot;
+                persistentCache =
+                    cacheSnapshot == undefined || cacheSnapshot == ""
+                        ? null
+                        : cacheSnapshot;
             }
-            if(persistentCache && cacheRecord.account) {
+            if (persistentCache && cacheRecord.account) {
                 /**
                  * It is expected that an account that is logged in to be present in both the persistent and in-memory caches.
                  * If the account is present in the in-memory cache but not in the persistent cache, that indicates that the account has been logged out by another entity or process.
                  * We should not overwrite that removal.
-                 */ 
+                 */
                 let jsonPersistentCache;
                 try {
                     jsonPersistentCache = JSON.parse(persistentCache);
-                    const accountCacheKey = cacheRecord.account.generateAccountKey();
-                    if(!jsonPersistentCache.Account.hasOwnProperty(accountCacheKey)) {
+                    const accountCacheKey =
+                        cacheRecord.account.generateAccountKey();
+                    if (
+                        !jsonPersistentCache.Account.hasOwnProperty(
+                            accountCacheKey
+                        )
+                    ) {
                         const key = cacheRecord.account.generateAccountKey();
-                        const account = this.cacheStorage.getAccount(key, this.logger);
-                        if(account) {
+                        const account = this.cacheStorage.getAccount(
+                            key,
+                            this.logger
+                        );
+                        if (account) {
                             this.logger.warning(
                                 "Account present in in-memory cache but not in persistence, indicates a logout by another entity or process"
                             );
-                            await this.cacheStorage.removeAccount(account.generateAccountKey());
+                            await this.cacheStorage.removeAccount(
+                                account.generateAccountKey()
+                            );
                             return await ResponseHandler.generateAuthenticationResult(
                                 this.cryptoObj,
                                 authority,
@@ -399,18 +413,19 @@ export class ResponseHandler {
                         }
                     }
                 } catch {
-                    if(!jsonPersistentCache) {
-                        this.logger.warning("Persistent cache not a parseable JSON");
+                    if (!jsonPersistentCache) {
+                        this.logger.warning(
+                            "Persistent cache not a parseable JSON"
+                        );
                     }
                 }
-            }
-            /*
-             * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
-             * If not present, we should return null, as it's the case that another application called removeAccount in between
-             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal, unless explicitly flagged by
-             * the developer, as in the case of refresh token flow used in ADAL Node to MSAL Node migration.
-             */
-            else if (
+            } else if (
+                /*
+                 * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
+                 * If not present, we should return null, as it's the case that another application called removeAccount in between
+                 * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal, unless explicitly flagged by
+                 * the developer, as in the case of refresh token flow used in ADAL Node to MSAL Node migration.
+                 */
                 handlingRefreshTokenResponse &&
                 !forceCacheRefreshTokenResponse &&
                 cacheRecord.account
