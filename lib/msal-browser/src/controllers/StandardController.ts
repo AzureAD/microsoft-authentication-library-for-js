@@ -28,8 +28,6 @@ import {
     AccountFilter,
     buildStaticAuthorityOptions,
     InteractionRequiredAuthErrorCodes,
-    PersistentCacheKeys,
-    CacheManager,
 } from "@azure/msal-common/browser";
 import {
     BrowserCacheManager,
