@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Additional telemetry event",
+  "comment": "Additional telemetry event #7550",
   "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
