@@ -190,7 +190,7 @@ export class BrowserCacheUtils {
     }): Promise<void> {
         if (this.storageType === "localStorage") {
             let cookies;
-            this.page.evaluate(() => {
+            await this.page.evaluate(() => {
                 cookies = document.cookie;
             });
             expect(cookies).toContain("msal.cache.encryption");
