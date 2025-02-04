@@ -48,15 +48,3 @@ export function wasClockTurnedBack(cachedAt: string): boolean {
 export function delay<T>(t: number, value?: T): Promise<T | void> {
     return new Promise((resolve) => setTimeout(() => resolve(value), t));
 }
-
-/**
- * @internal
- * Checks if a given date string is in ISO 8601 format.
- *
- * @param dateString - The date string to be checked.
- * @returns boolean - Returns true if the date string is in ISO 8601 format, otherwise false.
- */
-export function isIso8601(dateString: string): boolean {
-    const date = new Date(dateString);
-    return !isNaN(date.getTime()) && date.toISOString() === dateString;
-}

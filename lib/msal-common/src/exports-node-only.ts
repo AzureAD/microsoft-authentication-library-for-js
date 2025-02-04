@@ -33,4 +33,3 @@ export {
 } from "./response/DeviceCodeResponse.js";
 export { getClientAssertion } from "./utils/ClientAssertionUtils.js";
 export { IGuidGenerator } from "./crypto/IGuidGenerator.js";
-export { isIso8601 } from "./utils/TimeUtils.js";

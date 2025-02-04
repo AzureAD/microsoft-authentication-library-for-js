@@ -2446,11 +2446,6 @@ export interface ISerializableTokenCache {
 // @public
 function isIdTokenEntity(entity: object): boolean;
 
-// Warning: (ae-internal-missing-underscore) The name "isIso8601" should be prefixed with an underscore because the declaration is marked as @internal
-//
-// @internal
-export function isIso8601(dateString: string): boolean;
-
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "isRefreshTokenEntity" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -3968,8 +3963,7 @@ declare namespace TimeUtils {
         nowSeconds,
         isTokenExpired,
         wasClockTurnedBack,
-        delay,
-        isIso8601
+        delay
     }
 }
 export { TimeUtils }
