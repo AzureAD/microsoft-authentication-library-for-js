@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Wed, 22 Jan 2025 21:45:31 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 03 Feb 2025 17:48:08 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 15.1.0
+
+Mon, 03 Feb 2025 17:48:08 GMT
+
+### Minor changes
+
+- Search in persistent cache for cached token (shylasummers@microsoft.com)
+- Instrument additional data points #7543 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fixed some test constants and imports #7545 (rginsburg@microsoft.com)
 
 ## 15.0.2
 
