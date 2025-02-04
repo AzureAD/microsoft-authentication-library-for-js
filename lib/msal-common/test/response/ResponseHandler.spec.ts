@@ -217,7 +217,7 @@ describe("ResponseHandler.ts", () => {
     });
 
     describe("handleServerTokenResponse", () => {
-        it("if account is present in in-memory cache but not persistent cache, remove from in-memory cache and do not re-log in", async () => {
+        it("if account is present in in-memory cache but not persistent cache, don't add to persistent cache or re-log in", async () => {
             class mockSerializableCache implements ISerializableTokenCache {
                 public cacheSnapshot: string;
                 public cacheJSON: JSON;
@@ -233,15 +233,18 @@ describe("ResponseHandler.ts", () => {
             const serializableCache = new mockSerializableCache();
 
             const cachePath = "./test/cache/emptyCache.json";
+            let beforeCache, afterCache;
             const beforeCacheAccess = async (context: TokenCacheContext) => {
+                beforeCache = await promises.readFile(cachePath, "utf-8");
                 context.tokenCache.deserialize(
-                    await promises.readFile(cachePath, "utf-8")
+                    beforeCache
                 );
             };
             const afterCacheAccess = async (context: TokenCacheContext) => {
+                afterCache = context.tokenCache.serialize();
                 await promises.writeFile(
                     cachePath,
-                    context.tokenCache.serialize()
+                    afterCache
                 );
             };
             const cachePlugin: ICachePlugin = {
@@ -257,17 +260,13 @@ describe("ResponseHandler.ts", () => {
                 serializableCache,
                 cachePlugin
             );
-            
+
             const baseAccount: AccountEntity =
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
             await testCacheManager.setAccount(baseAccount);
             expect(
                 testCacheManager.getAccount(baseAccount.generateAccountKey())
             ).not.toBeNull();
-            const removeSpy = jest.spyOn(
-                CacheManager.prototype,
-                "removeAccount"
-            );
 
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,
@@ -287,10 +286,8 @@ describe("ResponseHandler.ts", () => {
                 testRequest
             );
 
-            expect(
-                testCacheManager.getAccount(baseAccount.generateAccountKey())
-            ).toBeNull();
-            expect(removeSpy).toHaveBeenCalled();
+            expect(beforeCache).not.toBeNull(); //makes sure beforeCacheAccess and afterCacheAccess was called
+            expect(beforeCache).toBe(afterCache);
         });
     });
 
