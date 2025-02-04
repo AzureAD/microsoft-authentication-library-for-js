@@ -6,6 +6,7 @@
 import {
     CookieStorage,
     getCookieExpirationTime,
+    SameSiteOptions,
 } from "../../src/cache/CookieStorage.js";
 
 const msalCacheKey = "msal.cookie.key";
@@ -35,6 +36,19 @@ describe("CookieStorage tests", () => {
         cookieStorage.setItem(msalCacheKey, cacheVal, 0, true);
         expect(document.cookie).toBe(`${msalCacheKey}=${cacheVal}`);
         expect(cookieSpy.mock.calls[0][0]).toContain("Secure");
+    });
+
+    it("sets SameSite=None", () => {
+        const cookieSpy = jest.spyOn(document, "cookie", "set");
+        cookieStorage.setItem(
+            msalCacheKey,
+            cacheVal,
+            0,
+            true,
+            SameSiteOptions.None
+        );
+        expect(document.cookie).toBe(`${msalCacheKey}=${cacheVal}`);
+        expect(cookieSpy.mock.calls[0][0]).toContain("SameSite=None");
     });
 
     it("sets expiration", () => {
