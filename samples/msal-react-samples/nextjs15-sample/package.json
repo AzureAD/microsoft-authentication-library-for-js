@@ -1,0 +1,38 @@
+{
+  "name": "next15-js-msal-react-sample",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "rm -Rf .next && next dev",
+    "test:e2e": "jest",
+    "build": "next build",
+    "build:package": "cd ../../../ && npm run build:all --workspace=lib/msal-react",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@azure/msal-browser": "^4.1.0",
+    "@azure/msal-react": "^3.0.3",
+    "@emotion/cache": "^11.14.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/server": "^11.11.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^6.4.2",
+    "@mui/material": "^6.4.2",
+    "next": "15.1.6",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/react": "19.0.8",
+    "jest": "^29.7.0",
+    "jest-junit": "^16.0.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "5.7.3"
+  },
+  "jest-junit": {
+    "suiteNameTemplate": "Next.js Sample Tests",
+    "outputDirectory": ".",
+    "outputName": "test-results.xml"
+  }
+}
