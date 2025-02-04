@@ -183,5 +183,80 @@ describe("LocalStorage Tests", function () {
                 expect(Object.keys(sessionStorage).length).toEqual(0);
             }, ONE_SECOND_IN_MS);
         });
+
+        it.skip("Logging in on one tab updates cache/UI in another tab", async () => {
+            const testName = "multi-tab";
+            const screenshot = new Screenshot(
+                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
+            );
+
+            const tab1 = page;
+            const tab2 = await context.newPage();
+            tab2.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+            await tab2.goto(sampleHomeUrl);
+            await pcaInitializedPoller(tab2, 5000);
+
+            const checkSignInState = (expectedState: boolean) => {
+                const state = document.getElementById("SignIn").innerHTML.trim();
+                if (state === "Sign In") {
+                    return !expectedState;
+                } else if (state === "Sign Out") {
+                    return expectedState;
+                } else {
+                    throw `Sign In Button cannot be found or has unexpected value. Value: ${state}`;
+                };
+            };
+
+            // Check that both tabs start signed out
+            await tab1.waitForFunction(checkSignInState, {}, false);
+            await tab2.waitForFunction(checkSignInState, {}, false);
+
+            await tab1.bringToFront();
+            const [popupPage, popupWindowClosed] = await clickLoginPopup(
+                screenshot,
+                tab1
+            );
+            await enterCredentials(popupPage, screenshot, username, accountPwd);
+            await waitForReturnToApp(
+                screenshot,
+                tab1,
+                popupPage,
+                popupWindowClosed
+            );
+            // Check that both tabs have updated UI
+            await tab1.waitForFunction(checkSignInState, {}, true);
+            await tab1.waitForSelector("#acquireTokenSilent");
+            await screenshot.takeScreenshot(tab1, "tab1SignedIn");
+
+            await tab2.bringToFront();
+            await tab2.waitForFunction(checkSignInState, {}, true);
+            await tab2.waitForSelector("#acquireTokenSilent");
+            await screenshot.takeScreenshot(tab2, "tab2SignedIn");
+            
+            await tab2.click("#acquireTokenSilent");
+            await tab2.waitForSelector("#fromCache");
+            await screenshot.takeScreenshot(tab2, "tab2AcquiredToken");
+
+            await tab1.bringToFront();
+            await tab1.click("#acquireTokenSilent");
+            await tab1.waitForSelector("#fromCache");
+            await screenshot.takeScreenshot(tab1, "tab1AcquiredToken");
+
+
+            // Check that both tabs got tokens from cache
+            const fromCache = () => {
+                const fromCacheEl = document.getElementById("fromCache").innerHTML.trim();;
+                if (fromCacheEl.includes("true")) {
+                    return true;
+                } else if (fromCacheEl.includes("false")) {
+                    return false;
+                }
+                
+                throw `fromCache element cannot be found or has unexpected value. Value: ${fromCacheEl}`;
+            };
+
+            expect(await tab1.evaluate(fromCache)).toEqual(true);
+            expect(await tab2.evaluate(fromCache)).toEqual(true);
+        });
     });
 });

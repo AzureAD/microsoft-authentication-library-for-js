@@ -1401,7 +1401,8 @@ describe("RedirectClient", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             secondInstanceStorage.setInteractionInProgress(true);
             browserStorage.setInteractionInProgress(false);
@@ -1988,7 +1989,8 @@ describe("RedirectClient", () => {
                 cacheConfig,
                 browserCrypto,
                 testLogger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
@@ -2051,7 +2053,8 @@ describe("RedirectClient", () => {
                 cacheConfig,
                 browserCrypto,
                 testLogger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
 
             jest.spyOn(
@@ -2165,7 +2168,8 @@ describe("RedirectClient", () => {
                 cacheConfig,
                 browserCrypto,
                 testLogger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
@@ -2243,7 +2247,8 @@ describe("RedirectClient", () => {
                 cacheConfig,
                 browserCrypto,
                 testLogger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
@@ -2314,7 +2319,8 @@ describe("RedirectClient", () => {
                 cacheConfig,
                 browserCrypto,
                 testLogger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await redirectClient.acquireToken(tokenRequest);
             const cachedRequest: CommonAuthorizationCodeRequest = JSON.parse(
@@ -2358,7 +2364,8 @@ describe("RedirectClient", () => {
                 cacheConfig,
                 browserCrypto,
                 testLogger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -2492,7 +2499,8 @@ describe("RedirectClient", () => {
                 cacheConfig,
                 browserCrypto,
                 testLogger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
@@ -2555,7 +2563,8 @@ describe("RedirectClient", () => {
                 cacheConfig,
                 browserCrypto,
                 testLogger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await redirectClient.acquireToken(tokenRequest);
             const cachedRequest: CommonAuthorizationCodeRequest = JSON.parse(
@@ -2599,7 +2608,8 @@ describe("RedirectClient", () => {
                 cacheConfig,
                 browserCrypto,
                 testLogger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
