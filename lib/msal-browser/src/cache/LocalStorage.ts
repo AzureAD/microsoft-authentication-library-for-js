@@ -29,7 +29,7 @@ import {
     BrowserConfigurationAuthErrorCodes,
     createBrowserConfigurationAuthError,
 } from "../error/BrowserConfigurationAuthError.js";
-import { CookieStorage } from "./CookieStorage.js";
+import { CookieStorage, SameSiteOptions } from "./CookieStorage.js";
 import { IWindowStorage } from "./IWindowStorage.js";
 import { MemoryStorage } from "./MemoryStorage.js";
 import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
@@ -146,7 +146,14 @@ export class LocalStorage implements IWindowStorage<string> {
                 id: id,
                 key: keyStr,
             };
-            cookies.setItem(ENCRYPTION_KEY, JSON.stringify(cookieData));
+
+            cookies.setItem(
+                ENCRYPTION_KEY,
+                JSON.stringify(cookieData),
+                0, // Expiration - 0 means cookie will be cleared at the end of the browser session
+                true, // Secure flag
+                SameSiteOptions.None // SameSite must be None to support iframed apps
+            );
         }
 
         // Register listener for cache updates in other tabs

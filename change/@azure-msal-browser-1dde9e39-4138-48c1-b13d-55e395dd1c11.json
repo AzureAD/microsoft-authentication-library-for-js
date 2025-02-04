@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Set SameSite=None on localStorage encryption cookie #7549",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
