@@ -364,13 +364,13 @@ export class ResponseHandler {
                 );
                 await this.persistencePlugin.beforeCacheAccess(cacheContext);
             }
+            /*
+             * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
+             * If not present, we should return null, as it's the case that another application called removeAccount in between
+             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal, unless explicitly flagged by
+             * the developer, as in the case of refresh token flow used in ADAL Node to MSAL Node migration.
+             */
             if (
-                /*
-                 * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
-                 * If not present, we should return null, as it's the case that another application called removeAccount in between
-                 * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal, unless explicitly flagged by
-                 * the developer, as in the case of refresh token flow used in ADAL Node to MSAL Node migration.
-                 */
                 handlingRefreshTokenResponse &&
                 !forceCacheRefreshTokenResponse &&
                 cacheRecord.account
