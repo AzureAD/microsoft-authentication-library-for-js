@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Mon, 03 Feb 2025 17:48:08 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 05 Feb 2025 00:15:18 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.2.0
+
+Wed, 05 Feb 2025 00:15:18 GMT
+
+### Minor changes
+
+- Notify open tabs of localStorage updates #7550 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.1.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Set SameSite=None on localStorage encryption cookie #7549 (thomas.norling@microsoft.com)
 
 ## 4.1.0
 

@@ -2,6 +2,35 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Wed, 05 Feb 2025 00:15:19 GMT",
+      "version": "3.0.4",
+      "tag": "@azure/msal-react_v3.0.4",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "b2971df7ba048400760fb82271d30a01bbbb5634",
+            "comment": "Temporary test workaround to fix hanging in CI"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v4.2.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 03 Feb 2025 17:48:09 GMT",
       "version": "3.0.3",
       "tag": "@azure/msal-react_v3.0.3",
