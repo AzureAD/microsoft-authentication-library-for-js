@@ -38,7 +38,6 @@ import {
     SignUpSubmitUserAttributesRequest,
 } from "../../core/network_client/types/SignUpApiTypes.js";
 import { GrantType } from "../../core/network_client/types/BaseApiTypes.js";
-import { SignUpSubmitAttributesResult } from "../auth_flow/result/SignUpSubmitAttributesResult.js";
 
 export class SignUpClient extends CustomAuthInteractionClientBase {
     /**
@@ -320,7 +319,13 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             const continuationToken = this.readContinuationTokenFromResponeError(responseError);
 
             // Call the challenge endpoint to ensure the password challenge type is supported.
-            const challengeRequest = SignUpChallengeRequest.create(requestParams, continuationToken, telemetryManager);
+            const challengeRequest: SignUpChallengeRequest = {
+                client_id: requestParams.clientId,
+                continuation_token: continuationToken,
+                challenge_type: requestParams.challengeType.join(" "),
+                telemetryManager,
+                correlationId,
+            };
 
             const challengeResult = await this.performChallengeRequest(challengeRequest);
 
