@@ -301,6 +301,7 @@ export const PerformanceEvents = {
     CacheManagerGetRefreshToken: "cacheManagerGetRefreshToken",
     ImportExistingCache: "importExistingCache",
     SetUserData: "setUserData",
+    LocalStorageUpdated: "localStorageUpdated",
 
     /**
      * Crypto Operations
@@ -407,6 +408,7 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         [PerformanceEvents.InitializeCache, "InitCache"],
         [PerformanceEvents.ImportExistingCache, "importCache"],
         [PerformanceEvents.SetUserData, "setUserData"],
+        [PerformanceEvents.LocalStorageUpdated, "localStorageUpdated"],
         [PerformanceEvents.SilentIframeClientTokenHelper, "SIClientTHelper"],
         [
             PerformanceEvents.SilentHandlerInitiateAuthRequest,
@@ -868,6 +870,19 @@ export type PerformanceEvent = {
 
     embeddedClientId?: string;
     embeddedRedirectUri?: string;
+
+    isAsyncPopup?: boolean;
+
+    rtExpiresOnMs?: number;
+
+    sidFromClaims?: boolean;
+    sidFromRequest?: boolean;
+    loginHintFromRequest?: boolean;
+    loginHintFromUpn?: boolean;
+    loginHintFromClaim?: boolean;
+    domainHintFromRequest?: boolean;
+
+    prompt?: string;
 };
 
 export type PerformanceEventContext = {

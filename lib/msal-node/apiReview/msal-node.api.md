@@ -594,8 +594,12 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
     getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null>;
     getAllAccounts(): Promise<AccountInfo[]>;
+    getCacheSnapshot(): CacheKVStore;
     getKVStore(): CacheKVStore;
     hasChanged(): boolean;
+    overwriteCache(): Promise<void>;
+    // (undocumented)
+    readonly persistence: ICachePlugin;
     removeAccount(account: AccountInfo): Promise<void>;
     serialize(): string;
 }
@@ -620,7 +624,7 @@ export { ValidCacheType }
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "3.1.0";
+export const version = "3.2.1";
 
 // Warnings were encountered during analysis:
 //
