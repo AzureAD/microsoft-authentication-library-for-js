@@ -1062,7 +1062,7 @@ describe("NativeInteractionClient Tests", () => {
                 NativeInteractionClient.prototype,
                 // @ts-ignore
                 "initializeNativeRequest"
-            // @ts-ignore
+                // @ts-ignore
             ).mockImplementation((request: PopupRequest | SsoSilentRequest) => {
                 // @ts-ignore
                 expect(request.onRedirectNavigate).toBeUndefined();
