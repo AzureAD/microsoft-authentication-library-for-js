@@ -1057,7 +1057,7 @@ describe("NativeInteractionClient Tests", () => {
             });
         });
 
-        it("should not include onRedirectNavigate call back function", (done) => {
+        it("should not include onRedirectNavigate call back function in request", (done) => {
             jest.spyOn(
                 NativeInteractionClient.prototype,
                 // @ts-ignore
