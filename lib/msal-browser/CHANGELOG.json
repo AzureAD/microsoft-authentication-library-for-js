@@ -2,6 +2,53 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 05 Feb 2025 00:15:18 GMT",
+      "version": "4.2.0",
+      "tag": "@azure/msal-browser_v4.2.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b2971df7ba048400760fb82271d30a01bbbb5634",
+            "comment": "Notify open tabs of localStorage updates #7550"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v15.1.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b2971df7ba048400760fb82271d30a01bbbb5634",
+            "comment": "Set SameSite=None on localStorage encryption cookie #7549"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 03 Feb 2025 17:48:08 GMT",
       "version": "4.1.0",
       "tag": "@azure/msal-browser_v4.1.0",

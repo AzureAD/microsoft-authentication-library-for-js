@@ -29,13 +29,14 @@ import {
     BrowserConfigurationAuthErrorCodes,
     createBrowserConfigurationAuthError,
 } from "../error/BrowserConfigurationAuthError.js";
-import { CookieStorage } from "./CookieStorage.js";
+import { CookieStorage, SameSiteOptions } from "./CookieStorage.js";
 import { IWindowStorage } from "./IWindowStorage.js";
 import { MemoryStorage } from "./MemoryStorage.js";
 import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
 import { StaticCacheKeys } from "../utils/BrowserConstants.js";
 
 const ENCRYPTION_KEY = "msal.cache.encryption";
+const BROADCAST_CHANNEL_NAME = "msal.broadcast.cache";
 
 type EncryptionCookie = {
     id: string;
@@ -55,6 +56,7 @@ export class LocalStorage implements IWindowStorage<string> {
     private performanceClient: IPerformanceClient;
     private logger: Logger;
     private encryptionCookie?: EncryptionCookie;
+    private broadcast: BroadcastChannel;
 
     constructor(
         clientId: string,
@@ -71,6 +73,7 @@ export class LocalStorage implements IWindowStorage<string> {
         this.clientId = clientId;
         this.logger = logger;
         this.performanceClient = performanceClient;
+        this.broadcast = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
     }
 
     async initialize(correlationId: string): Promise<void> {
@@ -143,8 +146,18 @@ export class LocalStorage implements IWindowStorage<string> {
                 id: id,
                 key: keyStr,
             };
-            cookies.setItem(ENCRYPTION_KEY, JSON.stringify(cookieData));
+
+            cookies.setItem(
+                ENCRYPTION_KEY,
+                JSON.stringify(cookieData),
+                0, // Expiration - 0 means cookie will be cleared at the end of the browser session
+                true, // Secure flag
+                SameSiteOptions.None // SameSite must be None to support iframed apps
+            );
         }
+
+        // Register listener for cache updates in other tabs
+        this.broadcast.addEventListener("message", this.updateCache.bind(this));
     }
 
     getItem(key: string): string | null {
@@ -190,10 +203,24 @@ export class LocalStorage implements IWindowStorage<string> {
 
         this.memoryStorage.setItem(key, value);
         this.setItem(key, JSON.stringify(encryptedData));
+
+        // Notify other frames to update their in-memory cache
+        this.broadcast.postMessage({
+            key: key,
+            value: value,
+            context: this.getContext(key),
+        });
     }
 
     removeItem(key: string): void {
-        this.memoryStorage.removeItem(key);
+        if (this.memoryStorage.containsKey(key)) {
+            this.memoryStorage.removeItem(key);
+            this.broadcast.postMessage({
+                key: key,
+                value: null,
+                context: this.getContext(key),
+            });
+        }
         window.localStorage.removeItem(key);
     }
 
@@ -365,5 +392,40 @@ export class LocalStorage implements IWindowStorage<string> {
         }
 
         return context;
+    }
+
+    private updateCache(event: MessageEvent): void {
+        this.logger.trace("Updating internal cache from broadcast event");
+        const perfMeasurement = this.performanceClient.startMeasurement(
+            PerformanceEvents.LocalStorageUpdated
+        );
+        perfMeasurement.add({ isBackground: true });
+
+        const { key, value, context } = event.data;
+        if (!key) {
+            this.logger.error("Broadcast event missing key");
+            perfMeasurement.end({ success: false, errorCode: "noKey" });
+            return;
+        }
+
+        if (context && context !== this.clientId) {
+            this.logger.trace(
+                `Ignoring broadcast event from clientId: ${context}`
+            );
+            perfMeasurement.end({
+                success: false,
+                errorCode: "contextMismatch",
+            });
+            return;
+        }
+
+        if (!value) {
+            this.memoryStorage.removeItem(key);
+            this.logger.verbose("Removed item from internal cache");
+        } else {
+            this.memoryStorage.setItem(key, value);
+            this.logger.verbose("Updated item in internal cache");
+        }
+        perfMeasurement.end({ success: true });
     }
 }

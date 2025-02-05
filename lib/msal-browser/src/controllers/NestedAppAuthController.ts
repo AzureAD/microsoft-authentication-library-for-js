@@ -111,6 +111,7 @@ export class NestedAppAuthController implements IController {
             ? new CryptoOps(this.logger, this.performanceClient, true)
             : DEFAULT_CRYPTO_IMPLEMENTATION;
 
+        this.eventHandler = new EventHandler(this.logger);
         // Initialize the browser storage class.
         this.browserStorage = this.operatingContext.isBrowserEnvironment()
             ? new BrowserCacheManager(
@@ -119,15 +120,15 @@ export class NestedAppAuthController implements IController {
                   this.browserCrypto,
                   this.logger,
                   this.performanceClient,
+                  this.eventHandler,
                   buildStaticAuthorityOptions(this.config.auth)
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
                   this.logger,
-                  this.performanceClient
+                  this.performanceClient,
+                  this.eventHandler
               );
-
-        this.eventHandler = new EventHandler(this.logger);
 
         this.nestedAppAuthAdapter = new NestedAppAuthAdapter(
             this.config.auth.clientId,

@@ -51,6 +51,7 @@ import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
+import { EventHandler } from "../../src/event/EventHandler.js";
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -115,7 +116,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
             configObj.cache,
             browserCrypto,
             logger,
-            new StubPerformanceClient()
+            new StubPerformanceClient(),
+            new EventHandler()
         );
         // Initialize authority after browser storage for proper use
         authorityInstance = new Authority(
