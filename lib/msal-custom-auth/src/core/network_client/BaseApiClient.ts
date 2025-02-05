@@ -11,11 +11,15 @@ import {
 import { DefaultPackageInfo } from "../../CustomAuthConstants.js";
 import { ApiErrorResponse } from "./types/ApiErrorResponseTypes.js";
 import { ApiError, NotFoundError, UnauthorizedError } from "./ApiErrorHandlers.js";
+import { IHttpClient } from "./http_client/IHttpClient.js";
+import { FetchHttpClient } from "./http_client/FetchClient.js";
 
 export abstract class BaseApiClient {
     protected readonly baseUrl: string;
     protected readonly clientId: string;
     protected readonly tenantSubdomain: string;
+    protected httpClient: IHttpClient;
+
     constructor(
         clientId: string,
         tenantSubdomain: string,
@@ -24,17 +28,17 @@ export abstract class BaseApiClient {
         this.clientId = clientId;
         this.tenantSubdomain = tenantSubdomain;
         this.baseUrl = `https://${this.tenantSubdomain}.ciamlogin.com/${this.tenantSubdomain}.onmicrosoft.com`;
+        this.httpClient = new FetchHttpClient();
     }
 
     async request<T>(
         endpoint: string,
         data: Record<string, string | ServerTelemetryManager>,
+        telemetryManager: ServerTelemetryManager,
         correlationId: string = "",
-        method: "GET" | "POST" = "POST",
     ): Promise<T> {
         this.logger.trace(`Sending request to ${endpoint}`, correlationId);
 
-        const telemetryManager = data.telemetryManager as ServerTelemetryManager;
         const startTime = performance.now();
         const formData = new URLSearchParams({
             client_id: this.clientId,
@@ -42,11 +46,7 @@ export abstract class BaseApiClient {
         });
         const headers = this.getCommonHeaders(correlationId, telemetryManager);
         try {
-            const response = await fetch(`${this.baseUrl}/${endpoint}`, {
-                method,
-                headers,
-                body: formData,
-            });
+            const response = await this.httpClient.post(`${this.baseUrl}/${endpoint}`, formData, headers);
             const endTime = performance.now();
             this.logger.trace(`Request to ${endpoint} completed in ${endTime - startTime}ms`, correlationId);
             if (!response.ok) {
@@ -63,7 +63,7 @@ export abstract class BaseApiClient {
 
             return await response.json();
         } catch (error) {
-            this.logger.error(`Request to ${endpoint} failed`, correlationId, error);
+            this.logger.error(`Request to ${endpoint} failed`, correlationId);
             throw error;
         }
     }

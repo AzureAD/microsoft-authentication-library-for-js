@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { InvalidGrantSuberror, SignUpErrorResponse, SignupErrorType } from "./types/ApiErrorResponseTypes.js";
+import { InvalidGrantSuberror, SignUpErrorResponse, SignupErrorType } from "../types/ApiErrorResponseTypes.js";
 
 export class SignupErrorHandler extends Error {
     public errorDetails: SignUpErrorResponse;
@@ -69,9 +69,7 @@ export class SignupErrorHandler extends Error {
      */
     static fromResponse(response: Response): SignupErrorHandler {
         if (response.ok) {
-            throw new Error(
-                "Cannot create error handler from a successful response",
-            );
+            throw new Error("Cannot create error handler from a successful response");
         }
         return new SignupErrorHandler({
             error: response.statusText as SignupErrorType,

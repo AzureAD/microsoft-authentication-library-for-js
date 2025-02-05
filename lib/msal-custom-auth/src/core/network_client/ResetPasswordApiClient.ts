@@ -4,7 +4,7 @@
  */
 
 import { BaseApiClient } from "./BaseApiClient.js";
-import { CustomAuthApiEndpoint } from "./CustomAuthApiEndpoint.js";
+import { CustomAuthApiEndpoint } from "./custom_auth_api/CustomAuthApiEndpoint.js";
 import {
     ChallengeResetPasswordRequest,
     ChallengeResetPasswordResponse,

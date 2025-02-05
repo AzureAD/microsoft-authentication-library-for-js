@@ -4,7 +4,7 @@
  */
 
 import { BaseApiClient } from "./BaseApiClient.js";
-import { CustomAuthApiEndpoint } from "./CustomAuthApiEndpoint.js";
+import { CustomAuthApiEndpoint } from "./custom_auth_api/CustomAuthApiEndpoint.js";
 import { GrantType } from "./types/BaseApiTypes.js";
 import {
     SignInChallengeRequest,
@@ -31,6 +31,7 @@ export class SingInApiClient extends BaseApiClient {
                 username: params.username,
                 challenge_type: params.challenge_type,
             },
+            params.telemetryManager,
             params.correlationId,
         );
     }
@@ -47,6 +48,7 @@ export class SingInApiClient extends BaseApiClient {
                 continuation_token: params.continuation_token,
                 challenge_type: params.challenge_type,
             },
+            params.telemetryManager,
             params.correlationId,
         );
     }
@@ -67,6 +69,7 @@ export class SingInApiClient extends BaseApiClient {
                 scope: params.scope,
                 password: params.password,
             },
+            params.telemetryManager,
             params.correlationId,
         );
     }
@@ -81,6 +84,7 @@ export class SingInApiClient extends BaseApiClient {
                 oob: params.oob,
                 grant_type: GrantType.OOB,
             },
+            params.telemetryManager,
             params.correlationId,
         );
     }

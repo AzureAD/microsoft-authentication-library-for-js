@@ -4,7 +4,7 @@
  */
 
 import { BaseApiClient } from "./BaseApiClient.js";
-import { CustomAuthApiEndpoint } from "./CustomAuthApiEndpoint.js";
+import { CustomAuthApiEndpoint } from "./custom_auth_api/CustomAuthApiEndpoint.js";
 import {
     SignUpChallengeRequest,
     SignUpContinueRequest,
@@ -12,6 +12,7 @@ import {
     ChallengeResponse,
     SignUpContinueResponse,
     SignUpStartResponse,
+    SignUpContinueWithPasswordRequest,
 } from "./types/SignUpApiTypes.js";
 
 export class SignupApiClient extends BaseApiClient {
@@ -29,37 +30,68 @@ export class SignupApiClient extends BaseApiClient {
                 }),
                 challenge_type: params.challenge_type,
             },
+            params.telemetryManager,
+            params.correlationId,
         );
     }
 
     /**
      * Request challenge (e.g., OTP)
      */
-    async requestChallenge(
-        params: SignUpChallengeRequest,
-    ): Promise<ChallengeResponse> {
+    async requestChallenge(params: SignUpChallengeRequest): Promise<ChallengeResponse> {
         return this.request<ChallengeResponse>(
             CustomAuthApiEndpoint.SIGNUP_CHALLENGE,
             {
                 continuation_token: params.continuation_token,
                 challenge_type: params.challenge_type,
             },
+            params.telemetryManager,
+            params.correlationId,
         );
     }
 
     /**
      * Continue sign-up flow (submit OTP, password, or attributes)
      */
-    async continue(
-        params: SignUpContinueRequest,
-    ): Promise<SignUpContinueResponse> {
+    async continue(params: SignUpContinueRequest): Promise<SignUpContinueResponse> {
         return this.request<SignUpContinueResponse>(
             CustomAuthApiEndpoint.SIGNUP_CONTINUE,
             {
                 continuation_token: params.continuation_token,
                 grant_type: params.grant_type,
-                oob: params.oob,
+                ...(params.oob && { oob: params.oob }),
+                ...(params.attributes && {
+                    attributes: JSON.stringify(params.attributes),
+                }),
             },
+            params.telemetryManager,
+            params.correlationId,
+        );
+    }
+
+    async continueWithPassword(params: SignUpContinueWithPasswordRequest): Promise<SignUpContinueResponse> {
+        return this.request<SignUpContinueResponse>(
+            CustomAuthApiEndpoint.SIGNUP_CONTINUE,
+            {
+                continuation_token: params.continuation_token,
+                grant_type: params.grant_type,
+                password: params.password,
+            },
+            params.telemetryManager,
+            params.correlationId,
+        );
+    }
+
+    async continueWithAttributes(params: SignUpContinueRequest): Promise<SignUpContinueResponse> {
+        return this.request<SignUpContinueResponse>(
+            CustomAuthApiEndpoint.SIGNUP_CONTINUE,
+            {
+                continuation_token: params.continuation_token,
+                grant_type: params.grant_type,
+                attributes: JSON.stringify(params.attributes),
+            },
+            params.telemetryManager,
+            params.correlationId,
         );
     }
 

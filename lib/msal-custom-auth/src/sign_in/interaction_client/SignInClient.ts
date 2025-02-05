@@ -214,7 +214,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         throw new CustomAuthApiError(
             CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
             `Unsupported challenge type '${challengeResponse.challenge_type}'.`,
-            challengeResponse.correlation_id ?? request.correlationId,
+            request.correlationId,
         );
     }
 }

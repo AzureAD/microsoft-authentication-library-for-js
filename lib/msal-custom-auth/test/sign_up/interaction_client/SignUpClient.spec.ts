@@ -21,7 +21,6 @@ import {
 } from "../../../src/sign_up/interaction_client/result/SignUpActionResult.js";
 import { CustomAuthApiError } from "../../../src/index.js";
 import { CustomAuthApiErrorCode } from "../../../src/core/error/CustomAuthApiError.js";
-import { UserAttribute } from "../../../src/core/network_client/custom_auth_api/response/UserAttribute.js";
 
 describe("SignUpClient", () => {
     let client: SignUpClient;
@@ -61,15 +60,10 @@ describe("SignUpClient", () => {
         } as unknown as jest.Mocked<ICrypto>;
 
         const mockEventHandler = {} as unknown as jest.Mocked<EventHandler>;
-        const mockNavigationClient =
-            {} as unknown as jest.Mocked<INavigationClient>;
-        const mockPerformanceClient =
-            {} as unknown as jest.Mocked<IPerformanceClient>;
+        const mockNavigationClient = {} as unknown as jest.Mocked<INavigationClient>;
+        const mockPerformanceClient = {} as unknown as jest.Mocked<IPerformanceClient>;
 
-        authority = new CustomAuthAuthority(
-            customAuthConfig.auth.authority ?? "",
-            customAuthConfig.customAuth.authApiProxyUrl,
-        );
+        authority = new CustomAuthAuthority(customAuthConfig.auth.authority ?? "", customAuthConfig.customAuth.authApiProxyUrl);
 
         const mockLogger = {
             clone: jest.fn(),
@@ -113,11 +107,7 @@ describe("SignUpClient", () => {
             const result = await client.start({
                 username: "abc@abc.com",
                 clientId: customAuthConfig.auth.clientId,
-                challengeType: [
-                    ChallengeType.OOB,
-                    ChallengeType.PASSWORD,
-                    ChallengeType.REDIRECT,
-                ],
+                challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
             });
 
@@ -125,9 +115,7 @@ describe("SignUpClient", () => {
 
             const codeSendResult = result as SignUpCodeRequiredResult;
             expect(codeSendResult.correlationId).toBe("corr123");
-            expect(codeSendResult.continuationToken).toBe(
-                "continuation_token_2",
-            );
+            expect(codeSendResult.continuationToken).toBe("continuation_token_2");
             expect(codeSendResult.codeLength).toBe(6);
             expect(codeSendResult.challengeChannel).toBe("email");
             expect(codeSendResult.challengeTargetLabel).toBe("email");
@@ -146,11 +134,7 @@ describe("SignUpClient", () => {
             const result = await client.start({
                 username: "abc@abc.com",
                 clientId: customAuthConfig.auth.clientId,
-                challengeType: [
-                    ChallengeType.OOB,
-                    ChallengeType.PASSWORD,
-                    ChallengeType.REDIRECT,
-                ],
+                challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
             });
 
@@ -171,11 +155,7 @@ describe("SignUpClient", () => {
                 continuationToken: "continuation_token_1",
                 username: "abc@abc.com",
                 clientId: customAuthConfig.auth.clientId,
-                challengeType: [
-                    ChallengeType.OOB,
-                    ChallengeType.PASSWORD,
-                    ChallengeType.REDIRECT,
-                ],
+                challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
             });
 
@@ -208,11 +188,7 @@ describe("SignUpClient", () => {
                 continuationToken: "continuation_token_1",
                 username: "abc@abc.com",
                 clientId: customAuthConfig.auth.clientId,
-                challengeType: [
-                    ChallengeType.OOB,
-                    ChallengeType.PASSWORD,
-                    ChallengeType.REDIRECT,
-                ],
+                challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
             });
 
@@ -220,9 +196,7 @@ describe("SignUpClient", () => {
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
 
-            expect(
-                mockedApiClient.performSignUpChallengeRequest,
-            ).toHaveBeenCalledWith(
+            expect(mockedApiClient.performSignUpChallengeRequest).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
                     parameters: expect.objectContaining({
@@ -257,11 +231,7 @@ describe("SignUpClient", () => {
                     continuationToken: "continuation_token_1",
                     username: "abc@abc.com",
                     clientId: customAuthConfig.auth.clientId,
-                    challengeType: [
-                        ChallengeType.OOB,
-                        ChallengeType.PASSWORD,
-                        ChallengeType.REDIRECT,
-                    ],
+                    challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                     correlationId: "corr123",
                 }),
             ).rejects.toMatchObject({
@@ -270,9 +240,7 @@ describe("SignUpClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(
-                mockedApiClient.performSignUpChallengeRequest,
-            ).toHaveBeenCalledWith(
+            expect(mockedApiClient.performSignUpChallengeRequest).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
                     parameters: expect.objectContaining({
@@ -290,7 +258,7 @@ describe("SignUpClient", () => {
                     "corr123",
                     [55106],
                     undefined,
-                    [new UserAttribute("name", "string", true)],
+                    [{ "test-attribute": "test-value" }],
                     "continuation_token_1",
                 ),
             );
@@ -300,11 +268,7 @@ describe("SignUpClient", () => {
                 continuationToken: "continuation_token_1",
                 username: "abc@abc.com",
                 clientId: customAuthConfig.auth.clientId,
-                challengeType: [
-                    ChallengeType.OOB,
-                    ChallengeType.PASSWORD,
-                    ChallengeType.REDIRECT,
-                ],
+                challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
             });
 
@@ -316,22 +280,16 @@ describe("SignUpClient", () => {
 
     describe("submitPassword", () => {
         it("should return SignUpCompletedResult for valid password", async () => {
-            mockedApiClient.performSignUpSubmitPasswordRequest.mockResolvedValue(
-                {
-                    continuation_token: "continuation_token_2",
-                },
-            );
+            mockedApiClient.performSignUpSubmitPasswordRequest.mockResolvedValue({
+                continuation_token: "continuation_token_2",
+            });
 
             const result = await client.submitPassword({
                 password: "123456",
                 continuationToken: "continuation_token_1",
                 username: "abc@abc.com",
                 clientId: customAuthConfig.auth.clientId,
-                challengeType: [
-                    ChallengeType.OOB,
-                    ChallengeType.PASSWORD,
-                    ChallengeType.REDIRECT,
-                ],
+                challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
             });
 
@@ -367,11 +325,7 @@ describe("SignUpClient", () => {
                 continuationToken: "continuation_token_1",
                 username: "abc@abc.com",
                 clientId: customAuthConfig.auth.clientId,
-                challengeType: [
-                    ChallengeType.OOB,
-                    ChallengeType.PASSWORD,
-                    ChallengeType.REDIRECT,
-                ],
+                challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
             });
 
@@ -379,9 +333,7 @@ describe("SignUpClient", () => {
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
 
-            expect(
-                mockedApiClient.performSignUpChallengeRequest,
-            ).toHaveBeenCalledWith(
+            expect(mockedApiClient.performSignUpChallengeRequest).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
                     parameters: expect.objectContaining({
@@ -409,11 +361,7 @@ describe("SignUpClient", () => {
                 continuationToken: "continuation_token_1",
                 username: "abc@abc.com",
                 clientId: customAuthConfig.auth.clientId,
-                challengeType: [
-                    ChallengeType.OOB,
-                    ChallengeType.PASSWORD,
-                    ChallengeType.REDIRECT,
-                ],
+                challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
             });
 
@@ -425,22 +373,16 @@ describe("SignUpClient", () => {
 
     describe("submitAttributes", () => {
         it("should return SignUpCompletedResult for valid password", async () => {
-            mockedApiClient.performSignUpSubmitUserAttributesRequest.mockResolvedValue(
-                {
-                    continuation_token: "continuation_token_2",
-                },
-            );
+            mockedApiClient.performSignUpSubmitUserAttributesRequest.mockResolvedValue({
+                continuation_token: "continuation_token_2",
+            });
 
             const result = await client.submitAttributes({
                 attributes: { name: "John Doe" },
                 continuationToken: "continuation_token_1",
                 username: "abc@abc.com",
                 clientId: customAuthConfig.auth.clientId,
-                challengeType: [
-                    ChallengeType.OOB,
-                    ChallengeType.PASSWORD,
-                    ChallengeType.REDIRECT,
-                ],
+                challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
             });
 
@@ -476,11 +418,7 @@ describe("SignUpClient", () => {
                 continuationToken: "continuation_token_1",
                 username: "abc@abc.com",
                 clientId: customAuthConfig.auth.clientId,
-                challengeType: [
-                    ChallengeType.OOB,
-                    ChallengeType.PASSWORD,
-                    ChallengeType.REDIRECT,
-                ],
+                challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
             });
 
@@ -488,9 +426,7 @@ describe("SignUpClient", () => {
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
 
-            expect(
-                mockedApiClient.performSignUpChallengeRequest,
-            ).toHaveBeenCalledWith(
+            expect(mockedApiClient.performSignUpChallengeRequest).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
                     parameters: expect.objectContaining({
@@ -524,11 +460,7 @@ describe("SignUpClient", () => {
                 continuationToken: "continuation_token_1",
                 username: "abc@abc.com",
                 clientId: customAuthConfig.auth.clientId,
-                challengeType: [
-                    ChallengeType.OOB,
-                    ChallengeType.PASSWORD,
-                    ChallengeType.REDIRECT,
-                ],
+                challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
             });
 
@@ -536,9 +468,7 @@ describe("SignUpClient", () => {
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
 
-            expect(
-                mockedApiClient.performSignUpChallengeRequest,
-            ).toHaveBeenCalledWith(
+            expect(mockedApiClient.performSignUpChallengeRequest).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
                     parameters: expect.objectContaining({
@@ -567,11 +497,7 @@ describe("SignUpClient", () => {
                     continuationToken: "continuation_token_1",
                     username: "abc@abc.com",
                     clientId: customAuthConfig.auth.clientId,
-                    challengeType: [
-                        ChallengeType.OOB,
-                        ChallengeType.PASSWORD,
-                        ChallengeType.REDIRECT,
-                    ],
+                    challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                     correlationId: "corr123",
                 }),
             ).rejects.toMatchObject({
@@ -601,11 +527,7 @@ describe("SignUpClient", () => {
                 continuationToken: "continuation_token_1",
                 username: "abc@abc.com",
                 clientId: customAuthConfig.auth.clientId,
-                challengeType: [
-                    ChallengeType.OOB,
-                    ChallengeType.PASSWORD,
-                    ChallengeType.REDIRECT,
-                ],
+                challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
             });
 

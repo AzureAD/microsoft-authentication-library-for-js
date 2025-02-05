@@ -20,7 +20,6 @@ import {
     CustomAuthActionInputs,
 } from "../CustomAuthActionInputs.js";
 import { CustomAuthBrowserConfiguration } from "../configuration/CustomAuthConfiguration.js";
-import { CustomAuthApiClient } from "../core/network_client/custom_auth_api/CustomAuthApiClient.js";
 import { CustomAuthOperatingContext } from "../operating_context/CustomAuthOperatingContext.js";
 import { ICustomAuthStandardController } from "./ICustomAuthStandardController.js";
 import { InvalidArgumentError } from "../core/error/InvalidArgumentError.js";
@@ -42,6 +41,7 @@ import { ICustomAuthApiClient } from "../core/network_client/custom_auth_api/ICu
 import { SingInApiClient } from "../core/network_client/SingInApiClient.js";
 import { SignupApiClient } from "../core/network_client/SignupApiClient.js";
 import { ResetPasswordApiClient } from "../core/network_client/ResetPasswordApiClient.js";
+import { CustomAuthApiClient } from "../core/network_client/custom_auth_api/CustomAuthApiClient.js";
 
 /*
  * Controller for standard native auth operations.

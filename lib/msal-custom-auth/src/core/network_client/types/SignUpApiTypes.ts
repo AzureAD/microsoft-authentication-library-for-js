@@ -27,13 +27,13 @@ export interface SignUpStartRequest extends BaseApiRequest {
     client_id: string;
 }
 
-export interface SignUpChallengeRequest {
+export interface SignUpChallengeRequest extends BaseApiRequest {
     client_id: string;
     continuation_token: string;
     challenge_type: string;
 }
 
-export interface SignUpContinueRequest {
+export interface SignUpContinueRequest extends BaseApiRequest {
     continuation_token: string;
     client_id: string;
     grant_type: GrantType;
@@ -41,11 +41,31 @@ export interface SignUpContinueRequest {
     oob?: string;
 }
 
+export interface SignUpContinueWithPasswordRequest extends BaseApiRequest {
+    continuation_token: string;
+    client_id: string;
+    grant_type: GrantType;
+    password: string;
+}
+
+export interface SignUpSubmitUserAttributesRequest extends BaseApiRequest {
+    continuation_token: string;
+    client_id: string;
+    grant_type: GrantType;
+    attributes: { [key: string]: string };
+}
+
 /**
  * Response types for sign-up flow
  */
+
 export interface RedirectChallengeResponse {
     challenge_type: ChallengeType;
+}
+
+export interface PasswordChallengeResponse {
+    challenge_type: ChallengeType;
+    continuation_token: string;
 }
 
 export interface SignUpChallengeResponse {
@@ -65,9 +85,7 @@ export interface SignUpStartResponse {
 /**
  * Union type for all possible challenge responses
  */
-export type ChallengeResponse =
-    | SignUpChallengeResponse
-    | RedirectChallengeResponse;
+export type ChallengeResponse = SignUpChallengeResponse | RedirectChallengeResponse | PasswordChallengeResponse;
 
 export interface SignUpContinueResponse {
     challenge_type: ChallengeType;
