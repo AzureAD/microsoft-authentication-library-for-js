@@ -66,6 +66,8 @@ import { base64Decode } from "../encode/Base64Decode.js";
 import { base64Encode } from "../encode/Base64Encode.js";
 import { CookieStorage } from "./CookieStorage.js";
 import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
+import { EventType } from "../event/EventType.js";
+import { EventHandler } from "../event/EventHandler.js";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -87,6 +89,8 @@ export class BrowserCacheManager extends CacheManager {
     protected logger: Logger;
     // Telemetry perf client
     protected performanceClient: IPerformanceClient;
+    // Event Handler
+    private eventHandler: EventHandler;
 
     constructor(
         clientId: string,
@@ -94,6 +98,7 @@ export class BrowserCacheManager extends CacheManager {
         cryptoImpl: ICrypto,
         logger: Logger,
         performanceClient: IPerformanceClient,
+        eventHandler: EventHandler,
         staticAuthorityOptions?: StaticAuthorityOptions
     ) {
         super(clientId, cryptoImpl, logger, staticAuthorityOptions);
@@ -115,6 +120,7 @@ export class BrowserCacheManager extends CacheManager {
         this.cookieStorage = new CookieStorage();
 
         this.performanceClient = performanceClient;
+        this.eventHandler = eventHandler;
     }
 
     async initialize(correlationId: string): Promise<void> {
@@ -184,7 +190,22 @@ export class BrowserCacheManager extends CacheManager {
             this.logger,
             this.performanceClient
         )(key, JSON.stringify(account), correlationId);
-        this.addAccountKeyToMap(key);
+        const wasAdded = this.addAccountKeyToMap(key);
+
+        /**
+         * @deprecated - Remove this in next major version in favor of more consistent LOGIN event
+         */
+        if (
+            this.cacheConfig.cacheLocation ===
+                BrowserCacheLocation.LocalStorage &&
+            wasAdded
+        ) {
+            this.eventHandler.emitEvent(
+                EventType.ACCOUNT_ADDED,
+                undefined,
+                account.getAccountInfo()
+            );
+        }
     }
 
     /**
@@ -199,7 +220,7 @@ export class BrowserCacheManager extends CacheManager {
      * Add a new account to the key map
      * @param key
      */
-    addAccountKeyToMap(key: string): void {
+    addAccountKeyToMap(key: string): boolean {
         this.logger.trace("BrowserCacheManager.addAccountKeyToMap called");
         this.logger.tracePii(
             `BrowserCacheManager.addAccountKeyToMap called with key: ${key}`
@@ -215,10 +236,12 @@ export class BrowserCacheManager extends CacheManager {
             this.logger.verbose(
                 "BrowserCacheManager.addAccountKeyToMap account key added"
             );
+            return true;
         } else {
             this.logger.verbose(
                 "BrowserCacheManager.addAccountKeyToMap account key already exists in map"
             );
+            return false;
         }
     }
 
@@ -256,6 +279,27 @@ export class BrowserCacheManager extends CacheManager {
     async removeAccount(key: string): Promise<void> {
         void super.removeAccount(key);
         this.removeAccountKeyFromMap(key);
+    }
+
+    /**
+     * Removes credentials associated with the provided account
+     * @param account
+     */
+    async removeAccountContext(account: AccountEntity): Promise<void> {
+        await super.removeAccountContext(account);
+
+        /**
+         * @deprecated - Remove this in next major version in favor of more consistent LOGOUT event
+         */
+        if (
+            this.cacheConfig.cacheLocation === BrowserCacheLocation.LocalStorage
+        ) {
+            this.eventHandler.emitEvent(
+                EventType.ACCOUNT_REMOVED,
+                undefined,
+                account.getAccountInfo()
+            );
+        }
     }
 
     /**
@@ -792,6 +836,7 @@ export class BrowserCacheManager extends CacheManager {
             );
             this.browserStorage.removeItem(activeAccountKey);
         }
+        this.eventHandler.emitEvent(EventType.ACTIVE_ACCOUNT_CHANGED);
     }
 
     /**
@@ -1481,7 +1526,8 @@ function getStorageImplementation(
 export const DEFAULT_BROWSER_CACHE_MANAGER = (
     clientId: string,
     logger: Logger,
-    performanceClient: IPerformanceClient
+    performanceClient: IPerformanceClient,
+    eventHandler: EventHandler
 ): BrowserCacheManager => {
     const cacheOptions: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.MemoryStorage,
@@ -1496,6 +1542,7 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
         cacheOptions,
         DEFAULT_CRYPTO_IMPLEMENTATION,
         logger,
-        performanceClient
+        performanceClient,
+        eventHandler
     );
 };

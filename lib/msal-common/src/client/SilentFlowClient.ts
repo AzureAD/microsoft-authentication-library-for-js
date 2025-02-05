@@ -8,15 +8,13 @@ import { ClientConfiguration } from "../config/ClientConfiguration.js";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
-import { RefreshTokenClient } from "./RefreshTokenClient.js";
 import {
-    ClientAuthError,
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError.js";
 import { ResponseHandler } from "../response/ResponseHandler.js";
 import { CacheRecord } from "../cache/entities/CacheRecord.js";
-import { CacheOutcome, OIDC_DEFAULT_SCOPES } from "../utils/Constants.js";
+import { CacheOutcome } from "../utils/Constants.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import { StringUtils } from "../utils/StringUtils.js";
 import { checkMaxAge, extractTokenClaims } from "../account/AuthToken.js";
@@ -32,59 +30,6 @@ export class SilentFlowClient extends BaseClient {
         performanceClient?: IPerformanceClient
     ) {
         super(configuration, performanceClient);
-    }
-
-    /**
-     * Retrieves a token from cache if it is still valid, or uses the cached refresh token to renew
-     * the given token and returns the renewed token
-     * @param request
-     */
-    async acquireToken(
-        request: CommonSilentFlowRequest
-    ): Promise<AuthenticationResult> {
-        try {
-            const [authResponse, cacheOutcome] = await this.acquireCachedToken({
-                ...request,
-                scopes: request.scopes?.length
-                    ? request.scopes
-                    : [...OIDC_DEFAULT_SCOPES],
-            });
-
-            // if the token is not expired but must be refreshed; get a new one in the background
-            if (cacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
-                this.logger.info(
-                    "SilentFlowClient:acquireCachedToken - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
-                );
-
-                // refresh the access token in the background
-                const refreshTokenClient = new RefreshTokenClient(
-                    this.config,
-                    this.performanceClient
-                );
-
-                refreshTokenClient
-                    .acquireTokenByRefreshToken(request)
-                    .catch(() => {
-                        // do nothing, this is running in the background and no action is to be taken upon success or failure
-                    });
-            }
-
-            // return the cached token
-            return authResponse;
-        } catch (e) {
-            if (
-                e instanceof ClientAuthError &&
-                e.errorCode === ClientAuthErrorCodes.tokenRefreshRequired
-            ) {
-                const refreshTokenClient = new RefreshTokenClient(
-                    this.config,
-                    this.performanceClient
-                );
-                return refreshTokenClient.acquireTokenByRefreshToken(request);
-            } else {
-                throw e;
-            }
-        }
     }
 
     /**

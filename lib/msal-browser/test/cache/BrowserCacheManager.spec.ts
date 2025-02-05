@@ -49,6 +49,7 @@ import { base64Decode } from "../../src/encode/Base64Decode.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
 import { CookieStorage } from "../../src/cache/CookieStorage.js";
+import { EventHandler } from "../../src/event/EventHandler.js";
 
 describe("BrowserCacheManager tests", () => {
     let cacheConfig: Required<CacheOptions>;
@@ -87,7 +88,8 @@ describe("BrowserCacheManager tests", () => {
                 { ...cacheConfig, cacheLocation: "notALocation" },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             // @ts-ignore
             cacheManager.browserStorage.setItem("key", "value");
@@ -106,7 +108,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             // @ts-ignore
             sessionCache.browserStorage.setItem("key", "value");
@@ -124,7 +127,8 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             // @ts-ignore
             localCache.browserStorage.setItem("key", "value");
@@ -146,7 +150,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await browserSessionStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             authority = new Authority(
@@ -174,7 +179,8 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await browserLocalStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             cacheVal = "cacheVal";
@@ -206,7 +212,8 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             expect(browserLocalStorage.getTemporaryCache(testTempItemKey)).toBe(
                 testTempItemValue
@@ -1396,7 +1403,8 @@ describe("BrowserCacheManager tests", () => {
                         cacheConfig,
                         browserCrypto,
                         logger,
-                        perfClient
+                        perfClient,
+                        new EventHandler()
                     );
 
                     jest.spyOn(
@@ -1473,7 +1481,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             authority = new Authority(
                 TEST_CONFIG.validAuthority,
@@ -1501,7 +1510,8 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await browserLocalStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             await browserSessionStorage.initialize(TEST_CONFIG.CORRELATION_ID);
@@ -1534,7 +1544,8 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             expect(browserLocalStorage.getTemporaryCache(testTempItemKey)).toBe(
                 testTempItemValue
@@ -2382,7 +2393,8 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await browserSessionStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             browserLocalStorage = new BrowserCacheManager(
@@ -2394,7 +2406,8 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await browserLocalStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             browserMemoryStorage = new BrowserCacheManager(
@@ -2406,7 +2419,8 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await browserMemoryStorage.initialize(TEST_CONFIG.CORRELATION_ID);
             cacheVal = "cacheVal";
@@ -2682,7 +2696,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             const authorityKey = browserStorage.generateAuthorityKey(
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
@@ -2698,7 +2713,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             const nonceKey = browserStorage.generateNonceKey(
                 TEST_STATE_VALUES.TEST_STATE_REDIRECT
@@ -2714,7 +2730,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             const testNonce = "testNonce";
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
@@ -2747,7 +2764,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             browserStorage.updateCacheEntries(
                 stateString,
@@ -2802,7 +2820,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             const tokenRequest: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
@@ -2833,7 +2852,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             // browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
 
@@ -2856,7 +2876,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             const tokenRequest: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
@@ -2892,7 +2913,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             // Set up cache
             const authorityKey = browserStorage.generateAuthorityKey(
@@ -2938,7 +2960,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
 
             const cacheKey = "cacheKey";
@@ -2965,7 +2988,8 @@ describe("BrowserCacheManager tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
 
             const browserState: BrowserStateObject = {
@@ -3008,7 +3032,8 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
 
             browserStorage.setInteractionInProgress(true);
@@ -3026,7 +3051,8 @@ describe("BrowserCacheManager tests", () => {
                 },
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
 
             expect(browserStorage.getTokenKeys()).toStrictEqual({
