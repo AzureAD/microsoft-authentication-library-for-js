@@ -50,10 +50,10 @@ export interface SignInInitiateSuccessResponse {
 export interface SingInChallengeCodeResponse {
     continuation_token: string;
     challenge_type: ChallengeType;
-    binding_method?: "prompt";
-    challenge_channel?: string;
-    challenge_target_label?: string;
-    code_length?: number;
+    binding_method: "prompt";
+    challenge_channel: string;
+    challenge_target_label: string;
+    code_length: number;
 }
 
 export interface SingInChallengePasswordResponse {

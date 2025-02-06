@@ -7,15 +7,13 @@ import { ChallengeType } from "../../CustomAuthConstants.js";
 import { CustomAuthApiError, CustomAuthApiErrorCode } from "../../core/error/CustomAuthApiError.js";
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
 import { SignInStartParams, SignInResendCodeParams, SignInSubmitCodeParams, SignInSubmitPasswordParams } from "./parameter/SignInParams.js";
-import { SignInCompletedResult, SignInPasswordRequiredResult } from "./result/SignInActionResult.js";
+import { SignInCodeSendResult, SignInCompletedResult, SignInPasswordRequiredResult } from "./result/SignInActionResult.js";
 import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
 import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
 import { CustomAuthAuthenticationResult } from "../../core/interaction_client/CustomAuthAuthenticationResult.js";
 import {
     SignInInitiateRequest,
     SignInChallengeRequest,
-    SingInChallengeCodeResponse,
-    SingInChallengePasswordResponse,
     OTPTokenRequest,
     SignInTokenSuccessResponse,
     PasswordTokenRequest,
@@ -28,7 +26,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
      * @param parameters The parameters required to start the sign-in flow.
      * @returns The result of the sign-in start operation.
      */
-    async start(parameters: SignInStartParams): Promise<SingInChallengePasswordResponse | SingInChallengeCodeResponse> {
+    async start(parameters: SignInStartParams): Promise<SignInPasswordRequiredResult | SignInCodeSendResult> {
         this.logger.info("Calling initiate endpoint for sign in.");
         const apiId = !parameters.password ? PublicApiId.SIGN_IN_WITH_CODE_START : PublicApiId.SIGN_IN_WITH_PASSWORD_START;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
@@ -122,7 +120,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
      * @param parameters The parameters required to resend the code.
      * @returns The result of the sign-in resend code action.
      */
-    async resendCode(parameters: SignInResendCodeParams): Promise<SingInChallengeCodeResponse> {
+    async resendCode(parameters: SignInResendCodeParams): Promise<SignInCodeSendResult> {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters);
         const apiId = PublicApiId.SIGN_IN_RESEND_CODE;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
@@ -178,9 +176,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         };
     }
 
-    private async performChallengeRequest(
-        request: SignInChallengeRequest,
-    ): Promise<SingInChallengePasswordResponse | SingInChallengeCodeResponse> {
+    private async performChallengeRequest(request: SignInChallengeRequest): Promise<SignInPasswordRequiredResult | SignInCodeSendResult> {
         this.logger.info("Calling challenge endpoint for sign in.");
         const challengeResponse = await this.customAuthApiClient.signInApiClient.requestChallenge(request);
         this.logger.info("Challenge endpoint called for sign in.");
@@ -189,24 +185,22 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             // Code is required
             this.logger.info("Challenge type is oob for sign in.");
 
-            return {
-                continuation_token: challengeResponse.continuation_token,
-                challenge_type: challengeResponse.challenge_type,
-                binding_method: challengeResponse.binding_method,
-                challenge_channel: challengeResponse.challenge_channel,
-                challenge_target_label: challengeResponse.challenge_target_label,
-                code_length: challengeResponse.code_length,
-            } as SingInChallengeCodeResponse;
+            return new SignInCodeSendResult(
+                request.correlationId,
+                challengeResponse.continuation_token,
+                challengeResponse.challenge_channel,
+                challengeResponse.challenge_target_label,
+                challengeResponse.code_length,
+                0,
+                challengeResponse.challenge_type,
+            );
         }
 
         if (challengeResponse.challenge_type === ChallengeType.PASSWORD) {
             // Password is required
             this.logger.info("Challenge type is password for sign in.");
 
-            return {
-                continuation_token: challengeResponse.continuation_token,
-                challenge_type: challengeResponse.challenge_type,
-            } as SingInChallengePasswordResponse;
+            return new SignInPasswordRequiredResult(request.correlationId, challengeResponse.continuation_token);
         }
 
         this.logger.error(`Unsupported challenge type '${challengeResponse.challenge_type}' for sign in.`);
