@@ -6,7 +6,13 @@
 import { ChallengeType } from "../../CustomAuthConstants.js";
 import { CustomAuthApiError, CustomAuthApiErrorCode } from "../../core/error/CustomAuthApiError.js";
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
-import { SignInStartParams, SignInResendCodeParams, SignInSubmitCodeParams, SignInSubmitPasswordParams } from "./parameter/SignInParams.js";
+import {
+    SignInStartParams,
+    SignInResendCodeParams,
+    SignInSubmitCodeParams,
+    SignInSubmitPasswordParams,
+    SignInContinuationTokenParams,
+} from "./parameter/SignInParams.js";
 import { SignInCodeSendResult, SignInCompletedResult, SignInPasswordRequiredResult } from "./result/SignInActionResult.js";
 import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
 import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
@@ -17,6 +23,7 @@ import {
     OTPTokenRequest,
     SignInTokenSuccessResponse,
     PasswordTokenRequest,
+    SignInContinuationTokenRequest,
 } from "../../core/network_client/types/SignInApiTypes.js";
 import { GrantType } from "../../core/network_client/types/BaseApiTypes.js";
 
@@ -145,6 +152,38 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         }
 
         return result;
+    }
+
+    /**
+     * Signs in with continuation token.
+     * @param parameters The parameters required to sign in with continuation token.
+     * @returns The result of the sign-in complete action.
+     */
+    async signInWithContinuationToken(parameters: SignInContinuationTokenParams): Promise<SignInCompletedResult> {
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters);
+
+        const apiId = PublicApiId.SIGN_IN_AFTER_SIGN_UP;
+        const telemetryManager = this.initializeServerTelemetryManager(apiId);
+
+        // Create token request.
+        const request: SignInContinuationTokenRequest = {
+            client_id: parameters.clientId,
+            continuation_token: parameters.continuationToken,
+            correlationId: parameters.correlationId,
+            telemetryManager: telemetryManager,
+        };
+
+        // Call token endpoint.
+        this.logger.info("Calling token endpoint with continuation token for sign in.");
+
+        const response = await this.customAuthApiClient.signInApiClient.signInWithContinuationToken(request);
+
+        this.logger.info("Token endpoint called with continuation token for sign in.");
+
+        return new SignInCompletedResult(
+            response.correlation_id ?? "",
+            this.createAuthenticationResult(response, parameters.scopes, parameters.username),
+        );
     }
 
     private createAuthenticationResult(

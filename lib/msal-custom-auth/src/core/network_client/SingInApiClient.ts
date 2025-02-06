@@ -14,6 +14,7 @@ import {
     SignInTokenSuccessResponse,
     PasswordTokenRequest,
     OTPTokenRequest,
+    SignInContinuationTokenRequest,
 } from "./types/SignInApiTypes.js";
 
 // https://learn.microsoft.com/en-us/entra/identity-platform/reference-native-authentication-api?tabs=emailOtp#sign-in-challenge-types
@@ -83,6 +84,18 @@ export class SingInApiClient extends BaseApiClient {
                 scope: params.scope,
                 oob: params.oob,
                 grant_type: GrantType.OOB,
+            },
+            params.telemetryManager,
+            params.correlationId,
+        );
+    }
+
+    async signInWithContinuationToken(params: SignInContinuationTokenRequest): Promise<SignInTokenSuccessResponse> {
+        return this.request<SignInTokenSuccessResponse>(
+            CustomAuthApiEndpoint.SIGNIN_TOKEN,
+            {
+                continuation_token: params.continuation_token,
+                client_id: params.client_id,
             },
             params.telemetryManager,
             params.correlationId,

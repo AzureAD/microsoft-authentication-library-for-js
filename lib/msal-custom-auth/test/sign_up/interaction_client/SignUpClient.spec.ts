@@ -60,9 +60,10 @@ describe("SignUpClient", () => {
     let client: SignUpClient;
     let authority: CustomAuthAuthority;
     const { mockedApiClient, signInApiClient, signUpApiClient, resetPasswordApiClient } = jest.requireMock(
-        "../../src/core/network_client/custom_auth_api/CustomAuthApiClient.js",
+        "../../../src/core/network_client/custom_auth_api/CustomAuthApiClient.js",
     );
     beforeEach(() => {
+        jest.resetAllMocks();
         const mockBrowserConfiguration = {
             system: {
                 networkClient: {
@@ -119,16 +120,16 @@ describe("SignUpClient", () => {
 
     describe("start", () => {
         it("should return SignUpCodeRequiredResult when challenge type is OOB", async () => {
-            signUpApiClient.start.mockResolvedValue({
+            mockedApiClient.signUpApiClient.start.mockResolvedValue({
                 continuation_token: "continuation_token_1",
             });
-            signUpApiClient.requestChallenge.mockResolvedValue({
+            mockedApiClient.signUpApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.OOB,
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
                 code_length: 6,
                 challenge_channel: "email",
-                target_challenge_label: "email",
+                challenge_target_label: "email",
             });
 
             const result = await client.start({
@@ -139,7 +140,6 @@ describe("SignUpClient", () => {
             });
 
             expect(result).toBeInstanceOf(SignUpCodeRequiredResult);
-
             const codeSendResult = result as SignUpCodeRequiredResult;
             expect(codeSendResult.correlationId).toBe("corr123");
             expect(codeSendResult.continuationToken).toBe("continuation_token_2");
@@ -223,12 +223,10 @@ describe("SignUpClient", () => {
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
 
-            expect(mockedApiClient.performSignUpChallengeRequest).toHaveBeenCalledWith(
+            expect(mockedApiClient.signUpApiClient.requestChallenge).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
-                    parameters: expect.objectContaining({
-                        continuationToken: "continuation_token_1",
-                    }),
+                    continuation_token: "continuation_token_1"
                 }),
             );
         });
@@ -246,7 +244,7 @@ describe("SignUpClient", () => {
                 ),
             );
 
-            signUpApiClient.continue.mockResolvedValue({
+            signUpApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: "passkey",
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
@@ -267,25 +265,23 @@ describe("SignUpClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(mockedApiClient.continue).toHaveBeenCalledWith(
+            expect(signUpApiClient.requestChallenge).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
-                    parameters: expect.objectContaining({
-                        continuationToken: "continuation_token_1",
-                    }),
+                    continuation_token: "continuation_token_1"
                 }),
             );
         });
 
         it("should return SignUpAttributesRequiredResult if attributes are required", async () => {
-            signUpApiClient.continueWithAttributes.mockRejectedValue(
+            signUpApiClient.continue.mockRejectedValue(
                 new CustomAuthApiError(
                     CustomAuthApiErrorCode.ATTRIBUTES_REQUIRED,
                     "User attributes required",
                     "corr123",
                     [55106],
                     undefined,
-                    [new UserAttribute("test-attribute", "test-value")],
+                    [new UserAttribute("test-attribute", "test-value", true)],
                     "continuation_token_1",
                 ),
             );
@@ -344,7 +340,7 @@ describe("SignUpClient", () => {
                 continuation_token: "continuation_token_2",
                 code_length: 6,
                 challenge_channel: "email",
-                target_challenge_label: "email",
+                challenge_target_label: "email",
             });
 
             const result = await client.submitPassword({
@@ -363,9 +359,7 @@ describe("SignUpClient", () => {
             expect(signUpApiClient.requestChallenge).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
-                    parameters: expect.objectContaining({
-                        continuationToken: "continuation_token_1",
-                    }),
+                    continuation_token: "continuation_token_1"
                 }),
             );
         });
@@ -456,9 +450,7 @@ describe("SignUpClient", () => {
             expect(signUpApiClient.requestChallenge).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
-                    parameters: expect.objectContaining({
-                        continuationToken: "continuation_token_1",
-                    }),
+                    continuation_token: "continuation_token_1"
                 }),
             );
         });
@@ -498,9 +490,7 @@ describe("SignUpClient", () => {
             expect(signUpApiClient.requestChallenge).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
-                    parameters: expect.objectContaining({
-                        continuationToken: "continuation_token_1",
-                    }),
+                    continuation_token: "continuation_token_1"
                 }),
             );
         });
@@ -547,7 +537,7 @@ describe("SignUpClient", () => {
                 continuation_token: "continuation_token_2",
                 code_length: 6,
                 challenge_channel: "email",
-                target_challenge_label: "email",
+                challenge_target_label: "email",
             });
 
             const result = await client.resendCode({

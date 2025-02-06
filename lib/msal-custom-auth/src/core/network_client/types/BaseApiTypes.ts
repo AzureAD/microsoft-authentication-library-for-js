@@ -18,6 +18,10 @@ export type BaseApiRequest = {
     telemetryManager: ServerTelemetryManager;
 };
 
+export type BaseApiResponse = {
+    correlation_id: string;
+};
+
 /**
  * Enum for challenge binding methods
  */

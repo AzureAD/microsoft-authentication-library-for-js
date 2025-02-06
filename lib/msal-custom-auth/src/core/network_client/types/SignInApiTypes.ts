@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BaseApiRequest, ChallengeType, GrantType } from "./BaseApiTypes.js";
+import { BaseApiRequest, BaseApiResponse, ChallengeType, GrantType } from "./BaseApiTypes.js";
 
 /**
  **************************************************************************************************
@@ -38,16 +38,21 @@ export interface OTPTokenRequest extends TokenRequestBase {
 
 export type TokenRequest = PasswordTokenRequest | OTPTokenRequest;
 
+export interface SignInContinuationTokenRequest extends BaseApiRequest {
+    client_id: string;
+    continuation_token: string;
+}
+
 /**
  ************************************************************************************************
  * Response types for sign-in flow
  */
-export interface SignInInitiateSuccessResponse {
+export interface SignInInitiateSuccessResponse extends BaseApiResponse {
     continuation_token: string;
     challenge_type?: ChallengeType;
 }
 
-export interface SingInChallengeCodeResponse {
+export interface SingInChallengeCodeResponse extends BaseApiResponse {
     continuation_token: string;
     challenge_type: ChallengeType;
     binding_method: "prompt";
@@ -56,12 +61,12 @@ export interface SingInChallengeCodeResponse {
     code_length: number;
 }
 
-export interface SingInChallengePasswordResponse {
+export interface SingInChallengePasswordResponse extends BaseApiResponse {
     continuation_token: string;
     challenge_type: ChallengeType;
 }
 
-export interface SignInTokenSuccessResponse {
+export interface SignInTokenSuccessResponse extends BaseApiResponse {
     token_type: "Bearer";
     scope: string;
     expires_in: number;
