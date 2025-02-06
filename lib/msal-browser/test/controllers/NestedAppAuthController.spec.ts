@@ -319,7 +319,10 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
         });
 
         it("acquireTokenSilent handles NAA BridgeError and throws MSAL error", async () => {
-            mockBridge.addErrorResponse("GetToken", BRIDGE_ERROR_PERSISTENT_ERROR_CLIENT);
+            mockBridge.addErrorResponse(
+                "GetToken",
+                BRIDGE_ERROR_PERSISTENT_ERROR_CLIENT
+            );
 
             const testRequest = {
                 scopes: [NAA_SCOPE],
@@ -327,8 +330,8 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 correlationId: NAA_CORRELATION_ID,
             };
 
-            await expect(
-                () => pca.acquireTokenSilent(testRequest)
+            await expect(() =>
+                pca.acquireTokenSilent(testRequest)
             ).rejects.toBeInstanceOf(AuthError);
         });
 
@@ -338,7 +341,9 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 NestedAppAuthAdapter.prototype as any,
                 "fromNaaTokenResponse"
             ).mockImplementation(() => {
-                throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken);
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.nullOrEmptyToken
+                );
             });
 
             const testRequest = {
@@ -347,8 +352,8 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 correlationId: NAA_CORRELATION_ID,
             };
 
-            await expect(
-                () => pca.acquireTokenSilent(testRequest)
+            await expect(() =>
+                pca.acquireTokenSilent(testRequest)
             ).rejects.toMatchObject(
                 createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
             );
@@ -360,7 +365,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 token: {
                     ...SILENT_TOKEN_RESPONSE.token,
                     access_token: "",
-                }
+                },
             });
 
             const testRequest = {
@@ -369,8 +374,8 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 correlationId: NAA_CORRELATION_ID,
             };
 
-            await expect(
-                () => pca.acquireTokenSilent(testRequest)
+            await expect(() =>
+                pca.acquireTokenSilent(testRequest)
             ).rejects.toMatchObject(
                 createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
             );

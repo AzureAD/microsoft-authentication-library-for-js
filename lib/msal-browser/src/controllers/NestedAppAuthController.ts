@@ -252,9 +252,10 @@ export class NestedAppAuthController implements IController {
 
             return result;
         } catch (e) {
-            const error = e instanceof AuthError
-                ? e
-                : this.nestedAppAuthAdapter.fromBridgeError(e);
+            const error =
+                e instanceof AuthError
+                    ? e
+                    : this.nestedAppAuthAdapter.fromBridgeError(e);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_FAILURE,
                 InteractionType.Popup,
@@ -351,9 +352,10 @@ export class NestedAppAuthController implements IController {
             });
             return result;
         } catch (e) {
-            const error = e instanceof AuthError
-                ? e
-                : this.nestedAppAuthAdapter.fromBridgeError(e);
+            const error =
+                e instanceof AuthError
+                    ? e
+                    : this.nestedAppAuthAdapter.fromBridgeError(e);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_FAILURE,
                 InteractionType.Silent,
