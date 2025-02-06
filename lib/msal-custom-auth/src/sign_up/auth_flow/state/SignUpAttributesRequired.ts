@@ -9,7 +9,7 @@ import { SignUpActionRequiredState } from "./SignUpActionRequiredState.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { SignUpClient } from "../../interaction_client/SignUpClient.js";
 import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
-import { UserAttribute } from "../../../core/network_client/custom_auth_api/response/UserAttribute.js";
+import { UserAttribute } from "../../../core/network_client/types/UserAttributes.js";
 
 export class SignUpAttributesRequired extends SignUpActionRequiredState {
     constructor(

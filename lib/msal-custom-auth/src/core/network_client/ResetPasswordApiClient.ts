@@ -31,6 +31,8 @@ export class ResetPasswordApiClient extends BaseApiClient {
                 challenge_type: params.challenge_type,
                 username: params.username,
             },
+            params.telemetryManager,
+            params.correlationId,
         );
     }
 
@@ -47,6 +49,8 @@ export class ResetPasswordApiClient extends BaseApiClient {
                 challenge_type: params.challenge_type,
                 continuation_token: params.continuation_token,
             },
+            params.telemetryManager,
+            params.correlationId,
         );
     }
 
@@ -64,6 +68,8 @@ export class ResetPasswordApiClient extends BaseApiClient {
                 grant_type: params.grant_type,
                 oob: params.oob,
             },
+            params.telemetryManager,
+            params.correlationId,
         );
     }
 
@@ -80,6 +86,8 @@ export class ResetPasswordApiClient extends BaseApiClient {
                 continuation_token: params.continuation_token,
                 new_password: params.new_password,
             },
+            params.telemetryManager,
+            params.correlationId,
         );
     }
 
@@ -95,6 +103,8 @@ export class ResetPasswordApiClient extends BaseApiClient {
             {
                 continuation_token: params.continuation_token,
             },
+            params.telemetryManager,
+            params.correlationId,
         );
     }
 

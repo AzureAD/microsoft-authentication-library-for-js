@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { UserAttribute } from "../../../core/network_client/custom_auth_api/response/UserAttribute.js";
+import { UserAttribute } from "../../../core/network_client/types/UserAttributes.js";
 
 class SignUpResultBase {
     constructor(

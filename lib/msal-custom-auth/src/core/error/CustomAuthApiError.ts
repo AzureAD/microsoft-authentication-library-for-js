@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { UserAttribute } from "../network_client/custom_auth_api/response/UserAttribute.js";
+import { UserAttribute } from "../network_client/types/UserAttributes.js";
 import { CustomAuthError } from "./CustomAuthError.js";
 
 /**

@@ -13,7 +13,6 @@ import {
 } from "../../src/core/auth_flow/AuthFlowStateBase.js";
 import { AccountInfo } from "../../src/account/auth_flow/model/AccountInfo.js";
 import { SignUpError } from "../../src/sign_up/auth_flow/error_type/SignUpError.js";
-import { ICustomAuthApiClient } from "../../src/core/network_client/custom_auth_api/ICustomAuthApiClient.js";
 import { ChallengeType } from "../../src/CustomAuthConstants.js";
 import {
     CustomAuthApiError,
@@ -23,27 +22,48 @@ import {
 } from "../../src/core/error/CustomAuthApiError.js";
 import { SignUpResult } from "../../src/sign_up/auth_flow/result/SignUpResult.js";
 
+jest.mock("../../src/core/network_client/custom_auth_api/CustomAuthApiClient.js", () => {
+    let signInApiClient = {
+        initiate: jest.fn(),
+        requestChallenge: jest.fn(),
+        requestTokensWithPassword: jest.fn(),
+        requestTokensWithOTP: jest.fn(),
+    };
+    let signUpApiClient = {
+        start: jest.fn(),
+        requestChallenge: jest.fn(),
+        continue: jest.fn(),
+        continueWithPassword: jest.fn(),
+        continueWithAttributes: jest.fn(),
+    };
+    let resetPasswordApiClient = {
+        startResetPassword: jest.fn(),
+        requestChallenge: jest.fn(),
+        submitOTP: jest.fn(),
+        submitNewPassword: jest.fn(),
+        pollCompletion: jest.fn(),
+    };
+    const CustomAuthApiClient = jest.fn();
+
+    // Set up the prototype or instance methods/properties
+    CustomAuthApiClient.prototype = {
+        signInApiClient,
+        signUpApiClient,
+        resetPasswordApiClient,
+    };
+
+    return { CustomAuthApiClient, signInApiClient, signUpApiClient, resetPasswordApiClient };
+});
+
 describe("CustomAuthStandardController", () => {
     let controller: CustomAuthStandardController;
-    let mockedApiClient: jest.Mocked<ICustomAuthApiClient>;
+    const { signInApiClient, signUpApiClient, resetPasswordApiClient } = jest.requireMock(
+        "../../src/core/network_client/custom_auth_api/CustomAuthApiClient.js",
+    );
 
     beforeEach(() => {
         const context = new CustomAuthOperatingContext(customAuthConfig);
-
-        mockedApiClient = {
-            performSignInInitiateRequest: jest.fn(),
-            performSignInChallengeRequest: jest.fn(),
-            performSignInOobTokenRequest: jest.fn(),
-            performSignInPasswordTokenRequest: jest.fn(),
-            performSignInContinuationTokenRequest: jest.fn(),
-            performSignUpStartRequest: jest.fn(),
-            performSignUpChallengeRequest: jest.fn(),
-            performSignUpSubmitCodeRequest: jest.fn(),
-            performSignUpSubmitPasswordRequest: jest.fn(),
-            performSignUpSubmitUserAttributesRequest: jest.fn(),
-        } as unknown as jest.Mocked<ICustomAuthApiClient>;
-
-        controller = new CustomAuthStandardController(context, mockedApiClient);
+        controller = new CustomAuthStandardController(context);
 
         global.fetch = jest.fn(); // Mock the fetch API
     });
@@ -68,10 +88,10 @@ describe("CustomAuthStandardController", () => {
         });
 
         it("should return code required result if the challenge type is oob", async () => {
-            mockedApiClient.performSignInInitiateRequest.mockResolvedValue({
+            signInApiClient.initiate.mockResolvedValue({
                 continuation_token: "continuation_token_1",
             });
-            mockedApiClient.performSignInChallengeRequest.mockResolvedValue({
+            signInApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.OOB,
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
@@ -93,10 +113,10 @@ describe("CustomAuthStandardController", () => {
         });
 
         it("should return password required result if the challenge type is password", async () => {
-            mockedApiClient.performSignInInitiateRequest.mockResolvedValue({
+            signInApiClient.initiate.mockResolvedValue({
                 continuation_token: "continuation_token_1",
             });
-            mockedApiClient.performSignInChallengeRequest.mockResolvedValue({
+            signInApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.PASSWORD,
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
@@ -111,30 +131,26 @@ describe("CustomAuthStandardController", () => {
 
             expect(result).toBeInstanceOf(SignInResult);
             expect(result.error).toBeUndefined();
-            expect(result.state?.type).toStrictEqual(
-                SignInState.PasswordRequired,
-            );
+            expect(result.state?.type).toStrictEqual(SignInState.PasswordRequired);
         });
 
         it("should return correct completed result if the challenge type is password and password is provided", async () => {
-            mockedApiClient.performSignInInitiateRequest.mockResolvedValue({
+            signInApiClient.initiate.mockResolvedValue({
                 continuation_token: "continuation_token_1",
             });
-            mockedApiClient.performSignInChallengeRequest.mockResolvedValue({
+            signInApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.PASSWORD,
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
             });
-            mockedApiClient.performSignInPasswordTokenRequest.mockResolvedValue(
-                {
-                    correlation_id: "test-correlation-id",
-                    access_token: "test-access-token",
-                    refresh_token: "test-refresh-token",
-                    id_token: "test-id-token",
-                    expires_in: 3600,
-                    token_type: "Bearer",
-                },
-            );
+            signInApiClient.requestTokensWithPassword.mockResolvedValue({
+                correlation_id: "test-correlation-id",
+                access_token: "test-access-token",
+                refresh_token: "test-refresh-token",
+                id_token: "test-id-token",
+                expires_in: 3600,
+                token_type: "Bearer",
+            });
 
             const signInInputs: SignInInputs = {
                 correlationId: "correlation-id",
@@ -152,9 +168,7 @@ describe("CustomAuthStandardController", () => {
         });
 
         it("should return failed result if the challenge type is redirect", async () => {
-            mockedApiClient.performSignInInitiateRequest.mockRejectedValue(
-                new RedirectError(),
-            );
+            signInApiClient.initiate.mockRejectedValue(new RedirectError());
 
             const signInInputs: SignInInputs = {
                 correlationId: "correlation-id",
@@ -202,10 +216,10 @@ describe("CustomAuthStandardController", () => {
         });
 
         it("should return result with code required state if the challenge type is oob", async () => {
-            mockedApiClient.performSignUpStartRequest.mockResolvedValue({
+            signUpApiClient.start.mockResolvedValue({
                 continuation_token: "continuation_token_1",
             });
-            mockedApiClient.performSignUpChallengeRequest.mockResolvedValue({
+            signUpApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.OOB,
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
@@ -227,10 +241,10 @@ describe("CustomAuthStandardController", () => {
         });
 
         it("should return result with password required state if the challenge type is password", async () => {
-            mockedApiClient.performSignUpStartRequest.mockResolvedValue({
+            signUpApiClient.start.mockResolvedValue({
                 continuation_token: "continuation_token_1",
             });
-            mockedApiClient.performSignUpChallengeRequest.mockResolvedValue({
+            signUpApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.PASSWORD,
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
@@ -245,15 +259,11 @@ describe("CustomAuthStandardController", () => {
 
             expect(result).toBeInstanceOf(SignUpResult);
             expect(result.error).toBeUndefined();
-            expect(result.state?.type).toStrictEqual(
-                SignUpState.PasswordRequired,
-            );
+            expect(result.state?.type).toStrictEqual(SignUpState.PasswordRequired);
         });
 
         it("should return failed result if the start endpoint returns redirect challenge type", async () => {
-            mockedApiClient.performSignUpStartRequest.mockRejectedValue(
-                new RedirectError(),
-            );
+            signUpApiClient.start.mockRejectedValue(new RedirectError());
 
             const signUpInputs: SignUpInputs = {
                 correlationId: "correlation-id",
@@ -270,12 +280,10 @@ describe("CustomAuthStandardController", () => {
         });
 
         it("should return failed result if the challenge endpoint returns redirect challenge type", async () => {
-            mockedApiClient.performSignUpStartRequest.mockResolvedValue({
+            signUpApiClient.start.mockResolvedValue({
                 continuation_token: "continuation_token_1",
             });
-            mockedApiClient.performSignUpChallengeRequest.mockRejectedValue(
-                new RedirectError(),
-            );
+            signUpApiClient.requestChallenge.mockRejectedValue(new RedirectError());
 
             const signUpInputs: SignUpInputs = {
                 correlationId: "correlation-id",
@@ -292,7 +300,7 @@ describe("CustomAuthStandardController", () => {
         });
 
         it("should return failed result if the password is too weak", async () => {
-            mockedApiClient.performSignUpStartRequest.mockRejectedValue(
+            signUpApiClient.start.mockRejectedValue(
                 new CustomAuthApiError(
                     CustomAuthApiErrorCode.INVALID_GRANT,
                     "Password is too weak",

@@ -17,10 +17,10 @@ import { SignUpClient } from "../../interaction_client/SignUpClient.js";
 import { SignUpSubmitAttributesResult } from "../result/SignUpSubmitAttributesResult.js";
 import { SignUpStateHandler } from "./SignUpStateHandler.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
-import { UserAttribute } from "../../../core/network_client/custom_auth_api/response/UserAttribute.js";
 import { SignUpCodeRequired } from "../state/SignUpCodeRequired.js";
 import { SignUpPasswordRequired } from "../state/SignUpPasswordRequired.js";
 import { SignUpCompleted } from "../state/SignUpCompleted.js";
+import { UserAttribute } from "../../../core/network_client/types/UserAttributes.js";
 
 /*
  * Sign-up handler used for the state of attributes required.
