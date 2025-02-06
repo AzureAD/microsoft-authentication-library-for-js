@@ -8,7 +8,6 @@ import {
     IPerformanceClient,
     Logger,
 } from "@azure/msal-browser";
-import { ICustomAuthApiClient } from "../../../src/core/network_client/custom_auth_api/ICustomAuthApiClient.js";
 import { SignUpClient } from "../../../src/sign_up/interaction_client/SignUpClient.js";
 import { customAuthConfig } from "../../test_resources/CustomAuthConfig.js";
 import { CustomAuthAuthority } from "../../../src/core/CustomAuthAuthority.js";
@@ -21,21 +20,49 @@ import {
 } from "../../../src/sign_up/interaction_client/result/SignUpActionResult.js";
 import { CustomAuthApiError } from "../../../src/index.js";
 import { CustomAuthApiErrorCode } from "../../../src/core/error/CustomAuthApiError.js";
+import { UserAttribute } from "../../../src/core/network_client/types/UserAttributes.js";
+
+jest.mock("../../../src/core/network_client/custom_auth_api/CustomAuthApiClient.js", () => {
+    let signInApiClient = {
+        initiate: jest.fn(),
+        requestChallenge: jest.fn(),
+        requestTokensWithPassword: jest.fn(),
+        requestTokensWithOTP: jest.fn(),
+    };
+    let signUpApiClient = {
+        start: jest.fn(),
+        requestChallenge: jest.fn(),
+        continue: jest.fn(),
+        continueWithPassword: jest.fn(),
+        continueWithAttributes: jest.fn(),
+    };
+    let resetPasswordApiClient = {
+        startResetPassword: jest.fn(),
+        requestChallenge: jest.fn(),
+        submitOTP: jest.fn(),
+        submitNewPassword: jest.fn(),
+        pollCompletion: jest.fn(),
+    };
+    const CustomAuthApiClient = jest.fn();
+
+    // Set up the prototype or instance methods/properties
+    CustomAuthApiClient.prototype = {
+        signInApiClient,
+        signUpApiClient,
+        resetPasswordApiClient,
+    };
+
+    const mockedApiClient = new CustomAuthApiClient();
+    return { mockedApiClient, signInApiClient, signUpApiClient, resetPasswordApiClient };
+});
 
 describe("SignUpClient", () => {
     let client: SignUpClient;
-    let mockedApiClient: jest.Mocked<ICustomAuthApiClient>;
     let authority: CustomAuthAuthority;
-
+    const { mockedApiClient, signInApiClient, signUpApiClient, resetPasswordApiClient } = jest.requireMock(
+        "../../src/core/network_client/custom_auth_api/CustomAuthApiClient.js",
+    );
     beforeEach(() => {
-        mockedApiClient = {
-            performSignUpStartRequest: jest.fn(),
-            performSignUpChallengeRequest: jest.fn(),
-            performSignUpSubmitCodeRequest: jest.fn(),
-            performSignUpSubmitPasswordRequest: jest.fn(),
-            performSignUpSubmitUserAttributesRequest: jest.fn(),
-        } as unknown as jest.Mocked<ICustomAuthApiClient>;
-
         const mockBrowserConfiguration = {
             system: {
                 networkClient: {
@@ -92,10 +119,10 @@ describe("SignUpClient", () => {
 
     describe("start", () => {
         it("should return SignUpCodeRequiredResult when challenge type is OOB", async () => {
-            mockedApiClient.performSignUpStartRequest.mockResolvedValue({
+            signUpApiClient.start.mockResolvedValue({
                 continuation_token: "continuation_token_1",
             });
-            mockedApiClient.performSignUpChallengeRequest.mockResolvedValue({
+            signUpApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.OOB,
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
@@ -122,10 +149,10 @@ describe("SignUpClient", () => {
         });
 
         it("should return SignUpPasswordRequiredResult when challenge type is PASSWORD", async () => {
-            mockedApiClient.performSignUpStartRequest.mockResolvedValue({
+            signUpApiClient.start.mockResolvedValue({
                 continuation_token: "continuation_token_1",
             });
-            mockedApiClient.performSignUpChallengeRequest.mockResolvedValue({
+            signUpApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.PASSWORD,
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
@@ -146,7 +173,7 @@ describe("SignUpClient", () => {
 
     describe("submitCode", () => {
         it("should return SignUpCompletedResult for valid code", async () => {
-            mockedApiClient.performSignUpSubmitCodeRequest.mockResolvedValue({
+            signUpApiClient.continue.mockResolvedValue({
                 continuation_token: "continuation_token_2",
             });
 
@@ -165,7 +192,7 @@ describe("SignUpClient", () => {
         });
 
         it("should return SignUpPasswordRequiredResult if password is required", async () => {
-            mockedApiClient.performSignUpSubmitCodeRequest.mockRejectedValue(
+            signUpApiClient.continue.mockRejectedValue(
                 new CustomAuthApiError(
                     CustomAuthApiErrorCode.CREDENTIAL_REQUIRED,
                     "Password required",
@@ -177,7 +204,7 @@ describe("SignUpClient", () => {
                 ),
             );
 
-            mockedApiClient.performSignUpChallengeRequest.mockResolvedValue({
+            signUpApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.PASSWORD,
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
@@ -207,7 +234,7 @@ describe("SignUpClient", () => {
         });
 
         it("should throw error if credential is required but challenge type password isn't supported", async () => {
-            mockedApiClient.performSignUpSubmitCodeRequest.mockRejectedValue(
+            signUpApiClient.continue.mockRejectedValue(
                 new CustomAuthApiError(
                     CustomAuthApiErrorCode.CREDENTIAL_REQUIRED,
                     "Password required",
@@ -219,7 +246,7 @@ describe("SignUpClient", () => {
                 ),
             );
 
-            mockedApiClient.performSignUpChallengeRequest.mockResolvedValue({
+            signUpApiClient.continue.mockResolvedValue({
                 challenge_type: "passkey",
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
@@ -240,7 +267,7 @@ describe("SignUpClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(mockedApiClient.performSignUpChallengeRequest).toHaveBeenCalledWith(
+            expect(mockedApiClient.continue).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
                     parameters: expect.objectContaining({
@@ -251,14 +278,14 @@ describe("SignUpClient", () => {
         });
 
         it("should return SignUpAttributesRequiredResult if attributes are required", async () => {
-            mockedApiClient.performSignUpSubmitCodeRequest.mockRejectedValue(
+            signUpApiClient.continueWithAttributes.mockRejectedValue(
                 new CustomAuthApiError(
                     CustomAuthApiErrorCode.ATTRIBUTES_REQUIRED,
                     "User attributes required",
                     "corr123",
                     [55106],
                     undefined,
-                    [{ "test-attribute": "test-value" }],
+                    [new UserAttribute("test-attribute", "test-value")],
                     "continuation_token_1",
                 ),
             );
@@ -280,7 +307,7 @@ describe("SignUpClient", () => {
 
     describe("submitPassword", () => {
         it("should return SignUpCompletedResult for valid password", async () => {
-            mockedApiClient.performSignUpSubmitPasswordRequest.mockResolvedValue({
+            signUpApiClient.continueWithPassword.mockResolvedValue({
                 continuation_token: "continuation_token_2",
             });
 
@@ -299,7 +326,7 @@ describe("SignUpClient", () => {
         });
 
         it("should return SignUpCodeRequiredResult if oob is required", async () => {
-            mockedApiClient.performSignUpSubmitPasswordRequest.mockRejectedValue(
+            signUpApiClient.continueWithPassword.mockRejectedValue(
                 new CustomAuthApiError(
                     CustomAuthApiErrorCode.CREDENTIAL_REQUIRED,
                     "credential required",
@@ -311,7 +338,7 @@ describe("SignUpClient", () => {
                 ),
             );
 
-            mockedApiClient.performSignUpChallengeRequest.mockResolvedValue({
+            signUpApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.OOB,
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
@@ -333,7 +360,7 @@ describe("SignUpClient", () => {
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
 
-            expect(mockedApiClient.performSignUpChallengeRequest).toHaveBeenCalledWith(
+            expect(signUpApiClient.requestChallenge).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
                     parameters: expect.objectContaining({
@@ -344,7 +371,7 @@ describe("SignUpClient", () => {
         });
 
         it("should return SignUpAttributesRequiredResult if attributes are required", async () => {
-            mockedApiClient.performSignUpSubmitPasswordRequest.mockRejectedValue(
+            signUpApiClient.continueWithPassword.mockRejectedValue(
                 new CustomAuthApiError(
                     CustomAuthApiErrorCode.ATTRIBUTES_REQUIRED,
                     "User attributes required",
@@ -373,7 +400,7 @@ describe("SignUpClient", () => {
 
     describe("submitAttributes", () => {
         it("should return SignUpCompletedResult for valid password", async () => {
-            mockedApiClient.performSignUpSubmitUserAttributesRequest.mockResolvedValue({
+            signUpApiClient.continueWithAttributes.mockResolvedValue({
                 continuation_token: "continuation_token_2",
             });
 
@@ -392,7 +419,7 @@ describe("SignUpClient", () => {
         });
 
         it("should return SignUpCodeRequiredResult if oob is required", async () => {
-            mockedApiClient.performSignUpSubmitUserAttributesRequest.mockRejectedValue(
+            signUpApiClient.continueWithAttributes.mockRejectedValue(
                 new CustomAuthApiError(
                     CustomAuthApiErrorCode.CREDENTIAL_REQUIRED,
                     "credential required",
@@ -404,7 +431,7 @@ describe("SignUpClient", () => {
                 ),
             );
 
-            mockedApiClient.performSignUpChallengeRequest.mockResolvedValue({
+            signUpApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.OOB,
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
@@ -426,7 +453,7 @@ describe("SignUpClient", () => {
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
 
-            expect(mockedApiClient.performSignUpChallengeRequest).toHaveBeenCalledWith(
+            expect(signUpApiClient.requestChallenge).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
                     parameters: expect.objectContaining({
@@ -437,7 +464,7 @@ describe("SignUpClient", () => {
         });
 
         it("should return SignUpPasswordRequiredResult if password is required", async () => {
-            mockedApiClient.performSignUpSubmitUserAttributesRequest.mockRejectedValue(
+            signUpApiClient.continueWithAttributes.mockRejectedValue(
                 new CustomAuthApiError(
                     CustomAuthApiErrorCode.CREDENTIAL_REQUIRED,
                     "Password required",
@@ -449,7 +476,7 @@ describe("SignUpClient", () => {
                 ),
             );
 
-            mockedApiClient.performSignUpChallengeRequest.mockResolvedValue({
+            signUpApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.PASSWORD,
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
@@ -468,7 +495,7 @@ describe("SignUpClient", () => {
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
 
-            expect(mockedApiClient.performSignUpChallengeRequest).toHaveBeenCalledWith(
+            expect(signUpApiClient.requestChallenge).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
                     parameters: expect.objectContaining({
@@ -479,7 +506,7 @@ describe("SignUpClient", () => {
         });
 
         it("should throw error if some required attributes are missing", async () => {
-            mockedApiClient.performSignUpSubmitUserAttributesRequest.mockRejectedValue(
+            signUpApiClient.continueWithAttributes.mockRejectedValue(
                 new CustomAuthApiError(
                     CustomAuthApiErrorCode.ATTRIBUTES_REQUIRED,
                     "User attributes required",
@@ -514,7 +541,7 @@ describe("SignUpClient", () => {
 
     describe("resendCode", () => {
         it("should return SignUpCodeRequiredResult", async () => {
-            mockedApiClient.performSignUpChallengeRequest.mockResolvedValue({
+            signUpApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.OOB,
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
