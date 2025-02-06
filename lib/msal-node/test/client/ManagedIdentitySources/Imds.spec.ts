@@ -15,6 +15,7 @@ import {
     MANAGED_IDENTITY_RESOURCE_ID_2,
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR_MESSAGE,
     TEST_CONFIG,
+    TEST_TOKEN_LIFETIMES,
     THREE_SECONDS_IN_MILLI,
     getCacheKey,
 } from "../../test_kit/StringConstants.js";
@@ -680,6 +681,27 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 )
             ).toBe(false);
         }, 10000); // double the timeout value for this test because it waits two seconds in between the acquireToken call and the cache lookup
+
+        test("ensures an ISO 8601 date returned by the Managed Identity is converted to a Unix timestamp (seconds since epoch)", async () => {
+            // get an ISO 8601 date 3 hours in the future
+            // (the default length of time in ManagedIdentityNetworkClient's getSuccessResponse())
+            const threeHoursInMilliseconds =
+                TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 3 * 1000;
+            const now = new Date();
+            now.setTime(now.getTime() + threeHoursInMilliseconds);
+            const isoDate = now.toISOString();
+
+            jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            ).mockReturnValue(networkClient.getSuccessResponse(isoDate));
+
+            const { expiresOn } =
+                await systemAssignedManagedIdentityApplication.acquireToken(
+                    managedIdentityRequestParams
+                );
+            expect(expiresOn?.toISOString() === isoDate).toBe(true);
+        });
 
         test("requests three tokens with two different resources while switching between user and system assigned, then requests them again to verify they are retrieved from the cache, then verifies that their cache keys are correct", async () => {
             // the imported systemAssignedManagedIdentityApplication is the default System Assigned Managed Identity Application.
