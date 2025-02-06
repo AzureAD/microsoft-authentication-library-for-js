@@ -19,20 +19,50 @@ import {
     SignInPasswordRequiredResult,
 } from "../../../src/sign_in/interaction_client/result/SignInActionResult.js";
 
+jest.mock("../../../src/core/network_client/custom_auth_api/CustomAuthApiClient.js", () => {
+    let signInApiClient = {
+        initiate: jest.fn(),
+        requestChallenge: jest.fn(),
+        requestTokensWithPassword: jest.fn(),
+        requestTokensWithOTP: jest.fn(),
+        signInWithContinuationToken: jest.fn(),
+    };
+    let signUpApiClient = {
+        start: jest.fn(),
+        requestChallenge: jest.fn(),
+        continue: jest.fn(),
+        continueWithPassword: jest.fn(),
+        continueWithAttributes: jest.fn(),
+    };
+    let resetPasswordApiClient = {
+        startResetPassword: jest.fn(),
+        requestChallenge: jest.fn(),
+        submitOTP: jest.fn(),
+        submitNewPassword: jest.fn(),
+        pollCompletion: jest.fn(),
+    };
+    const CustomAuthApiClient = jest.fn();
+
+    // Set up the prototype or instance methods/properties
+    CustomAuthApiClient.prototype = {
+        signInApiClient,
+        signUpApiClient,
+        resetPasswordApiClient,
+    };
+
+    const mockedApiClient = new CustomAuthApiClient();
+    return { mockedApiClient, signInApiClient, signUpApiClient, resetPasswordApiClient };
+});
+
 describe("SignInClient", () => {
     let client: SignInClient;
-    let mockedApiClient: jest.Mocked<ICustomAuthApiClient>;
     let authority: CustomAuthAuthority;
+    const { mockedApiClient, signInApiClient, signUpApiClient, resetPasswordApiClient } = jest.requireMock(
+        "../../../src/core/network_client/custom_auth_api/CustomAuthApiClient.js",
+    );
 
     beforeEach(() => {
-        mockedApiClient = {
-            performSignInInitiateRequest: jest.fn(),
-            performSignInChallengeRequest: jest.fn(),
-            performSignInOobTokenRequest: jest.fn(),
-            performSignInPasswordTokenRequest: jest.fn(),
-            performSignInContinuationTokenRequest: jest.fn(),
-        } as unknown as jest.Mocked<ICustomAuthApiClient>;
-
+        jest.resetAllMocks();
         const mockBrowserConfiguration = {
             system: {
                 networkClient: {
@@ -93,16 +123,16 @@ describe("SignInClient", () => {
 
     describe("start", () => {
         it("should return SignInCodeSendResult when challenge type is OOB", async () => {
-            mockedApiClient.performSignInInitiateRequest.mockResolvedValue({
+            signInApiClient.initiate.mockResolvedValue({
                 continuation_token: "continuation_token_1",
             });
-            mockedApiClient.performSignInChallengeRequest.mockResolvedValue({
+            signInApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.OOB,
-                correlation_id: "corr123",
+                correlationId: "corr123",
                 continuation_token: "continuation_token_2",
                 code_length: 6,
                 challenge_channel: "email",
-                target_challenge_label: "email",
+                challenge_target_label: "email",
             });
 
             const result = await client.start({
@@ -130,12 +160,12 @@ describe("SignInClient", () => {
         });
 
         it("should return SignInContinuationTokenResult when challenge type is PASSWORD", async () => {
-            mockedApiClient.performSignInInitiateRequest.mockResolvedValue({
+            signInApiClient.initiate.mockResolvedValue({
                 continuation_token: "continuation_token_1",
             });
-            mockedApiClient.performSignInChallengeRequest.mockResolvedValue({
+            signInApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.PASSWORD,
-                correlation_id: "corr123",
+                correlationId: "corr123",
                 continuation_token: "continuation_token_2",
             });
 
@@ -159,8 +189,8 @@ describe("SignInClient", () => {
 
     describe("submitCode", () => {
         it("should return SignInCompleteResult for valid code", async () => {
-            mockedApiClient.performSignInOobTokenRequest.mockResolvedValue({
-                correlation_id: "test-correlation-id",
+            signInApiClient.requestTokensWithOTP.mockResolvedValue({
+                correlationId: "test-correlation-id",
                 access_token: "test-access-token",
                 refresh_token: "test-refresh-token",
                 id_token: "test-id-token",
@@ -209,9 +239,9 @@ describe("SignInClient", () => {
 
     describe("submitPassword", () => {
         it("should return SignInCompleteResult for valid password", async () => {
-            mockedApiClient.performSignInPasswordTokenRequest.mockResolvedValue(
+            signInApiClient.requestTokensWithPassword.mockResolvedValue(
                 {
-                    correlation_id: "test-correlation-id",
+                    correlationId: "test-correlation-id",
                     access_token: "test-access-token",
                     refresh_token: "test-refresh-token",
                     id_token: "test-id-token",
@@ -261,13 +291,13 @@ describe("SignInClient", () => {
 
     describe("resendCode", () => {
         it("should return SignInCodeSendResult", async () => {
-            mockedApiClient.performSignInChallengeRequest.mockResolvedValue({
+            signInApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.OOB,
-                correlation_id: "corr123",
+                correlationId: "corr123",
                 continuation_token: "continuation_token_2",
                 code_length: 6,
                 challenge_channel: "email",
-                target_challenge_label: "email",
+                challenge_target_label: "email",
             });
 
             const result = await client.resendCode({
@@ -294,9 +324,9 @@ describe("SignInClient", () => {
 
     describe("signInWithContinuationToken", () => {
         it("should return SignInCompleteResult", async () => {
-            mockedApiClient.performSignInContinuationTokenRequest.mockResolvedValue(
+            signInApiClient.signInWithContinuationToken.mockResolvedValue(
                 {
-                    correlation_id: "test-correlation-id",
+                    correlationId: "test-correlation-id",
                     access_token: "test-access-token",
                     refresh_token: "test-refresh-token",
                     id_token: "test-id-token",

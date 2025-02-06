@@ -49,23 +49,33 @@ export abstract class BaseApiClient {
             const response = await this.httpClient.post(`${this.baseUrl}/${endpoint}`, formData, headers);
             const endTime = performance.now();
             this.logger.trace(`Request to ${endpoint} completed in ${endTime - startTime}ms`, correlationId);
-            if (!response.ok) {
-                const errorResponse: ApiErrorResponse = await response.json();
-                switch (response.status) {
-                    case 401:
-                        throw new UnauthorizedError(response, errorResponse);
-                    case 404:
-                        throw new NotFoundError(response, errorResponse);
-                    default:
-                        throw new ApiError(response, errorResponse, "An error occurred");
-                }
-            }
+            /*
+             * if (!response.ok) {
+             *     const errorResponse: ApiErrorResponse = await response.json();
+             *     switch (response.status) {
+             *         case 401:
+             *             throw new UnauthorizedError(response, errorResponse);
+             *         case 404:
+             *             throw new NotFoundError(response, errorResponse);
+             *         default:
+             *             throw new ApiError(response, errorResponse, "An error occurred");
+             *     }
+             * }
+             */
 
-            return await response.json();
+            const apiResponse = await response.json();
+            return {
+                ...apiResponse,
+                correlationId: this.getCorrelationId(response),
+            };
         } catch (error) {
             this.logger.error(`Request to ${endpoint} failed`, correlationId);
             throw error;
         }
+    }
+
+    private getCorrelationId(response: Response): string {
+        return response.headers.get(AADServerParamKeys.CLIENT_REQUEST_ID) || "";
     }
 
     private getCommonHeaders(correlationId: string, telemetryManager: ServerTelemetryManager): Record<string, string> {

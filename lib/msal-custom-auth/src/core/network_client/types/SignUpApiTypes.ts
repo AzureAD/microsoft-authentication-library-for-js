@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BaseApiRequest, BindingMethod, ChallengeChannel, ChallengeType, GrantType } from "./BaseApiTypes.js";
+import { BaseApiRequest, BaseApiResponse, BindingMethod, ChallengeChannel, ChallengeType, GrantType } from "./BaseApiTypes.js";
 
 /**
  * Request types to initiate sign-up flow
@@ -59,16 +59,16 @@ export interface SignUpSubmitUserAttributesRequest extends BaseApiRequest {
  * Response types for sign-up flow
  */
 
-export interface RedirectChallengeResponse {
+export interface RedirectChallengeResponse extends BaseApiResponse {
     challenge_type: ChallengeType;
 }
 
-export interface PasswordChallengeResponse {
+export interface PasswordChallengeResponse extends BaseApiResponse {
     challenge_type: ChallengeType;
     continuation_token: string;
 }
 
-export interface SignUpChallengeResponse {
+export interface SignUpChallengeResponse extends BaseApiResponse {
     interval: number;
     continuation_token: string;
     challenge_type: ChallengeType;
@@ -78,8 +78,13 @@ export interface SignUpChallengeResponse {
     code_length: number;
 }
 
-export interface SignUpStartResponse {
+export interface SignUpStartResponse extends BaseApiResponse {
     continuation_token?: string;
+}
+
+export interface SignUpContinueResponse extends BaseApiResponse {
+    challenge_type: ChallengeType;
+    continuation_token: string;
 }
 
 /**
@@ -87,7 +92,3 @@ export interface SignUpStartResponse {
  */
 export type ChallengeResponse = SignUpChallengeResponse | RedirectChallengeResponse | PasswordChallengeResponse;
 
-export interface SignUpContinueResponse {
-    challenge_type: ChallengeType;
-    continuation_token: string;
-}

@@ -11,9 +11,6 @@ import { HttpMethod, IHttpClient, RequestBody } from "./IHttpClient.js";
 export class FetchHttpClient implements IHttpClient {
     async sendAsync(url: string, options: RequestInit): Promise<Response> {
         const response = await fetch(url, options);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
         return response;
     }
 

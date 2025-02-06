@@ -71,7 +71,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             continuation_token: startResponse.continuation_token ?? "",
             challenge_type: parameters.challengeType.join(" "),
             telemetryManager,
-            correlationId: parameters.correlationId,
+            correlationId: startResponse.correlation_id,
         };
 
         return this.performChallengeRequest(challengeRequest);

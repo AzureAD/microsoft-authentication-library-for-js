@@ -50,7 +50,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             client_id: parameters.clientId,
             challenge_type: parameters.challengeType.join(" "),
             continuation_token: initiateResponse.continuation_token ?? "",
-            correlationId: parameters.correlationId,
+            correlationId: initiateResponse.correlation_id,
             telemetryManager: telemetryManager,
         };
 
@@ -85,7 +85,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         this.logger.info("Token endpoint called with code for sign in.");
 
         return new SignInCompletedResult(
-            parameters.correlationId,
+            response.correlation_id,
             this.createAuthenticationResult(response, parameters.scopes, parameters.username),
         );
     }
@@ -117,7 +117,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         this.logger.info("Token endpoint called with password for sign in.");
 
         return new SignInCompletedResult(
-            parameters.correlationId ?? "",
+            response.correlation_id ?? "",
             this.createAuthenticationResult(response, parameters.scopes, parameters.username),
         );
     }
@@ -225,7 +225,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             this.logger.info("Challenge type is oob for sign in.");
 
             return new SignInCodeSendResult(
-                request.correlationId,
+                challengeResponse.correlation_id,
                 challengeResponse.continuation_token,
                 challengeResponse.challenge_channel,
                 challengeResponse.challenge_target_label,
@@ -239,7 +239,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             // Password is required
             this.logger.info("Challenge type is password for sign in.");
 
-            return new SignInPasswordRequiredResult(request.correlationId, challengeResponse.continuation_token);
+            return new SignInPasswordRequiredResult(challengeResponse.correlation_id, challengeResponse.continuation_token);
         }
 
         this.logger.error(`Unsupported challenge type '${challengeResponse.challenge_type}' for sign in.`);
@@ -247,7 +247,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         throw new CustomAuthApiError(
             CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
             `Unsupported challenge type '${challengeResponse.challenge_type}'.`,
-            request.correlationId,
+            challengeResponse.correlation_id,
         );
     }
 }
