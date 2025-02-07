@@ -94,10 +94,4 @@ export class SignupApiClient extends BaseApiClient {
             params.correlationId,
         );
     }
-
-    protected async handleError<T>(response: Response): Promise<T> {
-        const errorData = (await response.json()) as T;
-        // return new CustomAuthApiError({});
-        return errorData; // TODO create CustomAuthApiError object and integrate with core/ error handling
-    }
 }

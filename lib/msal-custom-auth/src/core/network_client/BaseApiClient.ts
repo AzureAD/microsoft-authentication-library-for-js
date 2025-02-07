@@ -94,18 +94,7 @@ export abstract class BaseApiClient {
     }
 
     protected handleApiErrors(responseData: ApiErrorResponse): void {
-        const errorResponse = responseData as ApiErrorResponse;
-        const error = new Error(errorResponse.error_description);
-        Object.assign(error, {
-            errorCode: errorResponse.error,
-            errorCodes: errorResponse.error_codes,
-            correlationId: errorResponse.correlation_id,
-            traceId: errorResponse.trace_id,
-            timestamp: errorResponse.timestamp,
-            suberror: errorResponse.suberror,
-            invalidAttributes: errorResponse.invalid_attributes,
-        });
-
+        // TODO refine error handling
         throw responseData;
     }
 }
