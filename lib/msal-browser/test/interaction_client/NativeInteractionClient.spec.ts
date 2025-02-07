@@ -1071,6 +1071,9 @@ describe("NativeInteractionClient Tests", () => {
             nativeInteractionClient.acquireTokenRedirect(
                 {
                     scopes: ["User.Read"],
+                    onRedirectNavigate: (url: string) => {
+                        return true;
+                    },
                 },
                 perfMeasurement
             );
