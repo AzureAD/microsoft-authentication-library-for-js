@@ -4,7 +4,7 @@
  */
 
 import { AuthFlowErrorBase } from "../../../core/auth_flow/AuthFlowErrorBase.js";
-import { CustomAuthApiErrorCode } from "../../../core/error/CustomAuthApiError.js";
+import { CustomAuthApiErrorCode } from "../../../core/network_client/types/ApiErrorResponseTypes.js";
 
 export class SignInError extends AuthFlowErrorBase {
     isUserNotFound(): boolean {

@@ -4,7 +4,9 @@
  */
 
 import { ChallengeType } from "../../CustomAuthConstants.js";
-import { CustomAuthApiError, CustomAuthApiErrorCode } from "../../core/error/CustomAuthApiError.js";
+import { CustomAuthApiError, RedirectError } from "../../core/error/CustomAuthApiError.js";
+import { CustomAuthApiErrorCode } from "../../core/network_client/types/ApiErrorResponseTypes.js";
+
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
 import {
     SignInStartParams,
@@ -244,6 +246,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
 
         this.logger.error(`Unsupported challenge type '${challengeResponse.challenge_type}' for sign in.`);
 
+        throw new RedirectError(challengeResponse.correlation_id);
         throw new CustomAuthApiError(
             CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
             `Unsupported challenge type '${challengeResponse.challenge_type}'.`,

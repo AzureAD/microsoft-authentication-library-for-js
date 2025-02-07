@@ -3,15 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import {
-    CustomAuthApiError,
-    CustomAuthApiErrorCode,
-    CustomAuthApiSuberror,
-    RedirectError,
-} from "../error/CustomAuthApiError.js";
+import { CustomAuthApiError, RedirectError } from "../error/CustomAuthApiError.js";
 import { CustomAuthError } from "../error/CustomAuthError.js";
 import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
-
+import { CustomAuthApiErrorCode, CustomAuthApiSuberror } from "../network_client/types/ApiErrorResponseTypes.js";
 /**
  * Base class for all auth flow errors.
  */
@@ -33,12 +28,9 @@ export class AuthFlowErrorBase {
     protected isUnsupportedChallengeTypeError(): boolean {
         return (
             (this.errorData.error === CustomAuthApiErrorCode.INVALID_REQUEST &&
-                (this.errorData.errorDescription?.includes(
-                    "The challenge_type list parameter contains an unsupported challenge type",
-                ) ??
+                (this.errorData.errorDescription?.includes("The challenge_type list parameter contains an unsupported challenge type") ??
                     false)) ||
-            this.errorData.error ===
-                CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE
+            this.errorData.error === CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE
         );
     }
 

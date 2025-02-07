@@ -9,10 +9,9 @@ import {
     ServerTelemetryManager,
 } from "@azure/msal-browser";
 import { DefaultPackageInfo } from "../../CustomAuthConstants.js";
-import { ApiErrorResponse } from "./types/ApiErrorResponseTypes.js";
-import { ApiError, NotFoundError, UnauthorizedError } from "./ApiErrorHandlers.js";
 import { IHttpClient } from "./http_client/IHttpClient.js";
 import { FetchHttpClient } from "./http_client/FetchClient.js";
+import { ApiErrorResponse } from "./types/ApiErrorResponseTypes.js";
 
 export abstract class BaseApiClient {
     protected readonly baseUrl: string;
@@ -63,9 +62,12 @@ export abstract class BaseApiClient {
              * }
              */
 
-            const apiResponse = await response.json();
+            const responseData = await response.json();
+            if (response.status >= 400) {
+                this.handleApiErrors(responseData);
+            }
             return {
-                ...apiResponse,
+                ...responseData,
                 correlationId: this.getCorrelationId(response),
             };
         } catch (error) {
@@ -91,5 +93,19 @@ export abstract class BaseApiClient {
         };
     }
 
-    protected abstract handleError<T>(response: Response): Promise<T>;
+    protected handleApiErrors(responseData: ApiErrorResponse): void {
+        const errorResponse = responseData as ApiErrorResponse;
+        const error = new Error(errorResponse.error_description);
+        Object.assign(error, {
+            errorCode: errorResponse.error,
+            errorCodes: errorResponse.error_codes,
+            correlationId: errorResponse.correlation_id,
+            traceId: errorResponse.trace_id,
+            timestamp: errorResponse.timestamp,
+            suberror: errorResponse.suberror,
+            invalidAttributes: errorResponse.invalid_attributes,
+        });
+
+        throw responseData;
+    }
 }

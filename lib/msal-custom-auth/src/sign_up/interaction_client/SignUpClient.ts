@@ -4,10 +4,8 @@
  */
 
 import { ServerTelemetryManager } from "@azure/msal-browser";
-import {
-    CustomAuthApiError,
-    CustomAuthApiErrorCode,
-} from "../../core/error/CustomAuthApiError.js";
+import { CustomAuthApiError } from "../../core/error/CustomAuthApiError.js";
+import { CustomAuthApiErrorCode } from "../../core/network_client/types/ApiErrorResponseTypes.js";
 import { UnexpectedError } from "../../core/error/UnexpectedError.js";
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
 import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
