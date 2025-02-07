@@ -14,13 +14,9 @@ import {
 import { AccountInfo } from "../../src/account/auth_flow/model/AccountInfo.js";
 import { SignUpError } from "../../src/sign_up/auth_flow/error_type/SignUpError.js";
 import { ChallengeType } from "../../src/CustomAuthConstants.js";
-import {
-    CustomAuthApiError,
-    CustomAuthApiErrorCode,
-    CustomAuthApiSuberror,
-    RedirectError,
-} from "../../src/core/error/CustomAuthApiError.js";
+import { CustomAuthApiError, RedirectError } from "../../src/core/error/CustomAuthApiError.js";
 import { SignUpResult } from "../../src/sign_up/auth_flow/result/SignUpResult.js";
+import { CustomAuthApiErrorCode, CustomAuthApiSuberror } from "../../src/core/network_client/types/ApiErrorResponseTypes.js";
 
 jest.mock("../../src/core/network_client/custom_auth_api/CustomAuthApiClient.js", () => {
     let signInApiClient = {
@@ -225,7 +221,7 @@ describe("CustomAuthStandardController", () => {
                 continuation_token: "continuation_token_2",
                 code_length: 6,
                 challenge_channel: "email",
-                target_challenge_label: "email",
+                challenge_target_label: "email",
             });
 
             const signUpInputs: SignUpInputs = {

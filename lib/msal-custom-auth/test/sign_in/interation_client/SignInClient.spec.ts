@@ -128,7 +128,7 @@ describe("SignInClient", () => {
             });
             signInApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.OOB,
-                correlationId: "corr123",
+                correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
                 code_length: 6,
                 challenge_channel: "email",
@@ -138,11 +138,7 @@ describe("SignInClient", () => {
             const result = await client.start({
                 username: "abc@abc.com",
                 clientId: customAuthConfig.auth.clientId,
-                challengeType: [
-                    ChallengeType.OOB,
-                    ChallengeType.PASSWORD,
-                    ChallengeType.REDIRECT,
-                ],
+                challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
                 scopes: [],
             });
@@ -151,9 +147,7 @@ describe("SignInClient", () => {
 
             const codeSendResult = result as SignInCodeSendResult;
             expect(codeSendResult.correlationId).toBe("corr123");
-            expect(codeSendResult.continuationToken).toBe(
-                "continuation_token_2",
-            );
+            expect(codeSendResult.continuationToken).toBe("continuation_token_2");
             expect(codeSendResult.codeLength).toBe(6);
             expect(codeSendResult.challengeChannel).toBe("email");
             expect(codeSendResult.challengeTargetLabel).toBe("email");
@@ -165,18 +159,14 @@ describe("SignInClient", () => {
             });
             signInApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.PASSWORD,
-                correlationId: "corr123",
+                correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
             });
 
             const result = await client.start({
                 username: "abc@abc.com",
                 clientId: customAuthConfig.auth.clientId,
-                challengeType: [
-                    ChallengeType.OOB,
-                    ChallengeType.PASSWORD,
-                    ChallengeType.REDIRECT,
-                ],
+                challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
                 scopes: [],
             });
@@ -190,7 +180,7 @@ describe("SignInClient", () => {
     describe("submitCode", () => {
         it("should return SignInCompleteResult for valid code", async () => {
             signInApiClient.requestTokensWithOTP.mockResolvedValue({
-                correlationId: "test-correlation-id",
+                correlation_id: "test-correlation-id",
                 access_token: "test-access-token",
                 refresh_token: "test-refresh-token",
                 id_token: "test-id-token",
@@ -203,11 +193,7 @@ describe("SignInClient", () => {
                 continuationToken: "continuation_token_1",
                 username: "abc@abc.com",
                 clientId: customAuthConfig.auth.clientId,
-                challengeType: [
-                    ChallengeType.OOB,
-                    ChallengeType.PASSWORD,
-                    ChallengeType.REDIRECT,
-                ],
+                challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
                 scopes: [],
             });
@@ -215,51 +201,35 @@ describe("SignInClient", () => {
             expect(result).toBeInstanceOf(SignInCompletedResult);
             expect(result.correlationId).toBe("test-correlation-id");
             expect(result.authenticationResult).toBeDefined();
-            expect(result.authenticationResult.accessToken).toBe(
-                "test-access-token",
-            );
-            expect(result.authenticationResult.refreshToken).toBe(
-                "test-refresh-token",
-            );
+            expect(result.authenticationResult.accessToken).toBe("test-access-token");
+            expect(result.authenticationResult.refreshToken).toBe("test-refresh-token");
             expect(result.authenticationResult.idToken).toBe("test-id-token");
             expect(result.authenticationResult.expiresOn).toBeDefined();
             expect(result.authenticationResult.tokenType).toBe("Bearer");
-            expect(result.authenticationResult.authority).toBe(
-                authority.authorityUrl.href,
-            );
-            expect(result.authenticationResult.tenantId).toBe(
-                authority.getTenant(),
-            );
+            expect(result.authenticationResult.authority).toBe(authority.authorityUrl.href);
+            expect(result.authenticationResult.tenantId).toBe(authority.getTenant());
             expect(result.authenticationResult.account).toBeDefined();
-            expect(result.authenticationResult.account.username).toBe(
-                "abc@abc.com",
-            );
+            expect(result.authenticationResult.account.username).toBe("abc@abc.com");
         });
     });
 
     describe("submitPassword", () => {
         it("should return SignInCompleteResult for valid password", async () => {
-            signInApiClient.requestTokensWithPassword.mockResolvedValue(
-                {
-                    correlationId: "test-correlation-id",
-                    access_token: "test-access-token",
-                    refresh_token: "test-refresh-token",
-                    id_token: "test-id-token",
-                    expires_in: 3600,
-                    token_type: "Bearer",
-                },
-            );
+            signInApiClient.requestTokensWithPassword.mockResolvedValue({
+                correlation_id: "test-correlation-id",
+                access_token: "test-access-token",
+                refresh_token: "test-refresh-token",
+                id_token: "test-id-token",
+                expires_in: 3600,
+                token_type: "Bearer",
+            });
 
             const result = await client.submitPassword({
                 password: "123456",
                 continuationToken: "continuation_token_1",
                 username: "abc@abc.com",
                 clientId: customAuthConfig.auth.clientId,
-                challengeType: [
-                    ChallengeType.OOB,
-                    ChallengeType.PASSWORD,
-                    ChallengeType.REDIRECT,
-                ],
+                challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
                 scopes: [],
             });
@@ -267,25 +237,15 @@ describe("SignInClient", () => {
             expect(result).toBeInstanceOf(SignInCompletedResult);
             expect(result.correlationId).toBe("test-correlation-id");
             expect(result.authenticationResult).toBeDefined();
-            expect(result.authenticationResult.accessToken).toBe(
-                "test-access-token",
-            );
-            expect(result.authenticationResult.refreshToken).toBe(
-                "test-refresh-token",
-            );
+            expect(result.authenticationResult.accessToken).toBe("test-access-token");
+            expect(result.authenticationResult.refreshToken).toBe("test-refresh-token");
             expect(result.authenticationResult.idToken).toBe("test-id-token");
             expect(result.authenticationResult.expiresOn).toBeDefined();
             expect(result.authenticationResult.tokenType).toBe("Bearer");
-            expect(result.authenticationResult.authority).toBe(
-                authority.authorityUrl.href,
-            );
-            expect(result.authenticationResult.tenantId).toBe(
-                authority.getTenant(),
-            );
+            expect(result.authenticationResult.authority).toBe(authority.authorityUrl.href);
+            expect(result.authenticationResult.tenantId).toBe(authority.getTenant());
             expect(result.authenticationResult.account).toBeDefined();
-            expect(result.authenticationResult.account.username).toBe(
-                "abc@abc.com",
-            );
+            expect(result.authenticationResult.account.username).toBe("abc@abc.com");
         });
     });
 
@@ -293,7 +253,7 @@ describe("SignInClient", () => {
         it("should return SignInCodeSendResult", async () => {
             signInApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.OOB,
-                correlationId: "corr123",
+                correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
                 code_length: 6,
                 challenge_channel: "email",
@@ -304,11 +264,7 @@ describe("SignInClient", () => {
                 continuationToken: "continuation_token_1",
                 username: "abc@abc.com",
                 clientId: customAuthConfig.auth.clientId,
-                challengeType: [
-                    ChallengeType.OOB,
-                    ChallengeType.PASSWORD,
-                    ChallengeType.REDIRECT,
-                ],
+                challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
                 scopes: [],
             });
@@ -324,26 +280,20 @@ describe("SignInClient", () => {
 
     describe("signInWithContinuationToken", () => {
         it("should return SignInCompleteResult", async () => {
-            signInApiClient.signInWithContinuationToken.mockResolvedValue(
-                {
-                    correlationId: "test-correlation-id",
-                    access_token: "test-access-token",
-                    refresh_token: "test-refresh-token",
-                    id_token: "test-id-token",
-                    expires_in: 3600,
-                    token_type: "Bearer",
-                },
-            );
+            signInApiClient.signInWithContinuationToken.mockResolvedValue({
+                correlation_id: "test-correlation-id",
+                access_token: "test-access-token",
+                refresh_token: "test-refresh-token",
+                id_token: "test-id-token",
+                expires_in: 3600,
+                token_type: "Bearer",
+            });
 
             const result = await client.signInWithContinuationToken({
                 continuationToken: "continuation_token_1",
                 username: "abc@abc.com",
                 clientId: customAuthConfig.auth.clientId,
-                challengeType: [
-                    ChallengeType.OOB,
-                    ChallengeType.PASSWORD,
-                    ChallengeType.REDIRECT,
-                ],
+                challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
                 scopes: [],
             });
@@ -351,25 +301,15 @@ describe("SignInClient", () => {
             expect(result).toBeInstanceOf(SignInCompletedResult);
             expect(result.correlationId).toBe("test-correlation-id");
             expect(result.authenticationResult).toBeDefined();
-            expect(result.authenticationResult.accessToken).toBe(
-                "test-access-token",
-            );
-            expect(result.authenticationResult.refreshToken).toBe(
-                "test-refresh-token",
-            );
+            expect(result.authenticationResult.accessToken).toBe("test-access-token");
+            expect(result.authenticationResult.refreshToken).toBe("test-refresh-token");
             expect(result.authenticationResult.idToken).toBe("test-id-token");
             expect(result.authenticationResult.expiresOn).toBeDefined();
             expect(result.authenticationResult.tokenType).toBe("Bearer");
-            expect(result.authenticationResult.authority).toBe(
-                authority.authorityUrl.href,
-            );
-            expect(result.authenticationResult.tenantId).toBe(
-                authority.getTenant(),
-            );
+            expect(result.authenticationResult.authority).toBe(authority.authorityUrl.href);
+            expect(result.authenticationResult.tenantId).toBe(authority.getTenant());
             expect(result.authenticationResult.account).toBeDefined();
-            expect(result.authenticationResult.account.username).toBe(
-                "abc@abc.com",
-            );
+            expect(result.authenticationResult.account.username).toBe("abc@abc.com");
         });
     });
 });

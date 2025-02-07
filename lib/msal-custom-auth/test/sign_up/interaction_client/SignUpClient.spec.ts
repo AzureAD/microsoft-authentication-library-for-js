@@ -19,8 +19,8 @@ import {
     SignUpPasswordRequiredResult,
 } from "../../../src/sign_up/interaction_client/result/SignUpActionResult.js";
 import { CustomAuthApiError } from "../../../src/index.js";
-import { CustomAuthApiErrorCode } from "../../../src/core/error/CustomAuthApiError.js";
 import { UserAttribute } from "../../../src/core/network_client/types/UserAttributes.js";
+import { CustomAuthApiErrorCode } from "../../../src/core/network_client/types/ApiErrorResponseTypes.js";
 
 jest.mock("../../../src/core/network_client/custom_auth_api/CustomAuthApiClient.js", () => {
     let signInApiClient = {

@@ -244,7 +244,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             this.logger.info("Challenge type is oob for sign up.");
             const challenge = challengeResponse as SignUpChallengeResponse;
             return new SignUpCodeRequiredResult(
-                request.correlationId,
+                challengeResponse.correlation_id,
                 challenge.continuation_token ?? "",
                 challenge.challenge_channel ?? "",
                 challenge.challenge_target_label ?? "",
@@ -257,7 +257,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             // Password is required
             this.logger.info("Challenge type is password for sign up.");
             const challenge = challengeResponse as PasswordChallengeResponse;
-            return new SignUpPasswordRequiredResult(request.correlationId, challenge.continuation_token ?? "");
+            return new SignUpPasswordRequiredResult(challengeResponse.correlation_id, challenge.continuation_token ?? "");
         }
 
         this.logger.error(`Unsupported challenge type '${challengeResponse.challenge_type}' for sign up.`);
