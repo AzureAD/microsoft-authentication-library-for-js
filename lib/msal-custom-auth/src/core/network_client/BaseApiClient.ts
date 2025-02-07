@@ -68,7 +68,7 @@ export abstract class BaseApiClient {
             }
             return {
                 ...responseData,
-                correlation_id: this.getCorrelationId(response),
+                correlation_id: this.getCorrelationId(response) || responseData.correlation_id,
             };
         } catch (error) {
             this.logger.error(`Request to ${endpoint} failed`, correlationId);
