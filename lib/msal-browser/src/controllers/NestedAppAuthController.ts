@@ -19,6 +19,7 @@ import {
     OIDC_DEFAULT_SCOPES,
     BaseAuthRequest,
     AccountFilter,
+    AuthError,
 } from "@azure/msal-common/browser";
 import { ITokenCache } from "../cache/ITokenCache.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -251,7 +252,10 @@ export class NestedAppAuthController implements IController {
 
             return result;
         } catch (e) {
-            const error = this.nestedAppAuthAdapter.fromBridgeError(e);
+            const error =
+                e instanceof AuthError
+                    ? e
+                    : this.nestedAppAuthAdapter.fromBridgeError(e);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_FAILURE,
                 InteractionType.Popup,
@@ -348,7 +352,10 @@ export class NestedAppAuthController implements IController {
             });
             return result;
         } catch (e) {
-            const error = this.nestedAppAuthAdapter.fromBridgeError(e);
+            const error =
+                e instanceof AuthError
+                    ? e
+                    : this.nestedAppAuthAdapter.fromBridgeError(e);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_FAILURE,
                 InteractionType.Silent,
