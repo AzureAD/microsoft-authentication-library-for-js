@@ -1,9 +1,5 @@
-import {
-    CustomAuthApiError,
-    CustomAuthApiErrorCode,
-    CustomAuthApiSuberror,
-    RedirectError,
-} from "../../../../src/core/error/CustomAuthApiError.js";
+import { CustomAuthApiError, RedirectError } from "../../../../src/core/error/CustomAuthApiError.js";
+import { CustomAuthApiErrorCode, CustomAuthApiSuberror } from "../../../../src/core/network_client/types/ApiErrorResponseTypes.js";
 import { InvalidArgumentError } from "../../../../src/index.js";
 import {
     SignUpError,

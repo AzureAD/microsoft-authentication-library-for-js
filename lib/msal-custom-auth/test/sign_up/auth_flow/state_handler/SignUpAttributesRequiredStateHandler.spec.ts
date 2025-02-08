@@ -13,8 +13,8 @@ import { SignUpClient } from "../../../../src/sign_up/interaction_client/SignUpC
 import { Logger } from "@azure/msal-browser";
 import { SignUpState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
-import { UserAttribute } from "../../../../src/core/network_client/custom_auth_api/response/UserAttribute.js";
 import { UserAccountAttributes } from "../../../../src/UserAccountAttributes.js";
+import { UserAttribute } from "../../../../src/core/network_client/types/UserAttributes.js";
 
 describe("SignUpAttributesRequiredStateHandler", () => {
     const mockConfig = {

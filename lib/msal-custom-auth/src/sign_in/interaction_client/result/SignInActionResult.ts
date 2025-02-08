@@ -29,6 +29,7 @@ export class SignInCodeSendResult extends SignInContinuationTokenResult {
         public challengeTargetLabel: string,
         public codeLength: number,
         public interval: number,
+        public challengeType: string,
     ) {
         super(correlationId, continuationToken);
     }

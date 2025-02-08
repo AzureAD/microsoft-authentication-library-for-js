@@ -127,14 +127,7 @@ describe("SignInCodeRequiredStateHandler", () => {
     describe("resendCode", () => {
         it("should successfully resend a code and return a result", async () => {
             mockSignInClient.resendCode.mockResolvedValue(
-                new SignInCodeSendResult(
-                    correlationId,
-                    "new-continuation-token",
-                    "code",
-                    "email",
-                    6,
-                    60,
-                ),
+                new SignInCodeSendResult(correlationId, "new-continuation-token", "code", "email", 6, 60, "challenge"),
             );
 
             const result = await handler.resendCode();
