@@ -36,15 +36,7 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
         protected customAuthApiClient: ICustomAuthApiClient,
         protected customAuthAuthority: CustomAuthAuthority,
     ) {
-        super(
-            config,
-            storageImpl,
-            browserCrypto,
-            logger,
-            eventHandler,
-            navigationClient,
-            performanceClient,
-        );
+        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient);
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "customAuthApiClient",

@@ -23,9 +23,7 @@ export class GetAccountResult extends AuthFlowResultBase<
 
     static createWithError(error: unknown): GetAccountResult {
         const result = new GetAccountResult();
-        result.error = new GetAccountError(
-            GetAccountResult.createErrorData(error),
-        );
+        result.error = new GetAccountError(GetAccountResult.createErrorData(error));
         result.state = new GetAccountFailed();
 
         return result;

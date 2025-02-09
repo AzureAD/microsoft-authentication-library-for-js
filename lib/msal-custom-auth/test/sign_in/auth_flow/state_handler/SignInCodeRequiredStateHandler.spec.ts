@@ -1,11 +1,17 @@
 import { AccountInfo } from "../../../../src/account/auth_flow/model/AccountInfo.js";
 import { CustomAuthBrowserConfiguration } from "../../../../src/configuration/CustomAuthConfiguration.js";
 import { InvalidArgumentError } from "../../../../src/core/error/InvalidArgumentError.js";
-import { SignInResendCodeError, SignInSubmitCodeError } from "../../../../src/sign_in/auth_flow/error_type/SignInError.js";
+import {
+    SignInResendCodeError,
+    SignInSubmitCodeError,
+} from "../../../../src/sign_in/auth_flow/error_type/SignInError.js";
 import { SignInResendCodeResult } from "../../../../src/sign_in/auth_flow/result/SignInResendCodeResult.js";
 import { SignInSubmitCodeResult } from "../../../../src/sign_in/auth_flow/result/SignInSubmitCodeResult.js";
 import { SignInCodeRequiredStateHandler } from "../../../../src/sign_in/auth_flow/state_handler/SignInCodeRequiredStateHandler.js";
-import { SignInCodeSendResult, SignInCompletedResult } from "../../../../src/sign_in/interaction_client/result/SignInActionResult.js";
+import {
+    SignInCodeSendResult,
+    SignInCompletedResult,
+} from "../../../../src/sign_in/interaction_client/result/SignInActionResult.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { Logger } from "@azure/msal-browser";
 import { SignInState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";

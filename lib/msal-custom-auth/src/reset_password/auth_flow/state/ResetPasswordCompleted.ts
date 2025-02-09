@@ -3,10 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AuthFlowStateBase,
-    ResetPasswordState,
-} from "../../../core/auth_flow/AuthFlowStateBase.js";
+import { AuthFlowStateBase, ResetPasswordState } from "../../../core/auth_flow/AuthFlowStateBase.js";
 
 export class ResetPasswordCompleted extends AuthFlowStateBase {
     constructor() {

@@ -14,24 +14,17 @@ import { SignUpPasswordRequired } from "../state/SignUpPasswordRequired.js";
  * Result of a sign-up operation that requires attributes.
  */
 export class SignUpSubmitAttributesResult extends AuthFlowResultBase<
-    | SignUpCodeRequired
-    | SignUpPasswordRequired
-    | SignUpCompleted
-    | SignUpFailed,
+    SignUpCodeRequired | SignUpPasswordRequired | SignUpCompleted | SignUpFailed,
     SignUpSubmitAttributesError,
     void
 > {
-    constructor(
-        state?: SignUpCodeRequired | SignUpPasswordRequired | SignUpCompleted,
-    ) {
+    constructor(state?: SignUpCodeRequired | SignUpPasswordRequired | SignUpCompleted) {
         super(state);
     }
 
     static createWithError(error: unknown): SignUpSubmitAttributesResult {
         const result = new SignUpSubmitAttributesResult();
-        result.error = new SignUpSubmitAttributesError(
-            SignUpSubmitAttributesResult.createErrorData(error),
-        );
+        result.error = new SignUpSubmitAttributesError(SignUpSubmitAttributesResult.createErrorData(error));
         result.state = new SignUpFailed();
 
         return result;

@@ -28,16 +28,8 @@ export abstract class ResetPasswordStateHandler extends AuthFlowStateHandlerBase
     ) {
         super(correlationId, logger, continuationToken);
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "config",
-            config,
-            correlationId,
-        );
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("config", config, correlationId);
 
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "username",
-            username,
-            correlationId,
-        );
+        ArgumentValidator.ensureArgumentIsNotEmptyString("username", username, correlationId);
     }
 }

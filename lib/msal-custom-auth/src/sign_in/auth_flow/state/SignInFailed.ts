@@ -3,10 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AuthFlowStateBase,
-    SignInState,
-} from "../../../core/auth_flow/AuthFlowStateBase.js";
+import { AuthFlowStateBase, SignInState } from "../../../core/auth_flow/AuthFlowStateBase.js";
 
 export class SignInFailed extends AuthFlowStateBase {
     constructor() {

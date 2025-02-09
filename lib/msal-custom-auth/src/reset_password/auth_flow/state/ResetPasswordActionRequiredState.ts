@@ -4,10 +4,7 @@
  */
 
 import { Logger } from "@azure/msal-browser";
-import {
-    AuthFlowStateBase,
-    ResetPasswordState,
-} from "../../../core/auth_flow/AuthFlowStateBase.js";
+import { AuthFlowStateBase, ResetPasswordState } from "../../../core/auth_flow/AuthFlowStateBase.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 
@@ -20,14 +17,8 @@ export abstract class ResetPasswordActionRequiredState extends AuthFlowStateBase
         config: CustomAuthBrowserConfiguration,
         public username: string,
     ) {
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "correlationId",
-            correlationId,
-        );
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "continuationToken",
-            continuationToken,
-        );
+        ArgumentValidator.ensureArgumentIsNotEmptyString("correlationId", correlationId);
+        ArgumentValidator.ensureArgumentIsNotEmptyString("continuationToken", continuationToken);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("logger", logger);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("config", config);
         ArgumentValidator.ensureArgumentIsNotEmptyString("username", username);

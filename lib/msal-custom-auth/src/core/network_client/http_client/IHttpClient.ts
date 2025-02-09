@@ -23,7 +23,12 @@ export interface IHttpClient {
      * @param correlationId The correlation ID for the request.
      * @param headers Optional headers for the request.
      */
-    post(url: string | URL, body: RequestBody, correlationId: string, headers?: Record<string, string>): Promise<Response>;
+    post(
+        url: string | URL,
+        body: RequestBody,
+        correlationId: string,
+        headers?: Record<string, string>,
+    ): Promise<Response>;
 
     /**
      * Sends a GET request.

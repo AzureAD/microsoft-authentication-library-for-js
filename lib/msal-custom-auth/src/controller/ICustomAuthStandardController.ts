@@ -7,12 +7,7 @@ import { IController } from "@azure/msal-browser";
 import { GetAccountResult } from "../account/auth_flow/result/GetAccountResult.js";
 import { SignInResult } from "../sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "../sign_up/auth_flow/result/SignUpResult.js";
-import {
-    GetAccountInputs,
-    ResetPasswordInputs,
-    SignInInputs,
-    SignUpInputs,
-} from "../CustomAuthActionInputs.js";
+import { GetAccountInputs, ResetPasswordInputs, SignInInputs, SignUpInputs } from "../CustomAuthActionInputs.js";
 import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/ResetPasswordStartResult.js";
 
 /*
@@ -24,9 +19,7 @@ export interface ICustomAuthStandardController extends IController {
      * @param getAccountInputs - Inputs for getting the current cached account
      * @returns - A promise that resolves to GetAccountResult
      */
-    getCurrentAccount(
-        getAccountInputs: GetAccountInputs,
-    ): Promise<GetAccountResult>;
+    getCurrentAccount(getAccountInputs: GetAccountInputs): Promise<GetAccountResult>;
 
     /*
      * Signs the current user out.
@@ -47,7 +40,5 @@ export interface ICustomAuthStandardController extends IController {
      * @param resetPasswordInputs - Inputs for resetting the password.
      * @returns The result of the operation.
      */
-    resetPassword(
-        resetPasswordInputs: ResetPasswordInputs,
-    ): Promise<ResetPasswordStartResult>;
+    resetPassword(resetPasswordInputs: ResetPasswordInputs): Promise<ResetPasswordStartResult>;
 }

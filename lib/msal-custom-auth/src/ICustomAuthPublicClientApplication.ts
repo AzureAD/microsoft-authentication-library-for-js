@@ -6,12 +6,7 @@
 import { GetAccountResult } from "./account/auth_flow/result/GetAccountResult.js";
 import { SignInResult } from "./sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
-import {
-    GetAccountInputs,
-    ResetPasswordInputs,
-    SignInInputs,
-    SignUpInputs,
-} from "./CustomAuthActionInputs.js";
+import { GetAccountInputs, ResetPasswordInputs, SignInInputs, SignUpInputs } from "./CustomAuthActionInputs.js";
 import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
 
 export interface ICustomAuthPublicClientApplication {
@@ -20,9 +15,7 @@ export interface ICustomAuthPublicClientApplication {
      * @param getAccountInputs - Inputs for getting the current cached account
      * @returns - A promise that resolves to GetAccountResult
      */
-    getCurrentAccount(
-        getAccountInputs: GetAccountInputs,
-    ): Promise<GetAccountResult>;
+    getCurrentAccount(getAccountInputs: GetAccountInputs): Promise<GetAccountResult>;
 
     /*
      * Initiates the sign-in flow.
@@ -43,7 +36,5 @@ export interface ICustomAuthPublicClientApplication {
      * @param resetPasswordInputs - Inputs for the reset password flow
      * @returns - A promise that resolves to ResetPasswordStartResult
      */
-    resetPassword(
-        resetPasswordInputs: ResetPasswordInputs,
-    ): Promise<ResetPasswordStartResult>;
+    resetPassword(resetPasswordInputs: ResetPasswordInputs): Promise<ResetPasswordStartResult>;
 }

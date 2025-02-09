@@ -25,16 +25,12 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
      * @param password - The password to submit.
      * @returns The result of the operation.
      */
-    async submitPassword(
-        password: string,
-    ): Promise<SignUpSubmitPasswordResult> {
+    async submitPassword(password: string): Promise<SignUpSubmitPasswordResult> {
         if (!password) {
             this.logger.error("Password parameter is required for sign-up.");
 
             return Promise.resolve(
-                SignUpSubmitPasswordResult.createWithError(
-                    new InvalidArgumentError("password", this.correlationId),
-                ),
+                SignUpSubmitPasswordResult.createWithError(new InvalidArgumentError("password", this.correlationId)),
             );
         }
 
@@ -101,13 +97,9 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
                 );
             }
 
-            return SignUpSubmitPasswordResult.createWithError(
-                new UnexpectedError("Unknown sign-up result type."),
-            );
+            return SignUpSubmitPasswordResult.createWithError(new UnexpectedError("Unknown sign-up result type."));
         } catch (error) {
-            this.logger.error(
-                `Failed to submit password for sign up. Error: ${error}.`,
-            );
+            this.logger.error(`Failed to submit password for sign up. Error: ${error}.`);
 
             return SignUpSubmitPasswordResult.createWithError(error);
         }

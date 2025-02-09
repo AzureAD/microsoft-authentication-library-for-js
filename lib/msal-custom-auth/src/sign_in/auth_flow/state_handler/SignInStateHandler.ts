@@ -32,28 +32,12 @@ export abstract class SignInStateHandler extends AuthFlowStateHandlerBase {
     ) {
         super(correlationId, logger, continuationToken);
 
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "username",
-            username,
-            correlationId,
-        );
+        ArgumentValidator.ensureArgumentIsNotEmptyString("username", username, correlationId);
 
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "continuationToken",
-            continuationToken,
-            correlationId,
-        );
+        ArgumentValidator.ensureArgumentIsNotEmptyString("continuationToken", continuationToken, correlationId);
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "config",
-            config,
-            correlationId,
-        );
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("config", config, correlationId);
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "signInClient",
-            signInClient,
-            correlationId,
-        );
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signInClient", signInClient, correlationId);
     }
 }

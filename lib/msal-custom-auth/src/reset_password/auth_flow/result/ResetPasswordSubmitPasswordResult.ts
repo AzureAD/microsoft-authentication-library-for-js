@@ -22,9 +22,7 @@ export class ResetPasswordSubmitPasswordResult extends AuthFlowResultBase<
 
     static createWithError(error: unknown): ResetPasswordSubmitPasswordResult {
         const result = new ResetPasswordSubmitPasswordResult();
-        result.error = new ResetPasswordSubmitPasswordError(
-            ResetPasswordSubmitPasswordResult.createErrorData(error),
-        );
+        result.error = new ResetPasswordSubmitPasswordError(ResetPasswordSubmitPasswordResult.createErrorData(error));
         result.state = new ResetPasswordFailed();
 
         return result;

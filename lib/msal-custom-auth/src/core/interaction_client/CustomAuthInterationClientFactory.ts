@@ -30,35 +30,14 @@ export class CustomAuthInterationClientFactory {
         private customAuthAuthority: CustomAuthAuthority,
     ) {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("config", config);
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "storageImpl",
-            storageImpl,
-        );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "browserCrypto",
-            browserCrypto,
-        );
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("storageImpl", storageImpl);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("browserCrypto", browserCrypto);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("logger", logger);
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "eventHandler",
-            eventHandler,
-        );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "navigationClient",
-            navigationClient,
-        );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "performanceClient",
-            performanceClient,
-        );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "customAuthApiClient",
-            customAuthApiClient,
-        );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "customAuthAuthority",
-            customAuthAuthority,
-        );
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("eventHandler", eventHandler);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("navigationClient", navigationClient);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("performanceClient", performanceClient);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("customAuthApiClient", customAuthApiClient);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("customAuthAuthority", customAuthAuthority);
     }
 
     create<TClient extends CustomAuthInteractionClientBase>(

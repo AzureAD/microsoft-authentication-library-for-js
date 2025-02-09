@@ -20,6 +20,15 @@ export class SignInCodeRequired extends SignInActionRequiredState {
         public codeLength: number,
         scope?: Array<string>,
     ) {
-        super(SignInState.CodeRequired, correlationId, continuationToken, logger, config, signInClient, username, scope);
+        super(
+            SignInState.CodeRequired,
+            correlationId,
+            continuationToken,
+            logger,
+            config,
+            signInClient,
+            username,
+            scope,
+        );
     }
 }

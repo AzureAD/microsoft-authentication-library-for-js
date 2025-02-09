@@ -14,9 +14,7 @@ export class SignInSubmitPasswordResult extends SignInSubmitCredentialResult<Sig
     static createWithError(error: unknown): SignInSubmitPasswordResult {
         const result = new SignInSubmitPasswordResult();
         result.state = new SignInFailed();
-        result.error = new SignInSubmitPasswordError(
-            SignInSubmitPasswordResult.createErrorData(error),
-        );
+        result.error = new SignInSubmitPasswordError(SignInSubmitPasswordResult.createErrorData(error));
 
         return result;
     }

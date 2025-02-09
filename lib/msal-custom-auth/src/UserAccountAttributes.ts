@@ -3,10 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    InvalidAttributeErrorCode,
-    UserAccountAttributeError,
-} from "./core/error/UserAccountAttributeError.js";
+import { InvalidAttributeErrorCode, UserAccountAttributeError } from "./core/error/UserAccountAttributeError.js";
 
 export class UserAccountAttributes {
     private attributes: Record<string, string>;
@@ -17,11 +14,7 @@ export class UserAccountAttributes {
 
     setCustomAttribute(name: string, value: string): void {
         if (!name) {
-            throw new UserAccountAttributeError(
-                InvalidAttributeErrorCode,
-                name,
-                value,
-            );
+            throw new UserAccountAttributeError(InvalidAttributeErrorCode, name, value);
         }
 
         this.attributes[name] = value;

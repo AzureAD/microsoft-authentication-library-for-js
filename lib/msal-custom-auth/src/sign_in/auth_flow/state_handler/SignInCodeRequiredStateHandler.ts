@@ -63,7 +63,11 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
 
             this.logger.info("Code submitted for sign-in.");
 
-            const accountManager = new AccountInfo(completedResult.authenticationResult.account, this.correlationId, this.config);
+            const accountManager = new AccountInfo(
+                completedResult.authenticationResult.account,
+                this.correlationId,
+                this.config,
+            );
 
             return new SignInSubmitCodeResult(new SignInCompleted(), accountManager);
         } catch (error) {

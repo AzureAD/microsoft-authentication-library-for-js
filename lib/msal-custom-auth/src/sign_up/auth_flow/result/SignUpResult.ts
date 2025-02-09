@@ -14,19 +14,11 @@ import { SignUpFailed } from "../state/SignUpFailed.js";
  * Result of a sign-up operation.
  */
 export class SignUpResult extends AuthFlowResultBase<
-    | SignUpCodeRequired
-    | SignUpPasswordRequired
-    | SignUpAttributesRequired
-    | SignUpFailed,
+    SignUpCodeRequired | SignUpPasswordRequired | SignUpAttributesRequired | SignUpFailed,
     SignUpError,
     void
 > {
-    constructor(
-        state?:
-            | SignUpCodeRequired
-            | SignUpPasswordRequired
-            | SignUpAttributesRequired,
-    ) {
+    constructor(state?: SignUpCodeRequired | SignUpPasswordRequired | SignUpAttributesRequired) {
         super(state);
     }
 

@@ -65,7 +65,9 @@ describe("SignUpPasswordRequiredStateHandler", () => {
         });
 
         it("should successfully submit a password and return completed state if no credentail required", async () => {
-            mockSignUpClient.submitPassword.mockResolvedValue(new SignUpCompletedResult(correlationId, "continuation-token"));
+            mockSignUpClient.submitPassword.mockResolvedValue(
+                new SignUpCompletedResult(correlationId, "continuation-token"),
+            );
 
             const result = await handler.submitPassword("valid-password");
 

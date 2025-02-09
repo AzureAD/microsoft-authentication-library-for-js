@@ -20,9 +20,7 @@ export class ResetPasswordCodeRequiredStateHandler extends ResetPasswordStateHan
     async submitCode(code: string): Promise<ResetPasswordSubmitCodeResult> {
         if (!code) {
             return Promise.resolve(
-                ResetPasswordSubmitCodeResult.createWithError(
-                    new InvalidArgumentError("code", this.correlationId),
-                ),
+                ResetPasswordSubmitCodeResult.createWithError(new InvalidArgumentError("code", this.correlationId)),
             );
         }
 

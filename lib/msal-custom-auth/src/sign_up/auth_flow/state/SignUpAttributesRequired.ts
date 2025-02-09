@@ -22,6 +22,15 @@ export class SignUpAttributesRequired extends SignUpActionRequiredState {
         username: string,
         public requiredAttributes: Array<UserAttribute>,
     ) {
-        super(SignUpState.AttributesRequired, correlationId, continuationToken, logger, config, signInClient, signUpClient, username);
+        super(
+            SignUpState.AttributesRequired,
+            correlationId,
+            continuationToken,
+            logger,
+            config,
+            signInClient,
+            signUpClient,
+            username,
+        );
     }
 }

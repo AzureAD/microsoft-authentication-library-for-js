@@ -39,8 +39,6 @@ export abstract class AuthFlowResultBase<
      * @returns The auth error.
      */
     protected static createErrorData(error: unknown): CustomAuthError {
-        return error instanceof CustomAuthError
-            ? error
-            : new UnexpectedError(error);
+        return error instanceof CustomAuthError ? error : new UnexpectedError(error);
     }
 }

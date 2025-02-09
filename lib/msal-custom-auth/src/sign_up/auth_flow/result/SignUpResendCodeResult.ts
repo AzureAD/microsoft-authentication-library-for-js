@@ -22,9 +22,7 @@ export class SignUpResendCodeResult extends AuthFlowResultBase<
 
     static createWithError(error: unknown): SignUpResendCodeResult {
         const result = new SignUpResendCodeResult();
-        result.error = new SignUpResendCodeError(
-            SignUpResendCodeResult.createErrorData(error),
-        );
+        result.error = new SignUpResendCodeError(SignUpResendCodeResult.createErrorData(error));
         result.state = new SignUpFailed();
 
         return result;

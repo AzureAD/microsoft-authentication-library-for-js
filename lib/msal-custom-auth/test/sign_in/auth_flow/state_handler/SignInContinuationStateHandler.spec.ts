@@ -74,9 +74,7 @@ describe("SignInContinuationStateHandler", () => {
         expect(result).toBeDefined();
         expect(result).toBeInstanceOf(SignInResult);
         expect(result.data).toBeInstanceOf(AccountInfo);
-        expect(
-            mockSignInClient.signInWithContinuationToken,
-        ).toHaveBeenCalledWith({
+        expect(mockSignInClient.signInWithContinuationToken).toHaveBeenCalledWith({
             clientId: "test-client-id",
             correlationId: correlationId,
             challengeType: ["code", "password", "redirect"],
@@ -88,9 +86,7 @@ describe("SignInContinuationStateHandler", () => {
 
     it("should return an error result if signIn throws an error", async () => {
         const mockError = new Error("Sign in failed");
-        mockSignInClient.signInWithContinuationToken.mockRejectedValue(
-            mockError,
-        );
+        mockSignInClient.signInWithContinuationToken.mockRejectedValue(mockError);
 
         const result = await handler.signIn();
 

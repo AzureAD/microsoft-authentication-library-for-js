@@ -10,12 +10,7 @@ import { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
 import { ICustomAuthStandardController } from "./controller/ICustomAuthStandardController.js";
 import { CustomAuthStandardController } from "./controller/CustomAuthStandardController.js";
 import { ICustomAuthPublicClientApplication } from "./ICustomAuthPublicClientApplication.js";
-import {
-    GetAccountInputs,
-    SignInInputs,
-    SignUpInputs,
-    ResetPasswordInputs,
-} from "./CustomAuthActionInputs.js";
+import { GetAccountInputs, SignInInputs, SignUpInputs, ResetPasswordInputs } from "./CustomAuthActionInputs.js";
 import { CustomAuthConfiguration } from "./configuration/CustomAuthConfiguration.js";
 import { CustomAuthOperatingContext } from "./operating_context/CustomAuthOperatingContext.js";
 import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
@@ -48,17 +43,12 @@ export class CustomAuthPublicClientApplication
         let customAuthController = controller;
 
         if (!customAuthController) {
-            customAuthController = new CustomAuthStandardController(
-                new CustomAuthOperatingContext(config),
-            );
+            customAuthController = new CustomAuthStandardController(new CustomAuthOperatingContext(config));
 
             await customAuthController.initialize();
         }
 
-        const app = new CustomAuthPublicClientApplication(
-            config,
-            customAuthController,
-        );
+        const app = new CustomAuthPublicClientApplication(config, customAuthController);
 
         return app;
     }
@@ -68,10 +58,7 @@ export class CustomAuthPublicClientApplication
      * @param config - A configuration object for the PublicClientApplication instance
      * @param controller - A controller object for the PublicClientApplication instance
      */
-    private constructor(
-        config: CustomAuthConfiguration,
-        controller: ICustomAuthStandardController,
-    ) {
+    private constructor(config: CustomAuthConfiguration, controller: ICustomAuthStandardController) {
         super(config, controller);
 
         this.customAuthController = controller;
@@ -82,12 +69,8 @@ export class CustomAuthPublicClientApplication
      * @param getAccountInputs - Inputs for getting the current cached account
      * @returns - A promise that resolves to GetAccountResult
      */
-    getCurrentAccount(
-        getAccountInputs: GetAccountInputs,
-    ): Promise<GetAccountResult> {
-        throw new Error(
-            `Method not implemented with parameter ${getAccountInputs}`,
-        );
+    getCurrentAccount(getAccountInputs: GetAccountInputs): Promise<GetAccountResult> {
+        throw new Error(`Method not implemented with parameter ${getAccountInputs}`);
     }
 
     /*
@@ -113,9 +96,7 @@ export class CustomAuthPublicClientApplication
      * @param resetPasswordInputs - Inputs for the reset password flow
      * @returns - A promise that resolves to ResetPasswordStartResult
      */
-    resetPassword(
-        resetPasswordInputs: ResetPasswordInputs,
-    ): Promise<ResetPasswordStartResult> {
+    resetPassword(resetPasswordInputs: ResetPasswordInputs): Promise<ResetPasswordStartResult> {
         return this.customAuthController.resetPassword(resetPasswordInputs);
     }
 
@@ -126,10 +107,7 @@ export class CustomAuthPublicClientApplication
     private static validateConfig(config: CustomAuthConfiguration): void {
         // Ensure the configuration object has a valid CIAM authority URL.
         if (!config) {
-            throw new InvalidConfigurationError(
-                MissingConfiguration,
-                "The configuration is missing.",
-            );
+            throw new InvalidConfigurationError(MissingConfiguration, "The configuration is missing.");
         }
 
         if (!config.auth?.authority) {
@@ -148,10 +126,7 @@ export class CustomAuthPublicClientApplication
             );
         }
 
-        if (
-            config.customAuth.authApiProxyUrl &&
-            !UrlUtils.IsValidSecureUrl(config.customAuth.authApiProxyUrl)
-        ) {
+        if (config.customAuth.authApiProxyUrl && !UrlUtils.IsValidSecureUrl(config.customAuth.authApiProxyUrl)) {
             throw new InvalidConfigurationError(
                 InvalidAuthApiProxyDomain,
                 `The authApiProxyDomain URL '${config.customAuth.authApiProxyUrl}' is not a valid secure URL.`,

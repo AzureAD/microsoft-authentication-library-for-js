@@ -37,9 +37,7 @@ export class SignUpError extends AuthFlowErrorBase {
 
 export class SignUpSubmitPasswordError extends AuthFlowErrorBase {
     isInvalidPassword(): boolean {
-        return (
-            this.isPasswordIncorrectError() || this.isInvalidNewPasswordError()
-        );
+        return this.isPasswordIncorrectError() || this.isInvalidNewPasswordError();
     }
 
     isRedirect(): boolean {

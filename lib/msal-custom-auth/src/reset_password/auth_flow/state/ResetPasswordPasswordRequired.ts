@@ -16,13 +16,6 @@ export class ResetPasswordPasswordRequired extends ResetPasswordActionRequiredSt
         config: CustomAuthBrowserConfiguration,
         username: string,
     ) {
-        super(
-            ResetPasswordState.PasswordRequired,
-            correlationId,
-            continuationToken,
-            logger,
-            config,
-            username,
-        );
+        super(ResetPasswordState.PasswordRequired, correlationId, continuationToken, logger, config, username);
     }
 }

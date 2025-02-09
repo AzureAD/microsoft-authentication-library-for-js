@@ -3,10 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AuthFlowStateBase,
-    GetAccountState,
-} from "../../../core/auth_flow/AuthFlowStateBase.js";
+import { AuthFlowStateBase, GetAccountState } from "../../../core/auth_flow/AuthFlowStateBase.js";
 
 export class GetAccountCompleted extends AuthFlowStateBase {
     constructor() {

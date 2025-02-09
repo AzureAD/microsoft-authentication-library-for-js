@@ -24,7 +24,9 @@ describe("SignUpError", () => {
         const signUpError = new SignUpError(error);
         expect(signUpError.isInvalidUsername()).toBe(true);
 
-        const error2 = new CustomAuthApiError("Some Error", "username parameter is empty or not valid", undefined, [90100]);
+        const error2 = new CustomAuthApiError("Some Error", "username parameter is empty or not valid", undefined, [
+            90100,
+        ]);
         const signUpError2 = new SignUpError(error2);
         expect(signUpError2.isInvalidUsername()).toBe(true);
     });
@@ -67,7 +69,10 @@ describe("SignUpError", () => {
         const signUpError = new SignUpError(error);
         expect(signUpError.isUnsupportedChallengeType()).toBe(true);
 
-        const error2 = new CustomAuthApiError(CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE, "Unsupported challenge type");
+        const error2 = new CustomAuthApiError(
+            CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
+            "Unsupported challenge type",
+        );
         const signUpError2 = new SignUpError(error2);
         expect(signUpError2.isUnsupportedChallengeType()).toBe(true);
     });
@@ -91,7 +96,9 @@ describe("SignUpSubmitPasswordError", () => {
         const signUpError = new SignUpSubmitPasswordError(error);
         expect(signUpError.isInvalidPassword()).toBe(true);
 
-        const error2 = new CustomAuthApiError(CustomAuthApiErrorCode.INVALID_GRANT, "Incorrect password", undefined, [50126]);
+        const error2 = new CustomAuthApiError(CustomAuthApiErrorCode.INVALID_GRANT, "Incorrect password", undefined, [
+            50126,
+        ]);
         const signUpError2 = new SignUpSubmitPasswordError(error2);
         expect(signUpError2.isInvalidPassword()).toBe(true);
 

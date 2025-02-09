@@ -85,7 +85,10 @@ export abstract class BaseApiClient {
         };
     }
 
-    private async handleApiResponse<T extends ApiResponseBase>(response: Response | undefined, requestCorrelationId: string): Promise<T> {
+    private async handleApiResponse<T extends ApiResponseBase>(
+        response: Response | undefined,
+        requestCorrelationId: string,
+    ): Promise<T> {
         if (!response) {
             throw new CustomAuthApiError("empty_response", "Response is empty", requestCorrelationId);
         }

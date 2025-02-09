@@ -15,7 +15,11 @@ import {
     SignInSubmitPasswordParams,
     SignInContinuationTokenParams,
 } from "./parameter/SignInParams.js";
-import { SignInCodeSendResult, SignInCompletedResult, SignInPasswordRequiredResult } from "./result/SignInActionResult.js";
+import {
+    SignInCodeSendResult,
+    SignInCompletedResult,
+    SignInPasswordRequiredResult,
+} from "./result/SignInActionResult.js";
 import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
 import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
 import { CustomAuthAuthenticationResult } from "../../core/interaction_client/CustomAuthAuthenticationResult.js";
@@ -37,7 +41,9 @@ export class SignInClient extends CustomAuthInteractionClientBase {
     async start(parameters: SignInStartParams): Promise<SignInPasswordRequiredResult | SignInCodeSendResult> {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters);
 
-        const apiId = !parameters.password ? PublicApiId.SIGN_IN_WITH_CODE_START : PublicApiId.SIGN_IN_WITH_PASSWORD_START;
+        const apiId = !parameters.password
+            ? PublicApiId.SIGN_IN_WITH_CODE_START
+            : PublicApiId.SIGN_IN_WITH_PASSWORD_START;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
 
         this.logger.info("Calling initiate endpoint for sign in.");
@@ -102,7 +108,11 @@ export class SignInClient extends CustomAuthInteractionClientBase {
      */
     async submitPassword(parameters: SignInSubmitPasswordParams): Promise<SignInCompletedResult> {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters);
-        ArgumentValidator.ensureArgumentIsNotEmptyString("parameters.password", parameters.password, parameters.correlationId);
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
+            "parameters.password",
+            parameters.password,
+            parameters.correlationId,
+        );
 
         const apiId = PublicApiId.SIGN_IN_SUBMIT_PASSWORD;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
@@ -220,7 +230,9 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         };
     }
 
-    private async performChallengeRequest(request: SignInChallengeRequest): Promise<SignInPasswordRequiredResult | SignInCodeSendResult> {
+    private async performChallengeRequest(
+        request: SignInChallengeRequest,
+    ): Promise<SignInPasswordRequiredResult | SignInCodeSendResult> {
         this.logger.info("Calling challenge endpoint for sign in.");
 
         const challengeResponse = await this.customAuthApiClient.signInApi.requestChallenge(request);
@@ -245,7 +257,10 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             // Password is required
             this.logger.info("Challenge type is password for sign in.");
 
-            return new SignInPasswordRequiredResult(challengeResponse.correlation_id, challengeResponse.continuation_token ?? "");
+            return new SignInPasswordRequiredResult(
+                challengeResponse.correlation_id,
+                challengeResponse.continuation_token ?? "",
+            );
         }
 
         this.logger.error(`Unsupported challenge type '${challengeResponse.challenge_type}' for sign in.`);

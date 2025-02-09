@@ -6,7 +6,10 @@
 import { CustomAuthApiError, RedirectError } from "../error/CustomAuthApiError.js";
 import { CustomAuthError } from "../error/CustomAuthError.js";
 import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
-import { CustomAuthApiErrorCode, CustomAuthApiSuberror } from "../network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
+import {
+    CustomAuthApiErrorCode,
+    CustomAuthApiSuberror,
+} from "../network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 /**
  * Base class for all auth flow errors.
  */
@@ -25,7 +28,9 @@ export class AuthFlowErrorBase {
     protected isUnsupportedChallengeTypeError(): boolean {
         return (
             (this.errorData.error === CustomAuthApiErrorCode.INVALID_REQUEST &&
-                (this.errorData.errorDescription?.includes("The challenge_type list parameter contains an unsupported challenge type") ??
+                (this.errorData.errorDescription?.includes(
+                    "The challenge_type list parameter contains an unsupported challenge type",
+                ) ??
                     false)) ||
             this.errorData.error === CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE
         );
@@ -38,7 +43,8 @@ export class AuthFlowErrorBase {
             (this.errorData.errorCodes ?? []).includes(50126);
 
         const isPasswordEmpty =
-            this.errorData instanceof InvalidArgumentError && this.errorData.errorDescription?.includes("password") === true;
+            this.errorData instanceof InvalidArgumentError &&
+            this.errorData.errorDescription?.includes("password") === true;
 
         return isIncorrectPassword || isPasswordEmpty;
     }
@@ -48,7 +54,8 @@ export class AuthFlowErrorBase {
             (this.errorData.error === CustomAuthApiErrorCode.INVALID_GRANT &&
                 this.errorData instanceof CustomAuthApiError &&
                 this.errorData.subError === CustomAuthApiSuberror.INVALID_OOB_VALUE) ||
-            (this.errorData instanceof InvalidArgumentError && this.errorData.errorDescription?.includes("code") === true)
+            (this.errorData instanceof InvalidArgumentError &&
+                this.errorData.errorDescription?.includes("code") === true)
         );
     }
 
@@ -72,11 +79,17 @@ export class AuthFlowErrorBase {
     }
 
     protected isUserAlreadyExistsError(): boolean {
-        return this.errorData instanceof CustomAuthApiError && this.errorData.error === CustomAuthApiErrorCode.USER_ALREADY_EXISTS;
+        return (
+            this.errorData instanceof CustomAuthApiError &&
+            this.errorData.error === CustomAuthApiErrorCode.USER_ALREADY_EXISTS
+        );
     }
 
     protected isAttributeRequiredError(): boolean {
-        return this.errorData instanceof CustomAuthApiError && this.errorData.error === CustomAuthApiErrorCode.ATTRIBUTES_REQUIRED;
+        return (
+            this.errorData instanceof CustomAuthApiError &&
+            this.errorData.error === CustomAuthApiErrorCode.ATTRIBUTES_REQUIRED
+        );
     }
 
     protected isAttributeValidationFailedError(): boolean {
@@ -84,7 +97,8 @@ export class AuthFlowErrorBase {
             (this.errorData instanceof CustomAuthApiError &&
                 this.errorData.error === CustomAuthApiErrorCode.INVALID_GRANT &&
                 this.errorData.subError === CustomAuthApiSuberror.ATTRIBUTE_VALIATION_FAILED) ||
-            (this.errorData instanceof InvalidArgumentError && this.errorData.errorDescription?.includes("attributes") === true)
+            (this.errorData instanceof InvalidArgumentError &&
+                this.errorData.errorDescription?.includes("attributes") === true)
         );
     }
 }

@@ -37,15 +37,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
         public codeLength: number,
         public codeResendInterval: number,
     ) {
-        super(
-            username,
-            signUpClient,
-            signInClient,
-            correlationId,
-            logger,
-            continuationToken,
-            config,
-        );
+        super(username, signUpClient, signInClient, correlationId, logger, continuationToken, config);
     }
 
     /*
@@ -58,9 +50,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
             this.logger.error("Code parameter is required for sign-up.");
 
             return Promise.resolve(
-                SignUpSubmitCodeResult.createWithError(
-                    new InvalidArgumentError("code", this.correlationId),
-                ),
+                SignUpSubmitCodeResult.createWithError(new InvalidArgumentError("code", this.correlationId)),
             );
         }
 
@@ -125,13 +115,9 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
                 );
             }
 
-            return SignUpSubmitCodeResult.createWithError(
-                new UnexpectedError("Unknown sign-up result type."),
-            );
+            return SignUpSubmitCodeResult.createWithError(new UnexpectedError("Unknown sign-up result type."));
         } catch (error) {
-            this.logger.error(
-                `Failed to submit code for sign up. Error: ${error}.`,
-            );
+            this.logger.error(`Failed to submit code for sign up. Error: ${error}.`);
 
             return SignUpSubmitCodeResult.createWithError(error);
         }
@@ -169,9 +155,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
                 ),
             );
         } catch (error) {
-            this.logger.error(
-                `Failed to resend code for sign up. Error: ${error}.`,
-            );
+            this.logger.error(`Failed to resend code for sign up. Error: ${error}.`);
 
             return SignUpResendCodeResult.createWithError(error);
         }

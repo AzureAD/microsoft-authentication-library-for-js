@@ -25,20 +25,9 @@ export class AccountInfo {
         private readonly correlationId: string,
         private readonly config: CustomAuthBrowserConfiguration,
     ) {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "correlationId",
-            correlationId,
-        );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "account",
-            account,
-            correlationId,
-        );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "config",
-            config,
-            correlationId,
-        );
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("correlationId", correlationId);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("account", account, correlationId);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("config", config, correlationId);
     }
 
     /*
@@ -79,15 +68,10 @@ export class AccountInfo {
      * @param scopes - The scopes to request
      * @returns The result of the operation.
      */
-    getAccessToken(
-        forceRefresh: boolean = false,
-        scopes?: Array<string>,
-    ): Promise<GetAccessTokenResult> {
+    getAccessToken(forceRefresh: boolean = false, scopes?: Array<string>): Promise<GetAccessTokenResult> {
         const newScopes = scopes || DefaultScopes;
 
-        throw new Error(
-            `Method not implemented with forceRefresh '${forceRefresh}' and scopes ${newScopes}.`,
-        );
+        throw new Error(`Method not implemented with forceRefresh '${forceRefresh}' and scopes ${newScopes}.`);
     }
 }
 

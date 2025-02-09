@@ -250,7 +250,10 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             // Password is required
             this.logger.info("Challenge type is password for sign up.");
 
-            return new SignUpPasswordRequiredResult(challengeResponse.correlation_id, challengeResponse.continuation_token ?? "");
+            return new SignUpPasswordRequiredResult(
+                challengeResponse.correlation_id,
+                challengeResponse.continuation_token ?? "",
+            );
         }
 
         this.logger.error(`Unsupported challenge type '${challengeResponse.challenge_type}' for sign up.`);
@@ -268,7 +271,9 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         telemetryManager: ServerTelemetryManager,
         responseGetter: () => Promise<SignUpContinueResponse>,
         requestCorrelationId: string,
-    ): Promise<SignUpCompletedResult | SignUpPasswordRequiredResult | SignUpCodeRequiredResult | SignUpAttributesRequiredResult> {
+    ): Promise<
+        SignUpCompletedResult | SignUpPasswordRequiredResult | SignUpCodeRequiredResult | SignUpAttributesRequiredResult
+    > {
         this.logger.info(`${callerName} is calling continue endpoint for sign up.`);
 
         try {

@@ -49,7 +49,9 @@ export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
             this.logger.error("Attributes are required for sign-up.");
 
             return Promise.resolve(
-                SignUpSubmitAttributesResult.createWithError(new InvalidArgumentError("attributes", this.correlationId)),
+                SignUpSubmitAttributesResult.createWithError(
+                    new InvalidArgumentError("attributes", this.correlationId),
+                ),
             );
         }
 

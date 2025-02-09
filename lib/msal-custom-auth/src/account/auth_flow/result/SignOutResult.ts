@@ -11,11 +11,7 @@ import { SignOutFailed } from "../state/SignOutFailed.js";
 /*
  * Result of a sign-out operation.
  */
-export class SignOutResult extends AuthFlowResultBase<
-    SignOutCompleted | SignOutFailed,
-    SignOutError,
-    void
-> {
+export class SignOutResult extends AuthFlowResultBase<SignOutCompleted | SignOutFailed, SignOutError, void> {
     constructor() {
         super(new SignOutCompleted());
     }

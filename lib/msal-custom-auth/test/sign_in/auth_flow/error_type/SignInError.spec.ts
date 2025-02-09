@@ -1,7 +1,4 @@
-import {
-    CustomAuthApiError,
-    RedirectError,
-} from "../../../../src/core/error/CustomAuthApiError.js";
+import { CustomAuthApiError, RedirectError } from "../../../../src/core/error/CustomAuthApiError.js";
 import { InvalidArgumentError } from "../../../../src/index.js";
 import {
     SignInError,
@@ -34,12 +31,7 @@ describe("SignInError", () => {
     });
 
     it("should return true for isInvalidPassword when error matches INVALID_GRANT with 50126", () => {
-        const errorData = new CustomAuthApiError(
-            "invalid_grant",
-            "Invalid grant",
-            "correlation-id",
-            [50126],
-        );
+        const errorData = new CustomAuthApiError("invalid_grant", "Invalid grant", "correlation-id", [50126]);
         const signInError = new SignInError(errorData);
         expect(signInError.isPasswordIncorrect()).toBe(true);
     });
@@ -79,12 +71,7 @@ describe("SignInError", () => {
 
 describe("SignInSubmitPasswordError", () => {
     it("should return true for isInvalidPassword when error matches INVALID_GRANT with 50126", () => {
-        const errorData = new CustomAuthApiError(
-            "invalid_grant",
-            "Invalid grant",
-            "correlation-id",
-            [50126],
-        );
+        const errorData = new CustomAuthApiError("invalid_grant", "Invalid grant", "correlation-id", [50126]);
         const submitPasswordError = new SignInSubmitPasswordError(errorData);
         expect(submitPasswordError.isInvalidPassword()).toBe(true);
     });

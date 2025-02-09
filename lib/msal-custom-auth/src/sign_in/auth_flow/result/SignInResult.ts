@@ -15,17 +15,11 @@ import { SignInPasswordRequired } from "../state/SignInPasswordRequired.js";
  * Result of a sign-in operation.
  */
 export class SignInResult extends AuthFlowResultBase<
-    | SignInCodeRequired
-    | SignInPasswordRequired
-    | SignInFailed
-    | SignInCompleted,
+    SignInCodeRequired | SignInPasswordRequired | SignInFailed | SignInCompleted,
     SignInError,
     AccountInfo
 > {
-    constructor(
-        state?: SignInCodeRequired | SignInPasswordRequired | SignInCompleted,
-        resultData?: AccountInfo,
-    ) {
+    constructor(state?: SignInCodeRequired | SignInPasswordRequired | SignInCompleted, resultData?: AccountInfo) {
         super(state, resultData);
     }
 

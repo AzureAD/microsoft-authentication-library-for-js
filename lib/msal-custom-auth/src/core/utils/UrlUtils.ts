@@ -3,11 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    InvalidUrl,
-    ParsedUrlError,
-    UnsecureUrl,
-} from "../error/ParsedUrlError.js";
+import { InvalidUrl, ParsedUrlError, UnsecureUrl } from "../error/ParsedUrlError.js";
 
 export class UrlUtils {
     /**
@@ -38,10 +34,7 @@ export class UrlUtils {
         try {
             return new URL(url);
         } catch (e) {
-            throw new ParsedUrlError(
-                InvalidUrl,
-                `The URL "${url}" is invalid: ${e}`,
-            );
+            throw new ParsedUrlError(InvalidUrl, `The URL "${url}" is invalid: ${e}`);
         }
     }
 
@@ -54,10 +47,7 @@ export class UrlUtils {
         const parsedUrl = UrlUtils.parseUrl(url);
 
         if (parsedUrl.protocol !== "https:") {
-            throw new ParsedUrlError(
-                UnsecureUrl,
-                `The URL "${url}" is not secure. Only HTTPS URLs are supported.`,
-            );
+            throw new ParsedUrlError(UnsecureUrl, `The URL "${url}" is not secure. Only HTTPS URLs are supported.`);
         }
 
         return parsedUrl;

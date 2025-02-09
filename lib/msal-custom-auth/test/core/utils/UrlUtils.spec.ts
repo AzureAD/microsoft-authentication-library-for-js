@@ -39,10 +39,7 @@ describe("UrlUtils", () => {
         it("should throw ParsedUrlError for an invalid URL", () => {
             const url = "invalid-url";
             expect(() => UrlUtils.parseUrl(url)).toThrow(
-                new ParsedUrlError(
-                    "invalid_url",
-                    `The URL "${url}" is invalid: TypeError: Invalid URL: invalid-url`,
-                ),
+                new ParsedUrlError("invalid_url", `The URL "${url}" is invalid: TypeError: Invalid URL: invalid-url`),
             );
         });
     });
@@ -58,20 +55,14 @@ describe("UrlUtils", () => {
         it("should throw ParsedUrlError if the URL is not HTTPS", () => {
             const url = "http://example.com";
             expect(() => UrlUtils.parseSecureUrl(url)).toThrow(
-                new ParsedUrlError(
-                    "unsecure_url",
-                    `The URL "${url}" is not secure. Only HTTPS URLs are supported.`,
-                ),
+                new ParsedUrlError("unsecure_url", `The URL "${url}" is not secure. Only HTTPS URLs are supported.`),
             );
         });
 
         it("should throw ParsedUrlError for an invalid URL", () => {
             const url = "invalid-url";
             expect(() => UrlUtils.parseSecureUrl(url)).toThrow(
-                new ParsedUrlError(
-                    "invalid_url",
-                    `The URL "${url}" is invalid: TypeError: Invalid URL: invalid-url`,
-                ),
+                new ParsedUrlError("invalid_url", `The URL "${url}" is invalid: TypeError: Invalid URL: invalid-url`),
             );
         });
     });

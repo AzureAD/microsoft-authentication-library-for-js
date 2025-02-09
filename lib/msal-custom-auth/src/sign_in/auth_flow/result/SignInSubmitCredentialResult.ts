@@ -12,17 +12,12 @@ import { SignInFailed } from "../state/SignInFailed.js";
 /*
  * Result of a sign-in submit credential operation.
  */
-export abstract class SignInSubmitCredentialResult<
-    TError extends AuthFlowErrorBase,
-> extends AuthFlowResultBase<
+export abstract class SignInSubmitCredentialResult<TError extends AuthFlowErrorBase> extends AuthFlowResultBase<
     SignInCompleted | SignInFailed,
     TError,
     AccountInfo
 > {
-    constructor(
-        state?: SignInCompleted | SignInFailed,
-        resultData?: AccountInfo,
-    ) {
+    constructor(state?: SignInCompleted | SignInFailed, resultData?: AccountInfo) {
         super(state, resultData);
     }
 }

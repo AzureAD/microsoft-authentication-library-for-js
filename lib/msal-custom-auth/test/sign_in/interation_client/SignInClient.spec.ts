@@ -89,7 +89,10 @@ describe("SignInClient", () => {
         const mockNavigationClient = {} as unknown as jest.Mocked<INavigationClient>;
         const mockPerformanceClient = {} as unknown as jest.Mocked<IPerformanceClient>;
 
-        authority = new CustomAuthAuthority(customAuthConfig.auth.authority ?? "", customAuthConfig.customAuth.authApiProxyUrl);
+        authority = new CustomAuthAuthority(
+            customAuthConfig.auth.authority ?? "",
+            customAuthConfig.customAuth.authApiProxyUrl,
+        );
 
         const mockLogger = {
             clone: jest.fn(),

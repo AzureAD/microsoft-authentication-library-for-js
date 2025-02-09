@@ -35,28 +35,12 @@ export abstract class SignUpStateHandler extends AuthFlowStateHandlerBase {
     ) {
         super(correlationId, logger, continuationToken);
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "config",
-            config,
-            correlationId,
-        );
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("config", config, correlationId);
 
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "username",
-            username,
-            correlationId,
-        );
+        ArgumentValidator.ensureArgumentIsNotEmptyString("username", username, correlationId);
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "signUpClient",
-            signUpClient,
-            correlationId,
-        );
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signUpClient", signUpClient, correlationId);
 
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "continuationToken",
-            continuationToken,
-            correlationId,
-        );
+        ArgumentValidator.ensureArgumentIsNotEmptyString("continuationToken", continuationToken, correlationId);
     }
 }

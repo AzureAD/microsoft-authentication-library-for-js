@@ -9,8 +9,7 @@ import { CustomAuthConfiguration } from "../../src/configuration/CustomAuthConfi
 export const customAuthConfig: CustomAuthConfiguration = {
     customAuth: {
         challengeTypes: ["password", "oob", "redirect"],
-        authApiProxyUrl:
-            "https://spasampletestapp2.azurewebsites.net/api/HttpTrigger1/",
+        authApiProxyUrl: "https://spasampletestapp2.azurewebsites.net/api/HttpTrigger1/",
     },
     auth: {
         clientId: "d5e97fb9-24bb-418d-8e7a-4e1918303c92", // This is the ONLY mandatory field that you need to supply.

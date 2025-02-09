@@ -26,14 +26,7 @@ export class SignInPasswordRequiredStateHandler extends SignInStateHandler {
         config: CustomAuthBrowserConfiguration,
         public scopes?: string[],
     ) {
-        super(
-            username,
-            signInClient,
-            correlationId,
-            logger,
-            continuationToken,
-            config,
-        );
+        super(username, signInClient, correlationId, logger, continuationToken, config);
     }
 
     /*
@@ -41,9 +34,7 @@ export class SignInPasswordRequiredStateHandler extends SignInStateHandler {
      * @param password - The password to submit.
      * @returns The result of the operation.
      */
-    async submitPassword(
-        password: string,
-    ): Promise<SignInSubmitPasswordResult> {
+    async submitPassword(password: string): Promise<SignInSubmitPasswordResult> {
         if (!password) {
             this.logger.error("Password parameter is required for sign-in.");
 
@@ -67,8 +58,7 @@ export class SignInPasswordRequiredStateHandler extends SignInStateHandler {
 
             this.logger.info("Submitting password for sign-in.");
 
-            const completedResult =
-                await this.signInClient.submitPassword(submitPasswordParams);
+            const completedResult = await this.signInClient.submitPassword(submitPasswordParams);
 
             this.logger.info("Password submitted for sign-in.");
 
@@ -78,14 +68,9 @@ export class SignInPasswordRequiredStateHandler extends SignInStateHandler {
                 this.config,
             );
 
-            return new SignInSubmitPasswordResult(
-                new SignInCompleted(),
-                accountInfo,
-            );
+            return new SignInSubmitPasswordResult(new SignInCompleted(), accountInfo);
         } catch (error) {
-            this.logger.error(
-                `Failed to sign in after submitting password. Error: ${error}.`,
-            );
+            this.logger.error(`Failed to sign in after submitting password. Error: ${error}.`);
 
             return SignInSubmitPasswordResult.createWithError(error);
         }

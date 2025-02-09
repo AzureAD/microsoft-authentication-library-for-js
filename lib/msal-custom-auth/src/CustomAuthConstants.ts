@@ -20,11 +20,7 @@ export const ChallengeType = {
     REDIRECT: "redirect",
 } as const;
 
-export const DefaultScopes = [
-    Constants.OPENID_SCOPE,
-    Constants.PROFILE_SCOPE,
-    Constants.OFFLINE_ACCESS_SCOPE,
-] as const;
+export const DefaultScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE] as const;
 
 export const HttpHeaderKeys = {
     CONTENT_TYPE: "Content-Type",

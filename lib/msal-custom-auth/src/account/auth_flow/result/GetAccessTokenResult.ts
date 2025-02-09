@@ -23,9 +23,7 @@ export class GetAccessTokenResult extends AuthFlowResultBase<
 
     static createWithError(error: unknown): GetAccessTokenResult {
         const result = new GetAccessTokenResult();
-        result.error = new GetAccessTokenError(
-            GetAccessTokenResult.createErrorData(error),
-        );
+        result.error = new GetAccessTokenError(GetAccessTokenResult.createErrorData(error));
         result.state = new GetAccessTokenFailed();
 
         return result;

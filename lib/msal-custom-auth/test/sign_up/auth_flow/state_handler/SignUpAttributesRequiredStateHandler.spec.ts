@@ -78,7 +78,9 @@ describe("SignUpAttributesRequiredStateHandler", () => {
         });
 
         it("should successfully submit a attributes and return completed state if no credentail required", async () => {
-            mockSignUpClient.submitAttributes.mockResolvedValue(new SignUpCompletedResult(correlationId, "continuation-token"));
+            mockSignUpClient.submitAttributes.mockResolvedValue(
+                new SignUpCompletedResult(correlationId, "continuation-token"),
+            );
 
             const result = await handler.submitAttributes(requiredAttributes);
 
@@ -116,7 +118,9 @@ describe("SignUpAttributesRequiredStateHandler", () => {
         });
 
         it("should successfully submit a attributes and return password-required state if password is required", async () => {
-            mockSignUpClient.submitAttributes.mockResolvedValue(new SignUpPasswordRequiredResult(correlationId, "continuation-token"));
+            mockSignUpClient.submitAttributes.mockResolvedValue(
+                new SignUpPasswordRequiredResult(correlationId, "continuation-token"),
+            );
 
             const result = await handler.submitAttributes(requiredAttributes);
 

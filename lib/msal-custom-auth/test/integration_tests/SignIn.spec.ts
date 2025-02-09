@@ -313,7 +313,8 @@ describe("Sign in", () => {
             json: async () => {
                 return {
                     error: "invalid_grant",
-                    error_description: "AADSTS901007: Error validating credentials due to invalid username or password.",
+                    error_description:
+                        "AADSTS901007: Error validating credentials due to invalid username or password.",
                     error_codes: [50126],
                 };
             },
@@ -367,7 +368,8 @@ describe("Sign in", () => {
             json: async () => {
                 return {
                     error: "invalid_grant",
-                    error_description: "AADSTS901007: Error validating credentials due to invalid username or password.",
+                    error_description:
+                        "AADSTS901007: Error validating credentials due to invalid username or password.",
                     error_codes: [],
                     suberror: "invalid_oob_value",
                 };

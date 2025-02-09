@@ -40,7 +40,12 @@ export class FetchHttpClient implements IHttpClient {
         }
     }
 
-    async post(url: string | URL, body: RequestBody, correlationId: string, headers: Record<string, string> = {}): Promise<Response> {
+    async post(
+        url: string | URL,
+        body: RequestBody,
+        correlationId: string,
+        headers: Record<string, string> = {},
+    ): Promise<Response> {
         return this.sendAsync(
             url,
             {

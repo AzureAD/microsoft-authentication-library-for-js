@@ -69,7 +69,9 @@ describe("SignUpCodeRequiredStateHandler", () => {
         });
 
         it("should successfully submit a code and return completed state if no credentail required", async () => {
-            mockSignUpClient.submitCode.mockResolvedValue(new SignUpCompletedResult(correlationId, "continuation-token"));
+            mockSignUpClient.submitCode.mockResolvedValue(
+                new SignUpCompletedResult(correlationId, "continuation-token"),
+            );
 
             const result = await handler.submitCode("valid-code");
 
@@ -87,7 +89,9 @@ describe("SignUpCodeRequiredStateHandler", () => {
         });
 
         it("should successfully submit a code and return password-required state if password is required", async () => {
-            mockSignUpClient.submitCode.mockResolvedValue(new SignUpPasswordRequiredResult(correlationId, "continuation-token"));
+            mockSignUpClient.submitCode.mockResolvedValue(
+                new SignUpPasswordRequiredResult(correlationId, "continuation-token"),
+            );
 
             const result = await handler.submitCode("valid-code");
 
@@ -133,7 +137,15 @@ describe("SignUpCodeRequiredStateHandler", () => {
     describe("resendCode", () => {
         it("should successfully resend a code and return a code required state", async () => {
             mockSignUpClient.resendCode.mockResolvedValue(
-                new SignUpCodeRequiredResult(correlationId, "new-continuation-token", "code", "email", 6, 60, "email-otp"),
+                new SignUpCodeRequiredResult(
+                    correlationId,
+                    "new-continuation-token",
+                    "code",
+                    "email",
+                    6,
+                    60,
+                    "email-otp",
+                ),
             );
 
             const result = await handler.resendCode();

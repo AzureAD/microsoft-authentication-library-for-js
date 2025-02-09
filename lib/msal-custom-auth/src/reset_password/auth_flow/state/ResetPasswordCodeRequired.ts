@@ -18,13 +18,6 @@ export class ResetPasswordCodeRequired extends ResetPasswordActionRequiredState 
         public codeLength: number,
         public codeResendInterval: number,
     ) {
-        super(
-            ResetPasswordState.CodeRequired,
-            correlationId,
-            continuationToken,
-            logger,
-            config,
-            username,
-        );
+        super(ResetPasswordState.CodeRequired, correlationId, continuationToken, logger, config, username);
     }
 }

@@ -9,7 +9,13 @@ import { SignInResult } from "../sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "../sign_up/auth_flow/result/SignUpResult.js";
 import { SignInStartParams, SignInSubmitPasswordParams } from "../sign_in/interaction_client/parameter/SignInParams.js";
 import { SignInClient } from "../sign_in/interaction_client/SignInClient.js";
-import { GetAccountInputs, SignInInputs, SignUpInputs, ResetPasswordInputs, CustomAuthActionInputs } from "../CustomAuthActionInputs.js";
+import {
+    GetAccountInputs,
+    SignInInputs,
+    SignUpInputs,
+    ResetPasswordInputs,
+    CustomAuthActionInputs,
+} from "../CustomAuthActionInputs.js";
 import { CustomAuthBrowserConfiguration } from "../configuration/CustomAuthConfiguration.js";
 import { CustomAuthOperatingContext } from "../operating_context/CustomAuthOperatingContext.js";
 import { ICustomAuthStandardController } from "./ICustomAuthStandardController.js";
@@ -19,10 +25,16 @@ import { UnexpectedError } from "../core/error/UnexpectedError.js";
 import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
-import { SignInCodeSendResult, SignInPasswordRequiredResult } from "../sign_in/interaction_client/result/SignInActionResult.js";
+import {
+    SignInCodeSendResult,
+    SignInPasswordRequiredResult,
+} from "../sign_in/interaction_client/result/SignInActionResult.js";
 import { SignUpClient } from "../sign_up/interaction_client/SignUpClient.js";
 import { CustomAuthInterationClientFactory } from "../core/interaction_client/CustomAuthInterationClientFactory.js";
-import { SignUpCodeRequiredResult, SignUpPasswordRequiredResult } from "../sign_up/interaction_client/result/SignUpActionResult.js";
+import {
+    SignUpCodeRequiredResult,
+    SignUpPasswordRequiredResult,
+} from "../sign_up/interaction_client/result/SignUpActionResult.js";
 import { SignUpCodeRequired } from "../sign_up/auth_flow/state/SignUpCodeRequired.js";
 import { SignUpPasswordRequired } from "../sign_up/auth_flow/state/SignUpPasswordRequired.js";
 import { SignInCodeRequired } from "../sign_in/auth_flow/state/SignInCodeRequired.js";
@@ -66,7 +78,10 @@ export class CustomAuthStandardController extends StandardController implements 
 
         this.logger = this.logger.clone(DefaultPackageInfo.SKU, DefaultPackageInfo.VERSION);
         this.customAuthConfig = operatingContext.getCustomAuthConfig();
-        this.authority = new CustomAuthAuthority(this.config.auth.authority, this.customAuthConfig.customAuth?.authApiProxyUrl);
+        this.authority = new CustomAuthAuthority(
+            this.config.auth.authority,
+            this.customAuthConfig.customAuth?.authApiProxyUrl,
+        );
 
         const interactionClientFactory = new CustomAuthInterationClientFactory(
             this.customAuthConfig,
@@ -113,7 +128,9 @@ export class CustomAuthStandardController extends StandardController implements 
         if (!this.isUsernameValid(signInInputs.username)) {
             this.logger.error("Invalid username provided in sign-in inputs.");
 
-            return Promise.resolve(SignInResult.createWithError(new InvalidArgumentError("signUpInputs.username", correlationId)));
+            return Promise.resolve(
+                SignInResult.createWithError(new InvalidArgumentError("signUpInputs.username", correlationId)),
+            );
         }
 
         try {
@@ -186,7 +203,11 @@ export class CustomAuthStandardController extends StandardController implements 
 
                 this.logger.info("Sign-in flow completed.");
 
-                const accountInfo = new AccountInfo(completedResult.authenticationResult.account, correlationId, this.customAuthConfig);
+                const accountInfo = new AccountInfo(
+                    completedResult.authenticationResult.account,
+                    correlationId,
+                    this.customAuthConfig,
+                );
 
                 return new SignInResult(new SignInCompleted(), accountInfo);
             }
@@ -210,13 +231,17 @@ export class CustomAuthStandardController extends StandardController implements 
         const correlationId = this.getCorrelationId(signUpInputs);
 
         if (!this.isUsernameValid(signUpInputs.username)) {
-            return Promise.resolve(SignUpResult.createWithError(new InvalidArgumentError("signUpInputs.username", correlationId)));
+            return Promise.resolve(
+                SignUpResult.createWithError(new InvalidArgumentError("signUpInputs.username", correlationId)),
+            );
         }
 
         try {
             this.logger.info(
                 `Starting sign-up flow${
-                    !!signUpInputs.password ? ` with ${!!signUpInputs.attributes ? "password and attributes" : "password"}` : ""
+                    !!signUpInputs.password
+                        ? ` with ${!!signUpInputs.attributes ? "password and attributes" : "password"}`
+                        : ""
                 }.`,
             );
 
@@ -285,7 +310,9 @@ export class CustomAuthStandardController extends StandardController implements 
 
         if (!this.isUsernameValid(resetPasswordInputs.username)) {
             return Promise.resolve(
-                ResetPasswordStartResult.createWithError(new InvalidArgumentError("resetPasswordInputs.username", correlationId)),
+                ResetPasswordStartResult.createWithError(
+                    new InvalidArgumentError("resetPasswordInputs.username", correlationId),
+                ),
             );
         }
 

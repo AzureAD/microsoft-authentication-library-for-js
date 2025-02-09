@@ -16,9 +16,7 @@ export class ResetPasswordPasswordRequiredStateHandler extends ResetPasswordStat
      * @param password - The password to submit.
      * @returns The result of the operation.
      */
-    async sumbmitPassword(
-        password: string,
-    ): Promise<ResetPasswordSubmitPasswordResult> {
+    async sumbmitPassword(password: string): Promise<ResetPasswordSubmitPasswordResult> {
         if (!password) {
             return Promise.resolve(
                 ResetPasswordSubmitPasswordResult.createWithError(
