@@ -28,8 +28,7 @@ export class SignInCodeSendResult extends SignInContinuationTokenResult {
         public challengeChannel: string,
         public challengeTargetLabel: string,
         public codeLength: number,
-        public interval: number,
-        public challengeType: string,
+        public bindingMethod: string,
     ) {
         super(correlationId, continuationToken);
     }

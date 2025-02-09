@@ -20,37 +20,19 @@ import { AuthFlowStateBase } from "./AuthFlowStateBase.js";
 import { AuthFlowStateHandlerBase } from "./AuthFlowStateHandlerBase.js";
 
 export class AuthFlowStateHandlerFactory {
-    public static create(
-        state: SignInCodeRequired,
-    ): SignInCodeRequiredStateHandler;
-    public static create(
-        state: SignInPasswordRequired,
-    ): SignInPasswordRequiredStateHandler;
-    public static create(
-        state: SignUpCodeRequired,
-    ): SignUpCodeRequiredStateHandler;
-    public static create(
-        state: SignUpPasswordRequired,
-    ): SignUpPasswordRequiredStateHandler;
-    public static create(
-        state: SignUpAttributesRequired,
-    ): SignUpAttributesRequiredStateHandler;
-    public static create(
-        state: SignUpCompleted,
-    ): SignInContinuationStateHandler;
+    public static create(state: SignInCodeRequired): SignInCodeRequiredStateHandler;
+    public static create(state: SignInPasswordRequired): SignInPasswordRequiredStateHandler;
+    public static create(state: SignUpCodeRequired): SignUpCodeRequiredStateHandler;
+    public static create(state: SignUpPasswordRequired): SignUpPasswordRequiredStateHandler;
+    public static create(state: SignUpAttributesRequired): SignUpAttributesRequiredStateHandler;
+    public static create(state: SignUpCompleted): SignInContinuationStateHandler;
     public static create(state: AuthFlowStateBase): AuthFlowStateHandlerBase {
         if (!state.logger) {
-            throw new UnexpectedError(
-                "Logger is required when creating state handler",
-                state.correlationId,
-            );
+            throw new UnexpectedError("Logger is required when creating state handler", state.correlationId);
         }
 
         if (!state.config) {
-            throw new UnexpectedError(
-                "Configuration is required when creating state handler",
-                state.correlationId,
-            );
+            throw new UnexpectedError("Configuration is required when creating state handler", state.correlationId);
         }
 
         if (state instanceof SignInCodeRequired) {
@@ -62,7 +44,6 @@ export class AuthFlowStateHandlerFactory {
                 state.continuationToken ?? "",
                 state.config,
                 state.codeLength,
-                state.codeResendInterval,
                 state.scope,
             );
         }
@@ -129,9 +110,6 @@ export class AuthFlowStateHandlerFactory {
             );
         }
 
-        throw new UnexpectedError(
-            "Unsupported state type provided when creating state handler",
-            state.correlationId,
-        );
+        throw new UnexpectedError("Unsupported state type provided when creating state handler", state.correlationId);
     }
 }

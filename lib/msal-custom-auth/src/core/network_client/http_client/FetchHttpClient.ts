@@ -1,0 +1,65 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { Logger } from "@azure/msal-browser";
+import { HttpMethod, IHttpClient, RequestBody } from "./IHttpClient.js";
+import { FailedSendRequest, HttpError, NoNetworkConnectivity } from "../../error/HttpError.js";
+
+/**
+ * Implementation of IHttpClient using fetch.
+ */
+export class FetchHttpClient implements IHttpClient {
+    constructor(private logger: Logger) {}
+
+    async sendAsync(url: string | URL, options: RequestInit, correlationId: string): Promise<Response> {
+        try {
+            this.logger.trace(`Sending request to ${url}`, correlationId);
+
+            const startTime = performance.now();
+
+            const response = await fetch(url, options);
+
+            const endTime = performance.now();
+
+            this.logger.trace(
+                `Request to '${url}' completed in ${endTime - startTime}ms with status code ${response.status}`,
+                correlationId,
+            );
+
+            return response;
+        } catch (e) {
+            this.logger.error(`Failed to send request to ${url}: ${e}`, correlationId);
+
+            if (!window.navigator.onLine) {
+                throw new HttpError(NoNetworkConnectivity, `No network connectivity: ${e}`, correlationId);
+            }
+
+            throw new HttpError(FailedSendRequest, `Failed to send request: ${e}`, correlationId);
+        }
+    }
+
+    async post(url: string | URL, body: RequestBody, correlationId: string, headers: Record<string, string> = {}): Promise<Response> {
+        return this.sendAsync(
+            url,
+            {
+                method: HttpMethod.POST,
+                headers,
+                body,
+            },
+            correlationId,
+        );
+    }
+
+    async get(url: string | URL, correlationId: string, headers: Record<string, string> = {}): Promise<Response> {
+        return this.sendAsync(
+            url,
+            {
+                method: HttpMethod.GET,
+                headers,
+            },
+            correlationId,
+        );
+    }
+}

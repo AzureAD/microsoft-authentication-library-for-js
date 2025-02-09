@@ -18,18 +18,8 @@ export class SignInCodeRequired extends SignInActionRequiredState {
         signInClient: SignInClient,
         username: string,
         public codeLength: number,
-        public codeResendInterval: number,
         scope?: Array<string>,
     ) {
-        super(
-            SignInState.CodeRequired,
-            correlationId,
-            continuationToken,
-            logger,
-            config,
-            signInClient,
-            username,
-            scope,
-        );
+        super(SignInState.CodeRequired, correlationId, continuationToken, logger, config, signInClient, username, scope);
     }
 }

@@ -20,7 +20,7 @@ import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAut
 import { SignUpCodeRequired } from "../state/SignUpCodeRequired.js";
 import { SignUpPasswordRequired } from "../state/SignUpPasswordRequired.js";
 import { SignUpCompleted } from "../state/SignUpCompleted.js";
-import { UserAttribute } from "../../../core/network_client/types/UserAttributes.js";
+import { UserAttribute } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 
 /*
  * Sign-up handler used for the state of attributes required.
@@ -36,15 +36,7 @@ export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
         config: CustomAuthBrowserConfiguration,
         public requiredAttributes: Array<UserAttribute>,
     ) {
-        super(
-            username,
-            signUpClient,
-            signInClient,
-            correlationId,
-            logger,
-            continuationToken,
-            config,
-        );
+        super(username, signUpClient, signInClient, correlationId, logger, continuationToken, config);
     }
 
     /*
@@ -52,16 +44,12 @@ export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
      * @param attributes - The attributes to submit.
      * @returns The result of the operation.
      */
-    async submitAttributes(
-        attributes: UserAccountAttributes,
-    ): Promise<SignUpSubmitAttributesResult> {
+    async submitAttributes(attributes: UserAccountAttributes): Promise<SignUpSubmitAttributesResult> {
         if (!attributes || Object.keys(attributes.toRecord()).length === 0) {
             this.logger.error("Attributes are required for sign-up.");
 
             return Promise.resolve(
-                SignUpSubmitAttributesResult.createWithError(
-                    new InvalidArgumentError("attributes", this.correlationId),
-                ),
+                SignUpSubmitAttributesResult.createWithError(new InvalidArgumentError("attributes", this.correlationId)),
             );
         }
 
@@ -127,13 +115,9 @@ export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
                 );
             }
 
-            return SignUpSubmitAttributesResult.createWithError(
-                new UnexpectedError("Unknown sign-up result type."),
-            );
+            return SignUpSubmitAttributesResult.createWithError(new UnexpectedError("Unknown sign-up result type."));
         } catch (error) {
-            this.logger.error(
-                `Failed to submit attributes for sign up. Error: ${error}.`,
-            );
+            this.logger.error(`Failed to submit attributes for sign up. Error: ${error}.`);
 
             return SignUpSubmitAttributesResult.createWithError(error);
         }

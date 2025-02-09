@@ -24,31 +24,30 @@ jest.mock("../../../src/core/network_client/custom_auth_api/CustomAuthApiClient.
         initiate: jest.fn(),
         requestChallenge: jest.fn(),
         requestTokensWithPassword: jest.fn(),
-        requestTokensWithOTP: jest.fn(),
+        requestTokensWithOob: jest.fn(),
         signInWithContinuationToken: jest.fn(),
     };
     let signUpApiClient = {
         start: jest.fn(),
         requestChallenge: jest.fn(),
-        continue: jest.fn(),
+        continueWithCode: jest.fn(),
         continueWithPassword: jest.fn(),
         continueWithAttributes: jest.fn(),
     };
     let resetPasswordApiClient = {
-        startResetPassword: jest.fn(),
+        start: jest.fn(),
         requestChallenge: jest.fn(),
-        submitOTP: jest.fn(),
+        continueWithCode: jest.fn(),
         submitNewPassword: jest.fn(),
         pollCompletion: jest.fn(),
     };
-    const CustomAuthApiClient = jest.fn();
 
     // Set up the prototype or instance methods/properties
-    CustomAuthApiClient.prototype = {
-        signInApiClient,
-        signUpApiClient,
-        resetPasswordApiClient,
-    };
+    const CustomAuthApiClient = jest.fn().mockImplementation(() => ({
+        signInApi: signInApiClient,
+        signUpApi: signUpApiClient,
+        resetPasswordApi: resetPasswordApiClient,
+    }));
 
     const mockedApiClient = new CustomAuthApiClient();
     return { mockedApiClient, signInApiClient, signUpApiClient, resetPasswordApiClient };
@@ -87,15 +86,10 @@ describe("SignInClient", () => {
         } as unknown as jest.Mocked<ICrypto>;
 
         const mockEventHandler = {} as unknown as jest.Mocked<EventHandler>;
-        const mockNavigationClient =
-            {} as unknown as jest.Mocked<INavigationClient>;
-        const mockPerformanceClient =
-            {} as unknown as jest.Mocked<IPerformanceClient>;
+        const mockNavigationClient = {} as unknown as jest.Mocked<INavigationClient>;
+        const mockPerformanceClient = {} as unknown as jest.Mocked<IPerformanceClient>;
 
-        authority = new CustomAuthAuthority(
-            customAuthConfig.auth.authority ?? "",
-            customAuthConfig.customAuth.authApiProxyUrl,
-        );
+        authority = new CustomAuthAuthority(customAuthConfig.auth.authority ?? "", customAuthConfig.customAuth.authApiProxyUrl);
 
         const mockLogger = {
             clone: jest.fn(),
@@ -179,7 +173,7 @@ describe("SignInClient", () => {
 
     describe("submitCode", () => {
         it("should return SignInCompleteResult for valid code", async () => {
-            signInApiClient.requestTokensWithOTP.mockResolvedValue({
+            signInApiClient.requestTokensWithOob.mockResolvedValue({
                 correlation_id: "test-correlation-id",
                 access_token: "test-access-token",
                 refresh_token: "test-refresh-token",

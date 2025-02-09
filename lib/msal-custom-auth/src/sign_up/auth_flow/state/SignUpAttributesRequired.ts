@@ -9,7 +9,7 @@ import { SignUpActionRequiredState } from "./SignUpActionRequiredState.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { SignUpClient } from "../../interaction_client/SignUpClient.js";
 import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
-import { UserAttribute } from "../../../core/network_client/types/UserAttributes.js";
+import { UserAttribute } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 
 export class SignUpAttributesRequired extends SignUpActionRequiredState {
     constructor(
@@ -22,15 +22,6 @@ export class SignUpAttributesRequired extends SignUpActionRequiredState {
         username: string,
         public requiredAttributes: Array<UserAttribute>,
     ) {
-        super(
-            SignUpState.AttributesRequired,
-            correlationId,
-            continuationToken,
-            logger,
-            config,
-            signInClient,
-            signUpClient,
-            username,
-        );
+        super(SignUpState.AttributesRequired, correlationId, continuationToken, logger, config, signInClient, signUpClient, username);
     }
 }

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { UserAttribute } from "../../../core/network_client/types/UserAttributes.js";
+import { UserAttribute } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 
 class SignUpResultBase {
     constructor(
@@ -24,6 +24,7 @@ export class SignUpCodeRequiredResult extends SignUpResultBase {
         public challengeTargetLabel: string,
         public codeLength: number,
         public interval: number,
+        public bindingMethod: string,
     ) {
         super(correlationId, continuationToken);
     }

@@ -20,6 +20,7 @@ export const CustomAuthApiErrorCode = {
     CREDENTIAL_REQUIRED: "credential_required",
     ATTRIBUTES_REQUIRED: "attributes_required",
     USER_ALREADY_EXISTS: "user_already_exists",
+    INVALID_POLL_STATUS: "invalid_poll_status",
 };
 
 export const CustomAuthApiSuberror = {
@@ -34,11 +35,6 @@ export const CustomAuthApiSuberror = {
     NATIVEAUTHAPI_DISABLED: "nativeauthapi_disabled",
 };
 
-export enum GenericErrorType {
-    UNKNOWN_ERROR = "unknown_error",
-    INVALID_JSON_RESPONSE = "invalid_json_response",
-}
-
 export interface InvalidAttribute {
     name: string;
     reason: string;
@@ -50,10 +46,23 @@ export interface InvalidAttribute {
 export interface ApiErrorResponse {
     error: string;
     error_description: string;
-    error_codes: number[];
-    timestamp: string;
-    trace_id: string;
     correlation_id: string;
+    error_codes?: number[];
     suberror?: string;
-    invalid_attributes?: InvalidAttribute[];
+    continuation_token?: string;
+    timestamp?: string;
+    trace_id?: string;
+    required_attributes?: Array<UserAttribute>;
+    invalid_attributes?: Array<UserAttribute>;
+}
+
+export interface UserAttribute {
+    name: string;
+    type?: string;
+    required?: boolean;
+    options?: UserAttributeOption;
+}
+
+export interface UserAttributeOption {
+    regex?: string;
 }

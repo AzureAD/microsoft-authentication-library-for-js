@@ -13,13 +13,8 @@ describe("CustomAuthAuthority", () => {
         });
 
         it("should correctly store the customAuthProxyDomain when provided", () => {
-            const customAuthAuthority = new CustomAuthAuthority(
-                authorityUrl,
-                customAuthProxyDomain,
-            );
-            expect(customAuthAuthority["customAuthProxyDomain"]).toBe(
-                customAuthProxyDomain,
-            );
+            const customAuthAuthority = new CustomAuthAuthority(authorityUrl, customAuthProxyDomain);
+            expect(customAuthAuthority["customAuthProxyDomain"]).toBe(customAuthProxyDomain);
         });
     });
 
@@ -38,20 +33,15 @@ describe("CustomAuthAuthority", () => {
 
     describe("getCustomAuthDomain", () => {
         it("should return the customAuthProxyDomain when provided", () => {
-            const customAuthAuthority = new CustomAuthAuthority(
-                authorityUrl,
-                customAuthProxyDomain,
-            );
-            expect(customAuthAuthority.getCustomAuthDomain()).toBe(
-                customAuthProxyDomain,
-            );
+            const customAuthAuthority = new CustomAuthAuthority(authorityUrl, customAuthProxyDomain);
+            expect(customAuthAuthority.getCustomAuthApiDomain()).toBe(customAuthProxyDomain);
         });
 
         it("should generate the auth API domain based on the authority URL when customAuthProxyDomain is not provided", () => {
             const customAuthAuthority = new CustomAuthAuthority(authorityUrl);
             const expectedDomain = `${customAuthAuthority.getTenant()}${Constants.AAD_TENANT_DOMAIN_SUFFIX}`;
             const expectedUrl = new URL(expectedDomain, authorityUrl).href;
-            expect(customAuthAuthority.getCustomAuthDomain()).toBe(expectedUrl);
+            expect(customAuthAuthority.getCustomAuthApiDomain()).toBe(expectedUrl);
         });
     });
 });

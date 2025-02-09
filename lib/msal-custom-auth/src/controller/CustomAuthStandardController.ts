@@ -7,18 +7,9 @@ import { StandardController } from "@azure/msal-browser";
 import { GetAccountResult } from "../account/auth_flow/result/GetAccountResult.js";
 import { SignInResult } from "../sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "../sign_up/auth_flow/result/SignUpResult.js";
-import {
-    SignInStartParams,
-    SignInSubmitPasswordParams,
-} from "../sign_in/interaction_client/parameter/SignInParams.js";
+import { SignInStartParams, SignInSubmitPasswordParams } from "../sign_in/interaction_client/parameter/SignInParams.js";
 import { SignInClient } from "../sign_in/interaction_client/SignInClient.js";
-import {
-    GetAccountInputs,
-    SignInInputs,
-    SignUpInputs,
-    ResetPasswordInputs,
-    CustomAuthActionInputs,
-} from "../CustomAuthActionInputs.js";
+import { GetAccountInputs, SignInInputs, SignUpInputs, ResetPasswordInputs, CustomAuthActionInputs } from "../CustomAuthActionInputs.js";
 import { CustomAuthBrowserConfiguration } from "../configuration/CustomAuthConfiguration.js";
 import { CustomAuthOperatingContext } from "../operating_context/CustomAuthOperatingContext.js";
 import { ICustomAuthStandardController } from "./ICustomAuthStandardController.js";
@@ -38,10 +29,8 @@ import { SignInCodeRequired } from "../sign_in/auth_flow/state/SignInCodeRequire
 import { SignInPasswordRequired } from "../sign_in/auth_flow/state/SignInPasswordRequired.js";
 import { SignInCompleted } from "../sign_in/auth_flow/state/SignInCompleted.js";
 import { ICustomAuthApiClient } from "../core/network_client/custom_auth_api/ICustomAuthApiClient.js";
-import { SingInApiClient } from "../core/network_client/SingInApiClient.js";
-import { SignupApiClient } from "../core/network_client/SignupApiClient.js";
-import { ResetPasswordApiClient } from "../core/network_client/ResetPasswordApiClient.js";
 import { CustomAuthApiClient } from "../core/network_client/custom_auth_api/CustomAuthApiClient.js";
+import { FetchHttpClient } from "../core/network_client/http_client/FetchHttpClient.js";
 
 /*
  * Controller for standard native auth operations.
@@ -79,9 +68,6 @@ export class CustomAuthStandardController extends StandardController implements 
         this.customAuthConfig = operatingContext.getCustomAuthConfig();
         this.authority = new CustomAuthAuthority(this.config.auth.authority, this.customAuthConfig.customAuth?.authApiProxyUrl);
 
-        const signinApiClient = new SingInApiClient(this.config.auth.clientId, this.config.auth.authority, this.logger);
-        const signUpApiClient = new SignupApiClient(this.config.auth.clientId, this.config.auth.authority, this.logger);
-        const resetpwdApiClient = new ResetPasswordApiClient(this.config.auth.clientId, this.config.auth.authority, this.logger);
         const interactionClientFactory = new CustomAuthInterationClientFactory(
             this.customAuthConfig,
             this.browserStorage,
@@ -90,7 +76,12 @@ export class CustomAuthStandardController extends StandardController implements 
             this.eventHandler,
             this.navigationClient,
             this.performanceClient,
-            customAuthApiClient ?? new CustomAuthApiClient(signinApiClient, signUpApiClient, resetpwdApiClient),
+            customAuthApiClient ??
+                new CustomAuthApiClient(
+                    this.authority.getCustomAuthApiDomain(),
+                    this.config.auth.clientId,
+                    new FetchHttpClient(this.logger),
+                ),
             this.authority,
         );
 
@@ -155,7 +146,6 @@ export class CustomAuthStandardController extends StandardController implements 
                         this.signInClient,
                         signInInputs.username,
                         startResult.codeLength,
-                        startResult.interval,
                         signInInputs.scopes ?? [],
                     ),
                 );

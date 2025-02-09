@@ -7,10 +7,7 @@ import { Logger } from "@azure/msal-browser";
 import { AccountInfo } from "../../../account/auth_flow/model/AccountInfo.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
-import {
-    SignInResendCodeParams,
-    SignInSubmitCodeParams,
-} from "../../interaction_client/parameter/SignInParams.js";
+import { SignInResendCodeParams, SignInSubmitCodeParams } from "../../interaction_client/parameter/SignInParams.js";
 import { SignInClient } from "../../interaction_client/SignInClient.js";
 import { SignInResendCodeResult } from "../result/SignInResendCodeResult.js";
 import { SignInSubmitCodeResult } from "../result/SignInSubmitCodeResult.js";
@@ -30,17 +27,9 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
         continuationToken: string,
         config: CustomAuthBrowserConfiguration,
         public codeLength: number,
-        public codeResendInterval: number,
         public scopes?: string[],
     ) {
-        super(
-            username,
-            signInClient,
-            correlationId,
-            logger,
-            continuationToken,
-            config,
-        );
+        super(username, signInClient, correlationId, logger, continuationToken, config);
     }
 
     /*
@@ -52,9 +41,7 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
         if (!code) {
             this.logger.error("Code parameter is required for sign-in.");
 
-            const result = SignInSubmitCodeResult.createWithError(
-                new InvalidArgumentError("code", this.correlationId),
-            );
+            const result = SignInSubmitCodeResult.createWithError(new InvalidArgumentError("code", this.correlationId));
 
             return Promise.resolve(result);
         }
@@ -72,25 +59,15 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
 
             this.logger.info("Submitting code for sign-in.");
 
-            const completedResult =
-                await this.signInClient.submitCode(submitCodeParams);
+            const completedResult = await this.signInClient.submitCode(submitCodeParams);
 
             this.logger.info("Code submitted for sign-in.");
 
-            const accountManager = new AccountInfo(
-                completedResult.authenticationResult.account,
-                this.correlationId,
-                this.config,
-            );
+            const accountManager = new AccountInfo(completedResult.authenticationResult.account, this.correlationId, this.config);
 
-            return new SignInSubmitCodeResult(
-                new SignInCompleted(),
-                accountManager,
-            );
+            return new SignInSubmitCodeResult(new SignInCompleted(), accountManager);
         } catch (error) {
-            this.logger.error(
-                `Failed to submit code for sign-in. Error: ${error}.`,
-            );
+            this.logger.error(`Failed to submit code for sign-in. Error: ${error}.`);
 
             return SignInSubmitCodeResult.createWithError(error);
         }
@@ -126,7 +103,6 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
                     this.signInClient,
                     this.username,
                     result.codeLength,
-                    result.interval,
                     this.scopes ?? [],
                 ),
             );

@@ -14,7 +14,6 @@ import { SignUpClient } from "../../../../src/sign_up/interaction_client/SignUpC
 import { Logger } from "@azure/msal-browser";
 import { SignUpState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
-import { UserAttribute } from "../../../../src/core/network_client/types/UserAttributes.js";
 
 describe("SignUpCodeRequiredStateHandler", () => {
     const mockConfig = {
@@ -65,16 +64,12 @@ describe("SignUpCodeRequiredStateHandler", () => {
             expect(result.state?.type).toBe(SignUpState.Failed);
             expect(result.error).toBeInstanceOf(SignUpSubmitCodeError);
             expect(result.error?.isInvalidCode()).toBe(true);
-            expect(result.error?.errorData).toBeInstanceOf(
-                InvalidArgumentError,
-            );
+            expect(result.error?.errorData).toBeInstanceOf(InvalidArgumentError);
             expect(result.error?.errorData?.errorDescription).toContain("code");
         });
 
         it("should successfully submit a code and return completed state if no credentail required", async () => {
-            mockSignUpClient.submitCode.mockResolvedValue(
-                new SignUpCompletedResult(correlationId, "continuation-token"),
-            );
+            mockSignUpClient.submitCode.mockResolvedValue(new SignUpCompletedResult(correlationId, "continuation-token"));
 
             const result = await handler.submitCode("valid-code");
 
@@ -92,12 +87,7 @@ describe("SignUpCodeRequiredStateHandler", () => {
         });
 
         it("should successfully submit a code and return password-required state if password is required", async () => {
-            mockSignUpClient.submitCode.mockResolvedValue(
-                new SignUpPasswordRequiredResult(
-                    correlationId,
-                    "continuation-token",
-                ),
-            );
+            mockSignUpClient.submitCode.mockResolvedValue(new SignUpPasswordRequiredResult(correlationId, "continuation-token"));
 
             const result = await handler.submitCode("valid-code");
 
@@ -116,11 +106,12 @@ describe("SignUpCodeRequiredStateHandler", () => {
 
         it("should successfully submit a code and return attributes-required state if attributes are required", async () => {
             mockSignUpClient.submitCode.mockResolvedValue(
-                new SignUpAttributesRequiredResult(
-                    correlationId,
-                    "continuation-token",
-                    [new UserAttribute("test-attribute", "test-value")],
-                ),
+                new SignUpAttributesRequiredResult(correlationId, "continuation-token", [
+                    {
+                        name: "name",
+                        type: "string",
+                    },
+                ]),
             );
 
             const result = await handler.submitCode("valid-code");
@@ -142,14 +133,7 @@ describe("SignUpCodeRequiredStateHandler", () => {
     describe("resendCode", () => {
         it("should successfully resend a code and return a code required state", async () => {
             mockSignUpClient.resendCode.mockResolvedValue(
-                new SignUpCodeRequiredResult(
-                    correlationId,
-                    "new-continuation-token",
-                    "code",
-                    "email",
-                    6,
-                    60,
-                ),
+                new SignUpCodeRequiredResult(correlationId, "new-continuation-token", "code", "email", 6, 60, "email-otp"),
             );
 
             const result = await handler.resendCode();

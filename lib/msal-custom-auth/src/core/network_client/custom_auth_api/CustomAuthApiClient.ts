@@ -3,19 +3,20 @@
  * Licensed under the MIT License.
  */
 
-import { ResetPasswordApiClient } from "../ResetPasswordApiClient.js";
-import { SignupApiClient } from "../SignupApiClient.js";
-import { SingInApiClient } from "../SingInApiClient.js";
+import { ResetPasswordApiClient } from "./ResetPasswordApiClient.js";
+import { SignupApiClient } from "./SignupApiClient.js";
+import { SignInApiClient } from "./SignInApiClient.js";
 import { ICustomAuthApiClient } from "./ICustomAuthApiClient.js";
+import { IHttpClient } from "../http_client/IHttpClient.js";
 
 export class CustomAuthApiClient implements ICustomAuthApiClient {
-    signInApiClient: SingInApiClient;
-    signUpApiClient: SignupApiClient;
-    resetPasswordApiClient: ResetPasswordApiClient;
+    signInApi: SignInApiClient;
+    signUpApi: SignupApiClient;
+    resetPasswordApi: ResetPasswordApiClient;
 
-    constructor(signInApiClient: SingInApiClient, signUpApiClient: SignupApiClient, resetPasswordApiClient: ResetPasswordApiClient) {
-        this.signInApiClient = signInApiClient;
-        this.signUpApiClient = signUpApiClient;
-        this.resetPasswordApiClient = resetPasswordApiClient;
+    constructor(customAuthApiBaseUrl: string, clientId: string, httpClient: IHttpClient) {
+        this.signInApi = new SignInApiClient(customAuthApiBaseUrl, clientId, httpClient);
+        this.signUpApi = new SignupApiClient(customAuthApiBaseUrl, clientId, httpClient);
+        this.resetPasswordApi = new ResetPasswordApiClient(customAuthApiBaseUrl, clientId, httpClient);
     }
 }

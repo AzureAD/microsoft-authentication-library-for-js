@@ -19,38 +19,36 @@ import {
     SignUpPasswordRequiredResult,
 } from "../../../src/sign_up/interaction_client/result/SignUpActionResult.js";
 import { CustomAuthApiError } from "../../../src/index.js";
-import { UserAttribute } from "../../../src/core/network_client/types/UserAttributes.js";
-import { CustomAuthApiErrorCode } from "../../../src/core/network_client/types/ApiErrorResponseTypes.js";
+import { CustomAuthApiErrorCode } from "../../../src/core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 
 jest.mock("../../../src/core/network_client/custom_auth_api/CustomAuthApiClient.js", () => {
     let signInApiClient = {
         initiate: jest.fn(),
         requestChallenge: jest.fn(),
         requestTokensWithPassword: jest.fn(),
-        requestTokensWithOTP: jest.fn(),
+        requestTokensWithOob: jest.fn(),
+        signInWithContinuationToken: jest.fn(),
     };
     let signUpApiClient = {
         start: jest.fn(),
         requestChallenge: jest.fn(),
-        continue: jest.fn(),
+        continueWithCode: jest.fn(),
         continueWithPassword: jest.fn(),
         continueWithAttributes: jest.fn(),
     };
     let resetPasswordApiClient = {
-        startResetPassword: jest.fn(),
+        start: jest.fn(),
         requestChallenge: jest.fn(),
-        submitOTP: jest.fn(),
+        continueWithCode: jest.fn(),
         submitNewPassword: jest.fn(),
         pollCompletion: jest.fn(),
     };
-    const CustomAuthApiClient = jest.fn();
 
-    // Set up the prototype or instance methods/properties
-    CustomAuthApiClient.prototype = {
-        signInApiClient,
-        signUpApiClient,
-        resetPasswordApiClient,
-    };
+    const CustomAuthApiClient = jest.fn().mockImplementation(() => ({
+        signInApi: signInApiClient,
+        signUpApi: signUpApiClient,
+        resetPasswordApi: resetPasswordApiClient,
+    }));
 
     const mockedApiClient = new CustomAuthApiClient();
     return { mockedApiClient, signInApiClient, signUpApiClient, resetPasswordApiClient };
@@ -120,10 +118,10 @@ describe("SignUpClient", () => {
 
     describe("start", () => {
         it("should return SignUpCodeRequiredResult when challenge type is OOB", async () => {
-            mockedApiClient.signUpApiClient.start.mockResolvedValue({
+            signUpApiClient.start.mockResolvedValue({
                 continuation_token: "continuation_token_1",
             });
-            mockedApiClient.signUpApiClient.requestChallenge.mockResolvedValue({
+            signUpApiClient.requestChallenge.mockResolvedValue({
                 challenge_type: ChallengeType.OOB,
                 correlation_id: "corr123",
                 continuation_token: "continuation_token_2",
@@ -173,7 +171,7 @@ describe("SignUpClient", () => {
 
     describe("submitCode", () => {
         it("should return SignUpCompletedResult for valid code", async () => {
-            signUpApiClient.continue.mockResolvedValue({
+            signUpApiClient.continueWithCode.mockResolvedValue({
                 continuation_token: "continuation_token_2",
             });
 
@@ -192,7 +190,7 @@ describe("SignUpClient", () => {
         });
 
         it("should return SignUpPasswordRequiredResult if password is required", async () => {
-            signUpApiClient.continue.mockRejectedValue(
+            signUpApiClient.continueWithCode.mockRejectedValue(
                 new CustomAuthApiError(
                     CustomAuthApiErrorCode.CREDENTIAL_REQUIRED,
                     "Password required",
@@ -223,16 +221,16 @@ describe("SignUpClient", () => {
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
 
-            expect(mockedApiClient.signUpApiClient.requestChallenge).toHaveBeenCalledWith(
+            expect(signUpApiClient.requestChallenge).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
-                    continuation_token: "continuation_token_1"
+                    continuation_token: "continuation_token_1",
                 }),
             );
         });
 
         it("should throw error if credential is required but challenge type password isn't supported", async () => {
-            signUpApiClient.continue.mockRejectedValue(
+            signUpApiClient.continueWithCode.mockRejectedValue(
                 new CustomAuthApiError(
                     CustomAuthApiErrorCode.CREDENTIAL_REQUIRED,
                     "Password required",
@@ -268,20 +266,25 @@ describe("SignUpClient", () => {
             expect(signUpApiClient.requestChallenge).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
-                    continuation_token: "continuation_token_1"
+                    continuation_token: "continuation_token_1",
                 }),
             );
         });
 
         it("should return SignUpAttributesRequiredResult if attributes are required", async () => {
-            signUpApiClient.continue.mockRejectedValue(
+            signUpApiClient.continueWithCode.mockRejectedValue(
                 new CustomAuthApiError(
                     CustomAuthApiErrorCode.ATTRIBUTES_REQUIRED,
                     "User attributes required",
                     "corr123",
                     [55106],
                     undefined,
-                    [new UserAttribute("test-attribute", "test-value", true)],
+                    [
+                        {
+                            name: "name",
+                            type: "string",
+                        },
+                    ],
                     "continuation_token_1",
                 ),
             );
@@ -359,7 +362,7 @@ describe("SignUpClient", () => {
             expect(signUpApiClient.requestChallenge).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
-                    continuation_token: "continuation_token_1"
+                    continuation_token: "continuation_token_1",
                 }),
             );
         });
@@ -372,7 +375,12 @@ describe("SignUpClient", () => {
                     "corr123",
                     [55106],
                     undefined,
-                    [new UserAttribute("name", "string", true)],
+                    [
+                        {
+                            name: "name",
+                            type: "string",
+                        },
+                    ],
                     "continuation_token_1",
                 ),
             );
@@ -450,7 +458,7 @@ describe("SignUpClient", () => {
             expect(signUpApiClient.requestChallenge).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
-                    continuation_token: "continuation_token_1"
+                    continuation_token: "continuation_token_1",
                 }),
             );
         });
@@ -490,7 +498,7 @@ describe("SignUpClient", () => {
             expect(signUpApiClient.requestChallenge).toHaveBeenCalledWith(
                 expect.objectContaining({
                     correlationId: "corr123",
-                    continuation_token: "continuation_token_1"
+                    continuation_token: "continuation_token_1",
                 }),
             );
         });
@@ -503,7 +511,12 @@ describe("SignUpClient", () => {
                     "corr123",
                     [55106],
                     undefined,
-                    [new UserAttribute("name", "string", true)],
+                    [
+                        {
+                            name: "name",
+                            type: "string",
+                        },
+                    ],
                     "continuation_token_1",
                 ),
             );
@@ -523,7 +536,12 @@ describe("SignUpClient", () => {
                 correlationId: "corr123",
                 errorCodes: [],
                 subError: "",
-                attributes: [new UserAttribute("name", "string", true)],
+                attributes: [
+                    {
+                        name: "name",
+                        type: "string",
+                    },
+                ],
                 continuationToken: "continuation_token_1",
             });
         });

@@ -14,7 +14,6 @@ import { Logger } from "@azure/msal-browser";
 import { SignUpState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { UserAccountAttributes } from "../../../../src/UserAccountAttributes.js";
-import { UserAttribute } from "../../../../src/core/network_client/types/UserAttributes.js";
 
 describe("SignUpAttributesRequiredStateHandler", () => {
     const mockConfig = {
@@ -50,7 +49,12 @@ describe("SignUpAttributesRequiredStateHandler", () => {
             mockLogger,
             continuationToken,
             mockConfig,
-            [new UserAttribute("test-attribute", "test-value")],
+            [
+                {
+                    name: "name",
+                    type: "string",
+                },
+            ],
         );
     });
 
@@ -60,17 +64,13 @@ describe("SignUpAttributesRequiredStateHandler", () => {
 
     describe("submitAttributes", () => {
         it("should return an error result if attributes is empty", async () => {
-            const result1 = await handler.submitAttributes(
-                null as unknown as UserAccountAttributes,
-            );
+            const result1 = await handler.submitAttributes(null as unknown as UserAccountAttributes);
 
             expect(result1.state?.type).toBe(SignUpState.Failed);
             expect(result1.error).toBeInstanceOf(SignUpSubmitAttributesError);
             expect(result1.error?.isAttributesValidationFailed()).toBe(true);
 
-            const result2 = await handler.submitAttributes(
-                new UserAccountAttributes(),
-            );
+            const result2 = await handler.submitAttributes(new UserAccountAttributes());
 
             expect(result2.state?.type).toBe(SignUpState.Failed);
             expect(result2.error).toBeInstanceOf(SignUpSubmitAttributesError);
@@ -78,9 +78,7 @@ describe("SignUpAttributesRequiredStateHandler", () => {
         });
 
         it("should successfully submit a attributes and return completed state if no credentail required", async () => {
-            mockSignUpClient.submitAttributes.mockResolvedValue(
-                new SignUpCompletedResult(correlationId, "continuation-token"),
-            );
+            mockSignUpClient.submitAttributes.mockResolvedValue(new SignUpCompletedResult(correlationId, "continuation-token"));
 
             const result = await handler.submitAttributes(requiredAttributes);
 
@@ -99,14 +97,7 @@ describe("SignUpAttributesRequiredStateHandler", () => {
 
         it("should successfully submit a attributes and return code-required state if code is required", async () => {
             mockSignUpClient.submitAttributes.mockResolvedValue(
-                new SignUpCodeRequiredResult(
-                    correlationId,
-                    "continuation-token",
-                    "code",
-                    "email",
-                    6,
-                    60,
-                ),
+                new SignUpCodeRequiredResult(correlationId, "continuation-token", "code", "email", 6, 60, "email-otp"),
             );
 
             const result = await handler.submitAttributes(requiredAttributes);
@@ -125,12 +116,7 @@ describe("SignUpAttributesRequiredStateHandler", () => {
         });
 
         it("should successfully submit a attributes and return password-required state if password is required", async () => {
-            mockSignUpClient.submitAttributes.mockResolvedValue(
-                new SignUpPasswordRequiredResult(
-                    correlationId,
-                    "continuation-token",
-                ),
-            );
+            mockSignUpClient.submitAttributes.mockResolvedValue(new SignUpPasswordRequiredResult(correlationId, "continuation-token"));
 
             const result = await handler.submitAttributes(requiredAttributes);
 

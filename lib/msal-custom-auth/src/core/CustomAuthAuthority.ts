@@ -33,16 +33,13 @@ export class CustomAuthAuthority {
      * We need to generate the endpoint manually based on the authority URL.
      * @returns The custom auth endpoint
      */
-    getCustomAuthDomain(): string {
+    getCustomAuthApiDomain(): string {
         /*
          * The customAuthProxyDomain is used to resolve the CORS issue when calling the auth APIs.
          * If the customAuthProxyDomain is not provided, we will generate the auth API domain based on the authority URL.
          */
         const authApiDomain = !this.customAuthProxyDomain
-            ? new URL(
-                  `${this.getTenant()}${Constants.AAD_TENANT_DOMAIN_SUFFIX}`,
-                  this.authorityUrl.href,
-              ).href
+            ? new URL(`${this.getTenant()}${Constants.AAD_TENANT_DOMAIN_SUFFIX}`, this.authorityUrl.href).href
             : this.customAuthProxyDomain;
 
         return authApiDomain;

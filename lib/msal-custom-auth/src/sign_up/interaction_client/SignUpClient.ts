@@ -5,7 +5,7 @@
 
 import { ServerTelemetryManager } from "@azure/msal-browser";
 import { CustomAuthApiError } from "../../core/error/CustomAuthApiError.js";
-import { CustomAuthApiErrorCode } from "../../core/network_client/types/ApiErrorResponseTypes.js";
+import { CustomAuthApiErrorCode } from "../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 import { UnexpectedError } from "../../core/error/UnexpectedError.js";
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
 import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
@@ -26,16 +26,13 @@ import {
     SignUpPasswordRequiredResult,
 } from "./result/SignUpActionResult.js";
 import {
-    PasswordChallengeResponse,
     SignUpChallengeRequest,
-    SignUpChallengeResponse,
-    SignUpContinueRequest,
-    SignUpContinueResponse,
+    SignUpContinueWithAttributesRequest,
+    SignUpContinueWithOobRequest,
     SignUpContinueWithPasswordRequest,
     SignUpStartRequest,
-    SignUpSubmitUserAttributesRequest,
-} from "../../core/network_client/types/SignUpApiTypes.js";
-import { GrantType } from "../../core/network_client/types/BaseApiTypes.js";
+} from "../../core/network_client/custom_auth_api/types/ApiRequestTypes.js";
+import { SignUpContinueResponse } from "../../core/network_client/custom_auth_api/types/ApiResponseTypes.js";
 
 export class SignUpClient extends CustomAuthInteractionClientBase {
     /**
@@ -48,8 +45,8 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
         const apiId = !parameters.password ? PublicApiId.SIGN_UP_START : PublicApiId.SIGN_UP_WITH_PASSWORD_START;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
+
         const startRequest: SignUpStartRequest = {
-            client_id: parameters.clientId,
             username: parameters.username,
             password: parameters.password,
             attributes: parameters.attributes,
@@ -60,12 +57,11 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
         this.logger.info("Calling start endpoint for sign up.");
 
-        const startResponse = await this.customAuthApiClient.signUpApiClient.start(startRequest);
+        const startResponse = await this.customAuthApiClient.signUpApi.start(startRequest);
 
         this.logger.info("Start endpoint called for sign up.");
 
         const challengeRequest: SignUpChallengeRequest = {
-            client_id: parameters.clientId,
             continuation_token: startResponse.continuation_token ?? "",
             challenge_type: parameters.challengeType.join(" "),
             telemetryManager,
@@ -87,10 +83,9 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
         const apiId = PublicApiId.SIGN_UP_SUBMIT_CODE;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
-        const requestSubmitCode: SignUpContinueRequest = {
-            client_id: parameters.clientId,
+
+        const requestSubmitCode: SignUpContinueWithOobRequest = {
             continuation_token: parameters.continuationToken,
-            grant_type: GrantType.OOB,
             oob: parameters.code,
             telemetryManager,
             correlationId: parameters.correlationId,
@@ -100,7 +95,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             "SignUpClient.submitCode",
             parameters,
             telemetryManager,
-            () => this.customAuthApiClient.signUpApiClient.continue(requestSubmitCode),
+            () => this.customAuthApiClient.signUpApi.continueWithCode(requestSubmitCode),
             parameters.correlationId,
         );
 
@@ -129,18 +124,17 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
 
         const requestSubmitPwd: SignUpContinueWithPasswordRequest = {
-            client_id: parameter.clientId,
             continuation_token: parameter.continuationToken,
-            grant_type: GrantType.PASSWORD,
             password: parameter.password,
             telemetryManager,
             correlationId: parameter.correlationId,
         };
+
         const result = await this.performContinueRequest(
             "SignUpClient.submitPassword",
             parameter,
             telemetryManager,
-            () => this.customAuthApiClient.signUpApiClient.continueWithPassword(requestSubmitPwd),
+            () => this.customAuthApiClient.signUpApi.continueWithPassword(requestSubmitPwd),
             parameter.correlationId,
         );
 
@@ -167,10 +161,8 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
         const apiId = PublicApiId.SIGN_UP_SUBMIT_ATTRIBUTES;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
-        const reqWithAttr: SignUpSubmitUserAttributesRequest = {
-            client_id: parameter.clientId,
+        const reqWithAttr: SignUpContinueWithAttributesRequest = {
             continuation_token: parameter.continuationToken,
-            grant_type: GrantType.OOB,
             attributes: parameter.attributes,
             telemetryManager,
             correlationId: parameter.correlationId,
@@ -180,7 +172,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             "SignUpClient.submitAttributes",
             parameter,
             telemetryManager,
-            () => this.customAuthApiClient.signUpApiClient.continueWithAttributes(reqWithAttr),
+            () => this.customAuthApiClient.signUpApi.continueWithAttributes(reqWithAttr),
             parameter.correlationId,
         );
 
@@ -209,8 +201,8 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
         const apiId = PublicApiId.SIGN_UP_RESEND_CODE;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
+
         const challengeRequest: SignUpChallengeRequest = {
-            client_id: parameters.clientId,
             continuation_token: parameters.continuationToken ?? "",
             challenge_type: parameters.challengeType.join(" "),
             telemetryManager,
@@ -235,29 +227,30 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
     ): Promise<SignUpPasswordRequiredResult | SignUpCodeRequiredResult> {
         this.logger.info("Calling challenge endpoint for sign up.");
 
-        const challengeResponse = await this.customAuthApiClient.signUpApiClient.requestChallenge(request);
+        const challengeResponse = await this.customAuthApiClient.signUpApi.requestChallenge(request);
 
         this.logger.info("Challenge endpoint called for sign up.");
 
         if (challengeResponse.challenge_type === ChallengeType.OOB) {
             // Code is required
             this.logger.info("Challenge type is oob for sign up.");
-            const challenge = challengeResponse as SignUpChallengeResponse;
+
             return new SignUpCodeRequiredResult(
                 challengeResponse.correlation_id,
-                challenge.continuation_token ?? "",
-                challenge.challenge_channel ?? "",
-                challenge.challenge_target_label ?? "",
-                challenge.code_length ?? 0,
-                challenge.interval ?? 0,
+                challengeResponse.continuation_token ?? "",
+                challengeResponse.challenge_channel ?? "",
+                challengeResponse.challenge_target_label ?? "",
+                challengeResponse.code_length ?? 8,
+                challengeResponse.interval ?? 300,
+                challengeResponse.binding_method ?? "",
             );
         }
 
         if (challengeResponse.challenge_type === ChallengeType.PASSWORD) {
             // Password is required
             this.logger.info("Challenge type is password for sign up.");
-            const challenge = challengeResponse as PasswordChallengeResponse;
-            return new SignUpPasswordRequiredResult(challengeResponse.correlation_id, challenge.continuation_token ?? "");
+
+            return new SignUpPasswordRequiredResult(challengeResponse.correlation_id, challengeResponse.continuation_token ?? "");
         }
 
         this.logger.error(`Unsupported challenge type '${challengeResponse.challenge_type}' for sign up.`);
@@ -318,7 +311,6 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
             // Call the challenge endpoint to ensure the password challenge type is supported.
             const challengeRequest: SignUpChallengeRequest = {
-                client_id: requestParams.clientId,
                 continuation_token: continuationToken,
                 challenge_type: requestParams.challengeType.join(" "),
                 telemetryManager,
@@ -339,6 +331,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
                     challengeResult.challengeTargetLabel,
                     challengeResult.codeLength,
                     challengeResult.interval,
+                    challengeResult.bindingMethod,
                 );
             }
 

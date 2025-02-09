@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { ResetPasswordApiClient } from "../ResetPasswordApiClient.js";
-import { SignupApiClient } from "../SignupApiClient.js";
-import { SingInApiClient } from "../SingInApiClient.js";
+import { ResetPasswordApiClient } from "./ResetPasswordApiClient.js";
+import { SignupApiClient } from "./SignupApiClient.js";
+import { SignInApiClient } from "./SignInApiClient.js";
 export interface ICustomAuthApiClient {
-    signInApiClient: SingInApiClient;
-    signUpApiClient: SignupApiClient;
-    resetPasswordApiClient: ResetPasswordApiClient;
+    signInApi: SignInApiClient;
+    signUpApi: SignupApiClient;
+    resetPasswordApi: ResetPasswordApiClient;
 }

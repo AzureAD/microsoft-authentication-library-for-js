@@ -1,5 +1,8 @@
 import { CustomAuthApiError, RedirectError } from "../../../../src/core/error/CustomAuthApiError.js";
-import { CustomAuthApiErrorCode, CustomAuthApiSuberror } from "../../../../src/core/network_client/types/ApiErrorResponseTypes.js";
+import {
+    CustomAuthApiErrorCode,
+    CustomAuthApiSuberror,
+} from "../../../../src/core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 import { InvalidArgumentError } from "../../../../src/index.js";
 import {
     SignUpError,
@@ -11,10 +14,7 @@ import {
 
 describe("SignUpError", () => {
     it("should correctly identify user already exists error", () => {
-        const error = new CustomAuthApiError(
-            CustomAuthApiErrorCode.USER_ALREADY_EXISTS,
-            "User already exists",
-        );
+        const error = new CustomAuthApiError(CustomAuthApiErrorCode.USER_ALREADY_EXISTS, "User already exists");
         const signUpError = new SignUpError(error);
         expect(signUpError.isUserAlreadyExists()).toBe(true);
     });
@@ -24,12 +24,7 @@ describe("SignUpError", () => {
         const signUpError = new SignUpError(error);
         expect(signUpError.isInvalidUsername()).toBe(true);
 
-        const error2 = new CustomAuthApiError(
-            "Some Error",
-            "username parameter is empty or not valid",
-            undefined,
-            [90100],
-        );
+        const error2 = new CustomAuthApiError("Some Error", "username parameter is empty or not valid", undefined, [90100]);
         const signUpError2 = new SignUpError(error2);
         expect(signUpError2.isInvalidUsername()).toBe(true);
     });
@@ -47,10 +42,7 @@ describe("SignUpError", () => {
     });
 
     it("should correctly identify missing required attributes error", () => {
-        const error = new CustomAuthApiError(
-            CustomAuthApiErrorCode.ATTRIBUTES_REQUIRED,
-            "Attributes required",
-        );
+        const error = new CustomAuthApiError(CustomAuthApiErrorCode.ATTRIBUTES_REQUIRED, "Attributes required");
         const signUpError = new SignUpError(error);
         expect(signUpError.isMissingRequiredAttributes()).toBe(true);
     });
@@ -75,10 +67,7 @@ describe("SignUpError", () => {
         const signUpError = new SignUpError(error);
         expect(signUpError.isUnsupportedChallengeType()).toBe(true);
 
-        const error2 = new CustomAuthApiError(
-            CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
-            "Unsupported challenge type",
-        );
+        const error2 = new CustomAuthApiError(CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE, "Unsupported challenge type");
         const signUpError2 = new SignUpError(error2);
         expect(signUpError2.isUnsupportedChallengeType()).toBe(true);
     });
@@ -102,12 +91,7 @@ describe("SignUpSubmitPasswordError", () => {
         const signUpError = new SignUpSubmitPasswordError(error);
         expect(signUpError.isInvalidPassword()).toBe(true);
 
-        const error2 = new CustomAuthApiError(
-            CustomAuthApiErrorCode.INVALID_GRANT,
-            "Incorrect password",
-            undefined,
-            [50126],
-        );
+        const error2 = new CustomAuthApiError(CustomAuthApiErrorCode.INVALID_GRANT, "Incorrect password", undefined, [50126]);
         const signUpError2 = new SignUpSubmitPasswordError(error2);
         expect(signUpError2.isInvalidPassword()).toBe(true);
 
@@ -149,10 +133,7 @@ describe("SignUpSubmitCodeError", () => {
 
 describe("SignUpSubmitAttributesError", () => {
     it("should correctly identify missing required attributes error", () => {
-        const error = new CustomAuthApiError(
-            CustomAuthApiErrorCode.ATTRIBUTES_REQUIRED,
-            "Attributes required",
-        );
+        const error = new CustomAuthApiError(CustomAuthApiErrorCode.ATTRIBUTES_REQUIRED, "Attributes required");
         const signUpError = new SignUpSubmitAttributesError(error);
         expect(signUpError.isMissingRequiredAttributes()).toBe(true);
     });

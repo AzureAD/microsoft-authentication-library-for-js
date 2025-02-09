@@ -1,22 +1,19 @@
 import { CustomAuthStandardController } from "../../src/controller/CustomAuthStandardController.js";
-import {
-    SignInInputs,
-    SignUpInputs,
-} from "../../src/CustomAuthActionInputs.js";
+import { SignInInputs, SignUpInputs } from "../../src/CustomAuthActionInputs.js";
 import { CustomAuthOperatingContext } from "../../src/operating_context/CustomAuthOperatingContext.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { SignInError } from "../../src/sign_in/auth_flow/error_type/SignInError.js";
 import { SignInResult } from "../../src/sign_in/auth_flow/result/SignInResult.js";
-import {
-    SignInState,
-    SignUpState,
-} from "../../src/core/auth_flow/AuthFlowStateBase.js";
+import { SignInState, SignUpState } from "../../src/core/auth_flow/AuthFlowStateBase.js";
 import { AccountInfo } from "../../src/account/auth_flow/model/AccountInfo.js";
 import { SignUpError } from "../../src/sign_up/auth_flow/error_type/SignUpError.js";
 import { ChallengeType } from "../../src/CustomAuthConstants.js";
 import { CustomAuthApiError, RedirectError } from "../../src/core/error/CustomAuthApiError.js";
 import { SignUpResult } from "../../src/sign_up/auth_flow/result/SignUpResult.js";
-import { CustomAuthApiErrorCode, CustomAuthApiSuberror } from "../../src/core/network_client/types/ApiErrorResponseTypes.js";
+import {
+    CustomAuthApiErrorCode,
+    CustomAuthApiSuberror,
+} from "../../src/core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 
 jest.mock("../../src/core/network_client/custom_auth_api/CustomAuthApiClient.js", () => {
     let signInApiClient = {
@@ -39,14 +36,13 @@ jest.mock("../../src/core/network_client/custom_auth_api/CustomAuthApiClient.js"
         submitNewPassword: jest.fn(),
         pollCompletion: jest.fn(),
     };
-    const CustomAuthApiClient = jest.fn();
 
     // Set up the prototype or instance methods/properties
-    CustomAuthApiClient.prototype = {
-        signInApiClient,
-        signUpApiClient,
-        resetPasswordApiClient,
-    };
+    const CustomAuthApiClient = jest.fn().mockImplementation(() => ({
+        signInApi: signInApiClient,
+        signUpApi: signUpApiClient,
+        resetPasswordApi: resetPasswordApiClient,
+    }));
 
     return { CustomAuthApiClient, signInApiClient, signUpApiClient, resetPasswordApiClient };
 });

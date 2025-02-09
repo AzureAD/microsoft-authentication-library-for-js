@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { UserAttribute } from "../network_client/types/UserAttributes.js";
+import { UserAttribute } from "../network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 import { CustomAuthError } from "./CustomAuthError.js";
 
 /**
@@ -33,6 +33,7 @@ export class CustomAuthApiError extends CustomAuthError {
         public attributes?: Array<UserAttribute>,
         public continuationToken?: string,
         public traceId?: string,
+        public timestamp?: string,
     ) {
         super(error, errorDescription, correlationId);
         Object.setPrototypeOf(this, CustomAuthApiError.prototype);

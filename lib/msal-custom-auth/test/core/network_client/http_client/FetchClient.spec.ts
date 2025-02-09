@@ -1,4 +1,5 @@
-import { FetchHttpClient } from "../../../src/core/network_client/http_client/FetchClient.js";
+import { Logger } from "@azure/msal-browser";
+import { FetchHttpClient } from "../../../../src/core/network_client/http_client/FetchHttpClient.js";
 
 class MockResponse {
     public readonly status: number;
@@ -19,12 +20,19 @@ class MockResponse {
 describe("FetchHttpClient", () => {
     let httpClient: FetchHttpClient;
     let mockFetch: jest.Mock;
+    const mockLogger = {
+        clone: jest.fn(),
+        verbose: jest.fn(),
+        info: jest.fn(),
+        error: jest.fn(),
+        trace: jest.fn(),
+    } as unknown as jest.Mocked<Logger>;
 
     beforeEach(() => {
         // Create a mock for the global fetch
         mockFetch = jest.fn();
         global.fetch = mockFetch;
-        httpClient = new FetchHttpClient();
+        httpClient = new FetchHttpClient(mockLogger);
     });
 
     afterEach(() => {
@@ -40,7 +48,7 @@ describe("FetchHttpClient", () => {
             };
             const mockResponse = new MockResponse(null, { status: 200 });
             mockFetch.mockResolvedValue(mockResponse);
-            const response = await httpClient.sendAsync(url, options);
+            const response = await httpClient.sendAsync(url, options, "correlation-id");
             expect(mockFetch).toHaveBeenCalledWith(url, options);
             expect(response).toBe(mockResponse);
         });
@@ -49,7 +57,7 @@ describe("FetchHttpClient", () => {
             const url = "https://api.example.com";
             const error = new Error("Network error");
             mockFetch.mockRejectedValue(error);
-            await expect(httpClient.sendAsync(url, {})).rejects.toThrow("Network error");
+            await expect(httpClient.sendAsync(url, {}, "correlation-id")).rejects.toThrow("Network error");
         });
     });
 });
