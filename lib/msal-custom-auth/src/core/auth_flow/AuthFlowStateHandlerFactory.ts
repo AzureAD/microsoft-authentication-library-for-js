@@ -3,6 +3,12 @@
  * Licensed under the MIT License.
  */
 
+import { ResetPasswordCodeRequired } from "../../reset_password/auth_flow/state/ResetPasswordCodeRequired.js";
+import { ResetPasswordCompleted } from "../../reset_password/auth_flow/state/ResetPasswordCompleted.js";
+import { ResetPasswordPasswordRequired } from "../../reset_password/auth_flow/state/ResetPasswordPasswordRequired.js";
+import { ResetPasswordCodeRequiredStateHandler } from "../../reset_password/auth_flow/state_handler/ResetPasswordCodeRequiredStateHandler.js";
+import { ResetPasswordPasswordRequiredStateHandler } from "../../reset_password/auth_flow/state_handler/ResetPasswordPasswordRequiredStateHandler.js";
+import { SignInScenario } from "../../sign_in/auth_flow/SignInScenario.js";
 import { SignInCodeRequired } from "../../sign_in/auth_flow/state/SignInCodeRequired.js";
 import { SignInPasswordRequired } from "../../sign_in/auth_flow/state/SignInPasswordRequired.js";
 import { SignInCodeRequiredStateHandler } from "../../sign_in/auth_flow/state_handler/SignInCodeRequiredStateHandler.js";
@@ -26,6 +32,9 @@ export class AuthFlowStateHandlerFactory {
     public static create(state: SignUpPasswordRequired): SignUpPasswordRequiredStateHandler;
     public static create(state: SignUpAttributesRequired): SignUpAttributesRequiredStateHandler;
     public static create(state: SignUpCompleted): SignInContinuationStateHandler;
+    public static create(state: ResetPasswordCodeRequired): ResetPasswordCodeRequiredStateHandler;
+    public static create(state: ResetPasswordPasswordRequired): ResetPasswordPasswordRequiredStateHandler;
+    public static create(state: ResetPasswordCompleted): SignInContinuationStateHandler;
     public static create(state: AuthFlowStateBase): AuthFlowStateHandlerBase {
         if (!state.logger) {
             throw new UnexpectedError("Logger is required when creating state handler", state.correlationId);
@@ -107,6 +116,44 @@ export class AuthFlowStateHandlerFactory {
                 state.logger,
                 state.continuationToken ?? "",
                 state.config,
+                SignInScenario.SignInAfterSignUp,
+            );
+        }
+
+        if (state instanceof ResetPasswordCodeRequired) {
+            return new ResetPasswordCodeRequiredStateHandler(
+                state.correlationId ?? "",
+                state.logger,
+                state.continuationToken ?? "",
+                state.config,
+                state.resetPasswordClient,
+                state.signInClient,
+                state.username,
+                state.codeLength,
+            );
+        }
+
+        if (state instanceof ResetPasswordPasswordRequired) {
+            return new ResetPasswordPasswordRequiredStateHandler(
+                state.correlationId ?? "",
+                state.logger,
+                state.continuationToken ?? "",
+                state.config,
+                state.resetPasswordClient,
+                state.signInClient,
+                state.username,
+            );
+        }
+
+        if (state instanceof ResetPasswordCompleted) {
+            return new SignInContinuationStateHandler(
+                state.username,
+                state.signInClient,
+                state.correlationId ?? "",
+                state.logger,
+                state.continuationToken ?? "",
+                state.config,
+                SignInScenario.SignInAfterPasswordReset,
             );
         }
 

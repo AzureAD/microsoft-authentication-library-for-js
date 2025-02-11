@@ -3,16 +3,32 @@
  * Licensed under the MIT License.
  */
 
+import { Logger } from "@azure/msal-browser";
 import { AccountInfo } from "../../../account/auth_flow/model/AccountInfo.js";
 import { SignInContinuationTokenParams } from "../../interaction_client/parameter/SignInParams.js";
+import { SignInClient } from "../../interaction_client/SignInClient.js";
 import { SignInResult } from "../result/SignInResult.js";
 import { SignInCompleted } from "../state/SignInCompleted.js";
 import { SignInStateHandler } from "./SignInStateHandler.js";
+import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
+import { SignInScenario } from "../SignInScenario.js";
 
 /*
  * Sign-in continuation state handler.
  */
 export class SignInContinuationStateHandler extends SignInStateHandler {
+    constructor(
+        username: string,
+        signInClient: SignInClient,
+        correlationId: string,
+        logger: Logger,
+        continuationToken: string,
+        config: CustomAuthBrowserConfiguration,
+        private signInScenario: SignInScenario,
+    ) {
+        super(username, signInClient, correlationId, logger, continuationToken, config);
+    }
+
     /*
      * Initiates the sign-in flow with continuation token.
      * @returns The result of the operation.
@@ -26,6 +42,7 @@ export class SignInContinuationStateHandler extends SignInStateHandler {
                 scopes: scopes ?? [],
                 continuationToken: this.continuationToken ?? "",
                 username: this.username,
+                signInScenario: this.signInScenario,
             };
 
             this.logger.info("Signing in with continuation token.");

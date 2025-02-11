@@ -48,7 +48,7 @@ describe("SignUpCodeRequiredStateHandler", () => {
             mockLogger,
             continuationToken,
             mockConfig,
-            200,
+            8,
             60,
         );
     });
@@ -73,7 +73,7 @@ describe("SignUpCodeRequiredStateHandler", () => {
                 new SignUpCompletedResult(correlationId, "continuation-token"),
             );
 
-            const result = await handler.submitCode("valid-code");
+            const result = await handler.submitCode("12345678");
 
             expect(result).toBeDefined();
             expect(result).toBeInstanceOf(SignUpSubmitCodeResult);
@@ -83,7 +83,7 @@ describe("SignUpCodeRequiredStateHandler", () => {
                 correlationId: correlationId,
                 challengeType: ["code"],
                 continuationToken: continuationToken,
-                code: "valid-code",
+                code: "12345678",
                 username: username,
             });
         });
@@ -93,7 +93,7 @@ describe("SignUpCodeRequiredStateHandler", () => {
                 new SignUpPasswordRequiredResult(correlationId, "continuation-token"),
             );
 
-            const result = await handler.submitCode("valid-code");
+            const result = await handler.submitCode("12345678");
 
             expect(result).toBeDefined();
             expect(result).toBeInstanceOf(SignUpSubmitCodeResult);
@@ -103,7 +103,7 @@ describe("SignUpCodeRequiredStateHandler", () => {
                 correlationId: correlationId,
                 challengeType: ["code"],
                 continuationToken: continuationToken,
-                code: "valid-code",
+                code: "12345678",
                 username: username,
             });
         });
@@ -118,7 +118,7 @@ describe("SignUpCodeRequiredStateHandler", () => {
                 ]),
             );
 
-            const result = await handler.submitCode("valid-code");
+            const result = await handler.submitCode("12345678");
 
             expect(result).toBeDefined();
             expect(result).toBeInstanceOf(SignUpSubmitCodeResult);
@@ -128,7 +128,7 @@ describe("SignUpCodeRequiredStateHandler", () => {
                 correlationId: correlationId,
                 challengeType: ["code"],
                 continuationToken: continuationToken,
-                code: "valid-code",
+                code: "12345678",
                 username: username,
             });
         });

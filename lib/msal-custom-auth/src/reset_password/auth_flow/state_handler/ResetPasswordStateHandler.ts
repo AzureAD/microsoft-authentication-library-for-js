@@ -7,6 +7,8 @@ import { Logger } from "@azure/msal-browser";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { AuthFlowStateHandlerBase } from "../../../core/auth_flow/AuthFlowStateHandlerBase.js";
 import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
+import { ResetPasswordClient } from "../../interaction_client/ResetPasswordClient.js";
+import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
 
 /*
  * Base state handler for reset password operation.
@@ -24,12 +26,15 @@ export abstract class ResetPasswordStateHandler extends AuthFlowStateHandlerBase
         logger: Logger,
         continuationToken: string,
         protected config: CustomAuthBrowserConfiguration,
+        protected resetPasswordClient: ResetPasswordClient,
+        protected signInClient: SignInClient,
         protected username: string,
     ) {
         super(correlationId, logger, continuationToken);
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("config", config, correlationId);
-
         ArgumentValidator.ensureArgumentIsNotEmptyString("username", username, correlationId);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("resetPasswordClient", resetPasswordClient, correlationId);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signInClient", signInClient, correlationId);
     }
 }

@@ -4,7 +4,6 @@
  */
 
 import { Logger } from "@azure/msal-browser";
-import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
 import { UnexpectedError } from "../../../core/error/UnexpectedError.js";
 import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
 import {
@@ -46,15 +45,9 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
      * @returns The result of the operation.
      */
     async submitCode(code: string): Promise<SignUpSubmitCodeResult> {
-        if (!code) {
-            this.logger.error("Code parameter is required for sign-up.");
-
-            return Promise.resolve(
-                SignUpSubmitCodeResult.createWithError(new InvalidArgumentError("code", this.correlationId)),
-            );
-        }
-
         try {
+            this.ensureCodeIsValid(code, this.codeLength);
+
             this.logger.info("Submitting code for sign-up.");
 
             const result = await this.signUpClient.submitCode({

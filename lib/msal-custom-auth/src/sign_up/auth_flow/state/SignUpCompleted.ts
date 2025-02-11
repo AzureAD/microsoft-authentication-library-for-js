@@ -16,7 +16,6 @@ export class SignUpCompleted extends AuthFlowStateBase {
         config: CustomAuthBrowserConfiguration,
         public signInClient: SignInClient,
         public username: string,
-        public scopes?: string[],
     ) {
         super(SignUpState.Completed, correlationId, continuationToken, logger, config);
     }

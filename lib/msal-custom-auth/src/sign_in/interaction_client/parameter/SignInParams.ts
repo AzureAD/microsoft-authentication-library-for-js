@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { SignInScenario } from "../../auth_flow/SignInScenario.js";
+
 export interface SignInParamsBase {
     clientId: string;
     correlationId: string;
@@ -31,4 +33,5 @@ export interface SignInSubmitPasswordParams extends SignInParamsBase {
 
 export interface SignInContinuationTokenParams extends SignInParamsBase {
     continuationToken: string;
+    signInScenario: SignInScenario;
 }

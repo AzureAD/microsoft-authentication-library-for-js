@@ -43,6 +43,8 @@ import { SignInCompleted } from "../sign_in/auth_flow/state/SignInCompleted.js";
 import { ICustomAuthApiClient } from "../core/network_client/custom_auth_api/ICustomAuthApiClient.js";
 import { CustomAuthApiClient } from "../core/network_client/custom_auth_api/CustomAuthApiClient.js";
 import { FetchHttpClient } from "../core/network_client/http_client/FetchHttpClient.js";
+import { ResetPasswordClient } from "../reset_password/interaction_client/ResetPasswordClient.js";
+import { ResetPasswordCodeRequired } from "../reset_password/auth_flow/state/ResetPasswordCodeRequired.js";
 
 /*
  * Controller for standard native auth operations.
@@ -57,6 +59,11 @@ export class CustomAuthStandardController extends StandardController implements 
      * The client to use for sign-up operations.
      */
     private readonly signUpClient: SignUpClient;
+
+    /**
+     * The client to use for reset password operations.
+     */
+    private readonly resetPasswordClient: ResetPasswordClient;
 
     /*
      * The configuration for the client.
@@ -102,8 +109,7 @@ export class CustomAuthStandardController extends StandardController implements 
 
         this.signInClient = interactionClientFactory.create(SignInClient);
         this.signUpClient = interactionClientFactory.create(SignUpClient);
-
-        // Create more interaction clients here, such as SignUpClient, ResetPasswordClient, etc.
+        this.resetPasswordClient = interactionClientFactory.create(ResetPasswordClient);
     }
 
     /*
@@ -123,6 +129,7 @@ export class CustomAuthStandardController extends StandardController implements 
      * @returns The result of the operation.
      */
     async signIn(signInInputs: SignInInputs): Promise<SignInResult> {
+        // TODO: check whether this user has been signed in by reading account info from cache.
         const correlationId = this.getCorrelationId(signInInputs);
 
         if (!this.isUsernameValid(signInInputs.username)) {
@@ -228,6 +235,7 @@ export class CustomAuthStandardController extends StandardController implements 
      * @returns The result of the operation
      */
     async signUp(signUpInputs: SignUpInputs): Promise<SignUpResult> {
+        // TODO: check whether this user has been signed in by reading account info from cache.
         const correlationId = this.getCorrelationId(signUpInputs);
 
         if (!this.isUsernameValid(signUpInputs.username)) {
@@ -306,6 +314,7 @@ export class CustomAuthStandardController extends StandardController implements 
      * @returns The result of the operation.
      */
     async resetPassword(resetPasswordInputs: ResetPasswordInputs): Promise<ResetPasswordStartResult> {
+        // TODO: check whether this user has been signed in by reading account info from cache.
         const correlationId = this.getCorrelationId(resetPasswordInputs);
 
         if (!this.isUsernameValid(resetPasswordInputs.username)) {
@@ -316,7 +325,35 @@ export class CustomAuthStandardController extends StandardController implements 
             );
         }
 
-        throw new Error(`Method not implemented with Parameter ${correlationId}.`);
+        try {
+            this.logger.info("Starting password-reset flow.");
+
+            const startResult = await this.resetPasswordClient.start({
+                clientId: this.config.auth.clientId,
+                correlationId: correlationId,
+                challengeType: this.customAuthConfig.customAuth.challengeTypes ?? [],
+                username: resetPasswordInputs.username,
+            });
+
+            this.logger.info("Password-reset flow started.");
+
+            return new ResetPasswordStartResult(
+                new ResetPasswordCodeRequired(
+                    startResult.correlationId,
+                    startResult.continuationToken,
+                    this.logger,
+                    this.customAuthConfig,
+                    this.resetPasswordClient,
+                    this.signInClient,
+                    resetPasswordInputs.username,
+                    startResult.codeLength,
+                ),
+            );
+        } catch (error) {
+            this.logger.error(`An error occurred during starting reset-password: ${error}`);
+
+            return ResetPasswordStartResult.createWithError(error);
+        }
     }
 
     private getCorrelationId(actionInputs: CustomAuthActionInputs): string {

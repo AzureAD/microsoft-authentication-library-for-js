@@ -33,3 +33,14 @@ export const DefaultPackageInfo = {
     OS: "",
     CPU: "",
 } as const;
+
+export const ResetPasswordPollStatus = {
+    IN_PROGRESS: "in_progress",
+    SUCCEEDED: "succeeded",
+    FAILED: "failed",
+    NOT_STARTED: "not_started",
+} as const;
+
+export const DefaultCustomAuthApiCodeLength = 8;
+export const DefaultCustomAuthApiCodeResendIntervalInSec = 300; // seconds
+export const PasswordResetPollingTimeoutInMs = 300000; // milliseconds

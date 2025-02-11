@@ -6,7 +6,6 @@
 import { Logger } from "@azure/msal-browser";
 import { AccountInfo } from "../../../account/auth_flow/model/AccountInfo.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
-import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
 import { SignInResendCodeParams, SignInSubmitCodeParams } from "../../interaction_client/parameter/SignInParams.js";
 import { SignInClient } from "../../interaction_client/SignInClient.js";
 import { SignInResendCodeResult } from "../result/SignInResendCodeResult.js";
@@ -38,15 +37,9 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
      * @returns The result of the operation.
      */
     async submitCode(code: string): Promise<SignInSubmitCodeResult> {
-        if (!code) {
-            this.logger.error("Code parameter is required for sign-in.");
-
-            const result = SignInSubmitCodeResult.createWithError(new InvalidArgumentError("code", this.correlationId));
-
-            return Promise.resolve(result);
-        }
-
         try {
+            this.ensureCodeIsValid(code, this.codeLength);
+
             const submitCodeParams: SignInSubmitCodeParams = {
                 clientId: this.config.auth.clientId,
                 correlationId: this.correlationId,

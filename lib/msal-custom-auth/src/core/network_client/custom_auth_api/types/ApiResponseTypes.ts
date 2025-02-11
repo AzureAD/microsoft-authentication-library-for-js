@@ -61,10 +61,3 @@ export interface ResetPasswordSubmitResponse extends ContinuousResponse {
 export interface ResetPasswordPollCompletionResponse extends ContinuousResponse {
     status: string;
 }
-
-export const ResetPasswordPollStatus = {
-    IN_PROGRESS: "in_progress",
-    SUCCEEDED: "succeeded",
-    FAILED: "failed",
-    NOT_STARTED: "not_started",
-} as const;

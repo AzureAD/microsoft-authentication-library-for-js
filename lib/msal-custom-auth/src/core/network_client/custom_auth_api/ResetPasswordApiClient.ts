@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { GrantType } from "../../../CustomAuthConstants.js";
+import { GrantType, ResetPasswordPollStatus } from "../../../CustomAuthConstants.js";
 import { CustomAuthApiError } from "../../error/CustomAuthApiError.js";
 import { BaseApiClient } from "./BaseApiClient.js";
 import { CustomAuthApiEndpoint } from "./CustomAuthApiEndpoint.js";
@@ -19,7 +19,6 @@ import {
     ResetPasswordChallengeResponse,
     ResetPasswordContinueResponse,
     ResetPasswordPollCompletionResponse,
-    ResetPasswordPollStatus,
     ResetPasswordStartResponse,
     ResetPasswordSubmitResponse,
 } from "./types/ApiResponseTypes.js";
@@ -81,10 +80,6 @@ export class ResetPasswordApiClient extends BaseApiClient {
         );
 
         this.ensureContinuationTokenIsValid(result.continuation_token, params.correlationId);
-
-        if (result.expires_in === 0) {
-            result.expires_in = 600;
-        }
 
         return result;
     }

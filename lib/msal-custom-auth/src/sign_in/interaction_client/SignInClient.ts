@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ChallengeType } from "../../CustomAuthConstants.js";
+import { ChallengeType, DefaultCustomAuthApiCodeLength } from "../../CustomAuthConstants.js";
 import { CustomAuthApiError } from "../../core/error/CustomAuthApiError.js";
 import { CustomAuthApiErrorCode } from "../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 
@@ -31,6 +31,8 @@ import {
     SignInPasswordTokenRequest,
 } from "../../core/network_client/custom_auth_api/types/ApiRequestTypes.js";
 import { SignInTokenResponse } from "../../core/network_client/custom_auth_api/types/ApiResponseTypes.js";
+import { SignInScenario } from "../auth_flow/SignInScenario.js";
+import { UnexpectedError } from "../../core/error/UnexpectedError.js";
 
 export class SignInClient extends CustomAuthInteractionClientBase {
     /**
@@ -177,7 +179,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
     async signInWithContinuationToken(parameters: SignInContinuationTokenParams): Promise<SignInCompletedResult> {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters);
 
-        const apiId = PublicApiId.SIGN_IN_AFTER_SIGN_UP;
+        const apiId = this.getPublicApiIdBySignInScenario(parameters.signInScenario, parameters.correlationId);
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
 
         // Create token request.
@@ -248,7 +250,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 challengeResponse.continuation_token ?? "",
                 challengeResponse.challenge_channel ?? "",
                 challengeResponse.challenge_target_label ?? "",
-                challengeResponse.code_length ?? 8,
+                challengeResponse.code_length ?? DefaultCustomAuthApiCodeLength,
                 challengeResponse.binding_method ?? "",
             );
         }
@@ -270,5 +272,16 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             `Unsupported challenge type '${challengeResponse.challenge_type}'.`,
             challengeResponse.correlation_id,
         );
+    }
+
+    private getPublicApiIdBySignInScenario(scenario: SignInScenario, correlationId: string): number {
+        switch (scenario) {
+            case SignInScenario.SignInAfterSignUp:
+                return PublicApiId.SIGN_IN_AFTER_SIGN_UP;
+            case SignInScenario.SignInAfterPasswordReset:
+                return PublicApiId.SIGN_IN_AFTER_PASSWORD_RESET;
+            default:
+                throw new UnexpectedError(`nsupported sign-in scenario '${scenario}'.`, correlationId);
+        }
     }
 }

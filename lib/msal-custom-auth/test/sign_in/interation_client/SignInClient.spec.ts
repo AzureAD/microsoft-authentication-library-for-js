@@ -8,7 +8,6 @@ import {
     IPerformanceClient,
     Logger,
 } from "@azure/msal-browser";
-import { ICustomAuthApiClient } from "../../../src/core/network_client/custom_auth_api/ICustomAuthApiClient.js";
 import { SignInClient } from "../../../src/sign_in/interaction_client/SignInClient.js";
 import { customAuthConfig } from "../../test_resources/CustomAuthConfig.js";
 import { CustomAuthAuthority } from "../../../src/core/CustomAuthAuthority.js";
@@ -18,6 +17,7 @@ import {
     SignInCompletedResult,
     SignInPasswordRequiredResult,
 } from "../../../src/sign_in/interaction_client/result/SignInActionResult.js";
+import { SignInScenario } from "../../../src/sign_in/auth_flow/SignInScenario.js";
 
 jest.mock("../../../src/core/network_client/custom_auth_api/CustomAuthApiClient.js", () => {
     let signInApiClient = {
@@ -293,6 +293,7 @@ describe("SignInClient", () => {
                 challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
                 scopes: [],
+                signInScenario: SignInScenario.SignInAfterSignUp,
             });
 
             expect(result).toBeInstanceOf(SignInCompletedResult);

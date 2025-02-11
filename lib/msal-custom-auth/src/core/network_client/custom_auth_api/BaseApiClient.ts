@@ -22,7 +22,7 @@ export abstract class BaseApiClient {
         this.baseRequestUrl = UrlUtils.parseSecureUrl(!baseUrl.endsWith("/") ? `${baseUrl}/` : baseUrl);
     }
 
-    async request<T extends ApiResponseBase>(
+    protected async request<T extends ApiResponseBase>(
         endpoint: string,
         data: Record<string, string>,
         telemetryManager: ServerTelemetryManager,

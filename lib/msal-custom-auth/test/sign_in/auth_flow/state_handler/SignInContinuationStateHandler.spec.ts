@@ -6,6 +6,8 @@ import { SignInResult } from "../../../../src/sign_in/auth_flow/result/SignInRes
 import { SignInContinuationStateHandler } from "../../../../src/sign_in/auth_flow/state_handler/SignInContinuationStateHandler.js";
 import { SignInCompletedResult } from "../../../../src/sign_in/interaction_client/result/SignInActionResult.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
+import { SignInScenario } from "../../../../src/sign_in/auth_flow/SignInScenario.js";
+import { sign } from "crypto";
 
 describe("SignInContinuationStateHandler", () => {
     const mockConfig = {
@@ -36,6 +38,7 @@ describe("SignInContinuationStateHandler", () => {
             mockLogger,
             continuationToken,
             mockConfig,
+            SignInScenario.SignInAfterSignUp,
         );
     });
 
@@ -81,6 +84,7 @@ describe("SignInContinuationStateHandler", () => {
             scopes: ["scope1", "scope2"],
             continuationToken: continuationToken,
             username: username,
+            signInScenario: SignInScenario.SignInAfterSignUp,
         });
     });
 

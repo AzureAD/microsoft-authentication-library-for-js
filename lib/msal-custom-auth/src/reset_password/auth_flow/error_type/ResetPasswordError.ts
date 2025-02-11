@@ -4,10 +4,12 @@
  */
 
 import { AuthFlowErrorBase } from "../../../core/auth_flow/AuthFlowErrorBase.js";
+import { CustomAuthApiError } from "../../../core/error/CustomAuthApiError.js";
+import { CustomAuthApiErrorCode } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 
 export class ResetPasswordError extends AuthFlowErrorBase {
     isUserNotFound(): boolean {
-        return false;
+        return this.isUserNotFoundError();
     }
 
     isInvalidUsername(): boolean {
@@ -21,11 +23,15 @@ export class ResetPasswordError extends AuthFlowErrorBase {
 
 export class ResetPasswordSubmitPasswordError extends AuthFlowErrorBase {
     isInvalidPassword(): boolean {
-        return true;
+        return this.isInvalidNewPasswordError();
     }
 
     isPasswordResetFailed(): boolean {
-        return false;
+        return (
+            this.errorData instanceof CustomAuthApiError &&
+            (this.errorData.error === CustomAuthApiErrorCode.PASSWORD_RESET_TIMEOUT ||
+                this.errorData.error === CustomAuthApiErrorCode.PASSWORD_CHANGE_FAILED)
+        );
     }
 
     isInvalidUsername(): boolean {
@@ -35,7 +41,7 @@ export class ResetPasswordSubmitPasswordError extends AuthFlowErrorBase {
 
 export class ResetPasswordSubmitCodeError extends AuthFlowErrorBase {
     isInvalidCode(): boolean {
-        return true;
+        return this.isInvalidCodeError();
     }
 }
 

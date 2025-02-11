@@ -46,7 +46,7 @@ describe("SignInCodeRequiredStateHandler", () => {
             mockLogger,
             continuationToken,
             mockConfig,
-            60,
+            8,
             ["scope1", "scope2"],
         );
     });
@@ -92,7 +92,7 @@ describe("SignInCodeRequiredStateHandler", () => {
                 }),
             );
 
-            const result = await handler.submitCode("valid-code");
+            const result = await handler.submitCode("12345678");
 
             expect(result).toBeDefined();
             expect(result).toBeInstanceOf(SignInSubmitCodeResult);
@@ -103,7 +103,7 @@ describe("SignInCodeRequiredStateHandler", () => {
                 challengeType: ["code"],
                 scopes: ["scope1", "scope2"],
                 continuationToken: continuationToken,
-                code: "valid-code",
+                code: "12345678",
                 username: username,
             });
         });

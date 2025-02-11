@@ -21,6 +21,8 @@ export const CustomAuthApiErrorCode = {
     ATTRIBUTES_REQUIRED: "attributes_required",
     USER_ALREADY_EXISTS: "user_already_exists",
     INVALID_POLL_STATUS: "invalid_poll_status",
+    PASSWORD_CHANGE_FAILED: "password_change_failed",
+    PASSWORD_RESET_TIMEOUT: "password_reset_timeout",
 };
 
 export const CustomAuthApiSuberror = {

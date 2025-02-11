@@ -7,6 +7,8 @@ import { Logger } from "@azure/msal-browser";
 import { ResetPasswordState } from "../../../core/auth_flow/AuthFlowStateBase.js";
 import { ResetPasswordActionRequiredState } from "./ResetPasswordActionRequiredState.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
+import { ResetPasswordClient } from "../../interaction_client/ResetPasswordClient.js";
+import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
 
 export class ResetPasswordCodeRequired extends ResetPasswordActionRequiredState {
     constructor(
@@ -14,10 +16,20 @@ export class ResetPasswordCodeRequired extends ResetPasswordActionRequiredState 
         continuationToken: string,
         logger: Logger,
         config: CustomAuthBrowserConfiguration,
+        resetPasswordClient: ResetPasswordClient,
+        signInClient: SignInClient,
         username: string,
         public codeLength: number,
-        public codeResendInterval: number,
     ) {
-        super(ResetPasswordState.CodeRequired, correlationId, continuationToken, logger, config, username);
+        super(
+            ResetPasswordState.CodeRequired,
+            correlationId,
+            continuationToken,
+            logger,
+            config,
+            resetPasswordClient,
+            signInClient,
+            username,
+        );
     }
 }

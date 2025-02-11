@@ -108,6 +108,7 @@ describe("Sign in", () => {
                     correlation_id: correlationId,
                     continuation_token: "test-continuation-token-2",
                     challenge_type: "oob",
+                    code_length: 8,
                 };
             },
             headers: new Headers({ "content-type": "application/json" }),
@@ -145,7 +146,7 @@ describe("Sign in", () => {
         const state = signInResult.state as SignInCodeRequired;
         const handler = AuthFlowStateHandlerFactory.create(state);
 
-        const submitCodeResult = await handler.submitCode("valid-code");
+        const submitCodeResult = await handler.submitCode("12345678");
 
         expect(submitCodeResult).toBeDefined();
         expect(submitCodeResult).toBeInstanceOf(SignInSubmitCodeResult);

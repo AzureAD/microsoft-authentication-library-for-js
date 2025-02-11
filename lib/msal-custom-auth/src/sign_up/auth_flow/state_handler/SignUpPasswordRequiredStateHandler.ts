@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
 import { UnexpectedError } from "../../../core/error/UnexpectedError.js";
 import {
     SignUpAttributesRequiredResult,
@@ -26,15 +25,9 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
      * @returns The result of the operation.
      */
     async submitPassword(password: string): Promise<SignUpSubmitPasswordResult> {
-        if (!password) {
-            this.logger.error("Password parameter is required for sign-up.");
-
-            return Promise.resolve(
-                SignUpSubmitPasswordResult.createWithError(new InvalidArgumentError("password", this.correlationId)),
-            );
-        }
-
         try {
+            this.ensurePasswordIsNotEmpty(password);
+
             this.logger.info("Submitting password for sign-up.");
 
             const result = await this.signUpClient.submitPassword({

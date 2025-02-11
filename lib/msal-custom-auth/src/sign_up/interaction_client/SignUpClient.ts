@@ -10,7 +10,11 @@ import { UnexpectedError } from "../../core/error/UnexpectedError.js";
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
 import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
 import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
-import { ChallengeType } from "../../CustomAuthConstants.js";
+import {
+    ChallengeType,
+    DefaultCustomAuthApiCodeLength,
+    DefaultCustomAuthApiCodeResendIntervalInSec,
+} from "../../CustomAuthConstants.js";
 import {
     SignUpParamsBase,
     SignUpResendCodeParams,
@@ -240,8 +244,8 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
                 challengeResponse.continuation_token ?? "",
                 challengeResponse.challenge_channel ?? "",
                 challengeResponse.challenge_target_label ?? "",
-                challengeResponse.code_length ?? 8,
-                challengeResponse.interval ?? 300,
+                challengeResponse.code_length ?? DefaultCustomAuthApiCodeLength,
+                challengeResponse.interval ?? DefaultCustomAuthApiCodeResendIntervalInSec,
                 challengeResponse.binding_method ?? "",
             );
         }

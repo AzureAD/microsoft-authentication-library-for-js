@@ -16,6 +16,10 @@ import {
 export class AuthFlowErrorBase {
     constructor(public errorData: CustomAuthError) {}
 
+    protected isUserNotFoundError(): boolean {
+        return this.errorData.error === CustomAuthApiErrorCode.USER_NOT_FOUND;
+    }
+
     protected isUserInvalidError(): boolean {
         return (
             (this.errorData instanceof InvalidArgumentError && this.errorData.errorDescription?.includes("username")) ||

@@ -5,6 +5,7 @@
 
 import { Logger } from "@azure/msal-browser";
 import { ArgumentValidator } from "../utils/ArgumentValidator.js";
+import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
 
 /**
  * Base class for handling the state of an authentication flow.
@@ -24,5 +25,21 @@ export abstract class AuthFlowStateHandlerBase {
         ArgumentValidator.ensureArgumentIsNotEmptyString("correlationId", correlationId);
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("logger", logger);
+    }
+
+    protected ensureCodeIsValid(code: string, codeLength: number): void {
+        if (!code || code.length !== codeLength) {
+            this.logger.error("Code parameter is not provided or invalid for authentication flow.");
+
+            throw new InvalidArgumentError("code", this.correlationId);
+        }
+    }
+
+    protected ensurePasswordIsNotEmpty(password: string): void {
+        if (!password) {
+            this.logger.error("Password parameter is not provided for authentication flow.");
+
+            throw new InvalidArgumentError("password", this.correlationId);
+        }
     }
 }
