@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Rethrow MSAL AuthErrors in NAA flow",
+  "packageName": "@azure/msal-browser",
+  "email": "chris@paslawski.me",
+  "dependentChangeType": "patch"
+}

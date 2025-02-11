@@ -45,6 +45,8 @@ import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import {
     BrowserPerformanceClient,
     IPublicClientApplication,
+    PopupRequest,
+    SsoSilentRequest,
 } from "../../src/index.js";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 import { version } from "../../src/packageMetadata.js";
@@ -1053,6 +1055,28 @@ describe("NativeInteractionClient Tests", () => {
                 errors: [],
                 failedRequests: [],
             });
+        });
+
+        it("should not include onRedirectNavigate call back function in request", (done) => {
+            jest.spyOn(
+                NativeInteractionClient.prototype,
+                // @ts-ignore
+                "initializeNativeRequest"
+                // @ts-ignore
+            ).mockImplementation((request: PopupRequest | SsoSilentRequest) => {
+                // @ts-ignore
+                expect(request.onRedirectNavigate).toBeUndefined();
+                done();
+            });
+            nativeInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                    onRedirectNavigate: (url: string) => {
+                        return true;
+                    },
+                },
+                perfMeasurement
+            );
         });
     });
 
