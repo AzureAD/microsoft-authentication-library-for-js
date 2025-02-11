@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Wed, 05 Feb 2025 00:15:19 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 11 Feb 2025 16:09:10 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.2.2
+
+Tue, 11 Feb 2025 16:09:10 GMT
+
+### Patches
+
+- ManagedIdentityTokenResponse's expires_in can now be accepted in ISO 8601 date format #7544 (rginsburg@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 3.2.1
 

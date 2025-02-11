@@ -2,6 +2,39 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 11 Feb 2025 16:09:10 GMT",
+      "version": "4.2.1",
+      "tag": "@azure/msal-browser_v4.2.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "chris@paslawski.me",
+            "package": "@azure/msal-browser",
+            "commit": "a3e8c2c174d761e4398ba25315dd5999aa9f42d8",
+            "comment": "Rethrow MSAL AuthErrors in NAA flow"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 05 Feb 2025 00:15:18 GMT",
       "version": "4.2.0",
       "tag": "@azure/msal-browser_v4.2.0",

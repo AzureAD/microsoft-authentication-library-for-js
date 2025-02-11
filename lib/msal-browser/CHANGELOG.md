@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 05 Feb 2025 00:15:18 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 11 Feb 2025 16:09:10 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.2.1
+
+Tue, 11 Feb 2025 16:09:10 GMT
+
+### Patches
+
+- Rethrow MSAL AuthErrors in NAA flow (chris@paslawski.me)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.2.0
 

@@ -2,6 +2,33 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 11 Feb 2025 16:09:10 GMT",
+      "version": "3.2.2",
+      "tag": "@azure/msal-node_v3.2.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "a3e8c2c174d761e4398ba25315dd5999aa9f42d8",
+            "comment": "ManagedIdentityTokenResponse's expires_in can now be accepted in ISO 8601 date format #7544"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 05 Feb 2025 00:15:19 GMT",
       "version": "3.2.1",
       "tag": "@azure/msal-node_v3.2.1",
