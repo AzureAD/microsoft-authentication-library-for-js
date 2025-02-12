@@ -7,6 +7,7 @@ import React from "react";
 import { waitFor,screen } from '@testing-library/react';
 import {act} from 'react';
 import ReactDOMClient from 'react-dom/client';
+import { clearNodeFolder } from 'broadcast-channel';
 
 import "@testing-library/jest-dom";
 import { testAccount, TEST_CONFIG } from "../TestConstants";
@@ -33,6 +34,7 @@ describe("UnauthenticatedTemplate tests", () => {
     };
 
     beforeEach(async () => {
+        await clearNodeFolder();
         pca = new PublicClientApplication(msalConfig);
         await pca.initialize();
     });

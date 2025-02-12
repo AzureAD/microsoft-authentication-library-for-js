@@ -8,6 +8,7 @@ import React, { useState } from "react";
 import { waitFor,screen } from '@testing-library/react';
 import {act} from 'react';
 import ReactDOMClient from 'react-dom/client';
+import { clearNodeFolder } from 'broadcast-channel';
 
 import "@testing-library/jest-dom";
 import { testAccount, testResult, TEST_CONFIG } from "../TestConstants";
@@ -49,6 +50,7 @@ describe("MsalAuthenticationTemplate tests", () => {
     let activeAccount: AccountInfo | null = null;
 
     beforeEach(async () => {
+        await clearNodeFolder();
         eventCallbacks = [];
         let eventId = 0;
         // @ts-ignore

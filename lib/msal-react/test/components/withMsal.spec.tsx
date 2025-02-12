@@ -15,6 +15,7 @@ import {
 } from "@azure/msal-browser";
 import { TEST_CONFIG } from "../TestConstants";
 import { MsalProvider, withMsal } from "../../src/index";
+import { clearNodeFolder } from 'broadcast-channel';
 
 describe("withMsal tests", () => {
     let pca: PublicClientApplication;
@@ -31,7 +32,8 @@ describe("withMsal tests", () => {
     let handleRedirectSpy: jest.SpyInstance;
     const accounts: AccountInfo[] = [];
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        await clearNodeFolder();
         pca = new PublicClientApplication(msalConfig);
         jest.spyOn(pca, "addEventCallback").mockImplementation((callbackFn) => {
             eventCallback = callbackFn as EventCallbackFunction;

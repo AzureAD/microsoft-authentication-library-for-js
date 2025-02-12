@@ -9,6 +9,7 @@ import React from "react";
 import { waitFor,screen } from '@testing-library/react';
 import {act} from 'react';
 import ReactDOMClient from 'react-dom/client';
+import { clearNodeFolder } from 'broadcast-channel';
 
 import "@testing-library/jest-dom";
 import {
@@ -39,7 +40,8 @@ describe("MsalProvider tests", () => {
     let cachedAccounts: AccountInfo[] = [];
     let handleRedirectSpy: jest.SpyInstance;
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        await clearNodeFolder();
         eventCallbacks = [];
         let eventId = 0;
         pca = new PublicClientApplication(msalConfig);

@@ -7,6 +7,7 @@ import React from 'react';
 import { waitFor } from '@testing-library/react';
 import {act} from 'react';
 import ReactDOMClient from 'react-dom/client';
+import { clearNodeFolder } from 'broadcast-channel';
 
 import { testAccount, TEST_CONFIG } from "../TestConstants";
 import { MsalProvider, AuthenticatedTemplate } from "../../src/index";
@@ -29,6 +30,7 @@ describe("AuthenticatedTemplate tests", () => {
     };
 
     beforeEach(async () => {
+        await clearNodeFolder();
         pca = new PublicClientApplication(msalConfig);
         await pca.initialize();
     });

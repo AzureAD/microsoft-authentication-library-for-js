@@ -2,6 +2,7 @@ import React from "react";
 import { waitFor, screen } from '@testing-library/react';
 import {act} from 'react';
 import ReactDOMClient from 'react-dom/client';
+import { clearNodeFolder } from 'broadcast-channel';
 
 import "@testing-library/jest-dom";
 import { Configuration, PublicClientApplication } from "@azure/msal-browser";
@@ -21,7 +22,8 @@ describe("useIsAuthenticated tests", () => {
 
     let handleRedirectSpy: jest.SpyInstance;
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        await clearNodeFolder();
         pca = new PublicClientApplication(msalConfig);
         handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         jest.spyOn(pca, "getAllAccounts").mockImplementation(() => []);
