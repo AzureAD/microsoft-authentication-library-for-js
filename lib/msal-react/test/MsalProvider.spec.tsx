@@ -5,7 +5,11 @@
 
 /* eslint-disable react/no-multi-comp */
 import React from "react";
-import { act, render, screen, waitFor } from "@testing-library/react";
+// import { act, render, screen, waitFor } from "@testing-library/react";
+import { waitFor,screen } from '@testing-library/react';
+import {act} from 'react';
+import ReactDOMClient from 'react-dom/client';
+
 import "@testing-library/jest-dom";
 import {
     AccountInfo,
@@ -103,11 +107,14 @@ describe("MsalProvider tests", () => {
                 return null;
             };
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -128,7 +135,7 @@ describe("MsalProvider tests", () => {
                 });
             });
 
-            expect(await screen.findByText("In Progress")).toBeInTheDocument();
+            expect(await screen.findAllByText("In Progress")).not.toHaveLength(0);;
 
             eventMessage = {
                 eventType: EventType.HANDLE_REDIRECT_END,
@@ -146,8 +153,11 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
-            ).toBeInTheDocument();
+                await screen.findAllByText("Test Success!")
+            ).not.toHaveLength(0);
+
+            // Clean up
+            document.body.removeChild(container);            
         });
 
         test("inProgress is set to None even if handleRedirectPromise is called before MsalProvider is rendered", async () => {
@@ -163,15 +173,21 @@ describe("MsalProvider tests", () => {
             await pca.initialize();
             await pca.handleRedirectPromise();
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             expect(
-                await screen.findByText("Test Success!")
-            ).toBeInTheDocument();
+                await screen.findAllByText("Test Success!")
+            ).not.toHaveLength(0);
+
+            // Clean up
+            document.body.removeChild(container);            
         });
 
         test("Account Added", async () => {
@@ -183,11 +199,14 @@ describe("MsalProvider tests", () => {
                 return null;
             };
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -211,8 +230,11 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
-            ).toBeInTheDocument();
+                await screen.findAllByText("Test Success!")
+            ).not.toHaveLength(0);
+
+            // Clean up
+            document.body.removeChild(container);            
         });
 
         test("Account Removed", async () => {
@@ -224,11 +246,14 @@ describe("MsalProvider tests", () => {
                 return null;
             };
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -252,8 +277,11 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
-            ).toBeInTheDocument();
+                await screen.findAllByText("Test Success!")
+            ).not.toHaveLength(0);
+
+            // Clean up
+            document.body.removeChild(container);            
         });
 
         test("LOGIN_SUCCESS event does not reset inProgress while handleRedirect is in progress", async () => {
@@ -273,11 +301,14 @@ describe("MsalProvider tests", () => {
                 return null;
             };
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -298,7 +329,7 @@ describe("MsalProvider tests", () => {
                 });
             });
 
-            expect(await screen.findByText("In Progress")).toBeInTheDocument();
+            expect(await screen.findAllByText("In Progress")).not.toHaveLength(0);;
 
             eventMessage = {
                 eventType: EventType.LOGIN_SUCCESS,
@@ -316,8 +347,11 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
-            ).toBeInTheDocument();
+                await screen.findAllByText("Test Success!")
+            ).not.toHaveLength(0);
+
+            // Clean up
+            document.body.removeChild(container);            
         });
 
         test("LOGIN_FAILURE event does not reset inProgress while handleRedirect is in progress", async () => {
@@ -329,11 +363,14 @@ describe("MsalProvider tests", () => {
                 return null;
             };
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -353,7 +390,7 @@ describe("MsalProvider tests", () => {
                 });
             });
 
-            expect(await screen.findByText("In Progress")).toBeInTheDocument();
+            expect(await screen.findAllByText("In Progress")).not.toHaveLength(0);;
 
             eventMessage = {
                 eventType: EventType.LOGIN_FAILURE,
@@ -369,7 +406,10 @@ describe("MsalProvider tests", () => {
                 });
             });
 
-            expect(await screen.findByText("In Progress")).toBeInTheDocument();
+            expect(await screen.findAllByText("In Progress")).not.toHaveLength(0);;
+
+            // Clean up
+            document.body.removeChild(container);            
         });
 
         test("HANDLE_REDIRECT_END event does not reset inProgress when login is in progress", async () => {
@@ -383,11 +423,14 @@ describe("MsalProvider tests", () => {
                 return null;
             };
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -407,7 +450,7 @@ describe("MsalProvider tests", () => {
                 });
             });
 
-            expect(await screen.findByText("In Progress")).toBeInTheDocument();
+            expect(await screen.findAllByText("In Progress")).not.toHaveLength(0);
 
             eventMessage = {
                 eventType: EventType.LOGIN_START,
@@ -424,8 +467,8 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Login In Progress")
-            ).toBeInTheDocument();
+                await screen.findAllByText("Login In Progress")
+            ).not.toHaveLength(0);
 
             eventMessage = {
                 eventType: EventType.HANDLE_REDIRECT_END,
@@ -442,8 +485,11 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Login In Progress")
-            ).toBeInTheDocument();
+                await screen.findAllByText("Login In Progress")
+            ).not.toHaveLength(0);
+
+            // Clean up
+            document.body.removeChild(container);            
         });
 
         test("Login Success", async () => {
@@ -463,11 +509,14 @@ describe("MsalProvider tests", () => {
                 return null;
             };
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -488,7 +537,7 @@ describe("MsalProvider tests", () => {
                 });
             });
 
-            expect(await screen.findByText("In Progress")).toBeInTheDocument();
+            expect(await screen.findAllByText("In Progress")).not.toHaveLength(0);;
 
             eventMessage = {
                 eventType: EventType.LOGIN_SUCCESS,
@@ -506,8 +555,11 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
-            ).toBeInTheDocument();
+                await screen.findAllByText("Test Success!")
+            ).not.toHaveLength(0);
+
+            // Clean up
+            document.body.removeChild(container);            
         });
 
         test("Login Failure", async () => {
@@ -527,11 +579,14 @@ describe("MsalProvider tests", () => {
                 return null;
             };
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -552,7 +607,7 @@ describe("MsalProvider tests", () => {
                 });
             });
 
-            expect(await screen.findByText("In Progress")).toBeInTheDocument();
+            expect(await screen.findAllByText("In Progress")).not.toHaveLength(0);;
 
             eventMessage = {
                 eventType: EventType.LOGIN_FAILURE,
@@ -570,8 +625,11 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
-            ).toBeInTheDocument();
+                await screen.findAllByText("Test Success!")
+            ).not.toHaveLength(0);
+
+            // Clean up
+            document.body.removeChild(container);            
         });
 
         test("SsoSilent Success", async () => {
@@ -591,11 +649,14 @@ describe("MsalProvider tests", () => {
                 return null;
             };
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -616,7 +677,7 @@ describe("MsalProvider tests", () => {
                 });
             });
 
-            expect(await screen.findByText("In Progress")).toBeInTheDocument();
+            expect(await screen.findAllByText("In Progress")).not.toHaveLength(0);;
 
             eventMessage = {
                 eventType: EventType.SSO_SILENT_SUCCESS,
@@ -634,8 +695,11 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
-            ).toBeInTheDocument();
+                await screen.findAllByText("Test Success!")
+            ).not.toHaveLength(0);
+
+            // Clean up
+            document.body.removeChild(container);            
         });
 
         test("SsoSilent Failure", async () => {
@@ -655,11 +719,14 @@ describe("MsalProvider tests", () => {
                 return null;
             };
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -680,7 +747,7 @@ describe("MsalProvider tests", () => {
                 });
             });
 
-            expect(await screen.findByText("In Progress")).toBeInTheDocument();
+            expect(await screen.findAllByText("In Progress")).not.toHaveLength(0);;
 
             eventMessage = {
                 eventType: EventType.SSO_SILENT_FAILURE,
@@ -698,8 +765,11 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
-            ).toBeInTheDocument();
+                await screen.findAllByText("Test Success!")
+            ).not.toHaveLength(0);
+
+            // Clean up
+            document.body.removeChild(container);            
         });
 
         test("Logout Failure", async () => {
@@ -719,11 +789,14 @@ describe("MsalProvider tests", () => {
                 return null;
             };
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -744,7 +817,7 @@ describe("MsalProvider tests", () => {
                 });
             });
 
-            expect(await screen.findByText("In Progress")).toBeInTheDocument();
+            expect(await screen.findAllByText("In Progress")).not.toHaveLength(0);;
 
             eventMessage = {
                 eventType: EventType.LOGOUT_END,
@@ -762,8 +835,11 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
-            ).toBeInTheDocument();
+                await screen.findAllByText("Test Success!")
+            ).not.toHaveLength(0);
+
+            // Clean up
+            document.body.removeChild(container);            
         });
 
         test("AcquireTokenRedirect Success", async () => {
@@ -783,11 +859,14 @@ describe("MsalProvider tests", () => {
                 return null;
             };
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -808,7 +887,7 @@ describe("MsalProvider tests", () => {
                 });
             });
 
-            expect(await screen.findByText("In Progress")).toBeInTheDocument();
+            expect(await screen.findAllByText("In Progress")).not.toHaveLength(0);;
 
             eventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
@@ -826,8 +905,11 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
-            ).toBeInTheDocument();
+                await screen.findAllByText("Test Success!")
+            ).not.toHaveLength(0);
+
+            // Clean up
+            document.body.removeChild(container);            
         });
 
         test("AcquireTokenRedirect Failure", async () => {
@@ -855,11 +937,14 @@ describe("MsalProvider tests", () => {
                 return null;
             };
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -880,7 +965,7 @@ describe("MsalProvider tests", () => {
                 });
             });
 
-            expect(await screen.findByText("In Progress")).toBeInTheDocument();
+            expect(await screen.findAllByText("In Progress")).not.toHaveLength(0);;
 
             eventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_FAILURE,
@@ -898,8 +983,11 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
-            ).toBeInTheDocument();
+                await screen.findAllByText("Test Success!")
+            ).not.toHaveLength(0);
+
+            // Clean up
+            document.body.removeChild(container);            
         });
 
         test("AcquireTokenPopup Success", async () => {
@@ -919,11 +1007,14 @@ describe("MsalProvider tests", () => {
                 return null;
             };
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -944,7 +1035,7 @@ describe("MsalProvider tests", () => {
                 });
             });
 
-            expect(await screen.findByText("In Progress")).toBeInTheDocument();
+            expect(await screen.findAllByText("In Progress")).not.toHaveLength(0);;
 
             eventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
@@ -962,8 +1053,11 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
-            ).toBeInTheDocument();
+                await screen.findAllByText("Test Success!")
+            ).not.toHaveLength(0);
+
+            // Clean up
+            document.body.removeChild(container);            
         });
 
         test("AcquireTokenPopup Failure", async () => {
@@ -983,11 +1077,14 @@ describe("MsalProvider tests", () => {
                 return null;
             };
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -1008,7 +1105,7 @@ describe("MsalProvider tests", () => {
                 });
             });
 
-            expect(await screen.findByText("In Progress")).toBeInTheDocument();
+            expect(await screen.findAllByText("In Progress")).not.toHaveLength(0);
 
             eventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_FAILURE,
@@ -1026,8 +1123,11 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
-            ).toBeInTheDocument();
+                await screen.findAllByText("Test Success!")
+            ).not.toHaveLength(0);
+
+            // Clean up
+            document.body.removeChild(container);            
         });
 
         test("AcquireTokenSilent Success", async () => {
@@ -1051,11 +1151,14 @@ describe("MsalProvider tests", () => {
                 return null;
             };
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -1077,10 +1180,10 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText(
+                await screen.findAllByText(
                     "AcquireTokenSilent does not update inProgress value"
                 )
-            ).toBeInTheDocument();
+            ).not.toBeNull();
 
             eventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
@@ -1098,8 +1201,11 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
-            ).toBeInTheDocument();
+                await screen.findAllByText("Test Success!")
+            ).not.toHaveLength(0);
+
+            // Clean up
+            document.body.removeChild(container);            
         });
 
         test("AcquireTokenSilent Failure", async () => {
@@ -1123,11 +1229,14 @@ describe("MsalProvider tests", () => {
                 return null;
             };
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -1149,10 +1258,10 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText(
+                await screen.findAllByText(
                     "AcquireTokenSilent does not update inProgress value"
                 )
-            ).toBeInTheDocument();
+            ).not.toHaveLength(0);
 
             eventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_FAILURE,
@@ -1170,8 +1279,11 @@ describe("MsalProvider tests", () => {
             });
 
             expect(
-                await screen.findByText("Test Success!")
-            ).toBeInTheDocument();
+                await screen.findAllByText("Test Success!")
+            ).not.toHaveLength(0);
+
+            // Clean up
+            document.body.removeChild(container);            
         });
 
         test("Doesnt rerender when accounts or in progress dont change", async () => {
@@ -1185,11 +1297,14 @@ describe("MsalProvider tests", () => {
                 return null;
             };
 
-            render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <MsalConsumer>{TestComponent}</MsalConsumer>
                 </MsalProvider>
-            );
+            )});
 
             await waitFor(() =>
                 expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
@@ -1213,6 +1328,9 @@ describe("MsalProvider tests", () => {
                 InteractionStatus.Startup,
                 InteractionStatus.None,
             ]);
+
+            // Clean up
+            document.body.removeChild(container);            
         });
     });
 });

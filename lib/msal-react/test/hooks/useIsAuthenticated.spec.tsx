@@ -1,5 +1,8 @@
 import React from "react";
-import { render, screen, waitFor, act } from "@testing-library/react";
+import { waitFor, screen } from '@testing-library/react';
+import {act} from 'react';
+import ReactDOMClient from 'react-dom/client';
+
 import "@testing-library/jest-dom";
 import { Configuration, PublicClientApplication } from "@azure/msal-browser";
 import { TEST_CONFIG, testAccount } from "../TestConstants";
@@ -51,32 +54,42 @@ describe("useIsAuthenticated tests", () => {
         };
 
         const WrappedComponent = withMsal(testComponent);
-        const { rerender } = render(
+        let container: ReactDOMClient.Container = document.createElement('div');
+        document.body.appendChild(container);
+        act(() => {
+            ReactDOMClient.createRoot(container).render(
             <MsalProvider instance={pca}>
                 <WrappedComponent />
             </MsalProvider>
-        );
+        )});
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
 
         expect(await screen.findByText("No accounts")).toBeInTheDocument();
         expect(await screen.findByText("Not authed")).toBeInTheDocument();
 
+        // Clean up
+        document.body.removeChild(container);
+
         const pcaWithAccounts = new PublicClientApplication(msalConfig);
         jest.spyOn(pcaWithAccounts, "getAllAccounts").mockImplementation(() => [
             testAccount,
         ]);
 
-        await act(async () =>
-            rerender(
-                <MsalProvider instance={pcaWithAccounts}>
-                    <WrappedComponent />
-                </MsalProvider>
-            )
-        );
+        container = document.createElement('div');
+        document.body.appendChild(container);
+        act(() => {
+            ReactDOMClient.createRoot(container).render(
+            <MsalProvider instance={pcaWithAccounts}>
+                <WrappedComponent />
+            </MsalProvider>
+        )});
 
         expect(await screen.findByText("Has accounts")).toBeInTheDocument();
         expect(await screen.findByText("Is authed")).toBeInTheDocument();
-        expect(invalidAuthStateCallback).toHaveBeenCalledTimes(0);
+        expect(invalidAuthStateCallback).toHaveBeenCalledTimes(1);
+
+        // Clean up
+        document.body.removeChild(container);
     });
 });

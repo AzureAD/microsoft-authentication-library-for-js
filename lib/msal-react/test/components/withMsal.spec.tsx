@@ -1,5 +1,8 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { waitFor, screen } from '@testing-library/react';
+import {act} from 'react';
+import ReactDOMClient from 'react-dom/client';
+
 import "@testing-library/jest-dom";
 import {
     AccountInfo,
@@ -75,11 +78,14 @@ describe("withMsal tests", () => {
         };
 
         const WrappedComponent = withMsal(testComponent);
-        render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+            ReactDOMClient.createRoot(container).render(
             <MsalProvider instance={pca}>
                 <WrappedComponent></WrappedComponent>
             </MsalProvider>
-        );
+        )});
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
         expect(

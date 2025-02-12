@@ -4,7 +4,10 @@
  */
 
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { waitFor,screen } from '@testing-library/react';
+import {act} from 'react';
+import ReactDOMClient from 'react-dom/client';
+
 import "@testing-library/jest-dom";
 import { testAccount, TEST_CONFIG } from "../TestConstants";
 import { MsalProvider, UnauthenticatedTemplate } from "../../src/index";
@@ -43,14 +46,17 @@ describe("UnauthenticatedTemplate tests", () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
-        render(
+        const container: ReactDOMClient.Container = document.createElement('div');
+        document.body.appendChild(container);
+        act(() => {
+            ReactDOMClient.createRoot(container).render(
             <MsalProvider instance={pca}>
                 <p>This text will always display.</p>
                 <UnauthenticatedTemplate>
                     <span>No user is authenticated!</span>
                 </UnauthenticatedTemplate>
             </MsalProvider>
-        );
+        )});
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
         expect(
@@ -59,55 +65,71 @@ describe("UnauthenticatedTemplate tests", () => {
         expect(
             screen.queryByText("No user is authenticated!")
         ).not.toBeInTheDocument();
+
+        // Clean up
+        document.body.removeChild(container);            
     });
 
     test("Shows child component if no account is signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
-        render(
+        const container: ReactDOMClient.Container = document.createElement('div');
+        document.body.appendChild(container);
+        act(() => {
+            ReactDOMClient.createRoot(container).render(
             <MsalProvider instance={pca}>
                 <p>This text will always display.</p>
                 <UnauthenticatedTemplate>
                     <span>No user is authenticated!</span>
                 </UnauthenticatedTemplate>
             </MsalProvider>
-        );
+        )});
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
-        expect(
-            screen.queryByText("This text will always display.")
-        ).toBeInTheDocument();
-        expect(
-            screen.queryByText("No user is authenticated!")
-        ).toBeInTheDocument();
+        const paraText = container.querySelector('p');
+        expect(paraText?.textContent).toBe("This text will always display.");
+
+        const spanText = container.querySelector('span');
+        expect(spanText?.textContent).toBe("No user is authenticated!");
+
+        // Clean up
+        document.body.removeChild(container);            
     });
 
     test("Does not show child component if specific username is signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
-        render(
+        const container: ReactDOMClient.Container = document.createElement('div');
+        document.body.appendChild(container);
+        act(() => {
+            ReactDOMClient.createRoot(container).render(
             <MsalProvider instance={pca}>
                 <p>This text will always display.</p>
                 <UnauthenticatedTemplate username={testAccount.username}>
                     <span>This user is not authenticated!</span>
                 </UnauthenticatedTemplate>
             </MsalProvider>
-        );
+        )});
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
-        expect(
-            screen.queryByText("This text will always display.")
-        ).toBeInTheDocument();
-        expect(
-            screen.queryByText("This user is not authenticated!")
-        ).not.toBeInTheDocument();
+        const paraText = container.querySelector('p');
+        expect(paraText?.textContent).toBe("This text will always display.");
+
+        const spanText = container.querySelector('span');
+        expect(spanText).toBeNull();
+
+        // Clean up
+        document.body.removeChild(container);            
     });
 
     test("Does not show child component if specific homeAccountId is signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
-        render(
+        const container: ReactDOMClient.Container = document.createElement('div');
+        document.body.appendChild(container);
+        act(() => {
+            ReactDOMClient.createRoot(container).render(
             <MsalProvider instance={pca}>
                 <p>This text will always display.</p>
                 <UnauthenticatedTemplate
@@ -116,22 +138,27 @@ describe("UnauthenticatedTemplate tests", () => {
                     <span>This user is authenticated!</span>
                 </UnauthenticatedTemplate>
             </MsalProvider>
-        );
+        )});
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
-        expect(
-            screen.queryByText("This text will always display.")
-        ).toBeInTheDocument();
-        expect(
-            screen.queryByText("This user is not authenticated!")
-        ).not.toBeInTheDocument();
+        const paraText = container.querySelector('p');
+        expect(paraText?.textContent).toBe("This text will always display.");
+
+        const spanText = container.querySelector('span');
+        expect(spanText).toBeNull();
+
+        // Clean up
+        document.body.removeChild(container);            
     });
 
     test("Does not show child component if specific localAccountId is signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
-        render(
+        const container: ReactDOMClient.Container = document.createElement('div');
+        document.body.appendChild(container);
+        act(() => {
+            ReactDOMClient.createRoot(container).render(
             <MsalProvider instance={pca}>
                 <p>This text will always display.</p>
                 <UnauthenticatedTemplate
@@ -140,44 +167,55 @@ describe("UnauthenticatedTemplate tests", () => {
                     <span>This user is authenticated!</span>
                 </UnauthenticatedTemplate>
             </MsalProvider>
-        );
+        )});
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
-        expect(
-            screen.queryByText("This text will always display.")
-        ).toBeInTheDocument();
-        expect(
-            screen.queryByText("This user is not authenticated!")
-        ).not.toBeInTheDocument();
+
+        const paraText = container.querySelector('p');
+        expect(paraText?.textContent).toBe("This text will always display.");
+
+        const spanText = container.querySelector('span');
+        expect(spanText).toBeNull();
+
+        // Clean up
+        document.body.removeChild(container);            
     });
 
     test("Shows child component if specific username is not signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
-        render(
+        const container: ReactDOMClient.Container = document.createElement('div');
+        document.body.appendChild(container);
+        act(() => {
+            ReactDOMClient.createRoot(container).render(
             <MsalProvider instance={pca}>
                 <p>This text will always display.</p>
                 <UnauthenticatedTemplate username={"test@example.com"}>
                     <span>This user is not authenticated!</span>
                 </UnauthenticatedTemplate>
             </MsalProvider>
-        );
+        )});
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
-        expect(
-            screen.queryByText("This text will always display.")
-        ).toBeInTheDocument();
-        expect(
-            screen.queryByText("This user is not authenticated!")
-        ).toBeInTheDocument();
+        const paraText = container.querySelector('p');
+        expect(paraText?.textContent).toBe("This text will always display.");
+
+        const spanText = container.querySelector('span');
+        expect(spanText?.textContent).toBe("This user is not authenticated!");
+
+        // Clean up
+        document.body.removeChild(container);            
     });
 
     test("Shows child component if specific homeAccountId is not signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
-        render(
+        const container: ReactDOMClient.Container = document.createElement('div');
+        document.body.appendChild(container);
+        act(() => {
+            ReactDOMClient.createRoot(container).render(
             <MsalProvider instance={pca}>
                 <p>This text will always display.</p>
                 <UnauthenticatedTemplate
@@ -186,22 +224,28 @@ describe("UnauthenticatedTemplate tests", () => {
                     <span>This user is not authenticated!</span>
                 </UnauthenticatedTemplate>
             </MsalProvider>
-        );
+        )});
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
-        expect(
-            screen.queryByText("This text will always display.")
-        ).toBeInTheDocument();
-        expect(
-            screen.queryByText("This user is not authenticated!")
-        ).toBeInTheDocument();
+
+        const paraText = container.querySelector('p');
+        expect(paraText?.textContent).toBe("This text will always display.");
+
+        const spanText = container.querySelector('span');
+        expect(spanText?.textContent).toBe("This user is not authenticated!");
+
+        // Clean up
+        document.body.removeChild(container);            
     });
 
     test("Shows child component if specific localAccountId is not signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
-        render(
+        const container: ReactDOMClient.Container = document.createElement('div');
+        document.body.appendChild(container);
+        act(() => {
+            ReactDOMClient.createRoot(container).render(
             <MsalProvider instance={pca}>
                 <p>This text will always display.</p>
                 <UnauthenticatedTemplate
@@ -210,15 +254,18 @@ describe("UnauthenticatedTemplate tests", () => {
                     <span>This user is not authenticated!</span>
                 </UnauthenticatedTemplate>
             </MsalProvider>
-        );
+        )});
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
-        expect(
-            screen.queryByText("This text will always display.")
-        ).toBeInTheDocument();
-        expect(
-            screen.queryByText("This user is not authenticated!")
-        ).toBeInTheDocument();
+
+        const paraText = container.querySelector('p');
+        expect(paraText?.textContent).toBe("This text will always display.");
+
+        const spanText = container.querySelector('span');
+        expect(spanText?.textContent).toBe("This user is not authenticated!");
+
+        // Clean up
+        document.body.removeChild(container);            
     });
 
     test("Does not show child component if inProgress value is startup", async () => {
@@ -243,29 +290,34 @@ describe("UnauthenticatedTemplate tests", () => {
                     ) => void;
                 });
             });
-        render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
             <MsalProvider instance={pca}>
                 <p>This text will always display.</p>
                 <UnauthenticatedTemplate>
                     <span>No user is authenticated!</span>
                 </UnauthenticatedTemplate>
             </MsalProvider>
-        );
+        )});
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
-        expect(
-            screen.queryByText("This text will always display.")
-        ).toBeInTheDocument();
-        expect(
-            screen.queryByText("No user is authenticated!")
-        ).not.toBeInTheDocument();
+        const paraText = container.querySelector('p');
+        expect(paraText?.textContent).toBe("This text will always display.");
+
+        let spanText = container.querySelector('span');
+        expect(spanText).toBeNull();
 
         handleRedirectPromiseResolve();
-        await waitFor(() =>
-            expect(
-                screen.queryByText("No user is authenticated!")
-            ).toBeInTheDocument()
+        await waitFor(() => {
+            spanText = container.querySelector('span');
+            expect(spanText?.textContent).toBe("No user is authenticated!");
+            }
         );
+
+        // Clean up
+        document.body.removeChild(container);            
     });
 
     test("Does not show child component if inProgress value is handleRedirect", async () => {
@@ -292,21 +344,25 @@ describe("UnauthenticatedTemplate tests", () => {
                 });
                 return Promise.resolve(null);
             });
-        render(
+            const container: ReactDOMClient.Container = document.createElement('div');
+            document.body.appendChild(container);
+            act(() => {
+                ReactDOMClient.createRoot(container).render(
             <MsalProvider instance={pca}>
                 <p>This text will always display.</p>
                 <UnauthenticatedTemplate>
                     <span>No user is authenticated!</span>
                 </UnauthenticatedTemplate>
             </MsalProvider>
-        );
+        )});
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
-        expect(
-            screen.queryByText("This text will always display.")
-        ).toBeInTheDocument();
-        expect(
-            screen.queryByText("No user is authenticated!")
-        ).not.toBeInTheDocument();
+        const paraText = container.querySelector('p');
+        expect(paraText?.textContent).toBe("This text will always display.");
+
+        const spanText = container.querySelector('span');
+        expect(spanText).toBeNull();
+        // Clean up
+        document.body.removeChild(container);
     });
 });
