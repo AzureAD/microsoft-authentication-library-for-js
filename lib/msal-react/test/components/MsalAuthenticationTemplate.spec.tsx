@@ -709,7 +709,7 @@ describe("MsalAuthenticationTemplate tests", () => {
 
             const container: ReactDOMClient.Container = document.createElement('div');
             document.body.appendChild(container);
-            act(() => {
+            await act(async () => {
                 ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <p>This text will always display.</p>
@@ -720,16 +720,10 @@ describe("MsalAuthenticationTemplate tests", () => {
                     </MsalAuthenticationTemplate>
                 </MsalProvider>
             )});
+            expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+            expect(acquireTokenPopupSpy).toHaveBeenCalledTimes(1)
+            expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1)
 
-            await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
-            );
-            await waitFor(() =>
-                expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1)
-            );
-            await waitFor(() =>
-                expect(acquireTokenPopupSpy).toHaveBeenCalledTimes(1)
-            );
             const paraText = container.querySelector('p');
             expect(paraText?.textContent).toBe("This text will always display.");
     
@@ -767,7 +761,7 @@ describe("MsalAuthenticationTemplate tests", () => {
 
             const container: ReactDOMClient.Container = document.createElement('div');
             document.body.appendChild(container);
-            act(() => {
+            await act(async () => {
                 ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <p>This text will always display.</p>
@@ -779,15 +773,9 @@ describe("MsalAuthenticationTemplate tests", () => {
                 </MsalProvider>
             )});
 
-            await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
-            );
-            await waitFor(() =>
-                expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1)
-            );
-            await waitFor(() =>
-                expect(acquireTokenRedirectSpy).toHaveBeenCalledTimes(1)
-            );
+            expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+            expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1)
+            expect(acquireTokenRedirectSpy).toHaveBeenCalledTimes(1)
             const paraText = container.querySelector('p');
             expect(paraText?.textContent).toBe("This text will always display.");
         
@@ -821,7 +809,7 @@ describe("MsalAuthenticationTemplate tests", () => {
 
             const container: ReactDOMClient.Container = document.createElement('div');
             document.body.appendChild(container);
-            act(() => {
+            await act(async () => {
                 ReactDOMClient.createRoot(container).render(
                 <MsalProvider instance={pca}>
                     <p>This text will always display.</p>
@@ -833,13 +821,9 @@ describe("MsalAuthenticationTemplate tests", () => {
                 </MsalProvider>
             )});
 
-            await waitFor(() =>
-                expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
-            );
-            await waitFor(() =>
-                expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1)
-            );
-            await waitFor(() => expect(ssoSilentSpy).toHaveBeenCalledTimes(1));
+            expect(handleRedirectSpy).toHaveBeenCalledTimes(1)
+            expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1)
+            expect(ssoSilentSpy).toHaveBeenCalledTimes(1);
             const paraText = container.querySelector('p');
             expect(paraText?.textContent).toBe("This text will always display.");
     
