@@ -122,7 +122,6 @@ export class ResetPasswordApiClient extends BaseApiClient {
             params.correlationId,
         );
 
-        this.ensureContinuationTokenIsValid(result.continuation_token, params.correlationId);
         this.ensurePollStatusIsValid(result.status, params.correlationId);
 
         return result;

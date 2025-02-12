@@ -13,10 +13,10 @@ import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.j
 export abstract class SignUpActionRequiredState extends AuthFlowStateBase {
     constructor(
         type: SignUpState,
-        correlationId: string,
-        continuationToken: string,
-        logger: Logger,
-        config: CustomAuthBrowserConfiguration,
+        public correlationId: string,
+        public continuationToken: string,
+        public logger: Logger,
+        public config: CustomAuthBrowserConfiguration,
         public signInClient: SignInClient,
         public signUpClient: SignUpClient,
         public username: string,
@@ -29,6 +29,6 @@ export abstract class SignUpActionRequiredState extends AuthFlowStateBase {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signUpClient", signUpClient);
         ArgumentValidator.ensureArgumentIsNotEmptyString("username", username);
 
-        super(type, correlationId, continuationToken, logger, config);
+        super(type);
     }
 }

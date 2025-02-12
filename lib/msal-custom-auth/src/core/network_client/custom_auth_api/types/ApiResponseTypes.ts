@@ -50,7 +50,7 @@ export type ResetPasswordStartResponse = InitiateResponse;
 
 export type ResetPasswordChallengeResponse = ChallengeResponse;
 
-export interface ResetPasswordContinueResponse extends InitiateResponse {
+export interface ResetPasswordContinueResponse extends ContinuousResponse {
     expires_in: number;
 }
 

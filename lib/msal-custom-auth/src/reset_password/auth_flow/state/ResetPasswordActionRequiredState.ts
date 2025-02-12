@@ -13,10 +13,10 @@ import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.j
 export abstract class ResetPasswordActionRequiredState extends AuthFlowStateBase {
     constructor(
         type: ResetPasswordState,
-        correlationId: string,
-        continuationToken: string,
-        logger: Logger,
-        config: CustomAuthBrowserConfiguration,
+        public correlationId: string,
+        public continuationToken: string,
+        public logger: Logger,
+        public config: CustomAuthBrowserConfiguration,
         public resetPasswordClient: ResetPasswordClient,
         public signInClient: SignInClient,
         public username: string,
@@ -29,6 +29,6 @@ export abstract class ResetPasswordActionRequiredState extends AuthFlowStateBase
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signInClient", signInClient);
         ArgumentValidator.ensureArgumentIsNotEmptyString("username", username);
 
-        super(type, correlationId, continuationToken, logger, config);
+        super(type);
     }
 }

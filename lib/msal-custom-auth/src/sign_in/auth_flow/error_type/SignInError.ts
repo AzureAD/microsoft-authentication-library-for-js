@@ -40,4 +40,8 @@ export class SignInSubmitCodeError extends AuthFlowErrorBase {
     }
 }
 
-export class SignInResendCodeError extends AuthFlowErrorBase {}
+export class SignInResendCodeError extends AuthFlowErrorBase {
+    isRedirect(): boolean {
+        return this.isRedirectError();
+    }
+}

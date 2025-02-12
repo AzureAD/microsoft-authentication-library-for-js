@@ -19,11 +19,15 @@ export class ResetPasswordError extends AuthFlowErrorBase {
     isUnsupportedChallengeType(): boolean {
         return this.isUnsupportedChallengeTypeError();
     }
+
+    isRedirect(): boolean {
+        return this.isRedirectError();
+    }
 }
 
 export class ResetPasswordSubmitPasswordError extends AuthFlowErrorBase {
     isInvalidPassword(): boolean {
-        return this.isInvalidNewPasswordError();
+        return this.isInvalidNewPasswordError() || this.isPasswordIncorrectError();
     }
 
     isPasswordResetFailed(): boolean {
@@ -33,16 +37,20 @@ export class ResetPasswordSubmitPasswordError extends AuthFlowErrorBase {
                 this.errorData.error === CustomAuthApiErrorCode.PASSWORD_CHANGE_FAILED)
         );
     }
-
-    isInvalidUsername(): boolean {
-        return this.isUserInvalidError();
-    }
 }
 
 export class ResetPasswordSubmitCodeError extends AuthFlowErrorBase {
     isInvalidCode(): boolean {
         return this.isInvalidCodeError();
     }
+
+    isRedirect(): boolean {
+        return this.isRedirectError();
+    }
 }
 
-export class ResetPasswordResendCodeError extends AuthFlowErrorBase {}
+export class ResetPasswordResendCodeError extends AuthFlowErrorBase {
+    isRedirect(): boolean {
+        return this.isRedirectError();
+    }
+}

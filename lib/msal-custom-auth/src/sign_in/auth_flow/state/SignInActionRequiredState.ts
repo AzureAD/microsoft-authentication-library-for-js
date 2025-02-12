@@ -12,10 +12,10 @@ import { SignInClient } from "../../interaction_client/SignInClient.js";
 export abstract class SignInActionRequiredState extends AuthFlowStateBase {
     constructor(
         type: SignInState,
-        correlationId: string,
-        continuationToken: string,
-        logger: Logger,
-        config: CustomAuthBrowserConfiguration,
+        public correlationId: string,
+        public continuationToken: string,
+        public logger: Logger,
+        public config: CustomAuthBrowserConfiguration,
         public signInClient: SignInClient,
         public username: string,
         public scope?: Array<string>,
@@ -27,6 +27,6 @@ export abstract class SignInActionRequiredState extends AuthFlowStateBase {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signInClient", signInClient);
         ArgumentValidator.ensureArgumentIsNotEmptyString("username", username);
 
-        super(type, correlationId, continuationToken, logger, config);
+        super(type);
     }
 }

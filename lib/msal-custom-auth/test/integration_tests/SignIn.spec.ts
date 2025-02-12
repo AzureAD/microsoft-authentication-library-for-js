@@ -14,7 +14,6 @@ import { SignInState } from "../../src/core/auth_flow/AuthFlowStateBase.js";
 import { AuthFlowStateHandlerFactory } from "../../src/core/auth_flow/AuthFlowStateHandlerFactory.js";
 import { SignInCodeRequired } from "../../src/sign_in/auth_flow/state/SignInCodeRequired.js";
 import { SignInPasswordRequired } from "../../src/sign_in/auth_flow/state/SignInPasswordRequired.js";
-import { ok } from "assert";
 
 describe("Sign in", () => {
     let app: ICustomAuthPublicClientApplication;

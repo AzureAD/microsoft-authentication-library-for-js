@@ -1,10 +1,10 @@
 import { CustomAuthStandardController } from "../../src/controller/CustomAuthStandardController.js";
-import { SignInInputs, SignUpInputs } from "../../src/CustomAuthActionInputs.js";
+import { ResetPasswordInputs, SignInInputs, SignUpInputs } from "../../src/CustomAuthActionInputs.js";
 import { CustomAuthOperatingContext } from "../../src/operating_context/CustomAuthOperatingContext.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { SignInError } from "../../src/sign_in/auth_flow/error_type/SignInError.js";
 import { SignInResult } from "../../src/sign_in/auth_flow/result/SignInResult.js";
-import { SignInState, SignUpState } from "../../src/core/auth_flow/AuthFlowStateBase.js";
+import { ResetPasswordState, SignInState, SignUpState } from "../../src/core/auth_flow/AuthFlowStateBase.js";
 import { AccountInfo } from "../../src/account/auth_flow/model/AccountInfo.js";
 import { SignUpError } from "../../src/sign_up/auth_flow/error_type/SignUpError.js";
 import { ChallengeType } from "../../src/CustomAuthConstants.js";
@@ -14,6 +14,9 @@ import {
     CustomAuthApiErrorCode,
     CustomAuthApiSuberror,
 } from "../../src/core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
+import { ResetPasswordStartResult } from "../../src/index.js";
+import { ResetPasswordError } from "../../src/reset_password/auth_flow/error_type/ResetPasswordError.js";
+import { ResetPasswordCodeRequired } from "../../src/reset_password/auth_flow/state/ResetPasswordCodeRequired.js";
 
 jest.mock("../../src/core/network_client/custom_auth_api/CustomAuthApiClient.js", () => {
     let signInApiClient = {
@@ -30,9 +33,9 @@ jest.mock("../../src/core/network_client/custom_auth_api/CustomAuthApiClient.js"
         continueWithAttributes: jest.fn(),
     };
     let resetPasswordApiClient = {
-        startResetPassword: jest.fn(),
+        start: jest.fn(),
         requestChallenge: jest.fn(),
-        submitOTP: jest.fn(),
+        continueWithCode: jest.fn(),
         submitNewPassword: jest.fn(),
         pollCompletion: jest.fn(),
     };
@@ -314,6 +317,100 @@ describe("CustomAuthStandardController", () => {
             expect(result.error?.errorData).toBeDefined();
             expect(result.error?.isInvalidPassword()).toEqual(true);
             expect(result.state?.type).toStrictEqual(SignUpState.Failed);
+        });
+    });
+
+    describe("resetPassword", () => {
+        it("should return error result if provided username is invalid", async () => {
+            // Empty username
+            let inputs: ResetPasswordInputs = {
+                correlationId: "correlation-id",
+                username: "",
+            };
+
+            let result = await controller.resetPassword(inputs);
+
+            expect(result.error).toBeDefined();
+            expect(result.error).toBeInstanceOf(ResetPasswordError);
+
+            expect(result.error?.isInvalidUsername()).toBe(true);
+
+            // Invalid username format (invalid email address)
+            inputs = {
+                correlationId: "correlation-id",
+                username: "abc@",
+            };
+
+            result = await controller.resetPassword(inputs);
+
+            expect(result.error).toBeDefined();
+            expect(result.error).toBeInstanceOf(ResetPasswordError);
+
+            expect(result.error?.isInvalidUsername()).toBe(true);
+        });
+
+        it("should return code required result successfully", async () => {
+            resetPasswordApiClient.start.mockResolvedValue({
+                continuation_token: "continuation_token_1",
+            });
+            resetPasswordApiClient.requestChallenge.mockResolvedValue({
+                challenge_type: ChallengeType.OOB,
+                correlation_id: "corr123",
+                continuation_token: "continuation_token_2",
+                code_length: 8,
+                challenge_channel: "email",
+                target_challenge_label: "email",
+            });
+
+            const inputs: ResetPasswordInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+            };
+
+            const result = await controller.resetPassword(inputs);
+
+            expect(result.error).toBeUndefined();
+            expect(result.state).toBeInstanceOf(ResetPasswordCodeRequired);
+            expect(result.state?.type).toStrictEqual(SignInState.CodeRequired);
+            expect((result.state as ResetPasswordCodeRequired)?.continuationToken).toStrictEqual(
+                "continuation_token_2",
+            );
+        });
+
+        it("should return redirect error if the return challenge is redirect", async () => {
+            resetPasswordApiClient.start.mockRejectedValue(new RedirectError());
+
+            const inputs: ResetPasswordInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+            };
+
+            const result = await controller.resetPassword(inputs);
+
+            expect(result).toBeInstanceOf(ResetPasswordStartResult);
+            expect(result.error).toBeDefined();
+            expect(result.error?.errorData).toBeDefined();
+            expect(result.error?.isRedirect()).toEqual(true);
+            expect(result.state?.type).toStrictEqual(ResetPasswordState.Failed);
+        });
+
+        it("should return failed result if the user is not found", async () => {
+            resetPasswordApiClient.start.mockRejectedValue(
+                new CustomAuthApiError(CustomAuthApiErrorCode.USER_NOT_FOUND, "User not found"),
+            );
+
+            const inputs: ResetPasswordInputs = {
+                correlationId: "correlation-id",
+                username: "test@test.com",
+            };
+
+            const result = await controller.resetPassword(inputs);
+
+            expect(result).toBeInstanceOf(ResetPasswordStartResult);
+            expect(result.error).toBeDefined();
+            expect(result.error?.errorData).toBeDefined();
+            expect(result.error?.isUserNotFound()).toEqual(true);
+            expect(result.state?.type).toStrictEqual(ResetPasswordState.Failed);
         });
     });
 });

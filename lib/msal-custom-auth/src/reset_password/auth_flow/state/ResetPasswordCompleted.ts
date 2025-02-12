@@ -10,13 +10,13 @@ import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.j
 
 export class ResetPasswordCompleted extends AuthFlowStateBase {
     constructor(
-        correlationId: string,
-        continuationToken: string,
-        logger: Logger,
-        config: CustomAuthBrowserConfiguration,
+        public correlationId: string,
+        public continuationToken: string,
+        public logger: Logger,
+        public config: CustomAuthBrowserConfiguration,
         public signInClient: SignInClient,
         public username: string,
     ) {
-        super(ResetPasswordState.Completed, correlationId, continuationToken, logger, config);
+        super(ResetPasswordState.Completed);
     }
 }

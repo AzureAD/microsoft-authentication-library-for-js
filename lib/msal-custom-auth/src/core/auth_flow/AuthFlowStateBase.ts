@@ -3,13 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { Logger } from "@azure/msal-browser";
-import { CustomAuthBrowserConfiguration } from "../../configuration/CustomAuthConfiguration.js";
-
 /*
  * Base state for the auth flow.
  */
-export class AuthFlowStateBase {
+export abstract class AuthFlowStateBase {
     constructor(
         public type:
             | SignInState
@@ -18,10 +15,6 @@ export class AuthFlowStateBase {
             | GetAccountState
             | GetAccessTokenState
             | SignOutState,
-        public correlationId?: string,
-        public continuationToken?: string,
-        public logger?: Logger,
-        public config?: CustomAuthBrowserConfiguration,
     ) {}
 }
 

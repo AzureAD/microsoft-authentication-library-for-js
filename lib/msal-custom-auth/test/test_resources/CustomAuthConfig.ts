@@ -30,16 +30,16 @@ export const customAuthConfig: CustomAuthConfiguration = {
                 }
                 switch (level) {
                     case LogLevel.Error:
-                        console.error(message);
+                        console.info(`[Error] ${message}`);
                         return;
                     case LogLevel.Info:
-                        console.info(message);
+                        console.info(`[Info] ${message}`);
                         return;
                     case LogLevel.Verbose:
-                        console.debug(message);
+                        console.info(`[Verbose] ${message}`);
                         return;
                     case LogLevel.Warning:
-                        console.warn(message);
+                        console.info(`[Warning] ${message}`);
                         return;
                     default:
                         return;
