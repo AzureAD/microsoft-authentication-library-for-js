@@ -197,7 +197,7 @@ export class BrowserCacheUtils {
                 cookie.secure === true && 
                 cookie.session === true
             });
-            expect(matchingCookies).toHaveLength(1);
+            expect(matchingCookies.length).toBe(1);
         }
         
         const tokenStore = await this.getTokens();
@@ -206,12 +206,13 @@ export class BrowserCacheUtils {
         const totalIdTokens = (idTokens || 1) * numberOfTenants;
         const totalAccessTokens = (accessTokens || 1) * numberOfTenants;
         const totalRefreshTokens = refreshTokens || 1;
-        expect(tokenStore.idTokens).toHaveLength(totalIdTokens);
-        expect(tokenStore.accessTokens).toHaveLength(totalAccessTokens);
-        expect(tokenStore.refreshTokens).toHaveLength(refreshTokens || 1);
+        expect(tokenStore.idTokens.length).toBe(totalIdTokens);
+        expect(tokenStore.accessTokens.length).toBe(totalAccessTokens);
+        expect(tokenStore.refreshTokens.length).toBe(totalRefreshTokens);
 
         const accountKeys = await this.getAccountFromCache();
-        expect(accountKeys).toHaveLength(1);
+        expect(accountKeys).not.toBeNull();
+        expect(accountKeys!.length).toBe(1);
 
         expect(
             await this.accessTokenForScopesExists(
