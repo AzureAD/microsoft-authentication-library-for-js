@@ -3071,6 +3071,7 @@ export type PerformanceEvent = {
     loginHintFromClaim?: boolean;
     domainHintFromRequest?: boolean;
     prompt?: string;
+    usePreGeneratedPkce?: boolean;
 };
 
 // Warning: (tsdoc-undefined-tag) The TSDoc tag "@export" is not defined in this configuration
