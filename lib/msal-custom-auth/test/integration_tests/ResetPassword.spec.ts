@@ -122,6 +122,7 @@ describe("Reset password", () => {
                         id_token: "test-id-token",
                         access_token: "test-access-token",
                         refresh_token: "test-refresh-token",
+                        client_info: "test-client-info",
                     };
                 },
                 headers: new Headers({ "content-type": "application/json" }),

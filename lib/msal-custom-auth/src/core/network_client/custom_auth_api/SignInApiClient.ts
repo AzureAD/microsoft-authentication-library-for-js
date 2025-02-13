@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { ServerTelemetryManager } from "@azure/msal-browser";
 import { GrantType } from "../../../CustomAuthConstants.js";
 import { CustomAuthApiError } from "../../error/CustomAuthApiError.js";
 import { BaseApiClient } from "./BaseApiClient.js";
@@ -67,8 +68,7 @@ export class SignInApiClient extends BaseApiClient {
      * @param authMethod 'email-otp' | 'email-password'
      */
     async requestTokensWithPassword(params: SignInPasswordTokenRequest): Promise<SignInTokenResponse> {
-        const result = await this.request<SignInTokenResponse>(
-            CustomAuthApiEndpoint.SIGNIN_TOKEN,
+        return this.requestTokens(
             {
                 continuation_token: params.continuation_token,
                 grant_type: GrantType.PASSWORD,
@@ -78,15 +78,10 @@ export class SignInApiClient extends BaseApiClient {
             params.telemetryManager,
             params.correlationId,
         );
-
-        SignInApiClient.ensureTokenResponseIsValid(result);
-
-        return result;
     }
 
     async requestTokensWithOob(params: SignInOobTokenRequest): Promise<SignInTokenResponse> {
-        const result = await this.request<SignInTokenResponse>(
-            CustomAuthApiEndpoint.SIGNIN_TOKEN,
+        return this.requestTokens(
             {
                 continuation_token: params.continuation_token,
                 scope: this.getScopes(params.scope),
@@ -96,23 +91,35 @@ export class SignInApiClient extends BaseApiClient {
             params.telemetryManager,
             params.correlationId,
         );
-
-        SignInApiClient.ensureTokenResponseIsValid(result);
-
-        return result;
     }
 
     async signInWithContinuationToken(params: SignInContinuationTokenRequest): Promise<SignInTokenResponse> {
-        const result = await this.request<SignInTokenResponse>(
-            CustomAuthApiEndpoint.SIGNIN_TOKEN,
+        return this.requestTokens(
             {
                 continuation_token: params.continuation_token,
                 username: params.username,
                 scope: this.getScopes(params.scope),
                 grant_type: GrantType.CONTINUATION_TOKEN,
+                client_info: true,
             },
             params.telemetryManager,
             params.correlationId,
+        );
+    }
+
+    private async requestTokens(
+        requestData: Record<string, string | boolean>,
+        telemetryManager: ServerTelemetryManager,
+        correlationId: string,
+    ): Promise<SignInTokenResponse> {
+        // The client_info parameter is required for MSAL to return the uid and utid in the response.
+        requestData.client_info = true;
+
+        const result = await this.request<SignInTokenResponse>(
+            CustomAuthApiEndpoint.SIGNIN_TOKEN,
+            requestData,
+            telemetryManager,
+            correlationId,
         );
 
         SignInApiClient.ensureTokenResponseIsValid(result);
@@ -139,6 +146,9 @@ export class SignInApiClient extends BaseApiClient {
         } else if (tokenResponse.token_type !== "Bearer") {
             errorCode = CustomAuthApiErrorCode.INVALID_TOKEN_TYPE;
             errorDescription = `Token type '${tokenResponse.token_type}' is invalid in the response body`;
+        } else if (!tokenResponse.client_info) {
+            errorCode = CustomAuthApiErrorCode.CLIENT_INFO_MISSING;
+            errorDescription = "Client info is missing in the response body";
         }
 
         if (!errorCode && !errorDescription) {

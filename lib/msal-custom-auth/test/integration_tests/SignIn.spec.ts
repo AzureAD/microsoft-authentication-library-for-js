@@ -65,6 +65,7 @@ describe("Sign in", () => {
                     id_token: "test-id-token",
                     access_token: "test-access-token",
                     refresh_token: "test-refresh-token",
+                    client_info: "test-client-info",
                 };
             },
             headers: new Headers({ "content-type": "application/json" }),
@@ -125,6 +126,7 @@ describe("Sign in", () => {
                     id_token: "test-id-token",
                     access_token: "test-access-token",
                     refresh_token: "test-refresh-token",
+                    client_info: "test-client-info",
                 };
             },
             headers: new Headers({ "content-type": "application/json" }),
@@ -190,6 +192,7 @@ describe("Sign in", () => {
                     id_token: "test-id-token",
                     access_token: "test-access-token",
                     refresh_token: "test-refresh-token",
+                    client_info: "test-client-info",
                 };
             },
             headers: new Headers({ "content-type": "application/json" }),

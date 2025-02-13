@@ -9,7 +9,6 @@ import { IHttpClient } from "../http_client/IHttpClient.js";
 import { ApiErrorResponse, CustomAuthApiErrorCode } from "./types/ApiErrorResponseTypes.js";
 import { UrlUtils } from "../../utils/UrlUtils.js";
 import { CustomAuthApiError, RedirectError } from "../../error/CustomAuthApiError.js";
-import { ApiResponseBase } from "./types/ApiTypesBase.js";
 
 export abstract class BaseApiClient {
     private readonly baseRequestUrl: URL;
@@ -22,9 +21,9 @@ export abstract class BaseApiClient {
         this.baseRequestUrl = UrlUtils.parseSecureUrl(!baseUrl.endsWith("/") ? `${baseUrl}/` : baseUrl);
     }
 
-    protected async request<T extends ApiResponseBase>(
+    protected async request<T>(
         endpoint: string,
-        data: Record<string, string>,
+        data: Record<string, string | boolean>,
         telemetryManager: ServerTelemetryManager,
         correlationId: string,
     ): Promise<T> {
@@ -85,10 +84,7 @@ export abstract class BaseApiClient {
         };
     }
 
-    private async handleApiResponse<T extends ApiResponseBase>(
-        response: Response | undefined,
-        requestCorrelationId: string,
-    ): Promise<T> {
+    private async handleApiResponse<T>(response: Response | undefined, requestCorrelationId: string): Promise<T> {
         if (!response) {
             throw new CustomAuthApiError("empty_response", "Response is empty", requestCorrelationId);
         }

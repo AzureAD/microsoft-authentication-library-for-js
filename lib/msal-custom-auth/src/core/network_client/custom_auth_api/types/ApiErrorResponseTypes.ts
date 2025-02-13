@@ -23,6 +23,7 @@ export const CustomAuthApiErrorCode = {
     INVALID_POLL_STATUS: "invalid_poll_status",
     PASSWORD_CHANGE_FAILED: "password_change_failed",
     PASSWORD_RESET_TIMEOUT: "password_reset_timeout",
+    CLIENT_INFO_MISSING: "client_info_missing",
 };
 
 export const CustomAuthApiSuberror = {

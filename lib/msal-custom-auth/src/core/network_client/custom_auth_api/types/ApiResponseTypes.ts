@@ -32,8 +32,10 @@ export interface SignInTokenResponse extends ApiResponseBase {
     scope: string;
     expires_in: number;
     access_token: string;
-    refresh_token?: string;
-    id_token?: string;
+    refresh_token: string;
+    id_token: string;
+    client_info: string;
+    ext_expires_in?: number;
 }
 
 /* Sign-up API response types */
