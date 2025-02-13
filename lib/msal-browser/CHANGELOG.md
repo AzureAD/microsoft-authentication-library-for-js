@@ -1,8 +1,47 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 22 Jan 2025 21:45:31 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 11 Feb 2025 16:09:10 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.2.1
+
+Tue, 11 Feb 2025 16:09:10 GMT
+
+### Patches
+
+- Rethrow MSAL AuthErrors in NAA flow (chris@paslawski.me)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.2.0
+
+Wed, 05 Feb 2025 00:15:18 GMT
+
+### Minor changes
+
+- Notify open tabs of localStorage updates #7550 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.1.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Set SameSite=None on localStorage encryption cookie #7549 (thomas.norling@microsoft.com)
+
+## 4.1.0
+
+Mon, 03 Feb 2025 17:48:08 GMT
+
+### Minor changes
+
+- Instrument additional data points #7543 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.1.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.0.2
 

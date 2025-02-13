@@ -19,8 +19,14 @@ function showWelcomeMessage(account) {
 }
 
 function updateUI(data) {
+    profileDiv.innerHTML = ""; // Clear existing contents
     const scopes = document.createElement('p');
     scopes.setAttribute("id", "scopes-acquired");
     scopes.innerHTML = "<strong>Access Token Acquired for Scopes: </strong>" + data.scopes.join(" ");
     profileDiv.appendChild(scopes);
+
+    const fromCache = document.createElement('p');
+    fromCache.setAttribute("id", "fromCache");
+    fromCache.innerHTML = "<strong>From Cache: </strong>" + data.fromCache;
+    profileDiv.appendChild(fromCache);
 }

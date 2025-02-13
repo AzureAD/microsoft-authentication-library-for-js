@@ -1582,7 +1582,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             browserStorage.setInteractionInProgress(true);
             await expect(
@@ -1602,14 +1603,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             const secondInstanceStorage = new BrowserCacheManager(
                 "different-client-id",
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             secondInstanceStorage.setInteractionInProgress(true);
 
@@ -2506,7 +2509,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             browserStorage.setInteractionInProgress(true);
 
@@ -5859,7 +5863,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             browserStorage.setInteractionInProgress(true);
 
@@ -6780,115 +6785,104 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
-    describe("handleAccountCacheChange", () => {
+    describe("Cross tab/instance events", () => {
+        let secondBrowserStorageInstance: BrowserCacheManager;
+        const accountEntity: AccountEntity =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+        const accountInfo: AccountInfo = accountEntity.getAccountInfo();
+        let callbackId: string | null;
+
+        beforeEach(async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                cache: {
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
+            });
+            await pca.initialize();
+
+            secondBrowserStorageInstance = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                {
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                    temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
+                    storeAuthStateInCookie: false,
+                    secureCookies: true,
+                    cacheMigrationEnabled: false,
+                    claimsBasedCachingEnabled: false,
+                },
+                new CryptoOps(new Logger({})),
+                new Logger({}),
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+            await secondBrowserStorageInstance.initialize(
+                TEST_CONFIG.CORRELATION_ID
+            );
+        });
+
+        afterEach(() => {
+            if (callbackId) {
+                pca.removeEventCallback(callbackId);
+            }
+        });
+
         it("ACCOUNT_ADDED event raised when an account logs in in another tab", (done) => {
             const subscriber = (message: EventMessage) => {
                 expect(message.eventType).toEqual(EventType.ACCOUNT_ADDED);
                 expect(message.interactionType).toBeNull();
-                expect(message.payload).toEqual(accountEntity.getAccountInfo());
+                const { tenantProfiles, ...payloadAccountInfo } =
+                    message.payload as AccountInfo;
+                const messagePayload = {
+                    ...payloadAccountInfo,
+                    tenantProfiles: new Map(tenantProfiles?.entries()),
+                }; // Original map causes problems due to being a proxy object
+                expect(messagePayload).toEqual(accountInfo);
                 expect(message.error).toBeNull();
                 expect(message.timestamp).not.toBeNull();
                 done();
             };
 
-            pca.addEventCallback(subscriber);
+            callbackId = pca.addEventCallback(subscriber);
+            pca.enableAccountStorageEvents();
 
-            const accountEntity: AccountEntity =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-
-            const account: AccountInfo = accountEntity.getAccountInfo();
-
-            const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
-
-            // @ts-ignore
-            pca.controller.handleAccountCacheChange({
-                key: cacheKey1,
-                oldValue: null,
-                newValue: JSON.stringify(accountEntity),
-            });
+            secondBrowserStorageInstance.setAccount(
+                accountEntity,
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
 
         it("ACCOUNT_REMOVED event raised when an account logs out in another tab", (done) => {
             const subscriber = (message: EventMessage) => {
                 expect(message.eventType).toEqual(EventType.ACCOUNT_REMOVED);
                 expect(message.interactionType).toBeNull();
-                expect(message.payload).toEqual(account);
+                const { tenantProfiles, ...payloadAccountInfo } =
+                    message.payload as AccountInfo;
+                const messagePayload = {
+                    ...payloadAccountInfo,
+                    tenantProfiles: new Map(tenantProfiles?.entries()),
+                }; // Original map causes problems due to being a proxy object
+                expect(messagePayload).toEqual(accountInfo);
                 expect(message.error).toBeNull();
                 expect(message.timestamp).not.toBeNull();
                 done();
             };
 
-            pca.addEventCallback(subscriber);
+            callbackId = pca.addEventCallback(subscriber, [
+                EventType.ACCOUNT_REMOVED,
+            ]);
+            pca.enableAccountStorageEvents();
 
-            const accountEntity: AccountEntity =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-
-            const account: AccountInfo = accountEntity.getAccountInfo();
-
-            const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
-
-            // @ts-ignore
-            pca.controller.handleAccountCacheChange({
-                key: cacheKey1,
-                oldValue: JSON.stringify(accountEntity),
-                newValue: null,
-            });
-        });
-
-        it("No event raised if cache value is not JSON", () => {
-            const subscriber = (message: EventMessage) => {};
-            pca.addEventCallback(subscriber);
-
-            const emitEventSpy = jest.spyOn(
-                EventHandler.prototype,
-                "emitEvent"
-            );
-            // @ts-ignore
-            pca.controller.handleAccountCacheChange({
-                key: "testCacheKey",
-                oldValue: "not JSON",
-                newValue: null,
-            });
-
-            expect(emitEventSpy.mock.calls.length).toBe(0);
-        });
-
-        it("No event raised if cache value is not an account", () => {
-            const subscriber = (message: EventMessage) => {};
-            pca.addEventCallback(subscriber);
-
-            const emitEventSpy = jest.spyOn(
-                EventHandler.prototype,
-                "emitEvent"
-            );
-            // @ts-ignore
-            pca.controller.handleAccountCacheChange({
-                key: "testCacheKey",
-                oldValue: JSON.stringify({
-                    testKey: "this is not an account object",
-                }),
-                newValue: null,
-            });
-
-            expect(emitEventSpy.mock.calls.length).toBe(0);
-        });
-
-        it("No event raised if both oldValue and newValue are falsey", () => {
-            const subscriber = (message: EventMessage) => {};
-            pca.addEventCallback(subscriber);
-
-            const emitEventSpy = jest.spyOn(
-                EventHandler.prototype,
-                "emitEvent"
-            );
-            // @ts-ignore
-            pca.controller.handleAccountCacheChange({
-                key: "testCacheKey",
-                oldValue: null,
-                newValue: null,
-            });
-
-            expect(emitEventSpy.mock.calls.length).toBe(0);
+            secondBrowserStorageInstance
+                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
+                .then(() => {
+                    // Ensure account is present in the cache before removing it
+                    const cacheKey =
+                        AccountEntity.generateAccountCacheKey(accountInfo);
+                    secondBrowserStorageInstance.removeAccount(cacheKey);
+                });
         });
 
         it("ACTIVE_ACCOUNT_CHANGED event raised when active account is changed in another tab", (done) => {
@@ -6903,38 +6897,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 done();
             };
 
-            pca.addEventCallback(subscriber);
+            callbackId = pca.addEventCallback(subscriber, [
+                EventType.ACTIVE_ACCOUNT_CHANGED,
+            ]);
+            pca.enableAccountStorageEvents();
 
-            const activeAccountEntity: AccountEntity =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-            const newActiveAccountEntity: AccountEntity =
-                buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
-
-            const activeAccount: AccountInfo =
-                activeAccountEntity.getAccountInfo();
-            const newActiveAccount: AccountInfo =
-                newActiveAccountEntity.getAccountInfo();
-
-            const previousActiveAccountFilters = {
-                homeAccountId: activeAccount.homeAccountId,
-                localAccountId: activeAccount.localAccountId,
-                tenantId: activeAccount.tenantId,
-            };
-
-            const newActiveAccountFilters = {
-                homeAccountId: newActiveAccount.homeAccountId,
-                localAccountId: newActiveAccount.localAccountId,
-                tenantId: newActiveAccount.tenantId,
-            };
-
-            const activeAccountKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS}`;
-
-            // @ts-ignore
-            pca.controller.handleAccountCacheChange({
-                key: activeAccountKey,
-                oldValue: JSON.stringify(previousActiveAccountFilters),
-                newValue: JSON.stringify(newActiveAccountFilters),
-            });
+            secondBrowserStorageInstance
+                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
+                .then(() => {
+                    // Ensure account is present in the cache before setting it as active
+                    secondBrowserStorageInstance.setActiveAccount(accountInfo);
+                });
         });
     });
 });
