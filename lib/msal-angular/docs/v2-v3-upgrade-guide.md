@@ -40,13 +40,13 @@ As with MSAL Angular v2, `rxjs-compat` is not required.
 
 The following developer samples are now available:
 
-- [Angular 15 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular15-sample-app)
-- [Angular 16 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular16-sample-app)
-- [Angular 16 sample using B2C](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular-b2c-sample-app)
-- [Angular 16 sample using Angular standalone components](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular-standalone-sample)
-- [Angular 17 Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular17-standalone-sample)
-- [Angular 18 Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples/angular18-standalone-sample)
+- [Angular 15 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v3-lts/samples/msal-angular-v3-samples/angular15-sample-app)
+- [Angular 16 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v3-lts/samples/msal-angular-v3-samples/angular16-sample-app)
+- [Angular 16 sample using B2C](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v3-lts/samples/msal-angular-v3-samples/angular-b2c-sample-app)
+- [Angular 16 sample using Angular standalone components](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v3-lts/samples/msal-angular-v3-samples/angular-standalone-sample)
+- [Angular 17 Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v3-lts/samples/msal-angular-v3-samples/angular17-standalone-sample)
+- [Angular 18 Standalone Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/v3-lts/samples/msal-angular-v3-samples/angular18-standalone-sample)
 
 The samples demonstrates basic configuration and usage, and may be improved and added to incrementally.
 
-See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/README.md) for a list of the MSAL Angular v3 samples and the features demonstrated.
+See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/v3-lts/samples/msal-angular-v3-samples/README.md) for a list of the MSAL Angular v3 samples and the features demonstrated.

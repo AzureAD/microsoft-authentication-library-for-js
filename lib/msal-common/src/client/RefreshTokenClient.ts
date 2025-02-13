@@ -230,6 +230,10 @@ export class RefreshTokenClient extends BaseClient {
                     DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS
             )
         ) {
+            this.performanceClient?.addFields(
+                { rtExpiresOnMs: Number(refreshToken.expiresOn) },
+                request.correlationId
+            );
             throw createInteractionRequiredAuthError(
                 InteractionRequiredAuthErrorCodes.refreshTokenExpired
             );
@@ -256,16 +260,21 @@ export class RefreshTokenClient extends BaseClient {
                 request.correlationId
             )(refreshTokenRequest);
         } catch (e) {
-            if (
-                e instanceof InteractionRequiredAuthError &&
-                e.subError === InteractionRequiredAuthErrorCodes.badToken
-            ) {
-                // Remove bad refresh token from cache
-                this.logger.verbose(
-                    "acquireTokenWithRefreshToken: bad refresh token, removing from cache"
+            if (e instanceof InteractionRequiredAuthError) {
+                this.performanceClient?.addFields(
+                    { rtExpiresOnMs: Number(refreshToken.expiresOn) },
+                    request.correlationId
                 );
-                const badRefreshTokenKey = generateCredentialKey(refreshToken);
-                this.cacheManager.removeRefreshToken(badRefreshTokenKey);
+
+                if (e.subError === InteractionRequiredAuthErrorCodes.badToken) {
+                    // Remove bad refresh token from cache
+                    this.logger.verbose(
+                        "acquireTokenWithRefreshToken: bad refresh token, removing from cache"
+                    );
+                    const badRefreshTokenKey =
+                        generateCredentialKey(refreshToken);
+                    this.cacheManager.removeRefreshToken(badRefreshTokenKey);
+                }
             }
 
             throw e;
