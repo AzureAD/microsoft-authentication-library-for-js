@@ -47,6 +47,7 @@ import { PopupWindowAttributes } from "../request/PopupWindowAttributes.js";
 import { EventError } from "../event/EventMessage.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
+import { preGeneratePkceCodes } from "../crypto/PkceGenerator.js";
 
 export type PopupParams = {
     popup?: Window | null;
@@ -204,7 +205,13 @@ export class PopupClient extends StandardInteractionClient {
             this.correlationId
         )(request, InteractionType.Popup);
 
-        BrowserUtils.preconnect(validRequest.authority);
+        /*
+         * Skip pre-connect for async popups to reduce time between user interaction and popup window creation to avoid
+         * popup from being blocked by browsers with shorter popup timers
+         */
+        if (popupParams.popup) {
+            BrowserUtils.preconnect(validRequest.authority);
+        }
 
         try {
             // Create auth code request and generate PKCE params
@@ -215,7 +222,7 @@ export class PopupClient extends StandardInteractionClient {
                     this.logger,
                     this.performanceClient,
                     this.correlationId
-                )(validRequest);
+                )(validRequest, this.config.system.asyncPopups);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await invokeAsync(
@@ -357,8 +364,14 @@ export class PopupClient extends StandardInteractionClient {
                 (e as AuthError).setCorrelationId(this.correlationId);
                 serverTelemetryManager.cacheFailedRequest(e);
             }
-
             throw e;
+        } finally {
+            this.config.system.asyncPopups &&
+                (await preGeneratePkceCodes(
+                    this.performanceClient,
+                    this.logger,
+                    this.correlationId
+                ));
         }
     }
 

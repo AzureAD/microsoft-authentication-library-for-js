@@ -85,6 +85,7 @@ import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { initializeSilentRequest } from "../request/RequestHelpers.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
+import { preGeneratePkceCodes } from "../crypto/PkceGenerator.js";
 
 function getAccountType(
     account?: AccountInfo
@@ -371,6 +372,12 @@ export class StandardController implements IController {
             )(this.performanceClient, initCorrelationId);
         }
 
+        this.config.system.asyncPopups &&
+            (await preGeneratePkceCodes(
+                this.performanceClient,
+                this.logger,
+                initCorrelationId
+            ));
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
         initMeasurement.end({

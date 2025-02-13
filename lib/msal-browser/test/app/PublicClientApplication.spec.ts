@@ -525,6 +525,51 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             pca.initialize({ correlationId: "test-correlation-id" });
         });
+
+        it("does not pre-generate PKCE codes if asyncPopups is set to false", async () => {
+            const preGenerateSpy = jest.spyOn(
+                PkceGenerator,
+                "preGeneratePkceCodes"
+            );
+
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: false,
+                },
+            });
+            await pca.initialize();
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
+            expect(preGenerateSpy).toHaveBeenCalledTimes(0);
+        });
+
+        it("pre-generates PKCE codes if asyncPopups is set to true", async () => {
+            const preGenerateSpy = jest.spyOn(
+                PkceGenerator,
+                "preGeneratePkceCodes"
+            );
+
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: false,
+                    asyncPopups: true,
+                },
+            });
+            await pca.initialize();
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
+            expect(preGenerateSpy).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe("handleRedirectPromise", () => {
