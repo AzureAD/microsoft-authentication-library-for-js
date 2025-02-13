@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Pre-generate PKCE for async popup flow to blocked async popups in Safari #7568",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
