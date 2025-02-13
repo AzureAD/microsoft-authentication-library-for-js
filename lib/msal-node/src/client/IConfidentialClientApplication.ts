@@ -50,9 +50,9 @@ export interface IConfidentialClientApplication {
         request: OnBehalfOfRequest
     ): Promise<AuthenticationResult | null>;
 
-    /** 
+    /**
      * Acquires tokens with password grant by exchanging client applications username and password for credentials
-     * @deprecated - Use a more secure flow instead 
+     * @deprecated - Use a more secure flow instead
      */
     acquireTokenByUsernamePassword(
         request: UsernamePasswordRequest
