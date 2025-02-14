@@ -15,7 +15,7 @@ import {
 } from "e2e-test-utils";
 import path from "path";
 
-const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../test/screenshots/onPageLoad");
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screenshots/onPageLoad");
 let sampleHomeUrl = "";
 let username = "";
 let accountPwd = "";

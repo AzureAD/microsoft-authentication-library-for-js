@@ -25,7 +25,7 @@ import {
 import fs from "fs";
 import path from "path";
 
-const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../test/screenshots/customizable-e2e-test/localStorage");
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screenshots/customizable-e2e-test/localStorage");
 
 describe("LocalStorage Tests", function () {
     let username = "";

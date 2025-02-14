@@ -27,7 +27,7 @@ import {
 import fs from "fs";
 import path from "path";
 
-const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../test/screenshots/customizable-e2e-test/browserB2C");
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screenshots/customizable-e2e-test/browserB2C");
 let sampleHomeUrl = "";
 
 describe("B2C Tests", () => {

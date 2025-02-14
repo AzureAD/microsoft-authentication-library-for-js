@@ -24,7 +24,7 @@ import {
 import fs from "fs";
 import path from "path";
 
-const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../test/screenshots/customizable-e2e-test/browserMemStorage");
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screenshots/customizable-e2e-test/browserMemStorage");
 
 async function verifyTokenStore(
     BrowserCache: BrowserCacheUtils,
