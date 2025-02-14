@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Deprecate ROPC flow",
+  "packageName": "@azure/msal-node",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
