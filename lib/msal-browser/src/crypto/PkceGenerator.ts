@@ -25,47 +25,6 @@ const RANDOM_BYTE_ARR_LENGTH = 32;
  * This file defines APIs to generate PKCE codes and code verifiers.
  */
 
-let pkceCode: PkceCodes | undefined;
-
-/**
- * Pre-generates PKCE codes and stores it in local variable
- * @param performanceClient
- * @param logger
- * @param correlationId
- */
-export async function preGeneratePkceCodes(
-    performanceClient: IPerformanceClient,
-    logger: Logger,
-    correlationId: string
-): Promise<void> {
-    logger.verbose("Generating new PKCE codes");
-    pkceCode = await generatePkceCodes(
-        performanceClient,
-        logger,
-        correlationId
-    );
-    return Promise.resolve();
-}
-
-/**
- * Provides pre-generated PKCE codes, if any
- * @param logger
- */
-export function getPreGeneratedPkceCodes(
-    performanceClient: IPerformanceClient,
-    logger: Logger,
-    correlationId: string
-): PkceCodes | undefined {
-    logger.verbose("Attempting to pick up pre-generated PKCE codes");
-    const res = pkceCode;
-    pkceCode = undefined;
-    logger.verbose(
-        `${res ? "Found" : "Did not find"} pre-generated PKCE codes`
-    );
-    performanceClient.addFields({ usePreGeneratedPkce: !!res }, correlationId);
-    return res;
-}
-
 /**
  * Generates PKCE Codes. See the RFC for more information: https://tools.ietf.org/html/rfc7636
  */

@@ -20,6 +20,7 @@ import {
     ServerResponseType,
     invokeAsync,
     invoke,
+    PkceCodes,
 } from "@azure/msal-common/browser";
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import { EventType } from "../event/EventType.js";
@@ -47,7 +48,6 @@ import { PopupWindowAttributes } from "../request/PopupWindowAttributes.js";
 import { EventError } from "../event/EventMessage.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
-import { preGeneratePkceCodes } from "../crypto/PkceGenerator.js";
 
 export type PopupParams = {
     popup?: Window | null;
@@ -91,8 +91,12 @@ export class PopupClient extends StandardInteractionClient {
     /**
      * Acquires tokens by opening a popup window to the /authorize endpoint of the authority
      * @param request
+     * @param pkceCodes
      */
-    acquireToken(request: PopupRequest): Promise<AuthenticationResult> {
+    acquireToken(
+        request: PopupRequest,
+        pkceCodes?: PkceCodes
+    ): Promise<AuthenticationResult> {
         try {
             const popupName = this.generatePopupName(
                 request.scopes || OIDC_DEFAULT_SCOPES,
@@ -113,7 +117,11 @@ export class PopupClient extends StandardInteractionClient {
             if (this.config.system.asyncPopups) {
                 this.logger.verbose("asyncPopups set to true, acquiring token");
                 // Passes on popup position and dimensions if in request
-                return this.acquireTokenPopupAsync(request, popupParams);
+                return this.acquireTokenPopupAsync(
+                    request,
+                    popupParams,
+                    pkceCodes
+                );
             } else {
                 // asyncPopups flag is set to false. Opens popup before acquiring token.
                 this.logger.verbose(
@@ -123,7 +131,11 @@ export class PopupClient extends StandardInteractionClient {
                     "about:blank",
                     popupParams
                 );
-                return this.acquireTokenPopupAsync(request, popupParams);
+                return this.acquireTokenPopupAsync(
+                    request,
+                    popupParams,
+                    pkceCodes
+                );
             }
         } catch (e) {
             return Promise.reject(e);
@@ -181,16 +193,16 @@ export class PopupClient extends StandardInteractionClient {
 
     /**
      * Helper which obtains an access_token for your API via opening a popup window in the user's browser
-     * @param validRequest
-     * @param popupName
-     * @param popup
-     * @param popupWindowAttributes
+     * @param request
+     * @param popupParams
+     * @param pkceCodes
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     protected async acquireTokenPopupAsync(
         request: PopupRequest,
-        popupParams: PopupParams
+        popupParams: PopupParams,
+        pkceCodes?: PkceCodes
     ): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenPopupAsync called");
         const serverTelemetryManager = this.initializeServerTelemetryManager(
@@ -222,7 +234,7 @@ export class PopupClient extends StandardInteractionClient {
                     this.logger,
                     this.performanceClient,
                     this.correlationId
-                )(validRequest, this.config.system.asyncPopups);
+                )(validRequest, pkceCodes);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await invokeAsync(
@@ -365,13 +377,6 @@ export class PopupClient extends StandardInteractionClient {
                 serverTelemetryManager.cacheFailedRequest(e);
             }
             throw e;
-        } finally {
-            this.config.system.asyncPopups &&
-                (await preGeneratePkceCodes(
-                    this.performanceClient,
-                    this.logger,
-                    this.correlationId
-                ));
         }
     }
 

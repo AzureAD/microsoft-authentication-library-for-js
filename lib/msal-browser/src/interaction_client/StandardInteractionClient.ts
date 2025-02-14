@@ -35,10 +35,7 @@ import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
-import {
-    generatePkceCodes,
-    getPreGeneratedPkceCodes,
-} from "../crypto/PkceGenerator.js";
+import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { initializeBaseRequest } from "../request/RequestHelpers.js";
 
@@ -53,20 +50,12 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      */
     protected async initializeAuthorizationCodeRequest(
         request: AuthorizationUrlRequest,
-        usePreGeneratedPkce?: boolean
+        pkceCodes?: PkceCodes
     ): Promise<CommonAuthorizationCodeRequest> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
             this.correlationId
         );
-
-        const pkceCodes: PkceCodes | undefined = usePreGeneratedPkce
-            ? getPreGeneratedPkceCodes(
-                  this.performanceClient,
-                  this.logger,
-                  this.correlationId
-              )
-            : undefined;
 
         const generatedPkceParams: PkceCodes =
             pkceCodes ||
