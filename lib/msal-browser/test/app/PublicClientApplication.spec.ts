@@ -525,6 +525,53 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             pca.initialize({ correlationId: "test-correlation-id" });
         });
+
+        it("does not pre-generate PKCE codes if asyncPopups is set to false", async () => {
+            const preGenerateSpy = jest.spyOn(
+                StandardController.prototype,
+                // @ts-ignore
+                "preGeneratePkceCodes"
+            );
+
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: false,
+                },
+            });
+            await pca.initialize();
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
+            expect(preGenerateSpy).toHaveBeenCalledTimes(0);
+        });
+
+        it("pre-generates PKCE codes if asyncPopups is set to true", async () => {
+            const preGenerateSpy = jest.spyOn(
+                StandardController.prototype,
+                // @ts-ignore
+                "preGeneratePkceCodes"
+            );
+
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: false,
+                    asyncPopups: true,
+                },
+            });
+            await pca.initialize();
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
+            expect(preGenerateSpy).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe("handleRedirectPromise", () => {
@@ -2812,6 +2859,117 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scenarioId: "test-scenario-id",
                 correlationId: RANDOM_TEST_GUID,
             });
+        });
+
+        it("post-generates PKCE codes when asyncPopups is set to true", async () => {
+            const spyPreGeneratePkceCodes = jest.spyOn(
+                StandardController.prototype,
+                // @ts-ignore
+                "preGeneratePkceCodes"
+            );
+            const spyPopupClientAcquireToken = jest.spyOn(
+                PopupClient.prototype,
+                "acquireToken"
+            );
+
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    asyncPopups: true,
+                },
+            });
+
+            await testPca.initialize();
+            expect(spyPreGeneratePkceCodes).toHaveBeenCalledTimes(1);
+
+            // @ts-ignore
+            const preGenPkce: PkceCodes = testPca.controller.pkceCode;
+            expect(preGenPkce).toBeDefined();
+
+            const request: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["scope"],
+                loginHint: "AbeLi@microsoft.com",
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+            };
+
+            try {
+                await testPca.acquireTokenPopup(request);
+            } catch (e) {}
+
+            expect(spyPreGeneratePkceCodes).toHaveBeenCalledTimes(2);
+            expect(spyPopupClientAcquireToken).toHaveBeenCalledWith(
+                request,
+                preGenPkce
+            );
+
+            // @ts-ignore
+            const preGenPkce2: PkceCodes = testPca.controller.pkceCode;
+            expect(preGenPkce2).toBeDefined();
+            expect(preGenPkce.challenge != preGenPkce2.challenge).toBeTruthy();
+        });
+
+        it("does not post-generate PKCE codes when asyncPopups is set to false", async () => {
+            const spyPreGeneratePkceCodes = jest.spyOn(
+                StandardController.prototype,
+                // @ts-ignore
+                "preGeneratePkceCodes"
+            );
+            const spyPopupClientAcquireToken = jest.spyOn(
+                PopupClient.prototype,
+                "acquireToken"
+            );
+
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    asyncPopups: false,
+                },
+            });
+
+            await testPca.initialize();
+            expect(spyPreGeneratePkceCodes).toHaveBeenCalledTimes(0);
+
+            // @ts-ignore
+            const preGenPkce: PkceCodes = testPca.controller.pkceCode;
+            expect(preGenPkce).toBeUndefined();
+
+            const request: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["scope"],
+                loginHint: "AbeLi@microsoft.com",
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+            };
+
+            try {
+                await testPca.acquireTokenPopup(request);
+            } catch (e) {}
+
+            expect(spyPreGeneratePkceCodes).toHaveBeenCalledTimes(0);
+            expect(spyPopupClientAcquireToken).toHaveBeenCalledWith(
+                request,
+                undefined
+            );
+
+            // @ts-ignore
+            const preGenPkce2: PkceCodes = testPca.controller.pkceCode;
+            expect(preGenPkce2).toBeUndefined();
         });
     });
 
@@ -6908,6 +7066,52 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     // Ensure account is present in the cache before setting it as active
                     secondBrowserStorageInstance.setActiveAccount(accountInfo);
                 });
+        });
+    });
+
+    describe("Pre-generate PKCE tests", () => {
+        it("getPkceCodes returns undefined before preGeneratePkceCodes is called", async () => {
+            expect(
+                // @ts-ignore
+                pca.controller.getPreGeneratedPkceCodes(RANDOM_TEST_GUID)
+            ).toBeUndefined();
+        });
+
+        it("getPkceCodes returns value after preGeneratePkceCodes is called", async () => {
+            /**
+             * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
+             */
+            // @ts-ignore
+            await pca.controller.preGeneratePkceCodes(RANDOM_TEST_GUID);
+
+            const pkce =
+                // @ts-ignore
+                pca.controller.getPreGeneratedPkceCodes(RANDOM_TEST_GUID);
+            const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
+            expect(regExp.test(pkce!.challenge)).toBe(true);
+            expect(regExp.test(pkce!.verifier)).toBe(true);
+        });
+
+        it("preGeneratePkceCodes overwrites previous value", async () => {
+            /**
+             * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
+             */
+            // @ts-ignore
+            await pca.controller.preGeneratePkceCodes(RANDOM_TEST_GUID);
+            // @ts-ignore
+            const pkce1 = pca.controller.getPreGeneratedPkceCodes(
+                new StubPerformanceClient()
+            );
+
+            // @ts-ignore
+            await pca.controller.preGeneratePkceCodes(RANDOM_TEST_GUID);
+            const pkce2 =
+                // @ts-ignore
+                pca.controller.getPreGeneratedPkceCodes(RANDOM_TEST_GUID);
+
+            expect(pkce1?.challenge).toBeDefined();
+            expect(pkce2?.challenge).toBeDefined();
+            expect(pkce1?.challenge !== pkce2?.challenge).toBeTruthy();
         });
     });
 });
