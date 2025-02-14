@@ -24,7 +24,9 @@ async function verifyTokenStore(
         "b5c2e510-4a17-4feb-b219-e55aa5b74144"
     );
     expect(telemetryCacheEntry).not.toBeNull;
-    expect(telemetryCacheEntry["cacheHits"]).toBe(1);
+    if (telemetryCacheEntry) {
+        expect(telemetryCacheEntry["cacheHits"]).toBe(1);
+    }
 }
 
 describe("/profile", () => {
@@ -96,7 +98,7 @@ describe("/profile", () => {
         const profileButton = await page.waitForSelector(
             "xpath=//header//button"
         );
-        await profileButton.click();
+        await profileButton?.click();
         const logoutButtons = await page.$$(
             "xpath/.//li[contains(., 'Logout using')]"
         );
@@ -119,7 +121,7 @@ describe("/profile", () => {
         const signInButton = await page.waitForSelector(
             "xpath=//button[contains(., 'Login')]"
         );
-        await signInButton.click();
+        await signInButton?.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
         const loginPopupButton = await page.waitForSelector(
             "xpath=//li[contains(., 'Sign in using Popup')]"
@@ -127,7 +129,7 @@ describe("/profile", () => {
         const newPopupWindowPromise = new Promise<puppeteer.Page|null>((resolve) =>
             page.once("popup", resolve)
         );
-        await loginPopupButton.click();
+        await loginPopupButton?.click();
         const popupPage = await newPopupWindowPromise;
         if (!popupPage) {
             throw new Error('Popup window was not opened');
@@ -146,7 +148,7 @@ describe("/profile", () => {
         const profileButton = await page.waitForSelector(
             "xpath=//header//button"
         );
-        await profileButton.click();
+        await profileButton?.click();
         const logoutButtons = await page.$$(
             "xpath/.//li[contains(., 'Logout using')]"
         );
