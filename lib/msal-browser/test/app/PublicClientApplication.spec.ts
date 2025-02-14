@@ -2906,7 +2906,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             } catch (e) {}
 
             expect(spyPreGeneratePkceCodes).toHaveBeenCalledTimes(2);
-            expect(spyPopupClientAcquireToken).toHaveBeenCalledWith(request, preGenPkce);
+            expect(spyPopupClientAcquireToken).toHaveBeenCalledWith(
+                request,
+                preGenPkce
+            );
 
             // @ts-ignore
             const preGenPkce2: PkceCodes = testPca.controller.pkceCode;
@@ -2959,7 +2962,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             } catch (e) {}
 
             expect(spyPreGeneratePkceCodes).toHaveBeenCalledTimes(0);
-            expect(spyPopupClientAcquireToken).toHaveBeenCalledWith(request, undefined);
+            expect(spyPopupClientAcquireToken).toHaveBeenCalledWith(
+                request,
+                undefined
+            );
 
             // @ts-ignore
             const preGenPkce2: PkceCodes = testPca.controller.pkceCode;

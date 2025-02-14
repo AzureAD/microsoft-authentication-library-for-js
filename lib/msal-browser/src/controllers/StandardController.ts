@@ -880,8 +880,12 @@ export class StandardController implements IController {
 
                 // Since this function is syncronous we need to reject
                 return Promise.reject(e);
-            }).finally(() => this.config.system.asyncPopups &&
-                this.preGeneratePkceCodes(correlationId));
+            })
+            .finally(
+                () =>
+                    this.config.system.asyncPopups &&
+                    this.preGeneratePkceCodes(correlationId)
+            );
     }
 
     private trackPageVisibilityWithMeasurement(): void {
