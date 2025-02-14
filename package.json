@@ -62,5 +62,8 @@
         "samples/msal-react-samples/*",
         "samples/msal-node-samples/*",
         "regression-tests/msal-node/client-credential"
-    ]
+    ],
+    "dependencies": {
+        "react-dom": "^19.0.0"
+    }
 }
