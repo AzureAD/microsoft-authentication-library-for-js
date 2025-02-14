@@ -46,7 +46,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     /**
      * Generates an auth code request tied to the url request.
      * @param request
-     * @param usePreGeneratedPkce
+     * @param pkceCodes
      */
     protected async initializeAuthorizationCodeRequest(
         request: AuthorizationUrlRequest,
