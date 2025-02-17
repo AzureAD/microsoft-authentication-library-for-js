@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 11 Feb 2025 16:09:10 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 17 Feb 2025 12:52:55 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.3.0
+
+Mon, 17 Feb 2025 12:52:55 GMT
+
+### Minor changes
+
+- Pre-generate PKCE for async popup flow to blocked async popups in Safari #7568 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.2.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.2.1
 
