@@ -2,6 +2,39 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 17 Feb 2025 12:52:55 GMT",
+      "version": "3.2.3",
+      "tag": "@azure/msal-node_v3.2.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "a50e6d52fa829ab7dcaf04b0ae2cac0636c75e1c",
+            "comment": "Deprecate ROPC flow"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v15.2.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 11 Feb 2025 16:09:10 GMT",
       "version": "3.2.2",
       "tag": "@azure/msal-node_v3.2.2",

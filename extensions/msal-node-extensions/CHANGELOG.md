@@ -1,8 +1,12 @@
 # Change Log - @azure/msal-node-extensions
 
-<!-- This log was last generated on Wed, 05 Feb 2025 00:15:19 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 17 Feb 2025 12:52:55 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 1.5.4
+
+Mon, 17 Feb 2025 12:52:55 GMT
 
 ## 1.5.4
 
