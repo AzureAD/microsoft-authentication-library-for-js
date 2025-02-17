@@ -136,6 +136,7 @@ export abstract class ClientApplication {
     protected constructor(configuration: Configuration);
     acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult>;
     acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
+    // @deprecated
     acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult>;
     protected buildOauthClientConfiguration(authority: string, requestCorrelationId: string, redirectUri: string, serverTelemetryManager?: ServerTelemetryManager, azureRegionConfiguration?: AzureRegionConfiguration, azureCloudOptions?: AzureCloudOptions): Promise<ClientConfiguration>;
@@ -275,6 +276,7 @@ export interface IConfidentialClientApplication {
     acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null>;
     acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
     acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
+    // @deprecated
     acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
     acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null>;
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;
@@ -346,6 +348,7 @@ export interface IPublicClientApplication {
     acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
     acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
     acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
+    // @deprecated
     acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
     acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult>;
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult>;
@@ -594,15 +597,19 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
     getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null>;
     getAllAccounts(): Promise<AccountInfo[]>;
+    getCacheSnapshot(): CacheKVStore;
     getKVStore(): CacheKVStore;
     hasChanged(): boolean;
+    overwriteCache(): Promise<void>;
+    // (undocumented)
+    readonly persistence: ICachePlugin;
     removeAccount(account: AccountInfo): Promise<void>;
     serialize(): string;
 }
 
 export { TokenCacheContext }
 
-// @public
+// @public @deprecated
 export class UsernamePasswordClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
     acquireToken(request: CommonUsernamePasswordRequest): Promise<AuthenticationResult | null>;
@@ -620,7 +627,7 @@ export { ValidCacheType }
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "3.1.0";
+export const version = "3.2.2";
 
 // Warnings were encountered during analysis:
 //

@@ -525,6 +525,53 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             pca.initialize({ correlationId: "test-correlation-id" });
         });
+
+        it("does not pre-generate PKCE codes if asyncPopups is set to false", async () => {
+            const preGenerateSpy = jest.spyOn(
+                StandardController.prototype,
+                // @ts-ignore
+                "preGeneratePkceCodes"
+            );
+
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: false,
+                },
+            });
+            await pca.initialize();
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
+            expect(preGenerateSpy).toHaveBeenCalledTimes(0);
+        });
+
+        it("pre-generates PKCE codes if asyncPopups is set to true", async () => {
+            const preGenerateSpy = jest.spyOn(
+                StandardController.prototype,
+                // @ts-ignore
+                "preGeneratePkceCodes"
+            );
+
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: false,
+                    asyncPopups: true,
+                },
+            });
+            await pca.initialize();
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
+            expect(preGenerateSpy).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe("handleRedirectPromise", () => {
@@ -1582,7 +1629,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             browserStorage.setInteractionInProgress(true);
             await expect(
@@ -1602,14 +1650,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             const secondInstanceStorage = new BrowserCacheManager(
                 "different-client-id",
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             secondInstanceStorage.setInteractionInProgress(true);
 
@@ -2506,7 +2556,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             browserStorage.setInteractionInProgress(true);
 
@@ -2808,6 +2859,117 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scenarioId: "test-scenario-id",
                 correlationId: RANDOM_TEST_GUID,
             });
+        });
+
+        it("post-generates PKCE codes when asyncPopups is set to true", async () => {
+            const spyPreGeneratePkceCodes = jest.spyOn(
+                StandardController.prototype,
+                // @ts-ignore
+                "preGeneratePkceCodes"
+            );
+            const spyPopupClientAcquireToken = jest.spyOn(
+                PopupClient.prototype,
+                "acquireToken"
+            );
+
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    asyncPopups: true,
+                },
+            });
+
+            await testPca.initialize();
+            expect(spyPreGeneratePkceCodes).toHaveBeenCalledTimes(1);
+
+            // @ts-ignore
+            const preGenPkce: PkceCodes = testPca.controller.pkceCode;
+            expect(preGenPkce).toBeDefined();
+
+            const request: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["scope"],
+                loginHint: "AbeLi@microsoft.com",
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+            };
+
+            try {
+                await testPca.acquireTokenPopup(request);
+            } catch (e) {}
+
+            expect(spyPreGeneratePkceCodes).toHaveBeenCalledTimes(2);
+            expect(spyPopupClientAcquireToken).toHaveBeenCalledWith(
+                request,
+                preGenPkce
+            );
+
+            // @ts-ignore
+            const preGenPkce2: PkceCodes = testPca.controller.pkceCode;
+            expect(preGenPkce2).toBeDefined();
+            expect(preGenPkce.challenge != preGenPkce2.challenge).toBeTruthy();
+        });
+
+        it("does not post-generate PKCE codes when asyncPopups is set to false", async () => {
+            const spyPreGeneratePkceCodes = jest.spyOn(
+                StandardController.prototype,
+                // @ts-ignore
+                "preGeneratePkceCodes"
+            );
+            const spyPopupClientAcquireToken = jest.spyOn(
+                PopupClient.prototype,
+                "acquireToken"
+            );
+
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    asyncPopups: false,
+                },
+            });
+
+            await testPca.initialize();
+            expect(spyPreGeneratePkceCodes).toHaveBeenCalledTimes(0);
+
+            // @ts-ignore
+            const preGenPkce: PkceCodes = testPca.controller.pkceCode;
+            expect(preGenPkce).toBeUndefined();
+
+            const request: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["scope"],
+                loginHint: "AbeLi@microsoft.com",
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+            };
+
+            try {
+                await testPca.acquireTokenPopup(request);
+            } catch (e) {}
+
+            expect(spyPreGeneratePkceCodes).toHaveBeenCalledTimes(0);
+            expect(spyPopupClientAcquireToken).toHaveBeenCalledWith(
+                request,
+                undefined
+            );
+
+            // @ts-ignore
+            const preGenPkce2: PkceCodes = testPca.controller.pkceCode;
+            expect(preGenPkce2).toBeUndefined();
         });
     });
 
@@ -5859,7 +6021,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 cacheConfig,
                 browserCrypto,
                 logger,
-                new StubPerformanceClient()
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             browserStorage.setInteractionInProgress(true);
 
@@ -6780,115 +6943,104 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
-    describe("handleAccountCacheChange", () => {
+    describe("Cross tab/instance events", () => {
+        let secondBrowserStorageInstance: BrowserCacheManager;
+        const accountEntity: AccountEntity =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+        const accountInfo: AccountInfo = accountEntity.getAccountInfo();
+        let callbackId: string | null;
+
+        beforeEach(async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                cache: {
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
+            });
+            await pca.initialize();
+
+            secondBrowserStorageInstance = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                {
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                    temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
+                    storeAuthStateInCookie: false,
+                    secureCookies: true,
+                    cacheMigrationEnabled: false,
+                    claimsBasedCachingEnabled: false,
+                },
+                new CryptoOps(new Logger({})),
+                new Logger({}),
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+            await secondBrowserStorageInstance.initialize(
+                TEST_CONFIG.CORRELATION_ID
+            );
+        });
+
+        afterEach(() => {
+            if (callbackId) {
+                pca.removeEventCallback(callbackId);
+            }
+        });
+
         it("ACCOUNT_ADDED event raised when an account logs in in another tab", (done) => {
             const subscriber = (message: EventMessage) => {
                 expect(message.eventType).toEqual(EventType.ACCOUNT_ADDED);
                 expect(message.interactionType).toBeNull();
-                expect(message.payload).toEqual(accountEntity.getAccountInfo());
+                const { tenantProfiles, ...payloadAccountInfo } =
+                    message.payload as AccountInfo;
+                const messagePayload = {
+                    ...payloadAccountInfo,
+                    tenantProfiles: new Map(tenantProfiles?.entries()),
+                }; // Original map causes problems due to being a proxy object
+                expect(messagePayload).toEqual(accountInfo);
                 expect(message.error).toBeNull();
                 expect(message.timestamp).not.toBeNull();
                 done();
             };
 
-            pca.addEventCallback(subscriber);
+            callbackId = pca.addEventCallback(subscriber);
+            pca.enableAccountStorageEvents();
 
-            const accountEntity: AccountEntity =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-
-            const account: AccountInfo = accountEntity.getAccountInfo();
-
-            const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
-
-            // @ts-ignore
-            pca.controller.handleAccountCacheChange({
-                key: cacheKey1,
-                oldValue: null,
-                newValue: JSON.stringify(accountEntity),
-            });
+            secondBrowserStorageInstance.setAccount(
+                accountEntity,
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
 
         it("ACCOUNT_REMOVED event raised when an account logs out in another tab", (done) => {
             const subscriber = (message: EventMessage) => {
                 expect(message.eventType).toEqual(EventType.ACCOUNT_REMOVED);
                 expect(message.interactionType).toBeNull();
-                expect(message.payload).toEqual(account);
+                const { tenantProfiles, ...payloadAccountInfo } =
+                    message.payload as AccountInfo;
+                const messagePayload = {
+                    ...payloadAccountInfo,
+                    tenantProfiles: new Map(tenantProfiles?.entries()),
+                }; // Original map causes problems due to being a proxy object
+                expect(messagePayload).toEqual(accountInfo);
                 expect(message.error).toBeNull();
                 expect(message.timestamp).not.toBeNull();
                 done();
             };
 
-            pca.addEventCallback(subscriber);
+            callbackId = pca.addEventCallback(subscriber, [
+                EventType.ACCOUNT_REMOVED,
+            ]);
+            pca.enableAccountStorageEvents();
 
-            const accountEntity: AccountEntity =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-
-            const account: AccountInfo = accountEntity.getAccountInfo();
-
-            const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
-
-            // @ts-ignore
-            pca.controller.handleAccountCacheChange({
-                key: cacheKey1,
-                oldValue: JSON.stringify(accountEntity),
-                newValue: null,
-            });
-        });
-
-        it("No event raised if cache value is not JSON", () => {
-            const subscriber = (message: EventMessage) => {};
-            pca.addEventCallback(subscriber);
-
-            const emitEventSpy = jest.spyOn(
-                EventHandler.prototype,
-                "emitEvent"
-            );
-            // @ts-ignore
-            pca.controller.handleAccountCacheChange({
-                key: "testCacheKey",
-                oldValue: "not JSON",
-                newValue: null,
-            });
-
-            expect(emitEventSpy.mock.calls.length).toBe(0);
-        });
-
-        it("No event raised if cache value is not an account", () => {
-            const subscriber = (message: EventMessage) => {};
-            pca.addEventCallback(subscriber);
-
-            const emitEventSpy = jest.spyOn(
-                EventHandler.prototype,
-                "emitEvent"
-            );
-            // @ts-ignore
-            pca.controller.handleAccountCacheChange({
-                key: "testCacheKey",
-                oldValue: JSON.stringify({
-                    testKey: "this is not an account object",
-                }),
-                newValue: null,
-            });
-
-            expect(emitEventSpy.mock.calls.length).toBe(0);
-        });
-
-        it("No event raised if both oldValue and newValue are falsey", () => {
-            const subscriber = (message: EventMessage) => {};
-            pca.addEventCallback(subscriber);
-
-            const emitEventSpy = jest.spyOn(
-                EventHandler.prototype,
-                "emitEvent"
-            );
-            // @ts-ignore
-            pca.controller.handleAccountCacheChange({
-                key: "testCacheKey",
-                oldValue: null,
-                newValue: null,
-            });
-
-            expect(emitEventSpy.mock.calls.length).toBe(0);
+            secondBrowserStorageInstance
+                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
+                .then(() => {
+                    // Ensure account is present in the cache before removing it
+                    const cacheKey =
+                        AccountEntity.generateAccountCacheKey(accountInfo);
+                    secondBrowserStorageInstance.removeAccount(cacheKey);
+                });
         });
 
         it("ACTIVE_ACCOUNT_CHANGED event raised when active account is changed in another tab", (done) => {
@@ -6903,38 +7055,63 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 done();
             };
 
-            pca.addEventCallback(subscriber);
+            callbackId = pca.addEventCallback(subscriber, [
+                EventType.ACTIVE_ACCOUNT_CHANGED,
+            ]);
+            pca.enableAccountStorageEvents();
 
-            const activeAccountEntity: AccountEntity =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-            const newActiveAccountEntity: AccountEntity =
-                buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
+            secondBrowserStorageInstance
+                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
+                .then(() => {
+                    // Ensure account is present in the cache before setting it as active
+                    secondBrowserStorageInstance.setActiveAccount(accountInfo);
+                });
+        });
+    });
 
-            const activeAccount: AccountInfo =
-                activeAccountEntity.getAccountInfo();
-            const newActiveAccount: AccountInfo =
-                newActiveAccountEntity.getAccountInfo();
+    describe("Pre-generate PKCE tests", () => {
+        it("getPkceCodes returns undefined before preGeneratePkceCodes is called", async () => {
+            expect(
+                // @ts-ignore
+                pca.controller.getPreGeneratedPkceCodes(RANDOM_TEST_GUID)
+            ).toBeUndefined();
+        });
 
-            const previousActiveAccountFilters = {
-                homeAccountId: activeAccount.homeAccountId,
-                localAccountId: activeAccount.localAccountId,
-                tenantId: activeAccount.tenantId,
-            };
+        it("getPkceCodes returns value after preGeneratePkceCodes is called", async () => {
+            /**
+             * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
+             */
+            // @ts-ignore
+            await pca.controller.preGeneratePkceCodes(RANDOM_TEST_GUID);
 
-            const newActiveAccountFilters = {
-                homeAccountId: newActiveAccount.homeAccountId,
-                localAccountId: newActiveAccount.localAccountId,
-                tenantId: newActiveAccount.tenantId,
-            };
+            const pkce =
+                // @ts-ignore
+                pca.controller.getPreGeneratedPkceCodes(RANDOM_TEST_GUID);
+            const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
+            expect(regExp.test(pkce!.challenge)).toBe(true);
+            expect(regExp.test(pkce!.verifier)).toBe(true);
+        });
 
-            const activeAccountKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS}`;
+        it("preGeneratePkceCodes overwrites previous value", async () => {
+            /**
+             * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
+             */
+            // @ts-ignore
+            await pca.controller.preGeneratePkceCodes(RANDOM_TEST_GUID);
+            // @ts-ignore
+            const pkce1 = pca.controller.getPreGeneratedPkceCodes(
+                new StubPerformanceClient()
+            );
 
             // @ts-ignore
-            pca.controller.handleAccountCacheChange({
-                key: activeAccountKey,
-                oldValue: JSON.stringify(previousActiveAccountFilters),
-                newValue: JSON.stringify(newActiveAccountFilters),
-            });
+            await pca.controller.preGeneratePkceCodes(RANDOM_TEST_GUID);
+            const pkce2 =
+                // @ts-ignore
+                pca.controller.getPreGeneratedPkceCodes(RANDOM_TEST_GUID);
+
+            expect(pkce1?.challenge).toBeDefined();
+            expect(pkce2?.challenge).toBeDefined();
+            expect(pkce1?.challenge !== pkce2?.challenge).toBeTruthy();
         });
     });
 });

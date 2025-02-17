@@ -36,6 +36,8 @@ import {
     ClientAssertion as ClientAssertionType,
     getClientAssertion,
     ClientAssertionCallback,
+    CacheOutcome,
+    ClientAuthError,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -279,31 +281,87 @@ export abstract class ClientApplication {
             validRequest.correlationId,
             validRequest.forceRefresh
         );
+
         try {
-            const silentFlowClientConfig =
+            const clientConfiguration =
                 await this.buildOauthClientConfiguration(
                     validRequest.authority,
                     validRequest.correlationId,
                     validRequest.redirectUri || "",
                     serverTelemetryManager,
                     undefined,
-                    request.azureCloudOptions
+                    validRequest.azureCloudOptions
                 );
-            const silentFlowClient = new SilentFlowClient(
-                silentFlowClientConfig
-            );
+            const silentFlowClient = new SilentFlowClient(clientConfiguration);
             this.logger.verbose(
                 "Silent flow client created",
                 validRequest.correlationId
             );
-            return await silentFlowClient.acquireToken(validRequest);
-        } catch (e) {
-            if (e instanceof AuthError) {
-                e.setCorrelationId(validRequest.correlationId);
+            try {
+                // always overwrite the in-memory cache with the persistence cache (if it exists) before a cache lookup
+                await this.tokenCache.overwriteCache();
+                return await this.acquireCachedTokenSilent(
+                    validRequest,
+                    silentFlowClient,
+                    clientConfiguration
+                );
+            } catch (error) {
+                if (
+                    error instanceof ClientAuthError &&
+                    error.errorCode ===
+                        ClientAuthErrorCodes.tokenRefreshRequired
+                ) {
+                    const refreshTokenClient = new RefreshTokenClient(
+                        clientConfiguration
+                    );
+                    return refreshTokenClient.acquireTokenByRefreshToken(
+                        validRequest
+                    );
+                }
+                throw error;
             }
-            serverTelemetryManager.cacheFailedRequest(e as AuthError);
-            throw e;
+        } catch (error) {
+            if (error instanceof AuthError) {
+                error.setCorrelationId(validRequest.correlationId);
+            }
+            serverTelemetryManager.cacheFailedRequest(error);
+            throw error;
         }
+    }
+
+    private async acquireCachedTokenSilent(
+        validRequest: CommonSilentFlowRequest,
+        silentFlowClient: SilentFlowClient,
+        clientConfiguration: ClientConfiguration
+    ): Promise<AuthenticationResult> {
+        const [authResponse, cacheOutcome] =
+            await silentFlowClient.acquireCachedToken({
+                ...validRequest,
+                scopes: validRequest.scopes?.length
+                    ? validRequest.scopes
+                    : [...OIDC_DEFAULT_SCOPES],
+            });
+
+        if (cacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
+            this.logger.info(
+                "ClientApplication:acquireCachedTokenSilent - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
+            );
+            // refresh the access token in the background
+            const refreshTokenClient = new RefreshTokenClient(
+                clientConfiguration
+            );
+
+            try {
+                await refreshTokenClient.acquireTokenByRefreshToken(
+                    validRequest
+                );
+            } catch {
+                // do nothing, this is running in the background and no action is to be taken upon success or failure
+            }
+        }
+
+        // return the cached token
+        return authResponse;
     }
 
     /**
@@ -315,6 +373,7 @@ export abstract class ClientApplication {
      * https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-authentication-flows#usernamepassword
      *
      * @param request - UsenamePasswordRequest
+     * @deprecated - Use a more secure flow instead
      */
     async acquireTokenByUsernamePassword(
         request: UsernamePasswordRequest

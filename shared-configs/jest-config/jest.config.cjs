@@ -15,5 +15,5 @@ module.exports = {
     collectCoverageFrom: ["src/**/*.ts"],
     collectCoverage: true,
     coverageReporters: [["lcov", { "projectRoot": path.join(__dirname, "../../") }], "json", "html"],
-    setupFilesAfterEnv: [path.join(__dirname, "setupCrypto.cjs")],
+    setupFilesAfterEnv: [path.join(__dirname, "setupGlobals.cjs")],
 };

@@ -51,6 +51,7 @@ import {
     TemporaryCacheKeys,
     BrowserConstants,
 } from "../../src/utils/BrowserConstants.js";
+import { EventHandler } from "../../src/event/EventHandler.js";
 
 class TestInteractionHandler extends InteractionHandler {
     constructor(
@@ -204,7 +205,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
             configObj.cache,
             cryptoOpts,
             logger,
-            new StubPerformanceClient()
+            new StubPerformanceClient(),
+            new EventHandler()
         );
         authorityInstance = new Authority(
             configObj.auth.authority,

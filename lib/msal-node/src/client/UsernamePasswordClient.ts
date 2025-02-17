@@ -27,6 +27,7 @@ import {
  * Oauth2.0 Password grant client
  * Note: We are only supporting public clients for password grant and for purely testing purposes
  * @public
+ * @deprecated - Use a more secure flow instead
  */
 export class UsernamePasswordClient extends BaseClient {
     constructor(configuration: ClientConfiguration) {

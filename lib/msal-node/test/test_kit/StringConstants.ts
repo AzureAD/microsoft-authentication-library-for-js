@@ -349,8 +349,8 @@ export const AUTHENTICATION_RESULT = {
     body: {
         token_type: AuthenticationScheme.BEARER,
         scope: "openid profile User.Read email",
-        expires_in: 3599,
-        ext_expires_in: 3599,
+        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         access_token: "thisIs.an.accessT0ken",
         refresh_token: "thisIsARefreshT0ken",
         id_token:
@@ -364,8 +364,8 @@ export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
     body: {
         token_type: AuthenticationScheme.BEARER,
         scope: "openid profile offline_access User.Read",
-        expires_in: 3599,
-        ext_expires_in: 3599,
+        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         access_token: "thisIs.an.accessT0ken",
         refresh_token: "thisIsARefreshT0ken",
         id_token:
@@ -487,8 +487,8 @@ export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
     status: 200,
     body: {
         token_type: AuthenticationScheme.BEARER,
-        expires_in: 3599,
-        ext_expires_in: 3599,
+        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         access_token: "thisIs.an.accessT0ken",
     },
 };

@@ -571,7 +571,16 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if (request.domainHint) {
             parameterBuilder.addDomainHint(request.domainHint);
+            this.performanceClient?.addFields(
+                { domainHintFromRequest: true },
+                correlationId
+            );
         }
+
+        this.performanceClient?.addFields(
+            { prompt: request.prompt },
+            correlationId
+        );
 
         // Add sid or loginHint with preference for login_hint claim (in request) -> sid -> loginHint (upn/email) -> username of AccountInfo object
         if (request.prompt !== PromptValue.SELECT_ACCOUNT) {
@@ -582,6 +591,10 @@ export class AuthorizationCodeClient extends BaseClient {
                     "createAuthCodeUrlQueryString: Prompt is none, adding sid from request"
                 );
                 parameterBuilder.addSid(request.sid);
+                this.performanceClient?.addFields(
+                    { sidFromRequest: true },
+                    correlationId
+                );
             } else if (request.account) {
                 const accountSid = this.extractAccountSid(request.account);
                 let accountLoginHintClaim = this.extractLoginHint(
@@ -601,6 +614,10 @@ export class AuthorizationCodeClient extends BaseClient {
                         "createAuthCodeUrlQueryString: login_hint claim present on account"
                     );
                     parameterBuilder.addLoginHint(accountLoginHintClaim);
+                    this.performanceClient?.addFields(
+                        { loginHintFromClaim: true },
+                        correlationId
+                    );
                     try {
                         const clientInfo = buildClientInfoFromHomeAccountId(
                             request.account.homeAccountId
@@ -620,6 +637,10 @@ export class AuthorizationCodeClient extends BaseClient {
                         "createAuthCodeUrlQueryString: Prompt is none, adding sid from account"
                     );
                     parameterBuilder.addSid(accountSid);
+                    this.performanceClient?.addFields(
+                        { sidFromClaim: true },
+                        correlationId
+                    );
                     try {
                         const clientInfo = buildClientInfoFromHomeAccountId(
                             request.account.homeAccountId
@@ -636,12 +657,20 @@ export class AuthorizationCodeClient extends BaseClient {
                     );
                     parameterBuilder.addLoginHint(request.loginHint);
                     parameterBuilder.addCcsUpn(request.loginHint);
+                    this.performanceClient?.addFields(
+                        { loginHintFromRequest: true },
+                        correlationId
+                    );
                 } else if (request.account.username) {
                     // Fallback to account username if provided
                     this.logger.verbose(
                         "createAuthCodeUrlQueryString: Adding login_hint from account"
                     );
                     parameterBuilder.addLoginHint(request.account.username);
+                    this.performanceClient?.addFields(
+                        { loginHintFromUpn: true },
+                        correlationId
+                    );
                     try {
                         const clientInfo = buildClientInfoFromHomeAccountId(
                             request.account.homeAccountId
@@ -659,6 +688,10 @@ export class AuthorizationCodeClient extends BaseClient {
                 );
                 parameterBuilder.addLoginHint(request.loginHint);
                 parameterBuilder.addCcsUpn(request.loginHint);
+                this.performanceClient?.addFields(
+                    { loginHintFromRequest: true },
+                    correlationId
+                );
             }
         } else {
             this.logger.verbose(
