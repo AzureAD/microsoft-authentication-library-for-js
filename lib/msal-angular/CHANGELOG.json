@@ -2,11 +2,11 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
-      "date": "Tue, 18 Feb 2025 18:51:41 GMT",
-      "version": "4.0.5",
-      "tag": "@azure/msal-angular_v4.0.5",
+      "date": "Mon, 17 Feb 2025 12:52:55 GMT",
+      "version": "4.0.4",
+      "tag": "@azure/msal-angular_v4.0.4",
       "comments": {
-        "patch": [
+        "undefined": [
           {
             "author": "beachball",
             "package": "@azure/msal-angular",

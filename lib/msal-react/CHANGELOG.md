@@ -1,15 +1,16 @@
 # Change Log - @azure/msal-react
 
-<!-- This log was last generated on Tue, 18 Feb 2025 18:51:41 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 17 Feb 2025 12:52:55 GMT and should not be manually modified. -->
 
 <!-- Start content -->
 
-## 3.0.5
+## 3.1.0
 
-Tue, 18 Feb 2025 18:51:41 GMT
+Mon, 17 Feb 2025 12:52:55 GMT
 
-### Patches
+### Minor changes
 
+- Update to React 19 (devopsbob@outlook.com)
 - Bump @azure/msal-browser to v4.3.0
 - Bump eslint-config-msal to v0.0.0
 
