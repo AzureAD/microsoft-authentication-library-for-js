@@ -50,6 +50,32 @@ jest.mock("../../src/core/network_client/custom_auth_api/CustomAuthApiClient.js"
     return { CustomAuthApiClient, signInApiClient, signUpApiClient, resetPasswordApiClient };
 });
 
+jest.mock("@azure/msal-browser", () => {
+    const actualModule = jest.requireActual("@azure/msal-browser");
+    return {
+        ...actualModule,
+        ResponseHandler: jest.fn().mockImplementation(() => ({
+            handleServerTokenResponse: jest.fn().mockResolvedValue({
+                uniqueId: "test-unique-id",
+                tenantId: "test-tenant-id",
+                scopes: ["test-scope"],
+                account: {
+                    homeAccountId: "test-home-account-id",
+                    environment: "test-environment",
+                    tenantId: "test-tenant-id",
+                    username: "test-username",
+                },
+                idToken: "test-id-token",
+                idTokenClaims: {},
+                accessToken: "test-access-token",
+                refreshToken: "test-refresh-token",
+                expiresOn: new Date(),
+                extExpiresOn: new Date(),
+            }),
+        })),
+    };
+});
+
 describe("CustomAuthStandardController", () => {
     let controller: CustomAuthStandardController;
     const { signInApiClient, signUpApiClient, resetPasswordApiClient } = jest.requireMock(

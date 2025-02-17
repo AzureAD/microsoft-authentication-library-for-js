@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AADServerParamKeys, Constants, ServerTelemetryManager } from "@azure/msal-browser";
+import { AADServerParamKeys, ServerTelemetryManager } from "@azure/msal-browser";
 import { ChallengeType, DefaultPackageInfo, HttpHeaderKeys } from "../../../CustomAuthConstants.js";
 import { IHttpClient } from "../http_client/IHttpClient.js";
 import { ApiErrorResponse, CustomAuthApiErrorCode } from "./types/ApiErrorResponseTypes.js";
@@ -57,14 +57,6 @@ export abstract class BaseApiClient {
                 correlationId,
             );
         }
-    }
-
-    protected getChallengeTypes(configuredChallengeTypes: string | undefined): string {
-        return configuredChallengeTypes ?? `${ChallengeType.PASSWORD} ${ChallengeType.OOB} ${ChallengeType.REDIRECT}`;
-    }
-
-    protected getScopes(scopes: string | undefined): string {
-        return scopes ?? `${Constants.OPENID_SCOPE} ${Constants.PROFILE_SCOPE} ${Constants.OFFLINE_ACCESS_SCOPE}`;
     }
 
     private readResponseCorrelationId(response: Response, requestCorrelationId: string): string {

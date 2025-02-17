@@ -8,6 +8,7 @@ import {
     BrowserCacheManager,
     BrowserConfiguration,
     ClearCacheRequest,
+    Constants,
     EndSessionRequest,
     EventHandler,
     ICrypto,
@@ -23,6 +24,7 @@ import { ICustomAuthApiClient } from "../network_client/custom_auth_api/ICustomA
 import { ArgumentValidator } from "../utils/ArgumentValidator.js";
 import { MethodNotImplementedError } from "../error/MethodNotImplementedError.js";
 import { CustomAuthAuthority } from "../CustomAuthAuthority.js";
+import { ChallengeType } from "../../CustomAuthConstants.js";
 
 export abstract class CustomAuthInteractionClientBase extends StandardInteractionClient {
     constructor(
@@ -49,6 +51,22 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
             customAuthAuthority,
             this.correlationId,
         );
+    }
+
+    protected getChallengeTypes(configuredChallengeTypes: string[] | undefined): string {
+        if (!!configuredChallengeTypes && configuredChallengeTypes.length > 0) {
+            return configuredChallengeTypes.join(" ");
+        }
+
+        return `${ChallengeType.PASSWORD} ${ChallengeType.OOB} ${ChallengeType.REDIRECT}`;
+    }
+
+    protected getScopes(scopes: string[] | undefined): string[] {
+        if (!!scopes && scopes.length > 0) {
+            scopes;
+        }
+
+        return [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE];
     }
 
     // It is not necessary to implement this method from base class.

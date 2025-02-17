@@ -28,7 +28,7 @@ export class SignupApiClient extends BaseApiClient {
                 ...(params.attributes && {
                     attributes: JSON.stringify(params.attributes),
                 }),
-                challenge_type: this.getChallengeTypes(params.challenge_type),
+                challenge_type: params.challenge_type,
             },
             params.telemetryManager,
             params.correlationId,
@@ -47,7 +47,7 @@ export class SignupApiClient extends BaseApiClient {
             CustomAuthApiEndpoint.SIGNUP_CHALLENGE,
             {
                 continuation_token: params.continuation_token,
-                challenge_type: this.getChallengeTypes(params.challenge_type),
+                challenge_type: params.challenge_type,
             },
             params.telemetryManager,
             params.correlationId,

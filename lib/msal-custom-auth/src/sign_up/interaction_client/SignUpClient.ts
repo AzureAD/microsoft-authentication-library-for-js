@@ -54,7 +54,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             username: parameters.username,
             password: parameters.password,
             attributes: parameters.attributes,
-            challenge_type: parameters.challengeType.join(" "),
+            challenge_type: this.getChallengeTypes(parameters.challengeType),
             telemetryManager,
             correlationId: parameters.correlationId,
         };
@@ -67,7 +67,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
         const challengeRequest: SignUpChallengeRequest = {
             continuation_token: startResponse.continuation_token ?? "",
-            challenge_type: parameters.challengeType.join(" "),
+            challenge_type: this.getChallengeTypes(parameters.challengeType),
             telemetryManager,
             correlationId: startResponse.correlation_id,
         };

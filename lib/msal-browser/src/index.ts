@@ -152,6 +152,7 @@ export {
     PromptValue,
     // Server Response
     ExternalTokenResponse,
+    ResponseHandler,
     // Utils
     StringUtils,
     UrlString,
@@ -175,6 +176,9 @@ export {
     Constants,
     AADServerParamKeys,
     ServerTelemetryManager,
+    // Authority
+    Authority,
+    AuthorityOptions,
 } from "@azure/msal-common/browser";
 
 export { version } from "./packageMetadata.js";

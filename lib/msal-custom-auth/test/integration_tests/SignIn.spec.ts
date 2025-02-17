@@ -15,6 +15,32 @@ import { AuthFlowStateHandlerFactory } from "../../src/core/auth_flow/AuthFlowSt
 import { SignInCodeRequired } from "../../src/sign_in/auth_flow/state/SignInCodeRequired.js";
 import { SignInPasswordRequired } from "../../src/sign_in/auth_flow/state/SignInPasswordRequired.js";
 
+jest.mock("@azure/msal-browser", () => {
+    const actualModule = jest.requireActual("@azure/msal-browser");
+    return {
+        ...actualModule,
+        ResponseHandler: jest.fn().mockImplementation(() => ({
+            handleServerTokenResponse: jest.fn().mockResolvedValue({
+                uniqueId: "test-unique-id",
+                tenantId: "test-tenant-id",
+                scopes: ["test-scope"],
+                account: {
+                    homeAccountId: "test-home-account-id",
+                    environment: "test-environment",
+                    tenantId: "test-tenant-id",
+                    username: "test-username",
+                },
+                idToken: "test-id-token",
+                idTokenClaims: {},
+                accessToken: "test-access-token",
+                refreshToken: "test-refresh-token",
+                expiresOn: new Date(),
+                extExpiresOn: new Date(),
+            }),
+        })),
+    };
+});
+
 describe("Sign in", () => {
     let app: ICustomAuthPublicClientApplication;
     const correlationId = "test-correlation-id";

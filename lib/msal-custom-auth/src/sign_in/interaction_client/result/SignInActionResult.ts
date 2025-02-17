@@ -3,12 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { CustomAuthAuthenticationResult } from "../../../core/interaction_client/CustomAuthAuthenticationResult.js";
+import { AuthenticationResult } from "@azure/msal-browser";
 
 export class SignInCompletedResult {
     constructor(
         public correlationId: string,
-        public authenticationResult: CustomAuthAuthenticationResult,
+        public authenticationResult: AuthenticationResult,
     ) {}
 }
 

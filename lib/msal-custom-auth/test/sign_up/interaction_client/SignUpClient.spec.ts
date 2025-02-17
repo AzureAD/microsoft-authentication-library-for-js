@@ -88,11 +88,7 @@ describe("SignUpClient", () => {
         const mockEventHandler = {} as unknown as jest.Mocked<EventHandler>;
         const mockNavigationClient = {} as unknown as jest.Mocked<INavigationClient>;
         const mockPerformanceClient = {} as unknown as jest.Mocked<IPerformanceClient>;
-
-        authority = new CustomAuthAuthority(
-            customAuthConfig.auth.authority ?? "",
-            customAuthConfig.customAuth.authApiProxyUrl,
-        );
+        const mockNetworkModule = {} as unknown as jest.Mocked<INetworkModule>;
 
         const mockLogger = {
             clone: jest.fn(),
@@ -101,6 +97,26 @@ describe("SignUpClient", () => {
             error: jest.fn(),
         } as unknown as jest.Mocked<Logger>;
         mockLogger.clone.mockReturnValue(mockLogger);
+
+        const mockConfig = {
+            auth: {
+                protocolMode: "",
+                OIDCOptions: {},
+                knownAuthorities: [],
+                cloudDiscoveryMetadata: "",
+                authorityMetadata: "",
+                skipAuthorityMetadataCache: false,
+            },
+        } as unknown as jest.Mocked<BrowserConfiguration>;
+
+        authority = new CustomAuthAuthority(
+            customAuthConfig.auth.authority ?? "",
+            mockConfig,
+            mockNetworkModule,
+            mockCacheManager,
+            mockLogger,
+            customAuthConfig.customAuth.authApiProxyUrl,
+        );
 
         client = new SignUpClient(
             mockBrowserConfiguration,

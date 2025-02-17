@@ -13,7 +13,7 @@ export const customAuthConfig: CustomAuthConfiguration = {
     },
     auth: {
         clientId: "d5e97fb9-24bb-418d-8e7a-4e1918303c92", // This is the ONLY mandatory field that you need to supply.
-        authority: "https://spasamples.ciamlogin.com", // Replace the placeholder with your tenant subdomain
+        authority: "https://spasamples.ciamlogin.com/", // Replace the placeholder with your tenant subdomain
         redirectUri: "/", // Points to window.location.origin. You must register this URI on Azure Portal/App Registration.
         postLogoutRedirectUri: "/", // Indicates the page to navigate after logout.
         navigateToLoginRequestUrl: false, // If "true", will navigate back to the original request location before processing the auth code response.

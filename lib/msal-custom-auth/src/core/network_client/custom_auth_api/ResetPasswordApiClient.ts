@@ -31,7 +31,7 @@ export class ResetPasswordApiClient extends BaseApiClient {
         const result = await this.request<ResetPasswordStartResponse>(
             CustomAuthApiEndpoint.RESET_PWD_START,
             {
-                challenge_type: this.getChallengeTypes(params.challenge_type),
+                challenge_type: params.challenge_type,
                 username: params.username,
             },
             params.telemetryManager,
@@ -51,7 +51,7 @@ export class ResetPasswordApiClient extends BaseApiClient {
         const result = await this.request<ResetPasswordChallengeResponse>(
             CustomAuthApiEndpoint.RESET_PWD_CHALLENGE,
             {
-                challenge_type: this.getChallengeTypes(params.challenge_type),
+                challenge_type: params.challenge_type,
                 continuation_token: params.continuation_token,
             },
             params.telemetryManager,

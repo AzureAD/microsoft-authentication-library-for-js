@@ -25,7 +25,7 @@ jest.mock("../../../src/core/network_client/custom_auth_api/CustomAuthApiClient.
         requestChallenge: jest.fn(),
         requestTokensWithPassword: jest.fn(),
         requestTokensWithOob: jest.fn(),
-        signInWithContinuationToken: jest.fn(),
+        requestTokenWithContinuationToken: jest.fn(),
     };
     let signUpApiClient = {
         start: jest.fn(),
@@ -80,6 +80,7 @@ describe("SignInClient", () => {
         } as unknown as jest.Mocked<BrowserCacheManager>;
         mockCacheManager.getWrapperMetadata.mockReturnValue(["", ""]);
         mockCacheManager.getServerTelemetry.mockReturnValue(null);
+        const mockNetworkModule = {} as unknown as jest.Mocked<INetworkModule>;
 
         const mockCrypto = {
             createNewGuid: jest.fn(),
@@ -89,17 +90,32 @@ describe("SignInClient", () => {
         const mockNavigationClient = {} as unknown as jest.Mocked<INavigationClient>;
         const mockPerformanceClient = {} as unknown as jest.Mocked<IPerformanceClient>;
 
-        authority = new CustomAuthAuthority(
-            customAuthConfig.auth.authority ?? "",
-            customAuthConfig.customAuth.authApiProxyUrl,
-        );
-
         const mockLogger = {
             clone: jest.fn(),
             verbose: jest.fn(),
             info: jest.fn(),
         } as unknown as jest.Mocked<Logger>;
         mockLogger.clone.mockReturnValue(mockLogger);
+
+        const mockConfig = {
+            auth: {
+                protocolMode: "",
+                OIDCOptions: {},
+                knownAuthorities: [],
+                cloudDiscoveryMetadata: "",
+                authorityMetadata: "",
+                skipAuthorityMetadataCache: false,
+            },
+        } as unknown as jest.Mocked<BrowserConfiguration>;
+
+        authority = new CustomAuthAuthority(
+            customAuthConfig.auth.authority ?? "",
+            mockConfig,
+            mockNetworkModule,
+            mockCacheManager,
+            mockLogger,
+            customAuthConfig.customAuth.authApiProxyUrl,
+        );
 
         client = new SignInClient(
             mockBrowserConfiguration,
@@ -112,6 +128,28 @@ describe("SignInClient", () => {
             mockedApiClient,
             authority,
         );
+
+        (client as any).tokenResponseHandler = {
+            handleServerTokenResponse: jest.fn().mockResolvedValue({
+                uniqueId: "test-unique-id",
+                tenantId: "test-tenant-id",
+                scopes: ["test-scope"],
+                account: {
+                    homeAccountId: "test-home-account-id",
+                    environment: "test-environment",
+                    tenantId: "test-tenant-id",
+                    username: "abc@abc.com",
+                },
+                idToken: "test-id-token",
+                idTokenClaims: {},
+                accessToken: "test-access-token",
+                refreshToken: "test-refresh-token",
+                expiresOn: new Date(),
+                extExpiresOn: new Date(),
+                tokenType: "Bearer",
+                authority: "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/",
+            }),
+        } as any;
     });
 
     afterEach(() => {
@@ -137,7 +175,6 @@ describe("SignInClient", () => {
                 clientId: customAuthConfig.auth.clientId,
                 challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
-                scopes: [],
             });
 
             expect(result).toBeInstanceOf(SignInCodeSendResult);
@@ -165,7 +202,6 @@ describe("SignInClient", () => {
                 clientId: customAuthConfig.auth.clientId,
                 challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
-                scopes: [],
             });
 
             expect(result).toBeInstanceOf(SignInPasswordRequiredResult);
@@ -199,12 +235,11 @@ describe("SignInClient", () => {
             expect(result.correlationId).toBe("test-correlation-id");
             expect(result.authenticationResult).toBeDefined();
             expect(result.authenticationResult.accessToken).toBe("test-access-token");
-            expect(result.authenticationResult.refreshToken).toBe("test-refresh-token");
             expect(result.authenticationResult.idToken).toBe("test-id-token");
             expect(result.authenticationResult.expiresOn).toBeDefined();
             expect(result.authenticationResult.tokenType).toBe("Bearer");
-            expect(result.authenticationResult.authority).toBe(authority.authorityUrl.href);
-            expect(result.authenticationResult.tenantId).toBe(authority.getTenant());
+            expect(result.authenticationResult.authority).toBe(authority.canonicalAuthority);
+            expect(result.authenticationResult.tenantId).toBe("test-tenant-id");
             expect(result.authenticationResult.account).toBeDefined();
             expect(result.authenticationResult.account.username).toBe("abc@abc.com");
         });
@@ -235,12 +270,11 @@ describe("SignInClient", () => {
             expect(result.correlationId).toBe("test-correlation-id");
             expect(result.authenticationResult).toBeDefined();
             expect(result.authenticationResult.accessToken).toBe("test-access-token");
-            expect(result.authenticationResult.refreshToken).toBe("test-refresh-token");
             expect(result.authenticationResult.idToken).toBe("test-id-token");
             expect(result.authenticationResult.expiresOn).toBeDefined();
             expect(result.authenticationResult.tokenType).toBe("Bearer");
-            expect(result.authenticationResult.authority).toBe(authority.authorityUrl.href);
-            expect(result.authenticationResult.tenantId).toBe(authority.getTenant());
+            expect(result.authenticationResult.authority).toBe(authority.canonicalAuthority);
+            expect(result.authenticationResult.tenantId).toBe("test-tenant-id");
             expect(result.authenticationResult.account).toBeDefined();
             expect(result.authenticationResult.account.username).toBe("abc@abc.com");
         });
@@ -263,7 +297,6 @@ describe("SignInClient", () => {
                 clientId: customAuthConfig.auth.clientId,
                 challengeType: [ChallengeType.OOB, ChallengeType.PASSWORD, ChallengeType.REDIRECT],
                 correlationId: "corr123",
-                scopes: [],
             });
 
             expect(result).toBeInstanceOf(SignInCodeSendResult);
@@ -277,7 +310,7 @@ describe("SignInClient", () => {
 
     describe("signInWithContinuationToken", () => {
         it("should return SignInCompleteResult", async () => {
-            signInApiClient.signInWithContinuationToken.mockResolvedValue({
+            signInApiClient.requestTokenWithContinuationToken.mockResolvedValue({
                 correlation_id: "test-correlation-id",
                 access_token: "test-access-token",
                 refresh_token: "test-refresh-token",
@@ -300,12 +333,11 @@ describe("SignInClient", () => {
             expect(result.correlationId).toBe("test-correlation-id");
             expect(result.authenticationResult).toBeDefined();
             expect(result.authenticationResult.accessToken).toBe("test-access-token");
-            expect(result.authenticationResult.refreshToken).toBe("test-refresh-token");
             expect(result.authenticationResult.idToken).toBe("test-id-token");
             expect(result.authenticationResult.expiresOn).toBeDefined();
             expect(result.authenticationResult.tokenType).toBe("Bearer");
-            expect(result.authenticationResult.authority).toBe(authority.authorityUrl.href);
-            expect(result.authenticationResult.tenantId).toBe(authority.getTenant());
+            expect(result.authenticationResult.authority).toBe(authority.canonicalAuthority);
+            expect(result.authenticationResult.tenantId).toBe("test-tenant-id");
             expect(result.authenticationResult.account).toBeDefined();
             expect(result.authenticationResult.account.username).toBe("abc@abc.com");
         });

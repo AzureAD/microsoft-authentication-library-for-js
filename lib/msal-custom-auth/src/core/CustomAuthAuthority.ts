@@ -3,28 +3,42 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "@azure/msal-browser";
-import { UrlUtils } from "./utils/UrlUtils.js";
+import { Authority, AuthorityOptions, BrowserConfiguration, INetworkModule, Logger } from "@azure/msal-browser";
+import { ICacheManager } from "../../../msal-common/dist/cache/interface/ICacheManager.js";
 
 /**
  * Authority class which can be used to create an authority object for Custom Auth features.
  */
-export class CustomAuthAuthority {
-    readonly authorityUrl: URL;
-
-    constructor(
-        authorityUrl: string,
-        private readonly customAuthProxyDomain?: string,
-    ) {
-        this.authorityUrl = UrlUtils.parseSecureUrl(authorityUrl);
-    }
-
+export class CustomAuthAuthority extends Authority {
     /**
-     * Extracts the tenant from the authority.
-     * @returns The tenant of the authority
+     * Constructor for the Custom Auth Authority.
+     * @param authority - The authority URL for the authority.
+     * @param networkInterface - The network interface implementation to make requests.
+     * @param cacheManager - The cache manager interface implementation to interact with the cache.
+     * @param authorityOptions - The options for the authority.
+     * @param logger - The logger for the authority.
+     * @param customAuthProxyDomain - The custom auth proxy domain.
      */
-    getTenant(): string {
-        return this.authorityUrl.hostname.split(".")[0];
+    constructor(
+        authority: string,
+        config: BrowserConfiguration,
+        networkInterface: INetworkModule,
+        cacheManager: ICacheManager,
+        logger: Logger,
+        private customAuthProxyDomain?: string,
+    ) {
+        const ciamAuthorityUrl = CustomAuthAuthority.transformCIAMAuthority(authority);
+
+        const authorityOptions: AuthorityOptions = {
+            protocolMode: config.auth.protocolMode,
+            OIDCOptions: config.auth.OIDCOptions,
+            knownAuthorities: config.auth.knownAuthorities,
+            cloudDiscoveryMetadata: config.auth.cloudDiscoveryMetadata,
+            authorityMetadata: config.auth.authorityMetadata,
+            skipAuthorityMetadataCache: config.auth.skipAuthorityMetadataCache,
+        };
+
+        super(ciamAuthorityUrl, networkInterface, cacheManager, authorityOptions, logger, "");
     }
 
     /**
@@ -38,10 +52,10 @@ export class CustomAuthAuthority {
          * The customAuthProxyDomain is used to resolve the CORS issue when calling the auth APIs.
          * If the customAuthProxyDomain is not provided, we will generate the auth API domain based on the authority URL.
          */
-        const authApiDomain = !this.customAuthProxyDomain
-            ? new URL(`${this.getTenant()}${Constants.AAD_TENANT_DOMAIN_SUFFIX}`, this.authorityUrl.href).href
-            : this.customAuthProxyDomain;
+        return !this.customAuthProxyDomain ? this.canonicalAuthority : this.customAuthProxyDomain;
+    }
 
-        return authApiDomain;
+    override getPreferredCache(): string {
+        return this.canonicalAuthorityUrlComponents.HostNameAndPort;
     }
 }

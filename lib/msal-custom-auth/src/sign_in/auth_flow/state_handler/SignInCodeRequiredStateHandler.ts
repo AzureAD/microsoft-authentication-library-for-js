@@ -80,7 +80,6 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
                 clientId: this.config.auth.clientId,
                 correlationId: this.correlationId,
                 challengeType: this.config.customAuth.challengeTypes ?? [],
-                scopes: this.scopes ?? [],
                 continuationToken: this.continuationToken ?? "",
                 username: this.username,
             };

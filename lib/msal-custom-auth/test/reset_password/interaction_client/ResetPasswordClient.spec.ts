@@ -75,6 +75,17 @@ describe("ResetPasswordClient", () => {
     const { mockedApiClient, signInApiClient, signUpApiClient, resetPasswordApiClient } = jest.requireMock(
         "../../../src/core/network_client/custom_auth_api/CustomAuthApiClient.js",
     );
+    const mockConfig = {
+        auth: {
+            protocolMode: "",
+            OIDCOptions: {},
+            knownAuthorities: [],
+            cloudDiscoveryMetadata: "",
+            authorityMetadata: "",
+            skipAuthorityMetadataCache: false,
+        },
+    } as unknown as jest.Mocked<BrowserConfiguration>;
+
     beforeEach(() => {
         jest.resetAllMocks();
         const mockBrowserConfiguration = {
@@ -103,11 +114,7 @@ describe("ResetPasswordClient", () => {
         const mockEventHandler = {} as unknown as jest.Mocked<EventHandler>;
         const mockNavigationClient = {} as unknown as jest.Mocked<INavigationClient>;
         const mockPerformanceClient = {} as unknown as jest.Mocked<IPerformanceClient>;
-
-        authority = new CustomAuthAuthority(
-            customAuthConfig.auth.authority ?? "",
-            customAuthConfig.customAuth.authApiProxyUrl,
-        );
+        const mockNetworkModule = {} as unknown as jest.Mocked<INetworkModule>;
 
         const mockLogger = {
             clone: jest.fn(),
@@ -116,6 +123,15 @@ describe("ResetPasswordClient", () => {
             error: jest.fn(),
         } as unknown as jest.Mocked<Logger>;
         mockLogger.clone.mockReturnValue(mockLogger);
+
+        authority = new CustomAuthAuthority(
+            customAuthConfig.auth.authority ?? "",
+            mockConfig,
+            mockNetworkModule,
+            mockCacheManager,
+            mockLogger,
+            customAuthConfig.customAuth.authApiProxyUrl,
+        );
 
         client = new ResetPasswordClient(
             mockBrowserConfiguration,

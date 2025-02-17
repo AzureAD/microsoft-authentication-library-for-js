@@ -7,7 +7,6 @@ import { SignInContinuationStateHandler } from "../../../../src/sign_in/auth_flo
 import { SignInCompletedResult } from "../../../../src/sign_in/interaction_client/result/SignInActionResult.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { SignInScenario } from "../../../../src/sign_in/auth_flow/SignInScenario.js";
-import { sign } from "crypto";
 
 describe("SignInContinuationStateHandler", () => {
     const mockConfig = {
@@ -51,7 +50,6 @@ describe("SignInContinuationStateHandler", () => {
             new SignInCompletedResult(correlationId, {
                 accessToken: "test-access-token",
                 idToken: "test-id-token",
-                refreshToken: "test-refresh-token",
                 expiresOn: new Date(Date.now() + 3600 * 1000),
                 tokenType: "Bearer",
                 correlationId: correlationId,

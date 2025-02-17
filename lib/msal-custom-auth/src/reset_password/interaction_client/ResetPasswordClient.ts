@@ -47,7 +47,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
 
         const startRequest: ResetPasswordStartRequest = {
-            challenge_type: parameters.challengeType.join(" "),
+            challenge_type: this.getChallengeTypes(parameters.challengeType),
             username: parameters.username,
             correlationId: parameters.correlationId,
             telemetryManager: telemetryManager,
@@ -61,7 +61,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
 
         const challengeRequest: ResetPasswordChallengeRequest = {
             continuation_token: startResponse.continuation_token ?? "",
-            challenge_type: parameters.challengeType.join(" "),
+            challenge_type: this.getChallengeTypes(parameters.challengeType),
             correlationId: parameters.correlationId,
             telemetryManager: telemetryManager,
         };

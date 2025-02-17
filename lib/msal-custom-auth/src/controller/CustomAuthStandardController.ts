@@ -85,8 +85,13 @@ export class CustomAuthStandardController extends StandardController implements 
 
         this.logger = this.logger.clone(DefaultPackageInfo.SKU, DefaultPackageInfo.VERSION);
         this.customAuthConfig = operatingContext.getCustomAuthConfig();
+
         this.authority = new CustomAuthAuthority(
-            this.config.auth.authority,
+            this.customAuthConfig.auth.authority,
+            this.customAuthConfig,
+            this.networkClient,
+            this.browserStorage,
+            this.logger,
             this.customAuthConfig.customAuth?.authApiProxyUrl,
         );
 
@@ -101,7 +106,7 @@ export class CustomAuthStandardController extends StandardController implements 
             customAuthApiClient ??
                 new CustomAuthApiClient(
                     this.authority.getCustomAuthApiDomain(),
-                    this.config.auth.clientId,
+                    this.customAuthConfig.auth.clientId,
                     new FetchHttpClient(this.logger),
                 ),
             this.authority,
@@ -143,10 +148,9 @@ export class CustomAuthStandardController extends StandardController implements 
         try {
             // start the signin flow
             const signInStartParams: SignInStartParams = {
-                clientId: this.config.auth.clientId,
+                clientId: this.customAuthConfig.auth.clientId,
                 correlationId: correlationId,
                 challengeType: this.customAuthConfig.customAuth.challengeTypes ?? [],
-                scopes: signInInputs.scopes ?? [],
                 username: signInInputs.username,
                 password: signInInputs.password,
             };
@@ -197,7 +201,7 @@ export class CustomAuthStandardController extends StandardController implements 
 
                 // if the password is provided, then try to get token silently.
                 const submitPasswordParams: SignInSubmitPasswordParams = {
-                    clientId: this.config.auth.clientId,
+                    clientId: this.customAuthConfig.auth.clientId,
                     correlationId: correlationId,
                     challengeType: this.customAuthConfig.customAuth.challengeTypes ?? [],
                     scopes: signInInputs.scopes ?? [],
@@ -254,7 +258,7 @@ export class CustomAuthStandardController extends StandardController implements 
             );
 
             const startResult = await this.signUpClient.start({
-                clientId: this.config.auth.clientId,
+                clientId: this.customAuthConfig.auth.clientId,
                 correlationId: correlationId,
                 challengeType: this.customAuthConfig.customAuth.challengeTypes ?? [],
                 username: signUpInputs.username,
@@ -329,7 +333,7 @@ export class CustomAuthStandardController extends StandardController implements 
             this.logger.info("Starting password-reset flow.");
 
             const startResult = await this.resetPasswordClient.start({
-                clientId: this.config.auth.clientId,
+                clientId: this.customAuthConfig.auth.clientId,
                 correlationId: correlationId,
                 challengeType: this.customAuthConfig.customAuth.challengeTypes ?? [],
                 username: resetPasswordInputs.username,

@@ -17,6 +17,33 @@ import { ResetPasswordPasswordRequired } from "../../src/reset_password/auth_flo
 import { ResetPasswordCompleted } from "../../src/reset_password/auth_flow/state/ResetPasswordCompleted.js";
 import { SignInResult } from "../../src/sign_in/auth_flow/result/SignInResult.js";
 
+jest.mock("@azure/msal-browser", () => {
+    const actualModule = jest.requireActual("@azure/msal-browser");
+    return {
+        ...actualModule,
+        ResponseHandler: jest.fn().mockImplementation(() => ({
+            handleServerTokenResponse: jest.fn().mockResolvedValue({
+                uniqueId: "test-unique-id",
+                tenantId: "test-tenant-id",
+                scopes: ["test-scope"],
+                account: {
+                    homeAccountId: "test-home-account-id",
+                    environment: "test-environment",
+                    tenantId: "test-tenant-id",
+                    username: "test-username",
+                    idToken: "test-id-token",
+                },
+                idToken: "test-id-token",
+                idTokenClaims: {},
+                accessToken: "test-access-token",
+                refreshToken: "test-refresh-token",
+                expiresOn: new Date(),
+                extExpiresOn: new Date(),
+            }),
+        })),
+    };
+});
+
 describe("Reset password", () => {
     let app: ICustomAuthPublicClientApplication;
     const correlationId = "test-correlation-id";

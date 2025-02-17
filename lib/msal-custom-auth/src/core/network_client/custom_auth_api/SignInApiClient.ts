@@ -50,7 +50,7 @@ export class SignInApiClient extends BaseApiClient {
             CustomAuthApiEndpoint.SIGNIN_CHALLENGE,
             {
                 continuation_token: params.continuation_token,
-                challenge_type: this.getChallengeTypes(params.challenge_type),
+                challenge_type: params.challenge_type,
             },
             params.telemetryManager,
             params.correlationId,
@@ -72,7 +72,7 @@ export class SignInApiClient extends BaseApiClient {
             {
                 continuation_token: params.continuation_token,
                 grant_type: GrantType.PASSWORD,
-                scope: this.getScopes(params.scope),
+                scope: params.scope,
                 password: params.password,
             },
             params.telemetryManager,
@@ -84,7 +84,7 @@ export class SignInApiClient extends BaseApiClient {
         return this.requestTokens(
             {
                 continuation_token: params.continuation_token,
-                scope: this.getScopes(params.scope),
+                scope: params.scope,
                 oob: params.oob,
                 grant_type: GrantType.OOB,
             },
@@ -93,12 +93,12 @@ export class SignInApiClient extends BaseApiClient {
         );
     }
 
-    async signInWithContinuationToken(params: SignInContinuationTokenRequest): Promise<SignInTokenResponse> {
+    async requestTokenWithContinuationToken(params: SignInContinuationTokenRequest): Promise<SignInTokenResponse> {
         return this.requestTokens(
             {
                 continuation_token: params.continuation_token,
                 username: params.username,
-                scope: this.getScopes(params.scope),
+                scope: params.scope,
                 grant_type: GrantType.CONTINUATION_TOKEN,
                 client_info: true,
             },

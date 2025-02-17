@@ -21,6 +21,33 @@ import { SignUpResult } from "../../src/sign_up/auth_flow/result/SignUpResult.js
 import { SignUpAttributesRequired } from "../../src/sign_up/auth_flow/state/SignUpAttributesRequired.js";
 import { SignUpSubmitAttributesResult } from "../../src/sign_up/auth_flow/result/SignUpSubmitAttributesResult.js";
 
+jest.mock("@azure/msal-browser", () => {
+    const actualModule = jest.requireActual("@azure/msal-browser");
+    return {
+        ...actualModule,
+        ResponseHandler: jest.fn().mockImplementation(() => ({
+            handleServerTokenResponse: jest.fn().mockResolvedValue({
+                uniqueId: "test-unique-id",
+                tenantId: "test-tenant-id",
+                scopes: ["test-scope"],
+                account: {
+                    homeAccountId: "test-home-account-id",
+                    environment: "test-environment",
+                    tenantId: "test-tenant-id",
+                    username: "test-username",
+                    idToken: "test-id-token",
+                },
+                idToken: "test-id-token",
+                idTokenClaims: {},
+                accessToken: "test-access-token",
+                refreshToken: "test-refresh-token",
+                expiresOn: new Date(),
+                extExpiresOn: new Date(),
+            }),
+        })),
+    };
+});
+
 describe("Sign up", () => {
     let app: ICustomAuthPublicClientApplication;
     const correlationId = "test-correlation-id";

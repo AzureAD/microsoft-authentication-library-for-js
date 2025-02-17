@@ -9,7 +9,6 @@ export interface SignInParamsBase {
     clientId: string;
     correlationId: string;
     challengeType: Array<string>;
-    scopes: Array<string>;
     username: string;
 }
 
@@ -24,14 +23,17 @@ export interface SignInStartParams extends SignInParamsBase {
 export interface SignInSubmitCodeParams extends SignInParamsBase {
     continuationToken: string;
     code: string;
+    scopes: Array<string>;
 }
 
 export interface SignInSubmitPasswordParams extends SignInParamsBase {
     continuationToken: string;
     password: string;
+    scopes: Array<string>;
 }
 
 export interface SignInContinuationTokenParams extends SignInParamsBase {
     continuationToken: string;
     signInScenario: SignInScenario;
+    scopes: Array<string>;
 }

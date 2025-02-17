@@ -71,7 +71,6 @@ describe("SignInCodeRequiredStateHandler", () => {
                 new SignInCompletedResult(correlationId, {
                     accessToken: "test-access-token",
                     idToken: "test-id-token",
-                    refreshToken: "test-refresh-token",
                     expiresOn: new Date(Date.now() + 3600 * 1000),
                     tokenType: "Bearer",
                     correlationId: correlationId,
