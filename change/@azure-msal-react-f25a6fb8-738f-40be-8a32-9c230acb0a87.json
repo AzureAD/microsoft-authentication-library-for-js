@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Update to React 19",
+  "packageName": "@azure/msal-react",
+  "email": "devopsbob@outlook.com",
+  "dependentChangeType": "patch"
+}
