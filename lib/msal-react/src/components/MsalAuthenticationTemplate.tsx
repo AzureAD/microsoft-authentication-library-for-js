@@ -46,7 +46,7 @@ export function MsalAuthenticationTemplate({
     loadingComponent: LoadingComponent,
     errorComponent: ErrorComponent,
     children,
-}: MsalAuthenticationProps): React.ReactElement | null {
+}: MsalAuthenticationProps): React.ReactElement<any> | null {
     const accountIdentifier: AccountIdentifiers = useMemo(() => {
         return {
             username,

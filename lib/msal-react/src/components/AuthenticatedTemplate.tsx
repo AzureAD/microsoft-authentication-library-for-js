@@ -21,7 +21,7 @@ export function AuthenticatedTemplate({
     homeAccountId,
     localAccountId,
     children,
-}: AuthenticatedTemplateProps): React.ReactElement | null {
+}: AuthenticatedTemplateProps): React.ReactElement<any> | null {
     const context = useMsal();
     const accountIdentifier: AccountIdentifiers = useMemo(() => {
         return {

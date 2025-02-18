@@ -122,7 +122,7 @@ const reducer = (
 export function MsalProvider({
     instance,
     children,
-}: MsalProviderProps): React.ReactElement {
+}: MsalProviderProps): React.ReactElement<any> {
     useEffect(() => {
         instance.initializeWrapperLibrary(WrapperSKU.React, version);
     }, [instance]);
@@ -203,8 +203,8 @@ export function MsalProvider({
     };
 
     return (
-        <MsalContext.Provider value={contextValue}>
+        (<MsalContext value={contextValue}>
             {children}
-        </MsalContext.Provider>
+         </MsalContext>)
     );
 }

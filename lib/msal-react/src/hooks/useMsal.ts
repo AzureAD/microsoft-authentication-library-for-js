@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { useContext } from "react";
+import { use } from "react";
 import { IMsalContext, MsalContext } from "../MsalContext.js";
 
 /**
  * Returns Msal Context values
  */
-export const useMsal = (): IMsalContext => useContext(MsalContext);
+export const useMsal = (): IMsalContext => use(MsalContext);

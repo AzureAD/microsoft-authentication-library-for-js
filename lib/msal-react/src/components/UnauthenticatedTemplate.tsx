@@ -22,7 +22,7 @@ export function UnauthenticatedTemplate({
     homeAccountId,
     localAccountId,
     children,
-}: UnauthenticatedTemplateProps): React.ReactElement | null {
+}: UnauthenticatedTemplateProps): React.ReactElement<any> | null {
     const context = useMsal();
     const accountIdentifier: AccountIdentifiers = useMemo(() => {
         return {
