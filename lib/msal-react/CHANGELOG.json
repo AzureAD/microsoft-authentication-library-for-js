@@ -2,17 +2,11 @@
   "name": "@azure/msal-react",
   "entries": [
     {
-      "date": "Mon, 17 Feb 2025 12:52:55 GMT",
-      "version": "3.1.0",
-      "tag": "@azure/msal-react_v3.1.0",
+      "date": "Tue, 18 Feb 2025 18:51:41 GMT",
+      "version": "3.0.5",
+      "tag": "@azure/msal-react_v3.0.5",
       "comments": {
-        "minor": [
-          {
-            "author": "devopsbob@outlook.com",
-            "package": "@azure/msal-react",
-            "commit": "03b131ede38ebb24b16c056e1aef3aec642e0c1a",
-            "comment": "Update to React 19"
-          },
+        "patch": [
           {
             "author": "beachball",
             "package": "@azure/msal-react",

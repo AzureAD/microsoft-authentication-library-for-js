@@ -2,11 +2,11 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
-      "date": "Mon, 17 Feb 2025 12:52:55 GMT",
-      "version": "1.5.4",
-      "tag": "@azure/msal-node-extensions_v1.5.4",
+      "date": "Tue, 18 Feb 2025 18:51:41 GMT",
+      "version": "1.5.5",
+      "tag": "@azure/msal-node-extensions_v1.5.5",
       "comments": {
-        "undefined": [
+        "patch": [
           {
             "author": "beachball",
             "package": "@azure/msal-node-extensions",
