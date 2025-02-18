@@ -45,7 +45,7 @@
   "scripts": {
     "build": "rollup -c --strictDeprecations --bundleConfigAsCjs",
     "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
-    "test": "jest --detectOpenHandles",
+    "test": "jest --forceExit",
     "test:coverage": "jest --coverage",
     "lint": "eslint src --ext .ts --ext .tsx",
     "lint:fix": "npm run lint -- --fix",
@@ -57,7 +57,7 @@
   },
   "peerDependencies": {
     "@azure/msal-browser": "^4.3.0",
-    "react": "^16.8.0 || ^17 || ^18 || ^19"
+    "react": "^18 || ^19"
   },
   "devDependencies": {
     "@azure/msal-browser": "^4.3.0",
