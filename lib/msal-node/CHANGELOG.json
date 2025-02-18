@@ -2,7 +2,7 @@
   "name": "@azure/msal-node",
   "entries": [
     {
-      "date": "Mon, 17 Feb 2025 12:52:55 GMT",
+      "date": "Tue, 18 Feb 2025 18:51:41 GMT",
       "version": "3.2.3",
       "tag": "@azure/msal-node_v3.2.3",
       "comments": {
@@ -10,7 +10,7 @@
           {
             "author": "shylasummers@microsoft.com",
             "package": "@azure/msal-node",
-            "commit": "a50e6d52fa829ab7dcaf04b0ae2cac0636c75e1c",
+            "commit": "db11f0bcb6bb97b5d21f24893ca3de0e4fb1f115",
             "comment": "Deprecate ROPC flow"
           },
           {
