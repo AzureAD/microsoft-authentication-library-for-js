@@ -178,27 +178,21 @@ The list of events available to MSAL can be found in the [`@azure/msal-browser` 
 
 ### 3. Unsubscribing
 
-It is extremely important to unsubscribe. Implement `ngOnDestroy()` in your component and unsubscribe.
+It is extremely important to unsubscribe. Use [takeUntilDestroyed](https://angular.dev/api/core/rxjs-interop/takeUntilDestroyed) operator to complete the observable when the component is destroyed.
 
 ```js
 import { EventMessage, EventType } from '@azure/msal-browser';
-import { filter, Subject, takeUntil } from 'rxjs';
-
-private readonly _destroying$ = new Subject<void>();
+import { filter, Subject } from 'rxjs';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 this.msalBroadcastService.msalSubject$
     .pipe(
         filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS),
-        takeUntil(this._destroying$)
+        takeUntilDestroyed()
     )
     .subscribe((result) => {
         this.checkAccount();
     });
-
-ngOnDestroy(): void {
-    this._destroying$.next(null);
-    this._destroying$.complete();
-}
 ```
 
 # Next Steps
