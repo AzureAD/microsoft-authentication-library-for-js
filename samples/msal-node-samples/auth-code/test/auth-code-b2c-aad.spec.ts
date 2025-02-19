@@ -10,7 +10,6 @@ import {
     setupCredentials,
     b2cAadPpeAccountEnterCredentials,
     RETRY_TIMES,
-    SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
     SAMPLE_HOME_URL,
     NodeCacheTestUtils,
@@ -19,6 +18,7 @@ import {
     AppTypes,
     AzureEnvironments,
 } from "e2e-test-utils";
+import path from "path";
 
 import { PublicClientApplication } from "@azure/msal-node";
 
@@ -46,7 +46,7 @@ describe.skip("Auth Code B2C Tests (aad account)", () => {
     let username: string;
     let accountPwd: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/auth-code/b2c/aad-account`;
+    const screenshotFolder = path.join(__dirname, "screenshots/auth-code/b2c-aad");
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);

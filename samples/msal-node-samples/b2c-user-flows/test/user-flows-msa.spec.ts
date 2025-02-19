@@ -10,7 +10,6 @@ import {
     setupCredentials,
     b2cMsaAccountEnterCredentials,
     RETRY_TIMES,
-    SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
     SAMPLE_HOME_URL,
     NodeCacheTestUtils,
@@ -19,6 +18,7 @@ import {
     B2cProviders,
     UserTypes,
 } from "e2e-test-utils";
+import path from "path";
 
 import { ConfidentialClientApplication } from "@azure/msal-node";
 
@@ -48,7 +48,7 @@ describe("B2C User Flow Tests", () => {
 
     let clientSecret: { secret: string; value: string };
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/user-flows/msa-account`;
+    const screenshotFolder = path.join(__dirname, "screenshots/b2c-user-flows/msa");
 
     beforeAll(async () => {
         createFolder(screenshotFolder);
