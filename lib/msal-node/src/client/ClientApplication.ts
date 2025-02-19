@@ -373,6 +373,7 @@ export abstract class ClientApplication {
      * https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-authentication-flows#usernamepassword
      *
      * @param request - UsenamePasswordRequest
+     * @deprecated - Use a more secure flow instead
      */
     async acquireTokenByUsernamePassword(
         request: UsernamePasswordRequest

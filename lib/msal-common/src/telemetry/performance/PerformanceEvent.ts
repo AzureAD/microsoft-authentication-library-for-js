@@ -883,6 +883,8 @@ export type PerformanceEvent = {
     domainHintFromRequest?: boolean;
 
     prompt?: string;
+
+    usePreGeneratedPkce?: boolean;
 };
 
 export type PerformanceEventContext = {

@@ -28,6 +28,7 @@ import {
     AccountFilter,
     buildStaticAuthorityOptions,
     InteractionRequiredAuthErrorCodes,
+    PkceCodes,
 } from "@azure/msal-common/browser";
 import {
     BrowserCacheManager,
@@ -85,6 +86,7 @@ import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { initializeSilentRequest } from "../request/RequestHelpers.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
+import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 
 function getAccountType(
     account?: AccountInfo
@@ -176,6 +178,8 @@ export class StandardController implements IController {
 
     private ssoSilentMeasurement?: InProgressPerformanceEvent;
     private acquireTokenByCodeAsyncMeasurement?: InProgressPerformanceEvent;
+
+    private pkceCode: PkceCodes | undefined;
 
     /**
      * @constructor
@@ -371,6 +375,8 @@ export class StandardController implements IController {
             )(this.performanceClient, initCorrelationId);
         }
 
+        this.config.system.asyncPopups &&
+            (await this.preGeneratePkceCodes(initCorrelationId));
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
         initMeasurement.end({
@@ -775,6 +781,7 @@ export class StandardController implements IController {
         }
 
         let result: Promise<AuthenticationResult>;
+        const pkce = this.getPreGeneratedPkceCodes(correlationId);
 
         if (this.canUsePlatformBroker(request)) {
             result = this.acquireTokenNative(
@@ -801,21 +808,21 @@ export class StandardController implements IController {
                         this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                         const popupClient =
                             this.createPopupClient(correlationId);
-                        return popupClient.acquireToken(request);
+                        return popupClient.acquireToken(request, pkce);
                     } else if (e instanceof InteractionRequiredAuthError) {
                         this.logger.verbose(
                             "acquireTokenPopup - Resolving interaction required error thrown by native broker by falling back to web flow"
                         );
                         const popupClient =
                             this.createPopupClient(correlationId);
-                        return popupClient.acquireToken(request);
+                        return popupClient.acquireToken(request, pkce);
                     }
                     this.browserStorage.setInteractionInProgress(false);
                     throw e;
                 });
         } else {
             const popupClient = this.createPopupClient(correlationId);
-            result = popupClient.acquireToken(request);
+            result = popupClient.acquireToken(request, pkce);
         }
 
         return result
@@ -873,7 +880,12 @@ export class StandardController implements IController {
 
                 // Since this function is syncronous we need to reject
                 return Promise.reject(e);
-            });
+            })
+            .finally(
+                () =>
+                    this.config.system.asyncPopups &&
+                    this.preGeneratePkceCodes(correlationId)
+            );
     }
 
     private trackPageVisibilityWithMeasurement(): void {
@@ -2273,6 +2285,42 @@ export class StandardController implements IController {
                 }
             );
         }
+    }
+
+    /**
+     * Pre-generates PKCE codes and stores it in local variable
+     * @param correlationId
+     */
+    private async preGeneratePkceCodes(correlationId: string): Promise<void> {
+        this.logger.verbose("Generating new PKCE codes");
+        this.pkceCode = await invokeAsync(
+            generatePkceCodes,
+            PerformanceEvents.GeneratePkceCodes,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(this.performanceClient, this.logger, correlationId);
+        return Promise.resolve();
+    }
+
+    /**
+     * Provides pre-generated PKCE codes, if any
+     * @param correlationId
+     */
+    private getPreGeneratedPkceCodes(
+        correlationId: string
+    ): PkceCodes | undefined {
+        this.logger.verbose("Attempting to pick up pre-generated PKCE codes");
+        const res = this.pkceCode ? { ...this.pkceCode } : undefined;
+        this.pkceCode = undefined;
+        this.logger.verbose(
+            `${res ? "Found" : "Did not find"} pre-generated PKCE codes`
+        );
+        this.performanceClient.addFields(
+            { usePreGeneratedPkce: !!res },
+            correlationId
+        );
+        return res;
     }
 }
 

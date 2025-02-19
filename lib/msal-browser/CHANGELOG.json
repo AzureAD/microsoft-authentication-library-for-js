@@ -2,6 +2,45 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 18 Feb 2025 18:51:40 GMT",
+      "version": "4.3.0",
+      "tag": "@azure/msal-browser_v4.3.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "db11f0bcb6bb97b5d21f24893ca3de0e4fb1f115",
+            "comment": "Pre-generate PKCE for async popup flow to blocked async popups in Safari #7568"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v15.2.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 11 Feb 2025 16:09:10 GMT",
       "version": "4.2.1",
       "tag": "@azure/msal-browser_v4.2.1",

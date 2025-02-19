@@ -2,6 +2,39 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 18 Feb 2025 18:51:40 GMT",
+      "version": "15.2.0",
+      "tag": "@azure/msal-common_v15.2.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "db11f0bcb6bb97b5d21f24893ca3de0e4fb1f115",
+            "comment": "Pre-generate PKCE for async popup flow to blocked async popups in Safari #7568"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 05 Feb 2025 00:15:19 GMT",
       "version": "15.1.1",
       "tag": "@azure/msal-common_v15.1.1",

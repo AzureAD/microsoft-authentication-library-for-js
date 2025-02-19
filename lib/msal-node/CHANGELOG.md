@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 11 Feb 2025 16:09:10 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 18 Feb 2025 18:51:41 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.2.3
+
+Tue, 18 Feb 2025 18:51:41 GMT
+
+### Patches
+
+- Deprecate ROPC flow (shylasummers@microsoft.com)
+- Bump @azure/msal-common to v15.2.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 3.2.2
 
