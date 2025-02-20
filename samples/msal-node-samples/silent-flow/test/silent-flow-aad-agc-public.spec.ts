@@ -11,7 +11,6 @@ import {
     RETRY_TIMES,
     clickSignIn,
     enterCredentials,
-    SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GRAPH_CALL_ID,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
@@ -22,6 +21,7 @@ import {
     getCredentials,
 } from "e2e-test-utils";
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
+import path from "path";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad-agc-public.cache.json`;
@@ -62,7 +62,7 @@ describe("Silent Flow AAD AGC Public Tests", () => {
     let username: string;
     let password: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/silent-flow/aad-agc-public`;
+    const screenshotFolder = path.join(__dirname, "screenshots/silent-flow/aad-agc-public");
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -71,7 +71,7 @@ describe("Silent Flow AAD AGC Public Tests", () => {
         port = 3004;
         homeRoute = `${SAMPLE_HOME_URL}:${port}`;
 
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        createFolder(screenshotFolder);
 
         const keyVaultSecretClient = await getKeyVaultSecretClient();
         [username, password] = await getCredentials(keyVaultSecretClient);

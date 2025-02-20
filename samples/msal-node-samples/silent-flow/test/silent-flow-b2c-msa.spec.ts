@@ -12,7 +12,6 @@ import {
     ONE_SECOND_IN_MS,
     RETRY_TIMES,
     clickSignIn,
-    SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
     validateCacheLocation,
@@ -22,7 +21,7 @@ import {
     B2cProviders,
     UserTypes,
 } from "e2e-test-utils";
-
+import path from "path";
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
 
 // Set test cache name/location
@@ -53,7 +52,7 @@ describe("Silent Flow B2C Tests (msa account)", () => {
     let username: string;
     let accountPwd: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/silent-flow/b2c/msa-account`;
+    const screenshotFolder = path.join(__dirname, "screenshots/silent-flow/b2c-msa");
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -64,7 +63,7 @@ describe("Silent Flow B2C Tests (msa account)", () => {
         port = 3008;
         homeRoute = `${SAMPLE_HOME_URL}:${port}`;
 
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        createFolder(screenshotFolder);
 
         const labApiParms: LabApiQueryParams = {
             userType: UserTypes.B2C,
