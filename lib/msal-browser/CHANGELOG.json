@@ -2,6 +2,39 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 19 Feb 2025 23:57:02 GMT",
+      "version": "4.4.0",
+      "tag": "@azure/msal-browser_v4.4.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c50fbe77ff2c80ccd864b6275b8d3cbf33e75f19",
+            "comment": "Bump @azure/msal-browser to 4.4.0"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 18 Feb 2025 18:51:40 GMT",
       "version": "4.3.0",
       "tag": "@azure/msal-browser_v4.3.0",
