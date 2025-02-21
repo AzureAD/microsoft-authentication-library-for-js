@@ -68,34 +68,41 @@ describe("UrlUtils", () => {
     });
 
     describe("buildUrl", () => {
-        test("should correctly construct a URL when baseUrl does not end with a slash and path does not start with a slash", () => {
-            const result = UrlUtils.buildUrl("https://example.com", "path/to/resource");
-            expect(result.toString()).toBe("https://example.com/path/to/resource");
-        });
-
-        test("should correctly construct a URL when baseUrl ends with a slash and path does not start with a slash", () => {
-            const result = UrlUtils.buildUrl("https://example.com/", "path/to/resource");
-            expect(result.toString()).toBe("https://example.com/path/to/resource");
-        });
-
-        test("should correctly construct a URL when baseUrl does not end with a slash and path starts with a slash", () => {
-            const result = UrlUtils.buildUrl("https://example.com", "/path/to/resource");
-            expect(result.toString()).toBe("https://example.com/path/to/resource");
-        });
-
-        test("should correctly construct a URL when baseUrl ends with a slash and path starts with a slash", () => {
-            const result = UrlUtils.buildUrl("https://example.com/", "/path/to/resource");
-            expect(result.toString()).toBe("https://example.com/path/to/resource");
-        });
-
-        test("should correctly construct a URL with query parameters", () => {
-            const result = UrlUtils.buildUrl("https://example.com", "path?query=1");
-            expect(result.toString()).toBe("https://example.com/path?query=1");
-        });
-
-        test("should correctly construct a URL when baseUrl contains a subpath", () => {
-            const result = UrlUtils.buildUrl("https://example.com/sub", "path/to/resource");
-            expect(result.toString()).toBe("https://example.com/sub/path/to/resource");
+        test.each([
+            [
+                "baseUrl does not end with a slash and path does not start with a slash",
+                "https://example.com",
+                "path/to/resource",
+                "https://example.com/path/to/resource",
+            ],
+            [
+                "baseUrl ends with a slash and path does not start with a slash",
+                "https://example.com/",
+                "path/to/resource",
+                "https://example.com/path/to/resource",
+            ],
+            [
+                "baseUrl does not end with a slash and path starts with a slash",
+                "https://example.com",
+                "/path/to/resource",
+                "https://example.com/path/to/resource",
+            ],
+            [
+                "baseUrl ends with a slash and path starts with a slash",
+                "https://example.com/",
+                "/path/to/resource",
+                "https://example.com/path/to/resource",
+            ],
+            ["URL with query parameters", "https://example.com", "path?query=1", "https://example.com/path?query=1"],
+            [
+                "baseUrl contains a subpath",
+                "https://example.com/sub",
+                "path/to/resource",
+                "https://example.com/sub/path/to/resource",
+            ],
+        ])("should correctly construct a URL when %s", (name, baseUrl, path, expected) => {
+            const result = UrlUtils.buildUrl(baseUrl, path);
+            expect(result.toString()).toBe(expected);
         });
     });
 });

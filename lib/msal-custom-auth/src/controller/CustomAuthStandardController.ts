@@ -54,34 +54,11 @@ import { CustomAuthTokenClient } from "../get_account/interaction_client/CustomA
  * Controller for standard native auth operations.
  */
 export class CustomAuthStandardController extends StandardController implements ICustomAuthStandardController {
-    /*
-     * The client to use for sign-in operations.
-     */
     private readonly signInClient: SignInClient;
-
-    /*
-     * The client to use for sign-up operations.
-     */
     private readonly signUpClient: SignUpClient;
-
-    /*
-     * The client to use for reset password operations.
-     */
     private readonly resetPasswordClient: ResetPasswordClient;
-
-    /*
-     * The client to use for token operations.
-     */
     private readonly tokenClient: CustomAuthTokenClient;
-
-    /*
-     * The configuration for the client.
-     */
     private readonly customAuthConfig: CustomAuthBrowserConfiguration;
-
-    /**
-     * The authority to use for the client.
-     */
     private readonly authority: CustomAuthAuthority;
 
     /*

@@ -13,28 +13,28 @@ export interface ICustomAuthPublicClientApplication {
     /*
      * Gets the current account from the cache.
      * @param getAccountInputs - Inputs for getting the current cached account
-     * @returns - result of the operation
+     * @returns {GetAccountResult} The result of the operation
      */
     getCurrentAccount(getAccountInputs?: GetAccountInputs): GetAccountResult;
 
     /*
      * Initiates the sign-in flow.
      * @param signInInputs - Inputs for the sign-in flow
-     * @returns - A promise that resolves to SignInResult
+     * @returns {Promise<SignInResult>} A promise that resolves to SignInResult
      */
     signIn(signInInputs: SignInInputs): Promise<SignInResult>;
 
     /*
      * Initiates the sign-up flow.
      * @param signUpInputs - Inputs for the sign-up flow
-     * @returns - A promise that resolves to SignUpResult
+     * @returns {Promise<SignUpResult>} A promise that resolves to SignUpResult
      */
     signUp(signUpInputs: SignUpInputs): Promise<SignUpResult>;
 
     /*
      * Initiates the reset password flow.
      * @param resetPasswordInputs - Inputs for the reset password flow
-     * @returns - A promise that resolves to ResetPasswordStartResult
+     * @returns {Promise<ResetPasswordStartResult>} A promise that resolves to ResetPasswordStartResult
      */
     resetPassword(resetPasswordInputs: ResetPasswordInputs): Promise<ResetPasswordStartResult>;
 }
