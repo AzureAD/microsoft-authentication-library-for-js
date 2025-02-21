@@ -6,16 +6,16 @@
 import { GetAccountResult } from "./get_account/auth_flow/result/GetAccountResult.js";
 import { SignInResult } from "./sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
-import { GetAccountInputs, ResetPasswordInputs, SignInInputs, SignUpInputs } from "./CustomAuthActionInputs.js";
+import { AccountRetrievalInputs, ResetPasswordInputs, SignInInputs, SignUpInputs } from "./CustomAuthActionInputs.js";
 import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
 
 export interface ICustomAuthPublicClientApplication {
     /*
      * Gets the current account from the cache.
-     * @param getAccountInputs - Inputs for getting the current cached account
-     * @returns {GetAccountResult} The result of the operation
+     * @param accountRetrievalInputs - Inputs for getting the current cached account
+     * @returns {AccountRetrievalInputs} The result of the operation
      */
-    getCurrentAccount(getAccountInputs?: GetAccountInputs): GetAccountResult;
+    getCurrentAccount(accountRetrievalInputs?: AccountRetrievalInputs): GetAccountResult;
 
     /*
      * Initiates the sign-in flow.

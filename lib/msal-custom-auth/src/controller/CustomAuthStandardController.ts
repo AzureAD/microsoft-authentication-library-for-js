@@ -10,7 +10,7 @@ import { SignUpResult } from "../sign_up/auth_flow/result/SignUpResult.js";
 import { SignInStartParams, SignInSubmitPasswordParams } from "../sign_in/interaction_client/parameter/SignInParams.js";
 import { SignInClient } from "../sign_in/interaction_client/SignInClient.js";
 import {
-    GetAccountInputs,
+    AccountRetrievalInputs,
     SignInInputs,
     SignUpInputs,
     ResetPasswordInputs,
@@ -106,18 +106,18 @@ export class CustomAuthStandardController extends StandardController implements 
 
     /*
      * Gets the current account from the cache.
-     * @param getAccountInputs - Inputs for getting the current cached account
+     * @param accountRetrievalInputs - Inputs for getting the current cached account
      * @returns - A promise that resolves to GetAccountResult
      */
-    getCurrentAccount(getAccountInputs?: GetAccountInputs): GetAccountResult {
+    getCurrentAccount(accountRetrievalInputs?: AccountRetrievalInputs): GetAccountResult {
         try {
-            const correlationId = this.getCorrelationId(getAccountInputs);
+            const correlationId = this.getCorrelationId(accountRetrievalInputs);
 
             this.logger.info("Getting current account data.");
 
             let account: AccountInfo | null = null;
 
-            if (!getAccountInputs?.username) {
+            if (!accountRetrievalInputs?.username) {
                 // No username provided, get the first account from cache.
                 this.logger.info("No username provided. Getting the first account from cache.");
 
@@ -136,7 +136,7 @@ export class CustomAuthStandardController extends StandardController implements 
                 // Username provided, get the account by username.
                 this.logger.info("Username provided. Getting the account by username.");
 
-                account = this.getAccountByUsername(getAccountInputs.username);
+                account = this.getAccountByUsername(accountRetrievalInputs.username);
             }
 
             if (account) {

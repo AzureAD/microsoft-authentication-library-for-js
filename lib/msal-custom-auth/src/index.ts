@@ -11,7 +11,7 @@ export {
     SignInInputs,
     SignUpInputs,
     ResetPasswordInputs,
-    GetAccountInputs,
+    AccountRetrievalInputs,
 } from "./CustomAuthActionInputs.js";
 export { UserAccountAttributes } from "./UserAccountAttributes.js";
 export { SignInCodeRequiredStateHandler } from "./sign_in/auth_flow/state_handler/SignInCodeRequiredStateHandler.js";

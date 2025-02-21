@@ -10,7 +10,7 @@ import { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
 import { ICustomAuthStandardController } from "./controller/ICustomAuthStandardController.js";
 import { CustomAuthStandardController } from "./controller/CustomAuthStandardController.js";
 import { ICustomAuthPublicClientApplication } from "./ICustomAuthPublicClientApplication.js";
-import { GetAccountInputs, SignInInputs, SignUpInputs, ResetPasswordInputs } from "./CustomAuthActionInputs.js";
+import { AccountRetrievalInputs, SignInInputs, SignUpInputs, ResetPasswordInputs } from "./CustomAuthActionInputs.js";
 import { CustomAuthConfiguration } from "./configuration/CustomAuthConfiguration.js";
 import { CustomAuthOperatingContext } from "./operating_context/CustomAuthOperatingContext.js";
 import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
@@ -69,8 +69,8 @@ export class CustomAuthPublicClientApplication
      * @param getAccountInputs - Inputs for getting the current cached account
      * @returns - The result of the operation
      */
-    getCurrentAccount(getAccountInputs?: GetAccountInputs): GetAccountResult {
-        return this.customAuthController.getCurrentAccount(getAccountInputs);
+    getCurrentAccount(accountRetrievalInputs?: AccountRetrievalInputs): GetAccountResult {
+        return this.customAuthController.getCurrentAccount(accountRetrievalInputs);
     }
 
     /*
