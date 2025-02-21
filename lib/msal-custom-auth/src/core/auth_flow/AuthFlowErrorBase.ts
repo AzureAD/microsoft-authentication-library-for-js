@@ -5,6 +5,7 @@
 
 import { CustomAuthApiError, RedirectError } from "../error/CustomAuthApiError.js";
 import { CustomAuthError } from "../error/CustomAuthError.js";
+import { GetCurrentAccountError, NoSignedInAccountFound } from "../error/GetCurrentAccountError.js";
 import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
 import {
     CustomAuthApiErrorCode,
@@ -104,5 +105,9 @@ export class AuthFlowErrorBase {
             (this.errorData instanceof InvalidArgumentError &&
                 this.errorData.errorDescription?.includes("attributes") === true)
         );
+    }
+
+    protected isCurrentAccountNotFoundError(): boolean {
+        return this.errorData instanceof GetCurrentAccountError && this.errorData.error === NoSignedInAccountFound;
     }
 }

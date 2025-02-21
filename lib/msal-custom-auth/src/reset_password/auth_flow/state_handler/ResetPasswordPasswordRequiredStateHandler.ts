@@ -3,14 +3,41 @@
  * Licensed under the MIT License.
  */
 
+import { Logger } from "@azure/msal-browser";
 import { ResetPasswordSubmitPasswordResult } from "../result/ResetPasswordSubmitPasswordResult.js";
 import { ResetPasswordCompleted } from "../state/ResetPasswordCompleted.js";
 import { ResetPasswordStateHandler } from "./ResetPasswordStateHandler.js";
+import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
+import { ResetPasswordClient } from "../../interaction_client/ResetPasswordClient.js";
+import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
+import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokeClient.js";
 
 /*
  * Reset password handler for the state of password required.
  */
 export class ResetPasswordPasswordRequiredStateHandler extends ResetPasswordStateHandler {
+    constructor(
+        correlationId: string,
+        logger: Logger,
+        continuationToken: string,
+        config: CustomAuthBrowserConfiguration,
+        resetPasswordClient: ResetPasswordClient,
+        signInClient: SignInClient,
+        tokenClient: CustomAuthTokenClient,
+        username: string,
+    ) {
+        super(
+            correlationId,
+            logger,
+            continuationToken,
+            config,
+            resetPasswordClient,
+            signInClient,
+            tokenClient,
+            username,
+        );
+    }
+
     /*
      * Submits a new password for reset password.
      * @param password - The password to submit.
@@ -40,6 +67,7 @@ export class ResetPasswordPasswordRequiredStateHandler extends ResetPasswordStat
                     this.logger,
                     this.config,
                     this.signInClient,
+                    this.tokenClient,
                     this.username,
                 ),
             );

@@ -9,6 +9,7 @@ import { ResetPasswordActionRequiredState } from "./ResetPasswordActionRequiredS
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { ResetPasswordClient } from "../../interaction_client/ResetPasswordClient.js";
 import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
+import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokeClient.js";
 
 export class ResetPasswordCodeRequired extends ResetPasswordActionRequiredState {
     constructor(
@@ -18,6 +19,7 @@ export class ResetPasswordCodeRequired extends ResetPasswordActionRequiredState 
         config: CustomAuthBrowserConfiguration,
         resetPasswordClient: ResetPasswordClient,
         signInClient: SignInClient,
+        tokenClient: CustomAuthTokenClient,
         username: string,
         public codeLength: number,
     ) {
@@ -29,6 +31,7 @@ export class ResetPasswordCodeRequired extends ResetPasswordActionRequiredState 
             config,
             resetPasswordClient,
             signInClient,
+            tokenClient,
             username,
         );
     }

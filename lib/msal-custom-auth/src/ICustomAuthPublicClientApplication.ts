@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { GetAccountResult } from "./account/auth_flow/result/GetAccountResult.js";
+import { GetAccountResult } from "./get_account/auth_flow/result/GetAccountResult.js";
 import { SignInResult } from "./sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
 import { GetAccountInputs, ResetPasswordInputs, SignInInputs, SignUpInputs } from "./CustomAuthActionInputs.js";
@@ -13,9 +13,9 @@ export interface ICustomAuthPublicClientApplication {
     /*
      * Gets the current account from the cache.
      * @param getAccountInputs - Inputs for getting the current cached account
-     * @returns - A promise that resolves to GetAccountResult
+     * @returns - result of the operation
      */
-    getCurrentAccount(getAccountInputs: GetAccountInputs): Promise<GetAccountResult>;
+    getCurrentAccount(getAccountInputs?: GetAccountInputs): GetAccountResult;
 
     /*
      * Initiates the sign-in flow.

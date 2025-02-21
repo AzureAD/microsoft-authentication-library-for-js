@@ -8,6 +8,7 @@ import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAut
 import { AuthFlowStateHandlerBase } from "../../../core/auth_flow/AuthFlowStateHandlerBase.js";
 import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 import { Logger } from "@azure/msal-browser";
+import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokeClient.js";
 
 /*
  * Base state handler for sign-in flow.
@@ -25,6 +26,7 @@ export abstract class SignInStateHandler extends AuthFlowStateHandlerBase {
     constructor(
         protected username: string,
         protected signInClient: SignInClient,
+        protected tokenClient: CustomAuthTokenClient,
         correlationId: string,
         logger: Logger,
         continuationToken: string,

@@ -4,13 +4,14 @@
  */
 
 import { Logger } from "@azure/msal-browser";
-import { AccountInfo } from "../../../account/auth_flow/model/AccountInfo.js";
+import { CustomAuthAccountData } from "../../../get_account/auth_flow/CustomAuthAccountData.js";
 import { SignInSubmitPasswordParams } from "../../interaction_client/parameter/SignInParams.js";
 import { SignInClient } from "../../interaction_client/SignInClient.js";
 import { SignInSubmitPasswordResult } from "../result/SignInSubmitPasswordResult.js";
 import { SignInCompleted } from "../state/SignInCompleted.js";
 import { SignInStateHandler } from "./SignInStateHandler.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
+import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokeClient.js";
 
 /*
  * Sign-in handler for the state which requires a password.
@@ -19,13 +20,14 @@ export class SignInPasswordRequiredStateHandler extends SignInStateHandler {
     constructor(
         username: string,
         signInClient: SignInClient,
+        tokenClient: CustomAuthTokenClient,
         correlationId: string,
         logger: Logger,
         continuationToken: string,
         config: CustomAuthBrowserConfiguration,
         public scopes?: string[],
     ) {
-        super(username, signInClient, correlationId, logger, continuationToken, config);
+        super(username, signInClient, tokenClient, correlationId, logger, continuationToken, config);
     }
 
     /*
@@ -53,10 +55,11 @@ export class SignInPasswordRequiredStateHandler extends SignInStateHandler {
 
             this.logger.info("Password submitted for sign-in.");
 
-            const accountInfo = new AccountInfo(
+            const accountInfo = new CustomAuthAccountData(
                 completedResult.authenticationResult.account,
-                this.correlationId,
                 this.config,
+                this.tokenClient,
+                this.correlationId,
             );
 
             return new SignInSubmitPasswordResult(new SignInCompleted(), accountInfo);

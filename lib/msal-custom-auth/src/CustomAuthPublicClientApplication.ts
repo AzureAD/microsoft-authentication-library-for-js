@@ -4,7 +4,7 @@
  */
 
 import { Constants, PublicClientApplication } from "@azure/msal-browser";
-import { GetAccountResult } from "./account/auth_flow/result/GetAccountResult.js";
+import { GetAccountResult } from "./get_account/auth_flow/result/GetAccountResult.js";
 import { SignInResult } from "./sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
 import { ICustomAuthStandardController } from "./controller/ICustomAuthStandardController.js";
@@ -67,10 +67,10 @@ export class CustomAuthPublicClientApplication
     /*
      * Gets the current account from the cache.
      * @param getAccountInputs - Inputs for getting the current cached account
-     * @returns - A promise that resolves to GetAccountResult
+     * @returns - The result of the operation
      */
-    getCurrentAccount(getAccountInputs: GetAccountInputs): Promise<GetAccountResult> {
-        throw new Error(`Method not implemented with parameter ${getAccountInputs}`);
+    getCurrentAccount(getAccountInputs?: GetAccountInputs): GetAccountResult {
+        return this.customAuthController.getCurrentAccount(getAccountInputs);
     }
 
     /*

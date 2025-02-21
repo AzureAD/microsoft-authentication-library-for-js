@@ -32,7 +32,7 @@ export abstract class BaseApiClient {
             ...data,
         });
         const headers = this.getCommonHeaders(correlationId, telemetryManager);
-        const url = this.generateRequestUrl(endpoint);
+        const url = UrlUtils.buildUrl(this.baseRequestUrl.href, endpoint);
 
         let response: Response;
 
@@ -123,11 +123,5 @@ export abstract class BaseApiClient {
             responseError.trace_id,
             responseError.timestamp,
         );
-    }
-
-    private generateRequestUrl(url: string): URL {
-        const requestUrl = new URL(url, this.baseRequestUrl);
-
-        return requestUrl;
     }
 }

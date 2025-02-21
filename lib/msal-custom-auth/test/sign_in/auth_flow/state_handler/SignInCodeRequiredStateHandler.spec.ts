@@ -1,4 +1,4 @@
-import { AccountInfo } from "../../../../src/account/auth_flow/model/AccountInfo.js";
+import { CustomAuthAccountData } from "../../../../src/get_account/auth_flow/CustomAuthAccountData.js";
 import { CustomAuthBrowserConfiguration } from "../../../../src/configuration/CustomAuthConfiguration.js";
 import { InvalidArgumentError } from "../../../../src/core/error/InvalidArgumentError.js";
 import {
@@ -15,6 +15,7 @@ import {
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { Logger } from "@azure/msal-browser";
 import { SignInState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";
+import { CustomAuthTokenClient } from "../../../../src/get_account/interaction_client/CustomAuthTokeClient.js";
 
 describe("SignInCodeRequiredStateHandler", () => {
     const mockConfig = {
@@ -26,6 +27,8 @@ describe("SignInCodeRequiredStateHandler", () => {
         submitCode: jest.fn(),
         resendCode: jest.fn(),
     } as unknown as jest.Mocked<SignInClient>;
+
+    const mockTokenClient = {} as unknown as jest.Mocked<CustomAuthTokenClient>;
 
     const mockLogger = {
         info: jest.fn(),
@@ -42,6 +45,7 @@ describe("SignInCodeRequiredStateHandler", () => {
         handler = new SignInCodeRequiredStateHandler(
             username,
             mockSignInClient,
+            mockTokenClient,
             correlationId,
             mockLogger,
             continuationToken,
@@ -95,7 +99,7 @@ describe("SignInCodeRequiredStateHandler", () => {
 
             expect(result).toBeDefined();
             expect(result).toBeInstanceOf(SignInSubmitCodeResult);
-            expect(result.data).toBeInstanceOf(AccountInfo);
+            expect(result.data).toBeInstanceOf(CustomAuthAccountData);
             expect(mockSignInClient.submitCode).toHaveBeenCalledWith({
                 clientId: "test-client-id",
                 correlationId: correlationId,

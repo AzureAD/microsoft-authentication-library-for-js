@@ -12,6 +12,7 @@ import { Logger } from "@azure/msal-browser";
 import { ResetPasswordState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { CustomAuthApiError } from "../../../../src/index.js";
+import { CustomAuthTokenClient } from "../../../../src/get_account/interaction_client/CustomAuthTokeClient.js";
 
 describe("ResetPasswordPasswordRequiredStateHandler", () => {
     const mockConfig = {
@@ -44,6 +45,7 @@ describe("ResetPasswordPasswordRequiredStateHandler", () => {
             mockConfig,
             mockResetPasswordClient,
             mockSignInClient,
+            {} as unknown as jest.Mocked<CustomAuthTokenClient>,
             username,
         );
     });

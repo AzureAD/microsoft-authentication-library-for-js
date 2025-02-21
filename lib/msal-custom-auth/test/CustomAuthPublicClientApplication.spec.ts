@@ -3,10 +3,10 @@ import { ICustomAuthStandardController } from "../src/controller/ICustomAuthStan
 import { InvalidConfigurationError } from "../src/core/error/InvalidConfigurationError.js";
 import { CustomAuthPublicClientApplication } from "../src/CustomAuthPublicClientApplication.js";
 import { customAuthConfig } from "./test_resources/CustomAuthConfig.js";
-import { CustomAuthError, SignUpResult } from "../src/index.js";
-import { SignUpCompleted } from "../src/sign_up/auth_flow/state/SignUpCompleted.js";
-import { SignUpCodeRequired } from "../src/sign_up/auth_flow/state/SignUpCodeRequired.js";
-import { SignUpFailed } from "../src/sign_up/auth_flow/state/SignUpFailed.js";
+import { SignUpResult } from "../src/sign_up/auth_flow/result/SignUpResult.js";
+import { CustomAuthError } from "../src/core/error/CustomAuthError.js";
+import { ResetPasswordStartResult } from "../src/reset_password/auth_flow/result/ResetPasswordStartResult.js";
+import { GetAccountResult } from "../src/get_account/auth_flow/result/GetAccountResult.js";
 
 describe("CustomAuthPublicClientApplication", () => {
     let mockController: jest.Mocked<ICustomAuthStandardController>;
@@ -15,6 +15,8 @@ describe("CustomAuthPublicClientApplication", () => {
         mockController = {
             signIn: jest.fn(),
             signUp: jest.fn(),
+            resetPassword: jest.fn(),
+            getCurrentAccount: jest.fn(),
         } as unknown as jest.Mocked<ICustomAuthStandardController>;
     });
 
@@ -103,6 +105,44 @@ describe("CustomAuthPublicClientApplication", () => {
 
             expect(mockController.signUp).toHaveBeenCalledWith(mockSignUpInputs);
             expect(result).toEqual(mockSignUpResult);
+        });
+    });
+
+    describe("resetPassword", () => {
+        it("should call the customAuthController resetPassword method with correct inputs", async () => {
+            const mockResetPasswordInputs = {
+                username: "testuser",
+            };
+
+            const mockResetPasswordResult = ResetPasswordStartResult.createWithError(new CustomAuthError("test-error"));
+
+            mockController.resetPassword.mockResolvedValueOnce(mockResetPasswordResult as any);
+
+            const app = await CustomAuthPublicClientApplication.create(customAuthConfig, mockController);
+
+            const result = await app.resetPassword(mockResetPasswordInputs);
+
+            expect(mockController.resetPassword).toHaveBeenCalledWith(mockResetPasswordInputs);
+            expect(result).toEqual(mockResetPasswordResult);
+        });
+    });
+
+    describe("getCurrentAccount", () => {
+        it("should call the customAuthController getCurrentAccount method with correct inputs", async () => {
+            const mockGetCurrentAccountInputs = {
+                username: "testuser",
+            };
+
+            const mockGetCurrentAccountResult = GetAccountResult.createWithError(new CustomAuthError("test-error"));
+
+            mockController.getCurrentAccount.mockReturnValue(mockGetCurrentAccountResult as any);
+
+            const app = await CustomAuthPublicClientApplication.create(customAuthConfig, mockController);
+
+            const result = await app.getCurrentAccount(mockGetCurrentAccountInputs);
+
+            expect(mockController.getCurrentAccount).toHaveBeenCalledWith(mockGetCurrentAccountInputs);
+            expect(result).toEqual(mockGetCurrentAccountResult);
         });
     });
 });

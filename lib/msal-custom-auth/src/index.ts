@@ -22,9 +22,9 @@ export { SignUpPasswordRequiredStateHandler } from "./sign_up/auth_flow/state_ha
 export { SignUpAttributesRequiredStateHandler } from "./sign_up/auth_flow/state_handler/SignUpAttributesRequiredStateHandler.js";
 export { ResetPasswordCodeRequiredStateHandler } from "./reset_password/auth_flow/state_handler/ResetPasswordCodeRequiredStateHandler.js";
 export { ResetPasswordPasswordRequiredStateHandler } from "./reset_password/auth_flow/state_handler/ResetPasswordPasswordRequiredStateHandler.js";
-export { GetAccountResult } from "./account/auth_flow/result/GetAccountResult.js";
-export { GetAccessTokenResult } from "./account/auth_flow/result/GetAccessTokenResult.js";
-export { SignOutResult } from "./account/auth_flow/result/SignOutResult.js";
+export { GetAccountResult } from "./get_account/auth_flow/result/GetAccountResult.js";
+export { GetAccessTokenResult } from "./get_account/auth_flow/result/GetAccessTokenResult.js";
+export { SignOutResult } from "./get_account/auth_flow/result/SignOutResult.js";
 export { SignInResult } from "./sign_in/auth_flow/result/SignInResult.js";
 export { SignInResendCodeResult } from "./sign_in/auth_flow/result/SignInResendCodeResult.js";
 export { SignInSubmitCodeResult } from "./sign_in/auth_flow/result/SignInSubmitCodeResult.js";
@@ -46,7 +46,7 @@ export {
     GetAccessTokenState,
     GetAccountState,
 } from "./core/auth_flow/AuthFlowStateBase.js";
-export { AccountInfo } from "./account/auth_flow/model/AccountInfo.js";
+export { CustomAuthAccountData as AccountInfo } from "./get_account/auth_flow/CustomAuthAccountData.js";
 export { ICustomAuthStandardController } from "./controller/ICustomAuthStandardController.js";
 export { CustomAuthStandardController } from "./controller/CustomAuthStandardController.js";
 export { CustomAuthError } from "./core/error/CustomAuthError.js";

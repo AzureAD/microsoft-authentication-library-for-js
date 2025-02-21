@@ -52,4 +52,18 @@ export class UrlUtils {
 
         return parsedUrl;
     }
+    /**
+     * Builds a URL object from a base URL and a path.
+     * @param baseUrl The base URL
+     * @param path The path to append to the base URL
+     * @returns The constructed URL object
+     */
+    static buildUrl(baseUrl: string, path: string): URL {
+        const newBaseUrl = !baseUrl.endsWith("/") ? `${baseUrl}/` : baseUrl;
+        const newPath = path.startsWith("/") ? path.slice(1) : path;
+
+        const url = new URL(newPath, newBaseUrl);
+
+        return url;
+    }
 }

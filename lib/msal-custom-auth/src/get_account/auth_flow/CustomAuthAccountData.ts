@@ -3,30 +3,33 @@
  * Licensed under the MIT License.
  */
 
-import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
-import { SignOutResult } from "../result/SignOutResult.js";
-import { GetAccessTokenResult } from "../result/GetAccessTokenResult.js";
-import { AccountInfo as AccountData, TokenClaims } from "@azure/msal-browser";
-import { DefaultScopes } from "../../../CustomAuthConstants.js";
-import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
+import { CustomAuthBrowserConfiguration } from "../../configuration/CustomAuthConfiguration.js";
+import { SignOutResult } from "./result/SignOutResult.js";
+import { GetAccessTokenResult } from "./result/GetAccessTokenResult.js";
+import { AccountInfo as AccountData, AccountInfo, TokenClaims } from "@azure/msal-browser";
+import { DefaultScopes } from "../../CustomAuthConstants.js";
+import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
+import { CustomAuthTokenClient } from "../interaction_client/CustomAuthTokeClient.js";
 
 /*
  * Account information.
  */
-export class AccountInfo {
+export class CustomAuthAccountData {
     /*
      * Constructor
-     * @param account - Account data
+     * @param account - Account information
      * @param correlationId - Correlation id
      * @param config - Configuration
      */
     constructor(
-        private readonly account: AccountData,
-        private readonly correlationId: string,
+        private readonly account: AccountInfo,
         private readonly config: CustomAuthBrowserConfiguration,
+        private readonly tokenClient: CustomAuthTokenClient,
+        private readonly correlationId: string,
     ) {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("correlationId", correlationId);
+        ArgumentValidator.ensureArgumentIsNotEmptyString("correlationId", correlationId);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("account", account, correlationId);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("tokenClient", tokenClient, correlationId);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("config", config, correlationId);
     }
 
@@ -78,6 +81,6 @@ export class AccountInfo {
 /*
  * Authentication token claims.
  */
-type AuthTokenClaims = TokenClaims & {
+export type AuthTokenClaims = TokenClaims & {
     [key: string]: string | number | string[] | object | undefined | unknown;
 };

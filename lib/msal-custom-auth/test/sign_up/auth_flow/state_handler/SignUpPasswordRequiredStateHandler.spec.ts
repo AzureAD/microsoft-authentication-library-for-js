@@ -7,12 +7,12 @@ import {
     SignUpAttributesRequiredResult,
     SignUpCodeRequiredResult,
     SignUpCompletedResult,
-    SignUpPasswordRequiredResult,
 } from "../../../../src/sign_up/interaction_client/result/SignUpActionResult.js";
 import { SignUpClient } from "../../../../src/sign_up/interaction_client/SignUpClient.js";
 import { Logger } from "@azure/msal-browser";
 import { SignUpState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
+import { CustomAuthTokenClient } from "../../../../src/get_account/interaction_client/CustomAuthTokeClient.js";
 
 describe("SignUpPasswordRequiredStateHandler", () => {
     const mockConfig = {
@@ -42,6 +42,7 @@ describe("SignUpPasswordRequiredStateHandler", () => {
             username,
             mockSignUpClient,
             mockSignInClient,
+            {} as unknown as jest.Mocked<CustomAuthTokenClient>,
             correlationId,
             mockLogger,
             continuationToken,

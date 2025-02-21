@@ -4,7 +4,7 @@
  */
 
 import { Logger } from "@azure/msal-browser";
-import { AccountInfo } from "../../../account/auth_flow/model/AccountInfo.js";
+import { CustomAuthAccountData } from "../../../get_account/auth_flow/CustomAuthAccountData.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { SignInResendCodeParams, SignInSubmitCodeParams } from "../../interaction_client/parameter/SignInParams.js";
 import { SignInClient } from "../../interaction_client/SignInClient.js";
@@ -13,6 +13,7 @@ import { SignInSubmitCodeResult } from "../result/SignInSubmitCodeResult.js";
 import { SignInStateHandler } from "./SignInStateHandler.js";
 import { SignInCompleted } from "../state/SignInCompleted.js";
 import { SignInCodeRequired } from "../state/SignInCodeRequired.js";
+import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokeClient.js";
 
 /*
  * Sign-in handler for the state which requires a code.
@@ -21,6 +22,7 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
     constructor(
         username: string,
         signInClient: SignInClient,
+        tokenClient: CustomAuthTokenClient,
         correlationId: string,
         logger: Logger,
         continuationToken: string,
@@ -28,7 +30,7 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
         public codeLength: number,
         public scopes?: string[],
     ) {
-        super(username, signInClient, correlationId, logger, continuationToken, config);
+        super(username, signInClient, tokenClient, correlationId, logger, continuationToken, config);
     }
 
     /*
@@ -56,13 +58,14 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
 
             this.logger.info("Code submitted for sign-in.");
 
-            const accountManager = new AccountInfo(
+            const accountInfo = new CustomAuthAccountData(
                 completedResult.authenticationResult.account,
-                this.correlationId,
                 this.config,
+                this.tokenClient,
+                this.correlationId,
             );
 
-            return new SignInSubmitCodeResult(new SignInCompleted(), accountManager);
+            return new SignInSubmitCodeResult(new SignInCompleted(), accountInfo);
         } catch (error) {
             this.logger.error(`Failed to submit code for sign-in. Error: ${error}.`);
 
@@ -97,6 +100,7 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
                     this.logger,
                     this.config,
                     this.signInClient,
+                    this.tokenClient,
                     this.username,
                     result.codeLength,
                     this.scopes ?? [],

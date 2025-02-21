@@ -5,13 +5,17 @@
 
 import { AuthFlowErrorBase } from "../../../core/auth_flow/AuthFlowErrorBase.js";
 
-export class GetAccountError extends AuthFlowErrorBase {}
+export class GetAccountError extends AuthFlowErrorBase {
+    isCurrentAccountNotFound(): boolean {
+        return this.isCurrentAccountNotFoundError();
+    }
+}
 
 export class SignOutError extends AuthFlowErrorBase {}
 
 export class GetAccessTokenError extends AuthFlowErrorBase {
-    isAccountNotFound(): boolean {
-        return true;
+    isCurrentAccountNotFound(): boolean {
+        return this.isCurrentAccountNotFoundError();
     }
 
     isInvalidScope(): boolean {

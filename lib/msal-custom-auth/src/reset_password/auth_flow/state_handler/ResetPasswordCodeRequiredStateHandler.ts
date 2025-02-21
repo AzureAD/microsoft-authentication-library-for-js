@@ -12,6 +12,7 @@ import { ResetPasswordClient } from "../../interaction_client/ResetPasswordClien
 import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
 import { ResetPasswordCodeRequired } from "../state/ResetPasswordCodeRequired.js";
 import { ResetPasswordPasswordRequired } from "../state/ResetPasswordPasswordRequired.js";
+import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokeClient.js";
 
 /*
  * Reset password handler for the state of code required.
@@ -24,10 +25,20 @@ export class ResetPasswordCodeRequiredStateHandler extends ResetPasswordStateHan
         config: CustomAuthBrowserConfiguration,
         resetPasswordClient: ResetPasswordClient,
         signInClient: SignInClient,
+        tokenClient: CustomAuthTokenClient,
         username: string,
         public codeLength: number,
     ) {
-        super(correlationId, logger, continuationToken, config, resetPasswordClient, signInClient, username);
+        super(
+            correlationId,
+            logger,
+            continuationToken,
+            config,
+            resetPasswordClient,
+            signInClient,
+            tokenClient,
+            username,
+        );
     }
 
     /*
@@ -60,6 +71,7 @@ export class ResetPasswordCodeRequiredStateHandler extends ResetPasswordStateHan
                     this.config,
                     this.resetPasswordClient,
                     this.signInClient,
+                    this.tokenClient,
                     this.username,
                 ),
             );
@@ -96,6 +108,7 @@ export class ResetPasswordCodeRequiredStateHandler extends ResetPasswordStateHan
                     this.config,
                     this.resetPasswordClient,
                     this.signInClient,
+                    this.tokenClient,
                     this.username,
                     result.codeLength,
                 ),

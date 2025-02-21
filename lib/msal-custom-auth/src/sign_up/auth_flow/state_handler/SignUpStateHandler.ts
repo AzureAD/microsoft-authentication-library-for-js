@@ -9,6 +9,7 @@ import { AuthFlowStateHandlerBase } from "../../../core/auth_flow/AuthFlowStateH
 import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 import { SignUpClient } from "../../interaction_client/SignUpClient.js";
 import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
+import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokeClient.js";
 
 /*
  * Base state handler for sign-up flow.
@@ -19,6 +20,7 @@ export abstract class SignUpStateHandler extends AuthFlowStateHandlerBase {
      * @param username - The username for the request.
      * @param signUpClient - The client for the sign up operation.
      * @param signInClient - The client for the sign-in operation.
+     * @param tokenClient - The client for the token operation.
      * @param correlationId - The correlation ID for the request.
      * @param logger - The logger for the request.
      * @param continuationToken - The continuation token for the request.
@@ -28,6 +30,7 @@ export abstract class SignUpStateHandler extends AuthFlowStateHandlerBase {
         protected username: string,
         protected signUpClient: SignUpClient,
         protected signInClient: SignInClient,
+        protected tokenClient: CustomAuthTokenClient,
         correlationId: string,
         logger: Logger,
         continuationToken: string,
@@ -36,11 +39,10 @@ export abstract class SignUpStateHandler extends AuthFlowStateHandlerBase {
         super(correlationId, logger, continuationToken);
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("config", config, correlationId);
-
         ArgumentValidator.ensureArgumentIsNotEmptyString("username", username, correlationId);
-
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signUpClient", signUpClient, correlationId);
-
         ArgumentValidator.ensureArgumentIsNotEmptyString("continuationToken", continuationToken, correlationId);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signInClient", signInClient, correlationId);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("tokenClient", tokenClient, correlationId);
     }
 }

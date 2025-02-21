@@ -8,6 +8,7 @@ import { AuthFlowStateBase, SignInState } from "../../../core/auth_flow/AuthFlow
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 import { SignInClient } from "../../interaction_client/SignInClient.js";
+import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokeClient.js";
 
 export abstract class SignInActionRequiredState extends AuthFlowStateBase {
     constructor(
@@ -17,6 +18,7 @@ export abstract class SignInActionRequiredState extends AuthFlowStateBase {
         public logger: Logger,
         public config: CustomAuthBrowserConfiguration,
         public signInClient: SignInClient,
+        public tokenClient: CustomAuthTokenClient,
         public username: string,
         public scope?: Array<string>,
     ) {
@@ -25,6 +27,7 @@ export abstract class SignInActionRequiredState extends AuthFlowStateBase {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("logger", logger);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("config", config);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signInClient", signInClient);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("tokenClient", tokenClient);
         ArgumentValidator.ensureArgumentIsNotEmptyString("username", username);
 
         super(type);

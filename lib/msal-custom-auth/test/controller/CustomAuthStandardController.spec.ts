@@ -5,7 +5,7 @@ import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { SignInError } from "../../src/sign_in/auth_flow/error_type/SignInError.js";
 import { SignInResult } from "../../src/sign_in/auth_flow/result/SignInResult.js";
 import { ResetPasswordState, SignInState, SignUpState } from "../../src/core/auth_flow/AuthFlowStateBase.js";
-import { AccountInfo } from "../../src/account/auth_flow/model/AccountInfo.js";
+import { CustomAuthAccountData } from "../../src/get_account/auth_flow/CustomAuthAccountData.js";
 import { SignUpError } from "../../src/sign_up/auth_flow/error_type/SignUpError.js";
 import { ChallengeType } from "../../src/CustomAuthConstants.js";
 import { CustomAuthApiError, RedirectError } from "../../src/core/error/CustomAuthApiError.js";
@@ -185,7 +185,7 @@ describe("CustomAuthStandardController", () => {
             expect(result.error).toBeUndefined();
             expect(result.state?.type).toStrictEqual(SignInState.Completed);
             expect(result.data).toBeDefined();
-            expect(result.data).toBeInstanceOf(AccountInfo);
+            expect(result.data).toBeInstanceOf(CustomAuthAccountData);
         });
 
         it("should return failed result if the challenge type is redirect", async () => {
