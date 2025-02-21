@@ -1,37 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MSAL Custom Auth Next.js Sample
+
+This is a [Next.js](https://nextjs.org) project that demonstrates custom authentication implementation using MSAL Custom Native Auth SDK. The project showcases a modern authentication flow with sign-in, sign-up, and password reset capabilities.
+
+## Project Structure
+
+```
+├── src/
+│   ├── app/                    # Next.js app router directory
+│   │   ├── sign-in/           # Sign-in route
+│   │   ├── sign-up/           # Sign-up route
+│   │   ├── reset-password/    # Password reset route
+│   │   ├── layout.tsx         # Root layout with navigation
+│   │   ├── page.tsx           # Home page
+│   │   └── globals.css        # Global styles
+│   └── components/            # Shared components
+│       ├── Navbar.tsx         # Navigation bar component
+│       └── Navbar.module.css  # Navigation styles
+```
+
+## Features
+
+- Modern Next.js 14 App Router structure
+- Type-safe development with TypeScript
+- Responsive navigation with authentication routes
+- Styled using CSS Modules and global styles
+- Built-in font optimization with [Geist](https://vercel.com/font)
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 20.x or later
+- npm 10.x or later
+
+### Installation
+
+1. Clone the repository:
 ```bash
-npm install
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd samples/msal-custom-auth-samples/react-sample-nextjs
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Start the development server:
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
+
+## Development
+
+- `src/app/page.tsx` - The main landing page
+- `src/app/layout.tsx` - The root layout containing the navigation
+- Authentication routes:
+  - `src/app/sign-in/page.tsx` - Sign-in page
+  - `src/app/sign-up/page.tsx` - Sign-up page
+  - `src/app/reset-password/page.tsx` - Password reset page
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+- [Next.js Documentation](https://nextjs.org/docs) - Next.js features and API
+- [MSAL.js Documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js) - Microsoft Authentication Library for JavaScript
+- [TypeScript Documentation](https://www.typescriptlang.org/docs/) - Learn about TypeScript
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Contributing
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Please read the [contributing guide](../../CONTRIBUTING.md) to learn about our development process.
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is licensed under the MIT License - see the [LICENSE](../../LICENSE) file for details.
