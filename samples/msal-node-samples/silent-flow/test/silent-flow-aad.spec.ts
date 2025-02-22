@@ -12,7 +12,6 @@ import {
     RETRY_TIMES,
     clickSignIn,
     enterCredentials,
-    SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GRAPH_CALL_ID,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
@@ -24,7 +23,7 @@ import {
     AppTypes,
     AzureEnvironments,
 } from "e2e-test-utils";
-
+import path from "path";
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
 
 // Set test cache name/location
@@ -55,7 +54,7 @@ describe("Silent Flow AAD Prod Tests", () => {
     let username: string;
     let accountPwd: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/silent-flow/aad`;
+    const screenshotFolder = path.join(__dirname, "screenshots/silent-flow/aad");
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -64,7 +63,7 @@ describe("Silent Flow AAD Prod Tests", () => {
         port = 3002;
         homeRoute = `${SAMPLE_HOME_URL}:${port}`;
 
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        createFolder(screenshotFolder);
 
         const labApiParms: LabApiQueryParams = {
             azureEnvironment: AzureEnvironments.CLOUD,
