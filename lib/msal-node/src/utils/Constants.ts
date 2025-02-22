@@ -15,6 +15,7 @@ export const RESOURCE_BODY_OR_QUERY_PARAMETER_NAME: string = "resource";
 export const DEFAULT_MANAGED_IDENTITY_ID = "system_assigned_managed_identity";
 export const MANAGED_IDENTITY_DEFAULT_TENANT = "managed_identity";
 export const DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY = `https://login.microsoftonline.com/${MANAGED_IDENTITY_DEFAULT_TENANT}/`;
+export const CLIENT_REQUEST_ID_HEADER_NAME: string = "X-ms-Client-Request-id";
 
 /**
  * Managed Identity Environment Variable Names
@@ -41,6 +42,7 @@ export const ManagedIdentitySourceNames = {
     CLOUD_SHELL: "CloudShell",
     DEFAULT_TO_IMDS: "DefaultToImds",
     IMDS: "Imds",
+    IMDSV2: "ImdsV2",
     MACHINE_LEARNING: "MachineLearning",
     SERVICE_FABRIC: "ServiceFabric",
 } as const;

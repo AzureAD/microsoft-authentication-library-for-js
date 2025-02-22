@@ -25,6 +25,7 @@ import { NodeStorage } from "../cache/NodeStorage.js";
 import { BaseManagedIdentitySource } from "./ManagedIdentitySources/BaseManagedIdentitySource.js";
 import { ManagedIdentitySourceNames } from "../utils/Constants.js";
 import { MachineLearning } from "./ManagedIdentitySources/MachineLearning.js";
+import { ImdsV2 } from "./ManagedIdentitySources/ImdsV2.js";
 
 /*
  * Class to initialize a managed identity and identify the service.
@@ -87,7 +88,8 @@ export class ManagedIdentityClient {
     }
 
     /**
-     * Determine the Managed Identity Source based on available environment variables. This API is consumed by ManagedIdentityApplication's getManagedIdentitySource.
+     * Determine the Managed Identity Source based on available environment variables and probing an IMDS credential endpoint.
+     * This API is consumed by ManagedIdentityApplication's getManagedIdentitySource.
      * @returns ManagedIdentitySourceNames - The Managed Identity source's name
      */
     public getManagedIdentitySource(): ManagedIdentitySourceNames {
@@ -112,6 +114,8 @@ export class ManagedIdentityClient {
                       AzureArc.getEnvironmentVariables()
                   )
                 ? ManagedIdentitySourceNames.AZURE_ARC
+                : ImdsV2.isCredentialEndpointAvailable()
+                ? ManagedIdentitySourceNames.IMDSV2
                 : ManagedIdentitySourceNames.DEFAULT_TO_IMDS;
 
         return ManagedIdentityClient.sourceName;
@@ -161,6 +165,12 @@ export class ManagedIdentityClient {
                 networkClient,
                 cryptoProvider,
                 managedIdentityId
+            ) ||
+            ImdsV2.tryCreate(
+                logger,
+                nodeStorage,
+                networkClient,
+                cryptoProvider
             ) ||
             Imds.tryCreate(logger, nodeStorage, networkClient, cryptoProvider);
         if (!source) {

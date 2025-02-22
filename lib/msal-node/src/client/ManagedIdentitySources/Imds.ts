@@ -21,9 +21,7 @@ import { NodeStorage } from "../../cache/NodeStorage.js";
 
 // IMDS constants. Docs for IMDS are available here https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http
 const IMDS_TOKEN_PATH: string = "/metadata/identity/oauth2/token";
-const DEFAULT_IMDS_ENDPOINT: string = `http://169.254.169.254${IMDS_TOKEN_PATH}`;
-
-const IMDS_API_VERSION: string = "2018-02-01";
+export const IMDS_API_VERSION: string = "2018-02-01";
 
 // Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/ImdsManagedIdentitySource.cs
 export class Imds extends BaseManagedIdentitySource {
@@ -47,41 +45,8 @@ export class Imds extends BaseManagedIdentitySource {
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ): Imds {
-        let validatedIdentityEndpoint: string;
-
-        if (
-            process.env[
-                ManagedIdentityEnvironmentVariableNames
-                    .AZURE_POD_IDENTITY_AUTHORITY_HOST
-            ]
-        ) {
-            logger.info(
-                `[Managed Identity] Environment variable ${
-                    ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST
-                } for ${ManagedIdentitySourceNames.IMDS} returned endpoint: ${
-                    process.env[
-                        ManagedIdentityEnvironmentVariableNames
-                            .AZURE_POD_IDENTITY_AUTHORITY_HOST
-                    ]
-                }`
-            );
-            validatedIdentityEndpoint = Imds.getValidatedEnvVariableUrlString(
-                ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST,
-                `${
-                    process.env[
-                        ManagedIdentityEnvironmentVariableNames
-                            .AZURE_POD_IDENTITY_AUTHORITY_HOST
-                    ]
-                }${IMDS_TOKEN_PATH}`,
-                ManagedIdentitySourceNames.IMDS,
-                logger
-            );
-        } else {
-            logger.info(
-                `[Managed Identity] Unable to find ${ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST} environment variable for ${ManagedIdentitySourceNames.IMDS}, using the default endpoint.`
-            );
-            validatedIdentityEndpoint = DEFAULT_IMDS_ENDPOINT;
-        }
+        const validatedIdentityEndpoint: string =
+            this.getValidatedIdentityEndpoint(IMDS_TOKEN_PATH, logger);
 
         return new Imds(
             logger,
@@ -124,4 +89,44 @@ export class Imds extends BaseManagedIdentitySource {
 
         return request;
     }
+
+    public static getValidatedIdentityEndpoint = (
+        subPath: string,
+        logger: Logger
+    ): string => {
+        if (
+            process.env[
+                ManagedIdentityEnvironmentVariableNames
+                    .AZURE_POD_IDENTITY_AUTHORITY_HOST
+            ]
+        ) {
+            logger.info(
+                `[Managed Identity] Environment variable ${
+                    ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST
+                } for ${ManagedIdentitySourceNames.IMDS} returned endpoint: ${
+                    process.env[
+                        ManagedIdentityEnvironmentVariableNames
+                            .AZURE_POD_IDENTITY_AUTHORITY_HOST
+                    ]
+                }`
+            );
+
+            return Imds.getValidatedEnvVariableUrlString(
+                ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST,
+                `${
+                    process.env[
+                        ManagedIdentityEnvironmentVariableNames
+                            .AZURE_POD_IDENTITY_AUTHORITY_HOST
+                    ]
+                }${subPath}`,
+                ManagedIdentitySourceNames.IMDS,
+                logger
+            );
+        } else {
+            logger.info(
+                `[Managed Identity] Unable to find ${ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST} environment variable for ${ManagedIdentitySourceNames.IMDS}, using the default endpoint.`
+            );
+            return `http://169.254.169.254${subPath}`;
+        }
+    };
 }
