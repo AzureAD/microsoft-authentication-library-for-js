@@ -9,7 +9,7 @@ import { AuthFlowStateHandlerBase } from "../../../core/auth_flow/AuthFlowStateH
 import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 import { ResetPasswordClient } from "../../interaction_client/ResetPasswordClient.js";
 import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
-import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokeClient.js";
+import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokenClient.js";
 
 /*
  * Base state handler for reset password operation.

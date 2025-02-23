@@ -21,7 +21,7 @@ import { SignUpCodeRequired } from "../state/SignUpCodeRequired.js";
 import { SignUpPasswordRequired } from "../state/SignUpPasswordRequired.js";
 import { SignUpCompleted } from "../state/SignUpCompleted.js";
 import { UserAttribute } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
-import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokeClient.js";
+import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokenClient.js";
 
 /*
  * Sign-up handler used for the state of attributes required.

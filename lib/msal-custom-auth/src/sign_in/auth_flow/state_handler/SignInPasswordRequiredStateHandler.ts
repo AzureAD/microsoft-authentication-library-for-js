@@ -11,7 +11,7 @@ import { SignInSubmitPasswordResult } from "../result/SignInSubmitPasswordResult
 import { SignInCompleted } from "../state/SignInCompleted.js";
 import { SignInStateHandler } from "./SignInStateHandler.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
-import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokeClient.js";
+import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokenClient.js";
 
 /*
  * Sign-in handler for the state which requires a password.

@@ -48,7 +48,7 @@ import { ResetPasswordCodeRequired } from "../reset_password/auth_flow/state/Res
 import { GetCurrentAccountError, NoSignedInAccountFound } from "../core/error/GetCurrentAccountError.js";
 import { ArgumentValidator } from "../core/utils/ArgumentValidator.js";
 import { UserAlreadySignedInError } from "../core/error/UserAlreadySignedInError.js";
-import { CustomAuthTokenClient } from "../get_account/interaction_client/CustomAuthTokeClient.js";
+import { CustomAuthTokenClient } from "../get_account/interaction_client/CustomAuthTokenClient.js";
 
 /*
  * Controller for standard native auth operations.

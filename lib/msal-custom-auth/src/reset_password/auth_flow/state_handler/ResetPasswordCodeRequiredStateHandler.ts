@@ -12,7 +12,7 @@ import { ResetPasswordClient } from "../../interaction_client/ResetPasswordClien
 import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
 import { ResetPasswordCodeRequired } from "../state/ResetPasswordCodeRequired.js";
 import { ResetPasswordPasswordRequired } from "../state/ResetPasswordPasswordRequired.js";
-import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokeClient.js";
+import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokenClient.js";
 
 /*
  * Reset password handler for the state of code required.

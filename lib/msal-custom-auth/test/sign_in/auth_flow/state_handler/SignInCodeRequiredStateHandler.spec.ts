@@ -15,7 +15,7 @@ import {
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { Logger } from "@azure/msal-browser";
 import { SignInState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";
-import { CustomAuthTokenClient } from "../../../../src/get_account/interaction_client/CustomAuthTokeClient.js";
+import { CustomAuthTokenClient } from "../../../../src/get_account/interaction_client/CustomAuthTokenClient.js";
 
 describe("SignInCodeRequiredStateHandler", () => {
     const mockConfig = {

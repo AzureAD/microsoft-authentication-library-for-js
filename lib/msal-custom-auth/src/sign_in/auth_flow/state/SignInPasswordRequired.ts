@@ -8,7 +8,7 @@ import { SignInState } from "../../../core/auth_flow/AuthFlowStateBase.js";
 import { SignInActionRequiredState } from "./SignInActionRequiredState.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { SignInClient } from "../../interaction_client/SignInClient.js";
-import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokeClient.js";
+import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokenClient.js";
 
 export class SignInPasswordRequired extends SignInActionRequiredState {
     constructor(

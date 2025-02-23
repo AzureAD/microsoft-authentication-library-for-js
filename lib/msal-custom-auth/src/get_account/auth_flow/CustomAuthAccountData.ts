@@ -9,7 +9,7 @@ import { GetAccessTokenResult } from "./result/GetAccessTokenResult.js";
 import { AccountInfo as AccountData, AccountInfo, TokenClaims } from "@azure/msal-browser";
 import { DefaultScopes } from "../../CustomAuthConstants.js";
 import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
-import { CustomAuthTokenClient } from "../interaction_client/CustomAuthTokeClient.js";
+import { CustomAuthTokenClient } from "../interaction_client/CustomAuthTokenClient.js";
 
 /*
  * Account information.

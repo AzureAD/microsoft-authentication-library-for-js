@@ -10,7 +10,7 @@ import {
     Logger,
     SilentFlowClient,
 } from "@azure/msal-browser";
-import { CustomAuthTokenClient } from "../../../src/get_account/interaction_client/CustomAuthTokeClient.js";
+import { CustomAuthTokenClient } from "../../../src/get_account/interaction_client/CustomAuthTokenClient.js";
 import { customAuthConfig } from "../../test_resources/CustomAuthConfig.js";
 import { CustomAuthAuthority } from "../../../src/core/CustomAuthAuthority.js";
 

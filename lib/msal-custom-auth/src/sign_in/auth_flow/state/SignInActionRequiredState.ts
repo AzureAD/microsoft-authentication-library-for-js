@@ -8,7 +8,7 @@ import { AuthFlowStateBase, SignInState } from "../../../core/auth_flow/AuthFlow
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 import { SignInClient } from "../../interaction_client/SignInClient.js";
-import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokeClient.js";
+import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokenClient.js";
 
 export abstract class SignInActionRequiredState extends AuthFlowStateBase {
     constructor(

@@ -13,7 +13,7 @@ import { SignInSubmitCodeResult } from "../result/SignInSubmitCodeResult.js";
 import { SignInStateHandler } from "./SignInStateHandler.js";
 import { SignInCompleted } from "../state/SignInCompleted.js";
 import { SignInCodeRequired } from "../state/SignInCodeRequired.js";
-import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokeClient.js";
+import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokenClient.js";
 
 /*
  * Sign-in handler for the state which requires a code.

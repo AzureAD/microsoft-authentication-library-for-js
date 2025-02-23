@@ -20,7 +20,7 @@ import { SignUpCodeRequired } from "../state/SignUpCodeRequired.js";
 import { SignUpCompleted } from "../state/SignUpCompleted.js";
 import { SignUpPasswordRequired } from "../state/SignUpPasswordRequired.js";
 import { SignUpAttributesRequired } from "../state/SignUpAttributesRequired.js";
-import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokeClient.js";
+import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokenClient.js";
 
 /*
  * Sign-up handler used for the state of code required.

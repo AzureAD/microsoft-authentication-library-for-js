@@ -9,7 +9,7 @@ import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAut
 import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 import { ResetPasswordClient } from "../../interaction_client/ResetPasswordClient.js";
 import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
-import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokeClient.js";
+import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokenClient.js";
 
 export abstract class ResetPasswordActionRequiredState extends AuthFlowStateBase {
     constructor(

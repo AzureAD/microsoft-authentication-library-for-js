@@ -8,7 +8,7 @@ import { SignInPasswordRequiredStateHandler } from "../../../../src/sign_in/auth
 import { SignInCompletedResult } from "../../../../src/sign_in/interaction_client/result/SignInActionResult.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { SignInState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";
-import { CustomAuthTokenClient } from "../../../../src/get_account/interaction_client/CustomAuthTokeClient.js";
+import { CustomAuthTokenClient } from "../../../../src/get_account/interaction_client/CustomAuthTokenClient.js";
 
 describe("SignInPasswordRequiredStateHandler", () => {
     const mockConfig = {

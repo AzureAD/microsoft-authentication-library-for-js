@@ -12,7 +12,7 @@ import { Logger } from "@azure/msal-browser";
 import { ResetPasswordState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { CustomAuthApiError } from "../../../../src/index.js";
-import { CustomAuthTokenClient } from "../../../../src/get_account/interaction_client/CustomAuthTokeClient.js";
+import { CustomAuthTokenClient } from "../../../../src/get_account/interaction_client/CustomAuthTokenClient.js";
 
 describe("ResetPasswordPasswordRequiredStateHandler", () => {
     const mockConfig = {
