@@ -129,7 +129,7 @@ async function signIn(app: ICustomAuthPublicClientApplication): Promise<void> {
     });
 
     const signInInputs = {
-        username: "test@test.com",
+        username: "abc@test.com",
         password: "test-pwd",
         correlationId: "test-correlation-id",
     };
