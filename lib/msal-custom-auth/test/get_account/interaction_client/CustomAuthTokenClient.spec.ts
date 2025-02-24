@@ -44,13 +44,24 @@ jest.mock("@azure/msal-browser", () => {
 describe("CustomAuthTokenClient", () => {
     let client: CustomAuthTokenClient;
     let mockBrowserConfig: BrowserConfiguration;
-    let mockFlowClient: SilentFlowClient;
+    const mockCacheManager = {
+        getWrapperMetadata: jest.fn(),
+        getServerTelemetry: jest.fn(),
+        getAllAccounts: jest.fn(),
+        getAccountInfoFilteredBy: jest.fn(),
+        getActiveAccount: jest.fn(),
+        removeAccount: jest.fn(),
+    } as unknown as jest.Mocked<BrowserCacheManager>;
+    const mockNavigationClient = {
+        navigateExternal: jest.fn(),
+    } as unknown as jest.Mocked<INavigationClient>;
 
     beforeEach(() => {
         mockBrowserConfig = {
             auth: {
                 clientId: customAuthConfig.auth.clientId,
                 authority: customAuthConfig.auth.authority,
+                postLogoutRedirectUri: "http://example.com",
             },
             system: {
                 loggerOptions: {
@@ -66,12 +77,9 @@ describe("CustomAuthTokenClient", () => {
             telemetry: {},
         } as unknown as jest.Mocked<BrowserConfiguration>;
 
-        const mockCacheManager = {
-            getWrapperMetadata: jest.fn(),
-            getServerTelemetry: jest.fn(),
-        } as unknown as jest.Mocked<BrowserCacheManager>;
         mockCacheManager.getWrapperMetadata.mockReturnValue(["", ""]);
         mockCacheManager.getServerTelemetry.mockReturnValue(null);
+
         const mockNetworkModule = {} as unknown as jest.Mocked<INetworkModule>;
 
         const mockCrypto = {
@@ -79,7 +87,6 @@ describe("CustomAuthTokenClient", () => {
         } as unknown as jest.Mocked<ICrypto>;
 
         const mockEventHandler = {} as unknown as jest.Mocked<EventHandler>;
-        const mockNavigationClient = {} as unknown as jest.Mocked<INavigationClient>;
         const mockPerformanceClient = {} as unknown as jest.Mocked<IPerformanceClient>;
         const mockedApiClient = {} as unknown as jest.Mocked<any>;
 
@@ -87,6 +94,7 @@ describe("CustomAuthTokenClient", () => {
             clone: jest.fn(),
             verbose: jest.fn(),
             info: jest.fn(),
+            warning: jest.fn(),
         } as unknown as jest.Mocked<Logger>;
         mockLogger.clone.mockReturnValue(mockLogger);
 
@@ -123,13 +131,97 @@ describe("CustomAuthTokenClient", () => {
         );
     });
 
-    it("acquireToken calls SilentFlowClient and returns result", async () => {
-        const mockedRequest = {} as unknown as jest.Mocked<CommonSilentFlowRequest>;
-        const result = await client.acquireToken(mockedRequest);
+    describe("acquireToken", () => {
+        it("should call SilentFlowClient and returns result", async () => {
+            const mockedRequest = {} as unknown as jest.Mocked<CommonSilentFlowRequest>;
+            const result = await client.acquireToken(mockedRequest);
 
-        expect(result).toBeDefined();
-        expect(result.accessToken).toBe("test-access-token");
-        expect(result.idToken).toBe("test-id-token");
-        expect(result.tenantId).toBe("test-tenant-id");
+            expect(result).toBeDefined();
+            expect(result.accessToken).toBe("test-access-token");
+            expect(result.idToken).toBe("test-id-token");
+            expect(result.tenantId).toBe("test-tenant-id");
+        });
+    });
+
+    describe("getCurrentAccount", () => {
+        it("should return account from cache", () => {
+            mockCacheManager.getAllAccounts.mockReturnValue([
+                {
+                    homeAccountId: "test-home-account-id",
+                    environment: "test-environment",
+                    tenantId: "test-tenant-id",
+                    username: "test-username",
+                    localAccountId: "test-local-account-id",
+                },
+                {
+                    homeAccountId: "test-home-account-id-2",
+                    environment: "test-environment-2",
+                    tenantId: "test-tenant-id-2",
+                    username: "test-username-2",
+                    localAccountId: "test-local-account-id-2",
+                },
+            ]);
+
+            const account = client.getCurrentAccount();
+
+            expect(account).toBeDefined();
+            expect(account?.homeAccountId).toBe("test-home-account-id");
+            expect(account?.tenantId).toBe("test-tenant-id");
+            expect(account?.username).toBe("test-username");
+            expect(account?.localAccountId).toBe("test-local-account-id");
+            expect(account?.environment).toBe("test-environment");
+        });
+
+        it("should return account from cache if valid username is provided", () => {
+            mockCacheManager.getAccountInfoFilteredBy.mockReturnValue({
+                homeAccountId: "test-home-account-id",
+                environment: "test-environment",
+                tenantId: "test-tenant-id",
+                username: "test-username",
+                localAccountId: "test-local-account-id",
+            });
+
+            const account = client.getCurrentAccount("abc@test.com");
+
+            expect(account).toBeDefined();
+            expect(account?.homeAccountId).toBe("test-home-account-id");
+            expect(account?.tenantId).toBe("test-tenant-id");
+            expect(account?.username).toBe("test-username");
+            expect(account?.localAccountId).toBe("test-local-account-id");
+            expect(account?.environment).toBe("test-environment");
+        });
+
+        it("should return null if no account found", () => {
+            mockCacheManager.getAllAccounts.mockReturnValue([]);
+
+            const account = client.getCurrentAccount();
+
+            expect(account).toBe(null);
+        });
+    });
+
+    describe("logout", () => {
+        it("should logout successfully", async () => {
+            mockCacheManager.getActiveAccount.mockReturnValue({
+                homeAccountId: "test-home-account-id-2",
+                environment: "test-environment-2",
+                tenantId: "test-tenant-id-2",
+                username: "test-username-2",
+                localAccountId: "test-local-account-id-2",
+            });
+
+            await client.logout({
+                account: {
+                    homeAccountId: "test-home-account-id",
+                    environment: "test-environment",
+                    tenantId: "test-tenant-id",
+                    username: "test-username",
+                    localAccountId: "test-local-account-id",
+                },
+            });
+
+            expect(mockCacheManager.removeAccount).toHaveBeenCalled();
+            expect(mockNavigationClient.navigateExternal).toHaveBeenCalled();
+        });
     });
 });

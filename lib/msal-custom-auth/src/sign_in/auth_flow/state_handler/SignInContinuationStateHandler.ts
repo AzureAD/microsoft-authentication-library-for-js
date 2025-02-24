@@ -57,6 +57,7 @@ export class SignInContinuationStateHandler extends SignInStateHandler {
                 completedResult.authenticationResult.account,
                 this.config,
                 this.tokenClient,
+                this.logger,
                 this.correlationId,
             );
 

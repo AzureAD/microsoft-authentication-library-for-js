@@ -5,11 +5,9 @@
 
 import { CustomAuthError } from "./CustomAuthError.js";
 
-export class GetCurrentAccountError extends CustomAuthError {
-    constructor(error: string, message: string, correlationId?: string) {
-        super(error, message, correlationId);
-        Object.setPrototypeOf(this, GetCurrentAccountError.prototype);
+export class NoCachedAccountFoundError extends CustomAuthError {
+    constructor(correlationId?: string) {
+        super("no_cached_account_found", "No account found in the cache", correlationId);
+        Object.setPrototypeOf(this, NoCachedAccountFoundError.prototype);
     }
 }
-
-export const NoSignedInAccountFound = "no_signed_in_account_found";

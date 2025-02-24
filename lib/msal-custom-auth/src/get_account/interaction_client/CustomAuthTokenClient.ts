@@ -4,6 +4,8 @@
  */
 
 import {
+    AccountInfo,
+    ApiId,
     AuthenticationResult,
     ClearCacheRequest,
     ClientConfiguration,
@@ -15,6 +17,7 @@ import { CustomAuthAuthority } from "../../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../../CustomAuthConstants.js";
 import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
+import { UrlUtils } from "../../core/utils/UrlUtils.js";
 
 export class CustomAuthTokenClient extends CustomAuthInteractionClientBase {
     override async acquireToken(silentRequest: CommonSilentFlowRequest): Promise<AuthenticationResult> {
@@ -26,12 +29,73 @@ export class CustomAuthTokenClient extends CustomAuthInteractionClientBase {
 
         const result = (await silentFlowClient.acquireToken(silentRequest)) as AuthenticationResult;
 
+        this.logger.info("Silent flow to acquire token completed");
+
         return result;
     }
 
     override async logout(logoutRequest?: ClearCacheRequest): Promise<void> {
-        // TODO: Implement logout
-        throw new Error("Method not implemented." + logoutRequest);
+        const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
+
+        // Clear the cache
+        this.logger.info("Start to clear the cache");
+        await this.clearCacheOnLogout(validLogoutRequest?.account);
+        this.logger.info("Cache cleared");
+
+        const postLogoutRedirectUri = this.config.auth.postLogoutRedirectUri;
+
+        if (postLogoutRedirectUri) {
+            this.logger.info("Post logout redirect uri is set, redirecting to uri");
+
+            if (!UrlUtils.IsValidUrl(postLogoutRedirectUri)) {
+                this.logger.warning("Post logout redirect uri is not a valid url");
+
+                return;
+            }
+
+            // Redirect to post logout redirect uri
+            await this.navigationClient.navigateExternal(postLogoutRedirectUri, {
+                apiId: ApiId.logout,
+                timeout: this.config.system.redirectNavigationTimeout,
+                noHistory: false,
+            });
+        }
+    }
+
+    getCurrentAccount(username?: string): AccountInfo | null {
+        let account: AccountInfo | null = null;
+
+        if (!username) {
+            // No username provided, get the first account from cache.
+            this.logger.info("No username provided. Getting the first account from cache.");
+
+            const allAccounts = this.browserStorage.getAllAccounts();
+
+            if (allAccounts.length > 0) {
+                if (allAccounts.length !== 1) {
+                    this.logger.warning(
+                        "Multiple accounts found in cache. This is not supported in the Native Auth scenario.",
+                    );
+                }
+
+                account = allAccounts[0];
+            }
+        } else {
+            // Username provided, get the account by username.
+            this.logger.info("Username provided. Getting the account by username.");
+
+            account = this.browserStorage.getAccountInfoFilteredBy({
+                username,
+            });
+        }
+
+        if (account) {
+            this.logger.info("Account data found.");
+        } else {
+            this.logger.info("No account data found.");
+        }
+
+        return account;
     }
 
     private getCustomAuthClientConfiguration(

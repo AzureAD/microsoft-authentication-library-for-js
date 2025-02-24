@@ -105,4 +105,16 @@ describe("UrlUtils", () => {
             expect(result.toString()).toBe(expected);
         });
     });
+
+    describe("IsValidUrl", () => {
+        test.each([
+            [true, "https://example.com"],
+            [true, "http://example.com"],
+            [false, "invalid-url"],
+            [false, ""],
+        ])("should return %s for URL '%s'", (expected, url) => {
+            const result = UrlUtils.IsValidUrl(url);
+            expect(result).toBe(expected);
+        });
+    });
 });

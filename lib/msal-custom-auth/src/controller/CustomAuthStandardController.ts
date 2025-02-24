@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, StandardController } from "@azure/msal-browser";
+import { StandardController } from "@azure/msal-browser";
 import { GetAccountResult } from "../get_account/auth_flow/result/GetAccountResult.js";
 import { SignInResult } from "../sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "../sign_up/auth_flow/result/SignUpResult.js";
@@ -45,10 +45,11 @@ import { CustomAuthApiClient } from "../core/network_client/custom_auth_api/Cust
 import { FetchHttpClient } from "../core/network_client/http_client/FetchHttpClient.js";
 import { ResetPasswordClient } from "../reset_password/interaction_client/ResetPasswordClient.js";
 import { ResetPasswordCodeRequired } from "../reset_password/auth_flow/state/ResetPasswordCodeRequired.js";
-import { GetCurrentAccountError, NoSignedInAccountFound } from "../core/error/GetCurrentAccountError.js";
+import { NoCachedAccountFoundError } from "../core/error/GetCurrentAccountError.js";
 import { ArgumentValidator } from "../core/utils/ArgumentValidator.js";
 import { UserAlreadySignedInError } from "../core/error/UserAlreadySignedInError.js";
 import { CustomAuthTokenClient } from "../get_account/interaction_client/CustomAuthTokenClient.js";
+import { UnsupportedEnvironmentError } from "../core/error/UnsupportedEnvironmentError.js";
 
 /*
  * Controller for standard native auth operations.
@@ -68,6 +69,11 @@ export class CustomAuthStandardController extends StandardController implements 
      */
     constructor(operatingContext: CustomAuthOperatingContext, customAuthApiClient?: ICustomAuthApiClient) {
         super(operatingContext);
+
+        if (!this.isBrowserEnvironment) {
+            this.logger.error("The SDK can only be used in a browser environment.");
+            throw new UnsupportedEnvironmentError();
+        }
 
         this.logger = this.logger.clone(DefaultPackageInfo.SKU, DefaultPackageInfo.VERSION);
         this.customAuthConfig = operatingContext.getCustomAuthConfig();
@@ -115,39 +121,23 @@ export class CustomAuthStandardController extends StandardController implements 
 
             this.logger.info("Getting current account data.");
 
-            let account: AccountInfo | null = null;
-
-            if (!accountRetrievalInputs?.username) {
-                // No username provided, get the first account from cache.
-                this.logger.info("No username provided. Getting the first account from cache.");
-
-                const allAccounts = this.getAllAccounts();
-
-                if (allAccounts.length > 0) {
-                    if (allAccounts.length !== 1) {
-                        this.logger.warning(
-                            "Multiple accounts found in cache. This is not supported in the Native Auth scenario.",
-                        );
-                    }
-
-                    account = allAccounts[0];
-                }
-            } else {
-                // Username provided, get the account by username.
-                this.logger.info("Username provided. Getting the account by username.");
-
-                account = this.getAccountByUsername(accountRetrievalInputs.username);
-            }
+            const account = this.tokenClient.getCurrentAccount(accountRetrievalInputs?.username);
 
             if (account) {
                 this.logger.info("Account data found.");
 
                 return new GetAccountResult(
-                    new CustomAuthAccountData(account, this.customAuthConfig, this.tokenClient, correlationId),
+                    new CustomAuthAccountData(
+                        account,
+                        this.customAuthConfig,
+                        this.tokenClient,
+                        this.logger,
+                        correlationId,
+                    ),
                 );
             }
 
-            throw new GetCurrentAccountError(NoSignedInAccountFound, "No signed-in account found.", correlationId);
+            throw new NoCachedAccountFoundError(correlationId);
         } catch (error) {
             this.logger.error(`An error occurred during getting current account: ${error}`);
 
@@ -243,6 +233,7 @@ export class CustomAuthStandardController extends StandardController implements 
                     completedResult.authenticationResult.account,
                     this.customAuthConfig,
                     this.tokenClient,
+                    this.logger,
                     correlationId,
                 );
 

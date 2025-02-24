@@ -62,6 +62,7 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
                 completedResult.authenticationResult.account,
                 this.config,
                 this.tokenClient,
+                this.logger,
                 this.correlationId,
             );
 

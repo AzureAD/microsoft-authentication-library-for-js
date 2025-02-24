@@ -6,7 +6,7 @@
 import { CustomAuthPublicClientApplication } from "../../src/CustomAuthPublicClientApplication.js";
 import { ICustomAuthPublicClientApplication } from "../../src/ICustomAuthPublicClientApplication.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
-import { GetAccountState, SignInState } from "../../src/core/auth_flow/AuthFlowStateBase.js";
+import { GetAccountState, SignInState, SignOutState } from "../../src/core/auth_flow/AuthFlowStateBase.js";
 import { CustomAuthAccountData } from "../../src/get_account/auth_flow/CustomAuthAccountData.js";
 import { TestHomeAccountId, TestTenantId, TestTokenResponse, TestUsername } from "../test_resources/TestConstants.js";
 
@@ -81,6 +81,78 @@ describe("GetAccount", () => {
             expect(accountData.error?.isCurrentAccountNotFound()).toBe(true);
             expect(accountData.state?.type).toStrictEqual(GetAccountState.Failed);
             expect(accountData.data).toBeUndefined();
+        });
+    });
+
+    describe("SignOut", () => {
+        it("should sign the user out after the sign-in is successful", async () => {
+            await signIn(app);
+
+            const result = app.getCurrentAccount({
+                correlationId: "test-correlation-id",
+            });
+
+            const accountData = result.data;
+
+            expect(accountData).toBeDefined();
+
+            const signOutResult = await accountData?.signOut();
+
+            expect(signOutResult).toBeDefined();
+            expect(signOutResult?.error).toBeUndefined();
+            expect(signOutResult?.state?.type).toStrictEqual(SignOutState.Completed);
+
+            const accountResultAfterSignOut = app.getCurrentAccount({
+                correlationId: "test-correlation-id",
+            });
+
+            expect(accountResultAfterSignOut).toBeDefined();
+            expect(accountResultAfterSignOut.error).toBeDefined();
+            expect(accountResultAfterSignOut.error?.isCurrentAccountNotFound()).toBe(true);
+        });
+
+        it("should sign the user out with provided username after the sign-in is successful", async () => {
+            await signIn(app);
+
+            const result = app.getCurrentAccount({
+                correlationId: "test-correlation-id",
+            });
+
+            const accountData = result.data;
+
+            expect(accountData).toBeDefined();
+
+            const signOutResult = await accountData?.signOut(TestUsername);
+
+            expect(signOutResult).toBeDefined();
+            expect(signOutResult?.error).toBeUndefined();
+            expect(signOutResult?.state?.type).toStrictEqual(SignOutState.Completed);
+
+            const accountResultAfterSignOut = app.getCurrentAccount({
+                correlationId: "test-correlation-id",
+                username: TestUsername,
+            });
+
+            expect(accountResultAfterSignOut).toBeDefined();
+            expect(accountResultAfterSignOut.error).toBeDefined();
+            expect(accountResultAfterSignOut.error?.isCurrentAccountNotFound()).toBe(true);
+        });
+
+        it("should return error data if try to sign out an user who is not signed in", async () => {
+            await signIn(app);
+
+            const result = app.getCurrentAccount({
+                correlationId: "test-correlation-id",
+            });
+
+            const accountData = result.data;
+
+            const signOutResult = await accountData?.signOut("cdf@abd.com"); // Invalid username
+
+            expect(signOutResult).toBeDefined();
+            expect(signOutResult?.error).toBeDefined();
+            expect(signOutResult?.state?.type).toStrictEqual(SignOutState.Failed);
+            expect(signOutResult?.error?.isUserNotSignedIn()).toBe(true);
         });
     });
 });

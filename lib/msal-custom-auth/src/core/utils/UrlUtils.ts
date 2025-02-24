@@ -11,6 +11,21 @@ export class UrlUtils {
      * @param url The target URL to validate
      * @returns The result of the URL validation
      */
+    static IsValidUrl(url: string): boolean {
+        try {
+            new URL(url);
+
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Validates whether a given URL is valid and secured.
+     * @param url The target URL to validate
+     * @returns The result of the URL validation
+     */
     static IsValidSecureUrl(url: string): boolean {
         try {
             const urlComponents = new URL(url);

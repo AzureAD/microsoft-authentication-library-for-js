@@ -6,10 +6,10 @@
 import { CustomAuthBrowserConfiguration } from "../../configuration/CustomAuthConfiguration.js";
 import { SignOutResult } from "./result/SignOutResult.js";
 import { GetAccessTokenResult } from "./result/GetAccessTokenResult.js";
-import { AccountInfo as AccountData, AccountInfo, TokenClaims } from "@azure/msal-browser";
-import { DefaultScopes } from "../../CustomAuthConstants.js";
+import { AccountInfo, Logger, TokenClaims } from "@azure/msal-browser";
 import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
 import { CustomAuthTokenClient } from "../interaction_client/CustomAuthTokenClient.js";
+import { NoCachedAccountFoundError } from "../../core/error/GetCurrentAccountError.js";
 
 /*
  * Account information.
@@ -25,6 +25,7 @@ export class CustomAuthAccountData {
         private readonly account: AccountInfo,
         private readonly config: CustomAuthBrowserConfiguration,
         private readonly tokenClient: CustomAuthTokenClient,
+        private readonly logger: Logger,
         private readonly correlationId: string,
     ) {
         ArgumentValidator.ensureArgumentIsNotEmptyString("correlationId", correlationId);
@@ -35,17 +36,39 @@ export class CustomAuthAccountData {
 
     /*
      * Signs the current user out
+     * @param signOutInputs - The inputs for signing out.
      * @returns The result of the operation.
      */
-    signOut(): Promise<SignOutResult> {
-        throw new Error("Method not implemented.");
+    async signOut(username?: string): Promise<SignOutResult> {
+        try {
+            const currentAccount = this.tokenClient.getCurrentAccount(username);
+
+            if (!currentAccount) {
+                throw new NoCachedAccountFoundError(this.correlationId);
+            }
+
+            this.logger.info("Signing out user");
+
+            await this.tokenClient.logout({
+                correlationId: this.correlationId,
+                account: currentAccount,
+            });
+
+            this.logger.info("User signed out");
+
+            return new SignOutResult();
+        } catch (error) {
+            this.logger.error(`An error occurred during sign out: ${error}`);
+
+            return SignOutResult.createWithError(error);
+        }
     }
 
     /*
      * Gets the account data.
      * @returns The account data.
      */
-    getAccount(): AccountData {
+    getAccount(): AccountInfo {
         return this.account;
     }
 
@@ -67,14 +90,13 @@ export class CustomAuthAccountData {
 
     /*
      * Gets the access token from cache.
-     * @param forceRefresh - Force a token refresh
-     * @param scopes - The scopes to request
+     * @param accessTokenRetrievalInputs - The inputs for retrieving the access token.
      * @returns The result of the operation.
      */
-    getAccessToken(forceRefresh: boolean = false, scopes?: Array<string>): Promise<GetAccessTokenResult> {
-        const newScopes = scopes || DefaultScopes;
+    async getAccessToken(forceRefresh: boolean = false, scopes?: Array<string>): Promise<GetAccessTokenResult> {
+        // Double check whether the scope should be retrieved from cache if not provided
 
-        throw new Error(`Method not implemented with forceRefresh '${forceRefresh}' and scopes ${newScopes}.`);
+        throw new Error(`Method not implemented with forceRefresh '${forceRefresh}' and scopes '${scopes}'`);
     }
 }
 
