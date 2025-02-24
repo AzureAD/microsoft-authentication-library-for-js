@@ -10,7 +10,7 @@ import { ResetPasswordStateHandler } from "./ResetPasswordStateHandler.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { ResetPasswordClient } from "../../interaction_client/ResetPasswordClient.js";
 import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
-import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokenClient.js";
+import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 /*
  * Reset password handler for the state of password required.
@@ -23,7 +23,7 @@ export class ResetPasswordPasswordRequiredStateHandler extends ResetPasswordStat
         config: CustomAuthBrowserConfiguration,
         resetPasswordClient: ResetPasswordClient,
         signInClient: SignInClient,
-        tokenClient: CustomAuthTokenClient,
+        cacheClient: CustomAuthSilentCacheClient,
         username: string,
     ) {
         super(
@@ -33,7 +33,7 @@ export class ResetPasswordPasswordRequiredStateHandler extends ResetPasswordStat
             config,
             resetPasswordClient,
             signInClient,
-            tokenClient,
+            cacheClient,
             username,
         );
     }
@@ -67,7 +67,7 @@ export class ResetPasswordPasswordRequiredStateHandler extends ResetPasswordStat
                     this.logger,
                     this.config,
                     this.signInClient,
-                    this.tokenClient,
+                    this.cacheClient,
                     this.username,
                 ),
             );

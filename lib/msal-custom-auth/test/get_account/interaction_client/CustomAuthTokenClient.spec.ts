@@ -10,7 +10,7 @@ import {
     Logger,
     SilentFlowClient,
 } from "@azure/msal-browser";
-import { CustomAuthTokenClient } from "../../../src/get_account/interaction_client/CustomAuthTokenClient.js";
+import { CustomAuthSilentCacheClient } from "../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { customAuthConfig } from "../../test_resources/CustomAuthConfig.js";
 import { CustomAuthAuthority } from "../../../src/core/CustomAuthAuthority.js";
 
@@ -42,7 +42,7 @@ jest.mock("@azure/msal-browser", () => {
 });
 
 describe("CustomAuthTokenClient", () => {
-    let client: CustomAuthTokenClient;
+    let client: CustomAuthSilentCacheClient;
     let mockBrowserConfig: BrowserConfiguration;
     const mockCacheManager = {
         getWrapperMetadata: jest.fn(),
@@ -118,7 +118,7 @@ describe("CustomAuthTokenClient", () => {
             customAuthConfig.customAuth.authApiProxyUrl,
         );
 
-        client = new CustomAuthTokenClient(
+        client = new CustomAuthSilentCacheClient(
             mockBrowserConfig,
             mockCacheManager,
             mockCrypto,

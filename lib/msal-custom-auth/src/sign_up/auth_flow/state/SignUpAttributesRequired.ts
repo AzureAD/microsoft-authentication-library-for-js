@@ -10,7 +10,7 @@ import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAut
 import { SignUpClient } from "../../interaction_client/SignUpClient.js";
 import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
 import { UserAttribute } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
-import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokenClient.js";
+import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 export class SignUpAttributesRequired extends SignUpActionRequiredState {
     constructor(
@@ -20,7 +20,7 @@ export class SignUpAttributesRequired extends SignUpActionRequiredState {
         config: CustomAuthBrowserConfiguration,
         signInClient: SignInClient,
         signUpClient: SignUpClient,
-        tokenClient: CustomAuthTokenClient,
+        cacheClient: CustomAuthSilentCacheClient,
         username: string,
         public requiredAttributes: Array<UserAttribute>,
     ) {
@@ -32,7 +32,7 @@ export class SignUpAttributesRequired extends SignUpActionRequiredState {
             config,
             signInClient,
             signUpClient,
-            tokenClient,
+            cacheClient,
             username,
         );
     }

@@ -8,7 +8,7 @@ import { SignInState } from "../../../core/auth_flow/AuthFlowStateBase.js";
 import { SignInActionRequiredState } from "./SignInActionRequiredState.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { SignInClient } from "../../interaction_client/SignInClient.js";
-import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokenClient.js";
+import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 export class SignInCodeRequired extends SignInActionRequiredState {
     constructor(
@@ -17,7 +17,7 @@ export class SignInCodeRequired extends SignInActionRequiredState {
         logger: Logger,
         config: CustomAuthBrowserConfiguration,
         signInClient: SignInClient,
-        tokenClient: CustomAuthTokenClient,
+        cacheClient: CustomAuthSilentCacheClient,
         username: string,
         public codeLength: number,
         scope?: Array<string>,
@@ -29,7 +29,7 @@ export class SignInCodeRequired extends SignInActionRequiredState {
             logger,
             config,
             signInClient,
-            tokenClient,
+            cacheClient,
             username,
             scope,
         );

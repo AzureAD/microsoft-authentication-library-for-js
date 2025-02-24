@@ -40,7 +40,7 @@ export class AuthFlowStateHandlerFactory {
             return new SignInCodeRequiredStateHandler(
                 state.username,
                 state.signInClient,
-                state.tokenClient,
+                state.cacheClient,
                 state.correlationId ?? "",
                 state.logger,
                 state.continuationToken ?? "",
@@ -54,7 +54,7 @@ export class AuthFlowStateHandlerFactory {
             return new SignInPasswordRequiredStateHandler(
                 state.username,
                 state.signInClient,
-                state.tokenClient,
+                state.cacheClient,
                 state.correlationId ?? "",
                 state.logger,
                 state.continuationToken ?? "",
@@ -68,7 +68,7 @@ export class AuthFlowStateHandlerFactory {
                 state.username,
                 state.signUpClient,
                 state.signInClient,
-                state.tokenClient,
+                state.cacheClient,
                 state.correlationId ?? "",
                 state.logger,
                 state.continuationToken ?? "",
@@ -83,7 +83,7 @@ export class AuthFlowStateHandlerFactory {
                 state.username,
                 state.signUpClient,
                 state.signInClient,
-                state.tokenClient,
+                state.cacheClient,
                 state.correlationId ?? "",
                 state.logger,
                 state.continuationToken ?? "",
@@ -96,7 +96,7 @@ export class AuthFlowStateHandlerFactory {
                 state.username,
                 state.signUpClient,
                 state.signInClient,
-                state.tokenClient,
+                state.cacheClient,
                 state.correlationId ?? "",
                 state.logger,
                 state.continuationToken ?? "",
@@ -109,7 +109,7 @@ export class AuthFlowStateHandlerFactory {
             return new SignInContinuationStateHandler(
                 state.username,
                 state.signInClient,
-                state.tokenClient,
+                state.cacheClient,
                 state.correlationId ?? "",
                 state.logger,
                 state.continuationToken ?? "",
@@ -126,7 +126,7 @@ export class AuthFlowStateHandlerFactory {
                 state.config,
                 state.resetPasswordClient,
                 state.signInClient,
-                state.tokenClient,
+                state.cacheClient,
                 state.username,
                 state.codeLength,
             );
@@ -140,7 +140,7 @@ export class AuthFlowStateHandlerFactory {
                 state.config,
                 state.resetPasswordClient,
                 state.signInClient,
-                state.tokenClient,
+                state.cacheClient,
                 state.username,
             );
         }
@@ -149,7 +149,7 @@ export class AuthFlowStateHandlerFactory {
             return new SignInContinuationStateHandler(
                 state.username,
                 state.signInClient,
-                state.tokenClient,
+                state.cacheClient,
                 state.correlationId ?? "",
                 state.logger,
                 state.continuationToken ?? "",

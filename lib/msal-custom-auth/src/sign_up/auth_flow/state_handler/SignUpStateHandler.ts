@@ -9,7 +9,7 @@ import { AuthFlowStateHandlerBase } from "../../../core/auth_flow/AuthFlowStateH
 import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 import { SignUpClient } from "../../interaction_client/SignUpClient.js";
 import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
-import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokenClient.js";
+import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 /*
  * Base state handler for sign-up flow.
@@ -30,7 +30,7 @@ export abstract class SignUpStateHandler extends AuthFlowStateHandlerBase {
         protected username: string,
         protected signUpClient: SignUpClient,
         protected signInClient: SignInClient,
-        protected tokenClient: CustomAuthTokenClient,
+        protected cacheClient: CustomAuthSilentCacheClient,
         correlationId: string,
         logger: Logger,
         continuationToken: string,
@@ -43,6 +43,6 @@ export abstract class SignUpStateHandler extends AuthFlowStateHandlerBase {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signUpClient", signUpClient, correlationId);
         ArgumentValidator.ensureArgumentIsNotEmptyString("continuationToken", continuationToken, correlationId);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signInClient", signInClient, correlationId);
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("tokenClient", tokenClient, correlationId);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("cacheClient", cacheClient, correlationId);
     }
 }

@@ -9,7 +9,7 @@ import { SignUpActionRequiredState } from "./SignUpActionRequiredState.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { SignUpClient } from "../../interaction_client/SignUpClient.js";
 import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
-import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokenClient.js";
+import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 export class SignUpCodeRequired extends SignUpActionRequiredState {
     constructor(
@@ -19,7 +19,7 @@ export class SignUpCodeRequired extends SignUpActionRequiredState {
         config: CustomAuthBrowserConfiguration,
         signInClient: SignInClient,
         signUpClient: SignUpClient,
-        tokenClient: CustomAuthTokenClient,
+        cacheClient: CustomAuthSilentCacheClient,
         username: string,
         public codeLength: number,
         public codeResendInterval: number,
@@ -32,7 +32,7 @@ export class SignUpCodeRequired extends SignUpActionRequiredState {
             config,
             signInClient,
             signUpClient,
-            tokenClient,
+            cacheClient,
             username,
         );
     }

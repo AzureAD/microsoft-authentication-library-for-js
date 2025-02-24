@@ -8,7 +8,7 @@ import { SignInPasswordRequiredStateHandler } from "../../../../src/sign_in/auth
 import { SignInCompletedResult } from "../../../../src/sign_in/interaction_client/result/SignInActionResult.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { SignInState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";
-import { CustomAuthTokenClient } from "../../../../src/get_account/interaction_client/CustomAuthTokenClient.js";
+import { CustomAuthSilentCacheClient } from "../../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 describe("SignInPasswordRequiredStateHandler", () => {
     const mockConfig = {
@@ -25,7 +25,7 @@ describe("SignInPasswordRequiredStateHandler", () => {
         error: jest.fn(),
     } as unknown as jest.Mocked<Logger>;
 
-    const mockTokenClient = {} as unknown as jest.Mocked<CustomAuthTokenClient>;
+    const mockCacheClient = {} as unknown as jest.Mocked<CustomAuthSilentCacheClient>;
 
     const username = "testuser";
     const correlationId = "test-correlation-id";
@@ -37,7 +37,7 @@ describe("SignInPasswordRequiredStateHandler", () => {
         handler = new SignInPasswordRequiredStateHandler(
             username,
             mockSignInClient,
-            mockTokenClient,
+            mockCacheClient,
             correlationId,
             mockLogger,
             continuationToken,

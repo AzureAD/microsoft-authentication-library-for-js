@@ -12,7 +12,7 @@ import { SignInCompleted } from "../state/SignInCompleted.js";
 import { SignInStateHandler } from "./SignInStateHandler.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { SignInScenario } from "../SignInScenario.js";
-import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokenClient.js";
+import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 /*
  * Sign-in continuation state handler.
@@ -21,14 +21,14 @@ export class SignInContinuationStateHandler extends SignInStateHandler {
     constructor(
         username: string,
         signInClient: SignInClient,
-        tokenClient: CustomAuthTokenClient,
+        cacheClient: CustomAuthSilentCacheClient,
         correlationId: string,
         logger: Logger,
         continuationToken: string,
         config: CustomAuthBrowserConfiguration,
         private signInScenario: SignInScenario,
     ) {
-        super(username, signInClient, tokenClient, correlationId, logger, continuationToken, config);
+        super(username, signInClient, cacheClient, correlationId, logger, continuationToken, config);
     }
 
     /*
@@ -56,7 +56,7 @@ export class SignInContinuationStateHandler extends SignInStateHandler {
             const accountInfo = new CustomAuthAccountData(
                 completedResult.authenticationResult.account,
                 this.config,
-                this.tokenClient,
+                this.cacheClient,
                 this.logger,
                 this.correlationId,
             );

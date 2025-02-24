@@ -8,7 +8,7 @@ import { SignOutResult } from "./result/SignOutResult.js";
 import { GetAccessTokenResult } from "./result/GetAccessTokenResult.js";
 import { AccountInfo, Logger, TokenClaims } from "@azure/msal-browser";
 import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
-import { CustomAuthTokenClient } from "../interaction_client/CustomAuthTokenClient.js";
+import { CustomAuthSilentCacheClient } from "../interaction_client/CustomAuthSilentCacheClient.js";
 import { NoCachedAccountFoundError } from "../../core/error/GetCurrentAccountError.js";
 
 /*
@@ -24,13 +24,13 @@ export class CustomAuthAccountData {
     constructor(
         private readonly account: AccountInfo,
         private readonly config: CustomAuthBrowserConfiguration,
-        private readonly tokenClient: CustomAuthTokenClient,
+        private readonly cacheClient: CustomAuthSilentCacheClient,
         private readonly logger: Logger,
         private readonly correlationId: string,
     ) {
         ArgumentValidator.ensureArgumentIsNotEmptyString("correlationId", correlationId);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("account", account, correlationId);
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("tokenClient", tokenClient, correlationId);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("cacheClient", cacheClient, correlationId);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("config", config, correlationId);
     }
 
@@ -41,7 +41,7 @@ export class CustomAuthAccountData {
      */
     async signOut(username?: string): Promise<SignOutResult> {
         try {
-            const currentAccount = this.tokenClient.getCurrentAccount(username);
+            const currentAccount = this.cacheClient.getCurrentAccount(username);
 
             if (!currentAccount) {
                 throw new NoCachedAccountFoundError(this.correlationId);
@@ -49,7 +49,7 @@ export class CustomAuthAccountData {
 
             this.logger.info("Signing out user");
 
-            await this.tokenClient.logout({
+            await this.cacheClient.logout({
                 correlationId: this.correlationId,
                 account: currentAccount,
             });

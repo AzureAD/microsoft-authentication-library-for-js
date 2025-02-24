@@ -9,7 +9,7 @@ import { ResetPasswordActionRequiredState } from "./ResetPasswordActionRequiredS
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { ResetPasswordClient } from "../../interaction_client/ResetPasswordClient.js";
 import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
-import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokenClient.js";
+import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 export class ResetPasswordPasswordRequired extends ResetPasswordActionRequiredState {
     constructor(
@@ -19,7 +19,7 @@ export class ResetPasswordPasswordRequired extends ResetPasswordActionRequiredSt
         config: CustomAuthBrowserConfiguration,
         resetPasswordClient: ResetPasswordClient,
         signInClient: SignInClient,
-        tokenClient: CustomAuthTokenClient,
+        cacheClient: CustomAuthSilentCacheClient,
         username: string,
     ) {
         super(
@@ -30,7 +30,7 @@ export class ResetPasswordPasswordRequired extends ResetPasswordActionRequiredSt
             config,
             resetPasswordClient,
             signInClient,
-            tokenClient,
+            cacheClient,
             username,
         );
     }

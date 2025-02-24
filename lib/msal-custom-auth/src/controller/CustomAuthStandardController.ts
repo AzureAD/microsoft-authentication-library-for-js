@@ -48,7 +48,7 @@ import { ResetPasswordCodeRequired } from "../reset_password/auth_flow/state/Res
 import { NoCachedAccountFoundError } from "../core/error/GetCurrentAccountError.js";
 import { ArgumentValidator } from "../core/utils/ArgumentValidator.js";
 import { UserAlreadySignedInError } from "../core/error/UserAlreadySignedInError.js";
-import { CustomAuthTokenClient } from "../get_account/interaction_client/CustomAuthTokenClient.js";
+import { CustomAuthSilentCacheClient } from "../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { UnsupportedEnvironmentError } from "../core/error/UnsupportedEnvironmentError.js";
 
 /*
@@ -58,7 +58,7 @@ export class CustomAuthStandardController extends StandardController implements 
     private readonly signInClient: SignInClient;
     private readonly signUpClient: SignUpClient;
     private readonly resetPasswordClient: ResetPasswordClient;
-    private readonly tokenClient: CustomAuthTokenClient;
+    private readonly cacheClient: CustomAuthSilentCacheClient;
     private readonly customAuthConfig: CustomAuthBrowserConfiguration;
     private readonly authority: CustomAuthAuthority;
 
@@ -107,7 +107,7 @@ export class CustomAuthStandardController extends StandardController implements 
         this.signInClient = interactionClientFactory.create(SignInClient);
         this.signUpClient = interactionClientFactory.create(SignUpClient);
         this.resetPasswordClient = interactionClientFactory.create(ResetPasswordClient);
-        this.tokenClient = interactionClientFactory.create(CustomAuthTokenClient);
+        this.cacheClient = interactionClientFactory.create(CustomAuthSilentCacheClient);
     }
 
     /*
@@ -121,7 +121,7 @@ export class CustomAuthStandardController extends StandardController implements 
 
             this.logger.info("Getting current account data.");
 
-            const account = this.tokenClient.getCurrentAccount(accountRetrievalInputs?.username);
+            const account = this.cacheClient.getCurrentAccount(accountRetrievalInputs?.username);
 
             if (account) {
                 this.logger.info("Account data found.");
@@ -130,7 +130,7 @@ export class CustomAuthStandardController extends StandardController implements 
                     new CustomAuthAccountData(
                         account,
                         this.customAuthConfig,
-                        this.tokenClient,
+                        this.cacheClient,
                         this.logger,
                         correlationId,
                     ),
@@ -185,7 +185,7 @@ export class CustomAuthStandardController extends StandardController implements 
                         this.logger,
                         this.customAuthConfig,
                         this.signInClient,
-                        this.tokenClient,
+                        this.cacheClient,
                         signInInputs.username,
                         startResult.codeLength,
                         signInInputs.scopes ?? [],
@@ -205,7 +205,7 @@ export class CustomAuthStandardController extends StandardController implements 
                             this.logger,
                             this.customAuthConfig,
                             this.signInClient,
-                            this.tokenClient,
+                            this.cacheClient,
                             signInInputs.username,
                             signInInputs.scopes ?? [],
                         ),
@@ -232,7 +232,7 @@ export class CustomAuthStandardController extends StandardController implements 
                 const accountInfo = new CustomAuthAccountData(
                     completedResult.authenticationResult.account,
                     this.customAuthConfig,
-                    this.tokenClient,
+                    this.cacheClient,
                     this.logger,
                     correlationId,
                 );
@@ -295,7 +295,7 @@ export class CustomAuthStandardController extends StandardController implements 
                         this.customAuthConfig,
                         this.signInClient,
                         this.signUpClient,
-                        this.tokenClient,
+                        this.cacheClient,
                         signUpInputs.username,
                         startResult.codeLength,
                         startResult.interval,
@@ -313,7 +313,7 @@ export class CustomAuthStandardController extends StandardController implements 
                         this.customAuthConfig,
                         this.signInClient,
                         this.signUpClient,
-                        this.tokenClient,
+                        this.cacheClient,
                         signUpInputs.username,
                     ),
                 );
@@ -362,7 +362,7 @@ export class CustomAuthStandardController extends StandardController implements 
                     this.customAuthConfig,
                     this.resetPasswordClient,
                     this.signInClient,
-                    this.tokenClient,
+                    this.cacheClient,
                     resetPasswordInputs.username,
                     startResult.codeLength,
                 ),

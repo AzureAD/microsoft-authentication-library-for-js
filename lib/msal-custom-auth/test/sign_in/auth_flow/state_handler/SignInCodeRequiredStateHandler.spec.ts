@@ -15,7 +15,7 @@ import {
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { Logger } from "@azure/msal-browser";
 import { SignInState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";
-import { CustomAuthTokenClient } from "../../../../src/get_account/interaction_client/CustomAuthTokenClient.js";
+import { CustomAuthSilentCacheClient } from "../../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 describe("SignInCodeRequiredStateHandler", () => {
     const mockConfig = {
@@ -28,7 +28,7 @@ describe("SignInCodeRequiredStateHandler", () => {
         resendCode: jest.fn(),
     } as unknown as jest.Mocked<SignInClient>;
 
-    const mockTokenClient = {} as unknown as jest.Mocked<CustomAuthTokenClient>;
+    const mockCacheClient = {} as unknown as jest.Mocked<CustomAuthSilentCacheClient>;
 
     const mockLogger = {
         info: jest.fn(),
@@ -45,7 +45,7 @@ describe("SignInCodeRequiredStateHandler", () => {
         handler = new SignInCodeRequiredStateHandler(
             username,
             mockSignInClient,
-            mockTokenClient,
+            mockCacheClient,
             correlationId,
             mockLogger,
             continuationToken,

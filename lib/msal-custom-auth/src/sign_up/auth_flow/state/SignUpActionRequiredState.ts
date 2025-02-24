@@ -9,7 +9,7 @@ import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAut
 import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 import { SignUpClient } from "../../interaction_client/SignUpClient.js";
 import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
-import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokenClient.js";
+import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 export abstract class SignUpActionRequiredState extends AuthFlowStateBase {
     constructor(
@@ -20,7 +20,7 @@ export abstract class SignUpActionRequiredState extends AuthFlowStateBase {
         public config: CustomAuthBrowserConfiguration,
         public signInClient: SignInClient,
         public signUpClient: SignUpClient,
-        public tokenClient: CustomAuthTokenClient,
+        public cacheClient: CustomAuthSilentCacheClient,
         public username: string,
     ) {
         ArgumentValidator.ensureArgumentIsNotEmptyString("correlationId", correlationId);
@@ -29,7 +29,7 @@ export abstract class SignUpActionRequiredState extends AuthFlowStateBase {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("config", config);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signInClient", signInClient);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signUpClient", signUpClient);
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("tokenClient", tokenClient);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("cacheClient", cacheClient);
         ArgumentValidator.ensureArgumentIsNotEmptyString("username", username);
 
         super(type);

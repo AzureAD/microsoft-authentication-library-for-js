@@ -19,7 +19,7 @@ import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
 import { UrlUtils } from "../../core/utils/UrlUtils.js";
 
-export class CustomAuthTokenClient extends CustomAuthInteractionClientBase {
+export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase {
     override async acquireToken(silentRequest: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         const telemetryManager = this.initializeServerTelemetryManager(PublicApiId.ACCOUNT_GET_ACCESS_TOKEN);
         const clientConfig = this.getCustomAuthClientConfiguration(telemetryManager, this.customAuthAuthority);

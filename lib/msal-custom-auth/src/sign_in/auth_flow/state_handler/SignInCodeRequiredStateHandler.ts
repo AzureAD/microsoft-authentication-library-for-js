@@ -13,7 +13,7 @@ import { SignInSubmitCodeResult } from "../result/SignInSubmitCodeResult.js";
 import { SignInStateHandler } from "./SignInStateHandler.js";
 import { SignInCompleted } from "../state/SignInCompleted.js";
 import { SignInCodeRequired } from "../state/SignInCodeRequired.js";
-import { CustomAuthTokenClient } from "../../../get_account/interaction_client/CustomAuthTokenClient.js";
+import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 /*
  * Sign-in handler for the state which requires a code.
@@ -22,7 +22,7 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
     constructor(
         username: string,
         signInClient: SignInClient,
-        tokenClient: CustomAuthTokenClient,
+        cacheClient: CustomAuthSilentCacheClient,
         correlationId: string,
         logger: Logger,
         continuationToken: string,
@@ -30,7 +30,7 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
         public codeLength: number,
         public scopes?: string[],
     ) {
-        super(username, signInClient, tokenClient, correlationId, logger, continuationToken, config);
+        super(username, signInClient, cacheClient, correlationId, logger, continuationToken, config);
     }
 
     /*
@@ -61,7 +61,7 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
             const accountInfo = new CustomAuthAccountData(
                 completedResult.authenticationResult.account,
                 this.config,
-                this.tokenClient,
+                this.cacheClient,
                 this.logger,
                 this.correlationId,
             );
@@ -101,7 +101,7 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
                     this.logger,
                     this.config,
                     this.signInClient,
-                    this.tokenClient,
+                    this.cacheClient,
                     this.username,
                     result.codeLength,
                     this.scopes ?? [],

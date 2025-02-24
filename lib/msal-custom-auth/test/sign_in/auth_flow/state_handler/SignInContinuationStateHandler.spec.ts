@@ -7,7 +7,7 @@ import { SignInContinuationStateHandler } from "../../../../src/sign_in/auth_flo
 import { SignInCompletedResult } from "../../../../src/sign_in/interaction_client/result/SignInActionResult.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { SignInScenario } from "../../../../src/sign_in/auth_flow/SignInScenario.js";
-import { CustomAuthTokenClient } from "../../../../src/get_account/interaction_client/CustomAuthTokenClient.js";
+import { CustomAuthSilentCacheClient } from "../../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 describe("SignInContinuationStateHandler", () => {
     const mockConfig = {
@@ -24,7 +24,7 @@ describe("SignInContinuationStateHandler", () => {
         error: jest.fn(),
     } as unknown as jest.Mocked<Logger>;
 
-    const mockTokenClient = {} as unknown as jest.Mocked<CustomAuthTokenClient>;
+    const mockCacheClient = {} as unknown as jest.Mocked<CustomAuthSilentCacheClient>;
 
     const username = "testuser";
     const correlationId = "test-correlation-id";
@@ -36,7 +36,7 @@ describe("SignInContinuationStateHandler", () => {
         handler = new SignInContinuationStateHandler(
             username,
             mockSignInClient,
-            mockTokenClient,
+            mockCacheClient,
             correlationId,
             mockLogger,
             continuationToken,

@@ -13,7 +13,7 @@ import { Logger } from "@azure/msal-browser";
 import { ResetPasswordState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { ResetPasswordPasswordRequired } from "../../../../src/reset_password/auth_flow/state/ResetPasswordPasswordRequired.js";
-import { CustomAuthTokenClient } from "../../../../src/get_account/interaction_client/CustomAuthTokenClient.js";
+import { CustomAuthSilentCacheClient } from "../../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 describe("ResetPasswordCodeRequiredStateHandler", () => {
     const mockConfig = {
@@ -47,7 +47,7 @@ describe("ResetPasswordCodeRequiredStateHandler", () => {
             mockConfig,
             mockResetPasswordClient,
             mockSignInClient,
-            {} as unknown as jest.Mocked<CustomAuthTokenClient>,
+            {} as unknown as jest.Mocked<CustomAuthSilentCacheClient>,
             username,
             8,
         );
