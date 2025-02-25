@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo } from "../../../account/auth_flow/model/AccountInfo.js";
+import { CustomAuthAccountData } from "../../../get_account/auth_flow/CustomAuthAccountData.js";
 import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { SignInError } from "../error_type/SignInError.js";
 import { SignInCodeRequired } from "../state/SignInCodeRequired.js";
@@ -17,9 +17,12 @@ import { SignInPasswordRequired } from "../state/SignInPasswordRequired.js";
 export class SignInResult extends AuthFlowResultBase<
     SignInCodeRequired | SignInPasswordRequired | SignInFailed | SignInCompleted,
     SignInError,
-    AccountInfo
+    CustomAuthAccountData
 > {
-    constructor(state?: SignInCodeRequired | SignInPasswordRequired | SignInCompleted, resultData?: AccountInfo) {
+    constructor(
+        state?: SignInCodeRequired | SignInPasswordRequired | SignInCompleted,
+        resultData?: CustomAuthAccountData,
+    ) {
         super(state, resultData);
     }
 

@@ -8,6 +8,7 @@ import { SignInState } from "../../../core/auth_flow/AuthFlowStateBase.js";
 import { SignInActionRequiredState } from "./SignInActionRequiredState.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { SignInClient } from "../../interaction_client/SignInClient.js";
+import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 export class SignInPasswordRequired extends SignInActionRequiredState {
     constructor(
@@ -16,6 +17,7 @@ export class SignInPasswordRequired extends SignInActionRequiredState {
         logger: Logger,
         config: CustomAuthBrowserConfiguration,
         signInClient: SignInClient,
+        cacheClient: CustomAuthSilentCacheClient,
         username: string,
         scope?: Array<string>,
     ) {
@@ -26,6 +28,7 @@ export class SignInPasswordRequired extends SignInActionRequiredState {
             logger,
             config,
             signInClient,
+            cacheClient,
             username,
             scope,
         );

@@ -20,6 +20,7 @@ import { SignUpCodeRequired } from "../state/SignUpCodeRequired.js";
 import { SignUpCompleted } from "../state/SignUpCompleted.js";
 import { SignUpPasswordRequired } from "../state/SignUpPasswordRequired.js";
 import { SignUpAttributesRequired } from "../state/SignUpAttributesRequired.js";
+import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 /*
  * Sign-up handler used for the state of code required.
@@ -29,6 +30,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
         username: string,
         signUpClient: SignUpClient,
         signInClient: SignInClient,
+        cacheClient: CustomAuthSilentCacheClient,
         correlationId: string,
         logger: Logger,
         continuationToken: string,
@@ -36,7 +38,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
         public codeLength: number,
         public codeResendInterval: number,
     ) {
-        super(username, signUpClient, signInClient, correlationId, logger, continuationToken, config);
+        super(username, signUpClient, signInClient, cacheClient, correlationId, logger, continuationToken, config);
     }
 
     /*
@@ -73,6 +75,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
                         this.config,
                         this.signInClient,
                         this.signUpClient,
+                        this.cacheClient,
                         this.username,
                     ),
                 );
@@ -88,6 +91,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
                         this.config,
                         this.signInClient,
                         this.signUpClient,
+                        this.cacheClient,
                         this.username,
                         result.requiredAttributes,
                     ),
@@ -103,6 +107,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
                         this.logger,
                         this.config,
                         this.signInClient,
+                        this.cacheClient,
                         this.username,
                     ),
                 );
@@ -142,6 +147,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
                     this.config,
                     this.signInClient,
                     this.signUpClient,
+                    this.cacheClient,
                     this.username,
                     result.codeLength,
                     result.interval,

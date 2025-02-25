@@ -124,6 +124,10 @@ export {
     AccountInfo,
     AccountEntity,
     IdTokenClaims,
+    // Client
+    SilentFlowClient,
+    // Configuration
+    ClientConfiguration,
     // Error
     AuthError,
     AuthErrorCodes,
@@ -153,6 +157,8 @@ export {
     // Server Response
     ExternalTokenResponse,
     ResponseHandler,
+    // Request
+    CommonSilentFlowRequest,
     // Utils
     StringUtils,
     UrlString,

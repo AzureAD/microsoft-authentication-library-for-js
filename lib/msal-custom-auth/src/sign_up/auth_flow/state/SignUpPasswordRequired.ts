@@ -9,6 +9,7 @@ import { SignUpActionRequiredState } from "./SignUpActionRequiredState.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { SignUpClient } from "../../interaction_client/SignUpClient.js";
 import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
+import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 export class SignUpPasswordRequired extends SignUpActionRequiredState {
     constructor(
@@ -18,6 +19,7 @@ export class SignUpPasswordRequired extends SignUpActionRequiredState {
         config: CustomAuthBrowserConfiguration,
         signInClient: SignInClient,
         signUpClient: SignUpClient,
+        cacheClient: CustomAuthSilentCacheClient,
         username: string,
     ) {
         super(
@@ -28,6 +30,7 @@ export class SignUpPasswordRequired extends SignUpActionRequiredState {
             config,
             signInClient,
             signUpClient,
+            cacheClient,
             username,
         );
     }

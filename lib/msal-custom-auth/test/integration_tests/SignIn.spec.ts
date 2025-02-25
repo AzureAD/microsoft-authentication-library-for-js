@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo } from "../../src/account/auth_flow/model/AccountInfo.js";
 import { CustomAuthPublicClientApplication } from "../../src/CustomAuthPublicClientApplication.js";
 import { ICustomAuthPublicClientApplication } from "../../src/ICustomAuthPublicClientApplication.js";
 import { SignInResult } from "../../src/sign_in/auth_flow/result/SignInResult.js";
@@ -14,6 +13,7 @@ import { SignInState } from "../../src/core/auth_flow/AuthFlowStateBase.js";
 import { AuthFlowStateHandlerFactory } from "../../src/core/auth_flow/AuthFlowStateHandlerFactory.js";
 import { SignInCodeRequired } from "../../src/sign_in/auth_flow/state/SignInCodeRequired.js";
 import { SignInPasswordRequired } from "../../src/sign_in/auth_flow/state/SignInPasswordRequired.js";
+import { CustomAuthAccountData } from "../../src/get_account/auth_flow/CustomAuthAccountData.js";
 
 jest.mock("@azure/msal-browser", () => {
     const actualModule = jest.requireActual("@azure/msal-browser");
@@ -110,7 +110,7 @@ describe("Sign in", () => {
         expect(result.error).toBeUndefined();
         expect(result.state?.type).toStrictEqual(SignInState.Completed);
         expect(result.data).toBeDefined();
-        expect(result.data).toBeInstanceOf(AccountInfo);
+        expect(result.data).toBeInstanceOf(CustomAuthAccountData);
     });
 
     it("should sign in successfully if the challenge type is oob", async () => {
@@ -177,7 +177,7 @@ describe("Sign in", () => {
 
         expect(submitCodeResult).toBeDefined();
         expect(submitCodeResult).toBeInstanceOf(SignInSubmitCodeResult);
-        expect(submitCodeResult.data).toBeInstanceOf(AccountInfo);
+        expect(submitCodeResult.data).toBeInstanceOf(CustomAuthAccountData);
     });
 
     it("should sign in successfully if the challenge type is password", async () => {
@@ -243,7 +243,7 @@ describe("Sign in", () => {
 
         expect(submitCodeResult).toBeDefined();
         expect(submitCodeResult).toBeInstanceOf(SignInSubmitPasswordResult);
-        expect(submitCodeResult.data).toBeInstanceOf(AccountInfo);
+        expect(submitCodeResult.data).toBeInstanceOf(CustomAuthAccountData);
     });
 
     it("should sign in failed with error if the challenge type is redirect", async () => {

@@ -53,6 +53,7 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
                         this.config,
                         this.signInClient,
                         this.signUpClient,
+                        this.cacheClient,
                         this.username,
                         result.codeLength,
                         result.interval,
@@ -70,6 +71,7 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
                         this.config,
                         this.signInClient,
                         this.signUpClient,
+                        this.cacheClient,
                         this.username,
                         result.requiredAttributes,
                     ),
@@ -85,6 +87,7 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
                         this.logger,
                         this.config,
                         this.signInClient,
+                        this.cacheClient,
                         this.username,
                     ),
                 );

@@ -4,7 +4,7 @@
  */
 
 import { Logger } from "@azure/msal-browser";
-import { AccountInfo } from "../../../account/auth_flow/model/AccountInfo.js";
+import { CustomAuthAccountData } from "../../../get_account/auth_flow/CustomAuthAccountData.js";
 import { SignInContinuationTokenParams } from "../../interaction_client/parameter/SignInParams.js";
 import { SignInClient } from "../../interaction_client/SignInClient.js";
 import { SignInResult } from "../result/SignInResult.js";
@@ -12,6 +12,7 @@ import { SignInCompleted } from "../state/SignInCompleted.js";
 import { SignInStateHandler } from "./SignInStateHandler.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { SignInScenario } from "../SignInScenario.js";
+import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 /*
  * Sign-in continuation state handler.
@@ -20,13 +21,14 @@ export class SignInContinuationStateHandler extends SignInStateHandler {
     constructor(
         username: string,
         signInClient: SignInClient,
+        cacheClient: CustomAuthSilentCacheClient,
         correlationId: string,
         logger: Logger,
         continuationToken: string,
         config: CustomAuthBrowserConfiguration,
         private signInScenario: SignInScenario,
     ) {
-        super(username, signInClient, correlationId, logger, continuationToken, config);
+        super(username, signInClient, cacheClient, correlationId, logger, continuationToken, config);
     }
 
     /*
@@ -51,10 +53,12 @@ export class SignInContinuationStateHandler extends SignInStateHandler {
 
             this.logger.info("Signed in with continuation token.");
 
-            const accountInfo = new AccountInfo(
+            const accountInfo = new CustomAuthAccountData(
                 completedResult.authenticationResult.account,
-                this.correlationId,
                 this.config,
+                this.cacheClient,
+                this.logger,
+                this.correlationId,
             );
 
             return new SignInResult(new SignInCompleted(), accountInfo);

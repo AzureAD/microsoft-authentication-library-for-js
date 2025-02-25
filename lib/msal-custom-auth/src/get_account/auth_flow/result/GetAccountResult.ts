@@ -4,8 +4,8 @@
  */
 
 import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
+import { CustomAuthAccountData } from "../CustomAuthAccountData.js";
 import { GetAccountError } from "../error_type/GetAccountError.js";
-import { AccountInfo } from "../model/AccountInfo.js";
 import { GetAccountCompleted } from "../state/GetAccountCompleted.js";
 import { GetAccountFailed } from "../state/GetAccountFailed.js";
 
@@ -15,9 +15,9 @@ import { GetAccountFailed } from "../state/GetAccountFailed.js";
 export class GetAccountResult extends AuthFlowResultBase<
     GetAccountCompleted | GetAccountFailed,
     GetAccountError,
-    AccountInfo
+    CustomAuthAccountData
 > {
-    constructor(resultData?: AccountInfo) {
+    constructor(resultData?: CustomAuthAccountData) {
         super(new GetAccountCompleted(), resultData);
     }
 

@@ -118,4 +118,20 @@ describe("CustomAuthAuthority", () => {
             expect(customAuthAuthority.getPreferredCache()).toBe("spasamples.ciamlogin.com");
         });
     });
+
+    describe("tokenEndpoint", () => {
+        it("should return the correct token endpoint", () => {
+            const customAuthAuthority = new CustomAuthAuthority(
+                authorityUrl ?? "",
+                mockConfig,
+                mockNetworkModule,
+                mockCacheManager,
+                mockLogger,
+                customAuthProxyDomain,
+            );
+            expect(customAuthAuthority.tokenEndpoint).toBe(
+                "https://myspafunctiont1.azurewebsites.net/api/ReverseProxy/oauth2/v2.0/token",
+            );
+        });
+    });
 });

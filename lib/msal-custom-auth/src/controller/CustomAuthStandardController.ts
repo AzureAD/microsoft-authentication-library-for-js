@@ -4,13 +4,13 @@
  */
 
 import { StandardController } from "@azure/msal-browser";
-import { GetAccountResult } from "../account/auth_flow/result/GetAccountResult.js";
+import { GetAccountResult } from "../get_account/auth_flow/result/GetAccountResult.js";
 import { SignInResult } from "../sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "../sign_up/auth_flow/result/SignUpResult.js";
 import { SignInStartParams, SignInSubmitPasswordParams } from "../sign_in/interaction_client/parameter/SignInParams.js";
 import { SignInClient } from "../sign_in/interaction_client/SignInClient.js";
 import {
-    GetAccountInputs,
+    AccountRetrievalInputs,
     SignInInputs,
     SignUpInputs,
     ResetPasswordInputs,
@@ -20,7 +20,7 @@ import { CustomAuthBrowserConfiguration } from "../configuration/CustomAuthConfi
 import { CustomAuthOperatingContext } from "../operating_context/CustomAuthOperatingContext.js";
 import { ICustomAuthStandardController } from "./ICustomAuthStandardController.js";
 import { InvalidArgumentError } from "../core/error/InvalidArgumentError.js";
-import { AccountInfo } from "../account/auth_flow/model/AccountInfo.js";
+import { CustomAuthAccountData } from "../get_account/auth_flow/CustomAuthAccountData.js";
 import { UnexpectedError } from "../core/error/UnexpectedError.js";
 import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
@@ -45,34 +45,21 @@ import { CustomAuthApiClient } from "../core/network_client/custom_auth_api/Cust
 import { FetchHttpClient } from "../core/network_client/http_client/FetchHttpClient.js";
 import { ResetPasswordClient } from "../reset_password/interaction_client/ResetPasswordClient.js";
 import { ResetPasswordCodeRequired } from "../reset_password/auth_flow/state/ResetPasswordCodeRequired.js";
+import { NoCachedAccountFoundError } from "../core/error/GetCurrentAccountError.js";
+import { ArgumentValidator } from "../core/utils/ArgumentValidator.js";
+import { UserAlreadySignedInError } from "../core/error/UserAlreadySignedInError.js";
+import { CustomAuthSilentCacheClient } from "../get_account/interaction_client/CustomAuthSilentCacheClient.js";
+import { UnsupportedEnvironmentError } from "../core/error/UnsupportedEnvironmentError.js";
 
 /*
  * Controller for standard native auth operations.
  */
 export class CustomAuthStandardController extends StandardController implements ICustomAuthStandardController {
-    /*
-     * The client to use for sign-in operations.
-     */
     private readonly signInClient: SignInClient;
-
-    /**
-     * The client to use for sign-up operations.
-     */
     private readonly signUpClient: SignUpClient;
-
-    /**
-     * The client to use for reset password operations.
-     */
     private readonly resetPasswordClient: ResetPasswordClient;
-
-    /*
-     * The configuration for the client.
-     */
+    private readonly cacheClient: CustomAuthSilentCacheClient;
     private readonly customAuthConfig: CustomAuthBrowserConfiguration;
-
-    /**
-     * The authority to use for the client.
-     */
     private readonly authority: CustomAuthAuthority;
 
     /*
@@ -82,6 +69,11 @@ export class CustomAuthStandardController extends StandardController implements 
      */
     constructor(operatingContext: CustomAuthOperatingContext, customAuthApiClient?: ICustomAuthApiClient) {
         super(operatingContext);
+
+        if (!this.isBrowserEnvironment) {
+            this.logger.error("The SDK can only be used in a browser environment.");
+            throw new UnsupportedEnvironmentError();
+        }
 
         this.logger = this.logger.clone(DefaultPackageInfo.SKU, DefaultPackageInfo.VERSION);
         this.customAuthConfig = operatingContext.getCustomAuthConfig();
@@ -115,17 +107,42 @@ export class CustomAuthStandardController extends StandardController implements 
         this.signInClient = interactionClientFactory.create(SignInClient);
         this.signUpClient = interactionClientFactory.create(SignUpClient);
         this.resetPasswordClient = interactionClientFactory.create(ResetPasswordClient);
+        this.cacheClient = interactionClientFactory.create(CustomAuthSilentCacheClient);
     }
 
     /*
      * Gets the current account from the cache.
-     * @param getAccountInputs - Inputs for getting the current cached account
+     * @param accountRetrievalInputs - Inputs for getting the current cached account
      * @returns - A promise that resolves to GetAccountResult
      */
-    async getCurrentAccount(getAccountInputs: GetAccountInputs): Promise<GetAccountResult> {
-        const correlationId = this.getCorrelationId(getAccountInputs);
+    getCurrentAccount(accountRetrievalInputs?: AccountRetrievalInputs): GetAccountResult {
+        try {
+            const correlationId = this.getCorrelationId(accountRetrievalInputs);
 
-        throw new Error(`Method not implemented with Parameter ${correlationId}.`);
+            this.logger.info("Getting current account data.");
+
+            const account = this.cacheClient.getCurrentAccount(accountRetrievalInputs?.username);
+
+            if (account) {
+                this.logger.info("Account data found.");
+
+                return new GetAccountResult(
+                    new CustomAuthAccountData(
+                        account,
+                        this.customAuthConfig,
+                        this.cacheClient,
+                        this.logger,
+                        correlationId,
+                    ),
+                );
+            }
+
+            throw new NoCachedAccountFoundError(correlationId);
+        } catch (error) {
+            this.logger.error(`An error occurred during getting current account: ${error}`);
+
+            return GetAccountResult.createWithError(error);
+        }
     }
 
     /*
@@ -134,18 +151,14 @@ export class CustomAuthStandardController extends StandardController implements 
      * @returns The result of the operation.
      */
     async signIn(signInInputs: SignInInputs): Promise<SignInResult> {
-        // TODO: check whether this user has been signed in by reading account info from cache.
-        const correlationId = this.getCorrelationId(signInInputs);
-
-        if (!this.isUsernameValid(signInInputs.username)) {
-            this.logger.error("Invalid username provided in sign-in inputs.");
-
-            return Promise.resolve(
-                SignInResult.createWithError(new InvalidArgumentError("signUpInputs.username", correlationId)),
-            );
-        }
-
         try {
+            ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signInInputs", signInInputs);
+
+            const correlationId = this.getCorrelationId(signInInputs);
+
+            this.ensureUsernameValid("signInInputs.username", signInInputs.username, correlationId);
+            this.ensureUserNotSignedIn(signInInputs.username, correlationId);
+
             // start the signin flow
             const signInStartParams: SignInStartParams = {
                 clientId: this.customAuthConfig.auth.clientId,
@@ -172,6 +185,7 @@ export class CustomAuthStandardController extends StandardController implements 
                         this.logger,
                         this.customAuthConfig,
                         this.signInClient,
+                        this.cacheClient,
                         signInInputs.username,
                         startResult.codeLength,
                         signInInputs.scopes ?? [],
@@ -191,6 +205,7 @@ export class CustomAuthStandardController extends StandardController implements 
                             this.logger,
                             this.customAuthConfig,
                             this.signInClient,
+                            this.cacheClient,
                             signInInputs.username,
                             signInInputs.scopes ?? [],
                         ),
@@ -214,10 +229,12 @@ export class CustomAuthStandardController extends StandardController implements 
 
                 this.logger.info("Sign-in flow completed.");
 
-                const accountInfo = new AccountInfo(
+                const accountInfo = new CustomAuthAccountData(
                     completedResult.authenticationResult.account,
-                    correlationId,
                     this.customAuthConfig,
+                    this.cacheClient,
+                    this.logger,
+                    correlationId,
                 );
 
                 return new SignInResult(new SignInCompleted(), accountInfo);
@@ -239,16 +256,14 @@ export class CustomAuthStandardController extends StandardController implements 
      * @returns The result of the operation
      */
     async signUp(signUpInputs: SignUpInputs): Promise<SignUpResult> {
-        // TODO: check whether this user has been signed in by reading account info from cache.
-        const correlationId = this.getCorrelationId(signUpInputs);
-
-        if (!this.isUsernameValid(signUpInputs.username)) {
-            return Promise.resolve(
-                SignUpResult.createWithError(new InvalidArgumentError("signUpInputs.username", correlationId)),
-            );
-        }
-
         try {
+            ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signUpInputs", signUpInputs);
+
+            const correlationId = this.getCorrelationId(signUpInputs);
+
+            this.ensureUsernameValid("signUpInputs.username", signUpInputs.username, correlationId);
+            this.ensureUserNotSignedIn(signUpInputs.username, correlationId);
+
             this.logger.info(
                 `Starting sign-up flow${
                     !!signUpInputs.password
@@ -280,6 +295,7 @@ export class CustomAuthStandardController extends StandardController implements 
                         this.customAuthConfig,
                         this.signInClient,
                         this.signUpClient,
+                        this.cacheClient,
                         signUpInputs.username,
                         startResult.codeLength,
                         startResult.interval,
@@ -297,6 +313,7 @@ export class CustomAuthStandardController extends StandardController implements 
                         this.customAuthConfig,
                         this.signInClient,
                         this.signUpClient,
+                        this.cacheClient,
                         signUpInputs.username,
                     ),
                 );
@@ -318,18 +335,14 @@ export class CustomAuthStandardController extends StandardController implements 
      * @returns The result of the operation.
      */
     async resetPassword(resetPasswordInputs: ResetPasswordInputs): Promise<ResetPasswordStartResult> {
-        // TODO: check whether this user has been signed in by reading account info from cache.
-        const correlationId = this.getCorrelationId(resetPasswordInputs);
-
-        if (!this.isUsernameValid(resetPasswordInputs.username)) {
-            return Promise.resolve(
-                ResetPasswordStartResult.createWithError(
-                    new InvalidArgumentError("resetPasswordInputs.username", correlationId),
-                ),
-            );
-        }
-
         try {
+            ArgumentValidator.ensureArgumentIsNotNullOrUndefined("resetPasswordInputs", resetPasswordInputs);
+
+            const correlationId = this.getCorrelationId(resetPasswordInputs);
+
+            this.ensureUsernameValid("resetPasswordInputs.username", resetPasswordInputs.username, correlationId);
+            this.ensureUserNotSignedIn(resetPasswordInputs.username, correlationId);
+
             this.logger.info("Starting password-reset flow.");
 
             const startResult = await this.resetPasswordClient.start({
@@ -349,6 +362,7 @@ export class CustomAuthStandardController extends StandardController implements 
                     this.customAuthConfig,
                     this.resetPasswordClient,
                     this.signInClient,
+                    this.cacheClient,
                     resetPasswordInputs.username,
                     startResult.codeLength,
                 ),
@@ -360,12 +374,33 @@ export class CustomAuthStandardController extends StandardController implements 
         }
     }
 
-    private getCorrelationId(actionInputs: CustomAuthActionInputs): string {
-        return actionInputs.correlationId || this.browserCrypto.createNewGuid();
+    private getCorrelationId(actionInputs: CustomAuthActionInputs | undefined): string {
+        return actionInputs?.correlationId || this.browserCrypto.createNewGuid();
     }
 
     private isUsernameValid(username: string): boolean {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return !!username && emailRegex.test(username);
+    }
+
+    private ensureUsernameValid(usernameParamName: string, username: string, correlationId: string): void {
+        if (!this.isUsernameValid(username)) {
+            this.logger.error("Invalid username is provided.");
+
+            throw new InvalidArgumentError(usernameParamName, correlationId);
+        }
+    }
+
+    private ensureUserNotSignedIn(username: string, correlationId: string): void {
+        const account = this.getCurrentAccount({
+            username: username,
+            correlationId: correlationId,
+        });
+
+        if (account && !!account.data) {
+            this.logger.error("User has already signed in.");
+
+            throw new UserAlreadySignedInError(correlationId);
+        }
     }
 }

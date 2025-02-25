@@ -11,6 +11,20 @@ export class UrlUtils {
      * @param url The target URL to validate
      * @returns The result of the URL validation
      */
+    static IsValidUrl(url: string): boolean {
+        try {
+            new URL(url);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Validates whether a given URL is valid and secured.
+     * @param url The target URL to validate
+     * @returns The result of the URL validation
+     */
     static IsValidSecureUrl(url: string): boolean {
         try {
             const urlComponents = new URL(url);
@@ -51,5 +65,17 @@ export class UrlUtils {
         }
 
         return parsedUrl;
+    }
+    /**
+     * Builds a URL object from a base URL and a path.
+     * @param baseUrl The base URL
+     * @param path The path to append to the base URL
+     * @returns The constructed URL object
+     */
+    static buildUrl(baseUrl: string, path: string): URL {
+        const newBaseUrl = !baseUrl.endsWith("/") ? `${baseUrl}/` : baseUrl;
+        const newPath = path.startsWith("/") ? path.slice(1) : path;
+        const url = new URL(newPath, newBaseUrl);
+        return url;
     }
 }

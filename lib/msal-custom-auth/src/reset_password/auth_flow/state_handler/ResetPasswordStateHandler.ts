@@ -9,6 +9,7 @@ import { AuthFlowStateHandlerBase } from "../../../core/auth_flow/AuthFlowStateH
 import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 import { ResetPasswordClient } from "../../interaction_client/ResetPasswordClient.js";
 import { SignInClient } from "../../../sign_in/interaction_client/SignInClient.js";
+import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 /*
  * Base state handler for reset password operation.
@@ -28,6 +29,7 @@ export abstract class ResetPasswordStateHandler extends AuthFlowStateHandlerBase
         protected config: CustomAuthBrowserConfiguration,
         protected resetPasswordClient: ResetPasswordClient,
         protected signInClient: SignInClient,
+        protected cacheClient: CustomAuthSilentCacheClient,
         protected username: string,
     ) {
         super(correlationId, logger, continuationToken);
@@ -36,5 +38,6 @@ export abstract class ResetPasswordStateHandler extends AuthFlowStateHandlerBase
         ArgumentValidator.ensureArgumentIsNotEmptyString("username", username, correlationId);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("resetPasswordClient", resetPasswordClient, correlationId);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signInClient", signInClient, correlationId);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("cacheClient", cacheClient, correlationId);
     }
 }

@@ -3,38 +3,38 @@
  * Licensed under the MIT License.
  */
 
-import { GetAccountResult } from "./account/auth_flow/result/GetAccountResult.js";
+import { GetAccountResult } from "./get_account/auth_flow/result/GetAccountResult.js";
 import { SignInResult } from "./sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
-import { GetAccountInputs, ResetPasswordInputs, SignInInputs, SignUpInputs } from "./CustomAuthActionInputs.js";
+import { AccountRetrievalInputs, ResetPasswordInputs, SignInInputs, SignUpInputs } from "./CustomAuthActionInputs.js";
 import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
 
 export interface ICustomAuthPublicClientApplication {
     /*
      * Gets the current account from the cache.
-     * @param getAccountInputs - Inputs for getting the current cached account
-     * @returns - A promise that resolves to GetAccountResult
+     * @param accountRetrievalInputs - Inputs for getting the current cached account
+     * @returns {AccountRetrievalInputs} The result of the operation
      */
-    getCurrentAccount(getAccountInputs: GetAccountInputs): Promise<GetAccountResult>;
+    getCurrentAccount(accountRetrievalInputs?: AccountRetrievalInputs): GetAccountResult;
 
     /*
      * Initiates the sign-in flow.
      * @param signInInputs - Inputs for the sign-in flow
-     * @returns - A promise that resolves to SignInResult
+     * @returns {Promise<SignInResult>} A promise that resolves to SignInResult
      */
     signIn(signInInputs: SignInInputs): Promise<SignInResult>;
 
     /*
      * Initiates the sign-up flow.
      * @param signUpInputs - Inputs for the sign-up flow
-     * @returns - A promise that resolves to SignUpResult
+     * @returns {Promise<SignUpResult>} A promise that resolves to SignUpResult
      */
     signUp(signUpInputs: SignUpInputs): Promise<SignUpResult>;
 
     /*
      * Initiates the reset password flow.
      * @param resetPasswordInputs - Inputs for the reset password flow
-     * @returns - A promise that resolves to ResetPasswordStartResult
+     * @returns {Promise<ResetPasswordStartResult>} A promise that resolves to ResetPasswordStartResult
      */
     resetPassword(resetPasswordInputs: ResetPasswordInputs): Promise<ResetPasswordStartResult>;
 }

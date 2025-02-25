@@ -1,12 +1,10 @@
 import { CustomAuthBrowserConfiguration } from "../../../../src/configuration/CustomAuthConfiguration.js";
-import { InvalidArgumentError } from "../../../../src/core/error/InvalidArgumentError.js";
 import { SignUpSubmitAttributesError } from "../../../../src/sign_up/auth_flow/error_type/SignUpError.js";
 import { SignUpSubmitAttributesResult } from "../../../../src/sign_up/auth_flow/result/SignUpSubmitAttributesResult.js";
 import { SignUpAttributesRequiredStateHandler } from "../../../../src/sign_up/auth_flow/state_handler/SignUpAttributesRequiredStateHandler.js";
 import {
     SignUpCodeRequiredResult,
     SignUpCompletedResult,
-    SignUpAttributesRequiredResult,
     SignUpPasswordRequiredResult,
 } from "../../../../src/sign_up/interaction_client/result/SignUpActionResult.js";
 import { SignUpClient } from "../../../../src/sign_up/interaction_client/SignUpClient.js";
@@ -14,6 +12,7 @@ import { Logger } from "@azure/msal-browser";
 import { SignUpState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { UserAccountAttributes } from "../../../../src/UserAccountAttributes.js";
+import { CustomAuthSilentCacheClient } from "../../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 describe("SignUpAttributesRequiredStateHandler", () => {
     const mockConfig = {
@@ -45,6 +44,7 @@ describe("SignUpAttributesRequiredStateHandler", () => {
             username,
             mockSignUpClient,
             mockSignInClient,
+            {} as unknown as jest.Mocked<CustomAuthSilentCacheClient>,
             correlationId,
             mockLogger,
             continuationToken,

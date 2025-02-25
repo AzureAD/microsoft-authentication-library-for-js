@@ -5,6 +5,8 @@
 
 import { Authority, AuthorityOptions, BrowserConfiguration, INetworkModule, Logger } from "@azure/msal-browser";
 import { ICacheManager } from "../../../msal-common/dist/cache/interface/ICacheManager.js";
+import { CustomAuthApiEndpoint } from "./network_client/custom_auth_api/CustomAuthApiEndpoint.js";
+import { UrlUtils } from "./utils/UrlUtils.js";
 
 /**
  * Authority class which can be used to create an authority object for Custom Auth features.
@@ -57,5 +59,11 @@ export class CustomAuthAuthority extends Authority {
 
     override getPreferredCache(): string {
         return this.canonicalAuthorityUrlComponents.HostNameAndPort;
+    }
+
+    override get tokenEndpoint(): string {
+        const endpointUrl = UrlUtils.buildUrl(this.getCustomAuthApiDomain(), CustomAuthApiEndpoint.SIGNIN_TOKEN);
+
+        return endpointUrl.href;
     }
 }

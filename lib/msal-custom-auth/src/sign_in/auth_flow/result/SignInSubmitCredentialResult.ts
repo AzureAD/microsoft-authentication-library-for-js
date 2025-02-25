@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo } from "../../../account/auth_flow/model/AccountInfo.js";
+import { CustomAuthAccountData } from "../../../get_account/auth_flow/CustomAuthAccountData.js";
 import { AuthFlowErrorBase } from "../../../core/auth_flow/AuthFlowErrorBase.js";
 import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { SignInCompleted } from "../state/SignInCompleted.js";
@@ -15,9 +15,9 @@ import { SignInFailed } from "../state/SignInFailed.js";
 export abstract class SignInSubmitCredentialResult<TError extends AuthFlowErrorBase> extends AuthFlowResultBase<
     SignInCompleted | SignInFailed,
     TError,
-    AccountInfo
+    CustomAuthAccountData
 > {
-    constructor(state?: SignInCompleted | SignInFailed, resultData?: AccountInfo) {
+    constructor(state?: SignInCompleted | SignInFailed, resultData?: CustomAuthAccountData) {
         super(state, resultData);
     }
 }
