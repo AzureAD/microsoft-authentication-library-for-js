@@ -14,7 +14,6 @@ export class UrlUtils {
     static IsValidUrl(url: string): boolean {
         try {
             new URL(url);
-
             return true;
         } catch {
             return false;
@@ -76,9 +75,7 @@ export class UrlUtils {
     static buildUrl(baseUrl: string, path: string): URL {
         const newBaseUrl = !baseUrl.endsWith("/") ? `${baseUrl}/` : baseUrl;
         const newPath = path.startsWith("/") ? path.slice(1) : path;
-
         const url = new URL(newPath, newBaseUrl);
-
         return url;
     }
 }
