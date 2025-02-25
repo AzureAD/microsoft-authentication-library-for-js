@@ -24,10 +24,9 @@ function initializeMsal() {
   TestBed.resetTestingModule();
 
   TestBed.configureTestingModule({
-    declarations: [MsalRedirectComponent],
-    imports: [MsalModule.forRoot(MSALInstanceFactory(), null, null)],
-    providers: [],
-  });
+    imports: [MsalModule.forRoot(MSALInstanceFactory(), null, null), MsalRedirectComponent],
+    providers: []
+});
 
   authService = TestBed.inject(MsalService);
   broadcastService = TestBed.inject(MsalBroadcastService);
