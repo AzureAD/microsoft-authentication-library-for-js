@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Bump @azure/msal-browser",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}
