@@ -13,3 +13,4 @@ export class GetAccessTokenError extends CustomAuthError {
 }
 
 export const InvalidScopes = "invalid_scopes";
+export const InvalidRefreshTokenFound = "invalid_refresh_token_found";

@@ -1,9 +1,12 @@
-import { AccountInfo, Logger } from "@azure/msal-browser";
+import { AccountInfo, AuthenticationResult, Logger } from "@azure/msal-browser";
 import { CustomAuthBrowserConfiguration } from "../../../src/configuration/CustomAuthConfiguration.js";
 import { CustomAuthSilentCacheClient } from "../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { CustomAuthAccountData } from "../../../src/get_account/auth_flow/CustomAuthAccountData.js";
 import { SignOutResult } from "../../../src/get_account/auth_flow/result/SignOutResult.js";
 import { SignOutError } from "../../../src/get_account/auth_flow/error_type/GetAccountError.js";
+import { IdTokenClaims } from "../../../../msal-common/dist/exports-common.js";
+import { GetAccessTokenState } from "../../../src/index.js";
+import { GetAccessTokenError, InvalidRefreshTokenFound } from "../../../src/core/error/GetAccessTokenError.js";
 
 describe("CustomAuthAccountData", () => {
     let mockAccount: AccountInfo;
@@ -11,6 +14,7 @@ describe("CustomAuthAccountData", () => {
     let mockCacheClient: CustomAuthSilentCacheClient;
     let mockLogger: Logger;
     const correlationId = "test-correlation-id";
+    let mockAuthenticationResult: AuthenticationResult;
 
     beforeEach(() => {
         mockAccount = {
@@ -25,8 +29,25 @@ describe("CustomAuthAccountData", () => {
                 name: "Test User",
             },
         };
+
+        mockAuthenticationResult = {
+            authority: "test-authority",
+            uniqueId: "test-unique-id",
+            tenantId: "test-tenant-id",
+            scopes: ["test-scope"],
+            account: mockAccount,
+            idToken: "test-id-token",
+            idTokenClaims: mockAccount.idTokenClaims as IdTokenClaims,
+            accessToken: "test-access-token",
+            fromCache: true,
+            expiresOn: new Date(),
+            tokenType: "Bearer",
+            correlationId: correlationId,
+        } as AuthenticationResult;
+
         mockConfig = {} as CustomAuthBrowserConfiguration; // Mock as needed
         mockCacheClient = {
+            getAccessToken: jest.fn(),
             getCurrentAccount: jest.fn(),
             logout: jest.fn(),
         } as unknown as CustomAuthSilentCacheClient;
@@ -34,6 +55,10 @@ describe("CustomAuthAccountData", () => {
             info: jest.fn(),
             error: jest.fn(),
         } as unknown as Logger;
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks(); // Clear mocks between tests
     });
 
     describe("signOut", () => {
@@ -136,7 +161,9 @@ describe("CustomAuthAccountData", () => {
     });
 
     describe("getAccessToken", () => {
-        it("should throw an error as method is not implemented", async () => {
+        it("should return succeed GetAccessTokenState.Completed with cached tokens", async () => {
+            // mockCacheClient.getAccessToken = jest.fn().mockResolvedValue(mockAuthenticationResult);
+            (mockCacheClient.getAccessToken as jest.Mock).mockResolvedValue(mockAuthenticationResult);
             const accountData = new CustomAuthAccountData(
                 mockAccount,
                 mockConfig,
@@ -144,9 +171,34 @@ describe("CustomAuthAccountData", () => {
                 mockLogger,
                 correlationId,
             );
-            await expect(accountData.getAccessToken(false, ["test"])).rejects.toThrowError(
-                "Method not implemented with forceRefresh 'false' and scopes 'test'",
+
+            const response = await accountData.getAccessToken();
+
+            expect(response).toBeDefined();
+            expect(response.state?.type).toEqual(GetAccessTokenState.Completed);
+            expect(response.data?.account).toEqual(mockAccount);
+            expect(response.data?.idToken).toEqual(mockAuthenticationResult.idToken);
+
+        });
+
+        it("should return GetAccessTokenError if there is an error when aquire tokens", async () => {
+            const mockGetAccessTokenError = new GetAccessTokenError(InvalidRefreshTokenFound, "Refresh token is not found or expired.", correlationId);
+            (mockCacheClient.getAccessToken as jest.Mock).mockRejectedValue(mockGetAccessTokenError);
+
+            const accountData = new CustomAuthAccountData(
+                mockAccount,
+                mockConfig,
+                mockCacheClient,
+                mockLogger,
+                correlationId,
             );
+
+            const response = await accountData.getAccessToken();
+
+            expect(response).toBeDefined();
+            expect(response.state?.type).toEqual(GetAccessTokenState.Failed);
+            expect(response.error?.errorData).toEqual(mockGetAccessTokenError);
+            expect(response.error?.isInvalidRefreshToken()).toEqual(true);
         });
     });
 });

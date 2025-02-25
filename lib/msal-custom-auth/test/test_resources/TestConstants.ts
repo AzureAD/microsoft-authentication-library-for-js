@@ -11,3 +11,56 @@ export const TestTokenResponse = {
 export const TestHomeAccountId = "5122efb1-f3a3-4a5d-b5ae-c5474ea1c7bd.d37e5645-4170-4ce0-a618-1b9008b14e58"; // fake homeAccountId
 export const TestTenantId = "d37e5645-4170-4ce0-a618-1b9008b14e58"; // fake tenantId
 export const TestUsername = "abc@test.com"; // fake username
+
+export const TestAccounDetails = {
+    homeAccountId: TestHomeAccountId,
+    environment: "spasamples.ciamlogin.com",
+    tenantId: TestTenantId,
+    username: TestUsername,
+    localAccountId: "d8dcce8-b8bc-452c-8bcc-a6eb953db459",
+    idTokenClaims: {
+        tid: TestTenantId,
+        oid: "dcb04862-f956-4301-b3fc-0fd38fa5be7f",
+        preferred_username: TestUsername,
+    },
+    name: "Test User",
+    idToken: TestTokenResponse.ID_TOKEN,
+};
+
+// mock response of POST /token endpoint when renew access token
+export const TestServerTokenResponse = {
+    status: 200,
+    token_type: "Bearer",
+    scope: "openid profile User.Read email",
+    expires_in: 3600,
+    access_token: TestTokenResponse.ACCESS_TOKEN,
+    refresh_token: TestTokenResponse.REFRESH_TOKEN,
+    id_token: TestTokenResponse.ID_TOKEN,
+    client_info: TestTokenResponse.CLIENT_INFO,
+    correlation_id: "correlation-id",
+};
+
+// mock decoded id token claims
+export const TestIdTokenClaims = {
+    aud: "8d9c7635-0933-4b97-b2ad-7c53d91df5da",
+    iss: "https://d37e5645-4170-4ce0-a618-1b9008b14e58.ciamlogin.com/d37e5645-4170-4ce0-a618-1b9008b14e58/v2.0",
+    iat: 1740049288,
+    nbf: 1740049288,
+    exp: 1740053188,
+    aio: "AWQAm/8ZAAAA3ZaBgfZDahhT8eZu8SS8mPqqzTHn99B0H2iTksoeofmoi122kfoisjfegDETU1Rs74NCT09TyEVZ34ssMVufhqCMTXb1gMIKHPTtAv2UAkjujFnd+ZdO",
+    idp: "mail",
+    name: "unknown",
+    oid: "d8dccee8-b8bc-452c-8bcc-a6eb953db459",
+    preferred_username: "abc@test.com",
+    rh: "1.Ac8AzXS5HsUNpsfewfekCfaJSxn1U1xUBLxsfewfsfePAI7PAA.",
+    sid: "dcb04862-f956-4301-b3fc-0fd38fa5be7f",
+    sub: "bHyVUdPsfsafsdfeMzL7a3RXvIUlbeIUYAZ12o",
+    tid: "d37e5645-4170-4ce0-a618-1b9008b14e58",
+    uti: "YX1ODFJ_sefuEmHZdfhueJDDBlQDAA",
+    ver: "2.0",
+};
+
+export const RenewedTokens = {
+    ACCESS_TOKEN: "renewed-access-token",
+    REFRESH_TOKEN: "renewed-refresh-token",
+};

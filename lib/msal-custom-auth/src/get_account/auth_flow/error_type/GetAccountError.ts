@@ -17,12 +17,16 @@ export class SignOutError extends AuthFlowErrorBase {
     }
 }
 
-export class GetAccessTokenError extends AuthFlowErrorBase {
+export class GetCurrentAccountAccessTokenError extends AuthFlowErrorBase {
     isCurrentAccountNotFound(): boolean {
         return this.isNoCachedAccountFoundError();
     }
 
     isInvalidScope(): boolean {
         return true;
+    }
+
+    isInvalidRefreshToken(): boolean {
+        return this.isInvalidRefreshTokenError();
     }
 }

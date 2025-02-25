@@ -10,28 +10,72 @@ import {
     ClearCacheRequest,
     ClientConfiguration,
     CommonSilentFlowRequest,
+    initializeSilentRequest,
+    InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorCodes,
     ServerTelemetryManager,
     SilentFlowClient,
+    SilentRequest,
 } from "@azure/msal-browser";
 import { CustomAuthAuthority } from "../../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../../CustomAuthConstants.js";
 import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
 import { UrlUtils } from "../../core/utils/UrlUtils.js";
+import { GetAccessTokenError, InvalidRefreshTokenFound } from "../../core/error/GetAccessTokenError.js";
 
 export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase {
+    /**
+     * Get account token for current account.
+     * If forceRresh is set to false, then looks up the access token in cache first.
+     * If access token is expired or not found, then uses refresh token to get a new access token.
+     * If forceRefresh is set to true, then skips token cache lookup and fetches a new token using refresh token
+     * If no refresh token is found or expired, then throws error
+     * @param account current account
+     * @param forceRefresh if true, then skip token cache lookup and force refresh using cached refresh token
+     * @param scopes Optional, if not provided, will use default scopes from configuration (openid, profile, offline_access)
+     * @returns
+     */
+    async getAccessToken(
+        account: AccountInfo,
+        forceRefresh: boolean = false,
+        scopes?: Array<string>,
+    ): Promise<AuthenticationResult> {
+        const silentRequest = await this.createCommonSilentFlowRequest(account, forceRefresh, scopes);
+        try {
+            return await this.acquireToken(silentRequest);
+        } catch (error) {
+            if (
+                error instanceof InteractionRequiredAuthError &&
+                (error.errorCode === InteractionRequiredAuthErrorCodes.noTokensFound ||
+                    error.errorCode === InteractionRequiredAuthErrorCodes.refreshTokenExpired ||
+                    error.subError === InteractionRequiredAuthErrorCodes.badToken)
+            ) {
+                throw new GetAccessTokenError(
+                    InvalidRefreshTokenFound,
+                    "Refresh token is not found or expired.",
+                    this.correlationId,
+                );
+            }
+            throw error;
+        }
+    }
+
     override async acquireToken(silentRequest: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         const telemetryManager = this.initializeServerTelemetryManager(PublicApiId.ACCOUNT_GET_ACCESS_TOKEN);
-        const clientConfig = this.getCustomAuthClientConfiguration(telemetryManager, this.customAuthAuthority);
+        const clientConfig = await this.getCustomAuthClientConfiguration(telemetryManager, this.customAuthAuthority);
         const silentFlowClient = new SilentFlowClient(clientConfig, this.performanceClient);
 
-        this.logger.info("Starting silent flow to acquire token");
+        this.logger.info("Starting silent flow to acquire token", this.correlationId);
 
-        const result = (await silentFlowClient.acquireToken(silentRequest)) as AuthenticationResult;
-
-        this.logger.info("Silent flow to acquire token completed");
-
-        return result;
+        try {
+            const result = (await silentFlowClient.acquireToken(silentRequest)) as AuthenticationResult;
+            this.logger.info("Silent flow to acquire token completed");
+            return result;
+        } catch (error) {
+            this.logger.error("Silent flow to acquire token failed", this.correlationId);
+            throw error;
+        }
     }
 
     override async logout(logoutRequest?: ClearCacheRequest): Promise<void> {
@@ -136,5 +180,30 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
             },
             telemetry: this.config.telemetry,
         };
+    }
+
+    private async createCommonSilentFlowRequest(
+        accountInfo: AccountInfo,
+        forceRefresh: boolean = false,
+        requestScopes?: Array<string>,
+    ): Promise<CommonSilentFlowRequest> {
+        const silentRequest: SilentRequest = {
+            authority: this.config.auth.authority,
+            correlationId: this.correlationId,
+            scopes: requestScopes || [],
+            account: accountInfo,
+            forceRefresh: forceRefresh,
+            storeInCache: {
+                idToken: true,
+                accessToken: true,
+                refreshToken: true,
+            },
+        };
+        const request = {
+            ...silentRequest,
+            correlationId: this.correlationId,
+        };
+
+        return initializeSilentRequest(request, accountInfo, this.config, this.performanceClient, this.logger);
     }
 }

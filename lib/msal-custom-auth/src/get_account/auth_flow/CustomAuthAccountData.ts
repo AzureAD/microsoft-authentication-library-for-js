@@ -28,10 +28,11 @@ export class CustomAuthAccountData {
         private readonly logger: Logger,
         private readonly correlationId: string,
     ) {
-        ArgumentValidator.ensureArgumentIsNotEmptyString("correlationId", correlationId);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("account", account, correlationId);
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("cacheClient", cacheClient, correlationId);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("config", config, correlationId);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("cacheClient", cacheClient, correlationId);
+        ArgumentValidator.ensureArgumentIsNotEmptyString("correlationId", correlationId);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("logger", logger, correlationId);
     }
 
     /*
@@ -94,9 +95,14 @@ export class CustomAuthAccountData {
      * @returns The result of the operation.
      */
     async getAccessToken(forceRefresh: boolean = false, scopes?: Array<string>): Promise<GetAccessTokenResult> {
-        // Double check whether the scope should be retrieved from cache if not provided
-
-        throw new Error(`Method not implemented with forceRefresh '${forceRefresh}' and scopes '${scopes}'`);
+        try {
+            const response = await this.cacheClient.getAccessToken(this.account, forceRefresh, scopes);
+            this.logger.info("Successfully got access token from cache.", this.correlationId);
+            return new GetAccessTokenResult(response);
+        } catch (error) {
+            this.logger.error("Failed to get access token from cache.", this.correlationId);
+            return GetAccessTokenResult.createWithError(error);
+        }
     }
 }
 

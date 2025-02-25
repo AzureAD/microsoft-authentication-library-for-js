@@ -7,6 +7,7 @@ import { Authority, AuthorityOptions, BrowserConfiguration, INetworkModule, Logg
 import { ICacheManager } from "../../../msal-common/dist/cache/interface/ICacheManager.js";
 import { CustomAuthApiEndpoint } from "./network_client/custom_auth_api/CustomAuthApiEndpoint.js";
 import { UrlUtils } from "./utils/UrlUtils.js";
+import { AuthorityMetadataEntity, CacheHelpers } from "@azure/msal-common/browser";
 
 /**
  * Authority class which can be used to create an authority object for Custom Auth features.
@@ -41,6 +42,7 @@ export class CustomAuthAuthority extends Authority {
         };
 
         super(ciamAuthorityUrl, networkInterface, cacheManager, authorityOptions, logger, "");
+        this.setAuthorityMetadataEntity();
     }
 
     /**
@@ -55,6 +57,38 @@ export class CustomAuthAuthority extends Authority {
          * If the customAuthProxyDomain is not provided, we will generate the auth API domain based on the authority URL.
          */
         return !this.customAuthProxyDomain ? this.canonicalAuthority : this.customAuthProxyDomain;
+    }
+
+    /**
+     * Create the authority metadata entity and set it in the cache.
+     * When looking up cached access tokens, this is used for checking
+     * if environment property of cached access tokens is included in authority alias
+     */
+    setAuthorityMetadataEntity(): void {
+        const metadataEntity = this.createMetadataEntity();
+        const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(metadataEntity.preferred_cache);
+        this.cacheManager.setAuthorityMetadata(cacheKey, metadataEntity);
+    }
+
+    /**
+     * Create the default authority metadata entity.
+     * @returns The authority metadata entity.
+     */
+    createMetadataEntity(): AuthorityMetadataEntity {
+        return {
+            aliases: [this.hostnameAndPort],
+            preferred_cache: this.hostnameAndPort,
+            preferred_network: this.hostnameAndPort,
+            canonical_authority: this.canonicalAuthority,
+            authorization_endpoint: "",
+            token_endpoint: this.tokenEndpoint,
+            end_session_endpoint: "",
+            issuer: "",
+            aliasesFromNetwork: false,
+            endpointsFromNetwork: false,
+            expiresAt: CacheHelpers.generateAuthorityMetadataExpiresAt(),
+            jwks_uri: "",
+        };
     }
 
     override getPreferredCache(): string {
