@@ -47,8 +47,8 @@ export const ClientConfigurationErrorMessages = {
         "Invalid authentication header provided",
     [ClientConfigurationErrorCodes.cannotSetOIDCOptions]:
         "Cannot set OIDCOptions parameter. Please change the protocol mode to OIDC or use a non-Microsoft authority.",
-    [ClientConfigurationErrorCodes.cannotAllowNativeBroker]:
-        "Cannot set allowNativeBroker parameter to true when not in AAD protocol mode.",
+    [ClientConfigurationErrorCodes.cannotAllowPlatformBroker]:
+        "Cannot set allowPlatformBroker parameter to true when not in AAD protocol mode.",
     [ClientConfigurationErrorCodes.authorityMismatch]:
         "Authority mismatch error. Authority provided in login request or PublicClientApplication config does not match the environment of the provided account. Please use a matching account or make an interactive request to login to this authority.",
 };
@@ -178,10 +178,10 @@ export const ClientConfigurationErrorMessage = {
             ClientConfigurationErrorCodes.cannotSetOIDCOptions
         ],
     },
-    cannotAllowNativeBroker: {
-        code: ClientConfigurationErrorCodes.cannotAllowNativeBroker,
+    cannotAllowPlatformBroker: {
+        code: ClientConfigurationErrorCodes.cannotAllowPlatformBroker,
         desc: ClientConfigurationErrorMessages[
-            ClientConfigurationErrorCodes.cannotAllowNativeBroker
+            ClientConfigurationErrorCodes.cannotAllowPlatformBroker
         ],
     },
     authorityMismatch: {

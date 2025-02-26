@@ -11,7 +11,6 @@ import {
     RETRY_TIMES,
     enterCredentialsADFSWithConsent,
     enterDeviceCode,
-    SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
     NodeCacheTestUtils,
     LabClient,
@@ -21,7 +20,7 @@ import {
     FederationProviders,
     UserTypes,
 } from "e2e-test-utils";
-
+import path from "path";
 import { Configuration, PublicClientApplication } from "@azure/msal-node";
 
 // Set test cache name/location
@@ -48,13 +47,13 @@ describe("Device Code ADFS 2019 Tests", () => {
     let username: string;
     let accountPwd: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/device-code/adfs`;
+    const screenshotFolder = path.join(__dirname, "screenshots/device-code/adfs");
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
         // @ts-ignore
         browser = await global.__BROWSER__;
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        createFolder(screenshotFolder);
 
         // Configure Lab API Query Parameters
         const labApiParms: LabApiQueryParams = {
@@ -85,7 +84,7 @@ describe("Device Code ADFS 2019 Tests", () => {
         });
 
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(5000);
         });

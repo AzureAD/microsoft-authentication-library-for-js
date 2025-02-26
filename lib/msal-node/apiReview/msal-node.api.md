@@ -136,6 +136,7 @@ export abstract class ClientApplication {
     protected constructor(configuration: Configuration);
     acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult>;
     acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
+    // @deprecated
     acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult>;
     protected buildOauthClientConfiguration(authority: string, requestCorrelationId: string, redirectUri: string, serverTelemetryManager?: ServerTelemetryManager, azureRegionConfiguration?: AzureRegionConfiguration, azureCloudOptions?: AzureCloudOptions): Promise<ClientConfiguration>;
@@ -155,6 +156,7 @@ export abstract class ClientApplication {
     protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager;
     protected logger: Logger;
     setLogger(logger: Logger): void;
+    // Warning: (ae-forgotten-export) The symbol "NodeStorage" needs to be exported by the entry point index.d.ts
     protected storage: NodeStorage;
     protected validateState(state: string, cachedState: string): void;
 }
@@ -274,6 +276,7 @@ export interface IConfidentialClientApplication {
     acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null>;
     acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
     acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
+    // @deprecated
     acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
     acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null>;
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;
@@ -345,6 +348,7 @@ export interface IPublicClientApplication {
     acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
     acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
     acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
+    // @deprecated
     acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
     acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult>;
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult>;
@@ -414,6 +418,7 @@ export const ManagedIdentitySourceNames: {
     readonly CLOUD_SHELL: "CloudShell";
     readonly DEFAULT_TO_IMDS: "DefaultToImds";
     readonly IMDS: "Imds";
+    readonly MACHINE_LEARNING: "MachineLearning";
     readonly SERVICE_FABRIC: "ServiceFabric";
 };
 
@@ -444,51 +449,6 @@ export type NodeAuthOptions = {
     azureCloudOptions?: AzureCloudOptions;
     skipAuthorityMetadataCache?: boolean;
 };
-
-// @public
-export class NodeStorage extends CacheManager {
-    constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto, staticAuthorityOptions?: StaticAuthorityOptions);
-    cacheToInMemoryCache(cache: CacheKVStore): InMemoryCache;
-    clear(): void;
-    containsKey(key: string): boolean;
-    emitChange(): void;
-    static generateInMemoryCache(cache: string): InMemoryCache;
-    static generateJsonCache(inMemoryCache: InMemoryCache): JsonCache;
-    getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null;
-    getAccount(accountKey: string): AccountEntity | null;
-    // (undocumented)
-    getAccountKeys(): string[];
-    getAppMetadata(appMetadataKey: string): AppMetadataEntity | null;
-    getAuthorityMetadata(key: string): AuthorityMetadataEntity | null;
-    getAuthorityMetadataKeys(): Array<string>;
-    getCache(): CacheKVStore;
-    getCachedAccountEntity(accountKey: string): AccountEntity | null;
-    getIdTokenCredential(idTokenKey: string): IdTokenEntity | null;
-    getInMemoryCache(): InMemoryCache;
-    getItem(key: string): ValidCacheType;
-    getKeys(): string[];
-    getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null;
-    getServerTelemetry(serverTelemetrykey: string): ServerTelemetryEntity | null;
-    getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null;
-    // (undocumented)
-    getTokenKeys(): TokenKeys;
-    inMemoryCacheToCache(inMemoryCache: InMemoryCache): CacheKVStore;
-    registerChangeEmitter(func: () => void): void;
-    removeItem(key: string): boolean;
-    removeOutdatedAccount(accountKey: string): void;
-    setAccessTokenCredential(accessToken: AccessTokenEntity): void;
-    setAccount(account: AccountEntity): void;
-    setAppMetadata(appMetadata: AppMetadataEntity): void;
-    setAuthorityMetadata(key: string, metadata: AuthorityMetadataEntity): void;
-    setCache(cache: CacheKVStore): void;
-    setIdTokenCredential(idToken: IdTokenEntity): void;
-    setInMemoryCache(inMemoryCache: InMemoryCache): void;
-    setItem(key: string, value: ValidCacheType): void;
-    setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void;
-    setServerTelemetry(serverTelemetryKey: string, serverTelemetry: ServerTelemetryEntity): void;
-    setThrottlingCache(throttlingCacheKey: string, throttlingCache: ThrottlingEntity): void;
-    updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string;
-}
 
 // @public
 export type NodeSystemOptions = {
@@ -637,15 +597,19 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
     getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null>;
     getAllAccounts(): Promise<AccountInfo[]>;
+    getCacheSnapshot(): CacheKVStore;
     getKVStore(): CacheKVStore;
     hasChanged(): boolean;
+    overwriteCache(): Promise<void>;
+    // (undocumented)
+    readonly persistence: ICachePlugin;
     removeAccount(account: AccountInfo): Promise<void>;
     serialize(): string;
 }
 
 export { TokenCacheContext }
 
-// @public
+// @public @deprecated
 export class UsernamePasswordClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
     acquireToken(request: CommonUsernamePasswordRequest): Promise<AuthenticationResult | null>;
@@ -663,7 +627,7 @@ export { ValidCacheType }
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "2.16.2";
+export const version = "3.2.3";
 
 // Warnings were encountered during analysis:
 //

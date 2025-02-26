@@ -14,6 +14,8 @@ import {
 import { EventType } from "./EventType.js";
 import { createGuid } from "../utils/BrowserUtils.js";
 
+const BROADCAST_CHANNEL_NAME = "msal.broadcast.event";
+
 export class EventHandler {
     // Callback for subscribing to events
     private eventCallbacks: Map<
@@ -21,10 +23,13 @@ export class EventHandler {
         [EventCallbackFunction, Array<EventType>]
     >;
     private logger: Logger;
+    private broadcastChannel: BroadcastChannel;
 
     constructor(logger?: Logger) {
         this.eventCallbacks = new Map();
         this.logger = logger || new Logger({});
+        this.broadcastChannel = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+        this.invokeCrossTabCallbacks = this.invokeCrossTabCallbacks.bind(this);
     }
 
     /**
@@ -77,34 +82,80 @@ export class EventHandler {
         payload?: EventPayload,
         error?: EventError
     ): void {
-        if (typeof window !== "undefined") {
-            const message: EventMessage = {
-                eventType: eventType,
-                interactionType: interactionType || null,
-                payload: payload || null,
-                error: error || null,
-                timestamp: Date.now(),
-            };
+        const message: EventMessage = {
+            eventType: eventType,
+            interactionType: interactionType || null,
+            payload: payload || null,
+            error: error || null,
+            timestamp: Date.now(),
+        };
 
-            this.eventCallbacks.forEach(
-                (
-                    [callback, eventTypes]: [
-                        EventCallbackFunction,
-                        Array<EventType>
-                    ],
-                    callbackId: string
-                ) => {
-                    if (
-                        eventTypes.length === 0 ||
-                        eventTypes.includes(eventType)
-                    ) {
-                        this.logger.verbose(
-                            `Emitting event to callback ${callbackId}: ${eventType}`
-                        );
-                        callback.apply(null, [message]);
-                    }
-                }
-            );
+        switch (eventType) {
+            case EventType.ACCOUNT_ADDED:
+            case EventType.ACCOUNT_REMOVED:
+            case EventType.ACTIVE_ACCOUNT_CHANGED:
+                // Send event to other open tabs / MSAL instances on same domain
+                this.broadcastChannel.postMessage(message);
+                break;
+            default:
+                // Emit event to callbacks registered in this instance
+                this.invokeCallbacks(message);
+                break;
         }
+    }
+
+    /**
+     * Invoke registered callbacks
+     * @param message
+     */
+    private invokeCallbacks(message: EventMessage): void {
+        this.eventCallbacks.forEach(
+            (
+                [callback, eventTypes]: [
+                    EventCallbackFunction,
+                    Array<EventType>
+                ],
+                callbackId: string
+            ) => {
+                if (
+                    eventTypes.length === 0 ||
+                    eventTypes.includes(message.eventType)
+                ) {
+                    this.logger.verbose(
+                        `Emitting event to callback ${callbackId}: ${message.eventType}`
+                    );
+                    callback.apply(null, [message]);
+                }
+            }
+        );
+    }
+
+    /**
+     * Wrapper around invokeCallbacks to handle broadcast events received from other tabs/instances
+     * @param event
+     */
+    private invokeCrossTabCallbacks(event: MessageEvent): void {
+        const message = event.data as EventMessage;
+        this.invokeCallbacks(message);
+    }
+
+    /**
+     * Listen for events broadcasted from other tabs/instances
+     */
+    subscribeCrossTab(): void {
+        this.broadcastChannel.addEventListener(
+            "message",
+            this.invokeCrossTabCallbacks
+        );
+    }
+
+    /**
+     * Unsubscribe from broadcast events
+     */
+    unsubscribeCrossTab(): void {
+        this.broadcastChannel.removeEventListener(
+            "message",
+            this.invokeCrossTabCallbacks
+        );
     }
 }

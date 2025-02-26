@@ -20,6 +20,7 @@ import {
     invokeAsync,
     BaseAuthRequest,
     StringDict,
+    PkceCodes,
 } from "@azure/msal-common/browser";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
@@ -45,21 +46,26 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     /**
      * Generates an auth code request tied to the url request.
      * @param request
+     * @param pkceCodes
      */
     protected async initializeAuthorizationCodeRequest(
-        request: AuthorizationUrlRequest
+        request: AuthorizationUrlRequest,
+        pkceCodes?: PkceCodes
     ): Promise<CommonAuthorizationCodeRequest> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
             this.correlationId
         );
-        const generatedPkceParams = await invokeAsync(
-            generatePkceCodes,
-            PerformanceEvents.GeneratePkceCodes,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
-        )(this.performanceClient, this.logger, this.correlationId);
+
+        const generatedPkceParams: PkceCodes =
+            pkceCodes ||
+            (await invokeAsync(
+                generatePkceCodes,
+                PerformanceEvents.GeneratePkceCodes,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(this.performanceClient, this.logger, this.correlationId));
 
         const authCodeRequest: CommonAuthorizationCodeRequest = {
             ...request,
@@ -379,14 +385,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 this.correlationId
             );
             validatedRequest.account = account;
-        }
-
-        // Check for ADAL/MSAL v1 SSO
-        if (!validatedRequest.loginHint && !account) {
-            const legacyLoginHint = this.browserStorage.getLegacyLoginHint();
-            if (legacyLoginHint) {
-                validatedRequest.loginHint = legacyLoginHint;
-            }
         }
 
         return validatedRequest;

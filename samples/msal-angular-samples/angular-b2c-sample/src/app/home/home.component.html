@@ -1,0 +1,30 @@
+<div *ngIf="!loginDisplay">
+    <p class="welcome">Welcome to the MSAL Angular Quickstart!</p>
+    <p>This sample demonstrates how to configure MSAL Angular to login, logout, protect a route, and acquire an access
+        token for a protected resource such as the Microsoft Graph.</p>
+    <p>Please sign-in to see your profile information.</p>
+</div>
+
+<div *ngIf="loginDisplay">
+    <p>Login successful!</p>
+    <p>Call a B2C protected web API by selecting the Hello API link above.</p>
+    <p>Claims in your ID token are shown below: </p>
+</div>
+
+<table mat-table id="idTokenClaims" [dataSource]="dataSource" class="mat-elevation-z8" *ngIf="loginDisplay">
+
+    <!-- Claim Column -->
+    <ng-container matColumnDef="claim">
+        <th mat-header-cell *matHeaderCellDef> Claim </th>
+        <td mat-cell *matCellDef="let element"> {{element.claim}} </td>
+    </ng-container>
+
+    <!-- Value Column -->
+    <ng-container matColumnDef="value">
+        <th mat-header-cell *matHeaderCellDef> Value </th>
+        <td mat-cell *matCellDef="let element"> {{element.value}} </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+</table>

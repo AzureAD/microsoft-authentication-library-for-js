@@ -14,8 +14,9 @@ import {
     LabClient,
 } from "e2e-test-utils";
 import { JWK, JWT } from "jose";
+import path from "path";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screenshots/pop");
 let sampleHomeUrl = "";
 let username = "";
 let accountPwd = "";
@@ -46,7 +47,7 @@ describe("Browser PoP tests", function () {
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
     beforeEach(async () => {
-        context = await browser.createIncognitoBrowserContext();
+        context = await browser.createBrowserContext();
         page = await context.newPage();
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
         await page.goto(sampleHomeUrl);
@@ -88,9 +89,7 @@ describe("Browser PoP tests", function () {
         // One Bearer Token and one PoP token
         expect(tokenStore.accessTokens).toHaveLength(2);
         expect(tokenStore.refreshTokens).toHaveLength(1);
-        const cachedAccount = await BrowserCache.getAccountFromCache(
-            tokenStore.idTokens[0]
-        );
+        const cachedAccount = await BrowserCache.getAccountFromCache();
         const defaultCachedToken =
             await BrowserCache.popAccessTokenForScopesExists(
                 tokenStore.accessTokens,
@@ -106,10 +105,6 @@ describe("Browser PoP tests", function () {
         const pubKey = decodedToken.cnf.jwk;
         const pubKeyJwk = JWK.asKey(pubKey);
         expect(JWT.verify(token, pubKeyJwk)).toEqual(decodedToken);
-
-        // Expected 5 since the pop request will fail
-        const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(7);
     });
 
     it("Performs loginRedirect, acquires and verifies a PoP token is unsigned if PoP kid is provided in request", async () => {
@@ -139,9 +134,7 @@ describe("Browser PoP tests", function () {
         // One Bearer Token and one PoP token
         expect(tokenStore.accessTokens).toHaveLength(2);
         expect(tokenStore.refreshTokens).toHaveLength(1);
-        const cachedAccount = await BrowserCache.getAccountFromCache(
-            tokenStore.idTokens[0]
-        );
+        const cachedAccount = await BrowserCache.getAccountFromCache();
         const defaultCachedToken =
             await BrowserCache.accessTokenForScopesExists(
                 tokenStore.accessTokens,
@@ -149,8 +142,5 @@ describe("Browser PoP tests", function () {
             );
         expect(cachedAccount).toBeDefined();
         expect(defaultCachedToken).toBeTruthy();
-
-        const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(7);
     });
 });

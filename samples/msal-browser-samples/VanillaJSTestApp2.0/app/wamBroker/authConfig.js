@@ -34,7 +34,7 @@ const msalConfig = {
             },
             logLevel: msal.LogLevel.Trace
         },
-        allowNativeBroker: true // For demonstration purposes, allowNativeBroker is true by default as of MSAL Browser v3
+        allowPlatformBroker: true // For demonstration purposes, allowPlatformBroker is true by default as of MSAL Browser v3
     }
 };
 

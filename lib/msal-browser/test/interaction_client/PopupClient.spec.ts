@@ -57,7 +57,7 @@ import { InteractionHandler } from "../../src/interaction_handler/InteractionHan
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
-import { BrowserAuthErrorCodes } from "../../src/index.js";
+import { BrowserAuthErrorCodes, BrowserUtils } from "../../src/index.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 
 const testPopupWondowDefaults = {
@@ -206,6 +206,7 @@ describe("PopupClient", () => {
         });
 
         it("opens popups asynchronously if configured", async () => {
+            const perfClient = getDefaultPerformanceClient();
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -213,6 +214,14 @@ describe("PopupClient", () => {
                 system: {
                     asyncPopups: true,
                 },
+                telemetry: {
+                    client: perfClient,
+                },
+            });
+
+            let resEvents;
+            perfClient.addPerformanceCallback((events) => {
+                resEvents = events;
             });
 
             await pca.initialize();
@@ -237,7 +246,9 @@ describe("PopupClient", () => {
                 //@ts-ignore
                 pca.performanceClient,
                 //@ts-ignore
-                pca.nativeInternalStorage
+                pca.nativeInternalStorage,
+                undefined,
+                TEST_CONFIG.CORRELATION_ID
             );
 
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -258,6 +269,10 @@ describe("PopupClient", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
+            const rootMeasurement = perfClient.startMeasurement(
+                "root-measurement",
+                request.correlationId
+            );
             const popupSpy = jest
                 .spyOn(PopupClient.prototype, "openSizedPopup")
                 .mockImplementation();
@@ -265,6 +280,7 @@ describe("PopupClient", () => {
             try {
                 await popupClient.acquireToken(request);
             } catch (e) {}
+            rootMeasurement.end({ success: true });
             expect(popupSpy).toHaveBeenCalled();
             expect(popupSpy.mock.calls[0]).toHaveLength(2);
             expect(
@@ -279,16 +295,29 @@ describe("PopupClient", () => {
             expect(popupSpy.mock.calls[0][0]).toContain(
                 `login_hint=${encodeURIComponent(request.loginHint || "")}`
             );
+
+            // @ts-ignore
+            const event = resEvents[0];
+            expect(event.isAsyncPopup).toBeTruthy();
         });
 
         it("calls native broker if server responds with accountId", async () => {
+            const perfClient = getDefaultPerformanceClient();
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
+                telemetry: {
+                    client: perfClient,
+                },
+            });
+
+            let resEvents;
+            perfClient.addPerformanceCallback((events) => {
+                resEvents = events;
             });
 
             await pca.initialize();
@@ -370,7 +399,7 @@ describe("PopupClient", () => {
                 //@ts-ignore
                 pca.logger,
                 2000,
-                getDefaultPerformanceClient()
+                perfClient
             );
             //@ts-ignore
             popupClient = new PopupClient(
@@ -392,11 +421,20 @@ describe("PopupClient", () => {
                 pca.nativeInternalStorage,
                 nativeMessageHandler
             );
+            const correlationId = BrowserUtils.createGuid();
+            const rootMeasurement = perfClient.startMeasurement(
+                "root-measurement",
+                correlationId
+            );
             const tokenResp = await popupClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                correlationId,
             });
+            rootMeasurement.end({ success: true });
             expect(tokenResp).toEqual(testTokenResponse);
+            // @ts-ignore
+            expect(resEvents[0].isAsyncPopup).toBeFalsy();
         });
 
         it("throws if server responds with accountId but extension message handler is not instantiated", async () => {
@@ -405,7 +443,7 @@ describe("PopupClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
 
@@ -1181,7 +1219,7 @@ describe("PopupClient", () => {
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount);
+            await pca.browserStorage.setAccount(testAccount);
 
             jest.spyOn(
                 PopupClient.prototype,
@@ -1269,7 +1307,7 @@ describe("PopupClient", () => {
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount);
+            await pca.browserStorage.setAccount(testAccount);
 
             jest.spyOn(
                 PopupClient.prototype,
@@ -1399,7 +1437,7 @@ describe("PopupClient", () => {
             });
 
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount);
+            await pca.browserStorage.setAccount(testAccount);
             pca.setActiveAccount(testAccountInfo);
 
             await popupClient.logout(validatedLogoutRequest).then(() => {

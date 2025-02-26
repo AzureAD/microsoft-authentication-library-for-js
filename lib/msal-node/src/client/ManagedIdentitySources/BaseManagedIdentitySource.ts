@@ -31,6 +31,7 @@ import {
     ManagedIdentityErrorCodes,
     createManagedIdentityError,
 } from "../../error/ManagedIdentityError.js";
+import { isIso8601 } from "../../utils/TimeUtils.js";
 
 /**
  * Managed Identity User Assigned Id Query Parameter Names
@@ -38,7 +39,8 @@ import {
 export const ManagedIdentityUserAssignedIdQueryParameterNames = {
     MANAGED_IDENTITY_CLIENT_ID: "client_id",
     MANAGED_IDENTITY_OBJECT_ID: "object_id",
-    MANAGED_IDENTITY_RESOURCE_ID: "mi_res_id",
+    MANAGED_IDENTITY_RESOURCE_ID_IMDS: "msi_res_id",
+    MANAGED_IDENTITY_RESOURCE_ID_NON_IMDS: "mi_res_id",
 } as const;
 export type ManagedIdentityUserAssignedIdQueryParameterNames =
     (typeof ManagedIdentityUserAssignedIdQueryParameterNames)[keyof typeof ManagedIdentityUserAssignedIdQueryParameterNames];
@@ -83,6 +85,12 @@ export abstract class BaseManagedIdentitySource {
     ): ServerAuthorizationTokenResponse {
         let refreshIn, expiresIn: number | undefined;
         if (response.body.expires_on) {
+            // if the expires_on field in the response body is a string and in ISO 8601 format, convert it to a Unix timestamp (seconds since epoch)
+            if (isIso8601(response.body.expires_on)) {
+                response.body.expires_on =
+                    new Date(response.body.expires_on).getTime() / 1000;
+            }
+
             expiresIn = response.body.expires_on - TimeUtils.nowSeconds();
 
             // compute refresh_in as 1/2 of expires_in, but only if expires_in > 2h
@@ -201,7 +209,8 @@ export abstract class BaseManagedIdentitySource {
     }
 
     public getManagedIdentityUserAssignedIdQueryParameterKey(
-        managedIdentityIdType: ManagedIdentityIdType
+        managedIdentityIdType: ManagedIdentityIdType,
+        imds?: boolean
     ): string {
         switch (managedIdentityIdType) {
             case ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID:
@@ -214,7 +223,9 @@ export abstract class BaseManagedIdentitySource {
                 this.logger.info(
                     "[Managed Identity] Adding user assigned resource id to the request."
                 );
-                return ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID;
+                return imds
+                    ? ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID_IMDS
+                    : ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID_NON_IMDS;
 
             case ManagedIdentityIdType.USER_ASSIGNED_OBJECT_ID:
                 this.logger.info(
