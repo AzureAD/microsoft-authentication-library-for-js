@@ -80,9 +80,6 @@ describe("Silent Flow AAD Prod Tests", () => {
             labClient
         );
 
-        console.log("username: " + username);
-        console.log("accountPwd: " + accountPwd);
-
         publicClientApplication = new PublicClientApplication({
             auth: config.authOptions,
             cache: { cachePlugin },
