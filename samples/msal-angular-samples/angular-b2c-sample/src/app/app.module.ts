@@ -107,6 +107,7 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
     MatTableModule,
     HttpClientModule,
     MsalModule,
+    MsalRedirectComponent,
   ],
   providers: [
     {
@@ -130,6 +131,6 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
     MsalGuard,
     MsalBroadcastService,
   ],
-  bootstrap: [AppComponent, MsalRedirectComponent],
+  bootstrap: [AppComponent],
 })
 export class AppModule {}
