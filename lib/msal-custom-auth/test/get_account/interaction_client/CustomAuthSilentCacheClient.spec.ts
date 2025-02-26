@@ -7,12 +7,19 @@ import {
     ICrypto,
     INavigationClient,
     INetworkModule,
+    InteractionRequiredAuthErrorCodes,
     Logger,
 } from "@azure/msal-browser";
 import { CustomAuthSilentCacheClient } from "../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { customAuthConfig } from "../../test_resources/CustomAuthConfig.js";
 import { CustomAuthAuthority } from "../../../src/core/CustomAuthAuthority.js";
-import { CacheHelpers, RefreshTokenEntity, StubPerformanceClient, TimeUtils } from "@azure/msal-common";
+import {
+    CacheHelpers,
+    createInteractionRequiredAuthError,
+    RefreshTokenEntity,
+    StubPerformanceClient,
+    TimeUtils,
+} from "@azure/msal-common";
 import {
     TestTokenResponse,
     TestAccounDetails,
@@ -23,7 +30,7 @@ import {
     RenewedTokens,
 } from "../../test_resources/TestConstants.js";
 import { AccessTokenEntity } from "../../../../msal-common/lib/types/exports-common.js";
-import { GetAccessTokenError, InvalidRefreshTokenFound } from "../../../src/core/error/GetAccessTokenError.js";
+import { DefaultScopes } from "../../../src/CustomAuthConstants.js";
 
 jest.mock("@azure/msal-browser", () => {
     const actualModule = jest.requireActual("@azure/msal-browser");
@@ -170,10 +177,7 @@ describe("CustomAuthSilentCacheClient", () => {
         let accessTokenEntityToCache: AccessTokenEntity;
         let refreshTokenEntityToCache: RefreshTokenEntity;
 
-        const mockGetAccessTokenError = new GetAccessTokenError(
-            InvalidRefreshTokenFound,
-            "Refresh token is not found or expired.",
-        );
+        const defaultScopes = [...DefaultScopes];
 
         beforeEach(() => {
             accountEntityToCache = AccountEntity.createFromAccountInfo(TestAccounDetails);
@@ -194,7 +198,7 @@ describe("CustomAuthSilentCacheClient", () => {
                 accessTokenEntityToCache,
                 refreshTokenEntityToCache,
             );
-            const result = await client.getAccessToken(TestAccounDetails);
+            const result = await client.getAccessToken(TestAccounDetails, false, defaultScopes);
 
             expect(result).toBeDefined();
             expect(result.accessToken).toBe(accessTokenEntityToCache.secret);
@@ -211,7 +215,7 @@ describe("CustomAuthSilentCacheClient", () => {
                 refreshTokenEntityToCache,
             );
 
-            const result = await client.getAccessToken(TestAccounDetails);
+            const result = await client.getAccessToken(TestAccounDetails, false, defaultScopes);
 
             expect(result).toBeDefined();
             expect(result.accessToken).toBe(RenewedTokens.ACCESS_TOKEN);
@@ -253,7 +257,7 @@ describe("CustomAuthSilentCacheClient", () => {
                 refreshTokenEntityToCache,
             );
 
-            const result = await client.getAccessToken(TestAccounDetails, true);
+            const result = await client.getAccessToken(TestAccounDetails, true, defaultScopes);
             expect(result).toBeDefined();
 
             expect(result.accessToken).toBe(RenewedTokens.ACCESS_TOKEN);
@@ -268,7 +272,12 @@ describe("CustomAuthSilentCacheClient", () => {
         it("should throw error when refresh token is not found", async () => {
             saveTokensIntoCache(mockCacheManager, accountEntityToCache, accessTokenEntityToCache);
 
-            expect(client.getAccessToken(TestAccounDetails, true)).rejects.toThrow(mockGetAccessTokenError);
+            const mockNoTokensFoundError = createInteractionRequiredAuthError(
+                InteractionRequiredAuthErrorCodes.noTokensFound,
+            );
+            expect(client.getAccessToken(TestAccounDetails, true, defaultScopes)).rejects.toThrow(
+                mockNoTokensFoundError,
+            );
         });
 
         it("should throw error when refresh token is expired", async () => {
@@ -280,7 +289,12 @@ describe("CustomAuthSilentCacheClient", () => {
                 refreshTokenEntityToCache,
             );
 
-            expect(client.getAccessToken(TestAccounDetails, true)).rejects.toThrow(mockGetAccessTokenError);
+            const mockRefreshTokenExpiredError = createInteractionRequiredAuthError(
+                InteractionRequiredAuthErrorCodes.refreshTokenExpired,
+            );
+            expect(client.getAccessToken(TestAccounDetails, true, defaultScopes)).rejects.toThrow(
+                mockRefreshTokenExpiredError,
+            );
         });
     });
 

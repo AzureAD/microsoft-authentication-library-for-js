@@ -6,11 +6,18 @@
 import { CustomAuthBrowserConfiguration } from "../../configuration/CustomAuthConfiguration.js";
 import { SignOutResult } from "./result/SignOutResult.js";
 import { GetAccessTokenResult } from "./result/GetAccessTokenResult.js";
-import { AccountInfo, Logger, TokenClaims } from "@azure/msal-browser";
+import {
+    AccountInfo,
+    InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorCodes,
+    Logger,
+    TokenClaims,
+} from "@azure/msal-browser";
 import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
 import { CustomAuthSilentCacheClient } from "../interaction_client/CustomAuthSilentCacheClient.js";
 import { NoCachedAccountFoundError } from "../../core/error/GetCurrentAccountError.js";
 import { DefaultScopes } from "../../CustomAuthConstants.js";
+import { GetAccessTokenError, GetAccessTokenFailed } from "../../core/error/GetAccessTokenError.js";
 
 /*
  * Account information.
@@ -95,16 +102,34 @@ export class CustomAuthAccountData {
      * @param accessTokenRetrievalInputs - The inputs for retrieving the access token.
      * @returns The result of the operation.
      */
-    async getAccessToken(forceRefresh: boolean = false, scopes?: Array<string>): Promise<GetAccessTokenResult> {
-        const newScopes = scopes ? scopes : [...DefaultScopes];
+    async getAccessToken(
+        forceRefresh: boolean = false,
+        scopes?: Array<string>,
+        username?: string,
+    ): Promise<GetAccessTokenResult> {
         try {
-            this.logger.info("Start getting access token.", this.correlationId);
-            const result = await this.cacheClient.getAccessToken(this.account, forceRefresh, newScopes);
+            this.logger.info("Getting current account.", this.correlationId);
+
+            const currentAccount = this.cacheClient.getCurrentAccount(username);
+
+            if (!currentAccount) {
+                throw new NoCachedAccountFoundError(this.correlationId);
+            }
+
+            this.logger.info("Getting access token.", this.correlationId);
+
+            const newScopes = scopes ? scopes : [...DefaultScopes];
+            const result = await this.cacheClient.getAccessToken(currentAccount, forceRefresh, newScopes);
+
             this.logger.info("Successfully got access token from cache.", this.correlationId);
+
             return new GetAccessTokenResult(result);
         } catch (error) {
             this.logger.error("Failed to get access token from cache.", this.correlationId);
-            return GetAccessTokenResult.createWithError(error);
+
+            return GetAccessTokenResult.createWithError(
+                new GetAccessTokenError(GetAccessTokenFailed, "Get access token failed.", this.correlationId),
+            );
         }
     }
 }

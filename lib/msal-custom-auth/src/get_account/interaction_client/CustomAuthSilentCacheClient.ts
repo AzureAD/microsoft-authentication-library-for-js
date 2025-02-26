@@ -11,8 +11,6 @@ import {
     ClientConfiguration,
     CommonSilentFlowRequest,
     initializeSilentRequest,
-    InteractionRequiredAuthError,
-    InteractionRequiredAuthErrorCodes,
     ServerTelemetryManager,
     SilentFlowClient,
     SilentRequest,
@@ -22,7 +20,6 @@ import { DefaultPackageInfo } from "../../CustomAuthConstants.js";
 import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
 import { UrlUtils } from "../../core/utils/UrlUtils.js";
-import { GetAccessTokenError, InvalidRefreshTokenFound } from "../../core/error/GetAccessTokenError.js";
 
 export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase {
     /**
@@ -45,18 +42,6 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
         try {
             return await this.acquireToken(silentRequest);
         } catch (error) {
-            if (
-                error instanceof InteractionRequiredAuthError &&
-                (error.errorCode === InteractionRequiredAuthErrorCodes.noTokensFound ||
-                    error.errorCode === InteractionRequiredAuthErrorCodes.refreshTokenExpired ||
-                    error.subError === InteractionRequiredAuthErrorCodes.badToken)
-            ) {
-                throw new GetAccessTokenError(
-                    InvalidRefreshTokenFound,
-                    "Refresh token is not found or expired.",
-                    this.correlationId,
-                );
-            }
             throw error;
         }
     }
@@ -67,15 +52,10 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
         const silentFlowClient = new SilentFlowClient(clientConfig, this.performanceClient);
 
         this.logger.info("Starting silent flow to acquire token", this.correlationId);
+        const result = (await silentFlowClient.acquireToken(silentRequest)) as AuthenticationResult;
+        this.logger.info("Silent flow to acquire token completed");
 
-        try {
-            const result = (await silentFlowClient.acquireToken(silentRequest)) as AuthenticationResult;
-            this.logger.info("Silent flow to acquire token completed");
-            return result;
-        } catch (error) {
-            this.logger.error("Silent flow to acquire token failed", this.correlationId);
-            throw error;
-        }
+        return result;
     }
 
     override async logout(logoutRequest?: ClearCacheRequest): Promise<void> {

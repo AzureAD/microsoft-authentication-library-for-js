@@ -6,7 +6,6 @@
 import { CustomAuthApiError, RedirectError } from "../error/CustomAuthApiError.js";
 import { CustomAuthError } from "../error/CustomAuthError.js";
 import { NoCachedAccountFoundError } from "../error/GetCurrentAccountError.js";
-import { GetAccessTokenError, InvalidRefreshTokenFound } from "../error/GetAccessTokenError.js";
 import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
 import {
     CustomAuthApiErrorCode,
@@ -110,9 +109,5 @@ export class AuthFlowErrorBase {
 
     protected isNoCachedAccountFoundError(): boolean {
         return this.errorData instanceof NoCachedAccountFoundError;
-    }
-
-    protected isInvalidRefreshTokenError(): boolean {
-        return this.errorData instanceof GetAccessTokenError && this.errorData.error === InvalidRefreshTokenFound;
     }
 }

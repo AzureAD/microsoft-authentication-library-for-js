@@ -6,7 +6,7 @@ import { SignOutResult } from "../../../src/get_account/auth_flow/result/SignOut
 import { SignOutError } from "../../../src/get_account/auth_flow/error_type/GetAccountError.js";
 import { IdTokenClaims } from "../../../../msal-common/dist/exports-common.js";
 import { GetAccessTokenState } from "../../../src/index.js";
-import { GetAccessTokenError, InvalidRefreshTokenFound } from "../../../src/core/error/GetAccessTokenError.js";
+import { GetAccessTokenError, GetAccessTokenFailed } from "../../../src/core/error/GetAccessTokenError.js";
 
 describe("CustomAuthAccountData", () => {
     let mockAccount: AccountInfo;
@@ -162,7 +162,7 @@ describe("CustomAuthAccountData", () => {
 
     describe("getAccessToken", () => {
         it("should return succeed GetAccessTokenState.Completed with cached tokens", async () => {
-            // mockCacheClient.getAccessToken = jest.fn().mockResolvedValue(mockAuthenticationResult);
+            (mockCacheClient.getCurrentAccount as jest.Mock).mockReturnValue(mockAccount);
             (mockCacheClient.getAccessToken as jest.Mock).mockResolvedValue(mockAuthenticationResult);
             const accountData = new CustomAuthAccountData(
                 mockAccount,
@@ -181,9 +181,10 @@ describe("CustomAuthAccountData", () => {
         });
 
         it("should return GetAccessTokenError if there is an error when aquire tokens", async () => {
+            (mockCacheClient.getCurrentAccount as jest.Mock).mockReturnValue(mockAccount);
             const mockGetAccessTokenError = new GetAccessTokenError(
-                InvalidRefreshTokenFound,
-                "Refresh token is not found or expired.",
+                GetAccessTokenFailed,
+                "Get access token failed.",
                 correlationId,
             );
             (mockCacheClient.getAccessToken as jest.Mock).mockRejectedValue(mockGetAccessTokenError);
@@ -201,7 +202,6 @@ describe("CustomAuthAccountData", () => {
             expect(response).toBeDefined();
             expect(response.state?.type).toEqual(GetAccessTokenState.Failed);
             expect(response.error?.errorData).toEqual(mockGetAccessTokenError);
-            expect(response.error?.isInvalidRefreshToken()).toEqual(true);
         });
     });
 });

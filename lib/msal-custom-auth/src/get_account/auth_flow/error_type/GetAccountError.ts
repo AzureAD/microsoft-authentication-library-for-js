@@ -25,8 +25,4 @@ export class GetCurrentAccountAccessTokenError extends AuthFlowErrorBase {
     isInvalidScope(): boolean {
         return true;
     }
-
-    isInvalidRefreshToken(): boolean {
-        return this.isInvalidRefreshTokenError();
-    }
 }
