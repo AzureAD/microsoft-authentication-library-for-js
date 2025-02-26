@@ -3,6 +3,7 @@ import {
     AuthenticationScheme,
     BrowserCacheManager,
     BrowserConfiguration,
+    CommonSilentFlowRequest,
     EventHandler,
     ICrypto,
     INavigationClient,
@@ -178,6 +179,18 @@ describe("CustomAuthSilentCacheClient", () => {
         let refreshTokenEntityToCache: RefreshTokenEntity;
 
         const defaultScopes = [...DefaultScopes];
+        const commonSilentFlowRequest = {
+            authority: customAuthConfig.auth.authority,
+            correlationId: "test-correlation-id",
+            scopes: defaultScopes,
+            account: TestAccounDetails,
+            forceRefresh: false,
+            storeInCache: {
+                idToken: true,
+                accessToken: true,
+                refreshToken: true,
+            },
+        } as CommonSilentFlowRequest;
 
         beforeEach(() => {
             accountEntityToCache = AccountEntity.createFromAccountInfo(TestAccounDetails);
@@ -198,7 +211,7 @@ describe("CustomAuthSilentCacheClient", () => {
                 accessTokenEntityToCache,
                 refreshTokenEntityToCache,
             );
-            const result = await client.getAccessToken(TestAccounDetails, false, defaultScopes);
+            const result = await client.getAccessToken(commonSilentFlowRequest);
 
             expect(result).toBeDefined();
             expect(result.accessToken).toBe(accessTokenEntityToCache.secret);
@@ -215,7 +228,7 @@ describe("CustomAuthSilentCacheClient", () => {
                 refreshTokenEntityToCache,
             );
 
-            const result = await client.getAccessToken(TestAccounDetails, false, defaultScopes);
+            const result = await client.getAccessToken(commonSilentFlowRequest);
 
             expect(result).toBeDefined();
             expect(result.accessToken).toBe(RenewedTokens.ACCESS_TOKEN);
@@ -237,7 +250,9 @@ describe("CustomAuthSilentCacheClient", () => {
                 refreshTokenEntityToCache,
             );
 
-            const result = await client.getAccessToken(TestAccounDetails, false, unmatchedScope);
+            commonSilentFlowRequest.scopes = unmatchedScope;
+
+            const result = await client.getAccessToken(commonSilentFlowRequest);
 
             expect(result).toBeDefined();
             expect(result.accessToken).toBe(RenewedTokens.ACCESS_TOKEN);
@@ -257,9 +272,11 @@ describe("CustomAuthSilentCacheClient", () => {
                 refreshTokenEntityToCache,
             );
 
-            const result = await client.getAccessToken(TestAccounDetails, true, defaultScopes);
-            expect(result).toBeDefined();
+            commonSilentFlowRequest.forceRefresh = true;
 
+            const result = await client.getAccessToken(commonSilentFlowRequest);
+
+            expect(result).toBeDefined();
             expect(result.accessToken).toBe(RenewedTokens.ACCESS_TOKEN);
 
             const refreshTokenKey = mockCacheManager
@@ -275,9 +292,10 @@ describe("CustomAuthSilentCacheClient", () => {
             const mockNoTokensFoundError = createInteractionRequiredAuthError(
                 InteractionRequiredAuthErrorCodes.noTokensFound,
             );
-            expect(client.getAccessToken(TestAccounDetails, true, defaultScopes)).rejects.toThrow(
-                mockNoTokensFoundError,
-            );
+
+            commonSilentFlowRequest.forceRefresh = true;
+
+            expect(client.getAccessToken(commonSilentFlowRequest)).rejects.toThrow(mockNoTokensFoundError);
         });
 
         it("should throw error when refresh token is expired", async () => {
@@ -292,9 +310,10 @@ describe("CustomAuthSilentCacheClient", () => {
             const mockRefreshTokenExpiredError = createInteractionRequiredAuthError(
                 InteractionRequiredAuthErrorCodes.refreshTokenExpired,
             );
-            expect(client.getAccessToken(TestAccounDetails, true, defaultScopes)).rejects.toThrow(
-                mockRefreshTokenExpiredError,
-            );
+
+            commonSilentFlowRequest.forceRefresh = true;
+
+            expect(client.getAccessToken(commonSilentFlowRequest)).rejects.toThrow(mockRefreshTokenExpiredError);
         });
     });
 

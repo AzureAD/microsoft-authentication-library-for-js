@@ -10,10 +10,8 @@ import {
     ClearCacheRequest,
     ClientConfiguration,
     CommonSilentFlowRequest,
-    initializeSilentRequest,
     ServerTelemetryManager,
     SilentFlowClient,
-    SilentRequest,
 } from "@azure/msal-browser";
 import { CustomAuthAuthority } from "../../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../../CustomAuthConstants.js";
@@ -33,14 +31,9 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
      * @param scopes Optional, if not provided, will use default scopes from configuration (openid, profile, offline_access)
      * @returns
      */
-    async getAccessToken(
-        account: AccountInfo,
-        forceRefresh: boolean = false,
-        scopes: Array<string>,
-    ): Promise<AuthenticationResult> {
-        const silentRequest = await this.createCommonSilentFlowRequest(account, forceRefresh, scopes);
+    async getAccessToken(commonSilentFlowRequest: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         try {
-            return await this.acquireToken(silentRequest);
+            return await this.acquireToken(commonSilentFlowRequest);
         } catch (error) {
             throw error;
         }
@@ -52,7 +45,9 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
         const silentFlowClient = new SilentFlowClient(clientConfig, this.performanceClient);
 
         this.logger.info("Starting silent flow to acquire token", this.correlationId);
+
         const result = (await silentFlowClient.acquireToken(silentRequest)) as AuthenticationResult;
+
         this.logger.info("Silent flow to acquire token completed");
 
         return result;
@@ -160,30 +155,5 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
             },
             telemetry: this.config.telemetry,
         };
-    }
-
-    private async createCommonSilentFlowRequest(
-        accountInfo: AccountInfo,
-        forceRefresh: boolean = false,
-        requestScopes: Array<string>,
-    ): Promise<CommonSilentFlowRequest> {
-        const silentRequest: SilentRequest = {
-            authority: this.config.auth.authority,
-            correlationId: this.correlationId,
-            scopes: requestScopes || [],
-            account: accountInfo,
-            forceRefresh: forceRefresh,
-            storeInCache: {
-                idToken: true,
-                accessToken: true,
-                refreshToken: true,
-            },
-        };
-        const request = {
-            ...silentRequest,
-            correlationId: this.correlationId,
-        };
-
-        return initializeSilentRequest(request, accountInfo, this.config, this.performanceClient, this.logger);
     }
 }

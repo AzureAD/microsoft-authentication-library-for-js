@@ -8,9 +8,12 @@ import { SignOutResult } from "./result/SignOutResult.js";
 import { GetAccessTokenResult } from "./result/GetAccessTokenResult.js";
 import {
     AccountInfo,
+    AuthenticationScheme,
+    CommonSilentFlowRequest,
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
     Logger,
+    SilentRequest,
     TokenClaims,
 } from "@azure/msal-browser";
 import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
@@ -119,7 +122,8 @@ export class CustomAuthAccountData {
             this.logger.info("Getting access token.", this.correlationId);
 
             const newScopes = scopes ? scopes : [...DefaultScopes];
-            const result = await this.cacheClient.getAccessToken(currentAccount, forceRefresh, newScopes);
+            const commonSilentFlowRequest = this.createCommonSilentFlowRequest(currentAccount, forceRefresh, newScopes);
+            const result = await this.cacheClient.getAccessToken(commonSilentFlowRequest);
 
             this.logger.info("Successfully got access token from cache.", this.correlationId);
 
@@ -131,6 +135,30 @@ export class CustomAuthAccountData {
                 new GetAccessTokenError(GetAccessTokenFailed, "Get access token failed.", this.correlationId),
             );
         }
+    }
+
+    private createCommonSilentFlowRequest(
+        accountInfo: AccountInfo,
+        forceRefresh: boolean = false,
+        requestScopes: Array<string>,
+    ): CommonSilentFlowRequest {
+        const silentRequest: SilentRequest = {
+            authority: this.config.auth.authority,
+            correlationId: this.correlationId,
+            scopes: requestScopes || [],
+            account: accountInfo,
+            forceRefresh: forceRefresh || false,
+            storeInCache: {
+                idToken: true,
+                accessToken: true,
+                refreshToken: true,
+            },
+        };
+
+        return {
+            ...silentRequest,
+            authenticationScheme: AuthenticationScheme.BEARER,
+        } as CommonSilentFlowRequest;
     }
 }
 

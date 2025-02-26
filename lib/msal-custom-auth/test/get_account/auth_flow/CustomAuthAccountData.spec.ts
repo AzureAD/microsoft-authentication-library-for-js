@@ -163,6 +163,7 @@ describe("CustomAuthAccountData", () => {
     describe("getAccessToken", () => {
         it("should return succeed GetAccessTokenState.Completed with cached tokens", async () => {
             (mockCacheClient.getCurrentAccount as jest.Mock).mockReturnValue(mockAccount);
+            jest.spyOn(CustomAuthAccountData.prototype as any, "createCommonSilentFlowRequest").mockReturnValue({});
             (mockCacheClient.getAccessToken as jest.Mock).mockResolvedValue(mockAuthenticationResult);
             const accountData = new CustomAuthAccountData(
                 mockAccount,
