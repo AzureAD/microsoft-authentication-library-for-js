@@ -39,7 +39,7 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
     async getAccessToken(
         account: AccountInfo,
         forceRefresh: boolean = false,
-        scopes?: Array<string>,
+        scopes: Array<string>,
     ): Promise<AuthenticationResult> {
         const silentRequest = await this.createCommonSilentFlowRequest(account, forceRefresh, scopes);
         try {
@@ -185,7 +185,7 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
     private async createCommonSilentFlowRequest(
         accountInfo: AccountInfo,
         forceRefresh: boolean = false,
-        requestScopes?: Array<string>,
+        requestScopes: Array<string>,
     ): Promise<CommonSilentFlowRequest> {
         const silentRequest: SilentRequest = {
             authority: this.config.auth.authority,

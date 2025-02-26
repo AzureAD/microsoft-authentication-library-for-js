@@ -8,7 +8,8 @@ import { ICacheManager } from "../../../msal-common/dist/cache/interface/ICacheM
 import { CustomAuthApiEndpoint } from "./network_client/custom_auth_api/CustomAuthApiEndpoint.js";
 import { UrlUtils } from "./utils/UrlUtils.js";
 import { AuthorityMetadataEntity } from "../../../msal-common/dist/cache/entities/AuthorityMetadataEntity.js";
-import { generateAuthorityMetadataExpiresAt } from "./utils/TimeUtils.js";
+import { nowSeconds } from "./utils/TimeUtils.js";
+import { RefreshTimeInSec } from "../CustomAuthConstants.js";
 
 /**
  * Authority class which can be used to create an authority object for Custom Auth features.
@@ -65,7 +66,7 @@ export class CustomAuthAuthority extends Authority {
      * When looking up cached access tokens, this is used for checking
      * if environment property of cached access tokens is included in authority alias
      */
-    setAuthorityMetadataEntity(): void {
+    private setAuthorityMetadataEntity(): void {
         const metadataEntity = this.createMetadataEntity();
         const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(metadataEntity.preferred_cache);
         this.cacheManager.setAuthorityMetadata(cacheKey, metadataEntity);
@@ -75,7 +76,7 @@ export class CustomAuthAuthority extends Authority {
      * Create the default authority metadata entity.
      * @returns The authority metadata entity.
      */
-    createMetadataEntity(): AuthorityMetadataEntity {
+    private createMetadataEntity(): AuthorityMetadataEntity {
         return {
             aliases: [this.hostnameAndPort],
             preferred_cache: this.hostnameAndPort,
@@ -87,9 +88,16 @@ export class CustomAuthAuthority extends Authority {
             issuer: "",
             aliasesFromNetwork: false,
             endpointsFromNetwork: false,
-            expiresAt: generateAuthorityMetadataExpiresAt(),
+            expiresAt: this.generateAuthorityMetadataExpiresAt(),
             jwks_uri: "",
         };
+    }
+
+    /**
+     * Return AuthorityMetadata ExpiresAt property (seconds).
+     */
+    private generateAuthorityMetadataExpiresAt(): number {
+        return nowSeconds() + RefreshTimeInSec;
     }
 
     override getPreferredCache(): string {

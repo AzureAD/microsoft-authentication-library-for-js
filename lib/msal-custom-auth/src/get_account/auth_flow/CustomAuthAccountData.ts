@@ -10,6 +10,7 @@ import { AccountInfo, Logger, TokenClaims } from "@azure/msal-browser";
 import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
 import { CustomAuthSilentCacheClient } from "../interaction_client/CustomAuthSilentCacheClient.js";
 import { NoCachedAccountFoundError } from "../../core/error/GetCurrentAccountError.js";
+import { DefaultScopes } from "../../CustomAuthConstants.js";
 
 /*
  * Account information.
@@ -28,10 +29,10 @@ export class CustomAuthAccountData {
         private readonly logger: Logger,
         private readonly correlationId: string,
     ) {
+        ArgumentValidator.ensureArgumentIsNotEmptyString("correlationId", correlationId);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("account", account, correlationId);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("config", config, correlationId);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("cacheClient", cacheClient, correlationId);
-        ArgumentValidator.ensureArgumentIsNotEmptyString("correlationId", correlationId);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("logger", logger, correlationId);
     }
 
@@ -95,10 +96,12 @@ export class CustomAuthAccountData {
      * @returns The result of the operation.
      */
     async getAccessToken(forceRefresh: boolean = false, scopes?: Array<string>): Promise<GetAccessTokenResult> {
+        const newScopes = scopes ? scopes : [...DefaultScopes];
         try {
-            const response = await this.cacheClient.getAccessToken(this.account, forceRefresh, scopes);
+            this.logger.info("Start getting access token.", this.correlationId);
+            const result = await this.cacheClient.getAccessToken(this.account, forceRefresh, newScopes);
             this.logger.info("Successfully got access token from cache.", this.correlationId);
-            return new GetAccessTokenResult(response);
+            return new GetAccessTokenResult(result);
         } catch (error) {
             this.logger.error("Failed to get access token from cache.", this.correlationId);
             return GetAccessTokenResult.createWithError(error);
