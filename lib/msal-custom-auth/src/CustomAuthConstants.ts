@@ -45,4 +45,4 @@ export const DefaultCustomAuthApiCodeLength = 8;
 export const DefaultCustomAuthApiCodeResendIntervalInSec = 300; // seconds
 export const PasswordResetPollingTimeoutInMs = 300000; // milliseconds
 
-export const REFRESH_TIME_SECONDS = 3600 * 24; // 24 Hours in seconds
+export const RefreshTimeInSec = 3600 * 24; // 24 Hours in seconds

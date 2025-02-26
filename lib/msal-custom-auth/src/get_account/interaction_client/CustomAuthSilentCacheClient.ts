@@ -63,7 +63,7 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
 
     override async acquireToken(silentRequest: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         const telemetryManager = this.initializeServerTelemetryManager(PublicApiId.ACCOUNT_GET_ACCESS_TOKEN);
-        const clientConfig = await this.getCustomAuthClientConfiguration(telemetryManager, this.customAuthAuthority);
+        const clientConfig = this.getCustomAuthClientConfiguration(telemetryManager, this.customAuthAuthority);
         const silentFlowClient = new SilentFlowClient(clientConfig, this.performanceClient);
 
         this.logger.info("Starting silent flow to acquire token", this.correlationId);

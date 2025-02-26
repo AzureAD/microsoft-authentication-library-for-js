@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { REFRESH_TIME_SECONDS } from "../../CustomAuthConstants.js";
+import { RefreshTimeInSec } from "../../CustomAuthConstants.js";
 
 /**
  * Return the current time in Unix time (seconds).
@@ -17,5 +17,5 @@ export function nowSeconds(): number {
  * Return AuthorityMetadata ExpiresAt property (seconds).
  */
 export function generateAuthorityMetadataExpiresAt(): number {
-    return nowSeconds() + REFRESH_TIME_SECONDS;
+    return nowSeconds() + RefreshTimeInSec;
 }
