@@ -178,11 +178,14 @@ describe("CustomAuthAccountData", () => {
             expect(response.state?.type).toEqual(GetAccessTokenState.Completed);
             expect(response.data?.account).toEqual(mockAccount);
             expect(response.data?.idToken).toEqual(mockAuthenticationResult.idToken);
-
         });
 
         it("should return GetAccessTokenError if there is an error when aquire tokens", async () => {
-            const mockGetAccessTokenError = new GetAccessTokenError(InvalidRefreshTokenFound, "Refresh token is not found or expired.", correlationId);
+            const mockGetAccessTokenError = new GetAccessTokenError(
+                InvalidRefreshTokenFound,
+                "Refresh token is not found or expired.",
+                correlationId,
+            );
             (mockCacheClient.getAccessToken as jest.Mock).mockRejectedValue(mockGetAccessTokenError);
 
             const accountData = new CustomAuthAccountData(

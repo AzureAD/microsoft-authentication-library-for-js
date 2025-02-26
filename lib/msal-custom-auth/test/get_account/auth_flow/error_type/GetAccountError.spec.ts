@@ -28,17 +28,16 @@ describe("SignOutError", () => {
     });
 });
 
-
 describe("GetAccessTokenError", () => {
     it("should return true for isInvalidRefreshToken when error is InvalidRefreshToken", () => {
         const error = new GetCurrentAccountAccessTokenError(
-            new GetAccessTokenError(InvalidRefreshTokenFound, "Refresh token is expired or invalid."));
+            new GetAccessTokenError(InvalidRefreshTokenFound, "Refresh token is expired or invalid."),
+        );
         expect(error.isInvalidRefreshToken()).toBe(true);
     });
 
     it("should return false for isInvalidRefreshToken when error is InvalidRefreshToken", () => {
-        const error = new GetCurrentAccountAccessTokenError(
-            new GetAccessTokenError("unknown_error", "Other errors"));
+        const error = new GetCurrentAccountAccessTokenError(new GetAccessTokenError("unknown_error", "Other errors"));
         expect(error.isInvalidRefreshToken()).toBe(false);
     });
 });

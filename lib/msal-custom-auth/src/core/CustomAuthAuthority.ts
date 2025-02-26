@@ -7,7 +7,8 @@ import { Authority, AuthorityOptions, BrowserConfiguration, INetworkModule, Logg
 import { ICacheManager } from "../../../msal-common/dist/cache/interface/ICacheManager.js";
 import { CustomAuthApiEndpoint } from "./network_client/custom_auth_api/CustomAuthApiEndpoint.js";
 import { UrlUtils } from "./utils/UrlUtils.js";
-import { AuthorityMetadataEntity, CacheHelpers } from "@azure/msal-common/browser";
+import { AuthorityMetadataEntity } from "../../../msal-common/dist/cache/entities/AuthorityMetadataEntity.js";
+import { generateAuthorityMetadataExpiresAt } from "./utils/TimeUtils.js";
 
 /**
  * Authority class which can be used to create an authority object for Custom Auth features.
@@ -86,7 +87,7 @@ export class CustomAuthAuthority extends Authority {
             issuer: "",
             aliasesFromNetwork: false,
             endpointsFromNetwork: false,
-            expiresAt: CacheHelpers.generateAuthorityMetadataExpiresAt(),
+            expiresAt: generateAuthorityMetadataExpiresAt(),
             jwks_uri: "",
         };
     }
