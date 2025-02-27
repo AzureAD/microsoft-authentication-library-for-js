@@ -596,8 +596,8 @@ export class ResponseHandler {
     ): Promise<AuthenticationResult> {
         let accessToken: string = Constants.EMPTY_STRING;
         let responseScopes: Array<string> = [];
-        let expiresOn: Date | null = null;
-        let extExpiresOn: Date | undefined;
+        let expiresOn: number | null = null;
+        let extExpiresOn: number | undefined;
         let refreshOn: Date | undefined;
         let familyId: string = Constants.EMPTY_STRING;
 
@@ -632,12 +632,8 @@ export class ResponseHandler {
             responseScopes = ScopeSet.fromString(
                 cacheRecord.accessToken.target
             ).asArray();
-            expiresOn = new Date(
-                Number(cacheRecord.accessToken.expiresOn) * 1000
-            );
-            extExpiresOn = new Date(
-                Number(cacheRecord.accessToken.extendedExpiresOn) * 1000
-            );
+            expiresOn = Number(cacheRecord.accessToken.expiresOn);
+            extExpiresOn = Number(cacheRecord.accessToken.extendedExpiresOn);
             if (cacheRecord.accessToken.refreshOn) {
                 refreshOn = new Date(
                     Number(cacheRecord.accessToken.refreshOn) * 1000

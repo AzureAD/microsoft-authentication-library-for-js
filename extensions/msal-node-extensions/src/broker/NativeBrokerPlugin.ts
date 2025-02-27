@@ -568,7 +568,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             idTokenClaims: idTokenClaims,
             accessToken: accessToken,
             fromCache: fromCache,
-            expiresOn: new Date(authResult.expiresOn),
+            expiresOn: authResult.expiresOn,
             tokenType: tokenType,
             correlationId: request.correlationId,
             fromNativeBroker: true,

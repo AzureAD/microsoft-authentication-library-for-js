@@ -105,9 +105,7 @@ export class NestedAppAuthAdapter {
             throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken);
         }
 
-        const expiresOn = new Date(
-            (reqTimestamp + (response.token.expires_in || 0)) * 1000
-        );
+        const expiresOn = reqTimestamp + (response.token.expires_in || 0);
         const idTokenClaims = AuthToken.extractTokenClaims(
             response.token.id_token,
             this.crypto.base64Decode
@@ -304,13 +302,11 @@ export class NestedAppAuthAdapter {
             idTokenClaims: idTokenClaims || {},
             accessToken: accessToken.secret,
             fromCache: true,
-            expiresOn: new Date(Number(accessToken.expiresOn) * 1000),
+            expiresOn: Number(accessToken.expiresOn),
             tokenType:
                 request.authenticationScheme || AuthenticationScheme.BEARER,
             correlationId,
-            extExpiresOn: new Date(
-                Number(accessToken.extendedExpiresOn) * 1000
-            ),
+            extExpiresOn: Number(accessToken.extendedExpiresOn),
             state: request.state,
         };
 

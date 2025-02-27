@@ -15,8 +15,8 @@ import { AccountInfo } from "../account/AccountInfo.js";
  * - idTokenClaims          - MSAL-relevant ID token claims
  * - accessToken            - Access token or SSH certificate received as part of the response
  * - fromCache              - Boolean denoting whether token came from cache
- * - expiresOn              - Javascript Date object representing relative expiration of access token
- * - extExpiresOn           - Javascript Date object representing extended relative expiration of access token in case of server outage
+ * - expiresOn              - Number representing relative expiration of access token in seconds
+ * - extExpiresOn           - Number representing extended relative expiration of access token in seconds in case of server outage
  * - refreshOn              - Javascript Date object representing relative time until an access token must be refreshed
  * - state                  - Value passed in by user in request
  * - familyId               - Family ID identifier, usually only used for refresh tokens
@@ -32,9 +32,9 @@ export type AuthenticationResult = {
     idTokenClaims: object;
     accessToken: string;
     fromCache: boolean;
-    expiresOn: Date | null;
-    extExpiresOn?: Date;
-    refreshOn?: Date;
+    expiresOn: number | null;
+    extExpiresOn?: number;
+    refreshOn?: Date; // TODO: Needs to be changed too?
     tokenType: string;
     correlationId: string;
     requestId?: string;

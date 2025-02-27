@@ -1426,7 +1426,7 @@ export class BrowserCacheManager extends CacheManager {
          * AuthenticationResult returns expiresOn and extExpiresOn in milliseconds (as a Date object which is in ms)
          * We need to map these for the cache when building tokens from AuthenticationResult
          *
-         * The next MSAL VFuture should map these both to same value if possible
+         * The next MSAL VFuture should map these both to same value if possible //TODO: update note
          */
 
         const accessTokenEntity = CacheHelpers.createAccessTokenEntity(
@@ -1436,8 +1436,8 @@ export class BrowserCacheManager extends CacheManager {
             this.clientId,
             result.tenantId,
             result.scopes.join(" "),
-            result.expiresOn ? result.expiresOn.getTime() / 1000 : 0,
-            result.extExpiresOn ? result.extExpiresOn.getTime() / 1000 : 0,
+            result.expiresOn ? result.expiresOn : 0,
+            result.extExpiresOn ? result.extExpiresOn : 0,
             base64Decode,
             undefined, // refreshOn
             result.tokenType as AuthenticationScheme,
