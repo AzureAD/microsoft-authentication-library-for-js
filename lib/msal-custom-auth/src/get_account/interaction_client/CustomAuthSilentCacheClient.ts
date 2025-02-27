@@ -20,12 +20,31 @@ import { CustomAuthInteractionClientBase } from "../../core/interaction_client/C
 import { UrlUtils } from "../../core/utils/UrlUtils.js";
 
 export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase {
+    /**
+     * Get account token for current account.
+     * If forceRresh is set to false, then looks up the access token in cache first.
+     * If access token is expired or not found, then uses refresh token to get a new access token.
+     * If forceRefresh is set to true, then skips token cache lookup and fetches a new token using refresh token
+     * If no refresh token is found or expired, then throws error
+     * @param account current account
+     * @param forceRefresh if true, then skip token cache lookup and force refresh using cached refresh token
+     * @param scopes Optional, if not provided, will use default scopes from configuration (openid, profile, offline_access)
+     * @returns
+     */
+    async getAccessToken(commonSilentFlowRequest: CommonSilentFlowRequest): Promise<AuthenticationResult> {
+        try {
+            return await this.acquireToken(commonSilentFlowRequest);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     override async acquireToken(silentRequest: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         const telemetryManager = this.initializeServerTelemetryManager(PublicApiId.ACCOUNT_GET_ACCESS_TOKEN);
         const clientConfig = this.getCustomAuthClientConfiguration(telemetryManager, this.customAuthAuthority);
         const silentFlowClient = new SilentFlowClient(clientConfig, this.performanceClient);
 
-        this.logger.info("Starting silent flow to acquire token");
+        this.logger.info("Starting silent flow to acquire token", this.correlationId);
 
         const result = (await silentFlowClient.acquireToken(silentRequest)) as AuthenticationResult;
 

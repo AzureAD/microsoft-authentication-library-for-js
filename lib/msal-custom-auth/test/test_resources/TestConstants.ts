@@ -11,3 +11,41 @@ export const TestTokenResponse = {
 export const TestHomeAccountId = "5122efb1-f3a3-4a5d-b5ae-c5474ea1c7bd.d37e5645-4170-4ce0-a618-1b9008b14e58"; // fake homeAccountId
 export const TestTenantId = "d37e5645-4170-4ce0-a618-1b9008b14e58"; // fake tenantId
 export const TestUsername = "abc@test.com"; // fake username
+
+export const TestAccounDetails = {
+    homeAccountId: TestHomeAccountId,
+    environment: "spasamples.ciamlogin.com",
+    tenantId: TestTenantId,
+    username: TestUsername,
+    localAccountId: "d8dcce8-b8bc-452c-8bcc-a6eb953db459",
+    idTokenClaims: {
+        tid: TestTenantId,
+        oid: "dcb04862-f956-4301-b3fc-0fd38fa5be7f",
+        preferred_username: TestUsername,
+    },
+    name: "Test User",
+    idToken: TestTokenResponse.ID_TOKEN,
+};
+
+// mock response of POST /token endpoint when renew access token
+export const TestServerTokenResponse = {
+    status: 200,
+    token_type: "Bearer",
+    scope: "openid profile User.Read email",
+    expires_in: 3600,
+    access_token: TestTokenResponse.ACCESS_TOKEN,
+    refresh_token: TestTokenResponse.REFRESH_TOKEN,
+    id_token: TestTokenResponse.ID_TOKEN,
+    client_info: TestTokenResponse.CLIENT_INFO,
+    correlation_id: "correlation-id",
+};
+
+// // mock decoded id token claims
+export const TestIdTokenClaims = {
+    name: "unknown",
+};
+
+export const RenewedTokens = {
+    ACCESS_TOKEN: "renewed-access-token",
+    REFRESH_TOKEN: "renewed-refresh-token",
+};
