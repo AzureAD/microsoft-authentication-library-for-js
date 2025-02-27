@@ -30,7 +30,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.authService.instance.enableAccountStorageEvents(); // Optional - This will enable ACCOUNT_ADDED and ACCOUNT_REMOVED events emitted when a user logs in or out of another tab or window
 
-    // Handle redirect response
     this.authService.instance.handleRedirectPromise()
       .then((response) => {
         if (response && response.account) {

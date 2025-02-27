@@ -33,6 +33,16 @@ export class AppComponent implements OnInit, OnDestroy {
 
         await (this.authService.instance as PublicClientApplication).initialize();
 
+        this.authService.instance.handleRedirectPromise()
+        .then((response) => {
+        if (response && response.account) {
+            this.authService.instance.setActiveAccount(response.account);
+        }
+        this.setLoginDisplay();
+        })
+        .catch(error => console.error("Redirect handling error:", error));
+
+
         this.authService.instance.enableAccountStorageEvents(); // Optional - This will enable ACCOUNT_ADDED and ACCOUNT_REMOVED events emitted when a user logs in or out of another tab or window
         this.msalBroadcastService.msalSubject$
             .pipe(
