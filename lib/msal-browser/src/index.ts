@@ -87,9 +87,6 @@ export { LocalStorage } from "./cache/LocalStorage.js";
 export { SessionStorage } from "./cache/SessionStorage.js";
 export { IWindowStorage } from "./cache/IWindowStorage.js";
 
-// Request Helper
-export { initializeSilentRequest } from "./request/RequestHelpers.js";
-
 // Interaction Client
 export { StandardInteractionClient } from "./interaction_client/StandardInteractionClient.js";
 
