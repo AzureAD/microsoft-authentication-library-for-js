@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix double brokering bug: Native flow should not be triggered for cache only look up",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
