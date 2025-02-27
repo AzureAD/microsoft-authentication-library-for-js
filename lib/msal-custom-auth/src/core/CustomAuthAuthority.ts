@@ -88,7 +88,7 @@ export class CustomAuthAuthority extends Authority {
             endpointsFromNetwork: false,
             // give max value to make sure it doesn't expire,
             // as we only initiate the authority metadata entity once and it doesn't change
-            expiresAt: Number.MAX_VALUE,
+            expiresAt: Number.MAX_SAFE_INTEGER,
             jwks_uri: "",
         };
     }
