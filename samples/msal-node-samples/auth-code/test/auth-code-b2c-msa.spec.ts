@@ -10,7 +10,6 @@ import {
     setupCredentials,
     b2cMsaAccountEnterCredentials,
     RETRY_TIMES,
-    SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
     SAMPLE_HOME_URL,
     NodeCacheTestUtils,
@@ -19,6 +18,7 @@ import {
     B2cProviders,
     UserTypes,
 } from "e2e-test-utils";
+import path from "path";
 
 import { PublicClientApplication } from "@azure/msal-node";
 
@@ -46,7 +46,7 @@ describe("Auth Code B2C Tests (msa account)", () => {
     let username: string;
     let accountPwd: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/auth-code/b2c/msa-account`;
+    const screenshotFolder = path.join(__dirname, "screenshots/auth-code/b2c-msa");
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);

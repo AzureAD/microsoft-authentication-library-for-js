@@ -16,8 +16,9 @@ import {
     LabClient,
 } from "e2e-test-utils";
 import { JWT } from "jose";
+import path from "path";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screenshots/client-capabilities");
 let sampleHomeUrl = "";
 let username = "";
 let accountPwd = "";
