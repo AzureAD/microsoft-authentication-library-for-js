@@ -103,15 +103,11 @@ export class CustomAuthAccountData {
      * @param accessTokenRetrievalInputs - The inputs for retrieving the access token.
      * @returns The result of the operation.
      */
-    async getAccessToken(
-        forceRefresh: boolean = false,
-        scopes?: Array<string>,
-        username?: string,
-    ): Promise<GetAccessTokenResult> {
+    async getAccessToken(forceRefresh: boolean = false, scopes?: Array<string>): Promise<GetAccessTokenResult> {
         try {
             this.logger.info("Getting current account.", this.correlationId);
 
-            const currentAccount = this.cacheClient.getCurrentAccount(username);
+            const currentAccount = this.cacheClient.getCurrentAccount(this.account.username);
 
             if (!currentAccount) {
                 throw new NoCachedAccountFoundError(this.correlationId);

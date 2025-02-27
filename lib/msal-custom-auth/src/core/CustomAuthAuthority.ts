@@ -8,8 +8,6 @@ import { ICacheManager } from "../../../msal-common/dist/cache/interface/ICacheM
 import { CustomAuthApiEndpoint } from "./network_client/custom_auth_api/CustomAuthApiEndpoint.js";
 import { UrlUtils } from "./utils/UrlUtils.js";
 import { AuthorityMetadataEntity } from "../../../msal-common/dist/cache/entities/AuthorityMetadataEntity.js";
-import { nowSeconds } from "./utils/TimeUtils.js";
-import { RefreshTimeInSec } from "../CustomAuthConstants.js";
 
 /**
  * Authority class which can be used to create an authority object for Custom Auth features.
@@ -88,16 +86,11 @@ export class CustomAuthAuthority extends Authority {
             issuer: "",
             aliasesFromNetwork: false,
             endpointsFromNetwork: false,
-            expiresAt: this.generateAuthorityMetadataExpiresAt(),
+            // give max value to make sure it doesn't expire,
+            // as we only initiate the authority metadata entity once and it doesn't change
+            expiresAt: Number.MAX_VALUE,
             jwks_uri: "",
         };
-    }
-
-    /**
-     * Return AuthorityMetadata ExpiresAt property (seconds).
-     */
-    private generateAuthorityMetadataExpiresAt(): number {
-        return nowSeconds() + RefreshTimeInSec;
     }
 
     override getPreferredCache(): string {
