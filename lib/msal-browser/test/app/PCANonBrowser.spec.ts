@@ -4,11 +4,12 @@
 import { TEST_CONFIG } from "../utils/StringConstants";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
-import { AccountInfo, AuthenticationScheme, Logger } from "@azure/msal-common";
+import { AccountInfo, AuthenticationScheme, Logger, TimeUtils } from "@azure/msal-common";
 import {
     ID_TOKEN_CLAIMS,
     RANDOM_TEST_GUID,
     TEST_DATA_CLIENT_INFO,
+    TEST_TOKEN_LIFETIMES,
     TEST_TOKENS,
 } from "../utils/StringConstants.js";
 import {
@@ -479,7 +480,7 @@ describe("Non-browser environment", () => {
             accessToken: TEST_TOKENS.ACCESS_TOKEN,
             fromCache: false,
             correlationId: RANDOM_TEST_GUID,
-            expiresOn: new Date(Date.now() + 3600000),
+            expiresOn: TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
             account: testAccount,
             tokenType: AuthenticationScheme.BEARER,
         };

@@ -19,6 +19,7 @@ import {
     TokenClaims,
     AuthorizationCodeClient,
     AuthenticationScheme,
+    TimeUtils,
 } from "@azure/msal-common";
 import {
     createBrowserAuthError,
@@ -129,9 +130,7 @@ describe("SilentAuthCodeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowSeconds() + testServerTokenResponse.expires_in,
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };

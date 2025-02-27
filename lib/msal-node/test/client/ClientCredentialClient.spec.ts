@@ -1018,8 +1018,7 @@ describe("ClientCredentialClient unit tests", () => {
         expect(authResult.scopes).toEqual(expectedScopes);
         expect(authResult.accessToken).toEqual(accessToken);
         expect(authResult.state).toHaveLength(0);
-        const dateDiff =
-            (authResult.expiresOn!.valueOf() - Date.now().valueOf()) / 1000;
+        const dateDiff = authResult.expiresOn! - TimeUtils.nowSeconds();
         expect(dateDiff).toBeLessThanOrEqual(1900);
         expect(dateDiff).toBeGreaterThan(1700);
 

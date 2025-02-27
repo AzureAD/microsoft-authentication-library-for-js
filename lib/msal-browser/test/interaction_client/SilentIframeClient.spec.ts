@@ -16,7 +16,6 @@ import {
     TEST_STATE_VALUES,
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
-    calculateExpiresDate,
 } from "../utils/StringConstants.js";
 import {
     AccountInfo,
@@ -28,6 +27,7 @@ import {
     ProtocolUtils,
     TenantProfile,
     Authority,
+    TimeUtils,
 } from "@azure/msal-common";
 import {
     createBrowserAuthError,
@@ -138,9 +138,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowSeconds() + testServerTokenResponse.expires_in,
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -291,9 +289,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowSeconds() + testServerTokenResponse.expires_in,
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -360,9 +356,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowSeconds() + testServerTokenResponse.expires_in,
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -471,9 +465,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowSeconds() + testServerTokenResponse.expires_in,
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -573,9 +565,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowSeconds() + testServerTokenResponse.expires_in,
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -710,13 +700,8 @@ describe("SilentIframeClient", () => {
                 fromNativeBroker: false,
                 code: undefined,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                expiresOn: calculateExpiresDate(
-                    testServerTokenResponse.expires_in
-                ),
-                extExpiresOn: calculateExpiresDate(
-                    testServerTokenResponse.expires_in +
-                        testServerTokenResponse.ext_expires_in
-                ),
+                expiresOn: TimeUtils.nowSeconds() + testServerTokenResponse.expires_in,
+                extExpiresOn: TimeUtils.nowSeconds() + testServerTokenResponse.expires_in + testServerTokenResponse.ext_expires_in,
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
                 refreshOn: undefined,
@@ -878,9 +863,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowSeconds() + testServerTokenResponse.expires_in,
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -981,9 +964,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowSeconds() + testServerTokenResponse.expires_in,
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -1091,9 +1072,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowSeconds() + testServerTokenResponse.expires_in,
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };

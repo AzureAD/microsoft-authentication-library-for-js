@@ -37,6 +37,7 @@ import { TokenClaims } from "../../src/account/TokenClaims.js";
 import { ServerError } from "../../src/error/ServerError.js";
 import { CommonAuthorizationCodeRequest } from "../../src/request/CommonAuthorizationCodeRequest.js";
 import * as AuthToken from "../../src/account/AuthToken.js";
+import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import {
     ClientAuthErrorCodes,
     createClientAuthError,
@@ -2167,8 +2168,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             // @ts-ignore
             expect(
-                Date.now() + AUTHENTICATION_RESULT.body.expires_in * 1000 >=
-                    authenticationResult.expiresOn.getMilliseconds()
+                TimeUtils.nowSeconds() + AUTHENTICATION_RESULT.body.expires_in >=
+                    authenticationResult.expiresOn
             ).toBe(true);
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
                 authCodeRequest
@@ -2348,8 +2349,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             // @ts-ignore
             expect(
-                Date.now() + AUTHENTICATION_RESULT.body.expires_in * 1000 >=
-                    authenticationResult.expiresOn.getMilliseconds()
+                TimeUtils.nowSeconds() + AUTHENTICATION_RESULT.body.expires_in >=
+                    authenticationResult.expiresOn
             ).toBe(true);
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
                 authCodeRequest
@@ -2772,9 +2773,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(authenticationResult.accessToken).toBe(signedJwt);
 
             expect(
-                Date.now() + POP_AUTHENTICATION_RESULT.body.expires_in * 1000 >=
+                TimeUtils.nowSeconds() + POP_AUTHENTICATION_RESULT.body.expires_in >=
                     // @ts-ignore
-                    authenticationResult.expiresOn.getMilliseconds()
+                    authenticationResult.expiresOn
             ).toBe(true);
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
                 authCodeRequest
@@ -2960,9 +2961,9 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             expect(authenticationResult.accessToken).toBe(signedJwt);
             expect(
-                Date.now() + POP_AUTHENTICATION_RESULT.body.expires_in * 1000 >=
+                    TimeUtils.nowSeconds() + POP_AUTHENTICATION_RESULT.body.expires_in >=
                     // @ts-ignore
-                    authenticationResult.expiresOn.getMilliseconds()
+                    authenticationResult.expiresOn
             ).toBe(true);
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
                 authCodeRequest
@@ -3367,8 +3368,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             expect(
                 authenticationResult.expiresOn &&
-                    Date.now() + AUTHENTICATION_RESULT.body.expires_in * 1000 >=
-                        authenticationResult.expiresOn.getMilliseconds()
+                    TimeUtils.nowSeconds() + AUTHENTICATION_RESULT.body.expires_in >=
+                        authenticationResult.expiresOn
             ).toBe(true);
             expect(createTokenRequestBodySpy).toHaveBeenCalledWith(
                 authCodeRequest

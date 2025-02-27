@@ -8,6 +8,7 @@ import {
     TEST_CONFIG,
     ID_TOKEN_CLAIMS,
     TEST_TOKENS,
+    TEST_TOKEN_LIFETIMES,
 } from "../utils/StringConstants.js";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient.js";
 import {
@@ -53,7 +54,7 @@ const testAccessTokenEntity: AccessTokenEntity = {
     secret: TEST_TOKENS.ACCESS_TOKEN,
     target: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
     credentialType: CredentialType.ACCESS_TOKEN,
-    expiresOn: `${TimeUtils.nowSeconds() + 3600}`,
+    expiresOn: `${TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}`,
     cachedAt: `${TimeUtils.nowSeconds()}`,
     tokenType: AuthenticationScheme.BEARER,
 };
@@ -117,9 +118,7 @@ describe("SilentCacheClient", () => {
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 fromCache: true,
                 correlationId: "testCorrelationId",
-                expiresOn: new Date(
-                    Number(testAccessTokenEntity.expiresOn) * 1000
-                ),
+                expiresOn: Number(testAccessTokenEntity.expiresOn),
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(

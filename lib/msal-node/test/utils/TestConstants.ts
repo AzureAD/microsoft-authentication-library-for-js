@@ -10,6 +10,7 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
     TenantProfile,
+    TimeUtils,
 } from "@azure/msal-common";
 
 export const TEST_CONSTANTS = {
@@ -271,7 +272,7 @@ export const mockAuthenticationResult: AuthenticationResult = {
     idTokenClaims: ID_TOKEN_CLAIMS,
     accessToken: TEST_CONSTANTS.ACCESS_TOKEN,
     fromCache: false,
-    expiresOn: new Date(),
+    expiresOn: TimeUtils.nowSeconds(),
     tokenType: "BEARER",
     correlationId: "test-correlationId",
 };

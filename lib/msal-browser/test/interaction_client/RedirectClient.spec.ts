@@ -50,6 +50,7 @@ import {
     CredentialType,
     InProgressPerformanceEvent,
     StubPerformanceClient,
+    TimeUtils,
 } from "@azure/msal-common";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
@@ -511,9 +512,7 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowSeconds() + testServerTokenResponse.body.expires_in,
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -550,8 +549,8 @@ describe("RedirectClient", () => {
             expect(
                 tokenResponse?.expiresOn &&
                     testTokenResponse.expiresOn &&
-                    testTokenResponse.expiresOn.getMilliseconds() >=
-                        tokenResponse.expiresOn.getMilliseconds()
+                    testTokenResponse.expiresOn >=
+                        tokenResponse.expiresOn
             ).toBeTruthy();
         });
 
@@ -673,9 +672,7 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowSeconds() + testServerTokenResponse.body.expires_in,
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -712,8 +709,8 @@ describe("RedirectClient", () => {
             expect(
                 tokenResponse?.expiresOn &&
                     testTokenResponse.expiresOn &&
-                    testTokenResponse.expiresOn.getMilliseconds() >=
-                        tokenResponse.expiresOn.getMilliseconds()
+                    testTokenResponse.expiresOn >=
+                        tokenResponse.expiresOn
             ).toBeTruthy();
         });
 
@@ -990,9 +987,7 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowSeconds() + testServerTokenResponse.body.expires_in,
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -1060,8 +1055,8 @@ describe("RedirectClient", () => {
             expect(
                 testTokenResponse.expiresOn &&
                     tokenResponse?.expiresOn &&
-                    testTokenResponse.expiresOn.getMilliseconds() >=
-                        tokenResponse.expiresOn.getMilliseconds()
+                    testTokenResponse.expiresOn >=
+                        tokenResponse.expiresOn
             ).toBeTruthy();
             expect(window.location.hash).toBe("");
         });
@@ -1140,9 +1135,7 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token!,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in! * 1000
-                ),
+                expiresOn: TimeUtils.nowSeconds() + testServerTokenResponse.body.expires_in!,
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -1226,8 +1219,8 @@ describe("RedirectClient", () => {
                 testTokenResponse.accessToken
             );
             expect(
-                testTokenResponse.expiresOn!.getMilliseconds() >=
-                    tokenResponse.expiresOn!.getMilliseconds()
+                testTokenResponse.expiresOn! >=
+                    tokenResponse.expiresOn!
             ).toBeTruthy();
             expect(window.location.hash).toBe("");
         });
@@ -1305,9 +1298,7 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowSeconds() + testServerTokenResponse.body.expires_in,
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -1375,8 +1366,8 @@ describe("RedirectClient", () => {
             expect(
                 testTokenResponse.expiresOn &&
                     tokenResponse?.expiresOn &&
-                    testTokenResponse.expiresOn.getMilliseconds() >=
-                        tokenResponse.expiresOn.getMilliseconds()
+                    testTokenResponse.expiresOn >=
+                        tokenResponse.expiresOn
             ).toBeTruthy();
             expect(window.location.hash).toBe("");
         });

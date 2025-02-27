@@ -12,6 +12,7 @@ import {
     ICrypto,
     LogLevel,
     Logger,
+    TimeUtils,
     createClientAuthError,
 } from "@azure/msal-common";
 import {
@@ -29,6 +30,7 @@ import {
     RANDOM_TEST_GUID,
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
+    TEST_TOKEN_LIFETIMES,
     TEST_TOKENS,
 } from "../utils/StringConstants.js";
 import { IBridgeProxy } from "../../src/naa/IBridgeProxy.js";
@@ -157,7 +159,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(Date.now() + 3600000),
+                expiresOn: TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
                 state: "test-state",
