@@ -10,8 +10,6 @@ import {
     AccountInfo,
     AuthenticationScheme,
     CommonSilentFlowRequest,
-    InteractionRequiredAuthError,
-    InteractionRequiredAuthErrorCodes,
     Logger,
     SilentRequest,
     TokenClaims,

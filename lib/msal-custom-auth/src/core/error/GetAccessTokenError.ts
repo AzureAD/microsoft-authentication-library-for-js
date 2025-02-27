@@ -12,5 +12,4 @@ export class GetAccessTokenError extends CustomAuthError {
     }
 }
 
-export const InvalidScopes = "invalid_scopes";
 export const GetAccessTokenFailed = "get_access_token_failed";

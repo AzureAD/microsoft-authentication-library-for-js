@@ -40,24 +40,9 @@ export const TestServerTokenResponse = {
     correlation_id: "correlation-id",
 };
 
-// mock decoded id token claims
+// // mock decoded id token claims
 export const TestIdTokenClaims = {
-    aud: "8d9c7635-0933-4b97-b2ad-7c53d91df5da",
-    iss: "https://d37e5645-4170-4ce0-a618-1b9008b14e58.ciamlogin.com/d37e5645-4170-4ce0-a618-1b9008b14e58/v2.0",
-    iat: 1740049288,
-    nbf: 1740049288,
-    exp: 1740053188,
-    aio: "AWQAm/8ZAAAA3ZaBgfZDahhT8eZu8SS8mPqqzTHn99B0H2iTksoeofmoi122kfoisjfegDETU1Rs74NCT09TyEVZ34ssMVufhqCMTXb1gMIKHPTtAv2UAkjujFnd+ZdO",
-    idp: "mail",
     name: "unknown",
-    oid: "d8dccee8-b8bc-452c-8bcc-a6eb953db459",
-    preferred_username: "abc@test.com",
-    rh: "1.Ac8AzXS5HsUNpsfewfekCfaJSxn1U1xUBLxsfewfsfePAI7PAA.",
-    sid: "dcb04862-f956-4301-b3fc-0fd38fa5be7f",
-    sub: "bHyVUdPsfsafsdfeMzL7a3RXvIUlbeIUYAZ12o",
-    tid: "d37e5645-4170-4ce0-a618-1b9008b14e58",
-    uti: "YX1ODFJ_sefuEmHZdfhueJDDBlQDAA",
-    ver: "2.0",
 };
 
 export const RenewedTokens = {
