@@ -5760,6 +5760,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const silentIframeSpy = jest
                     .spyOn(SilentIframeClient.prototype, "acquireToken")
                     .mockImplementation();
+                const nativeRequestSpy = jest
+                    .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                    .mockImplementation();
+                const isPlatformBrokerAvailableSpy = jest
+                    .spyOn(NativeMessageHandler, "isPlatformBrokerAvailable")
+                    .mockReturnValue(true);
+                testAccount.nativeAccountId = "nativeAccountId";
 
                 await expect(
                     pca.acquireTokenSilent({
@@ -5769,6 +5776,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     })
                 ).rejects.toThrow(refreshRequiredCacheError);
                 expect(silentCacheSpy).toHaveBeenCalledTimes(1);
+                expect(nativeRequestSpy).toHaveBeenCalledTimes(0);
                 expect(silentRefreshSpy).toHaveBeenCalledTimes(0);
                 expect(silentIframeSpy).toHaveBeenCalledTimes(0);
             });

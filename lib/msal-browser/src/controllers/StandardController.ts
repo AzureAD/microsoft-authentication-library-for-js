@@ -2223,7 +2223,9 @@ export class StandardController implements IController {
         silentRequest: CommonSilentFlowRequest,
         cacheLookupPolicy: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
+        // if the cache policy is set to access_token only, we should not be hitting the native layer yet
         if (
+            cacheLookupPolicy !== CacheLookupPolicy.AccessToken &&
             NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
                 this.logger,
@@ -2257,6 +2259,12 @@ export class StandardController implements IController {
             this.logger.verbose(
                 "acquireTokenSilent - attempting to acquire token from web flow"
             );
+            // add logs to identify embedded cache retrieval
+            if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
+                this.logger.verbose(
+                    "acquireTokenSilent - cache lookup policy set to AccessToken, attempting to acquire token from local cache"
+                );
+            }
             return invokeAsync(
                 this.acquireTokenFromCache.bind(this),
                 PerformanceEvents.AcquireTokenFromCache,
@@ -2266,6 +2274,9 @@ export class StandardController implements IController {
             )(silentRequest, cacheLookupPolicy).catch(
                 (cacheError: AuthError) => {
                     if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
+                        this.logger.verbose(
+                            "Failed to retrieve token from cache"
+                        );
                         throw cacheError;
                     }
 
