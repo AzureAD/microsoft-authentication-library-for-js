@@ -599,7 +599,7 @@ if (process.platform === "win32") {
                 const testAuthenticationResult = {
                     ...runtimeTestAuthenticationResult,
                     expiresOn: new Date((Date.now() + 3600) / 1000),
-                }
+                };
                 jest.spyOn(
                     msalNodeRuntime,
                     "SignInSilentlyAsync"
