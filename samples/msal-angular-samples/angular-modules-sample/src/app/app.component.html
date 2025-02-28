@@ -3,7 +3,7 @@
 
   <div class="toolbar-spacer"></div>
 
-  <a mat-button (click)="loginRedirect()">Profile</a>
+  <a mat-button [routerLink]="['profile']">Profile</a>
 
   <button mat-raised-button [matMenuTriggerFor]="loginMenu" *ngIf="!loginDisplay">Login</button>
   <mat-menu #loginMenu="matMenu">
