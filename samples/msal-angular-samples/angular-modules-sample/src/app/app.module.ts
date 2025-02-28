@@ -31,7 +31,7 @@ import {
   MSAL_INSTANCE,
   MSAL_INTERCEPTOR_CONFIG,
   MsalGuardConfiguration,
-  MsalRedirectComponent,
+  // MsalRedirectComponent,
 } from '@azure/msal-angular';
 import { FailedComponent } from './failed/failed.component';
 import { environment } from 'src/environments/environment';
@@ -102,7 +102,7 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
     MatMenuModule,
     HttpClientModule,
     MsalModule,
-    MsalRedirectComponent,
+    // MsalRedirectComponent,
   ],
   providers: [
     {
