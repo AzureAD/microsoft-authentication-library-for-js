@@ -20,53 +20,57 @@ This is a [Next.js](https://nextjs.org) project that demonstrates custom authent
 
 ## Features
 
-- Modern Next.js 14 App Router structure
-- Type-safe development with TypeScript
-- Responsive navigation with authentication routes
-- Styled using CSS Modules and global styles
-- Built-in font optimization with [Geist](https://vercel.com/font)
+-   Modern Next.js 14 App Router structure
+-   Type-safe development with TypeScript
+-   Responsive navigation with authentication routes
+-   Styled using CSS Modules and global styles
+-   Built-in font optimization with [Geist](https://vercel.com/font)
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 20.x or later
-- npm 10.x or later
+-   Node.js 20.x or later
+-   npm 10.x or later
+-   yarn 4.6 or later
 
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd samples/msal-custom-auth-samples/react-sample-nextjs
 ```
 
 2. Install dependencies:
+
 ```bash
-npm install
+yarn install
 ```
 
 3. Start the development server:
+
 ```bash
-npm run dev
+yarn dev
 ```
 
 4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
 
 ## Development
 
-- `src/app/page.tsx` - The main landing page
-- `src/app/layout.tsx` - The root layout containing the navigation
-- Authentication routes:
-  - `src/app/sign-in/page.tsx` - Sign-in page
-  - `src/app/sign-up/page.tsx` - Sign-up page
-  - `src/app/reset-password/page.tsx` - Password reset page
+-   `src/app/page.tsx` - The main landing page
+-   `src/app/layout.tsx` - The root layout containing the navigation
+-   Authentication routes:
+    -   `src/app/sign-in/page.tsx` - Sign-in page
+    -   `src/app/sign-up/page.tsx` - Sign-up page
+    -   `src/app/reset-password/page.tsx` - Password reset page
 
 ## Learn More
 
-- [Next.js Documentation](https://nextjs.org/docs) - Next.js features and API
-- [MSAL.js Documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js) - Microsoft Authentication Library for JavaScript
-- [TypeScript Documentation](https://www.typescriptlang.org/docs/) - Learn about TypeScript
+-   [Next.js Documentation](https://nextjs.org/docs) - Next.js features and API
+-   [MSAL.js Documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js) - Microsoft Authentication Library for JavaScript
+-   [TypeScript Documentation](https://www.typescriptlang.org/docs/) - Learn about TypeScript
 
 ## Contributing
 
