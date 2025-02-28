@@ -24,28 +24,22 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> { 
+    this.authService.handleRedirectObservable().subscribe();
+    
     this.isIframe = window !== window.parent && !window.opener; // Remove this line to use Angular Universal
 
-    await (this.authService.instance as PublicClientApplication).initialize();
-
     this.authService.instance.enableAccountStorageEvents(); // Optional - This will enable ACCOUNT_ADDED and ACCOUNT_REMOVED events emitted when a user logs in or out of another tab or window
-
-    this.authService.instance.handleRedirectPromise()
-      .then((response) => {
-        if (response && response.account) {
-          this.authService.instance.setActiveAccount(response.account);
-        }
-        this.setLoginDisplay();
-      })
-      .catch(error => console.error("Redirect handling error:", error));
-
     this.msalBroadcastService.msalSubject$
       .pipe(
-        filter((msg: EventMessage) => msg.eventType === EventType.ACCOUNT_ADDED || msg.eventType === EventType.ACCOUNT_REMOVED),
+        filter(
+          (msg: EventMessage) =>
+            msg.eventType === EventType.ACCOUNT_ADDED ||
+            msg.eventType === EventType.ACCOUNT_REMOVED
+        )
       )
       .subscribe((result: EventMessage) => {
         if (this.authService.instance.getAllAccounts().length === 0) {
-          window.location.pathname = "/";
+          window.location.pathname = '/';
         } else {
           this.setLoginDisplay();
         }
@@ -53,7 +47,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.msalBroadcastService.inProgress$
       .pipe(
-        filter((status: InteractionStatus) => status === InteractionStatus.None),
+        filter(
+          (status: InteractionStatus) => status === InteractionStatus.None
+        ),
         takeUntil(this._destroying$)
       )
       .subscribe(() => {
