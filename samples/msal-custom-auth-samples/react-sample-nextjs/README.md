@@ -39,7 +39,7 @@ This is a [Next.js](https://nextjs.org) project that demonstrates custom authent
 1. Clone the repository:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/AzureAD/microsoft-authentication-library-for-js
 cd samples/msal-custom-auth-samples/react-sample-nextjs
 ```
 
