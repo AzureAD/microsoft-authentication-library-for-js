@@ -15,7 +15,6 @@ import { MsalService } from "./msal.service";
 @Component({
   selector: "app-redirect",
   template: "",
-  standalone: true,
 })
 export class MsalRedirectComponent implements OnInit {
   constructor(private authService: MsalService) {}

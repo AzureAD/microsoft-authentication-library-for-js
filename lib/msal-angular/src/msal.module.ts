@@ -19,7 +19,8 @@ import {
 } from "./constants";
 
 @NgModule({
-  imports: [CommonModule, MsalRedirectComponent],
+  declarations: [MsalRedirectComponent],
+  imports: [CommonModule],
   providers: [MsalGuard, MsalBroadcastService],
 })
 export class MsalModule {

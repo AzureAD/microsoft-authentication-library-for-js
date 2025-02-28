@@ -24,10 +24,8 @@ function initializeMsal() {
   TestBed.resetTestingModule();
 
   TestBed.configureTestingModule({
-    imports: [
-      MsalModule.forRoot(MSALInstanceFactory(), null, null),
-      MsalRedirectComponent,
-    ],
+    declarations: [MsalRedirectComponent],
+    imports: [MsalModule.forRoot(MSALInstanceFactory(), null, null)],
     providers: [],
   });
 
