@@ -17,7 +17,7 @@ export class SignOutError extends AuthFlowErrorBase {
     }
 }
 
-export class GetAccessTokenError extends AuthFlowErrorBase {
+export class GetCurrentAccountAccessTokenError extends AuthFlowErrorBase {
     isCurrentAccountNotFound(): boolean {
         return this.isNoCachedAccountFoundError();
     }

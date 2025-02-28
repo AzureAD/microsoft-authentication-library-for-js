@@ -6,10 +6,19 @@
 import { CustomAuthBrowserConfiguration } from "../../configuration/CustomAuthConfiguration.js";
 import { SignOutResult } from "./result/SignOutResult.js";
 import { GetAccessTokenResult } from "./result/GetAccessTokenResult.js";
-import { AccountInfo, Logger, TokenClaims } from "@azure/msal-browser";
+import {
+    AccountInfo,
+    AuthenticationScheme,
+    CommonSilentFlowRequest,
+    Logger,
+    SilentRequest,
+    TokenClaims,
+} from "@azure/msal-browser";
 import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
 import { CustomAuthSilentCacheClient } from "../interaction_client/CustomAuthSilentCacheClient.js";
 import { NoCachedAccountFoundError } from "../../core/error/GetCurrentAccountError.js";
+import { DefaultScopes } from "../../CustomAuthConstants.js";
+import { GetAccessTokenError, GetAccessTokenFailed } from "../../core/error/GetAccessTokenError.js";
 
 /*
  * Account information.
@@ -30,8 +39,9 @@ export class CustomAuthAccountData {
     ) {
         ArgumentValidator.ensureArgumentIsNotEmptyString("correlationId", correlationId);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("account", account, correlationId);
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("cacheClient", cacheClient, correlationId);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("config", config, correlationId);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("cacheClient", cacheClient, correlationId);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("logger", logger, correlationId);
     }
 
     /*
@@ -94,9 +104,55 @@ export class CustomAuthAccountData {
      * @returns The result of the operation.
      */
     async getAccessToken(forceRefresh: boolean = false, scopes?: Array<string>): Promise<GetAccessTokenResult> {
-        // Double check whether the scope should be retrieved from cache if not provided
+        try {
+            this.logger.info("Getting current account.", this.correlationId);
 
-        throw new Error(`Method not implemented with forceRefresh '${forceRefresh}' and scopes '${scopes}'`);
+            const currentAccount = this.cacheClient.getCurrentAccount(this.account.username);
+
+            if (!currentAccount) {
+                throw new NoCachedAccountFoundError(this.correlationId);
+            }
+
+            this.logger.info("Getting access token.", this.correlationId);
+
+            const newScopes = scopes ? scopes : [...DefaultScopes];
+            const commonSilentFlowRequest = this.createCommonSilentFlowRequest(currentAccount, forceRefresh, newScopes);
+            const result = await this.cacheClient.getAccessToken(commonSilentFlowRequest);
+
+            this.logger.info("Successfully got access token from cache.", this.correlationId);
+
+            return new GetAccessTokenResult(result);
+        } catch (error) {
+            this.logger.error("Failed to get access token from cache.", this.correlationId);
+
+            return GetAccessTokenResult.createWithError(
+                new GetAccessTokenError(GetAccessTokenFailed, "Get access token failed.", this.correlationId),
+            );
+        }
+    }
+
+    private createCommonSilentFlowRequest(
+        accountInfo: AccountInfo,
+        forceRefresh: boolean = false,
+        requestScopes: Array<string>,
+    ): CommonSilentFlowRequest {
+        const silentRequest: SilentRequest = {
+            authority: this.config.auth.authority,
+            correlationId: this.correlationId,
+            scopes: requestScopes || [],
+            account: accountInfo,
+            forceRefresh: forceRefresh || false,
+            storeInCache: {
+                idToken: true,
+                accessToken: true,
+                refreshToken: true,
+            },
+        };
+
+        return {
+            ...silentRequest,
+            authenticationScheme: AuthenticationScheme.BEARER,
+        } as CommonSilentFlowRequest;
     }
 }
 
