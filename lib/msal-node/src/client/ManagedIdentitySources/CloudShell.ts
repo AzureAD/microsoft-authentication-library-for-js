@@ -10,6 +10,9 @@ import { NodeStorage } from "../../cache/NodeStorage.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import {
     HttpMethod,
+    MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON,
+    MANAGED_IDENTITY_MAX_RETRIES,
+    MANAGED_IDENTITY_RETRY_DELAY,
     METADATA_HEADER_NAME,
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentityIdType,
@@ -21,6 +24,8 @@ import {
     createManagedIdentityError,
 } from "../../error/ManagedIdentityError.js";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
+import { LinearRetryPolicy } from "../../retry/LinearRetryPolicy.js";
+import { HttpClientWithRetries } from "../../network/HttpClientWithRetries.js";
 
 /**
  * Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/CloudShellManagedIdentitySource.cs
@@ -33,9 +38,23 @@ export class CloudShell extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         msiEndpoint: string
     ) {
-        super(logger, nodeStorage, networkClient, cryptoProvider);
+        let networkClientHelper: INetworkModule = networkClient;
+        if (!disableInternalRetries) {
+            const linearRetryPolicy: LinearRetryPolicy = new LinearRetryPolicy(
+                MANAGED_IDENTITY_MAX_RETRIES,
+                MANAGED_IDENTITY_RETRY_DELAY,
+                MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON
+            );
+            networkClientHelper = new HttpClientWithRetries(
+                networkClient,
+                linearRetryPolicy
+            );
+        }
+
+        super(logger, nodeStorage, networkClientHelper, cryptoProvider);
 
         this.msiEndpoint = msiEndpoint;
     }
@@ -52,6 +71,7 @@ export class CloudShell extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         managedIdentityId: ManagedIdentityId
     ): CloudShell | null {
         const [msiEndpoint] = CloudShell.getEnvironmentVariables();
@@ -89,6 +109,7 @@ export class CloudShell extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
+            disableInternalRetries,
             msiEndpoint
         );
     }

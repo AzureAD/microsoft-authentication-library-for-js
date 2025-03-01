@@ -11,6 +11,9 @@ import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import {
     API_VERSION_QUERY_PARAMETER_NAME,
     HttpMethod,
+    MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON,
+    MANAGED_IDENTITY_MAX_RETRIES,
+    MANAGED_IDENTITY_RETRY_DELAY,
     METADATA_HEADER_NAME,
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentityIdType,
@@ -18,6 +21,8 @@ import {
     RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
 } from "../../utils/Constants.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
+import { HttpClientWithRetries } from "../../network/HttpClientWithRetries.js";
+import { LinearRetryPolicy } from "../../retry/LinearRetryPolicy.js";
 
 // IMDS constants. Docs for IMDS are available here https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http
 const IMDS_TOKEN_PATH: string = "/metadata/identity/oauth2/token";
@@ -34,9 +39,23 @@ export class Imds extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         identityEndpoint: string
     ) {
-        super(logger, nodeStorage, networkClient, cryptoProvider);
+        let networkClientHelper: INetworkModule = networkClient;
+        if (!disableInternalRetries) {
+            const linearRetryPolicy: LinearRetryPolicy = new LinearRetryPolicy(
+                MANAGED_IDENTITY_MAX_RETRIES,
+                MANAGED_IDENTITY_RETRY_DELAY,
+                MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON
+            );
+            networkClientHelper = new HttpClientWithRetries(
+                networkClient,
+                linearRetryPolicy
+            );
+        }
+
+        super(logger, nodeStorage, networkClientHelper, cryptoProvider);
 
         this.identityEndpoint = identityEndpoint;
     }
@@ -45,7 +64,8 @@ export class Imds extends BaseManagedIdentitySource {
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
-        cryptoProvider: CryptoProvider
+        cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean
     ): Imds {
         let validatedIdentityEndpoint: string;
 
@@ -88,6 +108,7 @@ export class Imds extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
+            disableInternalRetries,
             validatedIdentityEndpoint
         );
     }

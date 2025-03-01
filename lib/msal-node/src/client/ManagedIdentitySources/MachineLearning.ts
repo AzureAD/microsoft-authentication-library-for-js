@@ -14,11 +14,16 @@ import {
     ManagedIdentityIdType,
     METADATA_HEADER_NAME,
     ML_AND_SF_SECRET_HEADER_NAME,
+    MANAGED_IDENTITY_MAX_RETRIES,
+    MANAGED_IDENTITY_RETRY_DELAY,
+    MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON,
 } from "../../utils/Constants.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
+import { LinearRetryPolicy } from "../../retry/LinearRetryPolicy.js";
+import { HttpClientWithRetries } from "../../network/HttpClientWithRetries.js";
 
 const MACHINE_LEARNING_MSI_API_VERSION: string = "2017-09-01";
 
@@ -31,10 +36,24 @@ export class MachineLearning extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         msiEndpoint: string,
         secret: string
     ) {
-        super(logger, nodeStorage, networkClient, cryptoProvider);
+        let networkClientHelper: INetworkModule = networkClient;
+        if (!disableInternalRetries) {
+            const linearRetryPolicy: LinearRetryPolicy = new LinearRetryPolicy(
+                MANAGED_IDENTITY_MAX_RETRIES,
+                MANAGED_IDENTITY_RETRY_DELAY,
+                MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON
+            );
+            networkClientHelper = new HttpClientWithRetries(
+                networkClient,
+                linearRetryPolicy
+            );
+        }
+
+        super(logger, nodeStorage, networkClientHelper, cryptoProvider);
 
         this.msiEndpoint = msiEndpoint;
         this.secret = secret;
@@ -54,7 +73,8 @@ export class MachineLearning extends BaseManagedIdentitySource {
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
-        cryptoProvider: CryptoProvider
+        cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean
     ): MachineLearning | null {
         const [msiEndpoint, secret] = MachineLearning.getEnvironmentVariables();
 
@@ -83,6 +103,7 @@ export class MachineLearning extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
+            disableInternalRetries,
             msiEndpoint,
             secret
         );

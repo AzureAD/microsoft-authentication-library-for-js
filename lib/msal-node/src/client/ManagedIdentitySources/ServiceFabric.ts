@@ -17,7 +17,12 @@ import {
     ManagedIdentitySourceNames,
     RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
     ML_AND_SF_SECRET_HEADER_NAME,
+    MANAGED_IDENTITY_MAX_RETRIES,
+    MANAGED_IDENTITY_RETRY_DELAY,
+    MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON,
 } from "../../utils/Constants.js";
+import { LinearRetryPolicy } from "../../retry/LinearRetryPolicy.js";
+import { HttpClientWithRetries } from "../../network/HttpClientWithRetries.js";
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
 const SERVICE_FABRIC_MSI_API_VERSION: string = "2019-07-01-preview";
@@ -34,10 +39,24 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         identityEndpoint: string,
         identityHeader: string
     ) {
-        super(logger, nodeStorage, networkClient, cryptoProvider);
+        let networkClientHelper: INetworkModule = networkClient;
+        if (!disableInternalRetries) {
+            const linearRetryPolicy: LinearRetryPolicy = new LinearRetryPolicy(
+                MANAGED_IDENTITY_MAX_RETRIES,
+                MANAGED_IDENTITY_RETRY_DELAY,
+                MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON
+            );
+            networkClientHelper = new HttpClientWithRetries(
+                networkClient,
+                linearRetryPolicy
+            );
+        }
+
+        super(logger, nodeStorage, networkClientHelper, cryptoProvider);
 
         this.identityEndpoint = identityEndpoint;
         this.identityHeader = identityHeader;
@@ -66,6 +85,7 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         managedIdentityId: ManagedIdentityId
     ): ServiceFabric | null {
         const [identityEndpoint, identityHeader, identityServerThumbprint] =
@@ -107,6 +127,7 @@ export class ServiceFabric extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
+            disableInternalRetries,
             identityEndpoint,
             identityHeader
         );
