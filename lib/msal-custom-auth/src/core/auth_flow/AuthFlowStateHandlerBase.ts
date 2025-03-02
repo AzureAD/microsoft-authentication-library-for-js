@@ -23,7 +23,6 @@ export abstract class AuthFlowStateHandlerBase {
         protected continuationToken?: string,
     ) {
         ArgumentValidator.ensureArgumentIsNotEmptyString("correlationId", correlationId);
-
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("logger", logger);
     }
 

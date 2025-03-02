@@ -12,7 +12,6 @@ import {
     ONE_SECOND_IN_MS,
     RETRY_TIMES,
     clickSignIn,
-    SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
     validateCacheLocation,
@@ -23,6 +22,7 @@ import {
     UserTypes,
 } from "e2e-test-utils";
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
+import path from "path";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/b2c-local.cache.json`;
@@ -52,7 +52,7 @@ describe("Silent Flow B2C Tests", () => {
     let username: string;
     let accountPwd: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/silent-flow/b2c/local-account`;
+    const screenshotFolder = path.join(__dirname, "screenshots/silent-flow/b2c-local");
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -63,7 +63,7 @@ describe("Silent Flow B2C Tests", () => {
         port = 3007;
         homeRoute = `${SAMPLE_HOME_URL}:${port}`;
 
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        createFolder(screenshotFolder);
 
         const labApiParms: LabApiQueryParams = {
             userType: UserTypes.B2C,
@@ -103,7 +103,7 @@ describe("Silent Flow B2C Tests", () => {
 
     describe("AcquireToken (local account)", () => {
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             await page.goto(homeRoute, { waitUntil: "networkidle0" });
@@ -213,7 +213,7 @@ describe("Silent Flow B2C Tests", () => {
     describe("Get All Accounts (local account)", () => {
         describe("Authenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await page.goto(homeRoute, { waitUntil: "networkidle0" });
             });
@@ -263,7 +263,7 @@ describe("Silent Flow B2C Tests", () => {
 
         describe("Unauthenticated (local account)", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await publicClientApplication.clearCache();
             });

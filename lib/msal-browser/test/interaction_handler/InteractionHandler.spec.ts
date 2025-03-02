@@ -22,7 +22,8 @@ import {
     AuthorityOptions,
     CcsCredential,
     CcsCredentialType,
-} from "@azure/msal-common";
+    StubPerformanceClient,
+} from "@azure/msal-common/browser";
 import {
     Configuration,
     buildConfiguration,
@@ -50,6 +51,7 @@ import {
     TemporaryCacheKeys,
     BrowserConstants,
 } from "../../src/utils/BrowserConstants.js";
+import { EventHandler } from "../../src/event/EventHandler.js";
 
 class TestInteractionHandler extends InteractionHandler {
     constructor(
@@ -202,7 +204,9 @@ describe("InteractionHandler.ts Unit Tests", () => {
             TEST_CONFIG.MSAL_CLIENT_ID,
             configObj.cache,
             cryptoOpts,
-            logger
+            logger,
+            new StubPerformanceClient(),
+            new EventHandler()
         );
         authorityInstance = new Authority(
             configObj.auth.authority,

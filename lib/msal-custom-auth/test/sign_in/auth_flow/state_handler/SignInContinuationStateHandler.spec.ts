@@ -1,5 +1,5 @@
 import { Logger } from "@azure/msal-browser";
-import { AccountInfo } from "../../../../src/account/auth_flow/model/AccountInfo.js";
+import { CustomAuthAccountData } from "../../../../src/get_account/auth_flow/CustomAuthAccountData.js";
 import { CustomAuthBrowserConfiguration } from "../../../../src/configuration/CustomAuthConfiguration.js";
 import { SignInError } from "../../../../src/sign_in/auth_flow/error_type/SignInError.js";
 import { SignInResult } from "../../../../src/sign_in/auth_flow/result/SignInResult.js";
@@ -7,6 +7,7 @@ import { SignInContinuationStateHandler } from "../../../../src/sign_in/auth_flo
 import { SignInCompletedResult } from "../../../../src/sign_in/interaction_client/result/SignInActionResult.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { SignInScenario } from "../../../../src/sign_in/auth_flow/SignInScenario.js";
+import { CustomAuthSilentCacheClient } from "../../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 describe("SignInContinuationStateHandler", () => {
     const mockConfig = {
@@ -23,6 +24,8 @@ describe("SignInContinuationStateHandler", () => {
         error: jest.fn(),
     } as unknown as jest.Mocked<Logger>;
 
+    const mockCacheClient = {} as unknown as jest.Mocked<CustomAuthSilentCacheClient>;
+
     const username = "testuser";
     const correlationId = "test-correlation-id";
     const continuationToken = "test-continuation-token";
@@ -33,6 +36,7 @@ describe("SignInContinuationStateHandler", () => {
         handler = new SignInContinuationStateHandler(
             username,
             mockSignInClient,
+            mockCacheClient,
             correlationId,
             mockLogger,
             continuationToken,
@@ -74,7 +78,7 @@ describe("SignInContinuationStateHandler", () => {
 
         expect(result).toBeDefined();
         expect(result).toBeInstanceOf(SignInResult);
-        expect(result.data).toBeInstanceOf(AccountInfo);
+        expect(result.data).toBeInstanceOf(CustomAuthAccountData);
         expect(mockSignInClient.signInWithContinuationToken).toHaveBeenCalledWith({
             clientId: "test-client-id",
             correlationId: correlationId,

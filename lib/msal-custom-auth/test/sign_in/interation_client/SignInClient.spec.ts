@@ -77,6 +77,8 @@ describe("SignInClient", () => {
         const mockCacheManager = {
             getWrapperMetadata: jest.fn(),
             getServerTelemetry: jest.fn(),
+            generateAuthorityMetadataCacheKey: jest.fn(),
+            setAuthorityMetadata: jest.fn(),
         } as unknown as jest.Mocked<BrowserCacheManager>;
         mockCacheManager.getWrapperMetadata.mockReturnValue(["", ""]);
         mockCacheManager.getServerTelemetry.mockReturnValue(null);

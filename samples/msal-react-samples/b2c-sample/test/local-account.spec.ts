@@ -46,7 +46,7 @@ describe("B2C user-flow tests (local account)", () => {
     });
 
     beforeEach(async () => {
-        context = await browser.createIncognitoBrowserContext();
+        context = await browser.createBrowserContext();
         page = await context.newPage();
         page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "localStorage");
@@ -85,7 +85,7 @@ describe("B2C user-flow tests (local account)", () => {
         );
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]");
         await screenshot.takeScreenshot(page, "Signed in with the policy");
 
         // Verify tokens are in cache
@@ -94,9 +94,7 @@ describe("B2C user-flow tests (local account)", () => {
         expect(tokenStoreBeforeEdit.accessTokens.length).toBe(1);
         expect(tokenStoreBeforeEdit.refreshTokens.length).toBe(1);
         expect(
-            await BrowserCache.getAccountFromCache(
-                tokenStoreBeforeEdit.idTokens[0]
-            )
+            await BrowserCache.getAccountFromCache()
         ).not.toBeNull();
         expect(
             await BrowserCache.accessTokenForScopesExists(
@@ -122,9 +120,9 @@ describe("B2C user-flow tests (local account)", () => {
                 `window.location.href.startsWith("http://localhost:${port}")`
             ),
             page.waitForSelector("#idTokenClaims"),
-            page.waitForXPath(
-                "//*[@id=\"interactionStatus\"]/center[contains(., 'ssoSilent success')]",
-                { timeout: 4000 }
+            page.waitForSelector(
+                "::-p-xpath(//*[@id=\"interactionStatus\"]/center[contains(., 'update success')])",
+                { timeout: 10000 }
             ),
         ]);
         const idTokenClaims = await page.$eval(
@@ -140,14 +138,10 @@ describe("B2C user-flow tests (local account)", () => {
         expect(tokenStoreAfterEdit.accessTokens.length).toBe(1);
         expect(tokenStoreAfterEdit.refreshTokens.length).toBe(2); // 1 for each policy
         expect(
-            await BrowserCache.getAccountFromCache(
-                tokenStoreAfterEdit.idTokens[0]
-            )
+            await BrowserCache.getAccountFromCache()
         ).not.toBeNull();
         expect(
-            await BrowserCache.getAccountFromCache(
-                tokenStoreAfterEdit.idTokens[1]
-            )
+            await BrowserCache.getAccountFromCache()
         ).not.toBeNull(); // new account after edit
         expect(
             await BrowserCache.accessTokenForScopesExists(

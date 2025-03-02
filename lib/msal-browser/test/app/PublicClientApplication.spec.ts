@@ -56,7 +56,8 @@ import {
     ServerResponseType,
     ServerTelemetryEntity,
     TokenClaims,
-} from "@azure/msal-common";
+    StubPerformanceClient,
+} from "@azure/msal-common/browser";
 import {
     ApiId,
     BrowserCacheLocation,
@@ -176,7 +177,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             },
             system: {
-                allowNativeBroker: false,
+                allowPlatformBroker: false,
             },
         });
 
@@ -249,7 +250,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             const concurrency = 5;
@@ -339,7 +340,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             const concurrency = 6;
@@ -425,13 +426,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }
         });
 
-        it("creates extension provider if allowNativeBroker is true", async () => {
+        it("creates extension provider if allowPlatformBroker is true", async () => {
             const config = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -451,7 +452,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
         });
 
-        it("does not create extension provider if allowNativeBroker is false", async () => {
+        it("does not create extension provider if allowPlatformBroker is false", async () => {
             const createProviderSpy = jest.spyOn(
                 NativeMessageHandler,
                 "createProvider"
@@ -461,7 +462,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                 },
             });
             await pca.initialize();
@@ -483,7 +484,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
             await pca.initialize();
@@ -523,6 +524,53 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             pca.initialize({ correlationId: "test-correlation-id" });
+        });
+
+        it("does not pre-generate PKCE codes if asyncPopups is set to false", async () => {
+            const preGenerateSpy = jest.spyOn(
+                StandardController.prototype,
+                // @ts-ignore
+                "preGeneratePkceCodes"
+            );
+
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: false,
+                },
+            });
+            await pca.initialize();
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
+            expect(preGenerateSpy).toHaveBeenCalledTimes(0);
+        });
+
+        it("pre-generates PKCE codes if asyncPopups is set to true", async () => {
+            const preGenerateSpy = jest.spyOn(
+                StandardController.prototype,
+                // @ts-ignore
+                "preGeneratePkceCodes"
+            );
+
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: false,
+                    asyncPopups: true,
+                },
+            });
+            await pca.initialize();
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
+            expect(preGenerateSpy).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -632,7 +680,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -715,7 +763,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -986,7 +1034,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                 },
             });
 
@@ -1129,7 +1177,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     },
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                 },
             });
 
@@ -1283,7 +1331,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -1335,7 +1383,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
                 telemetry: {
                     client: new BrowserPerformanceClient(testAppConfig),
@@ -1360,7 +1408,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         PerformanceEvents.InitializeClientApplication
                     ) {
                         expect(event.success).toBeTruthy();
-                        expect(event.allowNativeBroker).toBeTruthy();
+                        expect(event.allowPlatformBroker).toBeTruthy();
                         pca.removePerformanceCallback(callbackId);
                         done();
                     }
@@ -1376,7 +1424,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -1419,7 +1467,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -1466,7 +1514,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -1515,7 +1563,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -1580,7 +1628,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             browserStorage.setInteractionInProgress(true);
             await expect(
@@ -1599,13 +1649,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             const secondInstanceStorage = new BrowserCacheManager(
                 "different-client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             secondInstanceStorage.setInteractionInProgress(true);
 
@@ -1700,7 +1754,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     storeAuthStateInCookie: false,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                 },
             });
             await pca.initialize();
@@ -1790,7 +1844,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
 
@@ -2197,7 +2251,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -2260,7 +2314,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -2315,7 +2369,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -2373,7 +2427,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -2433,7 +2487,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -2501,7 +2555,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             browserStorage.setInteractionInProgress(true);
 
@@ -2520,7 +2576,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
             await expect(
@@ -2804,6 +2860,117 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
             });
         });
+
+        it("post-generates PKCE codes when asyncPopups is set to true", async () => {
+            const spyPreGeneratePkceCodes = jest.spyOn(
+                StandardController.prototype,
+                // @ts-ignore
+                "preGeneratePkceCodes"
+            );
+            const spyPopupClientAcquireToken = jest.spyOn(
+                PopupClient.prototype,
+                "acquireToken"
+            );
+
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    asyncPopups: true,
+                },
+            });
+
+            await testPca.initialize();
+            expect(spyPreGeneratePkceCodes).toHaveBeenCalledTimes(1);
+
+            // @ts-ignore
+            const preGenPkce: PkceCodes = testPca.controller.pkceCode;
+            expect(preGenPkce).toBeDefined();
+
+            const request: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["scope"],
+                loginHint: "AbeLi@microsoft.com",
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+            };
+
+            try {
+                await testPca.acquireTokenPopup(request);
+            } catch (e) {}
+
+            expect(spyPreGeneratePkceCodes).toHaveBeenCalledTimes(2);
+            expect(spyPopupClientAcquireToken).toHaveBeenCalledWith(
+                request,
+                preGenPkce
+            );
+
+            // @ts-ignore
+            const preGenPkce2: PkceCodes = testPca.controller.pkceCode;
+            expect(preGenPkce2).toBeDefined();
+            expect(preGenPkce.challenge != preGenPkce2.challenge).toBeTruthy();
+        });
+
+        it("does not post-generate PKCE codes when asyncPopups is set to false", async () => {
+            const spyPreGeneratePkceCodes = jest.spyOn(
+                StandardController.prototype,
+                // @ts-ignore
+                "preGeneratePkceCodes"
+            );
+            const spyPopupClientAcquireToken = jest.spyOn(
+                PopupClient.prototype,
+                "acquireToken"
+            );
+
+            const testPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    asyncPopups: false,
+                },
+            });
+
+            await testPca.initialize();
+            expect(spyPreGeneratePkceCodes).toHaveBeenCalledTimes(0);
+
+            // @ts-ignore
+            const preGenPkce: PkceCodes = testPca.controller.pkceCode;
+            expect(preGenPkce).toBeUndefined();
+
+            const request: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["scope"],
+                loginHint: "AbeLi@microsoft.com",
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme:
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+            };
+
+            try {
+                await testPca.acquireTokenPopup(request);
+            } catch (e) {}
+
+            expect(spyPreGeneratePkceCodes).toHaveBeenCalledTimes(0);
+            expect(spyPopupClientAcquireToken).toHaveBeenCalledWith(
+                request,
+                undefined
+            );
+
+            // @ts-ignore
+            const preGenPkce2: PkceCodes = testPca.controller.pkceCode;
+            expect(preGenPkce2).toBeUndefined();
+        });
     });
 
     describe("ssoSilent", () => {
@@ -2865,7 +3032,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -2922,7 +3089,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -2980,7 +3147,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -3271,7 +3438,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -3323,7 +3490,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -3360,7 +3527,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
             await pca.initialize();
@@ -3718,7 +3885,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
 
@@ -3768,7 +3935,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -3824,7 +3991,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -3883,7 +4050,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -4265,7 +4432,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                 },
                 cache: {
                     claimsBasedCachingEnabled: true,
@@ -4575,7 +4742,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                 },
                 cache: {
                     claimsBasedCachingEnabled: true,
@@ -5853,7 +6020,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             browserStorage.setInteractionInProgress(true);
 
@@ -5887,9 +6056,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount);
+            await pca.browserStorage.setAccount(testAccount);
             // @ts-ignore
-            pca.browserStorage.setIdTokenCredential(testIdToken);
+            await pca.browserStorage.setIdTokenCredential(testIdToken);
         });
 
         afterEach(() => {
@@ -5958,15 +6127,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount1);
+            await pca.browserStorage.setAccount(testAccount1);
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount2);
+            await pca.browserStorage.setAccount(testAccount2);
 
             // @ts-ignore
-            pca.browserStorage.setIdTokenCredential(idToken1);
+            await pca.browserStorage.setIdTokenCredential(idToken1);
 
             // @ts-ignore
-            pca.browserStorage.setIdTokenCredential(idToken2);
+            await pca.browserStorage.setIdTokenCredential(idToken2);
         });
 
         afterEach(() => {
@@ -6181,14 +6350,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = (pca as any).controller;
             await pca.initialize();
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount1);
+            await pca.browserStorage.setAccount(testAccount1);
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount2);
+            await pca.browserStorage.setAccount(testAccount2);
 
             // @ts-ignore
-            pca.browserStorage.setIdTokenCredential(idToken1);
+            await pca.browserStorage.setIdTokenCredential(idToken1);
             // @ts-ignore
-            pca.browserStorage.setIdTokenCredential(idToken2);
+            await pca.browserStorage.setIdTokenCredential(idToken2);
         });
 
         afterEach(() => {
@@ -6207,42 +6376,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const activeAccount = pca.getActiveAccount();
                 expect(activeAccount?.idTokenClaims).not.toBeUndefined();
                 expect(activeAccount).toEqual(testAccountInfo1);
-            });
-
-            it("getActiveAccount picks up legacy account id from local storage", async () => {
-                let pcaLocal = new PublicClientApplication({
-                    auth: {
-                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    },
-                    telemetry: {
-                        application: {
-                            appName: TEST_CONFIG.applicationName,
-                            appVersion: TEST_CONFIG.applicationVersion,
-                        },
-                    },
-                    cache: {
-                        cacheLocation: BrowserCacheLocation.LocalStorage,
-                    },
-                });
-                await pcaLocal.initialize();
-                expect(pcaLocal.getActiveAccount()).toBe(null);
-
-                //Implementation of PCA was moved to controller.
-                pcaLocal = (pcaLocal as any).controller;
-
-                // @ts-ignore
-                const localStorage = pcaLocal.browserStorage;
-                localStorage.setAccount(testAccount1);
-                localStorage.setIdTokenCredential(idToken1);
-                localStorage.setItem(
-                    localStorage.generateCacheKey(
-                        PersistentCacheKeys.ACTIVE_ACCOUNT
-                    ),
-                    testAccount1.localAccountId
-                );
-
-                const activeAccount = pcaLocal.getActiveAccount();
-                expect(activeAccount).not.toBeNull();
             });
 
             describe("activeAccount tests with two accounts, both with same localId", () => {
@@ -6512,7 +6645,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             };
             pca = new PublicClientApplication(config);
@@ -6569,7 +6702,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                     loggerOptions: {
                         logLevel: LogLevel.Info,
                         loggerCallback: (level, message, containsPii) => {
@@ -6615,7 +6748,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                     loggerOptions: {
                         logLevel: LogLevel.Verbose,
                         loggerCallback: (level, message, containsPii) => {
@@ -6656,7 +6789,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                     loggerOptions: {
                         logLevel: LogLevel.Info,
                         loggerCallback: (level, message, containsPii) => {
@@ -6709,7 +6842,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                     loggerOptions: {
                         logLevel: LogLevel.Info,
                         loggerCallback: (level, message, containsPii) => {
@@ -6758,7 +6891,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: false,
+                    allowPlatformBroker: false,
                     loggerOptions: {
                         logLevel: LogLevel.Verbose,
                         loggerCallback: (level, message, containsPii) => {
@@ -6810,115 +6943,104 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
-    describe("handleAccountCacheChange", () => {
+    describe("Cross tab/instance events", () => {
+        let secondBrowserStorageInstance: BrowserCacheManager;
+        const accountEntity: AccountEntity =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+        const accountInfo: AccountInfo = accountEntity.getAccountInfo();
+        let callbackId: string | null;
+
+        beforeEach(async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                cache: {
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
+            });
+            await pca.initialize();
+
+            secondBrowserStorageInstance = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                {
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                    temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
+                    storeAuthStateInCookie: false,
+                    secureCookies: true,
+                    cacheMigrationEnabled: false,
+                    claimsBasedCachingEnabled: false,
+                },
+                new CryptoOps(new Logger({})),
+                new Logger({}),
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+            await secondBrowserStorageInstance.initialize(
+                TEST_CONFIG.CORRELATION_ID
+            );
+        });
+
+        afterEach(() => {
+            if (callbackId) {
+                pca.removeEventCallback(callbackId);
+            }
+        });
+
         it("ACCOUNT_ADDED event raised when an account logs in in another tab", (done) => {
             const subscriber = (message: EventMessage) => {
                 expect(message.eventType).toEqual(EventType.ACCOUNT_ADDED);
                 expect(message.interactionType).toBeNull();
-                expect(message.payload).toEqual(accountEntity.getAccountInfo());
+                const { tenantProfiles, ...payloadAccountInfo } =
+                    message.payload as AccountInfo;
+                const messagePayload = {
+                    ...payloadAccountInfo,
+                    tenantProfiles: new Map(tenantProfiles?.entries()),
+                }; // Original map causes problems due to being a proxy object
+                expect(messagePayload).toEqual(accountInfo);
                 expect(message.error).toBeNull();
                 expect(message.timestamp).not.toBeNull();
                 done();
             };
 
-            pca.addEventCallback(subscriber);
+            callbackId = pca.addEventCallback(subscriber);
+            pca.enableAccountStorageEvents();
 
-            const accountEntity: AccountEntity =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-
-            const account: AccountInfo = accountEntity.getAccountInfo();
-
-            const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
-
-            // @ts-ignore
-            pca.controller.handleAccountCacheChange({
-                key: cacheKey1,
-                oldValue: null,
-                newValue: JSON.stringify(accountEntity),
-            });
+            secondBrowserStorageInstance.setAccount(
+                accountEntity,
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
 
         it("ACCOUNT_REMOVED event raised when an account logs out in another tab", (done) => {
             const subscriber = (message: EventMessage) => {
                 expect(message.eventType).toEqual(EventType.ACCOUNT_REMOVED);
                 expect(message.interactionType).toBeNull();
-                expect(message.payload).toEqual(account);
+                const { tenantProfiles, ...payloadAccountInfo } =
+                    message.payload as AccountInfo;
+                const messagePayload = {
+                    ...payloadAccountInfo,
+                    tenantProfiles: new Map(tenantProfiles?.entries()),
+                }; // Original map causes problems due to being a proxy object
+                expect(messagePayload).toEqual(accountInfo);
                 expect(message.error).toBeNull();
                 expect(message.timestamp).not.toBeNull();
                 done();
             };
 
-            pca.addEventCallback(subscriber);
+            callbackId = pca.addEventCallback(subscriber, [
+                EventType.ACCOUNT_REMOVED,
+            ]);
+            pca.enableAccountStorageEvents();
 
-            const accountEntity: AccountEntity =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-
-            const account: AccountInfo = accountEntity.getAccountInfo();
-
-            const cacheKey1 = AccountEntity.generateAccountCacheKey(account);
-
-            // @ts-ignore
-            pca.controller.handleAccountCacheChange({
-                key: cacheKey1,
-                oldValue: JSON.stringify(accountEntity),
-                newValue: null,
-            });
-        });
-
-        it("No event raised if cache value is not JSON", () => {
-            const subscriber = (message: EventMessage) => {};
-            pca.addEventCallback(subscriber);
-
-            const emitEventSpy = jest.spyOn(
-                EventHandler.prototype,
-                "emitEvent"
-            );
-            // @ts-ignore
-            pca.controller.handleAccountCacheChange({
-                key: "testCacheKey",
-                oldValue: "not JSON",
-                newValue: null,
-            });
-
-            expect(emitEventSpy.mock.calls.length).toBe(0);
-        });
-
-        it("No event raised if cache value is not an account", () => {
-            const subscriber = (message: EventMessage) => {};
-            pca.addEventCallback(subscriber);
-
-            const emitEventSpy = jest.spyOn(
-                EventHandler.prototype,
-                "emitEvent"
-            );
-            // @ts-ignore
-            pca.controller.handleAccountCacheChange({
-                key: "testCacheKey",
-                oldValue: JSON.stringify({
-                    testKey: "this is not an account object",
-                }),
-                newValue: null,
-            });
-
-            expect(emitEventSpy.mock.calls.length).toBe(0);
-        });
-
-        it("No event raised if both oldValue and newValue are falsey", () => {
-            const subscriber = (message: EventMessage) => {};
-            pca.addEventCallback(subscriber);
-
-            const emitEventSpy = jest.spyOn(
-                EventHandler.prototype,
-                "emitEvent"
-            );
-            // @ts-ignore
-            pca.controller.handleAccountCacheChange({
-                key: "testCacheKey",
-                oldValue: null,
-                newValue: null,
-            });
-
-            expect(emitEventSpy.mock.calls.length).toBe(0);
+            secondBrowserStorageInstance
+                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
+                .then(() => {
+                    // Ensure account is present in the cache before removing it
+                    const cacheKey =
+                        AccountEntity.generateAccountCacheKey(accountInfo);
+                    secondBrowserStorageInstance.removeAccount(cacheKey);
+                });
         });
 
         it("ACTIVE_ACCOUNT_CHANGED event raised when active account is changed in another tab", (done) => {
@@ -6933,38 +7055,63 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 done();
             };
 
-            pca.addEventCallback(subscriber);
+            callbackId = pca.addEventCallback(subscriber, [
+                EventType.ACTIVE_ACCOUNT_CHANGED,
+            ]);
+            pca.enableAccountStorageEvents();
 
-            const activeAccountEntity: AccountEntity =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-            const newActiveAccountEntity: AccountEntity =
-                buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
+            secondBrowserStorageInstance
+                .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
+                .then(() => {
+                    // Ensure account is present in the cache before setting it as active
+                    secondBrowserStorageInstance.setActiveAccount(accountInfo);
+                });
+        });
+    });
 
-            const activeAccount: AccountInfo =
-                activeAccountEntity.getAccountInfo();
-            const newActiveAccount: AccountInfo =
-                newActiveAccountEntity.getAccountInfo();
+    describe("Pre-generate PKCE tests", () => {
+        it("getPkceCodes returns undefined before preGeneratePkceCodes is called", async () => {
+            expect(
+                // @ts-ignore
+                pca.controller.getPreGeneratedPkceCodes(RANDOM_TEST_GUID)
+            ).toBeUndefined();
+        });
 
-            const previousActiveAccountFilters = {
-                homeAccountId: activeAccount.homeAccountId,
-                localAccountId: activeAccount.localAccountId,
-                tenantId: activeAccount.tenantId,
-            };
+        it("getPkceCodes returns value after preGeneratePkceCodes is called", async () => {
+            /**
+             * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
+             */
+            // @ts-ignore
+            await pca.controller.preGeneratePkceCodes(RANDOM_TEST_GUID);
 
-            const newActiveAccountFilters = {
-                homeAccountId: newActiveAccount.homeAccountId,
-                localAccountId: newActiveAccount.localAccountId,
-                tenantId: newActiveAccount.tenantId,
-            };
+            const pkce =
+                // @ts-ignore
+                pca.controller.getPreGeneratedPkceCodes(RANDOM_TEST_GUID);
+            const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
+            expect(regExp.test(pkce!.challenge)).toBe(true);
+            expect(regExp.test(pkce!.verifier)).toBe(true);
+        });
 
-            const activeAccountKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS}`;
+        it("preGeneratePkceCodes overwrites previous value", async () => {
+            /**
+             * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
+             */
+            // @ts-ignore
+            await pca.controller.preGeneratePkceCodes(RANDOM_TEST_GUID);
+            // @ts-ignore
+            const pkce1 = pca.controller.getPreGeneratedPkceCodes(
+                new StubPerformanceClient()
+            );
 
             // @ts-ignore
-            pca.controller.handleAccountCacheChange({
-                key: activeAccountKey,
-                oldValue: JSON.stringify(previousActiveAccountFilters),
-                newValue: JSON.stringify(newActiveAccountFilters),
-            });
+            await pca.controller.preGeneratePkceCodes(RANDOM_TEST_GUID);
+            const pkce2 =
+                // @ts-ignore
+                pca.controller.getPreGeneratedPkceCodes(RANDOM_TEST_GUID);
+
+            expect(pkce1?.challenge).toBeDefined();
+            expect(pkce2?.challenge).toBeDefined();
+            expect(pkce1?.challenge !== pkce2?.challenge).toBeTruthy();
         });
     });
 });

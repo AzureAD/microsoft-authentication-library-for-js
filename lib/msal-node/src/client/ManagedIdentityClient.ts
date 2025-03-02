@@ -24,6 +24,7 @@ import { ManagedIdentityId } from "../config/ManagedIdentityId.js";
 import { NodeStorage } from "../cache/NodeStorage.js";
 import { BaseManagedIdentitySource } from "./ManagedIdentitySources/BaseManagedIdentitySource.js";
 import { ManagedIdentitySourceNames } from "../utils/Constants.js";
+import { MachineLearning } from "./ManagedIdentitySources/MachineLearning.js";
 
 /*
  * Class to initialize a managed identity and identify the service.
@@ -100,6 +101,10 @@ export class ManagedIdentityClient {
                   )
                 ? ManagedIdentitySourceNames.APP_SERVICE
                 : this.allEnvironmentVariablesAreDefined(
+                      MachineLearning.getEnvironmentVariables()
+                  )
+                ? ManagedIdentitySourceNames.MACHINE_LEARNING
+                : this.allEnvironmentVariablesAreDefined(
                       CloudShell.getEnvironmentVariables()
                   )
                 ? ManagedIdentitySourceNames.CLOUD_SHELL
@@ -132,6 +137,12 @@ export class ManagedIdentityClient {
                 managedIdentityId
             ) ||
             AppService.tryCreate(
+                logger,
+                nodeStorage,
+                networkClient,
+                cryptoProvider
+            ) ||
+            MachineLearning.tryCreate(
                 logger,
                 nodeStorage,
                 networkClient,

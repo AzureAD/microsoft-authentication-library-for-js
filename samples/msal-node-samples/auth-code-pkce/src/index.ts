@@ -121,11 +121,11 @@ app.get("/redirect", (req: RequestWithPKCE, res) => {
     };
 
     pca.acquireTokenByCode(tokenRequest)
-        .then((response) => {
+        .then(() => {
             res.sendStatus(200);
         })
         .catch((error) => {
-            res.status(500).send(error);
+            res.status(500).send(error.errorMessage);
         });
 });
 

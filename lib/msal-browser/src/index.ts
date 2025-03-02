@@ -82,7 +82,6 @@ export { BrowserCacheManager } from "./cache/BrowserCacheManager.js";
 
 // Storage
 export { MemoryStorage } from "./cache/MemoryStorage.js";
-export { BrowserStorage } from "./cache/BrowserStorage.js";
 export { LocalStorage } from "./cache/LocalStorage.js";
 export { SessionStorage } from "./cache/SessionStorage.js";
 export { IWindowStorage } from "./cache/IWindowStorage.js";
@@ -124,6 +123,10 @@ export {
     AccountInfo,
     AccountEntity,
     IdTokenClaims,
+    // Client
+    SilentFlowClient,
+    // Configuration
+    ClientConfiguration,
     // Error
     AuthError,
     AuthErrorCodes,
@@ -153,6 +156,8 @@ export {
     // Server Response
     ExternalTokenResponse,
     ResponseHandler,
+    // Request
+    CommonSilentFlowRequest,
     // Utils
     StringUtils,
     UrlString,

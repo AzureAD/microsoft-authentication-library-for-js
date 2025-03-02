@@ -28,8 +28,7 @@ import {
     AccountFilter,
     buildStaticAuthorityOptions,
     InteractionRequiredAuthErrorCodes,
-    PersistentCacheKeys,
-    CacheManager,
+    PkceCodes,
 } from "@azure/msal-common/browser";
 import {
     BrowserCacheManager,
@@ -87,6 +86,7 @@ import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { initializeSilentRequest } from "../request/RequestHelpers.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
+import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 
 function getAccountType(
     account?: AccountInfo
@@ -179,8 +179,8 @@ export class StandardController implements IController {
     private ssoSilentMeasurement?: InProgressPerformanceEvent;
     private acquireTokenByCodeAsyncMeasurement?: InProgressPerformanceEvent;
 
-    // Flag which indicates if we're currently listening for account storage events
-    private listeningToStorageEvents: boolean;
+    private pkceCode: PkceCodes | undefined;
+
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -242,12 +242,15 @@ export class StandardController implements IController {
                   this.config.cache,
                   this.browserCrypto,
                   this.logger,
-                  buildStaticAuthorityOptions(this.config.auth),
-                  this.performanceClient
+                  this.performanceClient,
+                  this.eventHandler,
+                  buildStaticAuthorityOptions(this.config.auth)
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
-                  this.logger
+                  this.logger,
+                  this.performanceClient,
+                  this.eventHandler
               );
 
         // initialize in memory storage for native flows
@@ -264,8 +267,8 @@ export class StandardController implements IController {
             nativeCacheOptions,
             this.browserCrypto,
             this.logger,
-            undefined,
-            this.performanceClient
+            this.performanceClient,
+            this.eventHandler
         );
 
         // Initialize the token cache
@@ -284,11 +287,6 @@ export class StandardController implements IController {
         // Register listener functions
         this.trackPageVisibilityWithMeasurement =
             this.trackPageVisibilityWithMeasurement.bind(this);
-
-        // account storage events
-        this.listeningToStorageEvents = false;
-        this.handleAccountCacheChange =
-            this.handleAccountCacheChange.bind(this);
     }
 
     static async createController(
@@ -333,14 +331,22 @@ export class StandardController implements IController {
 
         const initCorrelationId =
             request?.correlationId || this.getRequestCorrelationId();
-        const allowNativeBroker = this.config.system.allowNativeBroker;
+        const allowPlatformBroker = this.config.system.allowPlatformBroker;
         const initMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.InitializeClientApplication,
             initCorrelationId
         );
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
 
-        if (allowNativeBroker) {
+        await invokeAsync(
+            this.browserStorage.initialize.bind(this.browserStorage),
+            PerformanceEvents.InitializeCache,
+            this.logger,
+            this.performanceClient,
+            initCorrelationId
+        )(initCorrelationId);
+
+        if (allowPlatformBroker) {
             try {
                 this.nativeExtensionProvider =
                     await NativeMessageHandler.createProvider(
@@ -369,9 +375,14 @@ export class StandardController implements IController {
             )(this.performanceClient, initCorrelationId);
         }
 
+        this.config.system.asyncPopups &&
+            (await this.preGeneratePkceCodes(initCorrelationId));
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
-        initMeasurement.end({ allowNativeBroker, success: true });
+        initMeasurement.end({
+            allowPlatformBroker: allowPlatformBroker,
+            success: true,
+        });
     }
 
     // #region Redirect Flow
@@ -431,7 +442,7 @@ export class StandardController implements IController {
             this.browserStorage.getCachedNativeRequest();
         const useNative =
             request &&
-            NativeMessageHandler.isNativeAvailable(
+            NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
                 this.logger,
                 this.nativeExtensionProvider
@@ -654,7 +665,10 @@ export class StandardController implements IController {
 
             let result: Promise<void>;
 
-            if (this.nativeExtensionProvider && this.canUseNative(request)) {
+            if (
+                this.nativeExtensionProvider &&
+                this.canUsePlatformBroker(request)
+            ) {
                 const nativeClient = new NativeInteractionClient(
                     this.config,
                     this.browserStorage,
@@ -767,8 +781,9 @@ export class StandardController implements IController {
         }
 
         let result: Promise<AuthenticationResult>;
+        const pkce = this.getPreGeneratedPkceCodes(correlationId);
 
-        if (this.canUseNative(request)) {
+        if (this.canUsePlatformBroker(request)) {
             result = this.acquireTokenNative(
                 {
                     ...request,
@@ -793,21 +808,21 @@ export class StandardController implements IController {
                         this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                         const popupClient =
                             this.createPopupClient(correlationId);
-                        return popupClient.acquireToken(request);
+                        return popupClient.acquireToken(request, pkce);
                     } else if (e instanceof InteractionRequiredAuthError) {
                         this.logger.verbose(
                             "acquireTokenPopup - Resolving interaction required error thrown by native broker by falling back to web flow"
                         );
                         const popupClient =
                             this.createPopupClient(correlationId);
-                        return popupClient.acquireToken(request);
+                        return popupClient.acquireToken(request, pkce);
                     }
                     this.browserStorage.setInteractionInProgress(false);
                     throw e;
                 });
         } else {
             const popupClient = this.createPopupClient(correlationId);
-            result = popupClient.acquireToken(request);
+            result = popupClient.acquireToken(request, pkce);
         }
 
         return result
@@ -865,7 +880,12 @@ export class StandardController implements IController {
 
                 // Since this function is syncronous we need to reject
                 return Promise.reject(e);
-            });
+            })
+            .finally(
+                () =>
+                    this.config.system.asyncPopups &&
+                    this.preGeneratePkceCodes(correlationId)
+            );
     }
 
     private trackPageVisibilityWithMeasurement(): void {
@@ -937,7 +957,7 @@ export class StandardController implements IController {
 
         let result: Promise<AuthenticationResult>;
 
-        if (this.canUseNative(validRequest)) {
+        if (this.canUsePlatformBroker(validRequest)) {
             result = this.acquireTokenNative(
                 validRequest,
                 ApiId.ssoSilent
@@ -1085,7 +1105,9 @@ export class StandardController implements IController {
                 }
                 return await response;
             } else if (request.nativeAccountId) {
-                if (this.canUseNative(request, request.nativeAccountId)) {
+                if (
+                    this.canUsePlatformBroker(request, request.nativeAccountId)
+                ) {
                     const result = await this.acquireTokenNative(
                         {
                             ...request,
@@ -1472,7 +1494,10 @@ export class StandardController implements IController {
             result.cloudGraphHostName,
             result.msGraphHost
         );
-        this.browserStorage.setAccount(accountEntity);
+        await this.browserStorage.setAccount(
+            accountEntity,
+            result.correlationId
+        );
 
         if (result.fromNativeBroker) {
             this.logger.verbose(
@@ -1522,16 +1547,16 @@ export class StandardController implements IController {
     }
 
     /**
-     * Returns boolean indicating if this request can use the native broker
+     * Returns boolean indicating if this request can use the platform broker
      * @param request
      */
-    public canUseNative(
+    public canUsePlatformBroker(
         request: RedirectRequest | PopupRequest | SsoSilentRequest,
         accountId?: string
     ): boolean {
-        this.logger.trace("canUseNative called");
+        this.logger.trace("canUsePlatformBroker called");
         if (
-            !NativeMessageHandler.isNativeAvailable(
+            !NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
                 this.logger,
                 this.nativeExtensionProvider,
@@ -1539,7 +1564,7 @@ export class StandardController implements IController {
             )
         ) {
             this.logger.trace(
-                "canUseNative: isNativeAvailable returned false, returning false"
+                "canUsePlatformBroker: isPlatformBrokerAvailable returned false, returning false"
             );
             return false;
         }
@@ -1550,12 +1575,12 @@ export class StandardController implements IController {
                 case PromptValue.CONSENT:
                 case PromptValue.LOGIN:
                     this.logger.trace(
-                        "canUseNative: prompt is compatible with native flow"
+                        "canUsePlatformBroker: prompt is compatible with platform broker flow"
                     );
                     break;
                 default:
                     this.logger.trace(
-                        `canUseNative: prompt = ${request.prompt} is not compatible with native flow, returning false`
+                        `canUsePlatformBroker: prompt = ${request.prompt} is not compatible with platform broker flow, returning false`
                     );
                     return false;
             }
@@ -1563,7 +1588,7 @@ export class StandardController implements IController {
 
         if (!accountId && !this.getNativeAccountId(request)) {
             this.logger.trace(
-                "canUseNative: nativeAccountId is not available, returning false"
+                "canUsePlatformBroker: nativeAccountId is not available, returning false"
             );
             return false;
         }
@@ -1750,91 +1775,38 @@ export class StandardController implements IController {
 
     /**
      * Adds event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
+     * @deprecated These events will be raised by default and this method will be removed in a future major version.
      */
     enableAccountStorageEvents(): void {
-        if (typeof window === "undefined") {
+        if (
+            this.config.cache.cacheLocation !==
+            BrowserCacheLocation.LocalStorage
+        ) {
+            this.logger.info(
+                "Account storage events are only available when cacheLocation is set to localStorage"
+            );
             return;
         }
 
-        if (!this.listeningToStorageEvents) {
-            this.logger.verbose("Adding account storage listener.");
-            this.listeningToStorageEvents = true;
-            window.addEventListener("storage", this.handleAccountCacheChange);
-        } else {
-            this.logger.verbose("Account storage listener already registered.");
-        }
+        this.eventHandler.subscribeCrossTab();
     }
 
     /**
      * Removes event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
+     * @deprecated These events will be raised by default and this method will be removed in a future major version.
      */
     disableAccountStorageEvents(): void {
-        if (typeof window === "undefined") {
+        if (
+            this.config.cache.cacheLocation !==
+            BrowserCacheLocation.LocalStorage
+        ) {
+            this.logger.info(
+                "Account storage events are only available when cacheLocation is set to localStorage"
+            );
             return;
         }
 
-        if (this.listeningToStorageEvents) {
-            this.logger.verbose("Removing account storage listener.");
-            window.removeEventListener(
-                "storage",
-                this.handleAccountCacheChange
-            );
-            this.listeningToStorageEvents = false;
-        } else {
-            this.logger.verbose("No account storage listener registered.");
-        }
-    }
-
-    /**
-     * Emit account added/removed events when cached accounts are changed in a different tab or frame
-     */
-    protected handleAccountCacheChange(e: StorageEvent): void {
-        try {
-            // Handle active account filter change
-            if (e.key?.includes(PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS)) {
-                // This event has no payload, it only signals cross-tab app instances that the results of calling getActiveAccount() will have changed
-                this.eventHandler.emitEvent(EventType.ACTIVE_ACCOUNT_CHANGED);
-            }
-
-            // Handle account object change
-            const cacheValue = e.newValue || e.oldValue;
-            if (!cacheValue) {
-                return;
-            }
-            const parsedValue = JSON.parse(cacheValue);
-            if (
-                typeof parsedValue !== "object" ||
-                !AccountEntity.isAccountEntity(parsedValue)
-            ) {
-                return;
-            }
-            const accountEntity = CacheManager.toObject<AccountEntity>(
-                new AccountEntity(),
-                parsedValue
-            );
-            const accountInfo = accountEntity.getAccountInfo();
-            if (!e.oldValue && e.newValue) {
-                this.logger.info(
-                    "Account was added to cache in a different window"
-                );
-                this.eventHandler.emitEvent(
-                    EventType.ACCOUNT_ADDED,
-                    undefined,
-                    accountInfo
-                );
-            } else if (!e.newValue && e.oldValue) {
-                this.logger.info(
-                    "Account was removed from cache in a different window"
-                );
-                this.eventHandler.emitEvent(
-                    EventType.ACCOUNT_REMOVED,
-                    undefined,
-                    accountInfo
-                );
-            }
-        } catch (e) {
-            return;
-        }
+        this.eventHandler.unsubscribeCrossTab();
     }
 
     /**
@@ -2252,7 +2224,7 @@ export class StandardController implements IController {
         cacheLookupPolicy: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
         if (
-            NativeMessageHandler.isNativeAvailable(
+            NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
                 this.logger,
                 this.nativeExtensionProvider,
@@ -2313,6 +2285,42 @@ export class StandardController implements IController {
                 }
             );
         }
+    }
+
+    /**
+     * Pre-generates PKCE codes and stores it in local variable
+     * @param correlationId
+     */
+    private async preGeneratePkceCodes(correlationId: string): Promise<void> {
+        this.logger.verbose("Generating new PKCE codes");
+        this.pkceCode = await invokeAsync(
+            generatePkceCodes,
+            PerformanceEvents.GeneratePkceCodes,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(this.performanceClient, this.logger, correlationId);
+        return Promise.resolve();
+    }
+
+    /**
+     * Provides pre-generated PKCE codes, if any
+     * @param correlationId
+     */
+    private getPreGeneratedPkceCodes(
+        correlationId: string
+    ): PkceCodes | undefined {
+        this.logger.verbose("Attempting to pick up pre-generated PKCE codes");
+        const res = this.pkceCode ? { ...this.pkceCode } : undefined;
+        this.pkceCode = undefined;
+        this.logger.verbose(
+            `${res ? "Found" : "Did not find"} pre-generated PKCE codes`
+        );
+        this.performanceClient.addFields(
+            { usePreGeneratedPkce: !!res },
+            correlationId
+        );
+        return res;
     }
 }
 

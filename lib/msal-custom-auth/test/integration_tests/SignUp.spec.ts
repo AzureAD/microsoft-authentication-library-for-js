@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo } from "../../src/account/auth_flow/model/AccountInfo.js";
+import { CustomAuthAccountData } from "../../src/get_account/auth_flow/CustomAuthAccountData.js";
 import { CustomAuthPublicClientApplication } from "../../src/CustomAuthPublicClientApplication.js";
 import { ICustomAuthPublicClientApplication } from "../../src/ICustomAuthPublicClientApplication.js";
 import { SignUpSubmitCodeResult } from "../../src/sign_up/auth_flow/result/SignUpSubmitCodeResult.js";
@@ -190,7 +190,7 @@ describe("Sign up", () => {
         expect(signInResult.error).toBeUndefined();
         expect(signInResult.state?.type).toStrictEqual(SignInState.Completed);
         expect(signInResult.data).toBeDefined();
-        expect(signInResult.data).toBeInstanceOf(AccountInfo);
+        expect(signInResult.data).toBeInstanceOf(CustomAuthAccountData);
         expect(signInResult.data?.getAccount()?.idToken).toStrictEqual("test-id-token");
     });
 
@@ -337,7 +337,7 @@ describe("Sign up", () => {
         expect(signInResult.error).toBeUndefined();
         expect(signInResult.state?.type).toStrictEqual(SignInState.Completed);
         expect(signInResult.data).toBeDefined();
-        expect(signInResult.data).toBeInstanceOf(AccountInfo);
+        expect(signInResult.data).toBeInstanceOf(CustomAuthAccountData);
         expect(signInResult.data?.getAccount()?.idToken).toStrictEqual("test-id-token");
     });
 
@@ -522,7 +522,7 @@ describe("Sign up", () => {
         expect(signInResult.error).toBeUndefined();
         expect(signInResult.state?.type).toStrictEqual(SignInState.Completed);
         expect(signInResult.data).toBeDefined();
-        expect(signInResult.data).toBeInstanceOf(AccountInfo);
+        expect(signInResult.data).toBeInstanceOf(CustomAuthAccountData);
         expect(signInResult.data?.getAccount()?.idToken).toStrictEqual("test-id-token");
     });
 
@@ -616,7 +616,7 @@ describe("Sign up", () => {
         expect(signInResult.error).toBeUndefined();
         expect(signInResult.state?.type).toStrictEqual(SignInState.Completed);
         expect(signInResult.data).toBeDefined();
-        expect(signInResult.data).toBeInstanceOf(AccountInfo);
+        expect(signInResult.data).toBeInstanceOf(CustomAuthAccountData);
         expect(signInResult.data?.getAccount()?.idToken).toStrictEqual("test-id-token");
     });
 

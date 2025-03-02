@@ -66,4 +66,55 @@ describe("UrlUtils", () => {
             );
         });
     });
+
+    describe("buildUrl", () => {
+        test.each([
+            [
+                "baseUrl does not end with a slash and path does not start with a slash",
+                "https://example.com",
+                "path/to/resource",
+                "https://example.com/path/to/resource",
+            ],
+            [
+                "baseUrl ends with a slash and path does not start with a slash",
+                "https://example.com/",
+                "path/to/resource",
+                "https://example.com/path/to/resource",
+            ],
+            [
+                "baseUrl does not end with a slash and path starts with a slash",
+                "https://example.com",
+                "/path/to/resource",
+                "https://example.com/path/to/resource",
+            ],
+            [
+                "baseUrl ends with a slash and path starts with a slash",
+                "https://example.com/",
+                "/path/to/resource",
+                "https://example.com/path/to/resource",
+            ],
+            ["URL with query parameters", "https://example.com", "path?query=1", "https://example.com/path?query=1"],
+            [
+                "baseUrl contains a subpath",
+                "https://example.com/sub",
+                "path/to/resource",
+                "https://example.com/sub/path/to/resource",
+            ],
+        ])("should correctly construct a URL when %s", (name, baseUrl, path, expected) => {
+            const result = UrlUtils.buildUrl(baseUrl, path);
+            expect(result.toString()).toBe(expected);
+        });
+    });
+
+    describe("IsValidUrl", () => {
+        test.each([
+            [true, "https://example.com"],
+            [true, "http://example.com"],
+            [false, "invalid-url"],
+            [false, ""],
+        ])("should return %s for URL '%s'", (expected, url) => {
+            const result = UrlUtils.IsValidUrl(url);
+            expect(result).toBe(expected);
+        });
+    });
 });

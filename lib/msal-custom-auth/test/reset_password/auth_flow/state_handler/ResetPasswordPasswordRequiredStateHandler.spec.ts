@@ -3,15 +3,13 @@ import { InvalidArgumentError } from "../../../../src/core/error/InvalidArgument
 import { ResetPasswordSubmitPasswordError } from "../../../../src/reset_password/auth_flow/error_type/ResetPasswordError.js";
 import { ResetPasswordSubmitPasswordResult } from "../../../../src/reset_password/auth_flow/result/ResetPasswordSubmitPasswordResult.js";
 import { ResetPasswordPasswordRequiredStateHandler } from "../../../../src/reset_password/auth_flow/state_handler/ResetPasswordPasswordRequiredStateHandler.js";
-import {
-    ResetPasswordCodeRequiredResult,
-    ResetPasswordCompletedResult,
-} from "../../../../src/reset_password/interaction_client/result/ResetPasswordActionResult.js";
+import { ResetPasswordCompletedResult } from "../../../../src/reset_password/interaction_client/result/ResetPasswordActionResult.js";
 import { ResetPasswordClient } from "../../../../src/reset_password/interaction_client/ResetPasswordClient.js";
 import { Logger } from "@azure/msal-browser";
 import { ResetPasswordState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { CustomAuthApiError } from "../../../../src/index.js";
+import { CustomAuthSilentCacheClient } from "../../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
 describe("ResetPasswordPasswordRequiredStateHandler", () => {
     const mockConfig = {
@@ -44,6 +42,7 @@ describe("ResetPasswordPasswordRequiredStateHandler", () => {
             mockConfig,
             mockResetPasswordClient,
             mockSignInClient,
+            {} as unknown as jest.Mocked<CustomAuthSilentCacheClient>,
             username,
         );
     });

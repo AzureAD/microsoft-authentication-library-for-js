@@ -10,7 +10,6 @@ import {
     setupCredentials,
     RETRY_TIMES,
     enterCredentials,
-    SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
     NodeCacheTestUtils,
     LabClient,
@@ -18,6 +17,7 @@ import {
     AppTypes,
     AzureEnvironments,
 } from "e2e-test-utils";
+import path from "path";
 
 import { PublicClientApplication } from "@azure/msal-node";
 
@@ -40,7 +40,7 @@ describe("Auth Code CLI AAD Prod Tests", () => {
     let username: string;
     let accountPwd: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/auth-code-cli/aad`;
+    const screenshotFolder = path.join(__dirname, "screenshots/auth-code-cli-app");
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -87,7 +87,7 @@ describe("Auth Code CLI AAD Prod Tests", () => {
         it("Performs acquire token", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/BaseCase`);
             const openBrowser = async (url: string) => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 page.setDefaultTimeout(5000);
                 page.goto(url);

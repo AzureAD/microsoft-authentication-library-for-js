@@ -10,7 +10,6 @@ import {
     setupCredentials,
     b2cLocalAccountEnterCredentials,
     RETRY_TIMES,
-    SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
     SAMPLE_HOME_URL,
     NodeCacheTestUtils,
@@ -19,6 +18,7 @@ import {
     B2cProviders,
     UserTypes,
 } from "e2e-test-utils";
+import path from "path";
 
 import { ConfidentialClientApplication } from "@azure/msal-node";
 
@@ -48,7 +48,7 @@ describe("B2C User Flow Tests", () => {
 
     let clientSecret: { secret: string; value: string };
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/user-flows/local-account`;
+    const screenshotFolder = path.join(__dirname, "screenshots/b2c-user-flows/local");
 
     beforeAll(async () => {
         createFolder(screenshotFolder);
@@ -110,7 +110,7 @@ describe("B2C User Flow Tests", () => {
         });
 
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(5000);
             page.on("dialog", async (dialog) => {
