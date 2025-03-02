@@ -8,10 +8,8 @@ import {
     BrowserCacheManager,
     BrowserConfiguration,
     ClearCacheRequest,
-    Constants,
     EndSessionRequest,
     EventHandler,
-    ICrypto,
     INavigationClient,
     IPerformanceClient,
     Logger,
@@ -20,6 +18,7 @@ import {
     SsoSilentRequest,
     StandardInteractionClient,
 } from "@azure/msal-browser";
+import { Constants, ICrypto } from "@azure/msal-common";
 import { ICustomAuthApiClient } from "../network_client/custom_auth_api/ICustomAuthApiClient.js";
 import { ArgumentValidator } from "../utils/ArgumentValidator.js";
 import { MethodNotImplementedError } from "../error/MethodNotImplementedError.js";
