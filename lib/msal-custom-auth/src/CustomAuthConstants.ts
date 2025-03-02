@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "@azure/msal-browser";
+import { Constants } from "@azure/msal-common";
 import { version } from "./packageMetadata.js";
 
 export const GrantType = {
