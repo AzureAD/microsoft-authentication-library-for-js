@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { CustomAuthPublicClientApplication } from "@azure/msal-custom-auth";
-import { SignInState } from "@azure/msal-custom-auth";
-import { AuthFlowStateHandlerFactory } from "@azure/msal-custom-auth";
+import { CustomAuthPublicClientApplication } from "../../../../../../lib/msal-custom-auth";
+import { SignInState } from "../../../../../../lib/msal-custom-auth";
 import { customAuthConfig } from "../../config/auth-config";
 
 const styles = {
@@ -94,8 +93,7 @@ export default function SignIn() {
         setLoading(true);
 
         try {
-            const handler = AuthFlowStateHandlerFactory.create(flowState);
-            const result = await handler.submitCode(code);
+            const result = await flowState.submitCode(code);
 
             if (result.error) {
                 if (result.error.isInvalidCode()) {
@@ -124,8 +122,7 @@ export default function SignIn() {
         setLoading(true);
 
         try {
-            const handler = AuthFlowStateHandlerFactory.create(flowState);
-            const result = await handler.submitPassword(password);
+            const result = await flowState.submitPassword(password);
 
             if (result.error) {
                 if (result.error.isPasswordIncorrect()) {
