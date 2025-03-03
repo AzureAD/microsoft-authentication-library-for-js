@@ -130,7 +130,7 @@ describe("CustomAuthPublicClientApplication", () => {
     describe("getCurrentAccount", () => {
         it("should call the customAuthController getCurrentAccount method with correct inputs", async () => {
             const mockGetCurrentAccountInputs = {
-                username: "testuser",
+                correlationId: "test-id",
             };
 
             const mockGetCurrentAccountResult = GetAccountResult.createWithError(new CustomAuthError("test-error"));

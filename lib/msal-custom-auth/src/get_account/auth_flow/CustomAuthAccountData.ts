@@ -18,7 +18,6 @@ import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
 import { CustomAuthSilentCacheClient } from "../interaction_client/CustomAuthSilentCacheClient.js";
 import { NoCachedAccountFoundError } from "../../core/error/GetCurrentAccountError.js";
 import { DefaultScopes } from "../../CustomAuthConstants.js";
-import { GetAccessTokenError, GetAccessTokenFailed } from "../../core/error/GetAccessTokenError.js";
 
 /*
  * Account information.
@@ -46,29 +45,28 @@ export class CustomAuthAccountData {
 
     /*
      * Signs the current user out
-     * @param signOutInputs - The inputs for signing out.
      * @returns The result of the operation.
      */
-    async signOut(username?: string): Promise<SignOutResult> {
+    async signOut(): Promise<SignOutResult> {
         try {
-            const currentAccount = this.cacheClient.getCurrentAccount(username);
+            const currentAccount = this.cacheClient.getCurrentAccount(this.correlationId);
 
             if (!currentAccount) {
                 throw new NoCachedAccountFoundError(this.correlationId);
             }
 
-            this.logger.info("Signing out user");
+            this.logger.info("Signing out user", this.correlationId);
 
             await this.cacheClient.logout({
                 correlationId: this.correlationId,
                 account: currentAccount,
             });
 
-            this.logger.info("User signed out");
+            this.logger.info("User signed out", this.correlationId);
 
             return new SignOutResult();
         } catch (error) {
-            this.logger.error(`An error occurred during sign out: ${error}`);
+            this.logger.error(`An error occurred during sign out: ${error}`, this.correlationId);
 
             return SignOutResult.createWithError(error);
         }
@@ -115,9 +113,9 @@ export class CustomAuthAccountData {
 
             this.logger.info("Getting access token.", this.correlationId);
 
-            const newScopes = scopes ? scopes : [...DefaultScopes];
+            const newScopes = scopes && scopes.length > 0 ? scopes : [...DefaultScopes];
             const commonSilentFlowRequest = this.createCommonSilentFlowRequest(currentAccount, forceRefresh, newScopes);
-            const result = await this.cacheClient.getAccessToken(commonSilentFlowRequest);
+            const result = await this.cacheClient.acquireToken(commonSilentFlowRequest);
 
             this.logger.info("Successfully got access token from cache.", this.correlationId);
 
@@ -125,9 +123,7 @@ export class CustomAuthAccountData {
         } catch (error) {
             this.logger.error("Failed to get access token from cache.", this.correlationId);
 
-            return GetAccessTokenResult.createWithError(
-                new GetAccessTokenError(GetAccessTokenFailed, "Get access token failed.", this.correlationId),
-            );
+            return GetAccessTokenResult.createWithError(error);
         }
     }
 

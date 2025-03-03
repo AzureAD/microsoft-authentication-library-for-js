@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Update package.json",
-  "packageName": "@azure/msal-common",
-  "email": "164532638+nguyencuong2596@users.noreply.github.com",
-  "dependentChangeType": "patch"
-}

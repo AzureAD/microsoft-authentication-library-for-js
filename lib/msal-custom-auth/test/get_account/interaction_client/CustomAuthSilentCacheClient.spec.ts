@@ -45,7 +45,7 @@ describe("CustomAuthSilentCacheClient", () => {
     let client: CustomAuthSilentCacheClient;
     let mockBrowserConfig: BrowserConfiguration;
     let mockCacheManager: BrowserCacheManager;
-    let browserCrypto: ICrypto;
+    let mockCrypto: ICrypto;
     let mockNetworkModule: INetworkModule;
 
     const mockNavigationClient = {
@@ -94,12 +94,8 @@ describe("CustomAuthSilentCacheClient", () => {
             telemetry: {},
         } as unknown as jest.Mocked<BrowserConfiguration>;
 
-        browserCrypto = {
-            createNewGuid: jest.fn(),
-        } as unknown as jest.Mocked<ICrypto>;
-
         const decodedStr = JSON.stringify(TestIdTokenClaims);
-        const mockCrypto = {
+        mockCrypto = {
             createNewGuid: jest.fn(),
             base64Decode: jest.fn().mockReturnValue(decodedStr),
         } as unknown as jest.Mocked<ICrypto>;
@@ -120,36 +116,21 @@ describe("CustomAuthSilentCacheClient", () => {
             errorPii: jest.fn(),
             infoPii: jest.fn(),
         } as unknown as jest.Mocked<Logger>;
+
         mockLogger.clone.mockReturnValue(mockLogger);
 
         mockCacheManager = new BrowserCacheManager(
             customAuthConfig.auth.clientId,
             mockBrowserConfig.cache,
-            browserCrypto,
+            mockCrypto,
             mockLogger,
+            mockPerformanceClient,
+            mockEventHandler,
         );
-
-        jest.spyOn(mockCacheManager, "getWrapperMetadata").mockReturnValue(["", ""]);
-        jest.spyOn(mockCacheManager, "getServerTelemetry").mockReturnValue(null);
-        mockCacheManager.getAllAccounts = jest.fn();
-        mockCacheManager.getAccountInfoFilteredBy = jest.fn();
-        mockCacheManager.getActiveAccount = jest.fn();
-        mockCacheManager.removeAccount = jest.fn();
-
-        const mockConfig = {
-            auth: {
-                protocolMode: "",
-                OIDCOptions: {},
-                knownAuthorities: [],
-                cloudDiscoveryMetadata: "",
-                authorityMetadata: "",
-                skipAuthorityMetadataCache: false,
-            },
-        } as unknown as jest.Mocked<BrowserConfiguration>;
 
         const authority = new CustomAuthAuthority(
             customAuthConfig.auth.authority ?? "",
-            mockConfig,
+            mockBrowserConfig,
             mockNetworkModule,
             mockCacheManager,
             mockLogger,
@@ -194,7 +175,7 @@ describe("CustomAuthSilentCacheClient", () => {
 
         beforeEach(() => {
             accountEntityToCache = AccountEntity.createFromAccountInfo(TestAccounDetails);
-            accessTokenEntityToCache = createAccessTokenEntity(browserCrypto);
+            accessTokenEntityToCache = createAccessTokenEntity(mockCrypto);
             refreshTokenEntityToCache = createRefreshTokenEntity();
 
             jest.spyOn(AccountEntity, "generateHomeAccountId").mockReturnValue(TestHomeAccountId);
@@ -205,13 +186,15 @@ describe("CustomAuthSilentCacheClient", () => {
         });
 
         it("should get cached access token successfully and return.", async () => {
-            saveTokensIntoCache(
+            await saveTokensIntoCache(
+                "test-correlation-id",
                 mockCacheManager,
                 accountEntityToCache,
                 accessTokenEntityToCache,
                 refreshTokenEntityToCache,
             );
-            const result = await client.getAccessToken(commonSilentFlowRequest);
+
+            const result = await client.acquireToken(commonSilentFlowRequest);
 
             expect(result).toBeDefined();
             expect(result.accessToken).toBe(accessTokenEntityToCache.secret);
@@ -221,14 +204,15 @@ describe("CustomAuthSilentCacheClient", () => {
 
         it("should refresh access token (with valid cached refresh token) when cached access token is invalid.", async () => {
             accessTokenEntityToCache.cachedAt = new Date(Date.now() - 1000).getTime().toString();
-            saveTokensIntoCache(
+            await saveTokensIntoCache(
+                "test-correlation-id",
                 mockCacheManager,
                 accountEntityToCache,
                 accessTokenEntityToCache,
                 refreshTokenEntityToCache,
             );
 
-            const result = await client.getAccessToken(commonSilentFlowRequest);
+            const result = await client.acquireToken(commonSilentFlowRequest);
 
             expect(result).toBeDefined();
             expect(result.accessToken).toBe(RenewedTokens.ACCESS_TOKEN);
@@ -243,7 +227,8 @@ describe("CustomAuthSilentCacheClient", () => {
         it("should renew token when no cached access token found (by giving unmatched scopes)", async () => {
             // result in error when fetching access token because given scopes should be subset of cached access token scopes
             const unmatchedScope = ["Mail.Read"];
-            saveTokensIntoCache(
+            await saveTokensIntoCache(
+                "test-correlation-id",
                 mockCacheManager,
                 accountEntityToCache,
                 accessTokenEntityToCache,
@@ -252,7 +237,7 @@ describe("CustomAuthSilentCacheClient", () => {
 
             commonSilentFlowRequest.scopes = unmatchedScope;
 
-            const result = await client.getAccessToken(commonSilentFlowRequest);
+            const result = await client.acquireToken(commonSilentFlowRequest);
 
             expect(result).toBeDefined();
             expect(result.accessToken).toBe(RenewedTokens.ACCESS_TOKEN);
@@ -265,7 +250,8 @@ describe("CustomAuthSilentCacheClient", () => {
         });
 
         it("should skip cache lookup and refresh access token when refreshForced is true", async () => {
-            saveTokensIntoCache(
+            await saveTokensIntoCache(
+                "test-correlation-id",
                 mockCacheManager,
                 accountEntityToCache,
                 accessTokenEntityToCache,
@@ -274,7 +260,7 @@ describe("CustomAuthSilentCacheClient", () => {
 
             commonSilentFlowRequest.forceRefresh = true;
 
-            const result = await client.getAccessToken(commonSilentFlowRequest);
+            const result = await client.acquireToken(commonSilentFlowRequest);
 
             expect(result).toBeDefined();
             expect(result.accessToken).toBe(RenewedTokens.ACCESS_TOKEN);
@@ -287,7 +273,12 @@ describe("CustomAuthSilentCacheClient", () => {
         });
 
         it("should throw error when refresh token is not found", async () => {
-            saveTokensIntoCache(mockCacheManager, accountEntityToCache, accessTokenEntityToCache);
+            await saveTokensIntoCache(
+                "test-correlation-id",
+                mockCacheManager,
+                accountEntityToCache,
+                accessTokenEntityToCache,
+            );
 
             const mockNoTokensFoundError = createInteractionRequiredAuthError(
                 InteractionRequiredAuthErrorCodes.noTokensFound,
@@ -295,12 +286,13 @@ describe("CustomAuthSilentCacheClient", () => {
 
             commonSilentFlowRequest.forceRefresh = true;
 
-            expect(client.getAccessToken(commonSilentFlowRequest)).rejects.toThrow(mockNoTokensFoundError);
+            expect(client.acquireToken(commonSilentFlowRequest)).rejects.toThrow(mockNoTokensFoundError);
         });
 
         it("should throw error when refresh token is expired", async () => {
             refreshTokenEntityToCache.expiresOn = TimeUtils.nowSeconds().toString();
-            saveTokensIntoCache(
+            await saveTokensIntoCache(
+                "test-correlation-id",
                 mockCacheManager,
                 accountEntityToCache,
                 accessTokenEntityToCache,
@@ -313,7 +305,7 @@ describe("CustomAuthSilentCacheClient", () => {
 
             commonSilentFlowRequest.forceRefresh = true;
 
-            expect(client.getAccessToken(commonSilentFlowRequest)).rejects.toThrow(mockRefreshTokenExpiredError);
+            expect(client.acquireToken(commonSilentFlowRequest)).rejects.toThrow(mockRefreshTokenExpiredError);
         });
     });
 
@@ -336,26 +328,7 @@ describe("CustomAuthSilentCacheClient", () => {
                 },
             ]);
 
-            const account = client.getCurrentAccount();
-
-            expect(account).toBeDefined();
-            expect(account?.homeAccountId).toBe("test-home-account-id");
-            expect(account?.tenantId).toBe("test-tenant-id");
-            expect(account?.username).toBe("test-username");
-            expect(account?.localAccountId).toBe("test-local-account-id");
-            expect(account?.environment).toBe("test-environment");
-        });
-
-        it("should return account from cache if valid username is provided", () => {
-            jest.spyOn(mockCacheManager, "getAccountInfoFilteredBy").mockReturnValue({
-                homeAccountId: "test-home-account-id",
-                environment: "test-environment",
-                tenantId: "test-tenant-id",
-                username: "test-username",
-                localAccountId: "test-local-account-id",
-            });
-
-            const account = client.getCurrentAccount("abc@test.com");
+            const account = client.getCurrentAccount("test-corrlation-id");
 
             expect(account).toBeDefined();
             expect(account?.homeAccountId).toBe("test-home-account-id");
@@ -368,7 +341,7 @@ describe("CustomAuthSilentCacheClient", () => {
         it("should return null if no account found", () => {
             jest.spyOn(mockCacheManager, "getAllAccounts").mockReturnValue([]);
 
-            const account = client.getCurrentAccount();
+            const account = client.getCurrentAccount("test-corrlation-id");
 
             expect(account).toBe(null);
         });
@@ -383,6 +356,8 @@ describe("CustomAuthSilentCacheClient", () => {
                 username: "test-username-2",
                 localAccountId: "test-local-account-id-2",
             });
+
+            jest.spyOn(mockCacheManager, "removeAccount");
 
             await client.logout({
                 account: {
@@ -401,19 +376,19 @@ describe("CustomAuthSilentCacheClient", () => {
 });
 
 async function saveTokensIntoCache(
-    mockCacheManager: BrowserCacheManager,
+    correlationId: string,
+    cacheManager: BrowserCacheManager,
     accountEntity?: AccountEntity,
     accessTokenEntity?: AccessTokenEntity,
     refreshTokenEntity?: RefreshTokenEntity,
 ): Promise<void> {
-    accountEntity ? mockCacheManager.setAccount(accountEntity) : null;
-    accessTokenEntity ? mockCacheManager.setAccessTokenCredential(accessTokenEntity) : null;
-    refreshTokenEntity ? mockCacheManager.setRefreshTokenCredential(refreshTokenEntity) : null;
+    accountEntity ? await cacheManager.setAccount(accountEntity, correlationId) : null;
+    accessTokenEntity ? await cacheManager.setAccessTokenCredential(accessTokenEntity, correlationId) : null;
+    refreshTokenEntity ? await cacheManager.setRefreshTokenCredential(refreshTokenEntity, correlationId) : null;
 }
 
 function createAccessTokenEntity(browserCrypto: ICrypto): AccessTokenEntity {
     const expiresOn = new Date(Date.now() + TestServerTokenResponse.expires_in * 1000).getTime();
-    browserCrypto.base64Decode = jest.fn().mockReturnValue("");
 
     return CacheHelpers.createAccessTokenEntity(
         TestHomeAccountId,
