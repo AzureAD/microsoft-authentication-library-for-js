@@ -125,6 +125,7 @@ export {
     IdTokenClaims,
     // Client
     SilentFlowClient,
+    RefreshTokenClient,
     // Configuration
     ClientConfiguration,
     // Error

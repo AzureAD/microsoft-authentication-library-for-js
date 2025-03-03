@@ -9,9 +9,7 @@ export type CustomAuthActionInputs = {
     correlationId?: string;
 };
 
-export type AccountRetrievalInputs = CustomAuthActionInputs & {
-    username?: string;
-};
+export type AccountRetrievalInputs = CustomAuthActionInputs;
 
 export type SignInInputs = CustomAuthActionInputs & {
     username: string;

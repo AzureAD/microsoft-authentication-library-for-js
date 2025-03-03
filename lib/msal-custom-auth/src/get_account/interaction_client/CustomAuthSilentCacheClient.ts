@@ -8,8 +8,11 @@ import {
     ApiId,
     AuthenticationResult,
     ClearCacheRequest,
+    ClientAuthError,
+    ClientAuthErrorCodes,
     ClientConfiguration,
     CommonSilentFlowRequest,
+    RefreshTokenClient,
     ServerTelemetryManager,
     SilentFlowClient,
 } from "@azure/msal-browser";
@@ -20,54 +23,63 @@ import { CustomAuthInteractionClientBase } from "../../core/interaction_client/C
 import { UrlUtils } from "../../core/utils/UrlUtils.js";
 
 export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase {
-    /**
-     * Get account token for current account.
-     * If forceRresh is set to false, then looks up the access token in cache first.
-     * If access token is expired or not found, then uses refresh token to get a new access token.
-     * If forceRefresh is set to true, then skips token cache lookup and fetches a new token using refresh token
-     * If no refresh token is found or expired, then throws error
-     * @param account current account
-     * @param forceRefresh if true, then skip token cache lookup and force refresh using cached refresh token
-     * @param scopes Optional, if not provided, will use default scopes from configuration (openid, profile, offline_access)
-     * @returns
-     */
-    async getAccessToken(commonSilentFlowRequest: CommonSilentFlowRequest): Promise<AuthenticationResult> {
-        try {
-            return await this.acquireToken(commonSilentFlowRequest);
-        } catch (error) {
-            throw error;
-        }
-    }
-
     override async acquireToken(silentRequest: CommonSilentFlowRequest): Promise<AuthenticationResult> {
+        /*
+         * If forceRresh is set to false, then looks up the access token in cache first.
+         *     If access token is expired or not found, then uses refresh token to get a new access token.
+         *     If no refresh token is found or expired, then throws error.
+         * If forceRefresh is set to true, then skips token cache lookup and fetches a new token using refresh token
+         *     If no refresh token is found or expired, then throws error.
+         */
         const telemetryManager = this.initializeServerTelemetryManager(PublicApiId.ACCOUNT_GET_ACCESS_TOKEN);
         const clientConfig = this.getCustomAuthClientConfiguration(telemetryManager, this.customAuthAuthority);
         const silentFlowClient = new SilentFlowClient(clientConfig, this.performanceClient);
 
-        this.logger.info("Starting silent flow to acquire token", this.correlationId);
+        try {
+            this.logger.info("Starting silent flow to acquire token from cache", this.correlationId);
 
-        const result = (await silentFlowClient.acquireToken(silentRequest)) as AuthenticationResult;
+            const result = await silentFlowClient.acquireCachedToken(silentRequest);
 
-        this.logger.info("Silent flow to acquire token completed");
+            this.logger.info(
+                "Silent flow to acquire token from cache is completed and token is found",
+                this.correlationId,
+            );
 
-        return result;
+            return result[0] as AuthenticationResult;
+        } catch (error) {
+            if (error instanceof ClientAuthError && error.errorCode === ClientAuthErrorCodes.tokenRefreshRequired) {
+                this.logger.info("Token refresh is required to acquire token silently", this.correlationId);
+
+                const refreshTokenClient = new RefreshTokenClient(clientConfig, this.performanceClient);
+
+                this.logger.info("Starting refresh flow to refresh token", this.correlationId);
+
+                const refreshTokenResult = await refreshTokenClient.acquireTokenByRefreshToken(silentRequest);
+
+                this.logger.info("Refresh flow to refresh token is completed", this.correlationId);
+
+                return refreshTokenResult as AuthenticationResult;
+            }
+
+            throw error;
+        }
     }
 
     override async logout(logoutRequest?: ClearCacheRequest): Promise<void> {
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
 
         // Clear the cache
-        this.logger.info("Start to clear the cache");
+        this.logger.info("Start to clear the cache", logoutRequest?.correlationId);
         await this.clearCacheOnLogout(validLogoutRequest?.account);
-        this.logger.info("Cache cleared");
+        this.logger.info("Cache cleared", logoutRequest?.correlationId);
 
         const postLogoutRedirectUri = this.config.auth.postLogoutRedirectUri;
 
         if (postLogoutRedirectUri) {
-            this.logger.info("Post logout redirect uri is set, redirecting to uri");
+            this.logger.info("Post logout redirect uri is set, redirecting to uri", logoutRequest?.correlationId);
 
             if (!UrlUtils.IsValidUrl(postLogoutRedirectUri)) {
-                this.logger.warning("Post logout redirect uri is not a valid url");
+                this.logger.warning("Post logout redirect uri is not a valid url", logoutRequest?.correlationId);
 
                 return;
             }
@@ -81,37 +93,28 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
         }
     }
 
-    getCurrentAccount(username?: string): AccountInfo | null {
+    getCurrentAccount(correlationId: string): AccountInfo | null {
         let account: AccountInfo | null = null;
 
-        if (!username) {
-            // No username provided, get the first account from cache.
-            this.logger.info("No username provided. Getting the first account from cache.");
+        this.logger.info("Getting the first account from cache.", correlationId);
 
-            const allAccounts = this.browserStorage.getAllAccounts();
+        const allAccounts = this.browserStorage.getAllAccounts();
 
-            if (allAccounts.length > 0) {
-                if (allAccounts.length !== 1) {
-                    this.logger.warning(
-                        "Multiple accounts found in cache. This is not supported in the Native Auth scenario.",
-                    );
-                }
-
-                account = allAccounts[0];
+        if (allAccounts.length > 0) {
+            if (allAccounts.length !== 1) {
+                this.logger.warning(
+                    "Multiple accounts found in cache. This is not supported in the Native Auth scenario.",
+                    correlationId,
+                );
             }
-        } else {
-            // Username provided, get the account by username.
-            this.logger.info("Username provided. Getting the account by username.");
 
-            account = this.browserStorage.getAccountInfoFilteredBy({
-                username,
-            });
+            account = allAccounts[0];
         }
 
         if (account) {
-            this.logger.info("Account data found.");
+            this.logger.info("Account data found.", correlationId);
         } else {
-            this.logger.info("No account data found.");
+            this.logger.info("No account data found.", correlationId);
         }
 
         return account;

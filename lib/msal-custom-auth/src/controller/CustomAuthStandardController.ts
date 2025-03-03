@@ -121,7 +121,7 @@ export class CustomAuthStandardController extends StandardController implements 
 
             this.logger.info("Getting current account data.");
 
-            const account = this.cacheClient.getCurrentAccount(accountRetrievalInputs?.username);
+            const account = this.cacheClient.getCurrentAccount(correlationId);
 
             if (account) {
                 this.logger.info("Account data found.");
@@ -157,7 +157,7 @@ export class CustomAuthStandardController extends StandardController implements 
             const correlationId = this.getCorrelationId(signInInputs);
 
             this.ensureUsernameValid("signInInputs.username", signInInputs.username, correlationId);
-            this.ensureUserNotSignedIn(signInInputs.username, correlationId);
+            this.ensureUserNotSignedIn(correlationId);
 
             // start the signin flow
             const signInStartParams: SignInStartParams = {
@@ -262,7 +262,7 @@ export class CustomAuthStandardController extends StandardController implements 
             const correlationId = this.getCorrelationId(signUpInputs);
 
             this.ensureUsernameValid("signUpInputs.username", signUpInputs.username, correlationId);
-            this.ensureUserNotSignedIn(signUpInputs.username, correlationId);
+            this.ensureUserNotSignedIn(correlationId);
 
             this.logger.info(
                 `Starting sign-up flow${
@@ -341,7 +341,7 @@ export class CustomAuthStandardController extends StandardController implements 
             const correlationId = this.getCorrelationId(resetPasswordInputs);
 
             this.ensureUsernameValid("resetPasswordInputs.username", resetPasswordInputs.username, correlationId);
-            this.ensureUserNotSignedIn(resetPasswordInputs.username, correlationId);
+            this.ensureUserNotSignedIn(correlationId);
 
             this.logger.info("Starting password-reset flow.");
 
@@ -391,9 +391,8 @@ export class CustomAuthStandardController extends StandardController implements 
         }
     }
 
-    private ensureUserNotSignedIn(username: string, correlationId: string): void {
+    private ensureUserNotSignedIn(correlationId: string): void {
         const account = this.getCurrentAccount({
-            username: username,
             correlationId: correlationId,
         });
 

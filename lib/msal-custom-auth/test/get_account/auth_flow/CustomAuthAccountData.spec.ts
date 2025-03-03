@@ -5,8 +5,8 @@ import { CustomAuthAccountData } from "../../../src/get_account/auth_flow/Custom
 import { SignOutResult } from "../../../src/get_account/auth_flow/result/SignOutResult.js";
 import { SignOutError } from "../../../src/get_account/auth_flow/error_type/GetAccountError.js";
 import { IdTokenClaims } from "../../../../msal-common/dist/exports-common.js";
-import { GetAccessTokenState } from "../../../src/index.js";
-import { GetAccessTokenError, GetAccessTokenFailed } from "../../../src/core/error/GetAccessTokenError.js";
+import { GetAccessTokenState } from "../../../src/core/auth_flow/AuthFlowStateBase.js";
+import { CustomAuthError } from "../../../src/core/error/CustomAuthError.js";
 
 describe("CustomAuthAccountData", () => {
     let mockAccount: AccountInfo;
@@ -47,7 +47,7 @@ describe("CustomAuthAccountData", () => {
 
         mockConfig = {} as CustomAuthBrowserConfiguration; // Mock as needed
         mockCacheClient = {
-            getAccessToken: jest.fn(),
+            acquireToken: jest.fn(),
             getCurrentAccount: jest.fn(),
             logout: jest.fn(),
         } as unknown as CustomAuthSilentCacheClient;
@@ -79,8 +79,8 @@ describe("CustomAuthAccountData", () => {
                 account: mockAccount,
             });
             expect(result).toBeInstanceOf(SignOutResult);
-            expect(mockLogger.info).toHaveBeenCalledWith("Signing out user");
-            expect(mockLogger.info).toHaveBeenCalledWith("User signed out");
+            expect(mockLogger.info).toHaveBeenCalledWith("Signing out user", "test-correlation-id");
+            expect(mockLogger.info).toHaveBeenCalledWith("User signed out", "test-correlation-id");
         });
 
         it("should handle errors during sign out", async () => {
@@ -97,7 +97,10 @@ describe("CustomAuthAccountData", () => {
             );
             const result = await accountData.signOut();
 
-            expect(mockLogger.error).toHaveBeenCalledWith(`An error occurred during sign out: ${error}`);
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                `An error occurred during sign out: ${error}`,
+                "test-correlation-id",
+            );
             expect(result).toBeInstanceOf(SignOutResult);
             expect(result.error).toBeDefined();
         });
@@ -164,7 +167,7 @@ describe("CustomAuthAccountData", () => {
         it("should return succeed GetAccessTokenState.Completed with cached tokens", async () => {
             (mockCacheClient.getCurrentAccount as jest.Mock).mockReturnValue(mockAccount);
             jest.spyOn(CustomAuthAccountData.prototype as any, "createCommonSilentFlowRequest").mockReturnValue({});
-            (mockCacheClient.getAccessToken as jest.Mock).mockResolvedValue(mockAuthenticationResult);
+            (mockCacheClient.acquireToken as jest.Mock).mockResolvedValue(mockAuthenticationResult);
             const accountData = new CustomAuthAccountData(
                 mockAccount,
                 mockConfig,
@@ -183,12 +186,12 @@ describe("CustomAuthAccountData", () => {
 
         it("should return GetAccessTokenError if there is an error when aquire tokens", async () => {
             (mockCacheClient.getCurrentAccount as jest.Mock).mockReturnValue(mockAccount);
-            const mockGetAccessTokenError = new GetAccessTokenError(
-                GetAccessTokenFailed,
+            const mockGetAccessTokenError = new CustomAuthError(
+                "get_access_token_failed",
                 "Get access token failed.",
                 correlationId,
             );
-            (mockCacheClient.getAccessToken as jest.Mock).mockRejectedValue(mockGetAccessTokenError);
+            (mockCacheClient.acquireToken as jest.Mock).mockRejectedValue(mockGetAccessTokenError);
 
             const accountData = new CustomAuthAccountData(
                 mockAccount,
