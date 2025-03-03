@@ -23,14 +23,17 @@ import { CustomAuthInteractionClientBase } from "../../core/interaction_client/C
 import { UrlUtils } from "../../core/utils/UrlUtils.js";
 
 export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase {
+    /**
+     * Acquires a token from the cache if it is not expired. Otherwise, makes a request to renew the token.
+     * If forceRresh is set to false, then looks up the access token in cache first.
+     *   If access token is expired or not found, then uses refresh token to get a new access token.
+     *   If no refresh token is found or it is expired, then throws error.
+     * If forceRefresh is set to true, then skips token cache lookup and fetches a new token using refresh token
+     *   If no refresh token is found or it is expired, then throws error.
+     * @param silentRequest The silent request object.
+     * @returns {Promise<AuthenticationResult>} The promise that resolves to an AuthenticationResult.
+     */
     override async acquireToken(silentRequest: CommonSilentFlowRequest): Promise<AuthenticationResult> {
-        /*
-         * If forceRresh is set to false, then looks up the access token in cache first.
-         *     If access token is expired or not found, then uses refresh token to get a new access token.
-         *     If no refresh token is found or expired, then throws error.
-         * If forceRefresh is set to true, then skips token cache lookup and fetches a new token using refresh token
-         *     If no refresh token is found or expired, then throws error.
-         */
         const telemetryManager = this.initializeServerTelemetryManager(PublicApiId.ACCOUNT_GET_ACCESS_TOKEN);
         const clientConfig = this.getCustomAuthClientConfiguration(telemetryManager, this.customAuthAuthority);
         const silentFlowClient = new SilentFlowClient(clientConfig, this.performanceClient);
