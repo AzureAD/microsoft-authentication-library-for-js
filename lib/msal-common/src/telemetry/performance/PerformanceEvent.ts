@@ -40,6 +40,8 @@ export const PerformanceEvents = {
      */
     AcquireTokenPopup: "acquireTokenPopup",
 
+    AcquireTokenExtension: "acquireTokenExtension",
+
     /**
      * acquireTokenPreRedirect (msal-browser).
      * First part of the redirect flow.
@@ -328,6 +330,7 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         [PerformanceEvents.AcquireTokenSilent, "ATS"],
         [PerformanceEvents.AcquireTokenSilentAsync, "ATSAsync"],
         [PerformanceEvents.AcquireTokenPopup, "ATPopup"],
+        [PerformanceEvents.AcquireTokenExtension, "ATExt"],
         [PerformanceEvents.AcquireTokenRedirect, "ATRedirect"],
         [
             PerformanceEvents.CryptoOptsGetPublicKeyThumbprint,

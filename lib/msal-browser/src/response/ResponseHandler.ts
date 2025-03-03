@@ -23,6 +23,8 @@ export function deserializeResponse(
 ): ServerAuthorizationCodeResponse {
     // Deserialize hash fragment response parameters.
     const serverParams = UrlUtils.getDeserializedResponse(responseString);
+    console.log(serverParams);
+    debugger;
     if (!serverParams) {
         if (!UrlUtils.stripLeadingHashOrQuery(responseString)) {
             // Hash or Query string is empty

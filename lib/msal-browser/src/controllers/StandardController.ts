@@ -87,6 +87,7 @@ import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { initializeSilentRequest } from "../request/RequestHelpers.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
+import { BrowserExtensionClient } from "../interaction_client/BrowserExtensionClient.js";
 
 function getAccountType(
     account?: AccountInfo
@@ -733,6 +734,149 @@ export class StandardController implements IController {
     }
 
     // #endregion
+
+    acquireTokenExtension(request: RedirectRequest): Promise<AuthenticationResult> {
+        const correlationId = this.getRequestCorrelationId(request);
+        const atExtensionMeasurement = this.performanceClient.startMeasurement(
+            PerformanceEvents.AcquireTokenExtension,
+            correlationId
+        );
+        atExtensionMeasurement.add({
+            scenarioId: request.scenarioId,
+            accountType: getAccountType(request.account),
+        });
+        try {
+            this.logger.verbose("acquireTokenExtension called");
+            preflightCheck(this.initialized, atExtensionMeasurement);
+            this.browserStorage.setInteractionInProgress(true);
+        } catch (e) {
+            // Since this function is syncronous we need to reject
+            return Promise.reject(e);
+        }
+
+        // If logged in, emit acquire token events
+        const loggedInAccounts = this.getAllAccounts();
+        if (loggedInAccounts.length > 0) {
+            this.eventHandler.emitEvent(
+                EventType.ACQUIRE_TOKEN_START,
+                InteractionType.Popup,
+                request
+            );
+        } else {
+            this.eventHandler.emitEvent(
+                EventType.LOGIN_START,
+                InteractionType.Popup,
+                request
+            );
+        }
+
+        let result: Promise<AuthenticationResult>;
+        const pkce = this.getPreGeneratedPkceCodes(correlationId);
+
+        if (this.canUsePlatformBroker(request)) {
+            result = this.acquireTokenNative(
+                {
+                    ...request,
+                    correlationId,
+                },
+                ApiId.acquireTokenPopup
+            )
+                .then((response) => {
+                    this.browserStorage.setInteractionInProgress(false);
+                    atExtensionMeasurement.end({
+                        success: true,
+                        isNativeBroker: true,
+                        accountType: getAccountType(response.account),
+                    });
+                    return response;
+                })
+                .catch((e: AuthError) => {
+                    if (
+                        e instanceof NativeAuthError &&
+                        isFatalNativeAuthError(e)
+                    ) {
+                        this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                        const popupClient =
+                            this.createPopupClient(correlationId);
+                        return popupClient.acquireToken(request, pkce);
+                    } else if (e instanceof InteractionRequiredAuthError) {
+                        this.logger.verbose(
+                            "acquireTokenPopup - Resolving interaction required error thrown by native broker by falling back to web flow"
+                        );
+                        const popupClient =
+                            this.createPopupClient(correlationId);
+                        return popupClient.acquireToken(request, pkce);
+                    }
+                    this.browserStorage.setInteractionInProgress(false);
+                    throw e;
+                });
+        } else {
+            const extensionClient = this.createExtensionClient(correlationId);
+            result = extensionClient.acquireToken(request, pkce);
+        }
+
+        return result
+            .then((result) => {
+                /*
+                 *  If logged in, emit acquire token events
+                 */
+                const isLoggingIn =
+                    loggedInAccounts.length < this.getAllAccounts().length;
+                if (isLoggingIn) {
+                    this.eventHandler.emitEvent(
+                        EventType.LOGIN_SUCCESS,
+                        InteractionType.Popup,
+                        result
+                    );
+                } else {
+                    this.eventHandler.emitEvent(
+                        EventType.ACQUIRE_TOKEN_SUCCESS,
+                        InteractionType.Popup,
+                        result
+                    );
+                }
+
+                atExtensionMeasurement.end({
+                    success: true,
+                    accessTokenSize: result.accessToken.length,
+                    idTokenSize: result.idToken.length,
+                    accountType: getAccountType(result.account),
+                });
+                return result;
+            })
+            .catch((e: Error) => {
+                if (loggedInAccounts.length > 0) {
+                    this.eventHandler.emitEvent(
+                        EventType.ACQUIRE_TOKEN_FAILURE,
+                        InteractionType.Popup,
+                        null,
+                        e
+                    );
+                } else {
+                    this.eventHandler.emitEvent(
+                        EventType.LOGIN_FAILURE,
+                        InteractionType.Popup,
+                        null,
+                        e
+                    );
+                }
+
+                atExtensionMeasurement.end(
+                    {
+                        success: false,
+                    },
+                    e
+                );
+
+                // Since this function is syncronous we need to reject
+                return Promise.reject(e);
+            })
+            .finally(
+                () =>
+                    this.config.system.asyncPopups &&
+                    this.preGeneratePkceCodes(correlationId)
+            );
+    }
 
     // #region Popup Flow
 
@@ -1635,6 +1779,25 @@ export class StandardController implements IController {
     }
 
     /**
+     * Returns new instance of the Popup Interaction Client
+     * @param correlationId
+     */
+    public createExtensionClient(correlationId?: string): BrowserExtensionClient {
+        return new BrowserExtensionClient(
+            this.config,
+            this.browserStorage,
+            this.browserCrypto,
+            this.logger,
+            this.eventHandler,
+            this.navigationClient,
+            this.performanceClient,
+            this.nativeInternalStorage,
+            this.nativeExtensionProvider,
+            correlationId
+        );
+    }
+
+    /**
      * Returns new instance of the Redirect Interaction Client
      * @param correlationId
      */
@@ -1926,6 +2089,15 @@ export class StandardController implements IController {
         const correlationId: string = this.getRequestCorrelationId(request);
         this.logger.verbose("loginPopup called", correlationId);
         return this.acquireTokenPopup({
+            correlationId,
+            ...(request || DEFAULT_REQUEST),
+        });
+    }
+
+    loginExtension(request?: RedirectRequest): Promise<AuthenticationResult> {
+        const correlationId: string = this.getRequestCorrelationId(request);
+        this.logger.verbose("loginExtension called", correlationId);
+        return this.acquireTokenExtension({
             correlationId,
             ...(request || DEFAULT_REQUEST),
         });

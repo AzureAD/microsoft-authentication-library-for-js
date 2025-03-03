@@ -266,6 +266,12 @@ export class UnknownOperatingContextController implements IController {
         return {} as Promise<void>;
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    loginExtension(request?: RedirectRequest | undefined): Promise<AuthenticationResult> {
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment();
+        return {} as Promise<AuthenticationResult>;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     logout(logoutRequest?: EndSessionRequest | undefined): Promise<void> {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();

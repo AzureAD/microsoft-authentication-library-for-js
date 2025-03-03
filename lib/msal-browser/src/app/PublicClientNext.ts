@@ -320,6 +320,10 @@ export class PublicClientNext implements IPublicClientApplication {
         return this.controller.loginRedirect(request);
     }
 
+    loginExtension(request?: RedirectRequest): Promise<AuthenticationResult> {
+        return this.controller.loginExtension(request);
+    }
+
     /**
      * Deprecated logout function. Use logoutRedirect or logoutPopup instead
      * @param logoutRequest

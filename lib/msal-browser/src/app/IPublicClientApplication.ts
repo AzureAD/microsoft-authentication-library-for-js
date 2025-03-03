@@ -58,6 +58,7 @@ export interface IPublicClientApplication {
     handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
     loginRedirect(request?: RedirectRequest): Promise<void>;
+    loginExtension(request?: RedirectRequest): Promise<AuthenticationResult>;
     logout(logoutRequest?: EndSessionRequest): Promise<void>;
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
@@ -148,6 +149,13 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         );
     },
     loginRedirect: () => {
+        return Promise.reject(
+            createBrowserConfigurationAuthError(
+                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+            )
+        );
+    },
+    loginExtension: () => {
         return Promise.reject(
             createBrowserConfigurationAuthError(
                 BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled

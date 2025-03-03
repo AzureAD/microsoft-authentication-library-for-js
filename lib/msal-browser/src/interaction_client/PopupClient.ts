@@ -112,8 +112,7 @@ export class PopupClient extends StandardInteractionClient {
                 { isAsyncPopup: this.config.system.asyncPopups },
                 this.correlationId
             );
-            console.log("Chrome Identity: ", window.chrome.identity);
-            debugger;
+
             // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
             if (this.config.system.asyncPopups) {
                 this.logger.verbose("asyncPopups set to true, acquiring token");
@@ -203,7 +202,7 @@ export class PopupClient extends StandardInteractionClient {
     protected async acquireTokenPopupAsync(
         request: PopupRequest,
         popupParams: PopupParams,
-        pkceCodes?: PkceCodes
+        pkceCodes?: PkceCodes,
     ): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenPopupAsync called");
         const serverTelemetryManager = this.initializeServerTelemetryManager(

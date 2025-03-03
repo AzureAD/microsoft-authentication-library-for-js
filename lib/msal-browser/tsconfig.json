@@ -17,7 +17,8 @@
         "resolveJsonModule": true,
         "types": [
             "node",
-            "jest"
+            "jest",
+            "chrome"
         ]
     },
     "include": [

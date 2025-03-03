@@ -80,6 +80,8 @@ export interface IController {
 
     loginRedirect(request?: RedirectRequest): Promise<void>;
 
+    loginExtension(request?: RedirectRequest): Promise<AuthenticationResult>;
+
     logout(logoutRequest?: EndSessionRequest): Promise<void>;
 
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;

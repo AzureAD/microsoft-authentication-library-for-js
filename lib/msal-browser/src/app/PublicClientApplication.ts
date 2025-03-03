@@ -285,6 +285,17 @@ export class PublicClientApplication implements IPublicClientApplication {
     }
 
     /**
+     * Use when initiating the login process from a browser extension
+     * @param request
+     * 
+     */
+    loginExtension(
+        request?: PopupRequest | undefined
+    ): Promise<AuthenticationResult> {
+        return this.controller.loginExtension(request);
+    }
+
+    /**
      * Use when initiating the login process by redirecting the user's browser to the authorization endpoint. This function redirects the page, so
      * any code that follows this function will not execute.
      *
