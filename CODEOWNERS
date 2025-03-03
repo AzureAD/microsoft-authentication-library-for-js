@@ -21,8 +21,8 @@
 /samples/msal-react-samples/ @tnorling @jo-arroyo @peterzenz
 
 # MSAL Custom Auth
-/lib/msal-custom-auth/ @yongdiw @shenj
-/samples/msal-custom-auth-samples/ @yongdiw @shenj
+/lib/msal-custom-auth/ @yongdiw @shenj @albanx
+/samples/msal-custom-auth-samples/ @yongdiw @shenj @albanx
 
 # Build
 /build/ @sameerag @tnorling @hectormmg @peterzenz
