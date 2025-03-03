@@ -87,6 +87,4 @@ export const getTestAuthenticationResult = (
     };
 };
 
-export const msalRuntimeExpiresOn: number = (Date.now() + 3600) / 1000;
-
 export const TEST_REDIRECTURI = "http://localhost";
