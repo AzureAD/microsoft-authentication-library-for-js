@@ -139,7 +139,7 @@ export class CustomAuthStandardController extends StandardController implements 
 
             throw new NoCachedAccountFoundError(correlationId);
         } catch (error) {
-            this.logger.error(`An error occurred during getting current account: ${error}`);
+            this.logger.errorPii(`An error occurred during getting current account: ${error}`);
 
             return GetAccountResult.createWithError(error);
         }
@@ -244,7 +244,7 @@ export class CustomAuthStandardController extends StandardController implements 
 
             throw new UnexpectedError("Unknow sign-in result type");
         } catch (error) {
-            this.logger.error(`An error occurred during starting sign-in: ${error}`);
+            this.logger.errorPii(`An error occurred during starting sign-in: ${error}`);
 
             return SignInResult.createWithError(error);
         }
@@ -323,7 +323,7 @@ export class CustomAuthStandardController extends StandardController implements 
 
             throw new UnexpectedError("Unknown sign-up result type");
         } catch (error) {
-            this.logger.error(`An error occurred during starting sign-up: ${error}`);
+            this.logger.errorPii(`An error occurred during starting sign-up: ${error}`);
 
             return SignUpResult.createWithError(error);
         }
@@ -368,7 +368,7 @@ export class CustomAuthStandardController extends StandardController implements 
                 ),
             );
         } catch (error) {
-            this.logger.error(`An error occurred during starting reset-password: ${error}`);
+            this.logger.errorPii(`An error occurred during starting reset-password: ${error}`);
 
             return ResetPasswordStartResult.createWithError(error);
         }

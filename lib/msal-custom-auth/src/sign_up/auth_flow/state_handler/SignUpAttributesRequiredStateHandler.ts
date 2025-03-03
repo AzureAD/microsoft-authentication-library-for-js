@@ -124,7 +124,7 @@ export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
 
             return SignUpSubmitAttributesResult.createWithError(new UnexpectedError("Unknown sign-up result type."));
         } catch (error) {
-            this.logger.error(`Failed to submit attributes for sign up. Error: ${error}.`);
+            this.logger.errorPii(`Failed to submit attributes for sign up. Error: ${error}.`);
 
             return SignUpSubmitAttributesResult.createWithError(error);
         }

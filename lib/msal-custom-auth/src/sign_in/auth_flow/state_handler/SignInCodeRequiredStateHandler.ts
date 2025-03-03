@@ -68,7 +68,7 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
 
             return new SignInSubmitCodeResult(new SignInCompleted(), accountInfo);
         } catch (error) {
-            this.logger.error(`Failed to submit code for sign-in. Error: ${error}.`);
+            this.logger.errorPii(`Failed to submit code for sign-in. Error: ${error}.`);
 
             return SignInSubmitCodeResult.createWithError(error);
         }

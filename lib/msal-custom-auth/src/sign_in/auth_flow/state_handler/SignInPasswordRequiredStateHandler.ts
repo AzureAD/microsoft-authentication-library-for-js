@@ -65,7 +65,7 @@ export class SignInPasswordRequiredStateHandler extends SignInStateHandler {
 
             return new SignInSubmitPasswordResult(new SignInCompleted(), accountInfo);
         } catch (error) {
-            this.logger.error(`Failed to sign in after submitting password. Error: ${error}.`);
+            this.logger.errorPii(`Failed to sign in after submitting password. Error: ${error}.`);
 
             return SignInSubmitPasswordResult.createWithError(error);
         }

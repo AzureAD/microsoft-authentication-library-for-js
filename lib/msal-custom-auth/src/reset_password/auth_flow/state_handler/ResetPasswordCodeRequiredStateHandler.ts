@@ -76,7 +76,7 @@ export class ResetPasswordCodeRequiredStateHandler extends ResetPasswordStateHan
                 ),
             );
         } catch (error) {
-            this.logger.error(`Failed to submit code for password reset. Error: ${error}.`);
+            this.logger.errorPii(`Failed to submit code for password reset. Error: ${error}.`);
 
             return ResetPasswordSubmitCodeResult.createWithError(error);
         }
@@ -114,7 +114,7 @@ export class ResetPasswordCodeRequiredStateHandler extends ResetPasswordStateHan
                 ),
             );
         } catch (error) {
-            this.logger.error(`Failed to resend code for password reset. Error: ${error}.`);
+            this.logger.errorPii(`Failed to resend code for password reset. Error: ${error}.`);
 
             return ResetPasswordResendCodeResult.createWithError(error);
         }

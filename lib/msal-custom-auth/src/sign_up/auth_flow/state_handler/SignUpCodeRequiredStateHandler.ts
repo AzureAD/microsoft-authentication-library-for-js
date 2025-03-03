@@ -115,7 +115,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
 
             return SignUpSubmitCodeResult.createWithError(new UnexpectedError("Unknown sign-up result type."));
         } catch (error) {
-            this.logger.error(`Failed to submit code for sign up. Error: ${error}.`);
+            this.logger.errorPii(`Failed to submit code for sign up. Error: ${error}.`);
 
             return SignUpSubmitCodeResult.createWithError(error);
         }
@@ -154,7 +154,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
                 ),
             );
         } catch (error) {
-            this.logger.error(`Failed to resend code for sign up. Error: ${error}.`);
+            this.logger.errorPii(`Failed to resend code for sign up. Error: ${error}.`);
 
             return SignUpResendCodeResult.createWithError(error);
         }

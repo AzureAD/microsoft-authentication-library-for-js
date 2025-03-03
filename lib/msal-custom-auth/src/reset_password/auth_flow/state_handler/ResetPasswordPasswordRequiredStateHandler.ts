@@ -72,7 +72,7 @@ export class ResetPasswordPasswordRequiredStateHandler extends ResetPasswordStat
                 ),
             );
         } catch (error) {
-            this.logger.error(`Failed to submit password for password reset. Error: ${error}.`);
+            this.logger.errorPii(`Failed to submit password for password reset. Error: ${error}.`);
 
             return ResetPasswordSubmitPasswordResult.createWithError(error);
         }

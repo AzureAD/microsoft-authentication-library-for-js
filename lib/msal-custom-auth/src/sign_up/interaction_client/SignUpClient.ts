@@ -295,7 +295,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
                     telemetryManager,
                 );
             } else {
-                this.logger.error(`${callerName} is failed to call continue endpoint for sign up. Error: ${error}`);
+                this.logger.errorPii(`${callerName} is failed to call continue endpoint for sign up. Error: ${error}`);
 
                 throw new UnexpectedError(error, requestCorrelationId);
             }

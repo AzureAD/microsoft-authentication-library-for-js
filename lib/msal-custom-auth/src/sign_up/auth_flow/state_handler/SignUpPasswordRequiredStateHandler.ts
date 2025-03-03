@@ -95,7 +95,7 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
 
             return SignUpSubmitPasswordResult.createWithError(new UnexpectedError("Unknown sign-up result type."));
         } catch (error) {
-            this.logger.error(`Failed to submit password for sign up. Error: ${error}.`);
+            this.logger.errorPii(`Failed to submit password for sign up. Error: ${error}.`);
 
             return SignUpSubmitPasswordResult.createWithError(error);
         }

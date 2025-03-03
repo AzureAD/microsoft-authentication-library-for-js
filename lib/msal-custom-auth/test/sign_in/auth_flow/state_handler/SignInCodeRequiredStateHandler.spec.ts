@@ -33,6 +33,7 @@ describe("SignInCodeRequiredStateHandler", () => {
     const mockLogger = {
         info: jest.fn(),
         error: jest.fn(),
+        errorPii: jest.fn(),
     } as unknown as jest.Mocked<Logger>;
 
     const username = "testuser";

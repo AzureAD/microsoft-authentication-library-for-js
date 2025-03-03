@@ -63,7 +63,7 @@ export class SignInContinuationStateHandler extends SignInStateHandler {
 
             return new SignInResult(new SignInCompleted(), accountInfo);
         } catch (error) {
-            this.logger.error(`Failed to sign in with continuation token. Error: ${error}.`);
+            this.logger.errorPii(`Failed to sign in with continuation token. Error: ${error}.`);
 
             return SignInResult.createWithError(error);
         }
