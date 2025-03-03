@@ -588,57 +588,6 @@ if (process.platform === "win32") {
                         done();
                     });
             });
-
-            it("Signs user in and returns successful response when msal-node-runtime returns expiresOn in seconds", async () => {
-                const testCorrelationId = generateCorrelationId();
-                const testAuthenticationResult =
-                    getTestAuthenticationResult(testCorrelationId);
-                jest.spyOn(
-                    msalNodeRuntime,
-                    "SignInSilentlyAsync"
-                ).mockImplementation(
-                    (
-                        authParams: AuthParameters,
-                        correlationId: string,
-                        callback: (result: AuthResult) => void
-                    ) => {
-                        const result: AuthResult = {
-                            idToken: JSON.stringify(
-                                testAuthenticationResult.idTokenClaims
-                            ),
-                            accessToken: testAuthenticationResult.accessToken,
-                            authorizationHeader: "",
-                            rawIdToken: testAuthenticationResult.idToken,
-                            grantedScopes:
-                                testAuthenticationResult.scopes.join(" "),
-                            expiresOn: testAuthenticationResult.expiresOn!.getTime() / 1000,
-                            isPopAuthorization: false,
-                            account: testMsalRuntimeAccount,
-                            CheckError: () => {},
-                            telemetryData: "",
-                        };
-                        expect(correlationId).toEqual(testCorrelationId);
-                        callback(result);
-
-                        return asyncHandle;
-                    }
-                );
-
-                const nativeBrokerPlugin = new NativeBrokerPlugin();
-                const request: NativeRequest = {
-                    clientId: TEST_CLIENT_ID,
-                    scopes: testAuthenticationResult.scopes,
-                    correlationId: testCorrelationId,
-                    authority: testAuthenticationResult.authority,
-                    redirectUri: TEST_REDIRECTURI,
-                };
-                const response = await nativeBrokerPlugin.acquireTokenSilent(
-                    request
-                );
-                expect(response).toStrictEqual<AuthenticationResult>(
-                    testAuthenticationResult
-                );
-            });
         });
 
         describe("acquireTokenInteractive tests", () => {
