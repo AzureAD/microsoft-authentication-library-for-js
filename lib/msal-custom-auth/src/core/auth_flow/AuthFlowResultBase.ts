@@ -44,9 +44,7 @@ export abstract class AuthFlowResultBase<
         if (error instanceof CustomAuthError) {
             return error;
         } else if (error instanceof AuthError) {
-            const errorCode = error.errorCode;
-            const errorMessage = error.subError ? `${error.errorMessage} - ${error.subError}` : error.errorMessage;
-            return new MsalCustomAuthError(errorCode, errorMessage, error.correlationId);
+            return new MsalCustomAuthError(error.errorCode, error.errorMessage, error.subError, error.correlationId);
         } else {
             return new UnexpectedError(error);
         }

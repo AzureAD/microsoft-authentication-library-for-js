@@ -13,7 +13,6 @@ import { SignOutError } from "../../../src/get_account/auth_flow/error_type/GetA
 import { IdTokenClaims } from "../../../../msal-common/dist/exports-common.js";
 import { GetAccessTokenState } from "../../../src/core/auth_flow/AuthFlowStateBase.js";
 import { MsalCustomAuthError } from "../../../src/core/error/MsalCustomAuthError.js";
-import { error } from "console";
 
 describe("CustomAuthAccountData", () => {
     let mockAccount: AccountInfo;
@@ -200,7 +199,8 @@ describe("CustomAuthAccountData", () => {
             (mockCacheClient.getCurrentAccount as jest.Mock).mockReturnValue(mockAccount);
             const errorCode = InteractionRequiredAuthErrorCodes.refreshTokenExpired;
             const errorMessage = "Refresh token has expired.";
-            const mockRefreshTokenExpiredError = new InteractionRequiredAuthError(errorCode, errorMessage);
+            const subError = "Refresh token has expired, can not use it to get a new access token.";
+            const mockRefreshTokenExpiredError = new InteractionRequiredAuthError(errorCode, errorMessage, subError);
             (mockCacheClient.acquireToken as jest.Mock).mockRejectedValue(mockRefreshTokenExpiredError);
 
             const accountData = new CustomAuthAccountData(
@@ -217,8 +217,11 @@ describe("CustomAuthAccountData", () => {
             expect(response.state?.type).toEqual(GetAccessTokenState.Failed);
             expect(response.error?.errorData).toEqual(mockRefreshTokenExpiredError);
             expect(response.error?.errorData).toBeInstanceOf(MsalCustomAuthError);
-            expect(response.error?.errorData.error).toEqual(errorCode);
-            expect(response.error?.errorData.errorDescription).toEqual(errorMessage);
+
+            const msalError = response.error?.errorData as MsalCustomAuthError;
+            expect(msalError.error).toEqual(errorCode);
+            expect(msalError.errorDescription).toEqual(errorMessage);
+            expect(msalError.subError).toEqual(subError);
         });
     });
 });
