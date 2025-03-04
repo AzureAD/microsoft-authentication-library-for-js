@@ -23,12 +23,12 @@ export abstract class AuthFlowStateHandlerBase {
         protected continuationToken?: string,
     ) {
         ArgumentValidator.ensureArgumentIsNotEmptyString("correlationId", correlationId);
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("logger", logger);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("logger", logger, correlationId);
     }
 
     protected ensureCodeIsValid(code: string, codeLength: number): void {
         if (!code || code.length !== codeLength) {
-            this.logger.error("Code parameter is not provided or invalid for authentication flow.");
+            this.logger.error("Code parameter is not provided or invalid for authentication flow.", this.correlationId);
 
             throw new InvalidArgumentError("code", this.correlationId);
         }
@@ -36,7 +36,7 @@ export abstract class AuthFlowStateHandlerBase {
 
     protected ensurePasswordIsNotEmpty(password: string): void {
         if (!password) {
-            this.logger.error("Password parameter is not provided for authentication flow.");
+            this.logger.error("Password parameter is not provided for authentication flow.", this.correlationId);
 
             throw new InvalidArgumentError("password", this.correlationId);
         }

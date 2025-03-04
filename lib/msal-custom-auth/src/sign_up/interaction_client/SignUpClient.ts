@@ -45,7 +45,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
      * @returns The result of the sign up start action.
      */
     async start(parameters: SignUpStartParams): Promise<SignUpPasswordRequiredResult | SignUpCodeRequiredResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters, parameters.correlationId);
 
         const apiId = !parameters.password ? PublicApiId.SIGN_UP_START : PublicApiId.SIGN_UP_WITH_PASSWORD_START;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
@@ -59,11 +59,11 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             correlationId: parameters.correlationId,
         };
 
-        this.logger.info("Calling start endpoint for sign up.");
+        this.logger.info("Calling start endpoint for sign up.", parameters.correlationId);
 
         const startResponse = await this.customAuthApiClient.signUpApi.start(startRequest);
 
-        this.logger.info("Start endpoint called for sign up.");
+        this.logger.info("Start endpoint called for sign up.", parameters.correlationId);
 
         const challengeRequest: SignUpChallengeRequest = {
             continuation_token: startResponse.continuation_token ?? "",
@@ -83,7 +83,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
     async submitCode(
         parameters: SignUpSubmitCodeParams,
     ): Promise<SignUpCompletedResult | SignUpPasswordRequiredResult | SignUpAttributesRequiredResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters, parameters.correlationId);
 
         const apiId = PublicApiId.SIGN_UP_SUBMIT_CODE;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
@@ -122,7 +122,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
     async submitPassword(
         parameter: SignUpSubmitPasswordParams,
     ): Promise<SignUpCompletedResult | SignUpCodeRequiredResult | SignUpAttributesRequiredResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameter", parameter);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameter", parameter, parameter.correlationId);
 
         const apiId = PublicApiId.SIGN_UP_SUBMIT_PASSWORD;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
@@ -161,7 +161,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
     async submitAttributes(
         parameter: SignUpSubmitUserAttributesParams,
     ): Promise<SignUpCompletedResult | SignUpPasswordRequiredResult | SignUpCodeRequiredResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameter", parameter);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameter", parameter, parameter.correlationId);
 
         const apiId = PublicApiId.SIGN_UP_SUBMIT_ATTRIBUTES;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
@@ -201,7 +201,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
      * @returns The result of the sign up resend code action.
      */
     async resendCode(parameters: SignUpResendCodeParams): Promise<SignUpCodeRequiredResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters, parameters.correlationId);
 
         const apiId = PublicApiId.SIGN_UP_RESEND_CODE;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
@@ -229,15 +229,15 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
     private async performChallengeRequest(
         request: SignUpChallengeRequest,
     ): Promise<SignUpPasswordRequiredResult | SignUpCodeRequiredResult> {
-        this.logger.info("Calling challenge endpoint for sign up.");
+        this.logger.info("Calling challenge endpoint for sign up.", request.correlationId);
 
         const challengeResponse = await this.customAuthApiClient.signUpApi.requestChallenge(request);
 
-        this.logger.info("Challenge endpoint called for sign up.");
+        this.logger.info("Challenge endpoint called for sign up.", request.correlationId);
 
         if (challengeResponse.challenge_type === ChallengeType.OOB) {
             // Code is required
-            this.logger.info("Challenge type is oob for sign up.");
+            this.logger.info("Challenge type is oob for sign up.", request.correlationId);
 
             return new SignUpCodeRequiredResult(
                 challengeResponse.correlation_id,
@@ -252,7 +252,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
         if (challengeResponse.challenge_type === ChallengeType.PASSWORD) {
             // Password is required
-            this.logger.info("Challenge type is password for sign up.");
+            this.logger.info("Challenge type is password for sign up.", request.correlationId);
 
             return new SignUpPasswordRequiredResult(
                 challengeResponse.correlation_id,
@@ -260,7 +260,10 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             );
         }
 
-        this.logger.error(`Unsupported challenge type '${challengeResponse.challenge_type}' for sign up.`);
+        this.logger.error(
+            `Unsupported challenge type '${challengeResponse.challenge_type}' for sign up.`,
+            request.correlationId,
+        );
 
         throw new CustomAuthApiError(
             CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
@@ -278,12 +281,12 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
     ): Promise<
         SignUpCompletedResult | SignUpPasswordRequiredResult | SignUpCodeRequiredResult | SignUpAttributesRequiredResult
     > {
-        this.logger.info(`${callerName} is calling continue endpoint for sign up.`);
+        this.logger.info(`${callerName} is calling continue endpoint for sign up.`, requestCorrelationId);
 
         try {
             const response = await responseGetter();
 
-            this.logger.info(`Continue endpoint called by ${callerName} for sign up.`);
+            this.logger.info(`Continue endpoint called by ${callerName} for sign up.`, requestCorrelationId);
 
             return new SignUpCompletedResult(requestCorrelationId, response.continuation_token ?? "");
         } catch (error) {
@@ -295,7 +298,10 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
                     telemetryManager,
                 );
             } else {
-                this.logger.errorPii(`${callerName} is failed to call continue endpoint for sign up. Error: ${error}`);
+                this.logger.errorPii(
+                    `${callerName} is failed to call continue endpoint for sign up. Error: ${error}`,
+                    requestCorrelationId,
+                );
 
                 throw new UnexpectedError(error, requestCorrelationId);
             }

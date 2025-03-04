@@ -41,7 +41,8 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
      * @returns The result of password reset start operation.
      */
     async start(parameters: ResetPasswordStartParams): Promise<ResetPasswordCodeRequiredResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters);
+        const correlationId = parameters.correlationId;
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters, correlationId);
 
         const apiId = PublicApiId.PASSWORD_RESET_START;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
@@ -49,20 +50,20 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         const startRequest: ResetPasswordStartRequest = {
             challenge_type: this.getChallengeTypes(parameters.challengeType),
             username: parameters.username,
-            correlationId: parameters.correlationId,
+            correlationId: correlationId,
             telemetryManager: telemetryManager,
         };
 
-        this.logger.info("Calling start endpoint for password reset flow.");
+        this.logger.info("Calling start endpoint for password reset flow.", correlationId);
 
         const startResponse = await this.customAuthApiClient.resetPasswordApi.start(startRequest);
 
-        this.logger.verbose("Start endpoint for password reset returned successfully.");
+        this.logger.verbose("Start endpoint for password reset returned successfully.", correlationId);
 
         const challengeRequest: ResetPasswordChallengeRequest = {
             continuation_token: startResponse.continuation_token ?? "",
             challenge_type: this.getChallengeTypes(parameters.challengeType),
-            correlationId: parameters.correlationId,
+            correlationId: correlationId,
             telemetryManager: telemetryManager,
         };
 
@@ -75,8 +76,9 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
      * @returns The result of submitting the code for password reset.
      */
     async submitCode(parameters: ResetPasswordSubmitCodeParams): Promise<ResetPasswordPasswordRequiredResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters);
-        ArgumentValidator.ensureArgumentIsNotEmptyString("parameters.code", parameters.code, parameters.correlationId);
+        const correlationId = parameters.correlationId;
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters, correlationId);
+        ArgumentValidator.ensureArgumentIsNotEmptyString("parameters.code", parameters.code, correlationId);
 
         const apiId = PublicApiId.PASSWORD_RESET_SUBMIT_CODE;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
@@ -84,15 +86,18 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         const continueRequest: ResetPasswordContinueRequest = {
             continuation_token: parameters.continuationToken,
             oob: parameters.code,
-            correlationId: parameters.correlationId,
+            correlationId: correlationId,
             telemetryManager: telemetryManager,
         };
 
-        this.logger.info("Calling continue endpoint with code for password reset.");
+        this.logger.info("Calling continue endpoint with code for password reset.", correlationId);
 
         const response = await this.customAuthApiClient.resetPasswordApi.continueWithCode(continueRequest);
 
-        this.logger.info("Continue endpoint called successfully with code for password reset.");
+        this.logger.info(
+            "Continue endpoint called successfully with code for password reset.",
+            response.correlation_id,
+        );
 
         return new ResetPasswordPasswordRequiredResult(response.correlation_id, response.continuation_token ?? "");
     }
@@ -103,7 +108,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
      * @returns The result of resending the code for password reset.
      */
     async resendCode(parameters: ResetPasswordResendCodeParams): Promise<ResetPasswordCodeRequiredResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters);
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters, parameters.correlationId);
 
         const apiId = PublicApiId.PASSWORD_RESET_RESEND_CODE;
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
@@ -124,11 +129,13 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
      * @returns The result of submitting the new password for password reset.
      */
     async submitNewPassword(parameters: ResetPasswordSubmitNewPasswordParams): Promise<ResetPasswordCompletedResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters);
+        const correlationId = parameters.correlationId;
+
+        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters, correlationId);
         ArgumentValidator.ensureArgumentIsNotEmptyString(
             "parameters.newPassword",
             parameters.newPassword,
-            parameters.correlationId,
+            correlationId,
         );
 
         const apiId = PublicApiId.PASSWORD_RESET_SUBMIT_PASSWORD;
@@ -137,20 +144,20 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         const submitRequest: ResetPasswordSubmitRequest = {
             continuation_token: parameters.continuationToken,
             new_password: parameters.newPassword,
-            correlationId: parameters.correlationId,
+            correlationId: correlationId,
             telemetryManager: telemetryManager,
         };
 
-        this.logger.info("Calling submit endpoint with new password for password reset.");
+        this.logger.info("Calling submit endpoint with new password for password reset.", correlationId);
 
         const submitResponse = await this.customAuthApiClient.resetPasswordApi.submitNewPassword(submitRequest);
 
-        this.logger.info("Submit endpoint called successfully with new password for password reset.");
+        this.logger.info("Submit endpoint called successfully with new password for password reset.", correlationId);
 
         return this.performPollCompletionRequest(
             submitResponse.continuation_token ?? "",
             submitResponse.poll_interval,
-            parameters.correlationId,
+            correlationId,
             telemetryManager,
         );
     }
@@ -158,15 +165,16 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
     private async performChallengeRequest(
         request: ResetPasswordChallengeRequest,
     ): Promise<ResetPasswordCodeRequiredResult> {
-        this.logger.info("Calling challenge endpoint for password reset flow.");
+        const correlationId = request.correlationId;
+        this.logger.info("Calling challenge endpoint for password reset flow.", correlationId);
 
         const response = await this.customAuthApiClient.resetPasswordApi.requestChallenge(request);
 
-        this.logger.info("Challenge endpoint for password reset returned successfully.");
+        this.logger.info("Challenge endpoint for password reset returned successfully.", correlationId);
 
         if (response.challenge_type === ChallengeType.OOB) {
             // Code is required
-            this.logger.info("Code is required for password reset flow.");
+            this.logger.info("Code is required for password reset flow.", correlationId);
 
             return new ResetPasswordCodeRequiredResult(
                 response.correlation_id,
@@ -180,12 +188,13 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
 
         this.logger.error(
             `Unsupported challenge type '${response.challenge_type}' returned from challenge endpoint for password reset.`,
+            correlationId,
         );
 
         throw new CustomAuthApiError(
             CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
             `Unsupported challenge type '${response.challenge_type}'.`,
-            response.correlation_id,
+            correlationId,
         );
     }
 
@@ -204,11 +213,11 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
                 telemetryManager: telemetryManager,
             };
 
-            this.logger.info("Calling the poll completion endpoint for password reset flow.");
+            this.logger.info("Calling the poll completion endpoint for password reset flow.", correlationId);
 
             const pollResponse = await this.customAuthApiClient.resetPasswordApi.pollCompletion(pollRequest);
 
-            this.logger.info("Poll completion endpoint for password reset returned successfully.");
+            this.logger.info("Poll completion endpoint for password reset returned successfully.", correlationId);
 
             if (pollResponse.status === ResetPasswordPollStatus.SUCCEEDED) {
                 return new ResetPasswordCompletedResult(
@@ -225,12 +234,13 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
 
             this.logger.info(
                 `Poll completion endpoint for password reset is not started or in progress, waiting ${pollInterval} seconds for next check.`,
+                correlationId,
             );
 
             await this.delay(pollInterval * 1000);
         }
 
-        this.logger.error("Password reset flow has timed out.");
+        this.logger.error("Password reset flow has timed out.", correlationId);
 
         throw new CustomAuthApiError(
             CustomAuthApiErrorCode.PASSWORD_RESET_TIMEOUT,

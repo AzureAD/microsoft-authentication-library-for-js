@@ -47,7 +47,7 @@ export class ResetPasswordPasswordRequiredStateHandler extends ResetPasswordStat
         try {
             this.ensurePasswordIsNotEmpty(password);
 
-            this.logger.info("Submitting new password for password reset.");
+            this.logger.info("Submitting new password for password reset.", this.correlationId);
 
             const result = await this.resetPasswordClient.submitNewPassword({
                 clientId: this.config.auth.clientId,
@@ -58,7 +58,7 @@ export class ResetPasswordPasswordRequiredStateHandler extends ResetPasswordStat
                 username: this.username,
             });
 
-            this.logger.info("New password is submitted for sign-up.");
+            this.logger.info("New password is submitted for sign-up.", this.correlationId);
 
             return new ResetPasswordSubmitPasswordResult(
                 new ResetPasswordCompleted(
@@ -72,7 +72,7 @@ export class ResetPasswordPasswordRequiredStateHandler extends ResetPasswordStat
                 ),
             );
         } catch (error) {
-            this.logger.errorPii(`Failed to submit password for password reset. Error: ${error}.`);
+            this.logger.errorPii(`Failed to submit password for password reset. Error: ${error}.`, this.correlationId);
 
             return ResetPasswordSubmitPasswordResult.createWithError(error);
         }

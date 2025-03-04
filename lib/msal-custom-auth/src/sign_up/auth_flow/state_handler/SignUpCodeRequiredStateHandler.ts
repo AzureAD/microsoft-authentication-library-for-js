@@ -50,7 +50,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
         try {
             this.ensureCodeIsValid(code, this.codeLength);
 
-            this.logger.info("Submitting code for sign-up.");
+            this.logger.info("Submitting code for sign-up.", this.correlationId);
 
             const result = await this.signUpClient.submitCode({
                 clientId: this.config.auth.clientId,
@@ -61,11 +61,11 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
                 username: this.username,
             });
 
-            this.logger.info("Code submitted for sign-up.");
+            this.logger.info("Code submitted for sign-up.", this.correlationId);
 
             if (result instanceof SignUpPasswordRequiredResult) {
                 // Password required
-                this.logger.info("Password required for sign-up.");
+                this.logger.info("Password required for sign-up.", this.correlationId);
 
                 return new SignUpSubmitCodeResult(
                     new SignUpPasswordRequired(
@@ -81,7 +81,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
                 );
             } else if (result instanceof SignUpAttributesRequiredResult) {
                 // Attributes required
-                this.logger.info("Attributes required for sign-up.");
+                this.logger.info("Attributes required for sign-up.", this.correlationId);
 
                 return new SignUpSubmitCodeResult(
                     new SignUpAttributesRequired(
@@ -98,7 +98,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
                 );
             } else if (result instanceof SignUpCompletedResult) {
                 // Sign-up completed
-                this.logger.info("Sign-up completed.");
+                this.logger.info("Sign-up completed.", this.correlationId);
 
                 return new SignUpSubmitCodeResult(
                     new SignUpCompleted(
@@ -113,9 +113,11 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
                 );
             }
 
-            return SignUpSubmitCodeResult.createWithError(new UnexpectedError("Unknown sign-up result type."));
+            return SignUpSubmitCodeResult.createWithError(
+                new UnexpectedError("Unknown sign-up result type.", this.correlationId),
+            );
         } catch (error) {
-            this.logger.errorPii(`Failed to submit code for sign up. Error: ${error}.`);
+            this.logger.errorPii(`Failed to submit code for sign up. Error: ${error}.`, this.correlationId);
 
             return SignUpSubmitCodeResult.createWithError(error);
         }
@@ -127,7 +129,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
      */
     async resendCode(): Promise<SignUpResendCodeResult> {
         try {
-            this.logger.info("Resending code for sign-up.");
+            this.logger.info("Resending code for sign-up.", this.correlationId);
 
             const result = await this.signUpClient.resendCode({
                 clientId: this.config.auth.clientId,
@@ -137,7 +139,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
                 continuationToken: this.continuationToken ?? "",
             });
 
-            this.logger.info("Code resent for sign-up.");
+            this.logger.info("Code resent for sign-up.", this.correlationId);
 
             return new SignUpResendCodeResult(
                 new SignUpCodeRequired(
@@ -154,7 +156,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
                 ),
             );
         } catch (error) {
-            this.logger.errorPii(`Failed to resend code for sign up. Error: ${error}.`);
+            this.logger.errorPii(`Failed to resend code for sign up. Error: ${error}.`, this.correlationId);
 
             return SignUpResendCodeResult.createWithError(error);
         }
