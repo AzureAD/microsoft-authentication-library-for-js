@@ -2226,7 +2226,6 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         // if the cache policy is set to access_token only, we should not be hitting the native layer yet
         if (
-            // cacheLookupPolicy !== CacheLookupPolicy.AccessToken &&
             NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
                 this.logger,
