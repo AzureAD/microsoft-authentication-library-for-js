@@ -115,15 +115,14 @@ export class CustomAuthStandardController extends StandardController implements 
      * @returns {GetAccountResult} The account result
      */
     getCurrentAccount(accountRetrievalInputs?: AccountRetrievalInputs): GetAccountResult {
+        const correlationId = this.getCorrelationId(accountRetrievalInputs);
         try {
-            const correlationId = this.getCorrelationId(accountRetrievalInputs);
-
-            this.logger.info("Getting current account data.");
+            this.logger.info("Getting current account data.", correlationId);
 
             const account = this.cacheClient.getCurrentAccount(correlationId);
 
             if (account) {
-                this.logger.info("Account data found.");
+                this.logger.info("Account data found.", correlationId);
 
                 return new GetAccountResult(
                     new CustomAuthAccountData(
@@ -138,7 +137,7 @@ export class CustomAuthStandardController extends StandardController implements 
 
             throw new NoCachedAccountFoundError(correlationId);
         } catch (error) {
-            this.logger.error(`An error occurred during getting current account: ${error}`);
+            this.logger.errorPii(`An error occurred during getting current account: ${error}`, correlationId);
 
             return GetAccountResult.createWithError(error);
         }
@@ -150,10 +149,10 @@ export class CustomAuthStandardController extends StandardController implements 
      * @returns {Promise<SignInResult>} The result of the operation.
      */
     async signIn(signInInputs: SignInInputs): Promise<SignInResult> {
-        try {
-            ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signInInputs", signInInputs);
+        const correlationId = this.getCorrelationId(signInInputs);
 
-            const correlationId = this.getCorrelationId(signInInputs);
+        try {
+            ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signInInputs", signInInputs, correlationId);
 
             ArgumentValidator.ensureArgumentIsNotEmptyString(
                 "signInInputs.username",
@@ -171,15 +170,18 @@ export class CustomAuthStandardController extends StandardController implements 
                 password: signInInputs.password,
             };
 
-            this.logger.info(`Starting sign-in flow ${!!signInInputs.password ? "with" : "without"} password.`);
+            this.logger.info(
+                `Starting sign-in flow ${!!signInInputs.password ? "with" : "without"} password.`,
+                correlationId,
+            );
 
             const startResult = await this.signInClient.start(signInStartParams);
 
-            this.logger.info("Sign-in flow started.");
+            this.logger.info("Sign-in flow started.", correlationId);
 
             if (startResult instanceof SignInCodeSendResult) {
                 // require code
-                this.logger.info("Code required for sign-in.");
+                this.logger.info("Code required for sign-in.", correlationId);
 
                 return new SignInResult(
                     new SignInCodeRequired(
@@ -196,10 +198,13 @@ export class CustomAuthStandardController extends StandardController implements 
                 );
             } else if (startResult instanceof SignInPasswordRequiredResult) {
                 // require password
-                this.logger.info("Password required for sign-in.");
+                this.logger.info("Password required for sign-in.", correlationId);
 
                 if (!signInInputs.password) {
-                    this.logger.info("Password required but not provided. Returning password required state.");
+                    this.logger.info(
+                        "Password required but not provided. Returning password required state.",
+                        correlationId,
+                    );
 
                     return new SignInResult(
                         new SignInPasswordRequired(
@@ -215,7 +220,7 @@ export class CustomAuthStandardController extends StandardController implements 
                     );
                 }
 
-                this.logger.info("Submitting password for sign-in.");
+                this.logger.info("Submitting password for sign-in.", correlationId);
 
                 // if the password is provided, then try to get token silently.
                 const submitPasswordParams: SignInSubmitPasswordParams = {
@@ -230,7 +235,7 @@ export class CustomAuthStandardController extends StandardController implements 
 
                 const completedResult = await this.signInClient.submitPassword(submitPasswordParams);
 
-                this.logger.info("Sign-in flow completed.");
+                this.logger.info("Sign-in flow completed.", correlationId);
 
                 const accountInfo = new CustomAuthAccountData(
                     completedResult.authenticationResult.account,
@@ -243,11 +248,11 @@ export class CustomAuthStandardController extends StandardController implements 
                 return new SignInResult(new SignInCompleted(), accountInfo);
             }
 
-            this.logger.error("Unexpected sign-in result type. Returning error.");
+            this.logger.error("Unexpected sign-in result type. Returning error.", correlationId);
 
-            throw new UnexpectedError("Unknow sign-in result type");
+            throw new UnexpectedError("Unknow sign-in result type", correlationId);
         } catch (error) {
-            this.logger.error(`An error occurred during starting sign-in: ${error}`);
+            this.logger.errorPii(`An error occurred during starting sign-in: ${error}`, correlationId);
 
             return SignInResult.createWithError(error);
         }
@@ -259,10 +264,10 @@ export class CustomAuthStandardController extends StandardController implements 
      * @returns {Promise<SignUpResult>} The result of the operation
      */
     async signUp(signUpInputs: SignUpInputs): Promise<SignUpResult> {
-        try {
-            ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signUpInputs", signUpInputs);
+        const correlationId = this.getCorrelationId(signUpInputs);
 
-            const correlationId = this.getCorrelationId(signUpInputs);
+        try {
+            ArgumentValidator.ensureArgumentIsNotNullOrUndefined("signUpInputs", signUpInputs, correlationId);
 
             ArgumentValidator.ensureArgumentIsNotEmptyString(
                 "signUpInputs.username",
@@ -277,6 +282,7 @@ export class CustomAuthStandardController extends StandardController implements 
                         ? ` with ${!!signUpInputs.attributes ? "password and attributes" : "password"}`
                         : ""
                 }.`,
+                correlationId,
             );
 
             const startResult = await this.signUpClient.start({
@@ -288,11 +294,11 @@ export class CustomAuthStandardController extends StandardController implements 
                 attributes: signUpInputs.attributes?.toRecord(),
             });
 
-            this.logger.info("Sign-up flow started.");
+            this.logger.info("Sign-up flow started.", correlationId);
 
             if (startResult instanceof SignUpCodeRequiredResult) {
                 // Code required
-                this.logger.info("Code required for sign-up.");
+                this.logger.info("Code required for sign-up.", correlationId);
 
                 return new SignUpResult(
                     new SignUpCodeRequired(
@@ -310,7 +316,7 @@ export class CustomAuthStandardController extends StandardController implements 
                 );
             } else if (startResult instanceof SignUpPasswordRequiredResult) {
                 // Password required
-                this.logger.info("Password required for sign-up.");
+                this.logger.info("Password required for sign-up.", correlationId);
 
                 return new SignUpResult(
                     new SignUpPasswordRequired(
@@ -326,11 +332,11 @@ export class CustomAuthStandardController extends StandardController implements 
                 );
             }
 
-            this.logger.error("Unexpected sign-up result type. Returning error.");
+            this.logger.error("Unexpected sign-up result type. Returning error.", correlationId);
 
-            throw new UnexpectedError("Unknown sign-up result type");
+            throw new UnexpectedError("Unknown sign-up result type", correlationId);
         } catch (error) {
-            this.logger.error(`An error occurred during starting sign-up: ${error}`);
+            this.logger.errorPii(`An error occurred during starting sign-up: ${error}`, correlationId);
 
             return SignUpResult.createWithError(error);
         }
@@ -342,10 +348,14 @@ export class CustomAuthStandardController extends StandardController implements 
      * @returns {Promise<ResetPasswordStartResult>} The result of the operation.
      */
     async resetPassword(resetPasswordInputs: ResetPasswordInputs): Promise<ResetPasswordStartResult> {
-        try {
-            ArgumentValidator.ensureArgumentIsNotNullOrUndefined("resetPasswordInputs", resetPasswordInputs);
+        const correlationId = this.getCorrelationId(resetPasswordInputs);
 
-            const correlationId = this.getCorrelationId(resetPasswordInputs);
+        try {
+            ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+                "resetPasswordInputs",
+                resetPasswordInputs,
+                correlationId,
+            );
 
             ArgumentValidator.ensureArgumentIsNotEmptyString(
                 "resetPasswordInputs.username",
@@ -354,7 +364,7 @@ export class CustomAuthStandardController extends StandardController implements 
             );
             this.ensureUserNotSignedIn(correlationId);
 
-            this.logger.info("Starting password-reset flow.");
+            this.logger.info("Starting password-reset flow.", correlationId);
 
             const startResult = await this.resetPasswordClient.start({
                 clientId: this.customAuthConfig.auth.clientId,
@@ -363,7 +373,7 @@ export class CustomAuthStandardController extends StandardController implements 
                 username: resetPasswordInputs.username,
             });
 
-            this.logger.info("Password-reset flow started.");
+            this.logger.info("Password-reset flow started.", correlationId);
 
             return new ResetPasswordStartResult(
                 new ResetPasswordCodeRequired(
@@ -379,7 +389,7 @@ export class CustomAuthStandardController extends StandardController implements 
                 ),
             );
         } catch (error) {
-            this.logger.error(`An error occurred during starting reset-password: ${error}`);
+            this.logger.errorPii(`An error occurred during starting reset-password: ${error}`, correlationId);
 
             return ResetPasswordStartResult.createWithError(error);
         }
@@ -395,7 +405,7 @@ export class CustomAuthStandardController extends StandardController implements 
         });
 
         if (account && !!account.data) {
-            this.logger.error("User has already signed in.");
+            this.logger.error("User has already signed in.", correlationId);
 
             throw new UserAlreadySignedInError(correlationId);
         }

@@ -15,7 +15,7 @@ export class FetchHttpClient implements IHttpClient {
 
     async sendAsync(url: string | URL, options: RequestInit, correlationId: string): Promise<Response> {
         try {
-            this.logger.trace(`Sending request to ${url}`, correlationId);
+            this.logger.tracePii(`Sending request to ${url}`, correlationId);
 
             const startTime = performance.now();
 
@@ -23,14 +23,14 @@ export class FetchHttpClient implements IHttpClient {
 
             const endTime = performance.now();
 
-            this.logger.trace(
+            this.logger.tracePii(
                 `Request to '${url}' completed in ${endTime - startTime}ms with status code ${response.status}`,
                 correlationId,
             );
 
             return response;
         } catch (e) {
-            this.logger.error(`Failed to send request to ${url}: ${e}`, correlationId);
+            this.logger.errorPii(`Failed to send request to ${url}: ${e}`, correlationId);
 
             if (!window.navigator.onLine) {
                 throw new HttpError(NoNetworkConnectivity, `No network connectivity: ${e}`, correlationId);
