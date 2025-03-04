@@ -1959,11 +1959,7 @@ export class StandardController implements IController {
         }
         atsMeasurement.add({ accountType: getAccountType(account) });
 
-        return await this.getDedupedSilentRequest(
-            request,
-            account,
-            correlationId
-        )
+        return this.getDedupedSilentRequest(request, account, correlationId)
             .then((result) => {
                 atsMeasurement.end({
                     success: true,
