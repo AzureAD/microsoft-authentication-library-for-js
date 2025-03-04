@@ -176,7 +176,7 @@ describe("CustomAuthAccountData", () => {
                 correlationId,
             );
 
-            const response = await accountData.getAccessToken();
+            const response = await accountData.getAccessToken({ forceRefresh: false });
 
             expect(response).toBeDefined();
             expect(response.state?.type).toEqual(GetAccessTokenState.Completed);
@@ -201,7 +201,7 @@ describe("CustomAuthAccountData", () => {
                 correlationId,
             );
 
-            const response = await accountData.getAccessToken();
+            const response = await accountData.getAccessToken({ forceRefresh: false });
 
             expect(response).toBeDefined();
             expect(response.state?.type).toEqual(GetAccessTokenState.Failed);

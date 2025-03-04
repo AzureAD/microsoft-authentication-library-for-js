@@ -222,20 +222,6 @@ describe("CustomAuthStandardController", () => {
             expect(result.error?.isInvalidUsername()).toBe(true);
         });
 
-        it("should return error result if provided username is invalid", async () => {
-            const signUpInputs: SignUpInputs = {
-                correlationId: "correlation-id",
-                username: "agc@",
-            };
-
-            const result = await controller.signUp(signUpInputs);
-
-            expect(result.error).toBeDefined();
-            expect(result.error).toBeInstanceOf(SignUpError);
-
-            expect(result.error?.isInvalidUsername()).toBe(true);
-        });
-
         it("should return result with code required state if the challenge type is oob", async () => {
             signUpApiClient.start.mockResolvedValue({
                 continuation_token: "continuation_token_1",
@@ -355,19 +341,6 @@ describe("CustomAuthStandardController", () => {
             };
 
             let result = await controller.resetPassword(inputs);
-
-            expect(result.error).toBeDefined();
-            expect(result.error).toBeInstanceOf(ResetPasswordError);
-
-            expect(result.error?.isInvalidUsername()).toBe(true);
-
-            // Invalid username format (invalid email address)
-            inputs = {
-                correlationId: "correlation-id",
-                username: "abc@",
-            };
-
-            result = await controller.resetPassword(inputs);
 
             expect(result.error).toBeDefined();
             expect(result.error).toBeInstanceOf(ResetPasswordError);

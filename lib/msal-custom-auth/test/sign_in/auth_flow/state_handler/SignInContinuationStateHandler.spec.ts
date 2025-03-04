@@ -74,7 +74,7 @@ describe("SignInContinuationStateHandler", () => {
             }),
         );
 
-        const result = await handler.signIn(["scope1", "scope2"]);
+        const result = await handler.signIn({ scopes: ["scope1", "scope2"] });
 
         expect(result).toBeDefined();
         expect(result).toBeInstanceOf(SignInResult);

@@ -19,7 +19,6 @@ import {
 import { CustomAuthBrowserConfiguration } from "../configuration/CustomAuthConfiguration.js";
 import { CustomAuthOperatingContext } from "../operating_context/CustomAuthOperatingContext.js";
 import { ICustomAuthStandardController } from "./ICustomAuthStandardController.js";
-import { InvalidArgumentError } from "../core/error/InvalidArgumentError.js";
 import { CustomAuthAccountData } from "../get_account/auth_flow/CustomAuthAccountData.js";
 import { UnexpectedError } from "../core/error/UnexpectedError.js";
 import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/ResetPasswordStartResult.js";
@@ -113,7 +112,7 @@ export class CustomAuthStandardController extends StandardController implements 
     /*
      * Gets the current account from the cache.
      * @param accountRetrievalInputs - Inputs for getting the current cached account
-     * @returns - A promise that resolves to GetAccountResult
+     * @returns {GetAccountResult} The account result
      */
     getCurrentAccount(accountRetrievalInputs?: AccountRetrievalInputs): GetAccountResult {
         try {
@@ -148,7 +147,7 @@ export class CustomAuthStandardController extends StandardController implements 
     /*
      * Signs the user in.
      * @param signInInputs - Inputs for signing in the user.
-     * @returns The result of the operation.
+     * @returns {Promise<SignInResult>} The result of the operation.
      */
     async signIn(signInInputs: SignInInputs): Promise<SignInResult> {
         try {
@@ -156,7 +155,11 @@ export class CustomAuthStandardController extends StandardController implements 
 
             const correlationId = this.getCorrelationId(signInInputs);
 
-            this.ensureUsernameValid("signInInputs.username", signInInputs.username, correlationId);
+            ArgumentValidator.ensureArgumentIsNotEmptyString(
+                "signInInputs.username",
+                signInInputs.username,
+                correlationId,
+            );
             this.ensureUserNotSignedIn(correlationId);
 
             // start the signin flow
@@ -253,7 +256,7 @@ export class CustomAuthStandardController extends StandardController implements 
     /*
      * Signs the user up.
      * @param signUpInputs - Inputs for signing up the user.
-     * @returns The result of the operation
+     * @returns {Promise<SignUpResult>} The result of the operation
      */
     async signUp(signUpInputs: SignUpInputs): Promise<SignUpResult> {
         try {
@@ -261,7 +264,11 @@ export class CustomAuthStandardController extends StandardController implements 
 
             const correlationId = this.getCorrelationId(signUpInputs);
 
-            this.ensureUsernameValid("signUpInputs.username", signUpInputs.username, correlationId);
+            ArgumentValidator.ensureArgumentIsNotEmptyString(
+                "signUpInputs.username",
+                signUpInputs.username,
+                correlationId,
+            );
             this.ensureUserNotSignedIn(correlationId);
 
             this.logger.info(
@@ -332,7 +339,7 @@ export class CustomAuthStandardController extends StandardController implements 
     /*
      * Resets the user's password.
      * @param resetPasswordInputs - Inputs for resetting the user's password.
-     * @returns The result of the operation.
+     * @returns {Promise<ResetPasswordStartResult>} The result of the operation.
      */
     async resetPassword(resetPasswordInputs: ResetPasswordInputs): Promise<ResetPasswordStartResult> {
         try {
@@ -340,7 +347,11 @@ export class CustomAuthStandardController extends StandardController implements 
 
             const correlationId = this.getCorrelationId(resetPasswordInputs);
 
-            this.ensureUsernameValid("resetPasswordInputs.username", resetPasswordInputs.username, correlationId);
+            ArgumentValidator.ensureArgumentIsNotEmptyString(
+                "resetPasswordInputs.username",
+                resetPasswordInputs.username,
+                correlationId,
+            );
             this.ensureUserNotSignedIn(correlationId);
 
             this.logger.info("Starting password-reset flow.");
@@ -376,19 +387,6 @@ export class CustomAuthStandardController extends StandardController implements 
 
     private getCorrelationId(actionInputs: CustomAuthActionInputs | undefined): string {
         return actionInputs?.correlationId || this.browserCrypto.createNewGuid();
-    }
-
-    private isUsernameValid(username: string): boolean {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return !!username && emailRegex.test(username);
-    }
-
-    private ensureUsernameValid(usernameParamName: string, username: string, correlationId: string): void {
-        if (!this.isUsernameValid(username)) {
-            this.logger.error("Invalid username is provided.");
-
-            throw new InvalidArgumentError(usernameParamName, correlationId);
-        }
     }
 
     private ensureUserNotSignedIn(correlationId: string): void {

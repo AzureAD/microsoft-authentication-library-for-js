@@ -13,6 +13,7 @@ import { SignInStateHandler } from "./SignInStateHandler.js";
 import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
 import { SignInScenario } from "../SignInScenario.js";
 import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
+import { SignInWithContinuationTokenInputs } from "../../../CustomAuthActionInputs.js";
 
 /*
  * Sign-in continuation state handler.
@@ -35,13 +36,13 @@ export class SignInContinuationStateHandler extends SignInStateHandler {
      * Initiates the sign-in flow with continuation token.
      * @returns The result of the operation.
      */
-    async signIn(scopes?: string[]): Promise<SignInResult> {
+    async signIn(signInWithContinuationTokenInputs?: SignInWithContinuationTokenInputs): Promise<SignInResult> {
         try {
             const continuationTokenParams: SignInContinuationTokenParams = {
                 clientId: this.config.auth.clientId,
                 correlationId: this.correlationId,
                 challengeType: this.config.customAuth.challengeTypes ?? [],
-                scopes: scopes ?? [],
+                scopes: signInWithContinuationTokenInputs?.scopes ?? [],
                 continuationToken: this.continuationToken ?? "",
                 username: this.username,
                 signInScenario: this.signInScenario,
