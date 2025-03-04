@@ -55,5 +55,4 @@ export type RedirectRequest = Partial<
      * Set onRedirectNavigate in Configuration instead.
      */
     onRedirectNavigate?: (url: string) => boolean | void;
-    tokenBodyParameters?: StringDict;
 };

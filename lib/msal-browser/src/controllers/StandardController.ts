@@ -20,7 +20,7 @@ import {
     BaseAuthRequest,
     PromptValue,
     InProgressPerformanceEvent,
-    RequestThumbprint,
+    getRequestThumbprint,
     AccountEntity,
     invokeAsync,
     createClientAuthError,
@@ -1959,19 +1959,15 @@ export class StandardController implements IController {
         }
         atsMeasurement.add({ accountType: getAccountType(account) });
 
-        const thumbprint: RequestThumbprint = {
-            clientId: this.config.auth.clientId,
-            authority: request.authority || Constants.EMPTY_STRING,
-            scopes: request.scopes,
-            homeAccountIdentifier: account.homeAccountId,
-            claims: request.claims,
-            authenticationScheme: request.authenticationScheme,
-            resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims,
-            sshKid: request.sshKid,
-            shrOptions: request.shrOptions,
-        };
+        const thumbprint = getRequestThumbprint(
+            this.config.auth.clientId,
+            {
+                ...request,
+                authority: request.authority || this.config.auth.authority,
+                correlationId: correlationId,
+            },
+            account.homeAccountId
+        );
         const silentRequestKey = JSON.stringify(thumbprint);
 
         const cachedResponse =
@@ -2032,6 +2028,7 @@ export class StandardController implements IController {
             return {
                 ...(await cachedResponse),
                 state: request.state,
+                correlationId: correlationId
             };
         }
     }

@@ -12,7 +12,10 @@ import {
 } from "../utils/Constants.js";
 import { CacheManager } from "../cache/CacheManager.js";
 import { ServerError } from "../error/ServerError.js";
-import { RequestThumbprint } from "./RequestThumbprint.js";
+import {
+    getRequestThumbprint,
+    RequestThumbprint,
+} from "./RequestThumbprint.js";
 import { ThrottlingEntity } from "../cache/entities/ThrottlingEntity.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 
@@ -137,19 +140,11 @@ export class ThrottlingUtils {
         request: BaseAuthRequest,
         homeAccountIdentifier?: string
     ): void {
-        const thumbprint: RequestThumbprint = {
-            clientId: clientId,
-            authority: request.authority,
-            scopes: request.scopes,
-            homeAccountIdentifier: homeAccountIdentifier,
-            claims: request.claims,
-            authenticationScheme: request.authenticationScheme,
-            resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims,
-            sshKid: request.sshKid,
-        };
-
+        const thumbprint = getRequestThumbprint(
+            clientId,
+            request,
+            homeAccountIdentifier
+        );
         const key = this.generateThrottlingStorageKey(thumbprint);
         cacheManager.removeItem(key);
     }

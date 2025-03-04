@@ -51,6 +51,5 @@ export type PopupRequest = Partial<
 > & {
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
-    tokenBodyParameters?: StringDict;
     popupWindowParent?: Window;
 };

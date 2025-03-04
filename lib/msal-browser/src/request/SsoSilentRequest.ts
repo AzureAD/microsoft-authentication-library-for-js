@@ -42,6 +42,4 @@ export type SsoSilentRequest = Partial<
         | "requestedClaimsHash"
         | "platformBroker"
     >
-> & {
-    tokenBodyParameters?: StringDict;
-};
+>;
