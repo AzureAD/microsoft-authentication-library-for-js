@@ -198,9 +198,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     this.logger.info(
                         "MSAL internal Cache does not contain tokens, return error as per cache policy"
                     );
-                    throw createClientAuthError(
-                        ClientAuthErrorCodes.tokenRefreshRequired
-                    );
+                    throw e;
                 }
                 // continue with a native call for any and all errors
                 this.logger.info(

@@ -2276,9 +2276,6 @@ export class StandardController implements IController {
             )(silentRequest, cacheLookupPolicy).catch(
                 (cacheError: AuthError) => {
                     if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
-                        this.logger.verbose(
-                            "Failed to retrieve token from cache"
-                        );
                         throw cacheError;
                     }
 
