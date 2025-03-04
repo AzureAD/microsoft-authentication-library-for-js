@@ -3978,7 +3978,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.acquireTokenSilent({
                 scopes: ["User.Read"],
                 account: testAccount,
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
             });
 
             expect(response).toEqual(testTokenResponse);
@@ -4037,7 +4037,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentRequest = {
                 scopes: ["User.Read"],
                 account: testAccount,
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
             };
             const response = await pca.acquireTokenSilent(silentRequest);
 
@@ -4142,7 +4142,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["openid"],
                 account: testAccount,
                 state: "test-state",
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
             });
             expect(response?.idToken).not.toBeNull();
             expect(response).toEqual(testTokenResponse);
@@ -4232,7 +4232,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["openid"],
                 account: testAccount,
                 state: "test-state",
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
             });
             expect(response).toEqual(testTokenResponse);
             expect(silentCacheSpy).toHaveBeenCalledTimes(1);
@@ -4282,7 +4282,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["openid"],
                 account: testAccount,
                 state: "test-state",
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
             });
             expect(response).toEqual(testTokenResponse);
             expect(silentCacheSpy).toHaveBeenCalledTimes(1);
@@ -4331,7 +4331,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["openid"],
                 account: testAccount,
                 state: "test-state",
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
             });
             expect(response).toEqual(testTokenResponse);
             expect(silentCacheSpy).toHaveBeenCalledTimes(1);
@@ -4415,8 +4415,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const silentRequest1 = pca.acquireTokenSilent(tokenRequest);
-            const silentRequest2 = pca.acquireTokenSilent({...tokenRequest, correlationId: "test-correlationId2"});
-            const silentRequest3 = pca.acquireTokenSilent({...tokenRequest, correlationId: "test-correlationId3"});
+            const silentRequest2 = pca.acquireTokenSilent({
+                ...tokenRequest,
+                correlationId: "test-correlationId2",
+            });
+            const silentRequest3 = pca.acquireTokenSilent({
+                ...tokenRequest,
+                correlationId: "test-correlationId3",
+            });
             const parallelResponse = await Promise.all([
                 silentRequest1,
                 silentRequest2,
@@ -4427,8 +4433,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(atsSpy).toHaveBeenCalledTimes(1);
             expect(silentATStub).toHaveBeenCalledTimes(1);
             expect(parallelResponse[0]).toEqual(testTokenResponse);
-            expect(parallelResponse[1]).toEqual({...testTokenResponse, correlationId: "test-correlationId2"});
-            expect(parallelResponse[2]).toEqual({...testTokenResponse, correlationId: "test-correlationId3"});
+            expect(parallelResponse[1]).toEqual({
+                ...testTokenResponse,
+                correlationId: "test-correlationId2",
+            });
+            expect(parallelResponse[2]).toEqual({
+                ...testTokenResponse,
+                correlationId: "test-correlationId3",
+            });
             expect(parallelResponse).toHaveLength(3);
         });
 
@@ -4524,8 +4536,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const silentRequest1 = pca.acquireTokenSilent(tokenRequest);
-            const silentRequest2 = pca.acquireTokenSilent({...tokenRequest, correlationId: "test-correlationId2"});
-            const silentRequest3 = pca.acquireTokenSilent({...tokenRequest, correlationId: "test-correlationId3"});
+            const silentRequest2 = pca.acquireTokenSilent({
+                ...tokenRequest,
+                correlationId: "test-correlationId2",
+            });
+            const silentRequest3 = pca.acquireTokenSilent({
+                ...tokenRequest,
+                correlationId: "test-correlationId3",
+            });
             const parallelResponse = await Promise.all([
                 silentRequest1,
                 silentRequest2,
@@ -4536,8 +4554,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(atsSpy).toHaveBeenCalledTimes(1);
             expect(silentATStub).toHaveBeenCalledTimes(1);
             expect(parallelResponse[0]).toEqual(testTokenResponse);
-            expect(parallelResponse[1]).toEqual({...testTokenResponse, correlationId: "test-correlationId2"});
-            expect(parallelResponse[2]).toEqual({...testTokenResponse, correlationId: "test-correlationId3"});
+            expect(parallelResponse[1]).toEqual({
+                ...testTokenResponse,
+                correlationId: "test-correlationId2",
+            });
+            expect(parallelResponse[2]).toEqual({
+                ...testTokenResponse,
+                correlationId: "test-correlationId3",
+            });
             expect(parallelResponse).toHaveLength(3);
         });
 
@@ -5069,7 +5093,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: "test-correlationId1",
                 forceRefresh: false,
-            }
+            };
             const tokenRequest1: CommonSilentFlowRequest = {
                 ...baseRequest,
                 embeddedClientId: "embeddedApp1",
@@ -5084,11 +5108,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentRequest1 = pca.acquireTokenSilent(tokenRequest1);
             const silentRequest2 = pca.acquireTokenSilent(tokenRequest1);
             const silentRequest3 = pca.acquireTokenSilent(tokenRequest2);
-            await Promise.all([
-                silentRequest1,
-                silentRequest2,
-                silentRequest3,
-            ]);
+            await Promise.all([silentRequest1, silentRequest2, silentRequest3]);
 
             expect(silentATStub).toHaveBeenCalledWith(tokenRequest1);
             expect(silentATStub).toHaveBeenCalledWith(tokenRequest2);
@@ -5253,25 +5273,34 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentRequest1 = pca.acquireTokenSilent({
                 scopes: ["Scope1"],
                 account: testAccount,
-                correlationId: "test-correlationId1"
+                correlationId: "test-correlationId1",
             });
             const silentRequest2 = pca.acquireTokenSilent({
                 scopes: ["Scope2"],
                 account: testAccount,
-                correlationId: "test-correlationId2"
+                correlationId: "test-correlationId2",
             });
             const silentRequest3 = pca.acquireTokenSilent({
                 scopes: ["Scope3"],
                 account: testAccount,
-                correlationId: "test-correlationId3"
+                correlationId: "test-correlationId3",
             });
             await Promise.all([silentRequest1, silentRequest2, silentRequest3]);
             expect(iframeMock).toHaveBeenCalledTimes(1);
             expect(rtMockFirstCalledTimes).toEqual(3);
             expect(rtMockSecond).toHaveBeenCalledTimes(2);
-            expect(await silentRequest1).toEqual({...testTokenResponse, correlationId: "test-correlationId1"});
-            expect(await silentRequest2).toEqual({...testTokenResponse, correlationId: "test-correlationId2"});
-            expect(await silentRequest3).toEqual({...testTokenResponse, correlationId: "test-correlationId3"});
+            expect(await silentRequest1).toEqual({
+                ...testTokenResponse,
+                correlationId: "test-correlationId1",
+            });
+            expect(await silentRequest2).toEqual({
+                ...testTokenResponse,
+                correlationId: "test-correlationId2",
+            });
+            expect(await silentRequest3).toEqual({
+                ...testTokenResponse,
+                correlationId: "test-correlationId3",
+            });
         });
 
         it("throws RT renewal error if other in progress iframe renewal throws", async () => {
@@ -5815,7 +5844,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     scopes: ["openid"],
                     account: testAccount,
                     cacheLookupPolicy: CacheLookupPolicy.Default,
-                    correlationId: RANDOM_TEST_GUID
+                    correlationId: RANDOM_TEST_GUID,
                 });
                 expect(response).toEqual(testTokenResponse);
                 expect(silentCacheSpy).toHaveBeenCalledTimes(1);
@@ -5842,7 +5871,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     scopes: ["openid"],
                     account: testAccount,
                     cacheLookupPolicy: CacheLookupPolicy.Default,
-                    correlationId: RANDOM_TEST_GUID
+                    correlationId: RANDOM_TEST_GUID,
                 });
                 expect(response).toEqual(testTokenResponse);
                 expect(silentCacheSpy).toHaveBeenCalledTimes(1);
@@ -5936,7 +5965,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     scopes: ["openid"],
                     account: testAccount,
                     cacheLookupPolicy: CacheLookupPolicy.RefreshTokenAndNetwork,
-                    correlationId: RANDOM_TEST_GUID
+                    correlationId: RANDOM_TEST_GUID,
                 });
                 expect(response).toEqual(testTokenResponse);
                 expect(silentCacheSpy).toHaveBeenCalledTimes(0);
@@ -5959,7 +5988,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     scopes: ["openid"],
                     account: testAccount,
                     cacheLookupPolicy: CacheLookupPolicy.Skip,
-                    correlationId: RANDOM_TEST_GUID
+                    correlationId: RANDOM_TEST_GUID,
                 });
                 expect(response).toEqual(testTokenResponse);
                 expect(silentCacheSpy).toHaveBeenCalledTimes(0);

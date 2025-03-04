@@ -1341,7 +1341,6 @@ export type PopupPosition = {
 export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">> & {
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
-    tokenBodyParameters?: StringDict;
     popupWindowParent?: Window;
 };
 
@@ -1600,7 +1599,6 @@ export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "respo
     scopes: Array<string>;
     redirectStartPage?: string;
     onRedirectNavigate?: (url: string) => boolean | void;
-    tokenBodyParameters?: StringDict;
 };
 
 // Warning: (ae-missing-release-tag) "replaceHash" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1679,7 +1677,6 @@ export type SilentRequest = Omit<CommonSilentFlowRequest, "authority" | "correla
     cacheLookupPolicy?: CacheLookupPolicy;
     prompt?: string;
     state?: string;
-    tokenBodyParameters?: StringDict;
 };
 
 // Warning: (ae-missing-release-tag) "spaCodeAndNativeAccountIdPresent" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1690,9 +1687,7 @@ const spaCodeAndNativeAccountIdPresent = "spa_code_and_nativeAccountId_present";
 // Warning: (ae-missing-release-tag) "SsoSilentRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">> & {
-    tokenBodyParameters?: StringDict;
-};
+export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">>;
 
 // Warning: (ae-missing-release-tag) "stateInteractionTypeMismatch" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
