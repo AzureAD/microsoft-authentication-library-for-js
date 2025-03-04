@@ -96,6 +96,7 @@ describe("SignInClient", () => {
             clone: jest.fn(),
             verbose: jest.fn(),
             info: jest.fn(),
+            errorPii: jest.fn(),
         } as unknown as jest.Mocked<Logger>;
         mockLogger.clone.mockReturnValue(mockLogger);
 

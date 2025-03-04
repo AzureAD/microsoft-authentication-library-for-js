@@ -28,7 +28,7 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
         try {
             this.ensurePasswordIsNotEmpty(password);
 
-            this.logger.info("Submitting password for sign-up.");
+            this.logger.info("Submitting password for sign-up.", this.correlationId);
 
             const result = await this.signUpClient.submitPassword({
                 clientId: this.config.auth.clientId,
@@ -39,11 +39,11 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
                 username: this.username,
             });
 
-            this.logger.info("Password submitted for sign-up.");
+            this.logger.info("Password submitted for sign-up.", this.correlationId);
 
             if (result instanceof SignUpCodeRequiredResult) {
                 // Code required
-                this.logger.info("Code required for sign-up.");
+                this.logger.info("Code required for sign-up.", this.correlationId);
 
                 return new SignUpSubmitPasswordResult(
                     new SignUpCodeRequired(
@@ -61,7 +61,7 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
                 );
             } else if (result instanceof SignUpAttributesRequiredResult) {
                 // Attributes required
-                this.logger.info("Attributes required for sign-up.");
+                this.logger.info("Attributes required for sign-up.", this.correlationId);
 
                 return new SignUpSubmitPasswordResult(
                     new SignUpAttributesRequired(
@@ -78,7 +78,7 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
                 );
             } else if (result instanceof SignUpCompletedResult) {
                 // Sign-up completed
-                this.logger.info("Sign-up completed.");
+                this.logger.info("Sign-up completed.", this.correlationId);
 
                 return new SignUpSubmitPasswordResult(
                     new SignUpCompleted(
@@ -93,9 +93,11 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
                 );
             }
 
-            return SignUpSubmitPasswordResult.createWithError(new UnexpectedError("Unknown sign-up result type."));
+            return SignUpSubmitPasswordResult.createWithError(
+                new UnexpectedError("Unknown sign-up result type.", this.correlationId),
+            );
         } catch (error) {
-            this.logger.error(`Failed to submit password for sign up. Error: ${error}.`);
+            this.logger.errorPii(`Failed to submit password for sign up. Error: ${error}.`, this.correlationId);
 
             return SignUpSubmitPasswordResult.createWithError(error);
         }

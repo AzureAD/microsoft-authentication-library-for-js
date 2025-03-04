@@ -47,11 +47,11 @@ export class SignInContinuationStateHandler extends SignInStateHandler {
                 signInScenario: this.signInScenario,
             };
 
-            this.logger.info("Signing in with continuation token.");
+            this.logger.info("Signing in with continuation token.", this.correlationId);
 
             const completedResult = await this.signInClient.signInWithContinuationToken(continuationTokenParams);
 
-            this.logger.info("Signed in with continuation token.");
+            this.logger.info("Signed in with continuation token.", this.correlationId);
 
             const accountInfo = new CustomAuthAccountData(
                 completedResult.authenticationResult.account,
@@ -63,7 +63,7 @@ export class SignInContinuationStateHandler extends SignInStateHandler {
 
             return new SignInResult(new SignInCompleted(), accountInfo);
         } catch (error) {
-            this.logger.error(`Failed to sign in with continuation token. Error: ${error}.`);
+            this.logger.errorPii(`Failed to sign in with continuation token. Error: ${error}.`, this.correlationId);
 
             return SignInResult.createWithError(error);
         }
