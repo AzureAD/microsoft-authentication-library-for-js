@@ -1959,7 +1959,7 @@ export class StandardController implements IController {
         }
         atsMeasurement.add({ accountType: getAccountType(account) });
 
-        return this.getDedupedSilentRequest(request, account, correlationId)
+        return this.acquireTokenSilentDeduped(request, account, correlationId)
             .then((result) => {
                 atsMeasurement.end({
                     success: true,
@@ -1997,7 +1997,7 @@ export class StandardController implements IController {
      * @param correlationId
      * @returns
      */
-    private async getDedupedSilentRequest(
+    private async acquireTokenSilentDeduped(
         request: SilentRequest,
         account: AccountInfo,
         correlationId: string
