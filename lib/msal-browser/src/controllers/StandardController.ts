@@ -1519,7 +1519,8 @@ export class StandardController implements IController {
     public async acquireTokenNative(
         request: PopupRequest | SilentRequest | SsoSilentRequest,
         apiId: ApiId,
-        accountId?: string
+        accountId?: string,
+        cacheLookupPolicy?: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenNative called");
         if (!this.nativeExtensionProvider) {
@@ -1543,7 +1544,7 @@ export class StandardController implements IController {
             request.correlationId
         );
 
-        return nativeClient.acquireToken(request);
+        return nativeClient.acquireToken(request, cacheLookupPolicy);
     }
 
     /**
@@ -2225,7 +2226,7 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         // if the cache policy is set to access_token only, we should not be hitting the native layer yet
         if (
-            cacheLookupPolicy !== CacheLookupPolicy.AccessToken &&
+            // cacheLookupPolicy !== CacheLookupPolicy.AccessToken &&
             NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
                 this.logger,
@@ -2239,7 +2240,9 @@ export class StandardController implements IController {
             );
             return this.acquireTokenNative(
                 silentRequest,
-                ApiId.acquireTokenSilent_silentFlow
+                ApiId.acquireTokenSilent_silentFlow,
+                silentRequest.account.nativeAccountId,
+                cacheLookupPolicy
             ).catch(async (e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to web flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {

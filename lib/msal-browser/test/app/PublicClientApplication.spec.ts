@@ -5774,7 +5774,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(silentIframeSpy).toHaveBeenCalledTimes(0);
             });
 
-            it("Calls SilentCacheClient.acquireToken, and does not call NativeInteractionClient.acquireToken when CacheLookupPolicy is set to AccessToken", async () => {
+            it("Calls SilentCacheClient.acquireToken, and calls NativeInteractionClient.acquireToken when CacheLookupPolicy is set to AccessToken", async () => {
                 const silentCacheSpy: jest.SpyInstance = jest
                     .spyOn(SilentCacheClient.prototype, "acquireToken")
                     .mockRejectedValue(refreshRequiredCacheError);
@@ -5785,29 +5785,35 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     .spyOn(SilentIframeClient.prototype, "acquireToken")
                     .mockImplementation();
 
-                const nativeRequestSpy = jest
-                    .spyOn(NativeInteractionClient.prototype, "acquireToken")
-                    .mockImplementation();
                 const isPlatformBrokerAvailableSpy = jest
                     .spyOn(NativeMessageHandler, "isPlatformBrokerAvailable")
                     .mockReturnValue(true);
                 const nativeAcquireTokenSpy: jest.SpyInstance = jest
                     .spyOn(NativeInteractionClient.prototype, "acquireToken")
                     .mockImplementation();
-                const account = testAccount;
-                account.nativeAccountId = "nativeAccountId";
+                const cacheAccount = testAccount;
+                cacheAccount.nativeAccountId = "nativeAccountId";
 
                 await expect(
                     pca.acquireTokenSilent({
                         scopes: ["openid"],
-                        account,
+                        account: cacheAccount,
                         cacheLookupPolicy: CacheLookupPolicy.AccessToken,
                     })
-                ).rejects.toThrow(refreshRequiredCacheError);
-                expect(silentCacheSpy).toHaveBeenCalledTimes(1);
+                )
+                    .rejects.toThrow(BrowserAuthError)
+                    .catch((error) => {
+                        expect(error.errorCode).toBe(
+                            BrowserAuthErrorCodes.nativeConnectionNotEstablished
+                        );
+                    });
+                expect(silentCacheSpy).toHaveBeenCalledTimes(0);
                 expect(silentRefreshSpy).toHaveBeenCalledTimes(0);
                 expect(silentIframeSpy).toHaveBeenCalledTimes(0);
                 expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(0);
+
+                nativeAcquireTokenSpy.mockRestore();
+                isPlatformBrokerAvailableSpy.mockRestore();
             });
 
             it("Calls SilentRefreshClient.acquireToken, and does not call SilentCacheClient.acquireToken or SilentIframeClient.acquireToken if refresh token is expired when CacheLookupPolicy is set to RefreshToken", async () => {
@@ -5843,12 +5849,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const silentIframeSpy = jest
                     .spyOn(SilentIframeClient.prototype, "acquireToken")
                     .mockImplementation();
-
                 const nativeAcquireTokenSpy: jest.SpyInstance = jest
                     .spyOn(NativeInteractionClient.prototype, "acquireToken")
                     .mockImplementation();
-                const account = testAccount;
-                account.nativeAccountId = "nativeAccountId";
+
+                const cacheAccount = testAccount;
+                cacheAccount.nativeAccountId = "nativeAccountId";
                 const isPlatformBrokerAvailableSpy = jest
                     .spyOn(NativeMessageHandler, "isPlatformBrokerAvailable")
                     .mockReturnValue(true);
@@ -5857,7 +5863,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await expect(
                     pca.acquireTokenSilent({
                         scopes: ["openid"],
-                        account,
+                        account: cacheAccount,
                         cacheLookupPolicy:
                             CacheLookupPolicy.AccessTokenAndRefreshToken,
                     })
@@ -5872,6 +5878,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(silentRefreshSpy).toHaveBeenCalledTimes(0);
                 expect(silentIframeSpy).toHaveBeenCalledTimes(0);
                 expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(0);
+                nativeAcquireTokenSpy.mockRestore();
+                isPlatformBrokerAvailableSpy.mockRestore();
             });
 
             it("Calls SilentRefreshClient.acquireToken, and does not call SilentCacheClient.acquireToken or SilentIframeClient.acquireToken if refresh token is expired when CacheLookupPolicy is set to RefreshToken", async () => {
