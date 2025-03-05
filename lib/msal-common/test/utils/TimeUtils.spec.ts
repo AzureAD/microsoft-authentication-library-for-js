@@ -22,7 +22,7 @@ describe("TimeUtils.ts Class Unit Tests", () => {
     });
 
     it("toDateFromSeconds() converts seconds to a date when seconds in string format", () => {
-        const seconds = '1234567890';
+        const seconds = "1234567890";
         const dateFromSeconds = TimeUtils.toDateFromSeconds(seconds);
         expect(dateFromSeconds).toBeInstanceOf(Date);
         expect(dateFromSeconds).toEqual(new Date(Number(seconds) * 1000));

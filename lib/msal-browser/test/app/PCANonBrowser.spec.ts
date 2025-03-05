@@ -4,11 +4,7 @@
 import { TEST_CONFIG } from "../utils/StringConstants";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
-import {
-    AccountInfo,
-    AuthenticationScheme,
-    Logger,
-} from "@azure/msal-common";
+import { AccountInfo, AuthenticationScheme, Logger } from "@azure/msal-common";
 import {
     ID_TOKEN_CLAIMS,
     RANDOM_TEST_GUID,

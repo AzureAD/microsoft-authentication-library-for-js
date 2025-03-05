@@ -3,10 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AccountInfo,
-    AuthenticationResult,
-} from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult } from "@azure/msal-common";
 import {
     Account,
     ErrorStatus,
@@ -77,7 +74,6 @@ export const TEST_ACCESS_TOKEN = "this.is.an.accesstoken";
 export function nowDateWithOffset(offsetSeconds: number): Date {
     return new Date(Date.now() + Number(offsetSeconds) * 1000);
 }
-
 
 export const getTestAuthenticationResult = (
     correlationId: string
