@@ -16,6 +16,34 @@ export function nowSeconds(): number {
 }
 
 /**
+ * Returns current time in JS Date object with offset
+ * @param offset
+ * @returns 
+ */
+export function nowDateWithOffset(offset: number): Date {
+    return new Date(Date.now() + Number(offset) * 1000);
+}
+
+/**
+ * Converts JS Date object to seconds
+ * @param date Date
+ * @returns 
+ */
+export function toSecondsFromDate(date: Date): number {
+    // Convert date to seconds
+    return date.getTime() / 1000;
+}
+
+/**
+ * Convert seconds to JS Date object
+ * @param seconds 
+ * @returns 
+ */
+export function toDateFromSeconds(seconds: number | string | undefined): Date {
+    return new Date(Number(seconds) * 1000);
+}
+
+/**
  * check if a token is expired based on given UTC time in seconds.
  * @param expiresOn
  */
