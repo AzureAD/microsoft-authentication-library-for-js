@@ -144,7 +144,6 @@ export {
     StringUtils,
     UrlString,
     JsonWebTokenTypes,
-    TimeUtils,
     // AzureCloudInstance enum
     AzureCloudInstance,
     AzureCloudOptions,

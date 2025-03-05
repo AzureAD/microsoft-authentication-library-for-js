@@ -8,7 +8,6 @@ import {
     AccountInfo,
     AuthenticationScheme,
     Logger,
-    TimeUtils,
 } from "@azure/msal-common";
 import {
     ID_TOKEN_CLAIMS,
@@ -23,6 +22,7 @@ import {
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { SilentRequest } from "../../src/request/SilentRequest.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
+import * as TestTimeUtils from "../utils/TestTimeUtils.js";
 
 /**
  * Tests for PublicClientApplication.ts when run in a non-browser environment
@@ -484,7 +484,7 @@ describe("Non-browser environment", () => {
             accessToken: TEST_TOKENS.ACCESS_TOKEN,
             fromCache: false,
             correlationId: RANDOM_TEST_GUID,
-            expiresOn: TimeUtils.nowDateWithOffset(3600),
+            expiresOn: TestTimeUtils.nowDateWithOffset(3600),
             account: testAccount,
             tokenType: AuthenticationScheme.BEARER,
         };

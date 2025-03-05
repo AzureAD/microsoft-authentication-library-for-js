@@ -18,6 +18,7 @@ import {
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
 } from "../utils/StringConstants.js";
+import * as TestTimeUtils from "../utils/TestTimeUtils.js";
 import {
     Constants,
     AccountInfo,
@@ -35,7 +36,6 @@ import {
     AuthError,
     ProtocolUtils,
     ProtocolMode,
-    TimeUtils,
 } from "@azure/msal-common";
 import {
     TemporaryCacheKeys,
@@ -362,7 +362,7 @@ describe("PopupClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
@@ -489,7 +489,7 @@ describe("PopupClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
@@ -597,7 +597,7 @@ describe("PopupClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,

@@ -6,7 +6,6 @@
 import {
     AccountInfo,
     AuthenticationResult,
-    TimeUtils,
 } from "@azure/msal-browser";
 
 export const TEST_CONFIG = {
@@ -47,7 +46,15 @@ export const testResult: AuthenticationResult = {
     accessToken: "test-access-token",
     fromCache: false,
     correlationId: "test-correlation-id",
-    expiresOn: TimeUtils.nowDateWithOffset(3600),
+    expiresOn: nowDateWithOffset(3600),
     account: testAccount,
     tokenType: "Bearer",
 };
+
+/**
+ * Returns current time in JS Date object (milliseconds) with offset in seconds
+ * @param offset
+ */
+export function nowDateWithOffset(offsetSeconds: number): Date {
+    return new Date(Date.now() + Number(offsetSeconds) * 1000);
+}

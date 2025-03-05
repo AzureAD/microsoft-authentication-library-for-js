@@ -14,6 +14,7 @@ import {
     TEST_TOKENS,
     TEST_URIS,
 } from "../test_kit/StringConstants.js";
+import * as TestTimeUtils from "../test_kit/TestTimeUtils.js";
 import { Authority } from "../../src/authority/Authority.js";
 import {
     INetworkModule,
@@ -274,7 +275,7 @@ describe("ResponseHandler.ts", () => {
                 accessToken: "",
                 fromCache: false,
                 correlationId: "CORRELATION_ID",
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
@@ -341,7 +342,7 @@ describe("ResponseHandler.ts", () => {
                 accessToken: testResponse.access_token || "",
                 fromCache: false,
                 correlationId: "CORRELATION_ID",
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
@@ -407,7 +408,7 @@ describe("ResponseHandler.ts", () => {
                 accessToken: testResponse.access_token || "",
                 fromCache: false,
                 correlationId: "CORRELATION_ID",
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,

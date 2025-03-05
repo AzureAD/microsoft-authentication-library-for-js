@@ -16,8 +16,8 @@ import {
     TEST_STATE_VALUES,
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
-    calculateExpiresDate,
 } from "../utils/StringConstants.js";
+import * as TestTimeUtils from "../utils/TestTimeUtils.js";
 import {
     AccountInfo,
     TokenClaims,
@@ -28,7 +28,6 @@ import {
     ProtocolUtils,
     TenantProfile,
     Authority,
-    TimeUtils,
 } from "@azure/msal-common";
 import {
     createBrowserAuthError,
@@ -139,7 +138,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
@@ -292,7 +291,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
@@ -361,7 +360,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
@@ -472,7 +471,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
@@ -574,7 +573,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
@@ -711,10 +710,10 @@ describe("SilentIframeClient", () => {
                 fromNativeBroker: false,
                 code: undefined,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                expiresOn: calculateExpiresDate(
+                expiresOn: TestTimeUtils.calculateExpiresDate(
                     testServerTokenResponse.expires_in
                 ),
-                extExpiresOn: calculateExpiresDate(
+                extExpiresOn: TestTimeUtils.calculateExpiresDate(
                     testServerTokenResponse.expires_in +
                         testServerTokenResponse.ext_expires_in
                 ),
@@ -879,7 +878,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
@@ -982,7 +981,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
@@ -1092,7 +1091,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,

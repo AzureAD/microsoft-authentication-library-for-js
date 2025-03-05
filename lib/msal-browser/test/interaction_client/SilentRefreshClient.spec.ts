@@ -12,6 +12,7 @@ import {
     RANDOM_TEST_GUID,
     TEST_TOKEN_RESPONSE,
 } from "../utils/StringConstants.js";
+import * as TestTimeUtils from "../utils/TestTimeUtils.js";
 import {
     Constants,
     AccountInfo,
@@ -22,7 +23,6 @@ import {
     CommonSilentFlowRequest,
     AccountEntity,
     CredentialType,
-    TimeUtils,
 } from "@azure/msal-common";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import {
@@ -118,7 +118,7 @@ describe("SilentRefreshClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
@@ -172,7 +172,7 @@ describe("SilentRefreshClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,

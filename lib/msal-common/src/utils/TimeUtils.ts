@@ -16,14 +16,6 @@ export function nowSeconds(): number {
 }
 
 /**
- * Returns current time in JS Date object with offset
- * @param offset
- */
-export function nowDateWithOffset(offset: number): Date {
-    return new Date(Date.now() + Number(offset) * 1000);
-}
-
-/**
  * Converts JS Date object to seconds
  * @param date Date
  */

@@ -14,12 +14,12 @@ import {
     testNavUrl,
     TEST_TOKEN_RESPONSE,
 } from "../utils/StringConstants.js";
+import * as TestTimeUtils from "../utils/TestTimeUtils.js";
 import {
     AccountInfo,
     TokenClaims,
     AuthorizationCodeClient,
     AuthenticationScheme,
-    TimeUtils,
 } from "@azure/msal-common";
 import {
     createBrowserAuthError,
@@ -130,7 +130,7 @@ describe("SilentAuthCodeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,

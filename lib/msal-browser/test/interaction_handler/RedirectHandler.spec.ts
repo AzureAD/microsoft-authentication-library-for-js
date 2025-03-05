@@ -24,7 +24,6 @@ import {
     CcsCredentialType,
     IPerformanceClient,
     StubPerformanceClient,
-    TimeUtils,
 } from "@azure/msal-common/browser";
 import {
     Configuration,
@@ -40,6 +39,7 @@ import {
     TEST_TOKEN_LIFETIMES,
     TEST_STATE_VALUES,
 } from "../utils/StringConstants.js";
+import * as TestTimeUtils from "../utils/TestTimeUtils.js";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler.js";
 import {
     BrowserAuthErrorMessage,
@@ -370,7 +370,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
                 ),
                 idTokenClaims: idTokenClaims,
@@ -487,7 +487,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(
+                expiresOn: TestTimeUtils.nowDateWithOffset(
                     TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
                 ),
                 idTokenClaims: idTokenClaims,
