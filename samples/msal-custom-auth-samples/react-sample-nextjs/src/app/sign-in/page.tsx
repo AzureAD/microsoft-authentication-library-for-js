@@ -4,40 +4,11 @@ import { useState } from "react";
 import { CustomAuthPublicClientApplication } from "../../../../../../lib/msal-custom-auth";
 import { SignInState } from "../../../../../../lib/msal-custom-auth";
 import { customAuthConfig } from "../../config/auth-config";
-
-const styles = {
-    container: {
-        maxWidth: "400px",
-        margin: "40px auto",
-        padding: "20px",
-        border: "1px solid #ccc",
-        borderRadius: "8px",
-    },
-    form: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "15px",
-    },
-    input: {
-        padding: "8px",
-        border: "1px solid #ccc",
-        borderRadius: "4px",
-        fontSize: "16px",
-    },
-    button: {
-        padding: "10px",
-        backgroundColor: "#0078d4",
-        color: "white",
-        border: "none",
-        borderRadius: "4px",
-        cursor: "pointer",
-        fontSize: "16px",
-    },
-    error: {
-        color: "#d13438",
-        marginTop: "10px",
-    },
-} as const;
+import { styles } from "./styles/styles";
+import { handleError, redirectToHome, ERROR_MESSAGES } from "./utils";
+import { InitialForm } from "./components/InitialForm";
+import { CodeForm } from "./components/CodeForm";
+import { PasswordForm } from "./components/PasswordForm";
 
 export default function SignIn() {
     const [username, setUsername] = useState("");
@@ -73,15 +44,13 @@ export default function SignIn() {
             }
 
             if (result.state?.type === SignInState.Completed) {
-                // Redirect to home or dashboard
-                window.location.href = "/";
+                redirectToHome();
                 return;
             }
 
             setFlowState(result.state);
         } catch (err) {
-            setError("An unexpected error occurred");
-            console.error(err);
+            handleError(err, setError);
         } finally {
             setLoading(false);
         }
@@ -105,12 +74,10 @@ export default function SignIn() {
             }
 
             if (result.data) {
-                // Redirect to home or dashboard
-                window.location.href = "/";
+                redirectToHome();
             }
         } catch (err) {
-            setError("An unexpected error occurred");
-            console.error(err);
+            handleError(err, setError);
         } finally {
             setLoading(false);
         }
@@ -134,84 +101,59 @@ export default function SignIn() {
             }
 
             if (result.data) {
-                // Redirect to home or dashboard
-                window.location.href = "/";
+                redirectToHome();
             }
         } catch (err) {
-            setError("An unexpected error occurred");
-            console.error(err);
+            handleError(err, setError);
         } finally {
             setLoading(false);
         }
     };
 
-    const renderInitialForm = () => (
-        <form onSubmit={handleInitialSubmit} style={styles.form}>
-            <input
-                type="email"
-                placeholder="Email"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                style={styles.input}
-                required
-            />
-            <input
-                type="password"
-                placeholder="Password (optional)"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={styles.input}
-            />
-            <button type="submit" style={styles.button} disabled={loading}>
-                {loading ? "Signing in..." : "Sign In"}
-            </button>
-        </form>
-    );
-
-    const renderCodeForm = () => (
-        <form onSubmit={handleCodeSubmit} style={styles.form}>
-            <input
-                type="text"
-                placeholder="Enter verification code"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                style={styles.input}
-                required
-            />
-            <button type="submit" style={styles.button} disabled={loading}>
-                {loading ? "Verifying..." : "Verify Code"}
-            </button>
-        </form>
-    );
-
-    const renderPasswordForm = () => (
-        <form onSubmit={handlePasswordSubmit} style={styles.form}>
-            <input
-                type="password"
-                placeholder="Enter password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={styles.input}
-                required
-            />
-            <button type="submit" style={styles.button} disabled={loading}>
-                {loading ? "Verifying..." : "Submit Password"}
-            </button>
-        </form>
-    );
-
     const renderForm = () => {
         if (!flowState) {
-            return renderInitialForm();
+            return (
+                <InitialForm
+                    onSubmit={handleInitialSubmit}
+                    username={username}
+                    setUsername={setUsername}
+                    password={password}
+                    setPassword={setPassword}
+                    loading={loading}
+                />
+            );
         }
 
         switch (flowState.type) {
             case SignInState.CodeRequired:
-                return renderCodeForm();
+                return (
+                    <CodeForm
+                        onSubmit={handleCodeSubmit}
+                        code={code}
+                        setCode={setCode}
+                        loading={loading}
+                    />
+                );
             case SignInState.PasswordRequired:
-                return renderPasswordForm();
+                return (
+                    <PasswordForm
+                        onSubmit={handlePasswordSubmit}
+                        password={password}
+                        setPassword={setPassword}
+                        loading={loading}
+                    />
+                );
             default:
-                return renderInitialForm();
+                return (
+                    <InitialForm
+                        onSubmit={handleInitialSubmit}
+                        username={username}
+                        setUsername={setUsername}
+                        password={password}
+                        setPassword={setPassword}
+                        loading={loading}
+                    />
+                );
         }
     };
 
