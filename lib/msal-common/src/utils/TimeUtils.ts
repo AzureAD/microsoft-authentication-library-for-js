@@ -25,11 +25,14 @@ export function toSecondsFromDate(date: Date): number {
 }
 
 /**
- * Convert seconds to JS Date object
+ * Convert seconds to JS Date object. Seconds can be in a number or string format or undefined (will still return a date).
  * @param seconds
  */
 export function toDateFromSeconds(seconds: number | string | undefined): Date {
-    return new Date(Number(seconds) * 1000);
+    if (seconds) {
+        return new Date(Number(seconds) * 1000);
+    }
+    return new Date();
 }
 
 /**
