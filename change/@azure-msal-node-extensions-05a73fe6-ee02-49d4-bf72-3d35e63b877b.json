@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix NativeBrokerPlugin expiresOn bug #7602",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}
