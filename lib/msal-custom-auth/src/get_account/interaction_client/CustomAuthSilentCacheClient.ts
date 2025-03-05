@@ -7,6 +7,7 @@ import {
     AccountInfo,
     ApiId,
     AuthenticationResult,
+    BrowserUtils,
     ClearCacheRequest,
     ClientAuthError,
     ClientAuthErrorCodes,
@@ -15,12 +16,12 @@ import {
     RefreshTokenClient,
     ServerTelemetryManager,
     SilentFlowClient,
+    UrlString,
 } from "@azure/msal-browser";
 import { CustomAuthAuthority } from "../../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../../CustomAuthConstants.js";
 import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
-import { UrlUtils } from "../../core/utils/UrlUtils.js";
 
 export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase {
     /**
@@ -79,16 +80,12 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
         const postLogoutRedirectUri = this.config.auth.postLogoutRedirectUri;
 
         if (postLogoutRedirectUri) {
+            const absoluteRedirectUri = UrlString.getAbsoluteUrl(postLogoutRedirectUri, BrowserUtils.getCurrentUri());
+
             this.logger.info("Post logout redirect uri is set, redirecting to uri", logoutRequest?.correlationId);
 
-            if (!UrlUtils.IsValidUrl(postLogoutRedirectUri)) {
-                this.logger.warning("Post logout redirect uri is not a valid url", logoutRequest?.correlationId);
-
-                return;
-            }
-
             // Redirect to post logout redirect uri
-            await this.navigationClient.navigateExternal(postLogoutRedirectUri, {
+            await this.navigationClient.navigateExternal(absoluteRedirectUri, {
                 apiId: ApiId.logout,
                 timeout: this.config.system.redirectNavigationTimeout,
                 noHistory: false,

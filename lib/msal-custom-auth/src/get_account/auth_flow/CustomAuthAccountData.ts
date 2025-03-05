@@ -18,6 +18,7 @@ import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
 import { CustomAuthSilentCacheClient } from "../interaction_client/CustomAuthSilentCacheClient.js";
 import { NoCachedAccountFoundError } from "../../core/error/GetCurrentAccountError.js";
 import { DefaultScopes } from "../../CustomAuthConstants.js";
+import { AccessTokenRetrievalInputs } from "../../CustomAuthActionInputs.js";
 
 /*
  * Account information.
@@ -66,7 +67,7 @@ export class CustomAuthAccountData {
 
             return new SignOutResult();
         } catch (error) {
-            this.logger.error(`An error occurred during sign out: ${error}`, this.correlationId);
+            this.logger.errorPii(`An error occurred during sign out: ${error}`, this.correlationId);
 
             return SignOutResult.createWithError(error);
         }
@@ -99,10 +100,16 @@ export class CustomAuthAccountData {
     /*
      * Gets the access token from cache.
      * @param accessTokenRetrievalInputs - The inputs for retrieving the access token.
-     * @returns The result of the operation.
+     * @returns {Promise<GetAccessTokenResult>} The result of the operation.
      */
-    async getAccessToken(forceRefresh: boolean = false, scopes?: Array<string>): Promise<GetAccessTokenResult> {
+    async getAccessToken(accessTokenRetrievalInputs: AccessTokenRetrievalInputs): Promise<GetAccessTokenResult> {
         try {
+            ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+                "accessTokenRetrievalInputs",
+                accessTokenRetrievalInputs,
+                this.correlationId,
+            );
+
             this.logger.info("Getting current account.", this.correlationId);
 
             const currentAccount = this.cacheClient.getCurrentAccount(this.account.username);
@@ -113,8 +120,15 @@ export class CustomAuthAccountData {
 
             this.logger.info("Getting access token.", this.correlationId);
 
-            const newScopes = scopes && scopes.length > 0 ? scopes : [...DefaultScopes];
-            const commonSilentFlowRequest = this.createCommonSilentFlowRequest(currentAccount, forceRefresh, newScopes);
+            const newScopes =
+                accessTokenRetrievalInputs.scopes && accessTokenRetrievalInputs.scopes.length > 0
+                    ? accessTokenRetrievalInputs.scopes
+                    : [...DefaultScopes];
+            const commonSilentFlowRequest = this.createCommonSilentFlowRequest(
+                currentAccount,
+                accessTokenRetrievalInputs.forceRefresh,
+                newScopes,
+            );
             const result = await this.cacheClient.acquireToken(commonSilentFlowRequest);
 
             this.logger.info("Successfully got access token from cache.", this.correlationId);

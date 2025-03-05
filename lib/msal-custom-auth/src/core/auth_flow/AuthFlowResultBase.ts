@@ -3,7 +3,9 @@
  * Licensed under the MIT License.
  */
 
+import { AuthError } from "@azure/msal-browser";
 import { CustomAuthError } from "../error/CustomAuthError.js";
+import { MsalCustomAuthError } from "../error/MsalCustomAuthError.js";
 import { UnexpectedError } from "../error/UnexpectedError.js";
 import { AuthFlowErrorBase } from "./AuthFlowErrorBase.js";
 import { AuthFlowStateBase } from "./AuthFlowStateBase.js";
@@ -39,6 +41,12 @@ export abstract class AuthFlowResultBase<
      * @returns The auth error.
      */
     protected static createErrorData(error: unknown): CustomAuthError {
-        return error instanceof CustomAuthError ? error : new UnexpectedError(error);
+        if (error instanceof CustomAuthError) {
+            return error;
+        } else if (error instanceof AuthError) {
+            return new MsalCustomAuthError(error.errorCode, error.errorMessage, error.subError, error.correlationId);
+        } else {
+            return new UnexpectedError(error);
+        }
     }
 }

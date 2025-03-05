@@ -11,6 +11,7 @@ describe("CustomAuthApiClient", () => {
             verbose: jest.fn(),
             info: jest.fn(),
             error: jest.fn(),
+            errorPii: jest.fn(),
         } as unknown as jest.Mocked<Logger>;
         customAuthApiClient = new CustomAuthApiClient("https://test.com", "client_id", new FetchHttpClient(mockLogger));
     });
