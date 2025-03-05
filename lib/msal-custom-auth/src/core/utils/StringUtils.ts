@@ -8,21 +8,24 @@
  */
 export class StringUtils {
     /**
-     * Trims the specified characters from the input string.
+     * Trims the slashes from the input string.
      * @param input The string to trim.
-     * @param charsToTrim The characters to trim from the input string.
      * @returns The trimmed string.
      */
-    static trim(input: string, charsToTrim?: string): string {
+    static trimSlashes(input: string): string {
         if (!input) {
             return input;
         }
 
-        if (!charsToTrim) {
-            return input.trim();
+        let trimmedInput = input;
+
+        while (trimmedInput.startsWith("/")) {
+            trimmedInput = trimmedInput.substring(1);
+        }
+        while (trimmedInput.endsWith("/")) {
+            trimmedInput = trimmedInput.substring(0, trimmedInput.length - 1);
         }
 
-        const regex = new RegExp(`^[${charsToTrim}]+|[${charsToTrim}]+$`, "g");
-        return input.replace(regex, "");
+        return trimmedInput;
     }
 }
