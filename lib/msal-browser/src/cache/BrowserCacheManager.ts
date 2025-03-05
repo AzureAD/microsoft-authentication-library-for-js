@@ -1438,8 +1438,12 @@ export class BrowserCacheManager extends CacheManager {
             result.tenantId,
             result.scopes.join(" "),
             // Access token expiresOn stored in seconds, converting from AuthenticationResult expiresOn stored as Date
-            result.expiresOn ? TimeUtils.toSecondsFromDate(result.expiresOn) : 0,
-            result.extExpiresOn ? TimeUtils.toSecondsFromDate(result.extExpiresOn) : 0,
+            result.expiresOn
+                ? TimeUtils.toSecondsFromDate(result.expiresOn)
+                : 0,
+            result.extExpiresOn
+                ? TimeUtils.toSecondsFromDate(result.extExpiresOn)
+                : 0,
             base64Decode,
             undefined, // refreshOn
             result.tokenType as AuthenticationScheme,

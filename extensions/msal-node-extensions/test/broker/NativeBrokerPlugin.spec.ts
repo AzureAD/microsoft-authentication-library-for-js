@@ -299,7 +299,9 @@ if (process.platform === "win32") {
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
                             // Converts to seconds as MsalRuntime returns expiresOn in seconds
-                            expiresOn: TimeUtils.toSecondsFromDate(testAuthenticationResult.expiresOn!),
+                            expiresOn: TimeUtils.toSecondsFromDate(
+                                testAuthenticationResult.expiresOn!
+                            ),
                             isPopAuthorization: false,
                             account: testMsalRuntimeAccount,
                             CheckError: () => {},
@@ -351,7 +353,9 @@ if (process.platform === "win32") {
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
-                            expiresOn: TimeUtils.toSecondsFromDate(testAuthenticationResult.expiresOn!),
+                            expiresOn: TimeUtils.toSecondsFromDate(
+                                testAuthenticationResult.expiresOn!
+                            ),
                             isPopAuthorization: true,
                             account: testMsalRuntimeAccount,
                             CheckError: () => {},
@@ -430,7 +434,9 @@ if (process.platform === "win32") {
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
-                            expiresOn: TimeUtils.toSecondsFromDate(testAuthenticationResult.expiresOn!),
+                            expiresOn: TimeUtils.toSecondsFromDate(
+                                testAuthenticationResult.expiresOn!
+                            ),
                             isPopAuthorization: false,
                             account: testMsalRuntimeAccount,
                             CheckError: () => {},
@@ -615,7 +621,9 @@ if (process.platform === "win32") {
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
-                            expiresOn: TimeUtils.toSecondsFromDate(testAuthenticationResult.expiresOn!),
+                            expiresOn: TimeUtils.toSecondsFromDate(
+                                testAuthenticationResult.expiresOn!
+                            ),
                             isPopAuthorization: false,
                             account: testMsalRuntimeAccount,
                             CheckError: () => {},
@@ -666,7 +674,9 @@ if (process.platform === "win32") {
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
-                            expiresOn: TimeUtils.toSecondsFromDate(testAuthenticationResult.expiresOn!),
+                            expiresOn: TimeUtils.toSecondsFromDate(
+                                testAuthenticationResult.expiresOn!
+                            ),
                             isPopAuthorization: true,
                             account: testMsalRuntimeAccount,
                             CheckError: () => {},
@@ -745,7 +755,9 @@ if (process.platform === "win32") {
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
-                            expiresOn: TimeUtils.toSecondsFromDate(testAuthenticationResult.expiresOn!),
+                            expiresOn: TimeUtils.toSecondsFromDate(
+                                testAuthenticationResult.expiresOn!
+                            ),
                             isPopAuthorization: false,
                             account: testMsalRuntimeAccount,
                             CheckError: () => {},
@@ -819,7 +831,9 @@ if (process.platform === "win32") {
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
-                            expiresOn: TimeUtils.toSecondsFromDate(testAuthenticationResult.expiresOn!),
+                            expiresOn: TimeUtils.toSecondsFromDate(
+                                testAuthenticationResult.expiresOn!
+                            ),
                             isPopAuthorization: false,
                             account: testMsalRuntimeAccount,
                             CheckError: () => {},
@@ -873,7 +887,9 @@ if (process.platform === "win32") {
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
-                            expiresOn: TimeUtils.toSecondsFromDate(testAuthenticationResult.expiresOn!),
+                            expiresOn: TimeUtils.toSecondsFromDate(
+                                testAuthenticationResult.expiresOn!
+                            ),
                             isPopAuthorization: false,
                             account: testMsalRuntimeAccount,
                             CheckError: () => {},
@@ -927,7 +943,9 @@ if (process.platform === "win32") {
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
-                            expiresOn: TimeUtils.toSecondsFromDate(testAuthenticationResult.expiresOn!),
+                            expiresOn: TimeUtils.toSecondsFromDate(
+                                testAuthenticationResult.expiresOn!
+                            ),
                             isPopAuthorization: false,
                             account: testMsalRuntimeAccount,
                             CheckError: () => {},
@@ -981,7 +999,9 @@ if (process.platform === "win32") {
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
-                            expiresOn: TimeUtils.toSecondsFromDate(testAuthenticationResult.expiresOn!),
+                            expiresOn: TimeUtils.toSecondsFromDate(
+                                testAuthenticationResult.expiresOn!
+                            ),
                             isPopAuthorization: false,
                             account: testMsalRuntimeAccount,
                             CheckError: () => {},
@@ -1035,7 +1055,9 @@ if (process.platform === "win32") {
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
-                            expiresOn: TimeUtils.toSecondsFromDate(testAuthenticationResult.expiresOn!),
+                            expiresOn: TimeUtils.toSecondsFromDate(
+                                testAuthenticationResult.expiresOn!
+                            ),
                             isPopAuthorization: false,
                             account: testMsalRuntimeAccount,
                             CheckError: () => {},
@@ -1990,7 +2012,9 @@ if (process.platform === "win32") {
                             rawIdToken: testAuthenticationResult.idToken,
                             grantedScopes:
                                 testAuthenticationResult.scopes.join(" "),
-                            expiresOn: TimeUtils.toSecondsFromDate(testAuthenticationResult.expiresOn!),
+                            expiresOn: TimeUtils.toSecondsFromDate(
+                                testAuthenticationResult.expiresOn!
+                            ),
                             isPopAuthorization: false,
                             account: testMsalRuntimeAccount,
                             CheckError: () => {

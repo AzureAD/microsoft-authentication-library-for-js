@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, TimeUtils } from "@azure/msal-browser";
+import {
+    AccountInfo,
+    AuthenticationResult,
+    TimeUtils,
+} from "@azure/msal-browser";
 
 export const TEST_CONFIG = {
     MSAL_CLIENT_ID: "0813e1d1-ad72-46a9-8665-399bba48c201",

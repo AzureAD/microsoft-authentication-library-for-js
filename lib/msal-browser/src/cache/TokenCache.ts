@@ -300,8 +300,7 @@ export class TokenCache implements ITokenCache {
             ? ScopeSet.fromString(response.scope)
             : new ScopeSet(request.scopes);
         const expiresOn =
-            options.expiresOn ||
-            response.expires_in + TimeUtils.nowSeconds();
+            options.expiresOn || response.expires_in + TimeUtils.nowSeconds();
 
         const extendedExpiresOn =
             options.extendedExpiresOn ||
@@ -391,8 +390,12 @@ export class TokenCache implements ITokenCache {
                 cacheRecord.accessToken.target
             ).asArray();
             // Access token expiresOn stored in seconds, converting to Date for AuthenticationResult
-            expiresOn = TimeUtils.toDateFromSeconds(cacheRecord.accessToken.expiresOn);
-            extExpiresOn = TimeUtils.toDateFromSeconds(cacheRecord.accessToken.extendedExpiresOn);
+            expiresOn = TimeUtils.toDateFromSeconds(
+                cacheRecord.accessToken.expiresOn
+            );
+            extExpiresOn = TimeUtils.toDateFromSeconds(
+                cacheRecord.accessToken.extendedExpiresOn
+            );
         }
 
         const accountEntity = cacheRecord.account;

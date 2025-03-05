@@ -130,7 +130,9 @@ describe("SilentAuthCodeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };

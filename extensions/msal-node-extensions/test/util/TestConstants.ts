@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, TimeUtils } from "@azure/msal-common";
+import {
+    AccountInfo,
+    AuthenticationResult,
+    TimeUtils,
+} from "@azure/msal-common";
 import {
     Account,
     ErrorStatus,

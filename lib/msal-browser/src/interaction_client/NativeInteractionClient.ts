@@ -706,7 +706,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
             accessToken: responseAccessToken,
             fromCache: mats ? this.isResponseFromCache(mats) : false,
             // Request timestamp and NativeResponse expires_in are in seconds, converting to Date for AuthenticationResult
-            expiresOn: TimeUtils.toDateFromSeconds(reqTimestamp + response.expires_in),
+            expiresOn: TimeUtils.toDateFromSeconds(
+                reqTimestamp + response.expires_in
+            ),
             tokenType: tokenType,
             correlationId: this.correlationId,
             state: response.state,

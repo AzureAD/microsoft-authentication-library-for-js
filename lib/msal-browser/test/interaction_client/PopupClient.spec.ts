@@ -362,7 +362,9 @@ describe("PopupClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -487,7 +489,9 @@ describe("PopupClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -593,7 +597,9 @@ describe("PopupClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };

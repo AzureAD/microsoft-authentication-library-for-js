@@ -274,7 +274,9 @@ describe("ResponseHandler.ts", () => {
                 accessToken: "",
                 fromCache: false,
                 correlationId: "CORRELATION_ID",
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.body.expires_in),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -339,7 +341,9 @@ describe("ResponseHandler.ts", () => {
                 accessToken: testResponse.access_token || "",
                 fromCache: false,
                 correlationId: "CORRELATION_ID",
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.body.expires_in),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -403,7 +407,9 @@ describe("ResponseHandler.ts", () => {
                 accessToken: testResponse.access_token || "",
                 fromCache: false,
                 correlationId: "CORRELATION_ID",
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.body.expires_in),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };

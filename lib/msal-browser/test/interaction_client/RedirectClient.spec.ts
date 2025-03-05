@@ -512,7 +512,9 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.body.expires_in),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -672,7 +674,9 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.body.expires_in),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -987,7 +991,9 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.body.expires_in),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -1135,7 +1141,9 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token!,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.body.expires_in!),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in!
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -1298,7 +1306,9 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.body.expires_in),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };

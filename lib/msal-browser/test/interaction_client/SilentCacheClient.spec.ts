@@ -117,7 +117,9 @@ describe("SilentCacheClient", () => {
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 fromCache: true,
                 correlationId: "testCorrelationId",
-                expiresOn: TimeUtils.toDateFromSeconds(testAccessTokenEntity.expiresOn),
+                expiresOn: TimeUtils.toDateFromSeconds(
+                    testAccessTokenEntity.expiresOn
+                ),
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(

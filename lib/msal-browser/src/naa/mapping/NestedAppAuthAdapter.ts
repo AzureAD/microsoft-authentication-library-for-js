@@ -107,7 +107,9 @@ export class NestedAppAuthAdapter {
         }
 
         // Request timestamp and AuthResult expires_in are in seconds, converting to Date for AuthenticationResult
-        const expiresOn = TimeUtils.toDateFromSeconds(reqTimestamp + (response.token.expires_in || 0));
+        const expiresOn = TimeUtils.toDateFromSeconds(
+            reqTimestamp + (response.token.expires_in || 0)
+        );
         const idTokenClaims = AuthToken.extractTokenClaims(
             response.token.id_token,
             this.crypto.base64Decode
@@ -305,7 +307,9 @@ export class NestedAppAuthAdapter {
             accessToken: accessToken.secret,
             fromCache: true,
             expiresOn: TimeUtils.toDateFromSeconds(accessToken.expiresOn),
-            extExpiresOn: TimeUtils.toDateFromSeconds(accessToken.extendedExpiresOn),
+            extExpiresOn: TimeUtils.toDateFromSeconds(
+                accessToken.extendedExpiresOn
+            ),
             tokenType:
                 request.authenticationScheme || AuthenticationScheme.BEARER,
             correlationId,

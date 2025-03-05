@@ -634,10 +634,16 @@ export class ResponseHandler {
                 cacheRecord.accessToken.target
             ).asArray();
             // Access token expiresOn cached in seconds, converting to Date for AuthenticationResult
-            expiresOn = TimeUtils.toDateFromSeconds(cacheRecord.accessToken.expiresOn);
-            extExpiresOn = TimeUtils.toDateFromSeconds(cacheRecord.accessToken.extendedExpiresOn);
+            expiresOn = TimeUtils.toDateFromSeconds(
+                cacheRecord.accessToken.expiresOn
+            );
+            extExpiresOn = TimeUtils.toDateFromSeconds(
+                cacheRecord.accessToken.extendedExpiresOn
+            );
             if (cacheRecord.accessToken.refreshOn) {
-                refreshOn = TimeUtils.toDateFromSeconds(cacheRecord.accessToken.refreshOn);
+                refreshOn = TimeUtils.toDateFromSeconds(
+                    cacheRecord.accessToken.refreshOn
+                );
             }
         }
 

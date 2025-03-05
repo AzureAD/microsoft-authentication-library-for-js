@@ -1021,7 +1021,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.body.expires_in),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -2148,7 +2150,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -4367,7 +4371,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -4471,7 +4477,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -4565,7 +4573,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -4777,7 +4787,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -5102,7 +5114,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -5181,7 +5195,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -5361,7 +5377,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
+                ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };

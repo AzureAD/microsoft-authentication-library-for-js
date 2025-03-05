@@ -303,7 +303,9 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
+                ),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
                 uniqueId: idTokenClaims.oid,
@@ -394,7 +396,9 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
+                ),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
                 uniqueId: idTokenClaims.oid,
@@ -492,7 +496,9 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: TimeUtils.nowDateWithOffset(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN),
+                expiresOn: TimeUtils.nowDateWithOffset(
+                    TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
+                ),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
                 uniqueId: idTokenClaims.oid,
