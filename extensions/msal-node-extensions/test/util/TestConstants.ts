@@ -6,7 +6,6 @@
 import {
     AccountInfo,
     AuthenticationResult,
-    TimeUtils,
 } from "@azure/msal-common";
 import {
     Account,
@@ -71,6 +70,15 @@ export const TEST_ID_TOKEN_CLAIMS = {
 
 export const TEST_ACCESS_TOKEN = "this.is.an.accesstoken";
 
+/**
+ * Returns current time in JS Date object (milliseconds) with offset in seconds
+ * @param offset
+ */
+export function nowDateWithOffset(offsetSeconds: number): Date {
+    return new Date(Date.now() + Number(offsetSeconds) * 1000);
+}
+
+
 export const getTestAuthenticationResult = (
     correlationId: string
 ): AuthenticationResult => {
@@ -84,7 +92,7 @@ export const getTestAuthenticationResult = (
         idTokenClaims: TEST_ID_TOKEN_CLAIMS,
         accessToken: TEST_ACCESS_TOKEN,
         fromCache: false,
-        expiresOn: TimeUtils.nowDateWithOffset(3600),
+        expiresOn: nowDateWithOffset(3600),
         tokenType: "Bearer",
         correlationId,
         fromNativeBroker: true,
