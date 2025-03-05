@@ -15,7 +15,7 @@ export class FetchHttpClient implements IHttpClient {
 
     async sendAsync(url: string | URL, options: RequestInit, correlationId: string): Promise<Response> {
         try {
-            this.logger.tracePii(`Sending request to ${url}`, correlationId);
+            this.logger.verbosePii(`Sending request to ${url}`, correlationId);
 
             const startTime = performance.now();
 
@@ -23,7 +23,7 @@ export class FetchHttpClient implements IHttpClient {
 
             const endTime = performance.now();
 
-            this.logger.tracePii(
+            this.logger.verbosePii(
                 `Request to '${url}' completed in ${endTime - startTime}ms with status code ${response.status}`,
                 correlationId,
             );

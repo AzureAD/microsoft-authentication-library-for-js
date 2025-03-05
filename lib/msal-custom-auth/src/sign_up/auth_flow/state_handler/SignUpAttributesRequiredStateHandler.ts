@@ -58,7 +58,7 @@ export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
         }
 
         try {
-            this.logger.info("Submitting attributes for sign-up.", this.correlationId);
+            this.logger.verbose("Submitting attributes for sign-up.", this.correlationId);
 
             const result = await this.signUpClient.submitAttributes({
                 clientId: this.config.auth.clientId,
@@ -69,11 +69,11 @@ export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
                 username: this.username,
             });
 
-            this.logger.info("Password submitted for sign-up.", this.correlationId);
+            this.logger.verbose("Password submitted for sign-up.", this.correlationId);
 
             if (result instanceof SignUpCodeRequiredResult) {
                 // Code required
-                this.logger.info("Code required for sign-up.", this.correlationId);
+                this.logger.verbose("Code required for sign-up.", this.correlationId);
 
                 return new SignUpSubmitAttributesResult(
                     new SignUpCodeRequired(
@@ -91,7 +91,7 @@ export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
                 );
             } else if (result instanceof SignUpPasswordRequiredResult) {
                 // Password required
-                this.logger.info("Password required for sign-up.", this.correlationId);
+                this.logger.verbose("Password required for sign-up.", this.correlationId);
 
                 return new SignUpSubmitAttributesResult(
                     new SignUpPasswordRequired(
@@ -107,7 +107,7 @@ export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
                 );
             } else if (result instanceof SignUpCompletedResult) {
                 // Sign-up completed
-                this.logger.info("Sign-up completed.", this.correlationId);
+                this.logger.verbose("Sign-up completed.", this.correlationId);
 
                 return new SignUpSubmitAttributesResult(
                     new SignUpCompleted(

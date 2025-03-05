@@ -5,7 +5,7 @@
 
 import { CustomAuthApiError, RedirectError } from "../error/CustomAuthApiError.js";
 import { CustomAuthError } from "../error/CustomAuthError.js";
-import { NoCachedAccountFoundError } from "../error/GetCurrentAccountError.js";
+import { NoCachedAccountFoundError } from "../error/NoCachedAccountFoundError.js";
 import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
 import {
     CustomAuthApiErrorCode,

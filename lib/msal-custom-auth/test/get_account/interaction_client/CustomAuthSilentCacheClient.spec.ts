@@ -106,8 +106,8 @@ describe("CustomAuthSilentCacheClient", () => {
 
         const mockLogger = {
             clone: jest.fn(),
-            verbose: jest.fn(),
             info: jest.fn(),
+            verbose: jest.fn(),
             warning: jest.fn(),
             trace: jest.fn(),
             tracePii: jest.fn(),

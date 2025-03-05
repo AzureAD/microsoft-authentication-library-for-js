@@ -48,11 +48,11 @@ export class SignInContinuationStateHandler extends SignInStateHandler {
                 signInScenario: this.signInScenario,
             };
 
-            this.logger.info("Signing in with continuation token.", this.correlationId);
+            this.logger.verbose("Signing in with continuation token.", this.correlationId);
 
             const completedResult = await this.signInClient.signInWithContinuationToken(continuationTokenParams);
 
-            this.logger.info("Signed in with continuation token.", this.correlationId);
+            this.logger.verbose("Signed in with continuation token.", this.correlationId);
 
             const accountInfo = new CustomAuthAccountData(
                 completedResult.authenticationResult.account,

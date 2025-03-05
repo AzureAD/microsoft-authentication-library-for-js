@@ -40,11 +40,11 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
         const silentFlowClient = new SilentFlowClient(clientConfig, this.performanceClient);
 
         try {
-            this.logger.info("Starting silent flow to acquire token from cache", this.correlationId);
+            this.logger.verbose("Starting silent flow to acquire token from cache", this.correlationId);
 
             const result = await silentFlowClient.acquireCachedToken(silentRequest);
 
-            this.logger.info(
+            this.logger.verbose(
                 "Silent flow to acquire token from cache is completed and token is found",
                 this.correlationId,
             );
@@ -52,15 +52,15 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
             return result[0] as AuthenticationResult;
         } catch (error) {
             if (error instanceof ClientAuthError && error.errorCode === ClientAuthErrorCodes.tokenRefreshRequired) {
-                this.logger.info("Token refresh is required to acquire token silently", this.correlationId);
+                this.logger.verbose("Token refresh is required to acquire token silently", this.correlationId);
 
                 const refreshTokenClient = new RefreshTokenClient(clientConfig, this.performanceClient);
 
-                this.logger.info("Starting refresh flow to refresh token", this.correlationId);
+                this.logger.verbose("Starting refresh flow to refresh token", this.correlationId);
 
                 const refreshTokenResult = await refreshTokenClient.acquireTokenByRefreshToken(silentRequest);
 
-                this.logger.info("Refresh flow to refresh token is completed", this.correlationId);
+                this.logger.verbose("Refresh flow to refresh token is completed", this.correlationId);
 
                 return refreshTokenResult as AuthenticationResult;
             }
@@ -73,16 +73,16 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
 
         // Clear the cache
-        this.logger.info("Start to clear the cache", logoutRequest?.correlationId);
+        this.logger.verbose("Start to clear the cache", logoutRequest?.correlationId);
         await this.clearCacheOnLogout(validLogoutRequest?.account);
-        this.logger.info("Cache cleared", logoutRequest?.correlationId);
+        this.logger.verbose("Cache cleared", logoutRequest?.correlationId);
 
         const postLogoutRedirectUri = this.config.auth.postLogoutRedirectUri;
 
         if (postLogoutRedirectUri) {
             const absoluteRedirectUri = UrlString.getAbsoluteUrl(postLogoutRedirectUri, BrowserUtils.getCurrentUri());
 
-            this.logger.info("Post logout redirect uri is set, redirecting to uri", logoutRequest?.correlationId);
+            this.logger.verbose("Post logout redirect uri is set, redirecting to uri", logoutRequest?.correlationId);
 
             // Redirect to post logout redirect uri
             await this.navigationClient.navigateExternal(absoluteRedirectUri, {
@@ -96,7 +96,7 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
     getCurrentAccount(correlationId: string): AccountInfo | null {
         let account: AccountInfo | null = null;
 
-        this.logger.info("Getting the first account from cache.", correlationId);
+        this.logger.verbose("Getting the first account from cache.", correlationId);
 
         const allAccounts = this.browserStorage.getAllAccounts();
 
@@ -112,9 +112,9 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
         }
 
         if (account) {
-            this.logger.info("Account data found.", correlationId);
+            this.logger.verbose("Account data found.", correlationId);
         } else {
-            this.logger.info("No account data found.", correlationId);
+            this.logger.verbose("No account data found.", correlationId);
         }
 
         return account;

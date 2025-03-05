@@ -49,11 +49,11 @@ export class SignInPasswordRequiredStateHandler extends SignInStateHandler {
                 username: this.username,
             };
 
-            this.logger.info("Submitting password for sign-in.", this.correlationId);
+            this.logger.verbose("Submitting password for sign-in.", this.correlationId);
 
             const completedResult = await this.signInClient.submitPassword(submitPasswordParams);
 
-            this.logger.info("Password submitted for sign-in.", this.correlationId);
+            this.logger.verbose("Password submitted for sign-in.", this.correlationId);
 
             const accountInfo = new CustomAuthAccountData(
                 completedResult.authenticationResult.account,

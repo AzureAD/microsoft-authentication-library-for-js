@@ -1,4 +1,4 @@
-import { NoCachedAccountFoundError } from "../../../../src/core/error/GetCurrentAccountError.js";
+import { NoCachedAccountFoundError } from "../../../../src/core/error/NoCachedAccountFoundError.js";
 import { GetAccountError, SignOutError } from "../../../../src/get_account/auth_flow/error_type/GetAccountError.js";
 import { UnexpectedError } from "../../../../src/index.js";
 

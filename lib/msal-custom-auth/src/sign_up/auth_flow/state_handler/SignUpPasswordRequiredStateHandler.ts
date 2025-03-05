@@ -28,7 +28,7 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
         try {
             this.ensurePasswordIsNotEmpty(password);
 
-            this.logger.info("Submitting password for sign-up.", this.correlationId);
+            this.logger.verbose("Submitting password for sign-up.", this.correlationId);
 
             const result = await this.signUpClient.submitPassword({
                 clientId: this.config.auth.clientId,
@@ -39,11 +39,11 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
                 username: this.username,
             });
 
-            this.logger.info("Password submitted for sign-up.", this.correlationId);
+            this.logger.verbose("Password submitted for sign-up.", this.correlationId);
 
             if (result instanceof SignUpCodeRequiredResult) {
                 // Code required
-                this.logger.info("Code required for sign-up.", this.correlationId);
+                this.logger.verbose("Code required for sign-up.", this.correlationId);
 
                 return new SignUpSubmitPasswordResult(
                     new SignUpCodeRequired(
@@ -61,7 +61,7 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
                 );
             } else if (result instanceof SignUpAttributesRequiredResult) {
                 // Attributes required
-                this.logger.info("Attributes required for sign-up.", this.correlationId);
+                this.logger.verbose("Attributes required for sign-up.", this.correlationId);
 
                 return new SignUpSubmitPasswordResult(
                     new SignUpAttributesRequired(
@@ -78,7 +78,7 @@ export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
                 );
             } else if (result instanceof SignUpCompletedResult) {
                 // Sign-up completed
-                this.logger.info("Sign-up completed.", this.correlationId);
+                this.logger.verbose("Sign-up completed.", this.correlationId);
 
                 return new SignUpSubmitPasswordResult(
                     new SignUpCompleted(
