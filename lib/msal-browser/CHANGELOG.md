@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 26 Feb 2025 01:12:33 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 04 Mar 2025 23:02:15 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.5.1
+
+Tue, 04 Mar 2025 23:02:15 GMT
+
+### Patches
+
+- Fix double brokering bug: Native flow should not be triggered for cache only look up (sameera.gajjarapu@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.5.0
 

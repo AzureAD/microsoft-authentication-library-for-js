@@ -2,6 +2,33 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Tue, 04 Mar 2025 23:02:15 GMT",
+      "version": "1.5.6",
+      "tag": "@azure/msal-node-extensions_v1.5.6",
+      "comments": {
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "29bf8d4cdef8572ff45d94d9b31fd839d20d0098",
+            "comment": "Fix NativeBrokerPlugin expiresOn bug #7602"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 18 Feb 2025 18:51:41 GMT",
       "version": "1.5.5",
       "tag": "@azure/msal-node-extensions_v1.5.5",
