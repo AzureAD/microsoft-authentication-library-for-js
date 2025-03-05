@@ -4,7 +4,10 @@
  */
 
 import { INetworkModule, Logger } from "@azure/msal-common/node";
-import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
+import {
+    BaseManagedIdentitySource,
+    ManagedIdentityUserAssignedIdQueryParameterNames,
+} from "./BaseManagedIdentitySource.js";
 import {
     HttpMethod,
     API_VERSION_QUERY_PARAMETER_NAME,
@@ -23,6 +26,7 @@ import { NodeStorage } from "../../cache/NodeStorage.js";
 const MACHINE_LEARNING_MSI_API_VERSION: string = "2017-09-01";
 
 export class MachineLearning extends BaseManagedIdentitySource {
+    private defaultIdentityClientId: string;
     private msiEndpoint: string;
     private secret: string;
 
@@ -31,23 +35,31 @@ export class MachineLearning extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        defaultIdentityClientId: string,
         msiEndpoint: string,
         secret: string
     ) {
         super(logger, nodeStorage, networkClient, cryptoProvider);
 
+        this.defaultIdentityClientId = defaultIdentityClientId;
         this.msiEndpoint = msiEndpoint;
         this.secret = secret;
     }
 
     public static getEnvironmentVariables(): Array<string | undefined> {
+        const defaultIdentityClientId: string | undefined =
+            process.env[
+                ManagedIdentityEnvironmentVariableNames
+                    .DEFAULT_IDENTITY_CLIENT_ID
+            ];
+
         const msiEndpoint: string | undefined =
             process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT];
 
         const secret: string | undefined =
             process.env[ManagedIdentityEnvironmentVariableNames.MSI_SECRET];
 
-        return [msiEndpoint, secret];
+        return [defaultIdentityClientId, msiEndpoint, secret];
     }
 
     public static tryCreate(
@@ -56,10 +68,11 @@ export class MachineLearning extends BaseManagedIdentitySource {
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider
     ): MachineLearning | null {
-        const [msiEndpoint, secret] = MachineLearning.getEnvironmentVariables();
+        const [defaultIdentityClientId, msiEndpoint, secret] =
+            MachineLearning.getEnvironmentVariables();
 
         // if either of the MSI endpoint or MSI secret variables are undefined, this MSI provider is unavailable.
-        if (!msiEndpoint || !secret) {
+        if (!defaultIdentityClientId || !msiEndpoint || !secret) {
             logger.info(
                 `[Managed Identity] ${ManagedIdentitySourceNames.MACHINE_LEARNING} managed identity is unavailable because one or both of the '${ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT}' and '${ManagedIdentityEnvironmentVariableNames.MSI_SECRET}' environment variables are not defined.`
             );
@@ -83,6 +96,7 @@ export class MachineLearning extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
+            defaultIdentityClientId,
             msiEndpoint,
             secret
         );
@@ -107,8 +121,12 @@ export class MachineLearning extends BaseManagedIdentitySource {
             resource;
 
         if (
-            managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
+            managedIdentityId.idType === ManagedIdentityIdType.SYSTEM_ASSIGNED
         ) {
+            request.queryParameters[
+                ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID
+            ] = this.defaultIdentityClientId;
+        } else {
             request.queryParameters[
                 this.getManagedIdentityUserAssignedIdQueryParameterKey(
                     managedIdentityId.idType

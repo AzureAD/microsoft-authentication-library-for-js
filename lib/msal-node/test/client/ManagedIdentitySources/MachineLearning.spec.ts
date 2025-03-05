@@ -34,6 +34,9 @@ import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/c
 
 describe("Acquires a token successfully via an Machine Learning Managed Identity", () => {
     beforeAll(() => {
+        process.env[
+            ManagedIdentityEnvironmentVariableNames.DEFAULT_IDENTITY_CLIENT_ID
+        ] = "fake_DEFAULT_IDENTITY_CLIENT_ID";
         process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT] =
             "fake_MSI_ENDPOINT";
         process.env[ManagedIdentityEnvironmentVariableNames.MSI_SECRET] =
@@ -41,6 +44,9 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
     });
 
     afterAll(() => {
+        delete process.env[
+            ManagedIdentityEnvironmentVariableNames.DEFAULT_IDENTITY_CLIENT_ID
+        ];
         delete process.env[
             ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT
         ];
@@ -144,6 +150,11 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
         });
 
         test("acquires a token", async () => {
+            const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            );
+
             const networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams
@@ -152,6 +163,25 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
 
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+            );
+
+            const url: URLSearchParams = new URLSearchParams(
+                sendGetRequestAsyncSpy.mock.lastCall[0]
+            );
+            expect(
+                url.has(
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID
+                )
+            ).toBe(true);
+            expect(
+                url.get(
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID
+                )
+            ).toEqual(
+                process.env[
+                    ManagedIdentityEnvironmentVariableNames
+                        .DEFAULT_IDENTITY_CLIENT_ID
+                ]
             );
         });
 
