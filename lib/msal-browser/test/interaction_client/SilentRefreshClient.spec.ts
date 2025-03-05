@@ -22,6 +22,7 @@ import {
     CommonSilentFlowRequest,
     AccountEntity,
     CredentialType,
+    TimeUtils,
 } from "@azure/msal-common";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import {
@@ -117,9 +118,7 @@ describe("SilentRefreshClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -171,9 +170,7 @@ describe("SilentRefreshClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };

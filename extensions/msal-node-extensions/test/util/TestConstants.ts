@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, TimeUtils } from "@azure/msal-common";
 import {
     Account,
     ErrorStatus,
@@ -80,7 +80,7 @@ export const getTestAuthenticationResult = (
         idTokenClaims: TEST_ID_TOKEN_CLAIMS,
         accessToken: TEST_ACCESS_TOKEN,
         fromCache: false,
-        expiresOn: new Date(Date.now() + 3600 * 1000),
+        expiresOn: TimeUtils.nowDateWithOffset(3600),
         tokenType: "Bearer",
         correlationId,
         fromNativeBroker: true,

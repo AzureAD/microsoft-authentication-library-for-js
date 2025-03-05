@@ -4,7 +4,7 @@
 import { TEST_CONFIG } from "../utils/StringConstants";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
-import { AccountInfo, AuthenticationScheme, Logger } from "@azure/msal-common";
+import { AccountInfo, AuthenticationScheme, Logger, TimeUtils } from "@azure/msal-common";
 import {
     ID_TOKEN_CLAIMS,
     RANDOM_TEST_GUID,
@@ -479,7 +479,7 @@ describe("Non-browser environment", () => {
             accessToken: TEST_TOKENS.ACCESS_TOKEN,
             fromCache: false,
             correlationId: RANDOM_TEST_GUID,
-            expiresOn: new Date(Date.now() + 3600000),
+            expiresOn: TimeUtils.nowDateWithOffset(3600),
             account: testAccount,
             tokenType: AuthenticationScheme.BEARER,
         };

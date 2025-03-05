@@ -35,6 +35,7 @@ import {
     AuthError,
     ProtocolUtils,
     ProtocolMode,
+    TimeUtils,
 } from "@azure/msal-common";
 import {
     TemporaryCacheKeys,
@@ -361,9 +362,7 @@ describe("PopupClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -488,9 +487,7 @@ describe("PopupClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -596,9 +593,7 @@ describe("PopupClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };

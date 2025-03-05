@@ -50,6 +50,7 @@ import {
     CredentialType,
     InProgressPerformanceEvent,
     StubPerformanceClient,
+    TimeUtils,
 } from "@azure/msal-common";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
@@ -511,9 +512,7 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.body.expires_in),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -673,9 +672,7 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.body.expires_in),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -990,9 +987,7 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.body.expires_in),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -1140,9 +1135,7 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token!,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in! * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.body.expires_in!),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -1305,9 +1298,7 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.body.expires_in),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };

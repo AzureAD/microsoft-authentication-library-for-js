@@ -24,6 +24,7 @@ import {
     CcsCredentialType,
     IPerformanceClient,
     StubPerformanceClient,
+    TimeUtils,
 } from "@azure/msal-common/browser";
 import {
     Configuration,
@@ -369,9 +370,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
                 uniqueId: idTokenClaims.oid,
@@ -486,9 +485,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
                 uniqueId: idTokenClaims.oid,

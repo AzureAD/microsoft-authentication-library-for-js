@@ -28,6 +28,7 @@ import {
     ProtocolUtils,
     TenantProfile,
     Authority,
+    TimeUtils,
 } from "@azure/msal-common";
 import {
     createBrowserAuthError,
@@ -138,9 +139,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -291,9 +290,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -360,9 +357,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -471,9 +466,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -573,9 +566,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -878,9 +869,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -981,9 +970,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
@@ -1091,9 +1078,7 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
-                ),
+                expiresOn: TimeUtils.nowDateWithOffset(testServerTokenResponse.expires_in),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };

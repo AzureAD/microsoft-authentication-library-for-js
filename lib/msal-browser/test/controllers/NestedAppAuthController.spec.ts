@@ -12,6 +12,7 @@ import {
     ICrypto,
     LogLevel,
     Logger,
+    TimeUtils,
     createClientAuthError,
 } from "@azure/msal-common";
 import {
@@ -157,7 +158,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(Date.now() + 3600000),
+                expiresOn: TimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
                 state: "test-state",
