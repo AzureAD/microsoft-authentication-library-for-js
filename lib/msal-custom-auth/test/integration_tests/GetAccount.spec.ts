@@ -23,7 +23,7 @@ describe("GetAccount", () => {
         jest.clearAllMocks(); // Clear mocks between tests
     });
 
-    describe("GetAccountAccount", () => {
+    describe("GetAccount", () => {
         it("should return correct account data after the sign-in is successful", async () => {
             await signIn(app);
 
