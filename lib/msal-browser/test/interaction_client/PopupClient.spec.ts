@@ -18,7 +18,6 @@ import {
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
 } from "../utils/StringConstants.js";
-import * as TestTimeUtils from "../utils/TestTimeUtils.js";
 import {
     Constants,
     AccountInfo,
@@ -60,6 +59,7 @@ import { AuthenticationResult } from "../../src/response/AuthenticationResult.js
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { BrowserAuthErrorCodes, BrowserUtils } from "../../src/index.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,

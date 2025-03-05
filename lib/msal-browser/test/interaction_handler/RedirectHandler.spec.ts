@@ -39,7 +39,6 @@ import {
     TEST_TOKEN_LIFETIMES,
     TEST_STATE_VALUES,
 } from "../utils/StringConstants.js";
-import * as TestTimeUtils from "../utils/TestTimeUtils.js";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler.js";
 import {
     BrowserAuthErrorMessage,
@@ -53,6 +52,7 @@ import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 const testPkceCodes = {
     challenge: "TestChallenge",

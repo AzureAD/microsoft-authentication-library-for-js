@@ -21,7 +21,6 @@ import {
     ID_TOKEN_CLAIMS,
     TEST_TOKEN_RESPONSE,
 } from "../utils/StringConstants.js";
-import * as TestTimeUtils from "../utils/TestTimeUtils.js";
 import {
     ServerError,
     Constants,
@@ -81,7 +80,11 @@ import { NativeInteractionClient } from "../../src/interaction_client/NativeInte
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
-import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
+import {
+    buildAccountFromIdTokenClaims,
+    buildIdToken,
+    TestTimeUtils,
+} from "msal-test-utils";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
 
 const cacheConfig = {

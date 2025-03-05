@@ -14,7 +14,6 @@ import {
     testNavUrl,
     TEST_TOKEN_RESPONSE,
 } from "../utils/StringConstants.js";
-import * as TestTimeUtils from "../utils/TestTimeUtils.js";
 import {
     AccountInfo,
     TokenClaims,
@@ -35,6 +34,7 @@ import {
 } from "../../src/index.js";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 describe("SilentAuthCodeClient", () => {
     let silentAuthCodeClient: SilentAuthCodeClient;

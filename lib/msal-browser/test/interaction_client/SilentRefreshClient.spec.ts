@@ -12,7 +12,6 @@ import {
     RANDOM_TEST_GUID,
     TEST_TOKEN_RESPONSE,
 } from "../utils/StringConstants.js";
-import * as TestTimeUtils from "../utils/TestTimeUtils.js";
 import {
     Constants,
     AccountInfo,
@@ -32,6 +31,7 @@ import {
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 const testIdTokenClaims: TokenClaims = {
     ver: "2.0",

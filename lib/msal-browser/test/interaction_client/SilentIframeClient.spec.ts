@@ -17,7 +17,6 @@ import {
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
 } from "../utils/StringConstants.js";
-import * as TestTimeUtils from "../utils/TestTimeUtils.js";
 import {
     AccountInfo,
     TokenClaims,
@@ -49,6 +48,7 @@ import {
     InteractionType,
 } from "../../src/utils/BrowserConstants.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 describe("SilentIframeClient", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel

@@ -23,7 +23,6 @@ import {
     testLogoutUrl,
     testNavUrlNoRequest,
 } from "../utils/StringConstants.js";
-import * as TestTimeUtils from "../utils/TestTimeUtils.js";
 import {
     AccountEntity,
     AccountInfo,
@@ -117,7 +116,11 @@ import {
     buildConfiguration,
     Configuration,
 } from "../../src/config/Configuration.js";
-import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
+import {
+    buildAccountFromIdTokenClaims,
+    buildIdToken,
+    TestTimeUtils,
+} from "msal-test-utils";
 import { nativeConnectionNotEstablished } from "../../src/error/BrowserAuthErrorCodes.js";
 
 const cacheConfig = {

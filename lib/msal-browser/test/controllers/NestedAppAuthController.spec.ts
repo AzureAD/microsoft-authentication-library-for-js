@@ -49,7 +49,7 @@ import BridgeProxy from "../../src/naa/BridgeProxy.js";
 import { NestedAppAuthAdapter } from "../../src/naa/mapping/NestedAppAuthAdapter.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import exp from "constants";
-import * as TestTimeUtils from "../utils/TestTimeUtils.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 function stubProvider(config: Configuration) {
     const browserEnvironment = typeof window !== "undefined";

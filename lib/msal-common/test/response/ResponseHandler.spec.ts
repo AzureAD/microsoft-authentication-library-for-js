@@ -14,7 +14,6 @@ import {
     TEST_TOKENS,
     TEST_URIS,
 } from "../test_kit/StringConstants.js";
-import * as TestTimeUtils from "../test_kit/TestTimeUtils.js";
 import { Authority } from "../../src/authority/Authority.js";
 import {
     INetworkModule,
@@ -48,6 +47,7 @@ import {
 } from "../../src/error/CacheError.js";
 import { CacheManager } from "../../src/cache/CacheManager.js";
 import { cacheQuotaExceededErrorCode } from "../../src/error/CacheErrorCodes.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 const networkInterface: INetworkModule = {
     sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {

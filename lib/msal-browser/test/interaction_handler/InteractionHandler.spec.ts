@@ -40,7 +40,6 @@ import {
     RANDOM_TEST_GUID,
     TEST_CRYPTO_VALUES,
 } from "../utils/StringConstants.js";
-import * as TestTimeUtils from "../utils/TestTimeUtils.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -53,6 +52,7 @@ import {
     BrowserConstants,
 } from "../../src/utils/BrowserConstants.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 class TestInteractionHandler extends InteractionHandler {
     constructor(
