@@ -13,16 +13,11 @@ import {
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentitySourceNames,
     ManagedIdentityIdType,
-    MANAGED_IDENTITY_MAX_RETRIES,
-    MANAGED_IDENTITY_RETRY_DELAY,
-    MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON,
 } from "../../utils/Constants.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
-import { LinearRetryPolicy } from "../../retry/LinearRetryPolicy.js";
-import { HttpClientWithRetries } from "../../network/HttpClientWithRetries.js";
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
 const APP_SERVICE_MSI_API_VERSION: string = "2019-08-01";
@@ -43,20 +38,13 @@ export class AppService extends BaseManagedIdentitySource {
         identityEndpoint: string,
         identityHeader: string
     ) {
-        let networkClientHelper: INetworkModule = networkClient;
-        if (!disableInternalRetries) {
-            const linearRetryPolicy: LinearRetryPolicy = new LinearRetryPolicy(
-                MANAGED_IDENTITY_MAX_RETRIES,
-                MANAGED_IDENTITY_RETRY_DELAY,
-                MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON
-            );
-            networkClientHelper = new HttpClientWithRetries(
-                networkClient,
-                linearRetryPolicy
-            );
-        }
-
-        super(logger, nodeStorage, networkClientHelper, cryptoProvider);
+        super(
+            logger,
+            nodeStorage,
+            networkClient,
+            cryptoProvider,
+            disableInternalRetries
+        );
 
         this.identityEndpoint = identityEndpoint;
         this.identityHeader = identityHeader;

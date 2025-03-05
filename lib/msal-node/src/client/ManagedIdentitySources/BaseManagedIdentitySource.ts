@@ -32,6 +32,7 @@ import {
     createManagedIdentityError,
 } from "../../error/ManagedIdentityError.js";
 import { isIso8601 } from "../../utils/TimeUtils.js";
+import { HttpClientWithRetries } from "../../network/HttpClientWithRetries.js";
 
 /**
  * Managed Identity User Assigned Id Query Parameter Names
@@ -50,17 +51,20 @@ export abstract class BaseManagedIdentitySource {
     private nodeStorage: NodeStorage;
     private networkClient: INetworkModule;
     private cryptoProvider: CryptoProvider;
+    private disableInternalRetries: boolean;
 
     constructor(
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
-        cryptoProvider: CryptoProvider
+        cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean
     ) {
         this.logger = logger;
         this.nodeStorage = nodeStorage;
         this.networkClient = networkClient;
         this.cryptoProvider = cryptoProvider;
+        this.disableInternalRetries = disableInternalRetries;
     }
 
     abstract createRequest(
@@ -151,20 +155,32 @@ export abstract class BaseManagedIdentitySource {
                 networkRequest.computeParametersBodyString();
         }
 
+        /**
+         * Initializes the network client helper based on the retry policy configuration.
+         * If internal retries are disabled, it uses the provided network client directly.
+         * Otherwise, it wraps the network client with an HTTP client that supports retries.
+         */
+        const networkClientHelper: INetworkModule = this.disableInternalRetries
+            ? this.networkClient
+            : new HttpClientWithRetries(
+                  this.networkClient,
+                  networkRequest.retryPolicy
+              );
+
         const reqTimestamp = TimeUtils.nowSeconds();
         let response: NetworkResponse<ManagedIdentityTokenResponse>;
         try {
             // Sources that send POST requests: Cloud Shell
             if (networkRequest.httpMethod === HttpMethod.POST) {
                 response =
-                    await this.networkClient.sendPostRequestAsync<ManagedIdentityTokenResponse>(
+                    await networkClientHelper.sendPostRequestAsync<ManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
                         networkRequestOptions
                     );
                 // Sources that send GET requests: App Service, Azure Arc, IMDS, Service Fabric
             } else {
                 response =
-                    await this.networkClient.sendGetRequestAsync<ManagedIdentityTokenResponse>(
+                    await networkClientHelper.sendGetRequestAsync<ManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
                         networkRequestOptions
                     );
@@ -189,7 +205,7 @@ export abstract class BaseManagedIdentitySource {
         const serverTokenResponse: ServerAuthorizationTokenResponse =
             await this.getServerTokenResponseAsync(
                 response,
-                this.networkClient,
+                networkClientHelper,
                 networkRequest,
                 networkRequestOptions
             );

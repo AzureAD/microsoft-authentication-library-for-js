@@ -26,9 +26,6 @@ import {
     AUTHORIZATION_HEADER_NAME,
     AZURE_ARC_SECRET_FILE_MAX_SIZE_BYTES,
     HttpMethod,
-    MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON,
-    MANAGED_IDENTITY_MAX_RETRIES,
-    MANAGED_IDENTITY_RETRY_DELAY,
     METADATA_HEADER_NAME,
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentityIdType,
@@ -45,8 +42,6 @@ import {
 import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse.js";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import path from "path";
-import { LinearRetryPolicy } from "../../retry/LinearRetryPolicy.js";
-import { HttpClientWithRetries } from "../../network/HttpClientWithRetries.js";
 
 export const ARC_API_VERSION: string = "2019-11-01";
 export const DEFAULT_AZURE_ARC_IDENTITY_ENDPOINT: string =
@@ -82,20 +77,13 @@ export class AzureArc extends BaseManagedIdentitySource {
         disableInternalRetries: boolean,
         identityEndpoint: string
     ) {
-        let networkClientHelper: INetworkModule = networkClient;
-        if (!disableInternalRetries) {
-            const linearRetryPolicy: LinearRetryPolicy = new LinearRetryPolicy(
-                MANAGED_IDENTITY_MAX_RETRIES,
-                MANAGED_IDENTITY_RETRY_DELAY,
-                MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON
-            );
-            networkClientHelper = new HttpClientWithRetries(
-                networkClient,
-                linearRetryPolicy
-            );
-        }
-
-        super(logger, nodeStorage, networkClientHelper, cryptoProvider);
+        super(
+            logger,
+            nodeStorage,
+            networkClient,
+            cryptoProvider,
+            disableInternalRetries
+        );
 
         this.identityEndpoint = identityEndpoint;
     }
