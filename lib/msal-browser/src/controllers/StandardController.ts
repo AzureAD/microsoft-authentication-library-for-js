@@ -1519,7 +1519,8 @@ export class StandardController implements IController {
     public async acquireTokenNative(
         request: PopupRequest | SilentRequest | SsoSilentRequest,
         apiId: ApiId,
-        accountId?: string
+        accountId?: string,
+        cacheLookupPolicy?: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenNative called");
         if (!this.nativeExtensionProvider) {
@@ -1543,7 +1544,7 @@ export class StandardController implements IController {
             request.correlationId
         );
 
-        return nativeClient.acquireToken(request);
+        return nativeClient.acquireToken(request, cacheLookupPolicy);
     }
 
     /**
@@ -2223,6 +2224,7 @@ export class StandardController implements IController {
         silentRequest: CommonSilentFlowRequest,
         cacheLookupPolicy: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
+        // if the cache policy is set to access_token only, we should not be hitting the native layer yet
         if (
             NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
@@ -2237,7 +2239,9 @@ export class StandardController implements IController {
             );
             return this.acquireTokenNative(
                 silentRequest,
-                ApiId.acquireTokenSilent_silentFlow
+                ApiId.acquireTokenSilent_silentFlow,
+                silentRequest.account.nativeAccountId,
+                cacheLookupPolicy
             ).catch(async (e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to web flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
@@ -2257,6 +2261,12 @@ export class StandardController implements IController {
             this.logger.verbose(
                 "acquireTokenSilent - attempting to acquire token from web flow"
             );
+            // add logs to identify embedded cache retrieval
+            if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
+                this.logger.verbose(
+                    "acquireTokenSilent - cache lookup policy set to AccessToken, attempting to acquire token from local cache"
+                );
+            }
             return invokeAsync(
                 this.acquireTokenFromCache.bind(this),
                 PerformanceEvents.AcquireTokenFromCache,
