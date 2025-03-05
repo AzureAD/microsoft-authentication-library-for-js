@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Added support for default client id for MSI ML",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
