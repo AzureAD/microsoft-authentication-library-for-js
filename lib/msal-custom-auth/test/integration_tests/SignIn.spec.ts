@@ -52,6 +52,7 @@ describe("Sign in", () => {
     });
 
     afterEach(() => {
+        app.close();
         jest.clearAllMocks(); // Clear mocks between tests
     });
 

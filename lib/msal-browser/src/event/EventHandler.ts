@@ -158,4 +158,11 @@ export class EventHandler {
             this.invokeCrossTabCallbacks
         );
     }
+
+    /**
+     * Close the broadcast channel
+     */
+    closeBroadcastChannel(): void {
+        this.broadcastChannel.close();
+    }
 }

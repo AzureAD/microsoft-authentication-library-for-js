@@ -881,4 +881,8 @@ export class NestedAppAuthController implements IController {
         );
         return this.browserStorage.hydrateCache(result, request);
     }
+
+    closeEventHandlerChannel(): void {
+        this.eventHandler.closeBroadcastChannel();
+    }
 }

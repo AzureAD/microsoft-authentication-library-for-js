@@ -90,6 +90,7 @@ describe("CustomAuthStandardController", () => {
     });
 
     afterEach(() => {
+        controller.closeEventHandlerChannel();
         jest.clearAllMocks(); // Clear mocks between tests
     });
 

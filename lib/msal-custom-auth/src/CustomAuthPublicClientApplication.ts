@@ -100,6 +100,10 @@ export class CustomAuthPublicClientApplication
         return this.customAuthController.resetPassword(resetPasswordInputs);
     }
 
+    close(): void {
+        this.closeEventHandlerChannel();
+    }
+
     /**
      * Validates the configuration to ensure it is a valid CustomAuthConfiguration object.
      * @param config The configuration object for the PublicClientApplication.

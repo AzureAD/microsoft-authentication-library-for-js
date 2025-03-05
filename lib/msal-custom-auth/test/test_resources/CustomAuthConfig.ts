@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { LogLevel } from "@azure/msal-browser";
 import { CustomAuthConfiguration } from "../../src/configuration/CustomAuthConfiguration.js";
 
 export const customAuthConfig: CustomAuthConfiguration = {
@@ -25,25 +24,7 @@ export const customAuthConfig: CustomAuthConfiguration = {
     system: {
         loggerOptions: {
             loggerCallback: (level, message, containsPii) => {
-                if (containsPii) {
-                    return;
-                }
-                switch (level) {
-                    case LogLevel.Error:
-                        console.info(`[Error] ${message}`);
-                        return;
-                    case LogLevel.Info:
-                        console.info(`[Info] ${message}`);
-                        return;
-                    case LogLevel.Verbose:
-                        console.info(`[Verbose] ${message}`);
-                        return;
-                    case LogLevel.Warning:
-                        console.info(`[Warning] ${message}`);
-                        return;
-                    default:
-                        return;
-                }
+                return;
             },
         },
     },

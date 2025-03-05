@@ -428,6 +428,10 @@ export class PublicClientApplication implements IPublicClientApplication {
     clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
         return this.controller.clearCache(logoutRequest);
     }
+
+    closeEventHandlerChannel(): void {
+        this.controller.closeEventHandlerChannel();
+    }
 }
 
 /**

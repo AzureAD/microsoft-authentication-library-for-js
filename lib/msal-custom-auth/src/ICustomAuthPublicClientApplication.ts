@@ -37,4 +37,6 @@ export interface ICustomAuthPublicClientApplication {
      * @returns {Promise<ResetPasswordStartResult>} A promise that resolves to ResetPasswordStartResult
      */
     resetPassword(resetPasswordInputs: ResetPasswordInputs): Promise<ResetPasswordStartResult>;
+
+    close(): void;
 }

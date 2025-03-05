@@ -380,4 +380,8 @@ export class UnknownOperatingContextController implements IController {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();
     }
+
+    closeEventHandlerChannel(): void {
+        this.eventHandler.closeBroadcastChannel();
+    }
 }

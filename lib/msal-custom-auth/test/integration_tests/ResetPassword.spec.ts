@@ -55,6 +55,7 @@ describe("Reset password", () => {
     });
 
     afterEach(() => {
+        app.close(); // Close the app
         jest.clearAllMocks(); // Clear mocks between tests
     });
 

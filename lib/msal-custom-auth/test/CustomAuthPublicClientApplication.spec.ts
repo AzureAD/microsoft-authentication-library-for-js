@@ -65,6 +65,8 @@ describe("CustomAuthPublicClientApplication", () => {
             const app = await CustomAuthPublicClientApplication.create(customAuthConfig);
 
             expect(app).toBeInstanceOf(CustomAuthPublicClientApplication);
+
+            app.close();
         });
     });
 

@@ -2322,6 +2322,10 @@ export class StandardController implements IController {
         );
         return res;
     }
+
+    closeEventHandlerChannel(): void {
+        this.eventHandler.closeBroadcastChannel();
+    }
 }
 
 /**
