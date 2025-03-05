@@ -52,6 +52,7 @@ import {
     TemporaryCacheKeys,
     NativeConstants,
     BrowserConstants,
+    CacheLookupPolicy,
 } from "../utils/BrowserConstants.js";
 import {
     NativeExtensionRequestBody,
@@ -157,7 +158,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param request
      */
     async acquireToken(
-        request: PopupRequest | SilentRequest | SsoSilentRequest
+        request: PopupRequest | SilentRequest | SsoSilentRequest,
+        cacheLookupPolicy?: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.NativeInteractionClientAcquireToken,
@@ -192,6 +194,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 });
                 return result;
             } catch (e) {
+                if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
+                    this.logger.info(
+                        "MSAL internal Cache does not contain tokens, return error as per cache policy"
+                    );
+                    throw e;
+                }
                 // continue with a native call for any and all errors
                 this.logger.info(
                     "MSAL internal Cache does not contain tokens, proceed to make a native call"
