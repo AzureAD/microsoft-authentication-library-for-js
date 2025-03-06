@@ -149,6 +149,6 @@ extends:
                               sourceBranch: ${{ variables.sourceBranch }}
                               workspace: "samples/msal-custom-auth-samples"
                               samples:
-                                  - "react-sample-nextjs"
+                                  - "sample-sample"
                               debug: ${{ parameters.debug }}
                               npmInstallTimeout: ${{ parameters.npmInstallTimeout }}

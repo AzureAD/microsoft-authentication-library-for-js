@@ -90,7 +90,15 @@ describe("CustomAuthStandardController", () => {
     });
 
     afterEach(() => {
+        // controller.closeEventChannel();
         jest.clearAllMocks(); // Clear mocks between tests
+        if (controller && controller["eventHandler"] && controller["eventHandler"]["broadcastChannel"]) {
+            controller["eventHandler"]["broadcastChannel"].close();
+        }
+    });
+
+    test("Check if BroadcastChannel exists in JSDOM", () => {
+        expect(typeof BroadcastChannel).toBe("function");
     });
 
     describe("signIn", () => {
