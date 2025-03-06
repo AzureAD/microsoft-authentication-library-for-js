@@ -131,6 +131,11 @@ export class Imds extends BaseManagedIdentitySource {
 
         // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
 
+        /*
+         * TODO: define IMDS.
+         * request.retryPolicy = ...
+         */
+
         return request;
     }
 }

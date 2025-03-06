@@ -182,5 +182,6 @@ export const MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON = [
 
 /**
  * Retry Policy Types
+ * TODO: add IMDS retry policy
  */
-export type RetryPolicies = LinearRetryPolicy;
+export type RetryPolicies = LinearRetryPolicy; // | ImdsRetryPolicy;
