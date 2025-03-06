@@ -3979,6 +3979,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.acquireTokenSilent({
                 scopes: ["User.Read"],
                 account: testAccount,
+                correlationId: RANDOM_TEST_GUID,
             });
 
             expect(response).toEqual(testTokenResponse);
@@ -4037,6 +4038,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentRequest = {
                 scopes: ["User.Read"],
                 account: testAccount,
+                correlationId: RANDOM_TEST_GUID,
             };
             const response = await pca.acquireTokenSilent(silentRequest);
 
@@ -4141,6 +4143,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["openid"],
                 account: testAccount,
                 state: "test-state",
+                correlationId: RANDOM_TEST_GUID,
             });
             expect(response?.idToken).not.toBeNull();
             expect(response).toEqual(testTokenResponse);
@@ -4230,6 +4233,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["openid"],
                 account: testAccount,
                 state: "test-state",
+                correlationId: RANDOM_TEST_GUID,
             });
             expect(response).toEqual(testTokenResponse);
             expect(silentCacheSpy).toHaveBeenCalledTimes(1);
@@ -4279,6 +4283,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["openid"],
                 account: testAccount,
                 state: "test-state",
+                correlationId: RANDOM_TEST_GUID,
             });
             expect(response).toEqual(testTokenResponse);
             expect(silentCacheSpy).toHaveBeenCalledTimes(1);
@@ -4327,6 +4332,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["openid"],
                 account: testAccount,
                 state: "test-state",
+                correlationId: RANDOM_TEST_GUID,
             });
             expect(response).toEqual(testTokenResponse);
             expect(silentCacheSpy).toHaveBeenCalledTimes(1);
@@ -4410,8 +4416,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const silentRequest1 = pca.acquireTokenSilent(tokenRequest);
-            const silentRequest2 = pca.acquireTokenSilent(tokenRequest);
-            const silentRequest3 = pca.acquireTokenSilent(tokenRequest);
+            const silentRequest2 = pca.acquireTokenSilent({
+                ...tokenRequest,
+                correlationId: "test-correlationId2",
+            });
+            const silentRequest3 = pca.acquireTokenSilent({
+                ...tokenRequest,
+                correlationId: "test-correlationId3",
+            });
             const parallelResponse = await Promise.all([
                 silentRequest1,
                 silentRequest2,
@@ -4422,8 +4434,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(atsSpy).toHaveBeenCalledTimes(1);
             expect(silentATStub).toHaveBeenCalledTimes(1);
             expect(parallelResponse[0]).toEqual(testTokenResponse);
-            expect(parallelResponse[1]).toEqual(testTokenResponse);
-            expect(parallelResponse[2]).toEqual(testTokenResponse);
+            expect(parallelResponse[1]).toEqual({
+                ...testTokenResponse,
+                correlationId: "test-correlationId2",
+            });
+            expect(parallelResponse[2]).toEqual({
+                ...testTokenResponse,
+                correlationId: "test-correlationId3",
+            });
             expect(parallelResponse).toHaveLength(3);
         });
 
@@ -4519,8 +4537,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const silentRequest1 = pca.acquireTokenSilent(tokenRequest);
-            const silentRequest2 = pca.acquireTokenSilent(tokenRequest);
-            const silentRequest3 = pca.acquireTokenSilent(tokenRequest);
+            const silentRequest2 = pca.acquireTokenSilent({
+                ...tokenRequest,
+                correlationId: "test-correlationId2",
+            });
+            const silentRequest3 = pca.acquireTokenSilent({
+                ...tokenRequest,
+                correlationId: "test-correlationId3",
+            });
             const parallelResponse = await Promise.all([
                 silentRequest1,
                 silentRequest2,
@@ -4531,8 +4555,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(atsSpy).toHaveBeenCalledTimes(1);
             expect(silentATStub).toHaveBeenCalledTimes(1);
             expect(parallelResponse[0]).toEqual(testTokenResponse);
-            expect(parallelResponse[1]).toEqual(testTokenResponse);
-            expect(parallelResponse[2]).toEqual(testTokenResponse);
+            expect(parallelResponse[1]).toEqual({
+                ...testTokenResponse,
+                correlationId: "test-correlationId2",
+            });
+            expect(parallelResponse[2]).toEqual({
+                ...testTokenResponse,
+                correlationId: "test-correlationId3",
+            });
             expect(parallelResponse).toHaveLength(3);
         });
 
@@ -5001,6 +5031,91 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentATStub).toHaveBeenCalledTimes(8);
         });
 
+        it("makes network requests for identical requests for different embedded apps when acquireTokenSilent is called in parallel", async () => {
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+            };
+            const testIdTokenClaims: TokenClaims = {
+                ver: "2.0",
+                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
+                scopes: [...TEST_CONFIG.DEFAULT_SCOPES, "User.Read"],
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(
+                    Date.now() + testServerTokenResponse.expires_in * 1000
+                ),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+            };
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+            jest.spyOn(CryptoOps.prototype, "hashString").mockResolvedValue(
+                TEST_CRYPTO_VALUES.TEST_SHA256_HASH
+            );
+            const silentATStub: jest.SpyInstance = jest
+                .spyOn(
+                    RefreshTokenClient.prototype,
+                    "acquireTokenByRefreshToken"
+                )
+                .mockResolvedValue(testTokenResponse);
+            // Beaerer requests
+            const baseRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: "test-correlationId1",
+                forceRefresh: false,
+            };
+            const tokenRequest1: CommonSilentFlowRequest = {
+                ...baseRequest,
+                embeddedClientId: "embeddedApp1",
+                correlationId: "test-correlationId1",
+            };
+            const tokenRequest2: CommonSilentFlowRequest = {
+                ...baseRequest,
+                embeddedClientId: "embeddedApp2",
+                correlationId: "test-correlationId2",
+            };
+
+            const silentRequest1 = pca.acquireTokenSilent(tokenRequest1);
+            const silentRequest2 = pca.acquireTokenSilent(tokenRequest1);
+            const silentRequest3 = pca.acquireTokenSilent(tokenRequest2);
+            await Promise.all([silentRequest1, silentRequest2, silentRequest3]);
+
+            expect(silentATStub).toHaveBeenCalledWith(tokenRequest1);
+            expect(silentATStub).toHaveBeenCalledWith(tokenRequest2);
+            expect(silentATStub).toHaveBeenCalledTimes(2);
+        });
+
         it("throws error that SilentFlowClient.acquireToken() throws", async () => {
             const testError: AuthError = new AuthError(
                 "create_login_url_error",
@@ -5159,22 +5274,34 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentRequest1 = pca.acquireTokenSilent({
                 scopes: ["Scope1"],
                 account: testAccount,
+                correlationId: "test-correlationId1",
             });
             const silentRequest2 = pca.acquireTokenSilent({
                 scopes: ["Scope2"],
                 account: testAccount,
+                correlationId: "test-correlationId2",
             });
             const silentRequest3 = pca.acquireTokenSilent({
                 scopes: ["Scope3"],
                 account: testAccount,
+                correlationId: "test-correlationId3",
             });
             await Promise.all([silentRequest1, silentRequest2, silentRequest3]);
             expect(iframeMock).toHaveBeenCalledTimes(1);
             expect(rtMockFirstCalledTimes).toEqual(3);
             expect(rtMockSecond).toHaveBeenCalledTimes(2);
-            expect(await silentRequest1).toEqual(testTokenResponse);
-            expect(await silentRequest2).toEqual(testTokenResponse);
-            expect(await silentRequest3).toEqual(testTokenResponse);
+            expect(await silentRequest1).toEqual({
+                ...testTokenResponse,
+                correlationId: "test-correlationId1",
+            });
+            expect(await silentRequest2).toEqual({
+                ...testTokenResponse,
+                correlationId: "test-correlationId2",
+            });
+            expect(await silentRequest3).toEqual({
+                ...testTokenResponse,
+                correlationId: "test-correlationId3",
+            });
         });
 
         it("throws RT renewal error if other in progress iframe renewal throws", async () => {
@@ -5718,6 +5845,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     scopes: ["openid"],
                     account: testAccount,
                     cacheLookupPolicy: CacheLookupPolicy.Default,
+                    correlationId: RANDOM_TEST_GUID,
                 });
                 expect(response).toEqual(testTokenResponse);
                 expect(silentCacheSpy).toHaveBeenCalledTimes(1);
@@ -5744,6 +5872,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     scopes: ["openid"],
                     account: testAccount,
                     cacheLookupPolicy: CacheLookupPolicy.Default,
+                    correlationId: RANDOM_TEST_GUID,
                 });
                 expect(response).toEqual(testTokenResponse);
                 expect(silentCacheSpy).toHaveBeenCalledTimes(1);
@@ -5921,6 +6050,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     scopes: ["openid"],
                     account: testAccount,
                     cacheLookupPolicy: CacheLookupPolicy.RefreshTokenAndNetwork,
+                    correlationId: RANDOM_TEST_GUID,
                 });
                 expect(response).toEqual(testTokenResponse);
                 expect(silentCacheSpy).toHaveBeenCalledTimes(0);
@@ -5943,6 +6073,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     scopes: ["openid"],
                     account: testAccount,
                     cacheLookupPolicy: CacheLookupPolicy.Skip,
+                    correlationId: RANDOM_TEST_GUID,
                 });
                 expect(response).toEqual(testTokenResponse);
                 expect(silentCacheSpy).toHaveBeenCalledTimes(0);

@@ -23,7 +23,6 @@ import { ResponseHandler } from "../response/ResponseHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
 import { StringUtils } from "../utils/StringUtils.js";
-import { RequestThumbprint } from "../network/RequestThumbprint.js";
 import { NetworkResponse } from "../network/NetworkResponse.js";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest.js";
 import {
@@ -50,6 +49,7 @@ import { invoke, invokeAsync } from "../utils/FunctionWrappers.js";
 import { generateCredentialKey } from "../cache/utils/CacheHelpers.js";
 import { ClientAssertion } from "../account/ClientCredentials.js";
 import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
+import { getRequestThumbprint } from "../network/RequestThumbprint.js";
 
 const DEFAULT_REFRESH_TOKEN_EXPIRATION_OFFSET_SECONDS = 300; // 5 Minutes
 
@@ -311,19 +311,11 @@ export class RefreshTokenClient extends BaseClient {
         const headers: Record<string, string> = this.createTokenRequestHeaders(
             request.ccsCredential
         );
-        const thumbprint: RequestThumbprint = {
-            clientId:
-                request.tokenBodyParameters?.clientId ||
-                this.config.authOptions.clientId,
-            authority: authority.canonicalAuthority,
-            scopes: request.scopes,
-            claims: request.claims,
-            authenticationScheme: request.authenticationScheme,
-            resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims,
-            sshKid: request.sshKid,
-        };
+
+        const thumbprint = getRequestThumbprint(
+            this.config.authOptions.clientId,
+            request
+        );
 
         return invokeAsync(
             this.executePostToTokenEndpoint.bind(this),
