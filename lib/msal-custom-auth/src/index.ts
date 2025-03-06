@@ -36,6 +36,9 @@ export { SignInError } from "./sign_in/auth_flow/error_type/SignInError.js";
 export { SignUpError } from "./sign_up/auth_flow/error_type/SignUpError.js";
 export { ResetPasswordError } from "./reset_password/auth_flow/error_type/ResetPasswordError.js";
 
+// Handler Factory
+export { AuthFlowStateHandlerFactory } from "./core/auth_flow/AuthFlowStateHandlerFactory.js";
+
 // Sign-in Handlers
 export { SignInCodeRequiredStateHandler } from "./sign_in/auth_flow/state_handler/SignInCodeRequiredStateHandler.js";
 export { SignInContinuationStateHandler } from "./sign_in/auth_flow/state_handler/SignInContinuationStateHandler.js";
