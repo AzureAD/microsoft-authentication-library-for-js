@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Reworked Managed Identity Retry Policy to be per-request, which is based on the Managed Identity source. #7603",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -602,6 +602,7 @@ export type BaseAuthRequest = {
     azureCloudOptions?: AzureCloudOptions;
     requestedClaimsHash?: string;
     maxAge?: number;
+    tokenBodyParameters?: StringDict;
     tokenQueryParameters?: StringDict;
     storeInCache?: StoreInCache;
     scenarioId?: string;
@@ -1527,7 +1528,6 @@ export type CommonAuthorizationCodeRequest = BaseAuthRequest & {
     code: string;
     redirectUri: string;
     codeVerifier?: string;
-    tokenBodyParameters?: StringDict;
     enableSpaAuthorizationCode?: boolean;
     clientInfo?: string;
     ccsCredential?: CcsCredential;
@@ -1565,7 +1565,7 @@ export type CommonClientCredentialRequest = BaseAuthRequest & {
 // Warning: (ae-missing-release-tag) "CommonDeviceCodeRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type CommonDeviceCodeRequest = Omit<BaseAuthRequest, "tokenQueryParameters"> & {
+export type CommonDeviceCodeRequest = Omit<BaseAuthRequest, "tokenQueryParameters" | "tokenBodyParameters"> & {
     deviceCodeCallback: (response: DeviceCodeResponse) => void;
     cancel?: boolean;
     timeout?: number;
@@ -1600,7 +1600,6 @@ export type CommonRefreshTokenRequest = BaseAuthRequest & {
     refreshToken: string;
     ccsCredential?: CcsCredential;
     forceCache?: boolean;
-    tokenBodyParameters?: StringDict;
     redirectUri?: string;
 };
 
@@ -1611,7 +1610,6 @@ export type CommonSilentFlowRequest = BaseAuthRequest & {
     account: AccountInfo;
     forceRefresh: boolean;
     redirectUri?: string;
-    tokenBodyParameters?: StringDict;
     refreshTokenExpirationOffsetSeconds?: number;
 };
 
@@ -2014,6 +2012,11 @@ function getDeserializedResponse(responseString: string): ServerAuthorizationCod
 //
 // @public
 function getJWSPayload(authToken: string): string;
+
+// Warning: (ae-missing-release-tag) "getRequestThumbprint" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function getRequestThumbprint(clientId: string, request: BaseAuthRequest, homeAccountId?: string): RequestThumbprint;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "getTenantIdFromIdTokenClaims" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -3496,6 +3499,7 @@ export type RequestThumbprint = {
     shrClaims?: string;
     sshKid?: string;
     shrOptions?: ShrOptions;
+    embeddedClientId?: string;
 };
 
 // Warning: (ae-missing-release-tag) "RESPONSE_MODE" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -4282,14 +4286,14 @@ const X_MS_LIB_CAPABILITY = "x-ms-lib-capability";
 // src/cache/utils/CacheTypes.ts:94:43 - (tsdoc-malformed-html-name) Invalid HTML element: An HTML name must be an ASCII letter followed by zero or more letters, digits, or hyphens
 // src/client/AuthorizationCodeClient.ts:228:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/AuthorizationCodeClient.ts:229:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/AuthorizationCodeClient.ts:307:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/AuthorizationCodeClient.ts:507:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/AuthorizationCodeClient.ts:763:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/AuthorizationCodeClient.ts:823:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:298:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:498:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:754:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/AuthorizationCodeClient.ts:814:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:193:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:286:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:287:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/RefreshTokenClient.ts:346:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/client/RefreshTokenClient.ts:338:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/SilentFlowClient.ts:172:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/config/ClientConfiguration.ts:50:5 - (ae-forgotten-export) The symbol "ClientCredentials" needs to be exported by the entry point index.d.ts
 // src/config/ClientConfiguration.ts:51:5 - (ae-forgotten-export) The symbol "LibraryInfo" needs to be exported by the entry point index.d.ts
