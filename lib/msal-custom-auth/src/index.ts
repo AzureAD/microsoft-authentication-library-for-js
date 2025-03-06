@@ -12,7 +12,7 @@ export { ICustomAuthStandardController } from "./controller/ICustomAuthStandardC
 export { CustomAuthConfiguration } from "./configuration/CustomAuthConfiguration.js";
 
 // Account Data
-export { CustomAuthAccountData as AccountInfo } from "./get_account/auth_flow/CustomAuthAccountData.js";
+export { CustomAuthAccountData } from "./get_account/auth_flow/CustomAuthAccountData.js";
 
 // Operation Inputs
 export {
