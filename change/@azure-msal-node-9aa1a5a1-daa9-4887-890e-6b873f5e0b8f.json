@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Implemented IMDS retry policy",
+  "comment": "Implemented IMDS retry policy #7614",
   "packageName": "@azure/msal-node",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
