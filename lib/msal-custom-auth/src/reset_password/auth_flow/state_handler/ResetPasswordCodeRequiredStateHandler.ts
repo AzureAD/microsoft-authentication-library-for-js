@@ -50,7 +50,7 @@ export class ResetPasswordCodeRequiredStateHandler extends ResetPasswordStateHan
         try {
             this.ensureCodeIsValid(code, this.codeLength);
 
-            this.logger.info("Submitting code for password reset.", this.correlationId);
+            this.logger.verbose("Submitting code for password reset.", this.correlationId);
 
             const result = await this.resetPasswordClient.submitCode({
                 clientId: this.config.auth.clientId,
@@ -61,7 +61,7 @@ export class ResetPasswordCodeRequiredStateHandler extends ResetPasswordStateHan
                 username: this.username,
             });
 
-            this.logger.info("Code is submitted for password reset.", this.correlationId);
+            this.logger.verbose("Code is submitted for password reset.", this.correlationId);
 
             return new ResetPasswordSubmitCodeResult(
                 new ResetPasswordPasswordRequired(
@@ -88,7 +88,7 @@ export class ResetPasswordCodeRequiredStateHandler extends ResetPasswordStateHan
      */
     async resendCode(): Promise<ResetPasswordResendCodeResult> {
         try {
-            this.logger.info("Resending code for password reset.", this.correlationId);
+            this.logger.verbose("Resending code for password reset.", this.correlationId);
 
             const result = await this.resetPasswordClient.resendCode({
                 clientId: this.config.auth.clientId,
@@ -98,7 +98,7 @@ export class ResetPasswordCodeRequiredStateHandler extends ResetPasswordStateHan
                 continuationToken: this.continuationToken ?? "",
             });
 
-            this.logger.info("Code is resent for password reset.", this.correlationId);
+            this.logger.verbose("Code is resent for password reset.", this.correlationId);
 
             return new ResetPasswordResendCodeResult(
                 new ResetPasswordCodeRequired(

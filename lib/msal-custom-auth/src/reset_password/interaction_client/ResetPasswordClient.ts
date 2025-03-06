@@ -54,7 +54,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
             telemetryManager: telemetryManager,
         };
 
-        this.logger.info("Calling start endpoint for password reset flow.", correlationId);
+        this.logger.verbose("Calling start endpoint for password reset flow.", correlationId);
 
         const startResponse = await this.customAuthApiClient.resetPasswordApi.start(startRequest);
 
@@ -90,11 +90,11 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
             telemetryManager: telemetryManager,
         };
 
-        this.logger.info("Calling continue endpoint with code for password reset.", correlationId);
+        this.logger.verbose("Calling continue endpoint with code for password reset.", correlationId);
 
         const response = await this.customAuthApiClient.resetPasswordApi.continueWithCode(continueRequest);
 
-        this.logger.info(
+        this.logger.verbose(
             "Continue endpoint called successfully with code for password reset.",
             response.correlation_id,
         );
@@ -148,11 +148,11 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
             telemetryManager: telemetryManager,
         };
 
-        this.logger.info("Calling submit endpoint with new password for password reset.", correlationId);
+        this.logger.verbose("Calling submit endpoint with new password for password reset.", correlationId);
 
         const submitResponse = await this.customAuthApiClient.resetPasswordApi.submitNewPassword(submitRequest);
 
-        this.logger.info("Submit endpoint called successfully with new password for password reset.", correlationId);
+        this.logger.verbose("Submit endpoint called successfully with new password for password reset.", correlationId);
 
         return this.performPollCompletionRequest(
             submitResponse.continuation_token ?? "",
@@ -166,15 +166,15 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         request: ResetPasswordChallengeRequest,
     ): Promise<ResetPasswordCodeRequiredResult> {
         const correlationId = request.correlationId;
-        this.logger.info("Calling challenge endpoint for password reset flow.", correlationId);
+        this.logger.verbose("Calling challenge endpoint for password reset flow.", correlationId);
 
         const response = await this.customAuthApiClient.resetPasswordApi.requestChallenge(request);
 
-        this.logger.info("Challenge endpoint for password reset returned successfully.", correlationId);
+        this.logger.verbose("Challenge endpoint for password reset returned successfully.", correlationId);
 
         if (response.challenge_type === ChallengeType.OOB) {
             // Code is required
-            this.logger.info("Code is required for password reset flow.", correlationId);
+            this.logger.verbose("Code is required for password reset flow.", correlationId);
 
             return new ResetPasswordCodeRequiredResult(
                 response.correlation_id,
@@ -213,11 +213,11 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
                 telemetryManager: telemetryManager,
             };
 
-            this.logger.info("Calling the poll completion endpoint for password reset flow.", correlationId);
+            this.logger.verbose("Calling the poll completion endpoint for password reset flow.", correlationId);
 
             const pollResponse = await this.customAuthApiClient.resetPasswordApi.pollCompletion(pollRequest);
 
-            this.logger.info("Poll completion endpoint for password reset returned successfully.", correlationId);
+            this.logger.verbose("Poll completion endpoint for password reset returned successfully.", correlationId);
 
             if (pollResponse.status === ResetPasswordPollStatus.SUCCEEDED) {
                 return new ResetPasswordCompletedResult(
@@ -232,7 +232,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
                 );
             }
 
-            this.logger.info(
+            this.logger.verbose(
                 `Poll completion endpoint for password reset is not started or in progress, waiting ${pollInterval} seconds for next check.`,
                 correlationId,
             );

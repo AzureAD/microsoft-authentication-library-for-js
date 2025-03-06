@@ -1,6 +1,5 @@
 import { Logger } from "@azure/msal-browser";
 import { FetchHttpClient } from "../../../../src/core/network_client/http_client/FetchHttpClient.js";
-import { trace } from "console";
 
 class MockResponse {
     public readonly status: number;
@@ -23,8 +22,10 @@ describe("FetchHttpClient", () => {
     let mockFetch: jest.Mock;
     const mockLogger = {
         clone: jest.fn(),
-        verbose: jest.fn(),
         info: jest.fn(),
+        infoPii: jest.fn(),
+        verbose: jest.fn(),
+        verbosePii: jest.fn(),
         error: jest.fn(),
         trace: jest.fn(),
         errorPii: jest.fn(),

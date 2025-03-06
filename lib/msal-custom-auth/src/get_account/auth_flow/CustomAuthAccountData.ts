@@ -16,7 +16,7 @@ import {
 } from "@azure/msal-browser";
 import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
 import { CustomAuthSilentCacheClient } from "../interaction_client/CustomAuthSilentCacheClient.js";
-import { NoCachedAccountFoundError } from "../../core/error/GetCurrentAccountError.js";
+import { NoCachedAccountFoundError } from "../../core/error/NoCachedAccountFoundError.js";
 import { DefaultScopes } from "../../CustomAuthConstants.js";
 import { AccessTokenRetrievalInputs } from "../../CustomAuthActionInputs.js";
 
@@ -56,14 +56,14 @@ export class CustomAuthAccountData {
                 throw new NoCachedAccountFoundError(this.correlationId);
             }
 
-            this.logger.info("Signing out user", this.correlationId);
+            this.logger.verbose("Signing out user", this.correlationId);
 
             await this.cacheClient.logout({
                 correlationId: this.correlationId,
                 account: currentAccount,
             });
 
-            this.logger.info("User signed out", this.correlationId);
+            this.logger.verbose("User signed out", this.correlationId);
 
             return new SignOutResult();
         } catch (error) {
@@ -110,7 +110,7 @@ export class CustomAuthAccountData {
                 this.correlationId,
             );
 
-            this.logger.info("Getting current account.", this.correlationId);
+            this.logger.verbose("Getting current account.", this.correlationId);
 
             const currentAccount = this.cacheClient.getCurrentAccount(this.account.username);
 
@@ -118,7 +118,7 @@ export class CustomAuthAccountData {
                 throw new NoCachedAccountFoundError(this.correlationId);
             }
 
-            this.logger.info("Getting access token.", this.correlationId);
+            this.logger.verbose("Getting access token.", this.correlationId);
 
             const newScopes =
                 accessTokenRetrievalInputs.scopes && accessTokenRetrievalInputs.scopes.length > 0
@@ -131,7 +131,7 @@ export class CustomAuthAccountData {
             );
             const result = await this.cacheClient.acquireToken(commonSilentFlowRequest);
 
-            this.logger.info("Successfully got access token from cache.", this.correlationId);
+            this.logger.verbose("Successfully got access token from cache.", this.correlationId);
 
             return new GetAccessTokenResult(result);
         } catch (error) {

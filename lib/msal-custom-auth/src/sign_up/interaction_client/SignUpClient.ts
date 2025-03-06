@@ -59,11 +59,11 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             correlationId: parameters.correlationId,
         };
 
-        this.logger.info("Calling start endpoint for sign up.", parameters.correlationId);
+        this.logger.verbose("Calling start endpoint for sign up.", parameters.correlationId);
 
         const startResponse = await this.customAuthApiClient.signUpApi.start(startRequest);
 
-        this.logger.info("Start endpoint called for sign up.", parameters.correlationId);
+        this.logger.verbose("Start endpoint called for sign up.", parameters.correlationId);
 
         const challengeRequest: SignUpChallengeRequest = {
             continuation_token: startResponse.continuation_token ?? "",
@@ -229,15 +229,15 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
     private async performChallengeRequest(
         request: SignUpChallengeRequest,
     ): Promise<SignUpPasswordRequiredResult | SignUpCodeRequiredResult> {
-        this.logger.info("Calling challenge endpoint for sign up.", request.correlationId);
+        this.logger.verbose("Calling challenge endpoint for sign up.", request.correlationId);
 
         const challengeResponse = await this.customAuthApiClient.signUpApi.requestChallenge(request);
 
-        this.logger.info("Challenge endpoint called for sign up.", request.correlationId);
+        this.logger.verbose("Challenge endpoint called for sign up.", request.correlationId);
 
         if (challengeResponse.challenge_type === ChallengeType.OOB) {
             // Code is required
-            this.logger.info("Challenge type is oob for sign up.", request.correlationId);
+            this.logger.verbose("Challenge type is oob for sign up.", request.correlationId);
 
             return new SignUpCodeRequiredResult(
                 challengeResponse.correlation_id,
@@ -252,7 +252,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
         if (challengeResponse.challenge_type === ChallengeType.PASSWORD) {
             // Password is required
-            this.logger.info("Challenge type is password for sign up.", request.correlationId);
+            this.logger.verbose("Challenge type is password for sign up.", request.correlationId);
 
             return new SignUpPasswordRequiredResult(
                 challengeResponse.correlation_id,
@@ -281,12 +281,12 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
     ): Promise<
         SignUpCompletedResult | SignUpPasswordRequiredResult | SignUpCodeRequiredResult | SignUpAttributesRequiredResult
     > {
-        this.logger.info(`${callerName} is calling continue endpoint for sign up.`, requestCorrelationId);
+        this.logger.verbose(`${callerName} is calling continue endpoint for sign up.`, requestCorrelationId);
 
         try {
             const response = await responseGetter();
 
-            this.logger.info(`Continue endpoint called by ${callerName} for sign up.`, requestCorrelationId);
+            this.logger.verbose(`Continue endpoint called by ${callerName} for sign up.`, requestCorrelationId);
 
             return new SignUpCompletedResult(requestCorrelationId, response.continuation_token ?? "");
         } catch (error) {
@@ -320,7 +320,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             responseError.errorCodes.includes(55103)
         ) {
             // Credential is required
-            this.logger.info("The credential is required in the sign up flow.", correlationId);
+            this.logger.verbose("The credential is required in the sign up flow.", correlationId);
 
             const continuationToken = this.readContinuationTokenFromResponeError(responseError);
 
@@ -359,7 +359,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
         if (this.isAttributesRequiredError(responseError, correlationId)) {
             // Attributes are required
-            this.logger.info("Attributes are required in the sign up flow.", correlationId);
+            this.logger.verbose("Attributes are required in the sign up flow.", correlationId);
 
             const continuationToken = this.readContinuationTokenFromResponeError(responseError);
 

@@ -63,6 +63,7 @@ describe("CustomAuthAccountData", () => {
         } as unknown as CustomAuthSilentCacheClient;
         mockLogger = {
             info: jest.fn(),
+            verbose: jest.fn(),
             error: jest.fn(),
             errorPii: jest.fn(),
         } as unknown as Logger;
@@ -90,8 +91,8 @@ describe("CustomAuthAccountData", () => {
                 account: mockAccount,
             });
             expect(result).toBeInstanceOf(SignOutResult);
-            expect(mockLogger.info).toHaveBeenCalledWith("Signing out user", "test-correlation-id");
-            expect(mockLogger.info).toHaveBeenCalledWith("User signed out", "test-correlation-id");
+            expect(mockLogger.verbose).toHaveBeenCalledWith("Signing out user", "test-correlation-id");
+            expect(mockLogger.verbose).toHaveBeenCalledWith("User signed out", "test-correlation-id");
         });
 
         it("should handle errors during sign out", async () => {
