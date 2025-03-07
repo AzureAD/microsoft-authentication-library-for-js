@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1738349624416,
+  "lastUpdate": 1741312139582,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -14462,6 +14462,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.84%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bdb473922061bfc56ca7d9c73c93933c49fcc8a8",
+          "message": "Add TimeUtils to handle seconds and Date conversion (#7613)\n\nThis PR adds additional helper functions to TimeUtils in msal-common,\nand replaces inline math with usage of TimeUtils in the msal-browser,\nmsal-common, and msal-node-extensions packages and unit tests. Comments\nalso added for clarity on why conversions are happening.",
+          "timestamp": "2025-03-06T17:42:40-08:00",
+          "tree_id": "7e8d7a6c0d17f971b024ee25c06d7bfe48355300",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/bdb473922061bfc56ca7d9c73c93933c49fcc8a8"
+        },
+        "date": 1741312138320,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 240875,
+            "range": "±1.02%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 242809,
+            "range": "±0.76%",
+            "unit": "ops/sec",
+            "extra": "222 samples"
           }
         ]
       }
