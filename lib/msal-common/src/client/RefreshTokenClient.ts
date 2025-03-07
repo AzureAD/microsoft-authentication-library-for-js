@@ -513,6 +513,11 @@ export class RefreshTokenClient extends BaseClient {
             );
         }
 
+        RequestParameterBuilder.instrumentBrokerParams(
+            parameters,
+            request.correlationId,
+            this.performanceClient
+        );
         return UrlUtils.mapToQueryString(parameters);
     }
 }

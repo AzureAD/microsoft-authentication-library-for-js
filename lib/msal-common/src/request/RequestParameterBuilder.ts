@@ -27,6 +27,30 @@ import {
 } from "../config/ClientConfiguration.js";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
 import { ClientInfo } from "../account/ClientInfo.js";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+
+export function instrumentBrokerParams(
+    parameters: Map<string, string>,
+    correlationId?: string,
+    performanceClient?: IPerformanceClient
+) {
+    if (!correlationId) {
+        return;
+    }
+
+    const clientId = parameters.get(AADServerParamKeys.CLIENT_ID);
+    if (clientId && parameters.has(AADServerParamKeys.BROKER_CLIENT_ID)) {
+        performanceClient?.addFields(
+            {
+                embeddedClientId: clientId,
+                embeddedRedirectUri: parameters.get(
+                    AADServerParamKeys.REDIRECT_URI
+                ),
+            },
+            correlationId
+        );
+    }
+}
 
 /**
  * add response_type = code

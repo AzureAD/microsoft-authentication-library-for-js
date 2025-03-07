@@ -301,6 +301,11 @@ export abstract class BaseClient {
             request.correlationId
         );
 
+        RequestParameterBuilder.instrumentBrokerParams(
+            parameters,
+            request.correlationId,
+            this.performanceClient
+        );
         return UrlUtils.mapToQueryString(parameters);
     }
 }

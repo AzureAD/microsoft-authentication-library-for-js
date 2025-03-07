@@ -518,6 +518,11 @@ export class AuthorizationCodeClient extends BaseClient {
             });
         }
 
+        RequestParameterBuilder.instrumentBrokerParams(
+            parameters,
+            request.correlationId,
+            this.performanceClient
+        );
         return UrlUtils.mapToQueryString(parameters);
     }
 
@@ -826,6 +831,11 @@ export class AuthorizationCodeClient extends BaseClient {
             }
         }
 
+        RequestParameterBuilder.instrumentBrokerParams(
+            parameters,
+            request.correlationId,
+            this.performanceClient
+        );
         return UrlUtils.mapToQueryString(parameters);
     }
 
