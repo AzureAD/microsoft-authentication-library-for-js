@@ -34,6 +34,7 @@ import {
 } from "../../src/index.js";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
+import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 
 describe("SilentAuthCodeClient", () => {
     let silentAuthCodeClient: SilentAuthCodeClient;
@@ -136,9 +137,9 @@ describe("SilentAuthCodeClient", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            ).mockResolvedValue(testNavUrl);
+                                        AuthorizeProtocol,
+                                        "getAuthCodeRequestUrl"
+                                    ).mockResolvedValue(testNavUrl);
             const handleCodeSpy = jest
                 .spyOn(
                     InteractionHandler.prototype,

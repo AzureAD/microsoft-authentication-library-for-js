@@ -20,6 +20,7 @@ import {
     TEST_SSH_VALUES,
     ID_TOKEN_CLAIMS,
     TEST_TOKEN_RESPONSE,
+    verifyUrl,
 } from "../utils/StringConstants.js";
 import {
     ServerError,
@@ -47,7 +48,6 @@ import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
     IdTokenEntity,
-    CredentialType,
     InProgressPerformanceEvent,
     StubPerformanceClient,
 } from "@azure/msal-common";
@@ -69,6 +69,7 @@ import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler.j
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
+import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
@@ -1925,7 +1926,7 @@ describe("RedirectClient", () => {
                 "initiateAuthRequest"
             ).mockImplementation(async (navigateUrl): Promise<void> => {
                 try {
-                    expect(navigateUrl).toEqual(testNavUrl);
+                    verifyUrl(navigateUrl, ["user.read"]);
                     return Promise.resolve(done());
                 } catch (err) {
                     Promise.reject(err);
@@ -2378,9 +2379,9 @@ describe("RedirectClient", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            ).mockRejectedValue(createBrowserAuthError(testError.errorCode));
+                            AuthorizeProtocol,
+                            "getAuthCodeRequestUrl"
+                        ).mockRejectedValue(createBrowserAuthError(testError.errorCode));
             try {
                 await redirectClient.acquireToken(emptyRequest);
             } catch (e) {
@@ -2405,7 +2406,7 @@ describe("RedirectClient", () => {
                 RedirectHandler.prototype,
                 "initiateAuthRequest"
             ).mockImplementation((navigateUrl): Promise<void> => {
-                expect(navigateUrl).toEqual(testNavUrl);
+                verifyUrl(navigateUrl, ["user.read"]);
                 return Promise.resolve(done());
             });
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -2427,7 +2428,7 @@ describe("RedirectClient", () => {
 
         it("passes onRedirectNavigate callback", (done) => {
             const onRedirectNavigate = (url: string) => {
-                expect(url).toEqual(testNavUrl);
+                verifyUrl(url, ["user.read"]);
                 done();
             };
 
@@ -2444,7 +2445,7 @@ describe("RedirectClient", () => {
                     }
                 ): Promise<void> => {
                     expect(onRedirectNavigateCb).toEqual(onRedirectNavigate);
-                    expect(navigateUrl).toEqual(testNavUrl);
+                    verifyUrl(navigateUrl, ["user.read"]);
                     onRedirectNavigate(navigateUrl);
                     return Promise.resolve();
                 }
@@ -2621,9 +2622,9 @@ describe("RedirectClient", () => {
                 "Error in creating a login url"
             );
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            ).mockRejectedValue(testError);
+                            AuthorizeProtocol,
+                            "getAuthCodeRequestUrl"
+                        ).mockRejectedValue(testError);
             try {
                 await redirectClient.acquireToken(emptyRequest);
             } catch (e) {

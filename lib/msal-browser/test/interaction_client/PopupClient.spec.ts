@@ -43,6 +43,7 @@ import {
 } from "../../src/utils/BrowserConstants.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
+import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest.js";
 import { PopupClient } from "../../src/interaction_client/PopupClient.js";
@@ -368,8 +369,8 @@ describe("PopupClient", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(
                 PopupClient.prototype,
@@ -495,8 +496,8 @@ describe("PopupClient", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(
                 PopupClient.prototype,
@@ -603,8 +604,8 @@ describe("PopupClient", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(PopupClient.prototype, "initiateAuthRequest")
                 .mockClear()
@@ -785,8 +786,8 @@ describe("PopupClient", () => {
                 "Error in creating a login url"
             );
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             jest.spyOn(
                 PopupClient.prototype,
