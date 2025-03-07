@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix exception when BroadcastChannel is not available in JS Runtime (#7569)",
+  "packageName": "@azure/msal-browser",
+  "email": "dasau@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -33,7 +33,6 @@ import { UrlString } from "../url/UrlString.js";
 import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse.js";
 import { CommonEndSessionRequest } from "../request/CommonEndSessionRequest.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
-import { RequestThumbprint } from "../network/RequestThumbprint.js";
 import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
 import { AccountInfo } from "../account/AccountInfo.js";
@@ -52,6 +51,7 @@ import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js"
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import { ClientAssertion } from "../account/ClientCredentials.js";
 import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
+import { getRequestThumbprint } from "../network/RequestThumbprint.js";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -272,19 +272,10 @@ export class AuthorizationCodeClient extends BaseClient {
             ccsCredential || request.ccsCredential
         );
 
-        const thumbprint: RequestThumbprint = {
-            clientId:
-                request.tokenBodyParameters?.clientId ||
-                this.config.authOptions.clientId,
-            authority: authority.canonicalAuthority,
-            scopes: request.scopes,
-            claims: request.claims,
-            authenticationScheme: request.authenticationScheme,
-            resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims,
-            sshKid: request.sshKid,
-        };
+        const thumbprint = getRequestThumbprint(
+            this.config.authOptions.clientId,
+            request
+        );
 
         return invokeAsync(
             this.executePostToTokenEndpoint.bind(this),

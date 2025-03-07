@@ -93,7 +93,10 @@ export {
 } from "./network/INetworkModule.js";
 export { NetworkResponse } from "./network/NetworkResponse.js";
 export { ThrottlingUtils } from "./network/ThrottlingUtils.js";
-export { RequestThumbprint } from "./network/RequestThumbprint.js";
+export {
+    RequestThumbprint,
+    getRequestThumbprint,
+} from "./network/RequestThumbprint.js";
 export { IUri } from "./url/IUri.js";
 export { UrlString } from "./url/UrlString.js";
 export {
