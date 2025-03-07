@@ -48,6 +48,7 @@ import { INavigationClient } from "../navigation/INavigationClient.js";
 import { EventError } from "../event/EventMessage.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
+import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -168,15 +169,22 @@ export class RedirectClient extends StandardInteractionClient {
             );
 
             // Create acquire token url.
-            const navigateUrl = await authClient.getAuthCodeUrl({
-                ...validRequest,
-                platformBroker: NativeMessageHandler.isPlatformBrokerAvailable(
-                    this.config,
-                    this.logger,
-                    this.nativeMessageHandler,
-                    request.authenticationScheme
-                ),
-            });
+            const navigateUrl = await getAuthCodeRequestUrl(
+                this.config,
+                authClient.authority,
+                {
+                    ...validRequest,
+                    platformBroker:
+                        NativeMessageHandler.isPlatformBrokerAvailable(
+                            this.config,
+                            this.logger,
+                            this.nativeMessageHandler,
+                            request.authenticationScheme
+                        ),
+                },
+                this.logger,
+                this.performanceClient
+            );
 
             const redirectStartPage = this.getRedirectStartPage(
                 request.redirectStartPage

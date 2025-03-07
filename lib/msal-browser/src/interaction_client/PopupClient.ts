@@ -48,6 +48,7 @@ import { PopupWindowAttributes } from "../request/PopupWindowAttributes.js";
 import { EventError } from "../event/EventMessage.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
+import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
 
 export type PopupParams = {
     popup?: Window | null;
@@ -269,10 +270,16 @@ export class PopupClient extends StandardInteractionClient {
             }
 
             // Create acquire token url.
-            const navigateUrl = await authClient.getAuthCodeUrl({
-                ...validRequest,
-                platformBroker: isPlatformBroker,
-            });
+            const navigateUrl = await getAuthCodeRequestUrl(
+                this.config,
+                authClient.authority,
+                {
+                    ...validRequest,
+                    platformBroker: isPlatformBroker,
+                },
+                this.logger,
+                this.performanceClient
+            );
 
             // Create popup interaction handler.
             const interactionHandler = new InteractionHandler(

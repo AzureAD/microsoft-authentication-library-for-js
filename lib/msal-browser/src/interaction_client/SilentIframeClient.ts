@@ -42,6 +42,7 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { InteractionHandler } from "../interaction_handler/InteractionHandler.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
+import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
@@ -232,20 +233,26 @@ export class SilentIframeClient extends StandardInteractionClient {
 
         // Create authorize request url
         const navigateUrl = await invokeAsync(
-            authClient.getAuthCodeUrl.bind(authClient),
+            getAuthCodeRequestUrl,
             PerformanceEvents.GetAuthCodeUrl,
             this.logger,
             this.performanceClient,
             correlationId
-        )({
-            ...silentRequest,
-            platformBroker: NativeMessageHandler.isPlatformBrokerAvailable(
-                this.config,
-                this.logger,
-                this.nativeMessageHandler,
-                silentRequest.authenticationScheme
-            ),
-        });
+        )(
+            this.config,
+            authClient.authority,
+            {
+                ...silentRequest,
+                platformBroker: NativeMessageHandler.isPlatformBrokerAvailable(
+                    this.config,
+                    this.logger,
+                    this.nativeMessageHandler,
+                    silentRequest.authenticationScheme
+                ),
+            },
+            this.logger,
+            this.performanceClient
+        );
 
         // Create silent handler
         const interactionHandler = new InteractionHandler(

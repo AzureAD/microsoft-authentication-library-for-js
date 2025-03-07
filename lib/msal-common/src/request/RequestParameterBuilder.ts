@@ -353,8 +353,8 @@ export function addNonce(parameters: Map<string, string>, nonce: string): void {
  */
 export function addCodeChallengeParams(
     parameters: Map<string, string>,
-    codeChallenge: string,
-    codeChallengeMethod: string
+    codeChallenge?: string,
+    codeChallengeMethod?: string
 ): void {
     if (codeChallenge && codeChallengeMethod) {
         parameters.set(

@@ -113,13 +113,17 @@ export class PublicClientApplication
             validRequest.correlationId
         );
         try {
-            const deviceCodeConfig = await this.buildOauthClientConfiguration(
+            const discoveredAuthority = await this.createAuthority(
                 validRequest.authority,
                 validRequest.correlationId,
-                "",
-                serverTelemetryManager,
                 undefined,
                 request.azureCloudOptions
+            );
+            const deviceCodeConfig = await this.buildOauthClientConfiguration(
+                discoveredAuthority,
+                validRequest.correlationId,
+                "",
+                serverTelemetryManager
             );
             const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
             this.logger.verbose(

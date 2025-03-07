@@ -105,6 +105,8 @@ export {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     SignedHttpRequestParameters,
 } from "./crypto/ICrypto.js";
+
+export * as AuthorizeProtocol from "./protocol/Authorize.js";
 export { BaseAuthRequest } from "./request/BaseAuthRequest.js";
 export { CommonAuthorizationUrlRequest } from "./request/CommonAuthorizationUrlRequest.js";
 export { CommonAuthorizationCodeRequest } from "./request/CommonAuthorizationCodeRequest.js";
