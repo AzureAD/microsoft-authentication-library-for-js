@@ -9,6 +9,7 @@ import {
     ErrorStatus,
     MsalRuntimeError,
 } from "@azure/msal-node-runtime";
+import { TestTimeUtils } from "msal-test-utils";
 
 export const testMsalRuntimeAccount: Account = {
     accountId: "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA==",
@@ -80,7 +81,7 @@ export const getTestAuthenticationResult = (
         idTokenClaims: TEST_ID_TOKEN_CLAIMS,
         accessToken: TEST_ACCESS_TOKEN,
         fromCache: false,
-        expiresOn: new Date(Date.now() + 3600 * 1000),
+        expiresOn: TestTimeUtils.nowDateWithOffset(3600),
         tokenType: "Bearer",
         correlationId,
         fromNativeBroker: true,
