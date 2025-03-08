@@ -61,7 +61,7 @@ import * as msalNode from "../../src/index.js";
 import { setupServerTelemetryManagerMock } from "./test-fixtures.js";
 import { getMsalCommonAutoMock, MSALCommonModule } from "../utils/MockUtils.js";
 
-import { version, name } from "../../package.json";
+import { version, name } from "../../src/packageMetadata.js";
 import { MockNativeBrokerPlugin } from "../utils/MockNativeBrokerPlugin.js";
 import { SignOutRequest } from "../../src/request/SignOutRequest.js";
 import { LoopbackClient } from "../../src/network/LoopbackClient.js";
@@ -80,6 +80,7 @@ import { Constants } from "../../src/utils/Constants.js";
 import { NodeStorage } from "../../src/cache/NodeStorage.js";
 import { TokenCache } from "../../src/index.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
+import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 
 const msalCommon: MSALCommonModule = jest.requireActual(
     "@azure/msal-common/node"
@@ -652,11 +653,11 @@ describe("PublicClientApplication", () => {
             );
 
             jest.spyOn(
-                MockAuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            ).mockImplementation((req) => {
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockImplementation((_config, _authority, req, _logger) => {
                 redirectUri = req.redirectUri;
-                return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
+                return TEST_CONSTANTS.AUTH_CODE_URL;
             });
 
             jest.spyOn(
@@ -724,11 +725,11 @@ describe("PublicClientApplication", () => {
             );
 
             jest.spyOn(
-                MockAuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            ).mockImplementation((req) => {
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockImplementation((_config, _authority, req, _logger) => {
                 redirectUri = req.redirectUri;
-                return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
+                return TEST_CONSTANTS.AUTH_CODE_URL;
             });
 
             jest.spyOn(
@@ -800,11 +801,11 @@ describe("PublicClientApplication", () => {
             );
 
             jest.spyOn(
-                MockAuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            ).mockImplementation((req) => {
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockImplementation((_config, _authority, req, _logger) => {
                 expect(req.redirectUri).toEqual(TEST_CONSTANTS.REDIRECT_URI);
-                return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
+                return TEST_CONSTANTS.AUTH_CODE_URL;
             });
 
             jest.spyOn(
@@ -953,11 +954,11 @@ describe("PublicClientApplication", () => {
             );
 
             jest.spyOn(
-                MockAuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            ).mockImplementation((req) => {
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockImplementation((_config, _authority, req, _logger) => {
                 expect(req.redirectUri).toEqual(TEST_CONSTANTS.REDIRECT_URI);
-                return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
+                return TEST_CONSTANTS.AUTH_CODE_URL;
             });
 
             authApp.acquireTokenInteractive(request).catch((e) => {
@@ -1018,11 +1019,11 @@ describe("PublicClientApplication", () => {
             );
 
             jest.spyOn(
-                MockAuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            ).mockImplementation((req) => {
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockImplementation((_config, _authority, req, _logger) => {
                 expect(req.redirectUri).toEqual(TEST_CONSTANTS.REDIRECT_URI);
-                return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
+                return TEST_CONSTANTS.AUTH_CODE_URL;
             });
 
             authApp.acquireTokenInteractive(request).catch((e) => {

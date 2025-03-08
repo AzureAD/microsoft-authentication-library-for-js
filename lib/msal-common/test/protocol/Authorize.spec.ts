@@ -1,7 +1,5 @@
 import { Authority } from "../../src/authority/Authority.js";
-import {
-    AuthOptions,
-} from "../../src/config/ClientConfiguration.js";
+import { AuthOptions } from "../../src/config/ClientConfiguration.js";
 import { CommonAuthorizationUrlRequest } from "../../src/request/CommonAuthorizationUrlRequest.js";
 import {
     AuthenticationScheme,
@@ -10,9 +8,7 @@ import {
     PromptValue,
     ResponseMode,
 } from "../../src/utils/Constants.js";
-import {
-    getDiscoveredAuthority,
-} from "../client/ClientTestUtils.js";
+import { getDiscoveredAuthority } from "../client/ClientTestUtils.js";
 import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     RANDOM_TEST_GUID,
@@ -1177,15 +1173,20 @@ describe("Authorize Protocol Tests", () => {
     describe("createAuthCodeUrlQueryString tests", () => {
         it("pick up default client_id", async () => {
             const request: CommonAuthorizationUrlRequest = {
-                    scopes: ["User.Read"],
-                    authority: TEST_CONFIG.validAuthority,
-                    correlationId: RANDOM_TEST_GUID,
-                    responseMode: ResponseMode.FRAGMENT,
-                    prompt: PromptValue.LOGIN,
-                    redirectUri: "localhost",
-                }
+                scopes: ["User.Read"],
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                responseMode: ResponseMode.FRAGMENT,
+                prompt: PromptValue.LOGIN,
+                redirectUri: "localhost",
+            };
 
-            const params = AuthorizeProtocol.getStandardAuthorizeRequestParameters(authOptions, request, new Logger({}))
+            const params =
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptions,
+                    request,
+                    new Logger({})
+                );
             const queryString = UrlUtils.mapToQueryString(params);
 
             expect(queryString).toContain(
@@ -1195,17 +1196,22 @@ describe("Authorize Protocol Tests", () => {
 
         it("pick up extra query client_id param", async () => {
             const request: CommonAuthorizationUrlRequest = {
-                    scopes: ["User.Read"],
-                    authority: TEST_CONFIG.validAuthority,
-                    correlationId: RANDOM_TEST_GUID,
-                    responseMode: ResponseMode.FRAGMENT,
-                    prompt: PromptValue.LOGIN,
-                    redirectUri: "localhost",
-                    extraQueryParameters: {
-                        client_id: "child_client_id",
-                    },
-                }
-                const params = AuthorizeProtocol.getStandardAuthorizeRequestParameters(authOptions, request, new Logger({}))
+                scopes: ["User.Read"],
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                responseMode: ResponseMode.FRAGMENT,
+                prompt: PromptValue.LOGIN,
+                redirectUri: "localhost",
+                extraQueryParameters: {
+                    client_id: "child_client_id",
+                },
+            };
+            const params =
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptions,
+                    request,
+                    new Logger({})
+                );
             const queryString = UrlUtils.mapToQueryString(params);
 
             expect(queryString).toContain(`client_id=child_client_id`);
@@ -1215,15 +1221,20 @@ describe("Authorize Protocol Tests", () => {
             authOptions.instanceAware = true;
 
             const request: CommonAuthorizationUrlRequest = {
-                    scopes: ["User.Read"],
-                    authority: TEST_CONFIG.validAuthority,
-                    correlationId: RANDOM_TEST_GUID,
-                    responseMode: ResponseMode.FRAGMENT,
-                    prompt: PromptValue.LOGIN,
-                    redirectUri: "localhost",
-                }
+                scopes: ["User.Read"],
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                responseMode: ResponseMode.FRAGMENT,
+                prompt: PromptValue.LOGIN,
+                redirectUri: "localhost",
+            };
 
-                const params = AuthorizeProtocol.getStandardAuthorizeRequestParameters(authOptions, request, new Logger({}))
+            const params =
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptions,
+                    request,
+                    new Logger({})
+                );
             const queryString = UrlUtils.mapToQueryString(params);
 
             expect(queryString).toContain(`instance_aware=true`);
@@ -1232,15 +1243,20 @@ describe("Authorize Protocol Tests", () => {
         it("do not pick up instance_aware config param when set to false", async () => {
             authOptions.instanceAware = false;
 
-            const request: CommonAuthorizationUrlRequest ={
-                    scopes: ["User.Read"],
-                    authority: TEST_CONFIG.validAuthority,
-                    correlationId: RANDOM_TEST_GUID,
-                    responseMode: ResponseMode.FRAGMENT,
-                    prompt: PromptValue.LOGIN,
-                    redirectUri: "localhost",
-                }
-                const params = AuthorizeProtocol.getStandardAuthorizeRequestParameters(authOptions, request, new Logger({}))
+            const request: CommonAuthorizationUrlRequest = {
+                scopes: ["User.Read"],
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                responseMode: ResponseMode.FRAGMENT,
+                prompt: PromptValue.LOGIN,
+                redirectUri: "localhost",
+            };
+            const params =
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptions,
+                    request,
+                    new Logger({})
+                );
             const queryString = UrlUtils.mapToQueryString(params);
 
             expect(queryString.includes("instance_aware")).toBeFalsy();
@@ -1249,18 +1265,23 @@ describe("Authorize Protocol Tests", () => {
         it("pick up instance_aware EQ param when config is set to false", async () => {
             authOptions.instanceAware = false;
 
-            const request: CommonAuthorizationUrlRequest ={
-                    scopes: ["User.Read"],
-                    authority: TEST_CONFIG.validAuthority,
-                    correlationId: RANDOM_TEST_GUID,
-                    responseMode: ResponseMode.FRAGMENT,
-                    prompt: PromptValue.LOGIN,
-                    redirectUri: "localhost",
-                    extraQueryParameters: {
-                        instance_aware: "true",
-                    },
-                }
-                const params = AuthorizeProtocol.getStandardAuthorizeRequestParameters(authOptions, request, new Logger({}))
+            const request: CommonAuthorizationUrlRequest = {
+                scopes: ["User.Read"],
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                responseMode: ResponseMode.FRAGMENT,
+                prompt: PromptValue.LOGIN,
+                redirectUri: "localhost",
+                extraQueryParameters: {
+                    instance_aware: "true",
+                },
+            };
+            const params =
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptions,
+                    request,
+                    new Logger({})
+                );
             const queryString = UrlUtils.mapToQueryString(params);
 
             expect(queryString).toContain(`instance_aware=true`);
@@ -1269,19 +1290,24 @@ describe("Authorize Protocol Tests", () => {
         it("pick up instance_aware EQ param when config is set to true", async () => {
             authOptions.instanceAware = true;
 
-            const request: CommonAuthorizationUrlRequest ={
-                    scopes: ["User.Read"],
-                    authority: TEST_CONFIG.validAuthority,
-                    correlationId: RANDOM_TEST_GUID,
-                    responseMode: ResponseMode.FRAGMENT,
-                    prompt: PromptValue.LOGIN,
-                    redirectUri: "localhost",
-                    extraQueryParameters: {
-                        instance_aware: "false",
-                    },
-                }
+            const request: CommonAuthorizationUrlRequest = {
+                scopes: ["User.Read"],
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                responseMode: ResponseMode.FRAGMENT,
+                prompt: PromptValue.LOGIN,
+                redirectUri: "localhost",
+                extraQueryParameters: {
+                    instance_aware: "false",
+                },
+            };
 
-                const params = AuthorizeProtocol.getStandardAuthorizeRequestParameters(authOptions, request, new Logger({}))
+            const params =
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptions,
+                    request,
+                    new Logger({})
+                );
             const queryString = UrlUtils.mapToQueryString(params);
 
             expect(queryString).toContain(`instance_aware=false`);
@@ -1289,15 +1315,20 @@ describe("Authorize Protocol Tests", () => {
 
         it("pick up broker params", async () => {
             const request: CommonAuthorizationUrlRequest = {
-                    scopes: ["User.Read"],
-                    authority: TEST_CONFIG.validAuthority,
-                    correlationId: RANDOM_TEST_GUID,
-                    responseMode: ResponseMode.FRAGMENT,
-                    redirectUri: "localhost",
-                    embeddedClientId: "child_client_id_1",
-                };
+                scopes: ["User.Read"],
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                responseMode: ResponseMode.FRAGMENT,
+                redirectUri: "localhost",
+                embeddedClientId: "child_client_id_1",
+            };
 
-            const params = AuthorizeProtocol.getStandardAuthorizeRequestParameters(authOptions, request, new Logger({}))
+            const params =
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptions,
+                    request,
+                    new Logger({})
+                );
             const queryString = UrlUtils.mapToQueryString(params);
             expect(queryString).toContain(`client_id=child_client_id_1`);
             expect(queryString).toContain(
@@ -1310,20 +1341,25 @@ describe("Authorize Protocol Tests", () => {
 
         it("broker params take precedence over extra query params", async () => {
             const request: CommonAuthorizationUrlRequest = {
-                    scopes: ["User.Read"],
-                    authority: TEST_CONFIG.validAuthority,
-                    correlationId: RANDOM_TEST_GUID,
-                    responseMode: ResponseMode.FRAGMENT,
-                    redirectUri: "localhost",
-                    embeddedClientId: "child_client_id_1",
-                    extraQueryParameters: {
-                        client_id: "child_client_id_2",
-                        brk_client_id: "broker_client_id_2",
-                        brk_redirect_uri: "broker_redirect_uri_2",
-                    }
-                };
+                scopes: ["User.Read"],
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                responseMode: ResponseMode.FRAGMENT,
+                redirectUri: "localhost",
+                embeddedClientId: "child_client_id_1",
+                extraQueryParameters: {
+                    client_id: "child_client_id_2",
+                    brk_client_id: "broker_client_id_2",
+                    brk_redirect_uri: "broker_redirect_uri_2",
+                },
+            };
 
-            const params = AuthorizeProtocol.getStandardAuthorizeRequestParameters(authOptions, request, new Logger({}))
+            const params =
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptions,
+                    request,
+                    new Logger({})
+                );
             const queryString = UrlUtils.mapToQueryString(params);
             expect(queryString).toContain(`client_id=child_client_id_1`);
             expect(queryString).toContain(

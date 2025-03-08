@@ -253,7 +253,10 @@ export class ClientTestUtils {
             },
         };
 
-        const authority = await getDiscoveredAuthority(protocolMode, mockStorage);
+        const authority = await getDiscoveredAuthority(
+            protocolMode,
+            mockStorage
+        );
 
         let serverTelemetryManager = null;
 
