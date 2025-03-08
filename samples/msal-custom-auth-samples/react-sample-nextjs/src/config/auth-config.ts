@@ -1,7 +1,4 @@
-import {
-    CustomAuthConfiguration,
-    LogLevel,
-} from "../../../../../lib/msal-custom-auth";
+import { CustomAuthConfiguration, LogLevel } from "../../../../../lib/msal-custom-auth/src";
 
 export const customAuthConfig: CustomAuthConfiguration = {
     customAuth: {
@@ -9,8 +6,8 @@ export const customAuthConfig: CustomAuthConfiguration = {
         authApiProxyUrl: "http://localhost:3001/api",
     },
     auth: {
-        clientId: "852e2544-572b-49a4-be67-6a08fef202df",
-        authority: "https://spasamples.ciamlogin.com/",
+        clientId: "",
+        authority: "",
         redirectUri: "/",
         postLogoutRedirectUri: "/",
         navigateToLoginRequestUrl: false,
@@ -21,11 +18,7 @@ export const customAuthConfig: CustomAuthConfiguration = {
     },
     system: {
         loggerOptions: {
-            loggerCallback: (
-                level: LogLevel,
-                message: string,
-                containsPii: boolean
-            ) => {
+            loggerCallback: (level: LogLevel, message: string, containsPii: boolean) => {
                 if (containsPii) {
                     return;
                 }
