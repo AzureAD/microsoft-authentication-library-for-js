@@ -15,7 +15,7 @@ import {
     HeaderNames,
 } from "../utils/Constants.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
-import { ScopeSet } from "../request/ScopeSet.js";
+import { ScopeSet } from "./ScopeSet.js";
 import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
@@ -33,7 +33,7 @@ export function instrumentBrokerParams(
     parameters: Map<string, string>,
     correlationId?: string,
     performanceClient?: IPerformanceClient
-) {
+): void {
     if (!correlationId) {
         return;
     }
