@@ -12,7 +12,7 @@ max_line_length = 140
 indent_size = 2
 
 [*.md]
-max_line_length = 120
+max_line_length = 140
 trim_trailing_whitespace = false
 
 [*.html]

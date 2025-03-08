@@ -6,11 +6,10 @@ import {
 export const customAuthConfig: CustomAuthConfiguration = {
     customAuth: {
         challengeTypes: ["password", "oob", "redirect"],
-        authApiProxyUrl:
-            "https://myspafunctiont1.azurewebsites.net/api/ReverseProxy/",
+        authApiProxyUrl: "http://localhost:3001/api",
     },
     auth: {
-        clientId: "d5e97fb9-24bb-418d-8e7a-4e1918303c92",
+        clientId: "852e2544-572b-49a4-be67-6a08fef202df",
         authority: "https://spasamples.ciamlogin.com/",
         redirectUri: "/",
         postLogoutRedirectUri: "/",

@@ -13,16 +13,15 @@ import { FailedSendRequest, HttpError, NoNetworkConnectivity } from "../../error
 export class FetchHttpClient implements IHttpClient {
     constructor(private logger: Logger) {}
 
-    async sendAsync(url: string | URL, options: RequestInit, correlationId: string): Promise<Response> {
+    async sendAsync(url: string | URL, options: RequestInit): Promise<Response> {
+        const headers = options.headers as Record<string, string>;
+        const correlationId = headers?.["client-request-id"] || undefined;
+
         try {
             this.logger.trace(`Sending request to ${url}`, correlationId);
-
             const startTime = performance.now();
-
             const response = await fetch(url, options);
-
             const endTime = performance.now();
-
             this.logger.trace(
                 `Request to '${url}' completed in ${endTime - startTime}ms with status code ${response.status}`,
                 correlationId,
@@ -30,8 +29,6 @@ export class FetchHttpClient implements IHttpClient {
 
             return response;
         } catch (e) {
-            this.logger.error(`Failed to send request to ${url}: ${e}`, correlationId);
-
             if (!window.navigator.onLine) {
                 throw new HttpError(NoNetworkConnectivity, `No network connectivity: ${e}`, correlationId);
             }
@@ -40,31 +37,18 @@ export class FetchHttpClient implements IHttpClient {
         }
     }
 
-    async post(
-        url: string | URL,
-        body: RequestBody,
-        correlationId: string,
-        headers: Record<string, string> = {},
-    ): Promise<Response> {
-        return this.sendAsync(
-            url,
-            {
-                method: HttpMethod.POST,
-                headers,
-                body,
-            },
-            correlationId,
-        );
+    async post(url: string | URL, body: RequestBody, headers: Record<string, string> = {}): Promise<Response> {
+        return this.sendAsync(url, {
+            method: HttpMethod.POST,
+            headers,
+            body,
+        });
     }
 
-    async get(url: string | URL, correlationId: string, headers: Record<string, string> = {}): Promise<Response> {
-        return this.sendAsync(
-            url,
-            {
-                method: HttpMethod.GET,
-                headers,
-            },
-            correlationId,
-        );
+    async get(url: string | URL, headers: Record<string, string> = {}): Promise<Response> {
+        return this.sendAsync(url, {
+            method: HttpMethod.GET,
+            headers,
+        });
     }
 }

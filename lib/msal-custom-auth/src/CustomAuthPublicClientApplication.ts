@@ -125,12 +125,5 @@ export class CustomAuthPublicClientApplication
                 `The authority URL '${config.auth?.authority}' is not a CIAM authority.`,
             );
         }
-
-        if (config.customAuth.authApiProxyUrl && !UrlUtils.IsValidSecureUrl(config.customAuth.authApiProxyUrl)) {
-            throw new InvalidConfigurationError(
-                InvalidAuthApiProxyDomain,
-                `The authApiProxyDomain URL '${config.customAuth.authApiProxyUrl}' is not a valid secure URL.`,
-            );
-        }
     }
 }

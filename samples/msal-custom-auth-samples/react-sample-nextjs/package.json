@@ -6,7 +6,8 @@
         "dev": "next dev --turbopack",
         "build": "next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "next lint",
+        "cors": "node cors.js"
     },
     "dependencies": {
         "@azure/msal-custom-auth": "^0.0.1",

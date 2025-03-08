@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { CustomAuthPublicClientApplication } from "../../../../../../lib/msal-custom-auth";
-import { SignInState } from "../../../../../../lib/msal-custom-auth";
+import { CustomAuthPublicClientApplication } from "../../../../../../lib/msal-custom-auth/src/CustomAuthPublicClientApplication";
+import { SignInState } from "../../../../../../lib/msal-custom-auth/src/index";
 import { customAuthConfig } from "../../config/auth-config";
 import { styles } from "./styles/styles";
-import { handleError, redirectToHome, ERROR_MESSAGES } from "./utils";
+import { handleError, ERROR_MESSAGES } from "./utils";
 import { InitialForm } from "./components/InitialForm";
 import { CodeForm } from "./components/CodeForm";
-import { PasswordForm } from "./components/PasswordForm";
+import { UserInfo } from "./components/UserInfo";
 
 export default function SignIn() {
     const [username, setUsername] = useState("");
@@ -17,6 +17,7 @@ export default function SignIn() {
     const [error, setError] = useState("");
     const [flowState, setFlowState] = useState<any>(null);
     const [loading, setLoading] = useState(false);
+    const [signInResult, setSignInResult] = useState<any>(null);
 
     const handleInitialSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -24,12 +25,10 @@ export default function SignIn() {
         setLoading(true);
 
         try {
-            const app = await CustomAuthPublicClientApplication.create(
-                customAuthConfig
-            );
+            const app = await CustomAuthPublicClientApplication.create(customAuthConfig);
             const result = await app.signIn({
                 username,
-                ...(password ? { password } : {}),
+                password,
             });
 
             if (result.error) {
@@ -44,7 +43,8 @@ export default function SignIn() {
             }
 
             if (result.state?.type === SignInState.Completed) {
-                redirectToHome();
+                setSignInResult(result);
+                setFlowState(result.state);
                 return;
             }
 
@@ -74,34 +74,7 @@ export default function SignIn() {
             }
 
             if (result.data) {
-                redirectToHome();
-            }
-        } catch (err) {
-            handleError(err, setError);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handlePasswordSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError("");
-        setLoading(true);
-
-        try {
-            const result = await flowState.submitPassword(password);
-
-            if (result.error) {
-                if (result.error.isPasswordIncorrect()) {
-                    setError("Incorrect password");
-                } else {
-                    setError("An error occurred while verifying the password");
-                }
-                return;
-            }
-
-            if (result.data) {
-                redirectToHome();
+                setSignInResult(result);
             }
         } catch (err) {
             handleError(err, setError);
@@ -111,6 +84,13 @@ export default function SignIn() {
     };
 
     const renderForm = () => {
+        if (flowState && flowState.type === SignInState.CodeRequired) {
+            return <CodeForm onSubmit={handleCodeSubmit} code={code} setCode={setCode} loading={loading} />;
+        }
+        if (flowState && flowState.type === SignInState.Completed) {
+            return <UserInfo signInResult={signInResult} />;
+        }
+
         if (!flowState) {
             return (
                 <InitialForm
@@ -123,45 +103,15 @@ export default function SignIn() {
                 />
             );
         }
-
-        switch (flowState.type) {
-            case SignInState.CodeRequired:
-                return (
-                    <CodeForm
-                        onSubmit={handleCodeSubmit}
-                        code={code}
-                        setCode={setCode}
-                        loading={loading}
-                    />
-                );
-            case SignInState.PasswordRequired:
-                return (
-                    <PasswordForm
-                        onSubmit={handlePasswordSubmit}
-                        password={password}
-                        setPassword={setPassword}
-                        loading={loading}
-                    />
-                );
-            default:
-                return (
-                    <InitialForm
-                        onSubmit={handleInitialSubmit}
-                        username={username}
-                        setUsername={setUsername}
-                        password={password}
-                        setPassword={setPassword}
-                        loading={loading}
-                    />
-                );
-        }
     };
 
     return (
         <div style={styles.container}>
             <h2>Sign In</h2>
-            {renderForm()}
-            {error && <div style={styles.error}>{error}</div>}
+            <>
+                {renderForm()}
+                {error && <div style={styles.error}>{error}</div>}
+            </>
         </div>
     );
 }
