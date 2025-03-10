@@ -52,6 +52,7 @@ import {
     updateAccountTenantProfileData,
 } from "../account/AccountInfo.js";
 import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
+import * as TimeUtils from "../utils/TimeUtils.js";
 
 function parseServerErrorNo(
     serverResponse: ServerAuthorizationCodeResponse
@@ -632,15 +633,16 @@ export class ResponseHandler {
             responseScopes = ScopeSet.fromString(
                 cacheRecord.accessToken.target
             ).asArray();
-            expiresOn = new Date(
-                Number(cacheRecord.accessToken.expiresOn) * 1000
+            // Access token expiresOn cached in seconds, converting to Date for AuthenticationResult
+            expiresOn = TimeUtils.toDateFromSeconds(
+                cacheRecord.accessToken.expiresOn
             );
-            extExpiresOn = new Date(
-                Number(cacheRecord.accessToken.extendedExpiresOn) * 1000
+            extExpiresOn = TimeUtils.toDateFromSeconds(
+                cacheRecord.accessToken.extendedExpiresOn
             );
             if (cacheRecord.accessToken.refreshOn) {
-                refreshOn = new Date(
-                    Number(cacheRecord.accessToken.refreshOn) * 1000
+                refreshOn = TimeUtils.toDateFromSeconds(
+                    cacheRecord.accessToken.refreshOn
                 );
             }
         }

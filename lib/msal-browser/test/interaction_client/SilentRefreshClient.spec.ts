@@ -31,6 +31,7 @@ import {
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 const testIdTokenClaims: TokenClaims = {
     ver: "2.0",
@@ -117,8 +118,8 @@ describe("SilentRefreshClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -171,8 +172,8 @@ describe("SilentRefreshClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,

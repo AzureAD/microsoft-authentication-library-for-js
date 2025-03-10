@@ -2,6 +2,39 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 04 Mar 2025 23:02:15 GMT",
+      "version": "4.5.1",
+      "tag": "@azure/msal-browser_v4.5.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "29bf8d4cdef8572ff45d94d9b31fd839d20d0098",
+            "comment": "Fix double brokering bug: Native flow should not be triggered for cache only look up"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 26 Feb 2025 01:12:33 GMT",
       "version": "4.5.0",
       "tag": "@azure/msal-browser_v4.5.0",
