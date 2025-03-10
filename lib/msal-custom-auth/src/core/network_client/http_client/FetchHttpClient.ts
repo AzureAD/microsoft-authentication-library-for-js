@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Logger } from "@azure/msal-browser";
+import { AADServerParamKeys, Logger } from "@azure/msal-browser";
 import { HttpMethod, IHttpClient, RequestBody } from "./IHttpClient.js";
 import { FailedSendRequest, HttpError, NoNetworkConnectivity } from "../../error/HttpError.js";
 
@@ -15,7 +15,7 @@ export class FetchHttpClient implements IHttpClient {
 
     async sendAsync(url: string | URL, options: RequestInit): Promise<Response> {
         const headers = options.headers as Record<string, string>;
-        const correlationId = headers?.["client-request-id"] || undefined;
+        const correlationId = headers?.[AADServerParamKeys.CLIENT_REQUEST_ID] || undefined;
 
         try {
             this.logger.verbosePii(`Sending request to ${url}`, correlationId);
