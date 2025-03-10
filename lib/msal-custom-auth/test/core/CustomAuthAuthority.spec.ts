@@ -1,11 +1,4 @@
-import {
-    AuthorityOptions,
-    BrowserCacheManager,
-    BrowserConfiguration,
-    Constants,
-    INetworkModule,
-    Logger,
-} from "@azure/msal-browser";
+import { BrowserCacheManager, BrowserConfiguration, INetworkModule, Logger } from "@azure/msal-browser";
 import { CustomAuthAuthority } from "../../src/core/CustomAuthAuthority.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { mock } from "node:test";

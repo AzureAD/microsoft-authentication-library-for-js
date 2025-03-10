@@ -49,11 +49,11 @@ export class SignInPasswordRequiredStateHandler extends SignInStateHandler {
                 username: this.username,
             };
 
-            this.logger.info("Submitting password for sign-in.");
+            this.logger.verbose("Submitting password for sign-in.", this.correlationId);
 
             const completedResult = await this.signInClient.submitPassword(submitPasswordParams);
 
-            this.logger.info("Password submitted for sign-in.");
+            this.logger.verbose("Password submitted for sign-in.", this.correlationId);
 
             const accountInfo = new CustomAuthAccountData(
                 completedResult.authenticationResult.account,
@@ -65,7 +65,7 @@ export class SignInPasswordRequiredStateHandler extends SignInStateHandler {
 
             return new SignInSubmitPasswordResult(new SignInCompleted(), accountInfo);
         } catch (error) {
-            this.logger.error(`Failed to sign in after submitting password. Error: ${error}.`);
+            this.logger.errorPii(`Failed to sign in after submitting password. Error: ${error}.`, this.correlationId);
 
             return SignInSubmitPasswordResult.createWithError(error);
         }

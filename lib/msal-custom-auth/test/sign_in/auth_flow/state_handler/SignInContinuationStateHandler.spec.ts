@@ -21,7 +21,9 @@ describe("SignInContinuationStateHandler", () => {
 
     const mockLogger = {
         info: jest.fn(),
+        verbose: jest.fn(),
         error: jest.fn(),
+        errorPii: jest.fn(),
     } as unknown as jest.Mocked<Logger>;
 
     const mockCacheClient = {} as unknown as jest.Mocked<CustomAuthSilentCacheClient>;
@@ -74,7 +76,7 @@ describe("SignInContinuationStateHandler", () => {
             }),
         );
 
-        const result = await handler.signIn(["scope1", "scope2"]);
+        const result = await handler.signIn({ scopes: ["scope1", "scope2"] });
 
         expect(result).toBeDefined();
         expect(result).toBeInstanceOf(SignInResult);

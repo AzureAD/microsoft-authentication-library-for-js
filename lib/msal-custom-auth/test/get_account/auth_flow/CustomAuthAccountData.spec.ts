@@ -1,12 +1,18 @@
-import { AccountInfo, AuthenticationResult, Logger } from "@azure/msal-browser";
+import {
+    AccountInfo,
+    AuthenticationResult,
+    Logger,
+    InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorCodes,
+} from "@azure/msal-browser";
 import { CustomAuthBrowserConfiguration } from "../../../src/configuration/CustomAuthConfiguration.js";
 import { CustomAuthSilentCacheClient } from "../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { CustomAuthAccountData } from "../../../src/get_account/auth_flow/CustomAuthAccountData.js";
 import { SignOutResult } from "../../../src/get_account/auth_flow/result/SignOutResult.js";
 import { SignOutError } from "../../../src/get_account/auth_flow/error_type/GetAccountError.js";
 import { IdTokenClaims } from "../../../../msal-common/dist/exports-common.js";
-import { GetAccessTokenState } from "../../../src/index.js";
-import { GetAccessTokenError, GetAccessTokenFailed } from "../../../src/core/error/GetAccessTokenError.js";
+import { GetAccessTokenState } from "../../../src/core/auth_flow/AuthFlowStateBase.js";
+import { MsalCustomAuthError } from "../../../src/core/error/MsalCustomAuthError.js";
 
 describe("CustomAuthAccountData", () => {
     let mockAccount: AccountInfo;
@@ -45,15 +51,21 @@ describe("CustomAuthAccountData", () => {
             correlationId: correlationId,
         } as AuthenticationResult;
 
-        mockConfig = {} as CustomAuthBrowserConfiguration; // Mock as needed
+        mockConfig = {
+            auth: {
+                authority: "test-authority",
+            },
+        } as CustomAuthBrowserConfiguration; // Mock as needed
         mockCacheClient = {
-            getAccessToken: jest.fn(),
+            acquireToken: jest.fn(),
             getCurrentAccount: jest.fn(),
             logout: jest.fn(),
         } as unknown as CustomAuthSilentCacheClient;
         mockLogger = {
             info: jest.fn(),
+            verbose: jest.fn(),
             error: jest.fn(),
+            errorPii: jest.fn(),
         } as unknown as Logger;
     });
 
@@ -79,8 +91,8 @@ describe("CustomAuthAccountData", () => {
                 account: mockAccount,
             });
             expect(result).toBeInstanceOf(SignOutResult);
-            expect(mockLogger.info).toHaveBeenCalledWith("Signing out user");
-            expect(mockLogger.info).toHaveBeenCalledWith("User signed out");
+            expect(mockLogger.verbose).toHaveBeenCalledWith("Signing out user", "test-correlation-id");
+            expect(mockLogger.verbose).toHaveBeenCalledWith("User signed out", "test-correlation-id");
         });
 
         it("should handle errors during sign out", async () => {
@@ -97,7 +109,10 @@ describe("CustomAuthAccountData", () => {
             );
             const result = await accountData.signOut();
 
-            expect(mockLogger.error).toHaveBeenCalledWith(`An error occurred during sign out: ${error}`);
+            expect(mockLogger.errorPii).toHaveBeenCalledWith(
+                `An error occurred during sign out: ${error}`,
+                "test-correlation-id",
+            );
             expect(result).toBeInstanceOf(SignOutResult);
             expect(result.error).toBeDefined();
         });
@@ -164,7 +179,7 @@ describe("CustomAuthAccountData", () => {
         it("should return succeed GetAccessTokenState.Completed with cached tokens", async () => {
             (mockCacheClient.getCurrentAccount as jest.Mock).mockReturnValue(mockAccount);
             jest.spyOn(CustomAuthAccountData.prototype as any, "createCommonSilentFlowRequest").mockReturnValue({});
-            (mockCacheClient.getAccessToken as jest.Mock).mockResolvedValue(mockAuthenticationResult);
+            (mockCacheClient.acquireToken as jest.Mock).mockResolvedValue(mockAuthenticationResult);
             const accountData = new CustomAuthAccountData(
                 mockAccount,
                 mockConfig,
@@ -173,7 +188,7 @@ describe("CustomAuthAccountData", () => {
                 correlationId,
             );
 
-            const response = await accountData.getAccessToken();
+            const response = await accountData.getAccessToken({ forceRefresh: false });
 
             expect(response).toBeDefined();
             expect(response.state?.type).toEqual(GetAccessTokenState.Completed);
@@ -183,12 +198,11 @@ describe("CustomAuthAccountData", () => {
 
         it("should return GetAccessTokenError if there is an error when aquire tokens", async () => {
             (mockCacheClient.getCurrentAccount as jest.Mock).mockReturnValue(mockAccount);
-            const mockGetAccessTokenError = new GetAccessTokenError(
-                GetAccessTokenFailed,
-                "Get access token failed.",
-                correlationId,
-            );
-            (mockCacheClient.getAccessToken as jest.Mock).mockRejectedValue(mockGetAccessTokenError);
+            const errorCode = InteractionRequiredAuthErrorCodes.refreshTokenExpired;
+            const errorMessage = "Refresh token has expired.";
+            const subError = "Refresh token has expired, can not use it to get a new access token.";
+            const mockRefreshTokenExpiredError = new InteractionRequiredAuthError(errorCode, errorMessage, subError);
+            (mockCacheClient.acquireToken as jest.Mock).mockRejectedValue(mockRefreshTokenExpiredError);
 
             const accountData = new CustomAuthAccountData(
                 mockAccount,
@@ -198,11 +212,17 @@ describe("CustomAuthAccountData", () => {
                 correlationId,
             );
 
-            const response = await accountData.getAccessToken();
+            const response = await accountData.getAccessToken({ forceRefresh: false });
 
             expect(response).toBeDefined();
             expect(response.state?.type).toEqual(GetAccessTokenState.Failed);
-            expect(response.error?.errorData).toEqual(mockGetAccessTokenError);
+            expect(response.error?.errorData).toEqual(mockRefreshTokenExpiredError);
+            expect(response.error?.errorData).toBeInstanceOf(MsalCustomAuthError);
+
+            const msalError = response.error?.errorData as MsalCustomAuthError;
+            expect(msalError.error).toEqual(errorCode);
+            expect(msalError.errorDescription).toEqual(errorMessage);
+            expect(msalError.subError).toEqual(subError);
         });
     });
 });

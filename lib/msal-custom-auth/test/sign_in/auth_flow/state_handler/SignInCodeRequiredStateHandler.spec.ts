@@ -16,6 +16,7 @@ import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInC
 import { Logger } from "@azure/msal-browser";
 import { SignInState } from "../../../../src/core/auth_flow/AuthFlowStateBase.js";
 import { CustomAuthSilentCacheClient } from "../../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
+import { info } from "console";
 
 describe("SignInCodeRequiredStateHandler", () => {
     const mockConfig = {
@@ -32,7 +33,9 @@ describe("SignInCodeRequiredStateHandler", () => {
 
     const mockLogger = {
         info: jest.fn(),
+        verbose: jest.fn(),
         error: jest.fn(),
+        errorPii: jest.fn(),
     } as unknown as jest.Mocked<Logger>;
 
     const username = "testuser";

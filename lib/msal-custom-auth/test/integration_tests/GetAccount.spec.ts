@@ -23,7 +23,7 @@ describe("GetAccount", () => {
         jest.clearAllMocks(); // Clear mocks between tests
     });
 
-    describe("GetAccountAccount", () => {
+    describe("GetAccount", () => {
         it("should return correct account data after the sign-in is successful", async () => {
             await signIn(app);
 
@@ -43,36 +43,13 @@ describe("GetAccount", () => {
             expect(accountInfo?.homeAccountId).toStrictEqual(TestHomeAccountId);
             expect(accountInfo?.tenantId).toStrictEqual(TestTenantId);
             expect(accountInfo?.username).toStrictEqual(TestUsername);
-        });
 
-        it("should return correct account data with provided username after the sign-in is successful", async () => {
-            await signIn(app);
-
-            const accountData = app.getCurrentAccount({
-                correlationId: "test-correlation-id",
-                username: TestUsername,
-            });
-
-            expect(accountData).toBeDefined();
-            expect(accountData.error).toBeUndefined();
-            expect(accountData.state?.type).toStrictEqual(GetAccountState.Completed);
-            expect(accountData.data).toBeDefined();
-            expect(accountData.data).toBeInstanceOf(CustomAuthAccountData);
-            expect(accountData.data?.getAccount()).toBeDefined();
-
-            const accountInfo = accountData.data?.getAccount();
-
-            expect(accountInfo?.homeAccountId).toStrictEqual(TestHomeAccountId);
-            expect(accountInfo?.tenantId).toStrictEqual(TestTenantId);
-            expect(accountInfo?.username).toStrictEqual(TestUsername);
+            await accountData.data?.signOut();
         });
 
         it("should return error data if the account is not found", async () => {
-            await signIn(app);
-
             const accountData = app.getCurrentAccount({
                 correlationId: "test-correlation-id",
-                username: "abc@abc.com", // Invalid username
             });
 
             expect(accountData).toBeDefined();
@@ -111,33 +88,6 @@ describe("GetAccount", () => {
             expect(accountResultAfterSignOut.error?.isCurrentAccountNotFound()).toBe(true);
         });
 
-        it("should sign the user out with provided username after the sign-in is successful", async () => {
-            await signIn(app);
-
-            const result = app.getCurrentAccount({
-                correlationId: "test-correlation-id",
-            });
-
-            const accountData = result.data;
-
-            expect(accountData).toBeDefined();
-
-            const signOutResult = await accountData?.signOut(TestUsername);
-
-            expect(signOutResult).toBeDefined();
-            expect(signOutResult?.error).toBeUndefined();
-            expect(signOutResult?.state?.type).toStrictEqual(SignOutState.Completed);
-
-            const accountResultAfterSignOut = app.getCurrentAccount({
-                correlationId: "test-correlation-id",
-                username: TestUsername,
-            });
-
-            expect(accountResultAfterSignOut).toBeDefined();
-            expect(accountResultAfterSignOut.error).toBeDefined();
-            expect(accountResultAfterSignOut.error?.isCurrentAccountNotFound()).toBe(true);
-        });
-
         it("should return error data if try to sign out an user who is not signed in", async () => {
             await signIn(app);
 
@@ -145,9 +95,10 @@ describe("GetAccount", () => {
                 correlationId: "test-correlation-id",
             });
 
-            const accountData = result.data;
+            await result.data?.signOut();
 
-            const signOutResult = await accountData?.signOut("cdf@abd.com"); // Invalid username
+            const accountData = result.data;
+            const signOutResult = await accountData?.signOut();
 
             expect(signOutResult).toBeDefined();
             expect(signOutResult?.error).toBeDefined();

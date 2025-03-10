@@ -28,7 +28,9 @@ describe("SignUpPasswordRequiredStateHandler", () => {
 
     const mockLogger = {
         info: jest.fn(),
+        verbose: jest.fn(),
         error: jest.fn(),
+        errorPii: jest.fn(),
     } as unknown as jest.Mocked<Logger>;
 
     const username = "testuser";

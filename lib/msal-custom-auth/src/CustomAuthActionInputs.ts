@@ -9,9 +9,7 @@ export type CustomAuthActionInputs = {
     correlationId?: string;
 };
 
-export type AccountRetrievalInputs = CustomAuthActionInputs & {
-    username?: string;
-};
+export type AccountRetrievalInputs = CustomAuthActionInputs;
 
 export type SignInInputs = CustomAuthActionInputs & {
     username: string;
@@ -27,4 +25,13 @@ export type SignUpInputs = CustomAuthActionInputs & {
 
 export type ResetPasswordInputs = CustomAuthActionInputs & {
     username: string;
+};
+
+export type AccessTokenRetrievalInputs = {
+    forceRefresh: boolean;
+    scopes?: Array<string>;
+};
+
+export type SignInWithContinuationTokenInputs = {
+    scopes?: Array<string>;
 };

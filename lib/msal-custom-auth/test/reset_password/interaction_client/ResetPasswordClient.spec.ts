@@ -122,7 +122,9 @@ describe("ResetPasswordClient", () => {
             clone: jest.fn(),
             verbose: jest.fn(),
             info: jest.fn(),
+            infoPii: jest.fn(),
             error: jest.fn(),
+            errorPii: jest.fn(),
         } as unknown as jest.Mocked<Logger>;
         mockLogger.clone.mockReturnValue(mockLogger);
 

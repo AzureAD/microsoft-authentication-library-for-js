@@ -117,7 +117,7 @@ export class CustomAuthPublicClientApplication
             );
         }
 
-        const trimmedAuthority = StringUtils.trim(config.auth.authority, "/");
+        const trimmedAuthority = StringUtils.trimSlashes(config.auth.authority);
 
         if (!trimmedAuthority.endsWith(Constants.CIAM_AUTH_URL)) {
             throw new InvalidConfigurationError(

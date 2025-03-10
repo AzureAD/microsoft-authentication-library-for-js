@@ -18,17 +18,21 @@ export class FetchHttpClient implements IHttpClient {
         const correlationId = headers?.["client-request-id"] || undefined;
 
         try {
-            this.logger.trace(`Sending request to ${url}`, correlationId);
+            this.logger.verbosePii(`Sending request to ${url}`, correlationId);
+
             const startTime = performance.now();
             const response = await fetch(url, options);
             const endTime = performance.now();
-            this.logger.trace(
+
+            this.logger.verbosePii(
                 `Request to '${url}' completed in ${endTime - startTime}ms with status code ${response.status}`,
                 correlationId,
             );
 
             return response;
         } catch (e) {
+            this.logger.errorPii(`Failed to send request to ${url}: ${e}`, correlationId);
+
             if (!window.navigator.onLine) {
                 throw new HttpError(NoNetworkConnectivity, `No network connectivity: ${e}`, correlationId);
             }

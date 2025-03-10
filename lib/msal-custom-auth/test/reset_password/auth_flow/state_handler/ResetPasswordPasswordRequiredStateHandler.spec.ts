@@ -10,6 +10,7 @@ import { ResetPasswordState } from "../../../../src/core/auth_flow/AuthFlowState
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { CustomAuthApiError } from "../../../../src/index.js";
 import { CustomAuthSilentCacheClient } from "../../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
+import { verify } from "crypto";
 
 describe("ResetPasswordPasswordRequiredStateHandler", () => {
     const mockConfig = {
@@ -25,7 +26,9 @@ describe("ResetPasswordPasswordRequiredStateHandler", () => {
 
     const mockLogger = {
         info: jest.fn(),
+        verbose: jest.fn(),
         error: jest.fn(),
+        errorPii: jest.fn(),
     } as unknown as jest.Mocked<Logger>;
 
     const username = "testuser";

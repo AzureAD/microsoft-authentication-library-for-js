@@ -22,10 +22,14 @@ describe("FetchHttpClient", () => {
     let mockFetch: jest.Mock;
     const mockLogger = {
         clone: jest.fn(),
-        verbose: jest.fn(),
         info: jest.fn(),
+        infoPii: jest.fn(),
+        verbose: jest.fn(),
+        verbosePii: jest.fn(),
         error: jest.fn(),
         trace: jest.fn(),
+        errorPii: jest.fn(),
+        tracePii: jest.fn(),
     } as unknown as jest.Mocked<Logger>;
 
     beforeEach(() => {

@@ -52,11 +52,11 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
                 username: this.username,
             };
 
-            this.logger.info("Submitting code for sign-in.");
+            this.logger.verbose("Submitting code for sign-in.", this.correlationId);
 
             const completedResult = await this.signInClient.submitCode(submitCodeParams);
 
-            this.logger.info("Code submitted for sign-in.");
+            this.logger.verbose("Code submitted for sign-in.", this.correlationId);
 
             const accountInfo = new CustomAuthAccountData(
                 completedResult.authenticationResult.account,
@@ -68,7 +68,7 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
 
             return new SignInSubmitCodeResult(new SignInCompleted(), accountInfo);
         } catch (error) {
-            this.logger.error(`Failed to submit code for sign-in. Error: ${error}.`);
+            this.logger.errorPii(`Failed to submit code for sign-in. Error: ${error}.`, this.correlationId);
 
             return SignInSubmitCodeResult.createWithError(error);
         }
@@ -88,11 +88,11 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
                 username: this.username,
             };
 
-            this.logger.info("Resending code for sign-in.");
+            this.logger.verbose("Resending code for sign-in.", this.correlationId);
 
             const result = await this.signInClient.resendCode(submitCodeParams);
 
-            this.logger.info("Code resent for sign-in.");
+            this.logger.verbose("Code resent for sign-in.", this.correlationId);
 
             return new SignInResendCodeResult(
                 new SignInCodeRequired(

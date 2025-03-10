@@ -21,8 +21,4 @@ export class GetCurrentAccountAccessTokenError extends AuthFlowErrorBase {
     isCurrentAccountNotFound(): boolean {
         return this.isNoCachedAccountFoundError();
     }
-
-    isInvalidScope(): boolean {
-        return true;
-    }
 }

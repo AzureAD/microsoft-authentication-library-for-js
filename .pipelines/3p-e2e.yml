@@ -54,7 +54,7 @@ resources:
         - repository: 1P
           type: git
           name: IDDP/msal-javascript-1p
-          ref: jiashen/sketeton # TODO: change back to master after pipeline is working
+          ref: custom-auth/pipeline # TODO: change back to master after pipeline is working
 extends:
     template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
     parameters:
@@ -149,6 +149,6 @@ extends:
                               sourceBranch: ${{ variables.sourceBranch }}
                               workspace: "samples/msal-custom-auth-samples"
                               samples:
-                                  - "sample-sample"
+                                  - "react-sample-nextjs"
                               debug: ${{ parameters.debug }}
                               npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
