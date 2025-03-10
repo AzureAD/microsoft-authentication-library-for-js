@@ -33,7 +33,6 @@ import {
   MSAL_INSTANCE,
   MSAL_INTERCEPTOR_CONFIG,
   MsalGuardConfiguration,
-  MsalRedirectComponent,
 } from '@azure/msal-angular';
 
 import { environment } from 'src/environments/environment';
@@ -107,7 +106,6 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
     MatTableModule,
     HttpClientModule,
     MsalModule,
-    MsalRedirectComponent,
   ],
   providers: [
     {
