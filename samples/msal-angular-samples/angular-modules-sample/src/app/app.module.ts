@@ -31,7 +31,6 @@ import {
   MSAL_INSTANCE,
   MSAL_INTERCEPTOR_CONFIG,
   MsalGuardConfiguration,
-  // MsalRedirectComponent,
 } from '@azure/msal-angular';
 import { FailedComponent } from './failed/failed.component';
 import { environment } from 'src/environments/environment';
