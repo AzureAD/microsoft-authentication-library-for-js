@@ -14,6 +14,7 @@
 export type ServerAuthorizationCodeResponse = {
     // Success case
     code?: string;
+    ear_jwe?: string;
     client_info?: string;
     state?: string;
     cloud_instance_name?: string;
