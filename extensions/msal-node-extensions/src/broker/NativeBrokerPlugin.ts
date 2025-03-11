@@ -23,6 +23,7 @@ import {
     PromptValue,
     ServerError,
     ServerTelemetryManager,
+    TimeUtils,
 } from "@azure/msal-common/node";
 import {
     msalNodeRuntime,
@@ -568,7 +569,8 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             idTokenClaims: idTokenClaims,
             accessToken: accessToken,
             fromCache: fromCache,
-            expiresOn: new Date(Number(authResult.expiresOn) * 1000),
+            // MsalRuntime expiresOn returned in seconds, converting to Date for AuthenticationResult
+            expiresOn: TimeUtils.toDateFromSeconds(authResult.expiresOn),
             tokenType: tokenType,
             correlationId: request.correlationId,
             fromNativeBroker: true,
