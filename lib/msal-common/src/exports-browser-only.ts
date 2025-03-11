@@ -23,6 +23,7 @@ export { IPerformanceMeasurement } from "./telemetry/performance/IPerformanceMea
 export {
     PerformanceClient,
     PreQueueEvent,
+    PerfThumbprint
 } from "./telemetry/performance/PerformanceClient.js";
 export { StubPerformanceClient } from "./telemetry/performance/StubPerformanceClient.js";
 

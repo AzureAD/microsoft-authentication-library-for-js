@@ -11,6 +11,7 @@ import { AuthenticationScheme } from "../utils/Constants.js";
  */
 export type RequestThumbprint = {
     clientId: string;
+    embeddedClientId?: string;
     authority: string;
     scopes: Array<string>;
     homeAccountIdentifier?: string;

@@ -48,6 +48,7 @@ import { INavigationClient } from "../navigation/INavigationClient.js";
 import { EventError } from "../event/EventMessage.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
+import { BrowserPerformanceClient } from "../telemetry/BrowserPerformanceClient.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -114,6 +115,16 @@ export class RedirectClient extends StandardInteractionClient {
             validRequest.loginHint || "",
             validRequest.account || null
         );
+
+        // Cache thumbprints for telemetry linking if PerformanceClient is not 3P
+        if (this.performanceClient instanceof BrowserPerformanceClient) {
+            const thumbprintsSerialized = this.performanceClient.getThumbprintMapSerialized();
+
+            this.browserStorage.updateThumbprintsCache(
+                thumbprintsSerialized
+            );
+        };
+
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.acquireTokenRedirect
         );
@@ -498,6 +509,13 @@ export class RedirectClient extends StandardInteractionClient {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.noCachedAuthorityError
             );
+        }
+
+        // Not sure if this is the right place for this logic to live
+        // Read thumbprints from temporary cache if PerformanceClient is not 3P
+        if (this.performanceClient instanceof BrowserPerformanceClient) {
+            const thumprintsSerialized = this.browserStorage.getCachedThumbprints();
+            this.performanceClient.setThumbprintMapFromSerialized(thumprintsSerialized);
         }
 
         const authClient = await invokeAsync(

@@ -12,6 +12,7 @@ import {
     PerformanceEvent,
     PerformanceEvents,
     PreQueueEvent,
+    PerfThumbprint,
     RequestThumbprint,
     SubMeasurement,
 } from "@azure/msal-common/browser";
@@ -117,6 +118,7 @@ export class BrowserPerformanceClient
     ): string {
         const thumbprint: RequestThumbprint = {
             clientId: this.clientId,
+            embeddedClientId: request.embeddedClientId,
             authority: request.authority || "",
             scopes: request.scopes || [],
             authenticationScheme: request.authenticationScheme,
@@ -126,6 +128,48 @@ export class BrowserPerformanceClient
             shrOptions: request.shrOptions,
         };
         return base64Encode(JSON.stringify(thumbprint));
+    }
+
+    /**
+     * Generates serialized thumbprint map
+     * @return string
+     */
+    getThumbprintMapSerialized(): string {
+        const toArray = (map : any) : any =>
+            Array.from
+              ( Array.from
+                  ( map.entries(),
+                  ([ key, value ]) =>
+                    value instanceof Map
+                        ? [ key, toArray (value) ]
+                        : [ key, value ]
+                  )
+              );
+
+        const stringifiedThumbprints = JSON.stringify(toArray(this.thumbprints));
+        return stringifiedThumbprints;
+    }
+
+    /**
+     * Rehydrates thumbprint map from serialized string
+     * @param {string} [serializedThumbprintMap]
+     */
+    setThumbprintMapFromSerialized(
+        serializedThumbprintMap: string
+    ): void {
+        try {
+            const thumbprintList = JSON.parse(serializedThumbprintMap);
+
+            thumbprintList.forEach((el: any) => {
+                this.thumbprints.set(
+                    el[0],
+                    new Map<string, PerfThumbprint>([el[1]])
+                )
+            });
+        }
+        catch (Error){
+            this.logger.error("Failed to parse serialized thumbprint map.")
+        }
     }
 
     private getPageVisibility(): string | null {

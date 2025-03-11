@@ -34,7 +34,7 @@ export interface PreQueueEvent {
     time: number;
 }
 
-interface PerfThumbprint {
+export interface PerfThumbprint {
     firstCorrelationId: string;
     lastCorrelationId: string;
     count: number;
@@ -432,13 +432,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
         if (
             !request ||
             !(
-                event.name in
                 [
-                    PerformanceEvents.AcquireTokenSilent,
-                    PerformanceEvents.SsoSilent,
-                    PerformanceEvents.AcquireTokenRedirect,
-                    PerformanceEvents.AcquireTokenPopup,
-                ]
+                    PerformanceEvents.AcquireTokenSilent.toString(),
+                    PerformanceEvents.SsoSilent.toString(),
+                    PerformanceEvents.AcquireTokenRedirect.toString(),
+                    PerformanceEvents.AcquireTokenPopup.toString(),
+                ].includes(event.name)
             )
         ) {
             return;
@@ -455,14 +454,13 @@ export abstract class PerformanceClient implements IPerformanceClient {
             this.thumbprints.get(requestThumbprint) ||
             new Map<string, PerfThumbprint>();
 
-        // Update or set thumbprint for failed silent request
+        // Update or set thumbprint for failed silent request1
         if (
             !event.success &&
-            event.name in
                 [
-                    PerformanceEvents.AcquireTokenSilent,
-                    PerformanceEvents.SsoSilent,
-                ]
+                    PerformanceEvents.AcquireTokenSilent.toString(),
+                    PerformanceEvents.SsoSilent.toString(),
+                ].includes(event.name)
         ) {
             // Update thumbprint payload for consequent failed silent request
             const thumbPrintPayload =
@@ -475,11 +473,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
             }
 
             // FIFO clean up to mitigate scenarios when failed silent requests never recover
-            if (this.thumbprints.size >= 10) {
+            if (this.thumbprints.size >= 20) {
                 const [firstKey] = this.thumbprints.keys();
                 this.thumbprints.delete(firstKey);
             }
-            if (thumbprintsByAccount && thumbprintsByAccount.size >= 10) {
+            if (thumbprintsByAccount && thumbprintsByAccount.size >= 20) {
                 const [firstKey] = this.thumbprints.keys();
                 this.thumbprints.delete(firstKey);
             }
@@ -491,6 +489,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 count: 1,
             });
             this.thumbprints.set(requestThumbprint, thumbprintsByAccount);
+
             return;
         }
 
@@ -518,15 +517,15 @@ export abstract class PerformanceClient implements IPerformanceClient {
         // Recovered with a silent flow
         if (
             event.success &&
-            event.name in
                 [
-                    PerformanceEvents.AcquireTokenSilent,
-                    PerformanceEvents.SsoSilent,
-                ]
+                    PerformanceEvents.AcquireTokenSilent.toString(),
+                    PerformanceEvents.SsoSilent.toString(),
+                ].includes(event.name)
         ) {
             return;
         }
 
+        // Stamp thumbprint correlation data on interactive event
         rootEvent.firstSilentCorrelationId =
             thumbPrintPayload.firstCorrelationId;
         rootEvent.lastSilentCorrelationId = thumbPrintPayload.lastCorrelationId;

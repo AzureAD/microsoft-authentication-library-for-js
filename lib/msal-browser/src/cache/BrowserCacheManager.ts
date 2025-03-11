@@ -1154,6 +1154,11 @@ export class BrowserCacheManager extends CacheManager {
         }
     }
 
+    updateThumbprintsCache(thumbprintsSerialized: string): void {
+        const thumbprintCacheKey = this.generateCacheKey(TemporaryCacheKeys.THUMBPRINTS);
+        this.setTemporaryCache(thumbprintCacheKey, thumbprintsSerialized, false);
+    }
+
     /**
      * Reset all temporary cache items
      * @param state
@@ -1190,6 +1195,9 @@ export class BrowserCacheManager extends CacheManager {
         );
         this.removeTemporaryItem(
             this.generateCacheKey(TemporaryCacheKeys.NATIVE_REQUEST)
+        );
+        this.removeTemporaryItem(
+            this.generateCacheKey(TemporaryCacheKeys.THUMBPRINTS)
         );
         this.setInteractionInProgress(false);
     }
@@ -1335,6 +1343,15 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         return parsedRequest;
+    }
+
+    getCachedThumbprints(): string {
+        const cachedThumbprintsSerialized = this.getTemporaryCache(
+            TemporaryCacheKeys.THUMBPRINTS,
+            true
+        ) || "";
+
+        return cachedThumbprintsSerialized;
     }
 
     isInteractionInProgress(matchClientId?: boolean): boolean {
