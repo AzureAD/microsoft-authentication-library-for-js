@@ -81,7 +81,7 @@ export type BrowserAuthOptions = {
     /**
      * Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
      */
-    protocolMode?: Omit<ProtocolMode, "EAR">; // TODO: Remove the omit once EAR is fully implemented
+    protocolMode?: ProtocolMode
     /**
      * Enum that configures options for the OIDC protocol mode.
      */
@@ -401,6 +401,16 @@ export function buildConfiguration(
         system: providedSystemOptions,
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
     };
+
+    /**
+     * Temporarily disable EAR until implementation is complete
+     * TODO: Remove this
+     */
+    if (overlayedConfig.auth.protocolMode === ProtocolMode.EAR) {
+        const logger = new Logger(providedSystemOptions.loggerOptions);
+        logger.warning("EAR Protocol Mode is not yet supported. Overriding to use PKCE auth");
+        overlayedConfig.auth.protocolMode = ProtocolMode.AAD;
+    }
 
     return overlayedConfig;
 }

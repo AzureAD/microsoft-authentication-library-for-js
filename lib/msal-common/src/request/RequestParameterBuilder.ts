@@ -4,7 +4,6 @@
  */
 
 import {
-    Constants,
     ResponseMode,
     CLIENT_INFO,
     AuthenticationScheme,
@@ -13,6 +12,7 @@ import {
     OIDC_DEFAULT_SCOPES,
     ThrottlingConstants,
     HeaderNames,
+    OAuthResponseType,
 } from "../utils/Constants.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import { ScopeSet } from "./ScopeSet.js";
@@ -53,27 +53,12 @@ export function instrumentBrokerParams(
 }
 
 /**
- * add response_type = code
+ * Add the given response_type
+ * @param parameters 
+ * @param responseType 
  */
-export function addResponseTypeCode(parameters: Map<string, string>): void {
-    parameters.set(
-        AADServerParamKeys.RESPONSE_TYPE,
-        encodeURIComponent(Constants.CODE_RESPONSE_TYPE)
-    );
-}
-
-/**
- * add response_type = token id_token
- */
-export function addResponseTypeForTokenAndIdToken(
-    parameters: Map<string, string>
-): void {
-    parameters.set(
-        AADServerParamKeys.RESPONSE_TYPE,
-        encodeURIComponent(
-            `${Constants.TOKEN_RESPONSE_TYPE} ${Constants.ID_TOKEN_RESPONSE_TYPE}`
-        )
-    );
+export function addResponseType(parameters: Map<string, string>, responseType: OAuthResponseType): void {
+    parameters.set(AADServerParamKeys.RESPONSE_TYPE, encodeURIComponent(responseType));
 }
 
 /**

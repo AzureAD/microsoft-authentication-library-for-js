@@ -16,6 +16,7 @@ import {
     PopTokenGenerator,
     ProtocolMode,
     RequestParameterBuilder,
+    OAuthResponseType
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserConstants } from "../utils/BrowserConstants.js";
@@ -123,7 +124,7 @@ export async function getAuthCodeRequestUrl(
         logger,
         performanceClient
     );
-    RequestParameterBuilder.addResponseTypeCode(parameters);
+    RequestParameterBuilder.addResponseType(parameters, OAuthResponseType.CODE);
 
     RequestParameterBuilder.addCodeChallengeParams(
         parameters,
@@ -155,6 +156,7 @@ export async function getEARForm(config: BrowserConfiguration,
         performanceClient
     );
 
+    RequestParameterBuilder.addResponseType(parameters, OAuthResponseType.IDTOKEN_TOKEN)
     RequestParameterBuilder.addEARParameters(parameters, request.earJwk);
 
     return createForm(document, authority.authorizationEndpoint, parameters);
