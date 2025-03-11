@@ -14,7 +14,8 @@ type IdTokenClaimsWithPolicyId = IdTokenClaims & {
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
-    styleUrls: ['./app.component.css']
+    styleUrls: ['./app.component.css'],
+    standalone: false
 })
 export class AppComponent implements OnInit, OnDestroy {
     title = 'Angular B2C Sample - MSAL Angular';
