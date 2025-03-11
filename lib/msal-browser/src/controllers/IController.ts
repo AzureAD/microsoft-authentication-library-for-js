@@ -121,4 +121,6 @@ export interface IController {
 
     /** @internal */
     getPerformanceClient(): IPerformanceClient;
+
+    isPlatformBrokerAvailable(): Promise<boolean>;
 }

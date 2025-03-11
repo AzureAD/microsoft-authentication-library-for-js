@@ -87,6 +87,7 @@ import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { initializeSilentRequest } from "../request/RequestHelpers.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
+import { PlatformDOMHandler } from "../broker/nativeBroker/PlatformDOMHandler.js";
 
 function getAccountType(
     account?: AccountInfo
@@ -114,6 +115,25 @@ function preflightCheck(
         performanceEvent.end({ success: false }, e);
         throw e;
     }
+}
+
+/**
+ * declare a custom interface for the global window object to store the platform authentication configuration
+ */
+declare global {
+    interface Window {
+        platformConfiguration: Map<
+            string,
+            NativeMessageHandler | PlatformDOMHandler | null
+        >;
+    }
+}
+
+/**
+ * Public method to indicate whether platform broker is available to make native token request.
+ */
+export function isPlatformBrokerAvailable(): boolean {
+    return window.platformConfiguration.size > 0;
 }
 
 export class StandardController implements IController {
@@ -166,6 +186,11 @@ export class StandardController implements IController {
 
     // Flag representing whether or not the initialize API has been called and completed
     protected initialized: boolean;
+
+    protected platformConfiguration: Map<
+        string,
+        NativeMessageHandler | PlatformDOMHandler | null
+    >;
 
     // Active requests
     private activeSilentTokenRequests: Map<
@@ -287,6 +312,8 @@ export class StandardController implements IController {
         // Register listener functions
         this.trackPageVisibilityWithMeasurement =
             this.trackPageVisibilityWithMeasurement.bind(this);
+
+        this.platformConfiguration = window.platformConfiguration || new Map();
     }
 
     static async createController(
@@ -346,17 +373,9 @@ export class StandardController implements IController {
             initCorrelationId
         )(initCorrelationId);
 
-        if (allowPlatformBroker) {
-            try {
-                this.nativeExtensionProvider =
-                    await NativeMessageHandler.createProvider(
-                        this.logger,
-                        this.config.system.nativeBrokerHandshakeTimeout,
-                        this.performanceClient
-                    );
-            } catch (e) {
-                this.logger.verbose(e as string);
-            }
+        if (allowPlatformBroker.allowPlatformBroker) {
+            // check if platform authentication is available via DOM or browser extension and create relevant handlers
+            await this.isPlatformBrokerAvailable();
         }
 
         if (!this.config.cache.claimsBasedCachingEnabled) {
@@ -383,6 +402,59 @@ export class StandardController implements IController {
             allowPlatformBroker: allowPlatformBroker,
             success: true,
         });
+    }
+
+    async isPlatformBrokerAvailable(): Promise<boolean> {
+        const domPlatformApiSupported = await this.checkDomPlatformApiSupport();
+        if (domPlatformApiSupported) {
+            this.cacheDomPlatformApiSupport();
+            return true;
+        }
+
+        if (
+            this.nativeExtensionProvider ||
+            this.platformConfiguration.get("msal.extension.platformAPISupport")
+        ) {
+            return true;
+        }
+
+        return this.initializeNativeExtensionProvider();
+    }
+
+    private async checkDomPlatformApiSupport(): Promise<boolean> {
+        if (!window.navigator?.platformAuthentication) {
+            return false;
+        }
+
+        const supportedContracts =
+            await window.navigator.platformAuthentication.getSupportedContracts();
+        return supportedContracts.includes("get-token-and-sign-out");
+    }
+
+    private cacheDomPlatformApiSupport(): void {
+        this.platformConfiguration.set(
+            "msal.dom.platformAPISupport",
+            new PlatformDOMHandler()
+        );
+    }
+
+    private async initializeNativeExtensionProvider(): Promise<boolean> {
+        try {
+            this.nativeExtensionProvider =
+                await NativeMessageHandler.createProvider(
+                    this.logger,
+                    this.config.system.nativeBrokerHandshakeTimeout,
+                    this.performanceClient
+                );
+            this.platformConfiguration.set(
+                "msal.extension.platformAPISupport",
+                this.nativeExtensionProvider
+            );
+            return true;
+        } catch (e) {
+            this.logger.verbose(e as string);
+            return false;
+        }
     }
 
     // #region Redirect Flow
@@ -783,7 +855,11 @@ export class StandardController implements IController {
         let result: Promise<AuthenticationResult>;
         const pkce = this.getPreGeneratedPkceCodes(correlationId);
 
-        if (this.canUsePlatformBroker(request)) {
+        if (
+            sessionStorage.getItem("msal.edge.platformAPIsSupported") === "true"
+        ) {
+            // initialize Edge native client class
+        } else if (this.canUsePlatformBroker(request)) {
             result = this.acquireTokenNative(
                 {
                     ...request,
