@@ -11,7 +11,7 @@ import {
     ServerTelemetryManager,
     Constants,
     ProtocolUtils,
-    ServerAuthorizationCodeResponse,
+    AuthorizeResponse,
     ThrottlingUtils,
     ICrypto,
     Logger,
@@ -381,7 +381,7 @@ export class RedirectClient extends StandardInteractionClient {
      */
     protected getRedirectResponse(
         userProvidedResponse: string
-    ): [ServerAuthorizationCodeResponse | null, string] {
+    ): [AuthorizeResponse | null, string] {
         this.logger.verbose("getRedirectResponseHash called");
         // Get current location hash from window or cache.
         let responseString = userProvidedResponse;
@@ -447,7 +447,7 @@ export class RedirectClient extends StandardInteractionClient {
      * @param state
      */
     protected async handleResponse(
-        serverParams: ServerAuthorizationCodeResponse,
+        serverParams: AuthorizeResponse,
         serverTelemetryManager: ServerTelemetryManager
     ): Promise<AuthenticationResult> {
         const state = serverParams.state;

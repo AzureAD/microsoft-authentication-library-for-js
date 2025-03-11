@@ -422,26 +422,53 @@ export const testNavUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/
     `${RANDOM_TEST_GUID}`
 )}&state=${encodeURIComponent(`${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`)}`;
 
-export function verifyUrl(url: string, scopes: Array<string> = [], state?: string) {
+export function verifyUrl(
+    url: string,
+    scopes: Array<string> = [],
+    state?: string
+) {
     scopes.push("openid", "profile", "offline_access"); // Add default scopes
-    expect(url.startsWith("https://login.microsoftonline.com/common/oauth2/v2.0/authorize?")).toBe(true);
-    expect(url.includes(`client_id=${encodeURIComponent(
-        TEST_CONFIG.MSAL_CLIENT_ID
-    )}`)).toBe(true);
-    expect(url.includes(`redirect_uri=${encodeURIComponent(window.location.href)}`)).toBe(true);
+    expect(
+        url.startsWith(
+            "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?"
+        )
+    ).toBe(true);
+    expect(
+        url.includes(
+            `client_id=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`
+        )
+    ).toBe(true);
+    expect(
+        url.includes(`redirect_uri=${encodeURIComponent(window.location.href)}`)
+    ).toBe(true);
     expect(url.includes(`scope=${scopes.join("%20")}`)).toBe(true);
-    expect(url.includes(`client-request-id=${encodeURIComponent(RANDOM_TEST_GUID)}`));
+    expect(
+        url.includes(
+            `client-request-id=${encodeURIComponent(RANDOM_TEST_GUID)}`
+        )
+    );
     expect(url.includes(`response_mode=fragment`)).toBe(true);
     expect(url.includes("x-client-SKU=msal.js.browser")).toBe(true);
     expect(url.includes(`x-client-VER=${version}`)).toBe(true);
-    expect(url.includes(`x-app-name=${TEST_CONFIG.applicationName}`)).toBe(true);
-    expect(url.includes(`x-app-ver=${TEST_CONFIG.applicationVersion}`)).toBe(true);
+    expect(url.includes(`x-app-name=${TEST_CONFIG.applicationName}`)).toBe(
+        true
+    );
+    expect(url.includes(`x-app-ver=${TEST_CONFIG.applicationVersion}`)).toBe(
+        true
+    );
     expect(url.includes("client_info=1")).toBe(true);
-    expect(url.includes("code_challenge=JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg")).toBe(true);
+    expect(
+        url.includes(
+            "code_challenge=JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg"
+        )
+    ).toBe(true);
     expect(url.includes("code_challenge_method=S256")).toBe(true);
-    expect(url.includes(`nonce=${encodeURIComponent(
-    RANDOM_TEST_GUID)}`)).toBe(true);
-    expect(url.includes(state ? `state=${encodeURIComponent(state)}`: "state=")).toBe(true);
+    expect(url.includes(`nonce=${encodeURIComponent(RANDOM_TEST_GUID)}`)).toBe(
+        true
+    );
+    expect(
+        url.includes(state ? `state=${encodeURIComponent(state)}` : "state=")
+    ).toBe(true);
 }
 
 export const testLogoutUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(

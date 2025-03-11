@@ -29,7 +29,6 @@ import {
     createClientAuthError,
 } from "../error/ClientAuthError.js";
 import { UrlString } from "../url/UrlString.js";
-import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse.js";
 import { CommonEndSessionRequest } from "../request/CommonEndSessionRequest.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
 import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload.js";
@@ -131,41 +130,6 @@ export class AuthorizationCodeClient extends BaseClient {
             undefined,
             requestId
         );
-    }
-
-    /**
-     * Handles the hash fragment response from public client code request. Returns a code response used by
-     * the client to exchange for a token in acquireToken.
-     * @param hashFragment
-     */
-    handleFragmentResponse(
-        serverParams: ServerAuthorizationCodeResponse,
-        cachedState: string
-    ): AuthorizationCodePayload {
-        // Handle responses.
-        const responseHandler = new ResponseHandler(
-            this.config.authOptions.clientId,
-            this.cacheManager,
-            this.cryptoUtils,
-            this.logger,
-            null,
-            null
-        );
-
-        // Get code response
-        responseHandler.validateServerAuthorizationCodeResponse(
-            serverParams,
-            cachedState
-        );
-
-        // throw when there is no auth code in the response
-        if (!serverParams.code) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse
-            );
-        }
-
-        return serverParams as AuthorizationCodePayload;
     }
 
     /**

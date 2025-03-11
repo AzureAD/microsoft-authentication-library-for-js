@@ -14,7 +14,8 @@ import {
     PerformanceEvents,
     invokeAsync,
     CcsCredentialType,
-    ServerAuthorizationCodeResponse,
+    AuthorizeResponse,
+    AuthorizeProtocol,
 } from "@azure/msal-common/browser";
 
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
@@ -54,7 +55,7 @@ export class InteractionHandler {
      * @param locationHash
      */
     async handleCodeResponse(
-        response: ServerAuthorizationCodeResponse,
+        response: AuthorizeResponse,
         request: AuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
@@ -64,7 +65,7 @@ export class InteractionHandler {
 
         let authCodeResponse;
         try {
-            authCodeResponse = this.authModule.handleFragmentResponse(
+            authCodeResponse = AuthorizeProtocol.getAuthorizationCodePayload(
                 response,
                 request.state
             );

@@ -119,7 +119,7 @@ export { AzureRegion } from "./authority/AzureRegion.js";
 export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration.js";
 export { AuthenticationResult } from "./response/AuthenticationResult.js";
 export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload.js";
-export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse.js";
+export { AuthorizeResponse } from "./response/AuthorizeResponse.js";
 export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse.js";
 export {
     ResponseHandler,

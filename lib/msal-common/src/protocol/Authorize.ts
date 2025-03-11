@@ -15,6 +15,17 @@ import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo.js";
 import { Authority } from "../authority/Authority.js";
 import { mapToQueryString } from "../utils/UrlUtils.js";
 import { UrlString } from "../url/UrlString.js";
+import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload.js";
+import { AuthorizeResponse } from "../response/AuthorizeResponse.js";
+import {
+    ClientAuthErrorCodes,
+    createClientAuthError,
+} from "../error/ClientAuthError.js";
+import {
+    InteractionRequiredAuthError,
+    isInteractionRequiredError,
+} from "../error/InteractionRequiredAuthError.js";
+import { ServerError } from "../error/ServerError.js";
 
 /**
  * Returns map of parameters that are applicable to all calls to /authorize whether using PKCE or EAR
@@ -261,6 +272,128 @@ export function getAuthorizeUrl(
         authority.authorizationEndpoint,
         queryString
     );
+}
+
+/**
+ * Handles the hash fragment response from public client code request. Returns a code response used by
+ * the client to exchange for a token in acquireToken.
+ * @param serverParams
+ * @param cachedState
+ */
+export function getAuthorizationCodePayload(
+    serverParams: AuthorizeResponse,
+    cachedState: string
+): AuthorizationCodePayload {
+    // Get code response
+    validateAuthorizationResponse(serverParams, cachedState);
+
+    // throw when there is no auth code in the response
+    if (!serverParams.code) {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse
+        );
+    }
+
+    return serverParams as AuthorizationCodePayload;
+}
+
+/**
+ * Function which validates server authorization code response.
+ * @param serverResponseHash
+ * @param requestState
+ */
+export function validateAuthorizationResponse(
+    serverResponse: AuthorizeResponse,
+    requestState: string
+): void {
+    if (!serverResponse.state || !requestState) {
+        throw serverResponse.state
+            ? createClientAuthError(
+                  ClientAuthErrorCodes.stateNotFound,
+                  "Cached State"
+              )
+            : createClientAuthError(
+                  ClientAuthErrorCodes.stateNotFound,
+                  "Server State"
+              );
+    }
+
+    let decodedServerResponseState: string;
+    let decodedRequestState: string;
+
+    try {
+        decodedServerResponseState = decodeURIComponent(serverResponse.state);
+    } catch (e) {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.invalidState,
+            serverResponse.state
+        );
+    }
+
+    try {
+        decodedRequestState = decodeURIComponent(requestState);
+    } catch (e) {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.invalidState,
+            serverResponse.state
+        );
+    }
+
+    if (decodedServerResponseState !== decodedRequestState) {
+        throw createClientAuthError(ClientAuthErrorCodes.stateMismatch);
+    }
+
+    // Check for error
+    if (
+        serverResponse.error ||
+        serverResponse.error_description ||
+        serverResponse.suberror
+    ) {
+        const serverErrorNo = parseServerErrorNo(serverResponse);
+        if (
+            isInteractionRequiredError(
+                serverResponse.error,
+                serverResponse.error_description,
+                serverResponse.suberror
+            )
+        ) {
+            throw new InteractionRequiredAuthError(
+                serverResponse.error || "",
+                serverResponse.error_description,
+                serverResponse.suberror,
+                serverResponse.timestamp || "",
+                serverResponse.trace_id || "",
+                serverResponse.correlation_id || "",
+                serverResponse.claims || "",
+                serverErrorNo
+            );
+        }
+
+        throw new ServerError(
+            serverResponse.error || "",
+            serverResponse.error_description,
+            serverResponse.suberror,
+            serverErrorNo
+        );
+    }
+}
+
+/**
+ * Get server error No from the error_uri
+ * @param serverResponse
+ * @returns
+ */
+function parseServerErrorNo(
+    serverResponse: AuthorizeResponse
+): string | undefined {
+    const errorCodePrefix = "code=";
+    const errorCodePrefixIndex =
+        serverResponse.error_uri?.lastIndexOf(errorCodePrefix);
+    return errorCodePrefixIndex && errorCodePrefixIndex >= 0
+        ? serverResponse.error_uri?.substring(
+              errorCodePrefixIndex + errorCodePrefix.length
+          )
+        : undefined;
 }
 
 /**

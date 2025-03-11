@@ -34,23 +34,15 @@ import {
     TEST_DATA_CLIENT_INFO,
     TEST_TOKENS,
     TEST_TOKEN_LIFETIMES,
-    TEST_HASHES,
     TEST_POP_VALUES,
     TEST_STATE_VALUES,
     RANDOM_TEST_GUID,
     TEST_CRYPTO_VALUES,
 } from "../utils/StringConstants.js";
-import {
-    createBrowserAuthError,
-    BrowserAuthErrorCodes,
-} from "../../src/error/BrowserAuthError.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import { TestStorageManager } from "../cache/TestStorageManager.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
-import {
-    TemporaryCacheKeys,
-    BrowserConstants,
-} from "../../src/utils/BrowserConstants.js";
+import { TemporaryCacheKeys } from "../../src/utils/BrowserConstants.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
 import { TestTimeUtils } from "msal-test-utils";
 
@@ -417,10 +409,6 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 ),
                 idTokenClaims.nonce
             );
-            jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "handleFragmentResponse"
-            ).mockReturnValue(testCodeResponse);
             const updateAuthoritySpy = jest.spyOn(
                 AuthorizationCodeClient.prototype,
                 "updateAuthority"
@@ -434,10 +422,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             );
             await interactionHandler.initiateAuthRequest("testNavUrl");
             const tokenResponse = await interactionHandler.handleCodeResponse(
-                {
-                    code: "authCode",
-                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                },
+                testCodeResponse,
                 {
                     authority: TEST_CONFIG.validAuthority,
                     scopes: ["User.Read"],
@@ -522,10 +507,6 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 TemporaryCacheKeys.CCS_CREDENTIAL,
                 CcsCredentialType.UPN
             );
-            jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "handleFragmentResponse"
-            ).mockReturnValue(testCodeResponse);
             const acquireTokenSpy = jest
                 .spyOn(AuthorizationCodeClient.prototype, "acquireToken")
                 .mockResolvedValue(testTokenResponse);
@@ -535,10 +516,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             );
             await interactionHandler.initiateAuthRequest("testNavUrl");
             const tokenResponse = await interactionHandler.handleCodeResponse(
-                {
-                    code: "authCode",
-                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                },
+                testCodeResponse,
                 {
                     authority: TEST_CONFIG.validAuthority,
                     scopes: ["User.Read"],

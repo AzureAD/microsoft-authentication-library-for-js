@@ -21,7 +21,7 @@ import {
     NativeSignOutRequest,
     AccountInfo,
     INativeBrokerPlugin,
-    ServerAuthorizationCodeResponse,
+    AuthorizeResponse,
     AADServerParamKeys,
     ServerTelemetryManager,
 } from "@azure/msal-common/node";
@@ -185,7 +185,7 @@ export class PublicClientApplication
         const loopbackClient: ILoopbackClient =
             customLoopbackClient || new LoopbackClient();
 
-        let authCodeResponse: ServerAuthorizationCodeResponse = {};
+        let authCodeResponse: AuthorizeResponse = {};
         let authCodeListenerError: AuthError | null = null;
         try {
             const authCodeListener = loopbackClient
