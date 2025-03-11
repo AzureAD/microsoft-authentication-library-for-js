@@ -38,7 +38,8 @@ import { HttpClientWithRetries } from "../../network/HttpClientWithRetries.js";
  * Managed Identity User Assigned Id Query Parameter Names
  */
 export const ManagedIdentityUserAssignedIdQueryParameterNames = {
-    MANAGED_IDENTITY_CLIENT_ID: "client_id",
+    MANAGED_IDENTITY_CLIENT_ID_2017: "clientid",
+    MANAGED_IDENTITY_CLIENT_ID_2019: "client_id",
     MANAGED_IDENTITY_OBJECT_ID: "object_id",
     MANAGED_IDENTITY_RESOURCE_ID_IMDS: "msi_res_id",
     MANAGED_IDENTITY_RESOURCE_ID_NON_IMDS: "mi_res_id",
@@ -226,14 +227,17 @@ export abstract class BaseManagedIdentitySource {
 
     public getManagedIdentityUserAssignedIdQueryParameterKey(
         managedIdentityIdType: ManagedIdentityIdType,
-        imds?: boolean
+        imds?: boolean,
+        api2017?: boolean
     ): string {
         switch (managedIdentityIdType) {
             case ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID:
                 this.logger.info(
                     "[Managed Identity] Adding user assigned client id to the request."
                 );
-                return ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID;
+                return api2017
+                    ? ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2017
+                    : ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2019;
 
             case ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID:
                 this.logger.info(
