@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add embeddedClientId to RequestThumbprint",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -60,6 +60,7 @@ import { AuthenticationResult } from "../../src/response/AuthenticationResult.js
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { BrowserAuthErrorCodes, BrowserUtils } from "../../src/index.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
@@ -362,8 +363,8 @@ describe("PopupClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -489,8 +490,8 @@ describe("PopupClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -597,8 +598,8 @@ describe("PopupClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
