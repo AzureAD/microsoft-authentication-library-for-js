@@ -81,7 +81,7 @@ export type BrowserAuthOptions = {
     /**
      * Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
      */
-    protocolMode?: ProtocolMode;
+    protocolMode?: Omit<ProtocolMode, "EAR">; // TODO: Remove the omit once EAR is fully implemented
     /**
      * Enum that configures options for the OIDC protocol mode.
      */
