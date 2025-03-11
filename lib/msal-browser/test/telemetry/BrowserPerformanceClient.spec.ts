@@ -149,4 +149,154 @@ describe("BrowserPerformanceClient.ts", () => {
             expect(addQueueMeasurementSpy).toBeCalledTimes(1);
         });
     });
+
+    describe("Thumbprints", () => {
+        it("update correctly for silent requests", () => {
+            const mockPerfClient = new BrowserPerformanceClient(testAppConfig);
+
+            const silentCorrelationId = "silent-test-correlation-id";
+
+            let silentEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                silentCorrelationId
+            );
+
+            silentEvent.event.request = {
+                "correlationId": silentCorrelationId,
+                "scopes": [
+                    "User.Read"
+                ],
+                "authority": "TestAuthority",
+                "code": "",
+                "redirectUri": "TestRedirectUri"
+            };
+
+            silentEvent.end({
+                success: false,
+            });
+
+            // Thumbprint should be present in map
+            //@ts-ignore
+            expect(mockPerfClient.thumbprints.size).toBeGreaterThan(0);
+
+            silentEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                silentCorrelationId
+            );
+
+            silentEvent.event.request = {
+                "correlationId": silentCorrelationId,
+                "scopes": [
+                    "User.Read"
+                ],
+                "authority": "TestAuthority",
+                "code": "",
+                "redirectUri": "TestRedirectUri"
+            };
+
+            silentEvent.end({
+                success: true,
+            });
+
+            // Success with the same authParams should clear failure from map
+            //@ts-ignore
+            expect(mockPerfClient.thumbprints.size).toBe(0);
+        });
+
+        it("set linked correationId fields on interactive requests that resolve silent failures", () => {
+            const mockPerfClient = new BrowserPerformanceClient(testAppConfig);
+
+            const silentCorrelationId = "silent-test-correlation-id";
+
+            let silentEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                silentCorrelationId
+            );
+
+            silentEvent.event.request = {
+                "correlationId": silentCorrelationId,
+                "scopes": [
+                    "User.Read"
+                ],
+                "authority": "TestAuthority",
+                "code": "",
+                "redirectUri": "TestRedirectUri"
+            };
+
+            silentEvent.end({
+                success: false,
+            });
+
+            const interactiveCorrelationId = "interactive-test-correlation-id"; 
+
+            const interactiveEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenPopup,
+                interactiveCorrelationId
+            );
+
+            interactiveEvent.event.request = {
+                "correlationId": interactiveCorrelationId,
+                "scopes": [
+                    "User.Read"
+                ],
+                "authority": "TestAuthority",
+                "code": "",
+                "redirectUri": "TestRedirectUri"
+            };
+
+            const finalEvent = interactiveEvent.end({
+                success: true,
+            });
+
+            // Silent failure correlationId should be present on interactive event that resolves failure
+            expect(finalEvent?.firstSilentCorrelationId).toBe(silentCorrelationId);
+
+            // Thumbprint should be cleared when matched to successful interactive event
+            //@ts-ignore
+            expect(mockPerfClient.thumbprints.size).toBe(0);
+        });
+
+        it("serialize and deserialize correctly" , () => {
+            const mockPerfClient = new BrowserPerformanceClient(testAppConfig);
+
+            const silentCorrelationId = "silent-test-correlation-id";
+
+            let silentEvent = mockPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                silentCorrelationId
+            );
+
+            silentEvent.event.request = {
+                "correlationId": silentCorrelationId,
+                "scopes": [
+                    "User.Read"
+                ],
+                "authority": "TestAuthority",
+                "code": "",
+                "redirectUri": "TestRedirectUri"
+            };
+
+            silentEvent.end({
+                success: false,
+            });
+
+            //@ts-ignore
+            expect(mockPerfClient.thumbprints.size).toBeGreaterThan(0);
+
+            // getThumbprintMapSerialized yields serialized string
+            let serializedThumbprints = mockPerfClient.getThumbprintMapSerialized();
+            expect(serializedThumbprints).not.toBe("");
+
+            // Empty thumbprint map
+            //@ts-ignore
+            mockPerfClient.thumbprints.clear();
+            //@ts-ignore
+            expect(mockPerfClient.thumbprints.size).toBe(0);
+
+            // Rehydrate thumbprints from serialized string
+            mockPerfClient.setThumbprintMapFromSerialized(serializedThumbprints);
+            //@ts-ignore
+            expect(mockPerfClient.thumbprints.size).toBeGreaterThan(0);
+        });
+    });
 });
