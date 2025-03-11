@@ -2383,9 +2383,9 @@ describe("RedirectClient", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
             };
             jest.spyOn(
-                            AuthorizeProtocol,
-                            "getAuthCodeRequestUrl"
-                        ).mockRejectedValue(createBrowserAuthError(testError.errorCode));
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockRejectedValue(createBrowserAuthError(testError.errorCode));
             try {
                 await redirectClient.acquireToken(emptyRequest);
             } catch (e) {
@@ -2626,9 +2626,9 @@ describe("RedirectClient", () => {
                 "Error in creating a login url"
             );
             jest.spyOn(
-                            AuthorizeProtocol,
-                            "getAuthCodeRequestUrl"
-                        ).mockRejectedValue(testError);
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockRejectedValue(testError);
             try {
                 await redirectClient.acquireToken(emptyRequest);
             } catch (e) {

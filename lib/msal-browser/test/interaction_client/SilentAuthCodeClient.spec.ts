@@ -138,9 +138,9 @@ describe("SilentAuthCodeClient", () => {
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                                        AuthorizeProtocol,
-                                        "getAuthCodeRequestUrl"
-                                    ).mockResolvedValue(testNavUrl);
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
             const handleCodeSpy = jest
                 .spyOn(
                     InteractionHandler.prototype,

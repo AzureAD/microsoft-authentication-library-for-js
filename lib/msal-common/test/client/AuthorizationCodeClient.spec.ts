@@ -6,7 +6,6 @@ import {
     TEST_URIS,
     TEST_DATA_CLIENT_INFO,
     RANDOM_TEST_GUID,
-    TEST_STATE_VALUES,
     TEST_POP_VALUES,
     POP_AUTHENTICATION_RESULT,
     CORS_SIMPLE_REQUEST_HEADERS,
@@ -24,12 +23,11 @@ import {
     ONE_DAY_IN_MS,
 } from "../../src/utils/Constants.js";
 import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
-import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils.js";
+import { ClientTestUtils } from "./ClientTestUtils.js";
 import { TestError } from "../test_kit/TestErrors.js";
 import { Authority } from "../../src/authority/Authority.js";
 import { AuthorizationCodeClient } from "../../src/client/AuthorizationCodeClient.js";
 import { TokenClaims } from "../../src/account/TokenClaims.js";
-import { ServerError } from "../../src/error/ServerError.js";
 import { CommonAuthorizationCodeRequest } from "../../src/request/CommonAuthorizationCodeRequest.js";
 import * as AuthToken from "../../src/account/AuthToken.js";
 import {
@@ -37,7 +35,6 @@ import {
     createClientAuthError,
 } from "../../src/error/ClientAuthError.js";
 import {
-    AuthError,
     CcsCredentialType,
     ClientConfigurationErrorCodes,
     createClientConfigurationError,
@@ -61,62 +58,6 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(client).not.toBeNull();
             expect(client instanceof AuthorizationCodeClient).toBe(true);
             expect(client instanceof BaseClient).toBe(true);
-        });
-    });
-
-    describe("handleFragmentResponse()", () => {
-        it("returns valid server code response", async () => {
-            const config: ClientConfiguration =
-                await ClientTestUtils.createTestClientConfiguration();
-
-            const client: AuthorizationCodeClient = new AuthorizationCodeClient(
-                config
-            );
-            const authCodePayload = client.handleFragmentResponse(
-                {
-                    code: "thisIsATestCode",
-                    state: TEST_STATE_VALUES.ENCODED_LIB_STATE,
-                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                },
-                TEST_STATE_VALUES.ENCODED_LIB_STATE
-            );
-            expect(authCodePayload.code).toBe("thisIsATestCode");
-            expect(authCodePayload.state).toBe(
-                TEST_STATE_VALUES.ENCODED_LIB_STATE
-            );
-        });
-
-        it("throws server error when error is in hash", async () => {
-            jest.spyOn(
-                Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
-            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            const config: ClientConfiguration =
-                await ClientTestUtils.createTestClientConfiguration();
-            const client: AuthorizationCodeClient = new AuthorizationCodeClient(
-                config
-            );
-            const cacheStorageMock =
-                config.storageInterface as MockStorageClass;
-
-            let error: AuthError | null = null;
-            try {
-                client.handleFragmentResponse(
-                    {
-                        error: "error_code",
-                        error_description: "msal error description",
-                        state: TEST_STATE_VALUES.ENCODED_LIB_STATE,
-                    },
-                    TEST_STATE_VALUES.ENCODED_LIB_STATE
-                );
-            } catch (e) {
-                error = e as AuthError;
-            }
-            expect(error).toBeInstanceOf(ServerError);
-            expect(error?.errorCode).toEqual("error_code");
-            expect(error?.errorMessage).toEqual("msal error description");
-            expect(cacheStorageMock.getKeys().length).toBe(1);
-            expect(cacheStorageMock.getAuthorityMetadataKeys().length).toBe(1);
         });
     });
 

@@ -21,7 +21,7 @@ import {
     Logger,
     LogLevel,
     AccountInfo,
-    ServerAuthorizationCodeResponse,
+    AuthorizeResponse,
     InteractionRequiredAuthError,
     AccountEntity,
     AuthToken,
@@ -761,18 +761,16 @@ describe("PublicClientApplication", () => {
                 return Promise.resolve();
             };
 
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
+            const testServerCodeResponse: AuthorizeResponse = {
                 code: TEST_CONSTANTS.AUTHORIZATION_CODE,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO,
                 state: "123",
             };
 
             const mockListenForAuthCode = jest.fn(() => {
-                return new Promise<ServerAuthorizationCodeResponse>(
-                    (resolve) => {
-                        resolve(testServerCodeResponse);
-                    }
-                );
+                return new Promise<AuthorizeResponse>((resolve) => {
+                    resolve(testServerCodeResponse);
+                });
             });
             const mockGetRedirectUri = jest.fn(
                 () => TEST_CONSTANTS.REDIRECT_URI
@@ -914,7 +912,7 @@ describe("PublicClientApplication", () => {
                 return Promise.reject("Browser open error");
             };
 
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
+            const testServerCodeResponse: AuthorizeResponse = {
                 code: TEST_CONSTANTS.AUTHORIZATION_CODE,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO,
                 state: "123",
@@ -924,11 +922,9 @@ describe("PublicClientApplication", () => {
                 LoopbackClient.prototype,
                 "listenForAuthCode"
             ).mockImplementation(() => {
-                return new Promise<ServerAuthorizationCodeResponse>(
-                    (resolve) => {
-                        resolve(testServerCodeResponse);
-                    }
-                );
+                return new Promise<AuthorizeResponse>((resolve) => {
+                    resolve(testServerCodeResponse);
+                });
             });
             jest.spyOn(
                 LoopbackClient.prototype,

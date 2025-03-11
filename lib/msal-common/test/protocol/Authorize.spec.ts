@@ -15,6 +15,7 @@ import {
     TEST_ACCOUNT_INFO,
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
+    TEST_STATE_VALUES,
     TEST_URIS,
 } from "../test_kit/StringConstants.js";
 import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
@@ -23,6 +24,14 @@ import * as UrlUtils from "../../src/utils/UrlUtils.js";
 import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 import { TokenClaims } from "../../src/account/TokenClaims.js";
 import { Logger } from "../../src/logger/Logger.js";
+import { AuthError } from "../../src/error/AuthError.js";
+import { ServerError } from "../../src/error/ServerError.js";
+import { AuthorizeResponse } from "../../src/response/AuthorizeResponse.js";
+import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError.js";
+import {
+    ClientAuthError,
+    ClientAuthErrorCodes,
+} from "../../src/error/ClientAuthError.js";
 
 describe("Authorize Protocol Tests", () => {
     let authOptions: AuthOptions;
@@ -1368,6 +1377,302 @@ describe("Authorize Protocol Tests", () => {
             expect(queryString).toContain(
                 `brk_redirect_uri=${encodeURIComponent("https://localhost")}`
             );
+        });
+    });
+
+    describe("getAuthorizationCodePayload", () => {
+        it("returns valid server code response", () => {
+            const authCodePayload =
+                AuthorizeProtocol.getAuthorizationCodePayload(
+                    {
+                        code: "thisIsATestCode",
+                        state: TEST_STATE_VALUES.ENCODED_LIB_STATE,
+                        client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    },
+                    TEST_STATE_VALUES.ENCODED_LIB_STATE
+                );
+            expect(authCodePayload.code).toBe("thisIsATestCode");
+            expect(authCodePayload.state).toBe(
+                TEST_STATE_VALUES.ENCODED_LIB_STATE
+            );
+        });
+
+        it("throws server error when error is in hash", () => {
+            let error: AuthError | null = null;
+            try {
+                AuthorizeProtocol.getAuthorizationCodePayload(
+                    {
+                        error: "error_code",
+                        error_description: "msal error description",
+                        state: TEST_STATE_VALUES.ENCODED_LIB_STATE,
+                    },
+                    TEST_STATE_VALUES.ENCODED_LIB_STATE
+                );
+            } catch (e) {
+                error = e as AuthError;
+            }
+            expect(error).toBeInstanceOf(ServerError);
+            expect(error?.errorCode).toEqual("error_code");
+            expect(error?.errorMessage).toEqual("msal error description");
+        });
+    });
+
+    describe("validateAuthorizationResponse", () => {
+        it("throws state mismatch error", (done) => {
+            const testServerCodeResponse: AuthorizeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+            };
+
+            try {
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    "differentState"
+                );
+            } catch (e) {
+                expect(e).toBeInstanceOf(ClientAuthError);
+                // @ts-ignore
+                expect(e.errorCode).toBe(ClientAuthErrorCodes.stateMismatch);
+                done();
+            }
+        });
+
+        it("Does not throw state mismatch error when states match", () => {
+            const testServerCodeResponse: AuthorizeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+            };
+
+            AuthorizeProtocol.validateAuthorizationResponse(
+                testServerCodeResponse,
+                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+            );
+        });
+
+        it("Does not throw state mismatch error when Uri encoded characters have different casing", () => {
+            const testServerCodeResponse: AuthorizeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+            };
+
+            const testAltState =
+                "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ%3d%3d";
+
+            AuthorizeProtocol.validateAuthorizationResponse(
+                testServerCodeResponse,
+                testAltState
+            );
+        });
+
+        it("throws interactionRequiredError", (done) => {
+            const testServerCodeResponse: AuthorizeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                error: "interaction_required",
+            };
+
+            try {
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                );
+            } catch (e) {
+                expect(e).toBeInstanceOf(InteractionRequiredAuthError);
+                done();
+            }
+        });
+
+        it("thows ServerError if error in response", (done) => {
+            const testServerCodeResponse: AuthorizeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                error: "test_error",
+            };
+
+            try {
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                );
+            } catch (e) {
+                expect(e).toBeInstanceOf(ServerError);
+                done();
+            }
+        });
+
+        it("throws ServerError if error_description in response", (done) => {
+            const testServerCodeResponse: AuthorizeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                error_description: "test_error",
+            };
+
+            try {
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                );
+            } catch (e) {
+                expect(e).toBeInstanceOf(ServerError);
+                done();
+            }
+        });
+
+        it("throws ServerError if suberror in response", (done) => {
+            const testServerCodeResponse: AuthorizeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                suberror: "test_error",
+            };
+
+            try {
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                );
+            } catch (e) {
+                expect(e).toBeInstanceOf(ServerError);
+                done();
+            }
+        });
+
+        it("throws invalid state error", (done) => {
+            const testServerCodeResponse: AuthorizeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+            };
+
+            try {
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    "dummy-state-%20%%%30%%%%%40"
+                );
+            } catch (e) {
+                expect(e).toBeInstanceOf(ClientAuthError);
+                const err = e as ClientAuthError;
+                expect(err.errorCode).toBe(ClientAuthErrorCodes.invalidState);
+                done();
+            }
+        });
+
+        it("throws ServerError and parser error no", (done) => {
+            const testServerCodeResponse: AuthorizeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                error: "test_error",
+                error_uri:
+                    "https://login.microsoftonline.com/error_code=500011",
+            };
+
+            try {
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                );
+            } catch (e) {
+                expect(e).toBeInstanceOf(ServerError);
+                const serverError = e as ServerError;
+                expect(serverError.errorNo).toEqual("500011");
+                done();
+            }
+        });
+
+        it("throws InteractionRequiredAuthError and parser error no", (done) => {
+            const testServerCodeResponse: AuthorizeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                error: "interaction_required",
+                error_uri:
+                    "https://login.microsoftonline.com/error_code=500011",
+            };
+
+            try {
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                );
+            } catch (e) {
+                expect(e).toBeInstanceOf(InteractionRequiredAuthError);
+                const serverError = e as InteractionRequiredAuthError;
+                expect(serverError.errorNo).toEqual("500011");
+                done();
+            }
+        });
+
+        it("throws ServerError and skips invalid error uri", (done) => {
+            const testServerCodeResponse: AuthorizeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                error: "test_error",
+                error_uri: "https://login.microsoftonline.com/500011",
+            };
+
+            try {
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                );
+            } catch (e) {
+                expect(e).toBeInstanceOf(ServerError);
+                const serverError = e as ServerError;
+                expect(serverError.errorNo).toBeUndefined();
+                done();
+            }
+        });
+
+        it("throws ServerError and skips undefined error uri", (done) => {
+            const testServerCodeResponse: AuthorizeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                error: "test_error",
+                error_uri: undefined,
+            };
+
+            try {
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                );
+            } catch (e) {
+                expect(e).toBeInstanceOf(ServerError);
+                const serverError = e as ServerError;
+                expect(serverError.errorNo).toBeUndefined();
+                done();
+            }
+        });
+
+        it("throws ServerError and skips empty error uri", (done) => {
+            const testServerCodeResponse: AuthorizeResponse = {
+                code: "testCode",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                error: "test_error",
+                error_uri: "",
+            };
+
+            try {
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    testServerCodeResponse,
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
+                );
+            } catch (e) {
+                expect(e).toBeInstanceOf(ServerError);
+                const serverError = e as ServerError;
+                expect(serverError.errorNo).toBeUndefined();
+                done();
+            }
         });
     });
 });
