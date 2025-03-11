@@ -4,6 +4,7 @@
  */
 
 export const pkceNotCreated = "pkce_not_created";
+export const earJwkEmpty = "ear_jwk_empty";
 export const cryptoNonExistent = "crypto_nonexistent";
 export const emptyNavigateUri = "empty_navigate_uri";
 export const hashEmptyError = "hash_empty_error";

@@ -694,3 +694,16 @@ export function addBrokerParameters(
         );
     }
 }
+
+/**
+ * Add EAR (Encrypted Authorize Response) request parameters
+ * @param parameters 
+ * @param jwk 
+ */
+export function addEARParameters(parameters: Map<string, string>, jwk: string) {
+    parameters.set(AADServerParamKeys.EAR_JWK, encodeURIComponent(jwk));
+
+    // ear_jwe_crypto will always have value: {"alg":"dir","enc":"A256GCM"} so we can hardcode this
+    const jweCryptoB64Encoded = "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0";
+    parameters.set(AADServerParamKeys.EAR_JWE_CRYPTO, jweCryptoB64Encoded);
+}

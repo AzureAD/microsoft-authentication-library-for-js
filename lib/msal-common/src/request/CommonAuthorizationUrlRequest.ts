@@ -42,6 +42,7 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     redirectUri: string;
     responseMode: ResponseMode;
     account?: AccountInfo;
+    earJwk?: string;
     codeChallenge?: string;
     codeChallengeMethod?: string;
     domainHint?: string;
