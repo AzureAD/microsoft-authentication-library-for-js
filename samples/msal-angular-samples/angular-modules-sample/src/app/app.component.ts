@@ -25,7 +25,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> { 
-    this.authService.handleRedirectObservable().subscribe(); // see if you need MsalRedirectComponent or not when we get to 19. If you need this line, add to docs
+    this.authService.handleRedirectObservable().subscribe(); 
     
     this.isIframe = window !== window.parent && !window.opener; // Remove this line to use Angular Universal
 
