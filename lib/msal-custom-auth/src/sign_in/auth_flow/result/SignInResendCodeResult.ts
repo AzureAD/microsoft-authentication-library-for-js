@@ -17,11 +17,6 @@ export class SignInResendCodeResult extends AuthFlowResultBase<
         super(state);
     }
 
-    /**
-     * Creates a SignInResendCodeResult instance with error details when an exception thrown during sign-in resend code.
-     * @param {unknown} error
-     * @returns {SignInResendCodeResult} The SignInResendCodeResult instance with a CustomAuthError error and failed state.
-     */
     static createWithError(error: unknown): SignInResendCodeResult {
         const result = new SignInResendCodeResult();
         result.state = new SignInFailed();

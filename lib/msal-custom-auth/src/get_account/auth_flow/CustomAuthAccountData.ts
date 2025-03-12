@@ -24,14 +24,6 @@ import { AccessTokenRetrievalInputs } from "../../CustomAuthActionInputs.js";
  * Account information.
  */
 export class CustomAuthAccountData {
-    /**
-     * @constructor
-     * @param {AccountInfo} account - Account information
-     * @param {CustomAuthBrowserConfiguration} config - Configuration
-     * @param {CustomAuthSilentCacheClient} cacheClient - Cache client for cache operations
-     * @param {Logger} logger - Logger
-     * @param {string} correlationId - Correlation id
-     */
     constructor(
         private readonly account: AccountInfo,
         private readonly config: CustomAuthBrowserConfiguration,

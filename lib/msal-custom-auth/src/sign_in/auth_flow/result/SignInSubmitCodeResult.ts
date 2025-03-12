@@ -11,11 +11,6 @@ import { SignInSubmitCredentialResult } from "./SignInSubmitCredentialResult.js"
  * Result of a sign-in submit code operation.
  */
 export class SignInSubmitCodeResult extends SignInSubmitCredentialResult<SignInSubmitCodeError> {
-    /**
-     * Creates a SignInSubmitCodeResult instance with error details when an exception thrown during sign-in submit code.
-     * @param {unknown} error
-     * @returns {SignInSubmitCodeResult} The SignInSubmitCodeResult instance with a CustomAuthError error and failed state.
-     */
     static createWithError(error: unknown): SignInSubmitCodeResult {
         const result = new SignInSubmitCodeResult();
         result.state = new SignInFailed();

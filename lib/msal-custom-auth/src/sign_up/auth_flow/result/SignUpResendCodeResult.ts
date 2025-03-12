@@ -19,12 +19,6 @@ export class SignUpResendCodeResult extends AuthFlowResultBase<
     constructor(state?: SignUpCodeRequired) {
         super(state);
     }
-
-    /**
-     * Creates a SignUpResendCodeResult instance with error details when an exception thrown during sign-up resend code.
-     * @param {unknown} error
-     * @returns {SignUpResendCodeResult} The SignUpResendCodeResult instance with a CustomAuthError error and failed state.
-     */
     static createWithError(error: unknown): SignUpResendCodeResult {
         const result = new SignUpResendCodeResult();
         result.error = new SignUpResendCodeError(SignUpResendCodeResult.createErrorData(error));

@@ -20,11 +20,6 @@ export class ResetPasswordResendCodeResult extends AuthFlowResultBase<
         super(state);
     }
 
-    /**
-     * Creates a ResetPasswordResendCodeResult instance with error details when an exception thrown during resetting password resend code.
-     * @param {unknown} error
-     * @returns {ResetPasswordResendCodeResult} The ResetPasswordResendCodeResult instance with a CustomAuthError error and failed state.
-     */
     static createWithError(error: unknown): ResetPasswordResendCodeResult {
         const result = new ResetPasswordResendCodeResult();
         result.error = new ResetPasswordResendCodeError(ResetPasswordResendCodeResult.createErrorData(error));

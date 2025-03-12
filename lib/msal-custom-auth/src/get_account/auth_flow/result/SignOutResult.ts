@@ -16,11 +16,6 @@ export class SignOutResult extends AuthFlowResultBase<SignOutCompleted | SignOut
         super(new SignOutCompleted());
     }
 
-    /**
-     * Creates a SignOutResult instance with error details when an exception thrown during sign-out.
-     * @param {unknown} error
-     * @returns {SignOutResult} The SignOutResult instance with a CustomAuthError error and failed state.
-     */
     static createWithError(error: unknown): SignOutResult {
         const result = new SignOutResult();
         result.error = new SignOutError(SignOutResult.createErrorData(error));

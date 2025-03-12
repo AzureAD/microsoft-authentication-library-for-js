@@ -54,12 +54,6 @@ export class CustomAuthPublicClientApplication
         return app;
     }
 
-    /**
-     * @constructor
-     * Creates a new instance of a PublicClientApplication with the given configuration and controller.
-     * @param {CustomAuthConfiguration} config - A configuration object for the PublicClientApplication instance
-     * @param {ICustomAuthStandardController} controller - A controller object for the PublicClientApplication instance
-     */
     private constructor(config: CustomAuthConfiguration, controller: ICustomAuthStandardController) {
         super(config, controller);
 

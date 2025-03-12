@@ -20,11 +20,6 @@ export class ResetPasswordSubmitPasswordResult extends AuthFlowResultBase<
         super(state);
     }
 
-    /**
-     * Creates a ResetPasswordSubmitPasswordResult instance with error details when an exception thrown during resetting password submit password.
-     * @param {unknown} error
-     * @returns {ResetPasswordSubmitPasswordResult} The ResetPasswordSubmitPasswordResult instance with a CustomAuthError error and failed state.
-     */
     static createWithError(error: unknown): ResetPasswordSubmitPasswordResult {
         const result = new ResetPasswordSubmitPasswordResult();
         result.error = new ResetPasswordSubmitPasswordError(ResetPasswordSubmitPasswordResult.createErrorData(error));

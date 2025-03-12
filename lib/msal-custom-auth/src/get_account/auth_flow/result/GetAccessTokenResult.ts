@@ -21,11 +21,6 @@ export class GetAccessTokenResult extends AuthFlowResultBase<
         super(new GetAccessTokenCompleted(), resultData);
     }
 
-    /**
-     * Creates a GetAccessTokenResult instance with error details when an exception thrown during getting access token.
-     * @param {unknown} error
-     * @returns {GetAccessTokenResult} The GetAccessTokenResult instance with a CustomAuthError error and failed state.
-     */
     static createWithError(error: unknown): GetAccessTokenResult {
         const result = new GetAccessTokenResult();
         result.error = new GetCurrentAccountAccessTokenError(GetAccessTokenResult.createErrorData(error));

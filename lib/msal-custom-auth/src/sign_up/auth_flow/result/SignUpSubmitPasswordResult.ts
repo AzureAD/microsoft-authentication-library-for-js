@@ -22,11 +22,6 @@ export class SignUpSubmitPasswordResult extends AuthFlowResultBase<
         super(state);
     }
 
-    /**
-     * Creates a SignUpSubmitPasswordResult instance with error details when an exception thrown during sign-up submit password.
-     * @param {unknown} error
-     * @returns {SignUpSubmitPasswordResult} The SignUpSubmitPasswordResult instance with a CustomAuthError error and failed state.
-     */
     static createWithError(error: unknown): SignUpSubmitPasswordResult {
         const result = new SignUpSubmitPasswordResult();
         result.error = new SignUpSubmitPasswordError(SignUpSubmitPasswordResult.createErrorData(error));
