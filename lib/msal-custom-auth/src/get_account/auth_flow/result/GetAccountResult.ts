@@ -21,6 +21,11 @@ export class GetAccountResult extends AuthFlowResultBase<
         super(new GetAccountCompleted(), resultData);
     }
 
+    /**
+     * Creates a GetAccountResult instance with error details when an exception thrown during account retrival.
+     * @param {unknown} error
+     * @returns {GetAccountResult} The GetAccountResult instance with a CustomAuthError error and failed state.
+     */
     static createWithError(error: unknown): GetAccountResult {
         const result = new GetAccountResult();
         result.error = new GetAccountError(GetAccountResult.createErrorData(error));

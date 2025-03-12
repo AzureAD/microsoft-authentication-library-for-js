@@ -41,10 +41,10 @@ export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
         super(username, signUpClient, signInClient, cacheClient, correlationId, logger, continuationToken, config);
     }
 
-    /*
+    /**
      * Submits attributes for sign-up.
-     * @param attributes - The attributes to submit.
-     * @returns The result of the operation.
+     * @param {UserAccountAttributes} attributes - The attributes to submit.
+     * @returns {Promise<SignUpSubmitAttributesResult>} The result of the operation.
      */
     async submitAttributes(attributes: UserAccountAttributes): Promise<SignUpSubmitAttributesResult> {
         if (!attributes || Object.keys(attributes.toRecord()).length === 0) {

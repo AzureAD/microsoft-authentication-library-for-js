@@ -33,10 +33,10 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
         super(username, signInClient, cacheClient, correlationId, logger, continuationToken, config);
     }
 
-    /*
+    /**
      * Submits a code for sign-in.
-     * @param code - The code to submit.
-     * @returns The result of the operation.
+     * @param {string} code - The code to submit.
+     * @returns {Promise<SignInSubmitCodeResult>} The result of the operation.
      */
     async submitCode(code: string): Promise<SignInSubmitCodeResult> {
         try {
@@ -74,9 +74,9 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
         }
     }
 
-    /*
+    /**
      * Resends a code for sign-in.
-     * @returns The result of the operation.
+     * @returns {Promise<SignInResendCodeResult>} The result of the operation.
      */
     async resendCode(): Promise<SignInResendCodeResult> {
         try {

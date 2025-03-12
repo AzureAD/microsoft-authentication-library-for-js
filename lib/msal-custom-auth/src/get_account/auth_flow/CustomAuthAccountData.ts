@@ -24,11 +24,13 @@ import { AccessTokenRetrievalInputs } from "../../CustomAuthActionInputs.js";
  * Account information.
  */
 export class CustomAuthAccountData {
-    /*
-     * Constructor
-     * @param account - Account information
-     * @param correlationId - Correlation id
-     * @param config - Configuration
+    /**
+     * @constructor
+     * @param {AccountInfo} account - Account information
+     * @param {CustomAuthBrowserConfiguration} config - Configuration
+     * @param {CustomAuthSilentCacheClient} cacheClient - Cache client for cache operations
+     * @param {Logger} logger - Logger
+     * @param {string} correlationId - Correlation id
      */
     constructor(
         private readonly account: AccountInfo,
@@ -44,9 +46,9 @@ export class CustomAuthAccountData {
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined("logger", logger, correlationId);
     }
 
-    /*
-     * Signs the current user out
-     * @returns The result of the operation.
+    /**
+     * Signs the current user out.
+     * @returns {Promise<SignOutResult>} The result of the SignOut operation.
      */
     async signOut(): Promise<SignOutResult> {
         try {
@@ -73,33 +75,33 @@ export class CustomAuthAccountData {
         }
     }
 
-    /*
+    /**
      * Gets the account data.
-     * @returns The account data.
+     * @returns {AccountInfo} The account data.
      */
     getAccount(): AccountInfo {
         return this.account;
     }
 
-    /*
+    /**
      * Gets the account id-token.
-     * @returns The account id-token.
+     * @returns {string|undefined} The account id-token.
      */
     getIdToken(): string | undefined {
         return this.account.idToken;
     }
 
-    /*
+    /**
      * Gets the token claims.
-     * @returns The token claims.
+     * @returns {AuthTokenClaims|undefined} The token claims.
      */
     getClaims(): AuthTokenClaims | undefined {
         return this.account.idTokenClaims;
     }
 
-    /*
+    /**
      * Gets the access token from cache.
-     * @param accessTokenRetrievalInputs - The inputs for retrieving the access token.
+     * @param {AccessTokenRetrievalInputs} accessTokenRetrievalInputs - The inputs for retrieving the access token.
      * @returns {Promise<GetAccessTokenResult>} The result of the operation.
      */
     async getAccessToken(accessTokenRetrievalInputs: AccessTokenRetrievalInputs): Promise<GetAccessTokenResult> {

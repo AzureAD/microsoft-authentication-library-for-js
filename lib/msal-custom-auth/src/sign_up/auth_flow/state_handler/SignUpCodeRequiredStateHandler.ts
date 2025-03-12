@@ -41,10 +41,10 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
         super(username, signUpClient, signInClient, cacheClient, correlationId, logger, continuationToken, config);
     }
 
-    /*
+    /**
      * Submits a code for sign-up.
-     * @param code - The code to submit.
-     * @returns The result of the operation.
+     * @param {string} code - The code to submit.
+     * @returns {Promise<SignUpSubmitCodeResult>} The result of the operation.
      */
     async submitCode(code: string): Promise<SignUpSubmitCodeResult> {
         try {
@@ -123,9 +123,9 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
         }
     }
 
-    /*
+    /**
      * Resends a code for sign-up.
-     * @returns The result of the operation.
+     * @returns {Promise<SignUpResendCodeResult>} The result of the operation.
      */
     async resendCode(): Promise<SignUpResendCodeResult> {
         try {

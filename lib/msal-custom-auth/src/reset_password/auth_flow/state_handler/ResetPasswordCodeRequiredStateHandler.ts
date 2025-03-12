@@ -41,10 +41,10 @@ export class ResetPasswordCodeRequiredStateHandler extends ResetPasswordStateHan
         );
     }
 
-    /*
+    /**
      * Submits a code for reset password.
-     * @param code - The code to submit.
-     * @returns The result of the operation.
+     * @param {string} code - The code to submit.
+     * @returns {Promise<ResetPasswordSubmitCodeResult>} The result of the operation.
      */
     async submitCode(code: string): Promise<ResetPasswordSubmitCodeResult> {
         try {
@@ -82,9 +82,9 @@ export class ResetPasswordCodeRequiredStateHandler extends ResetPasswordStateHan
         }
     }
 
-    /*
+    /**
      * Resends a code for reset password.
-     * @returns The result of the operation.
+     * @returns {Promise<ResetPasswordResendCodeResult>} The result of the operation.
      */
     async resendCode(): Promise<ResetPasswordResendCodeResult> {
         try {

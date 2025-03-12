@@ -20,6 +20,11 @@ export class ResetPasswordStartResult extends AuthFlowResultBase<
         super(state);
     }
 
+    /**
+     * Creates a ResetPasswordStartResult instance with error details when an exception thrown during resetting password.
+     * @param {unknown} error
+     * @returns {ResetPasswordStartResult} The ResetPasswordStartResult instance with a CustomAuthError error and failed state.
+     */
     static createWithError(error: unknown): ResetPasswordStartResult {
         const result = new ResetPasswordStartResult();
         result.error = new ResetPasswordError(ResetPasswordStartResult.createErrorData(error));
