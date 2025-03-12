@@ -7,9 +7,6 @@ import { AuthFlowErrorBase } from "../../../core/auth_flow/AuthFlowErrorBase.js"
 import { CustomAuthApiError } from "../../../core/error/CustomAuthApiError.js";
 import { CustomAuthApiErrorCode } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 
-/**
- * The error occurs during reset password.
- */
 export class ResetPasswordError extends AuthFlowErrorBase {
     /**
      * Checks if the user is not found.
@@ -44,12 +41,9 @@ export class ResetPasswordError extends AuthFlowErrorBase {
     }
 }
 
-/**
- * The error occurs during reset password submit password.
- */
 export class ResetPasswordSubmitPasswordError extends AuthFlowErrorBase {
     /**
-     * Checks if the new password is invalid.
+     * Checks if the new password is invalid or incorrect.
      * @returns {boolean} True if the new password is invalid, false otherwise.
      */
     isInvalidPassword(): boolean {
@@ -57,7 +51,7 @@ export class ResetPasswordSubmitPasswordError extends AuthFlowErrorBase {
     }
 
     /**
-     * Checks if the password reset failed.
+     * Checks if the password reset failed due to reset timeout or change failed.
      * @returns {boolean} True if the password reset failed, false otherwise.
      */
     isPasswordResetFailed(): boolean {
@@ -69,9 +63,6 @@ export class ResetPasswordSubmitPasswordError extends AuthFlowErrorBase {
     }
 }
 
-/**
- * The error occurs during reset password submit code.
- */
 export class ResetPasswordSubmitCodeError extends AuthFlowErrorBase {
     /**
      * Checks if submitted code during resetting password is invalid.
@@ -90,9 +81,6 @@ export class ResetPasswordSubmitCodeError extends AuthFlowErrorBase {
     }
 }
 
-/**
- * The error occurs during reset password resend code.
- */
 export class ResetPasswordResendCodeError extends AuthFlowErrorBase {
     /**
      * Checks if the challenge type is redirect (authentication method is not supported by by Microsoft Entra)

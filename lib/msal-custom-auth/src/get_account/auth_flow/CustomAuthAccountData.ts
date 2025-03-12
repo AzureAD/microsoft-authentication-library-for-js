@@ -76,7 +76,7 @@ export class CustomAuthAccountData {
     }
 
     /**
-     * Gets the account data.
+     * Gets the current account data.
      * @returns {AccountInfo} The account data.
      */
     getAccount(): AccountInfo {
@@ -84,7 +84,7 @@ export class CustomAuthAccountData {
     }
 
     /**
-     * Gets the account id-token.
+     * Gets the id-token of current account.
      * @returns {string|undefined} The account id-token.
      */
     getIdToken(): string | undefined {
@@ -92,7 +92,7 @@ export class CustomAuthAccountData {
     }
 
     /**
-     * Gets the token claims.
+     * Gets the token claims of current account.
      * @returns {AuthTokenClaims|undefined} The token claims.
      */
     getClaims(): AuthTokenClaims | undefined {
@@ -168,9 +168,6 @@ export class CustomAuthAccountData {
     }
 }
 
-/*
- * Authentication token claims.
- */
 export type AuthTokenClaims = TokenClaims & {
     [key: string]: string | number | string[] | object | undefined | unknown;
 };

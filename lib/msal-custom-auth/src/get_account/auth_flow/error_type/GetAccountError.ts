@@ -5,9 +5,6 @@
 
 import { AuthFlowErrorBase } from "../../../core/auth_flow/AuthFlowErrorBase.js";
 
-/**
- * The error occurs during getting account.
- */
 export class GetAccountError extends AuthFlowErrorBase {
     /**
      * Checks if during account retrieval, no cached account found.
@@ -18,9 +15,6 @@ export class GetAccountError extends AuthFlowErrorBase {
     }
 }
 
-/**
- * The error occurs during sign out.
- */
 export class SignOutError extends AuthFlowErrorBase {
     /**
      * Checks if no cached account found during sign-in.
@@ -31,9 +25,6 @@ export class SignOutError extends AuthFlowErrorBase {
     }
 }
 
-/**
- * The error occurs during getting access token.
- */
 export class GetCurrentAccountAccessTokenError extends AuthFlowErrorBase {
     /**
      * Checks if no cached account found during getting access token.
