@@ -4,6 +4,7 @@
  */
 
 import { HttpStatus } from "@azure/msal-common/node";
+import { LinearRetryPolicy } from "../retry/LinearRetryPolicy.js";
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
 export const AUTHORIZATION_HEADER_NAME: string = "Authorization";
@@ -178,3 +179,8 @@ export const MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON = [
     HttpStatus.SERVICE_UNAVAILABLE,
     HttpStatus.GATEWAY_TIMEOUT,
 ];
+
+/**
+ * Retry Policy Types
+ */
+export type RetryPolicies = LinearRetryPolicy;
