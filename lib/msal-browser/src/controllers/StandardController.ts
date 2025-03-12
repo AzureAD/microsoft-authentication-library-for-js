@@ -241,11 +241,6 @@ export class StandardController implements IController {
     // Flag representing whether or not the initialize API has been called and completed
     protected initialized: boolean;
 
-    protected platformConfiguration: Map<
-        string,
-        NativeMessageHandler | PlatformDOMHandler | null
-    >;
-
     // Active requests
     private activeSilentTokenRequests: Map<
         string,
@@ -366,8 +361,6 @@ export class StandardController implements IController {
         // Register listener functions
         this.trackPageVisibilityWithMeasurement =
             this.trackPageVisibilityWithMeasurement.bind(this);
-
-        this.platformConfiguration = window.platformConfiguration || new Map();
     }
 
     static async createController(
@@ -862,11 +855,7 @@ export class StandardController implements IController {
         let result: Promise<AuthenticationResult>;
         const pkce = this.getPreGeneratedPkceCodes(correlationId);
 
-        if (
-            sessionStorage.getItem("msal.edge.platformAPIsSupported") === "true"
-        ) {
-            // initialize Edge native client class
-        } else if (this.canUsePlatformBroker(request)) {
+        if (this.canUsePlatformBroker(request)) {
             result = this.acquireTokenNative(
                 {
                     ...request,
