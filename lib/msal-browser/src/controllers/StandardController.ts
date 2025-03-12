@@ -18,6 +18,7 @@ import {
     PerformanceCallbackFunction,
     IPerformanceClient,
     BaseAuthRequest,
+    LoggerOptions,
     PromptValue,
     InProgressPerformanceEvent,
     RequestThumbprint,
@@ -35,7 +36,11 @@ import {
     DEFAULT_BROWSER_CACHE_MANAGER,
 } from "../cache/BrowserCacheManager.js";
 import * as AccountManager from "../cache/AccountManager.js";
-import { BrowserConfiguration, CacheOptions } from "../config/Configuration.js";
+import {
+    BrowserConfiguration,
+    CacheOptions,
+    DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
+} from "../config/Configuration.js";
 import {
     InteractionType,
     ApiId,
@@ -88,6 +93,7 @@ import { initializeSilentRequest } from "../request/RequestHelpers.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { PlatformDOMHandler } from "../broker/nativeBroker/PlatformDOMHandler.js";
+import { name, version } from "../packageMetadata.js";
 
 function getAccountType(
     account?: AccountInfo
@@ -132,8 +138,56 @@ declare global {
 /**
  * Public method to indicate whether platform broker is available to make native token request.
  */
-export function isPlatformBrokerAvailable(): boolean {
-    return window.platformConfiguration.size > 0;
+export async function isPlatformBrokerAvailable(
+    logger?: Logger,
+    performanceClient?: IPerformanceClient
+): Promise<boolean> {
+    // check if any native platform API is available already
+    if (
+        window.platformConfiguration.get("msal.dom.platformAPISupport") ||
+        window.platformConfiguration.get("msal.extension.platformAPISupport")
+    ) {
+        return true;
+    }
+
+    // Check if DOM platform API is supported
+    if (window.navigator?.platformAuthentication) {
+        const supportedContracts =
+            await window.navigator.platformAuthentication.getSupportedContracts();
+        if (supportedContracts.includes("get-token-and-sign-out")) {
+            window.platformConfiguration.set(
+                "msal.dom.platformAPISupport",
+                new PlatformDOMHandler()
+            );
+            return true;
+        }
+    }
+
+    // Check and initialize native extension provider if available
+    try {
+        const defaultLoggerOptions: LoggerOptions = {
+            loggerCallback: (): void => {
+                // Empty logger callback
+            },
+            piiLoggingEnabled: false,
+        };
+        const defaultLogger = new Logger(defaultLoggerOptions, name, version); // Default logger
+        const defaultPerformanceClient = new IPerformanceClient();
+        const nativeExtensionProvider =
+            await NativeMessageHandler.createProvider(
+                logger || defaultLogger,
+                DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
+                performanceClient || defaultPerformanceClient
+            );
+        window.platformConfiguration.set(
+            "msal.extension.platformAPISupport",
+            nativeExtensionProvider
+        );
+        return true;
+    } catch (e) {
+        Logger.verbose(e as string);
+        return false;
+    }
 }
 
 export class StandardController implements IController {
@@ -373,9 +427,15 @@ export class StandardController implements IController {
             initCorrelationId
         )(initCorrelationId);
 
-        if (allowPlatformBroker.allowPlatformBroker) {
+        if (allowPlatformBroker) {
             // check if platform authentication is available via DOM or browser extension and create relevant handlers
-            await this.isPlatformBrokerAvailable();
+            await isPlatformBrokerAvailable(
+                this.logger,
+                this.performanceClient
+            );
+            this.nativeExtensionProvider = window.platformConfiguration.get(
+                "msal.extension.platformAPISupport"
+            ) as NativeMessageHandler;
         }
 
         if (!this.config.cache.claimsBasedCachingEnabled) {
@@ -402,59 +462,6 @@ export class StandardController implements IController {
             allowPlatformBroker: allowPlatformBroker,
             success: true,
         });
-    }
-
-    async isPlatformBrokerAvailable(): Promise<boolean> {
-        const domPlatformApiSupported = await this.checkDomPlatformApiSupport();
-        if (domPlatformApiSupported) {
-            this.cacheDomPlatformApiSupport();
-            return true;
-        }
-
-        if (
-            this.nativeExtensionProvider ||
-            this.platformConfiguration.get("msal.extension.platformAPISupport")
-        ) {
-            return true;
-        }
-
-        return this.initializeNativeExtensionProvider();
-    }
-
-    private async checkDomPlatformApiSupport(): Promise<boolean> {
-        if (!window.navigator?.platformAuthentication) {
-            return false;
-        }
-
-        const supportedContracts =
-            await window.navigator.platformAuthentication.getSupportedContracts();
-        return supportedContracts.includes("get-token-and-sign-out");
-    }
-
-    private cacheDomPlatformApiSupport(): void {
-        this.platformConfiguration.set(
-            "msal.dom.platformAPISupport",
-            new PlatformDOMHandler()
-        );
-    }
-
-    private async initializeNativeExtensionProvider(): Promise<boolean> {
-        try {
-            this.nativeExtensionProvider =
-                await NativeMessageHandler.createProvider(
-                    this.logger,
-                    this.config.system.nativeBrokerHandshakeTimeout,
-                    this.performanceClient
-                );
-            this.platformConfiguration.set(
-                "msal.extension.platformAPISupport",
-                this.nativeExtensionProvider
-            );
-            return true;
-        } catch (e) {
-            this.logger.verbose(e as string);
-            return false;
-        }
     }
 
     // #region Redirect Flow
