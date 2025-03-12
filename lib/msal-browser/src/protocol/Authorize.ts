@@ -17,6 +17,7 @@ import {
     PopTokenGenerator,
     ProtocolMode,
     RequestParameterBuilder,
+    Constants,
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserConstants } from "../utils/BrowserConstants.js";
@@ -110,7 +111,7 @@ export async function getAuthCodeRequestUrl(
     logger: Logger,
     performanceClient: IPerformanceClient
 ): Promise<string> {
-    if (!request.codeChallenge || !request.codeChallengeMethod) {
+    if (!request.codeChallenge) {
         throw createClientConfigurationError(
             ClientConfigurationErrorCodes.pkceParamsMissing
         );
@@ -128,7 +129,7 @@ export async function getAuthCodeRequestUrl(
     RequestParameterBuilder.addCodeChallengeParams(
         parameters,
         request.codeChallenge,
-        request.codeChallengeMethod
+        Constants.S256_CODE_CHALLENGE_METHOD
     );
 
     return AuthorizeProtocol.getAuthorizeUrl(authority, parameters);

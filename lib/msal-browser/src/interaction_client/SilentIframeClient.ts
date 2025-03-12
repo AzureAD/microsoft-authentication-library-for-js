@@ -43,6 +43,7 @@ import { InteractionHandler } from "../interaction_handler/InteractionHandler.js
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
+import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
@@ -213,24 +214,24 @@ export class SilentIframeClient extends StandardInteractionClient {
      */
     protected async silentTokenHelper(
         authClient: AuthorizationCodeClient,
-        silentRequest: AuthorizationUrlRequest
+        request: AuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
-        const correlationId = silentRequest.correlationId;
+        const correlationId = request.correlationId;
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.SilentIframeClientTokenHelper,
             correlationId
         );
-
-        // Create auth code request and generate PKCE params
-        const authCodeRequest: CommonAuthorizationCodeRequest =
-            await invokeAsync(
-                this.initializeAuthorizationCodeRequest.bind(this),
-                PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            )(silentRequest);
-
+        const pkceCodes = await invokeAsync(
+            generatePkceCodes,
+            PerformanceEvents.GeneratePkceCodes,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(this.performanceClient, this.logger, this.correlationId);
+        const silentRequest = {
+            ...request,
+            codeChallenge: pkceCodes.challenge,
+        };
         // Create authorize request url
         const navigateUrl = await invokeAsync(
             getAuthCodeRequestUrl,
@@ -254,14 +255,6 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.performanceClient
         );
 
-        // Create silent handler
-        const interactionHandler = new InteractionHandler(
-            authClient,
-            this.browserStorage,
-            authCodeRequest,
-            this.logger,
-            this.performanceClient
-        );
         // Get the frame handle for the silent request
         const msalFrame = await invokeAsync(
             initiateAuthRequest,
@@ -342,6 +335,19 @@ export class SilentIframeClient extends StandardInteractionClient {
                 prompt: silentRequest.prompt || PromptValue.NONE,
             });
         }
+        const authCodeRequest: CommonAuthorizationCodeRequest = {
+            ...silentRequest,
+            code: serverParams.code || "",
+            codeVerifier: pkceCodes.verifier,
+        };
+        // Create silent handler
+        const interactionHandler = new InteractionHandler(
+            authClient,
+            this.browserStorage,
+            authCodeRequest,
+            this.logger,
+            this.performanceClient
+        );
 
         // Handle response from hash string
         return invokeAsync(

@@ -44,43 +44,6 @@ import { initializeBaseRequest } from "../request/RequestHelpers.js";
  */
 export abstract class StandardInteractionClient extends BaseInteractionClient {
     /**
-     * Generates an auth code request tied to the url request.
-     * @param request
-     * @param pkceCodes
-     */
-    protected async initializeAuthorizationCodeRequest(
-        request: AuthorizationUrlRequest,
-        pkceCodes?: PkceCodes
-    ): Promise<CommonAuthorizationCodeRequest> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-            this.correlationId
-        );
-
-        const generatedPkceParams: PkceCodes =
-            pkceCodes ||
-            (await invokeAsync(
-                generatePkceCodes,
-                PerformanceEvents.GeneratePkceCodes,
-                this.logger,
-                this.performanceClient,
-                this.correlationId
-            )(this.performanceClient, this.logger, this.correlationId));
-
-        const authCodeRequest: CommonAuthorizationCodeRequest = {
-            ...request,
-            redirectUri: request.redirectUri,
-            code: Constants.EMPTY_STRING,
-            codeVerifier: generatedPkceParams.verifier,
-        };
-
-        request.codeChallenge = generatedPkceParams.challenge;
-        request.codeChallengeMethod = Constants.S256_CODE_CHALLENGE_METHOD;
-
-        return authCodeRequest;
-    }
-
-    /**
      * Initializer for the logout request.
      * @param logoutRequest
      */

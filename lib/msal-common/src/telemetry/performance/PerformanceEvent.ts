@@ -214,8 +214,6 @@ export const PerformanceEvents = {
         "standardInteractionClientGetClientConfiguration",
     StandardInteractionClientInitializeAuthorizationRequest:
         "standardInteractionClientInitializeAuthorizationRequest",
-    StandardInteractionClientInitializeAuthorizationCodeRequest:
-        "standardInteractionClientInitializeAuthorizationCodeRequest",
 
     /**
      * getAuthCodeUrl API (msal-browser and msal-node).
@@ -432,10 +430,6 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         [
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             "StdIntClientInitAuthReq",
-        ],
-        [
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-            "StdIntClientInitAuthCodeReq",
         ],
 
         [PerformanceEvents.GetAuthCodeUrl, "GetAuthCodeUrl"],

@@ -49,6 +49,7 @@ import { EventError } from "../event/EventMessage.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
+import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 
 export type PopupParams = {
     popup?: Window | null;
@@ -218,6 +219,17 @@ export class PopupClient extends StandardInteractionClient {
             this.correlationId
         )(request, InteractionType.Popup);
 
+        if (!pkceCodes) {
+            pkceCodes = await invokeAsync(
+                generatePkceCodes,
+                PerformanceEvents.GeneratePkceCodes,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(this.performanceClient, this.logger, this.correlationId);
+        }
+        validRequest.codeChallenge = pkceCodes.challenge;
+
         /*
          * Skip pre-connect for async popups to reduce time between user interaction and popup window creation to avoid
          * popup from being blocked by browsers with shorter popup timers
@@ -227,16 +239,6 @@ export class PopupClient extends StandardInteractionClient {
         }
 
         try {
-            // Create auth code request and generate PKCE params
-            const authCodeRequest: CommonAuthorizationCodeRequest =
-                await invokeAsync(
-                    this.initializeAuthorizationCodeRequest.bind(this),
-                    PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-                    this.logger,
-                    this.performanceClient,
-                    this.correlationId
-                )(validRequest, pkceCodes);
-
             // Initialize the client
             const authClient: AuthorizationCodeClient = await invokeAsync(
                 this.createAuthCodeClient.bind(this),
@@ -281,15 +283,6 @@ export class PopupClient extends StandardInteractionClient {
                 this.performanceClient
             );
 
-            // Create popup interaction handler.
-            const interactionHandler = new InteractionHandler(
-                authClient,
-                this.browserStorage,
-                authCodeRequest,
-                this.logger,
-                this.performanceClient
-            );
-
             // Show the UI once the url has been created. Get the window handle for the popup.
             const popupWindow: Window = this.initiateAuthRequest(
                 navigateUrl,
@@ -323,7 +316,7 @@ export class PopupClient extends StandardInteractionClient {
             ThrottlingUtils.removeThrottle(
                 this.browserStorage,
                 this.config.auth.clientId,
-                authCodeRequest
+                validRequest
             );
 
             if (serverParams.accountId) {
@@ -368,6 +361,19 @@ export class PopupClient extends StandardInteractionClient {
                 });
             }
 
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                ...validRequest,
+                code: serverParams.code || "",
+                codeVerifier: pkceCodes.verifier,
+            };
+            // Create popup interaction handler.
+            const interactionHandler = new InteractionHandler(
+                authClient,
+                this.browserStorage,
+                authCodeRequest,
+                this.logger,
+                this.performanceClient
+            );
             // Handle response from hash string.
             const result = await interactionHandler.handleCodeResponse(
                 serverParams,
