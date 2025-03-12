@@ -17,7 +17,8 @@ import {
     PopTokenGenerator,
     ProtocolMode,
     RequestParameterBuilder,
-    OAuthResponseType
+    OAuthResponseType,
+    Constants,
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserConstants } from "../utils/BrowserConstants.js";
@@ -112,25 +113,25 @@ export async function getAuthCodeRequestUrl(
     logger: Logger,
     performanceClient: IPerformanceClient
 ): Promise<string> {
-    if (!request.codeChallenge || !request.codeChallengeMethod) {
+    if (!request.codeChallenge) {
         throw createClientConfigurationError(
             ClientConfigurationErrorCodes.pkceParamsMissing
         );
     }
 
-    const parameters = await getStandardParameters(
-        config,
-        authority,
-        request,
+    const parameters = await invokeAsync(
+        getStandardParameters,
+        PerformanceEvents.GetStandardParams,
         logger,
-        performanceClient
-    );
+        performanceClient,
+        request.correlationId
+    )(config, authority, request, logger, performanceClient);
     RequestParameterBuilder.addResponseType(parameters, OAuthResponseType.CODE);
 
     RequestParameterBuilder.addCodeChallengeParams(
         parameters,
         request.codeChallenge,
-        request.codeChallengeMethod
+        Constants.S256_CODE_CHALLENGE_METHOD
     );
 
     return AuthorizeProtocol.getAuthorizeUrl(authority, parameters);

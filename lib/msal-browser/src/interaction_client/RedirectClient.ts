@@ -49,6 +49,7 @@ import { EventError } from "../event/EventMessage.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
+import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -108,6 +109,15 @@ export class RedirectClient extends StandardInteractionClient {
             this.correlationId
         )(request, InteractionType.Redirect);
 
+        const pkceCodes = await invokeAsync(
+            generatePkceCodes,
+            PerformanceEvents.GeneratePkceCodes,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(this.performanceClient, this.logger, this.correlationId);
+        validRequest.codeChallenge = pkceCodes.challenge;
+
         this.browserStorage.updateCacheEntries(
             validRequest.state,
             validRequest.nonce,
@@ -134,16 +144,6 @@ export class RedirectClient extends StandardInteractionClient {
         };
 
         try {
-            // Create auth code request and generate PKCE params
-            const authCodeRequest: CommonAuthorizationCodeRequest =
-                await invokeAsync(
-                    this.initializeAuthorizationCodeRequest.bind(this),
-                    PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-                    this.logger,
-                    this.performanceClient,
-                    this.correlationId
-                )(validRequest);
-
             // Initialize the client
             const authClient: AuthorizationCodeClient = await invokeAsync(
                 this.createAuthCodeClient.bind(this),
@@ -159,6 +159,11 @@ export class RedirectClient extends StandardInteractionClient {
                 account: validRequest.account,
             });
 
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                ...validRequest,
+                code: "", // Will get filled in after the redirect
+                codeVerifier: pkceCodes.verifier,
+            };
             // Create redirect interaction handler.
             const interactionHandler = new RedirectHandler(
                 authClient,
@@ -169,7 +174,13 @@ export class RedirectClient extends StandardInteractionClient {
             );
 
             // Create acquire token url.
-            const navigateUrl = await getAuthCodeRequestUrl(
+            const navigateUrl = await invokeAsync(
+                getAuthCodeRequestUrl,
+                PerformanceEvents.GetAuthCodeUrl,
+                this.logger,
+                this.performanceClient,
+                validRequest.correlationId
+            )(
                 this.config,
                 authClient.authority,
                 {
