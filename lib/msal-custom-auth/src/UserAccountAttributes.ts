@@ -5,9 +5,6 @@
 
 import { InvalidAttributeErrorCode, UserAccountAttributeError } from "./core/error/UserAccountAttributeError.js";
 
-/**
- * Represents the attributes of a user account.
- */
 export class UserAccountAttributes {
     private attributes: Record<string, string>;
 

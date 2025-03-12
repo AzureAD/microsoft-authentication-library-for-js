@@ -19,6 +19,7 @@ export class SignUpResendCodeResult extends AuthFlowResultBase<
     constructor(state?: SignUpCodeRequired) {
         super(state);
     }
+
     static createWithError(error: unknown): SignUpResendCodeResult {
         const result = new SignUpResendCodeResult();
         result.error = new SignUpResendCodeError(SignUpResendCodeResult.createErrorData(error));
