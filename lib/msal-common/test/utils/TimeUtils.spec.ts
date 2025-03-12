@@ -4,7 +4,7 @@ describe("TimeUtils.ts Class Unit Tests", () => {
     beforeAll(() => {
         jest.useFakeTimers();
     });
-    
+
     afterAll(() => {
         jest.useRealTimers();
     });
