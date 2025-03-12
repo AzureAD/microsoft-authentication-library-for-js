@@ -1,0 +1,70 @@
+<div class="sign-in-container">
+    <div class="sign-in-card">
+        <h2>Sign In</h2>
+
+        @if (!showOtpForm) {
+        <form [formGroup]="signInForm" (ngSubmit)="onSubmit()">
+            <div class="form-group">
+                <label for="username">Email</label>
+                <input
+                    type="email"
+                    id="username"
+                    formControlName="username"
+                    placeholder="Enter your email"
+                    [ngClass]="{
+                        invalid: signInForm.get('username')?.invalid && signInForm.get('username')?.touched
+                    }"
+                />
+                @if (signInForm.get('username')?.invalid && signInForm.get('username')?.touched) {
+                <div class="error-message">
+                    @if (signInForm.get('username')?.errors?.['required']) {
+                    <span>Email is required</span>
+                    } @if (signInForm.get('username')?.errors?.['email']) {
+                    <span>Please enter a valid email</span>
+                    }
+                </div>
+                }
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    formControlName="password"
+                    placeholder="Enter your password"
+                    [ngClass]="{
+                        invalid: signInForm.get('password')?.invalid && signInForm.get('password')?.touched
+                    }"
+                />
+                @if (signInForm.get('password')?.invalid && signInForm.get('password')?.touched) {
+                <div class="error-message">
+                    @if (signInForm.get('password')?.errors?.['required']) {
+                    <span>Password is required</span>
+                    }
+                </div>
+                }
+            </div>
+
+            @if (errorMessage) {
+            <div class="error-message">
+                {{ errorMessage }}
+            </div>
+            }
+
+            <button type="submit" [disabled]="signInForm.invalid || isLoading" class="sign-in-button">
+                @if (!isLoading) {
+                <span>Sign In</span>
+                } @else {
+                <span>Signing In...</span>
+                }
+            </button>
+        </form>
+        } @else {
+        <!-- OTP form will be implemented in a separate route -->
+        <div class="otp-message">
+            <p>Verification required. Please check your email or phone for a verification code.</p>
+        </div>
+        }
+    </div>
+</div>

@@ -113,7 +113,7 @@ export class SignInApiClient extends BaseApiClient {
         correlationId: string,
     ): Promise<SignInTokenResponse> {
         // The client_info parameter is required for MSAL to return the uid and utid in the response.
-        requestData.client_info = true;
+        requestData["client_info"] = true;
 
         const result = await this.request<SignInTokenResponse>(
             CustomAuthApiEndpoint.SIGNIN_TOKEN,

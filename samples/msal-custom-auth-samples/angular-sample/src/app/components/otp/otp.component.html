@@ -1,0 +1,46 @@
+<div class="otp-container">
+    <h3>Verification Code Required</h3>
+    <p class="otp-description">Please enter the verification code that was sent to your email or phone.</p>
+
+    <form [formGroup]="otpForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+            <label for="code">Verification Code</label>
+            <input
+                type="text"
+                id="code"
+                formControlName="code"
+                placeholder="Enter your verification code"
+                [ngClass]="{
+                    invalid: otpForm.get('code')?.invalid && otpForm.get('code')?.touched
+                }"
+                [attr.maxlength]="codeLength"
+                autocomplete="one-time-code"
+            />
+            @if (otpForm.get('code')?.invalid && otpForm.get('code')?.touched) {
+            <div class="error-message">
+                @if (otpForm.get('code')?.errors?.['required']) {
+                <span>Verification code is required</span>
+                } @if (otpForm.get('code')?.errors?.['minlength'] || otpForm.get('code')?.errors?.['maxlength']) {
+                <span>Code must be {{ codeLength }} digits</span>
+                } @if (otpForm.get('code')?.errors?.['pattern']) {
+                <span>Code must contain only numbers</span>
+                }
+            </div>
+            }
+        </div>
+
+        @if (errorMessage) {
+        <div class="error-message">
+            {{ errorMessage }}
+        </div>
+        }
+
+        <button type="submit" [disabled]="otpForm.invalid || isLoading" class="submit-button">
+            @if (!isLoading) {
+            <span>Verify</span>
+            } @else {
+            <span>Verifying...</span>
+            }
+        </button>
+    </form>
+</div>

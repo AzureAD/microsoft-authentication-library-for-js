@@ -92,3 +92,5 @@ export { UserAlreadySignedInError } from "./core/error/UserAlreadySignedInError.
 
 // Components from msal_browser
 export { LogLevel } from "@azure/msal-browser";
+
+export { SignInState } from "./core/auth_flow/AuthFlowStateBase.js";
