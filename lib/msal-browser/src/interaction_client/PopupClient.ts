@@ -219,16 +219,16 @@ export class PopupClient extends StandardInteractionClient {
             this.correlationId
         )(request, InteractionType.Popup);
 
-        if (!pkceCodes) {
-            pkceCodes = await invokeAsync(
+        const pkce =
+            pkceCodes ||
+            (await invokeAsync(
                 generatePkceCodes,
                 PerformanceEvents.GeneratePkceCodes,
                 this.logger,
                 this.performanceClient,
                 this.correlationId
-            )(this.performanceClient, this.logger, this.correlationId);
-        }
-        validRequest.codeChallenge = pkceCodes.challenge;
+            )(this.performanceClient, this.logger, this.correlationId));
+        validRequest.codeChallenge = pkce.challenge;
 
         /*
          * Skip pre-connect for async popups to reduce time between user interaction and popup window creation to avoid
@@ -370,7 +370,7 @@ export class PopupClient extends StandardInteractionClient {
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 ...validRequest,
                 code: serverParams.code || "",
-                codeVerifier: pkceCodes.verifier,
+                codeVerifier: pkce.verifier,
             };
             // Create popup interaction handler.
             const interactionHandler = new InteractionHandler(
