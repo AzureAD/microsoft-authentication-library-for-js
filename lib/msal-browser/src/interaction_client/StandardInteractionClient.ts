@@ -5,7 +5,6 @@
 
 import {
     ServerTelemetryManager,
-    CommonAuthorizationCodeRequest,
     Constants,
     AuthorizationCodeClient,
     ClientConfiguration,
@@ -20,7 +19,6 @@ import {
     invokeAsync,
     BaseAuthRequest,
     StringDict,
-    PkceCodes,
 } from "@azure/msal-common/browser";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
@@ -35,7 +33,6 @@ import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
-import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { initializeBaseRequest } from "../request/RequestHelpers.js";
 
