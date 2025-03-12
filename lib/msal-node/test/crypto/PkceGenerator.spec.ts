@@ -1,5 +1,10 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { PkceCodes } from "@azure/msal-common";
-import { PkceGenerator } from "./../../src/crypto/PkceGenerator";
+import { PkceGenerator } from "./../../src/crypto/PkceGenerator.js";
 
 describe("PkceGenerator", () => {
     const NUM_TESTS = 100;

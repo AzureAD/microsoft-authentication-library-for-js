@@ -1,8 +1,75 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Thu, 03 Oct 2024 00:40:42 GMT and should not be manually modified.
+<!-- This log was last generated on Tue, 11 Mar 2025 18:51:25 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.0.6
+
+Tue, 11 Mar 2025 18:51:25 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.7.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+
+## 3.0.5
+
+Tue, 18 Feb 2025 18:51:41 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.3.0
+- Bump eslint-config-msal to v0.0.0
+
+## 3.0.4
+
+Wed, 05 Feb 2025 00:15:19 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.2.0
+- Bump eslint-config-msal to v0.0.0
+
+## 3.0.3
+
+Mon, 03 Feb 2025 17:48:09 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.1.0
+- Bump eslint-config-msal to v0.0.0
+
+## 3.0.2
+
+Wed, 22 Jan 2025 21:45:31 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.0.2
+- Bump eslint-config-msal to v0.0.0
+
+## 3.0.1
+
+Wed, 15 Jan 2025 05:05:17 GMT
+
+### Breaking Changes
+
+- Update msal-browser peer dependency to include v4 (thomas.norling@microsoft.com)
+- Rename `native` to `platformBroker` in public API and docs (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-browser to v4.0.1
+
+- Please see the msal-browser [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/v3-migration.md) for more details on what's changed in v4.
+
+## 2.2.0
+
+Tue, 05 Nov 2024 18:58:46 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to v3.27.0
+- Bump eslint-config-msal to v0.0.0
 
 ## 2.1.1
 

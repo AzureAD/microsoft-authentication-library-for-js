@@ -16,23 +16,26 @@ import {
     MANAGED_IDENTITY_RESOURCE_ID,
     TEST_TOKENS,
     TEST_TOKEN_LIFETIMES,
-} from "./StringConstants";
-import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse";
-import { ManagedIdentityRequestParams } from "../../src";
-import { ManagedIdentityConfiguration } from "../../src/config/Configuration";
+} from "./StringConstants.js";
+import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse.js";
+import { ManagedIdentityRequestParams } from "../../src/request/ManagedIdentityRequestParams.js";
+import { ManagedIdentityConfiguration } from "../../src/config/Configuration.js";
 
 const EMPTY_HEADERS: Record<string, string> = {};
 
 export class ManagedIdentityNetworkClient implements INetworkModule {
     private clientId: string;
-    private resource: string | undefined;
 
     constructor(clientId: string) {
         this.clientId = clientId;
     }
 
-    // App Service, Azure Arc, Imds, Service Fabric
-    sendGetRequestAsync<T>(): Promise<NetworkResponse<T>> {
+    /**
+     * Generates a successful response body for managed identity token requests.
+     * @param iso8601Date - Optional ISO 8601 date string for token expiration.
+     * @returns A ManagedIdentityTokenResponse object containing the access token and other details.
+     */
+    getSuccessResponse<T>(iso8601Date?: string): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve({
                 status: HttpStatus.SUCCESS,
@@ -40,8 +43,9 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
                     access_token: TEST_TOKENS.ACCESS_TOKEN,
                     client_id: this.clientId,
                     expires_on:
+                        iso8601Date ||
                         TimeUtils.nowSeconds() +
-                        TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 3, // 3 hours in the future
+                            TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 3, // 3 hours in the future
                     resource: MANAGED_IDENTITY_RESOURCE.replace(
                         "/.default",
                         ""
@@ -53,25 +57,14 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
         });
     }
 
+    // App Service, Azure Arc, Imds, Service Fabric
+    sendGetRequestAsync<T>(): Promise<NetworkResponse<T>> {
+        return this.getSuccessResponse();
+    }
+
     // Cloud Shell
     sendPostRequestAsync<T>(): Promise<NetworkResponse<T>> {
-        return new Promise<NetworkResponse<T>>((resolve, _reject) => {
-            resolve({
-                status: HttpStatus.SUCCESS,
-                body: {
-                    access_token: TEST_TOKENS.ACCESS_TOKEN,
-                    client_id: this.clientId,
-                    expires_on:
-                        TimeUtils.nowSeconds() +
-                        TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 3, // 3 hours in the future
-                    resource: (
-                        this.resource || MANAGED_IDENTITY_RESOURCE
-                    ).replace("/.default", ""),
-                    token_type: AuthenticationScheme.BEARER,
-                } as ManagedIdentityTokenResponse,
-                headers: EMPTY_HEADERS,
-            } as NetworkResponse<T>);
-        });
+        return this.getSuccessResponse();
     }
 }
 
@@ -92,8 +85,11 @@ export class ManagedIdentityNetworkErrorClient implements INetworkModule {
         this.status = status || HttpStatus.SERVER_ERROR;
     }
 
-    // App Service, Azure Arc, Imds, Service Fabric
-    sendGetRequestAsync<T>(): Promise<NetworkResponse<T>> {
+    /**
+     * Generates an error response body for managed identity token requests.
+     * @returns A NetworkResponse object containing the error details.
+     */
+    getErrorResponse<T>(): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve({
                 status: this.status,
@@ -103,15 +99,14 @@ export class ManagedIdentityNetworkErrorClient implements INetworkModule {
         });
     }
 
+    // App Service, Azure Arc, Imds, Service Fabric
+    sendGetRequestAsync<T>(): Promise<NetworkResponse<T>> {
+        return this.getErrorResponse();
+    }
+
     // Cloud Shell
     sendPostRequestAsync<T>(): Promise<NetworkResponse<T>> {
-        return new Promise<NetworkResponse<T>>((resolve, _reject) => {
-            resolve({
-                status: this.status,
-                body: this.errorResponse,
-                headers: EMPTY_HEADERS,
-            } as NetworkResponse<T>);
-        });
+        return this.getErrorResponse();
     }
 }
 
@@ -128,6 +123,15 @@ export const userAssignedClientIdConfig: ManagedIdentityConfiguration = {
     },
     managedIdentityIdParams: {
         userAssignedClientId: MANAGED_IDENTITY_RESOURCE_ID,
+    },
+};
+
+export const userAssignedResourceIdConfig: ManagedIdentityConfiguration = {
+    system: {
+        networkClient,
+    },
+    managedIdentityIdParams: {
+        userAssignedResourceId: MANAGED_IDENTITY_RESOURCE_ID,
     },
 };
 

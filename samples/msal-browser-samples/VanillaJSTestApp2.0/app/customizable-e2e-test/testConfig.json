@@ -1,1 +1,1 @@
-{"msalConfig":{"auth":{"clientId":"b5c2e510-4a17-4feb-b219-e55aa5b74144","authority":"https://login.microsoftonline.com/common"},"cache":{"cacheLocation":"memoryStorage","storeAuthStateInCookie":true},"system":{"allowNativeBroker":false}},"request":{"scopes":["User.Read"]}}
+{"msalConfig":{"auth":{"clientId":"b5c2e510-4a17-4feb-b219-e55aa5b74144","authority":"https://login.microsoftonline.com/common"},"cache":{"cacheLocation":"memoryStorage","storeAuthStateInCookie":true},"system":{"allowPlatformBroker":false}},"request":{"scopes":["User.Read"]}}

@@ -32,11 +32,13 @@ import {
     UrlString,
     ClientAssertion,
     getClientAssertion,
+    UrlUtils,
 } from "@azure/msal-common/node";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 
 /**
  * On-Behalf-Of client
+ * @public
  */
 export class OnBehalfOfClient extends BaseClient {
     private scopeSet: ScopeSet;
@@ -48,7 +50,7 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * Public API to acquire tokens with on behalf of flow
-     * @param request
+     * @param request - developer provided CommonOnBehalfOfRequest
      */
     public async acquireToken(
         request: CommonOnBehalfOfRequest
@@ -86,7 +88,7 @@ export class OnBehalfOfClient extends BaseClient {
      * Find accessToken based on user assertion and account info in the cache
      * Please note we are not yet supported OBO tokens refreshed with long lived RT. User will have to send a new assertion if the current access token expires
      * This is to prevent security issues when the assertion changes over time, however, longlived RT helps retaining the session
-     * @param request
+     * @param request - developer provided CommonOnBehalfOfRequest
      */
     private async getCachedAuthenticationResult(
         request: CommonOnBehalfOfRequest
@@ -172,7 +174,7 @@ export class OnBehalfOfClient extends BaseClient {
     /**
      * read idtoken from cache, this is a specific implementation for OBO as the requirements differ from a generic lookup in the cacheManager
      * Certain use cases of OBO flow do not expect an idToken in the cache/or from the service
-     * @param atHomeAccountId {string}
+     * @param atHomeAccountId - account id
      */
     private readIdTokenFromCacheForOBO(
         atHomeAccountId: string
@@ -198,9 +200,8 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * Fetches the cached access token based on incoming assertion
-     * @param clientId
-     * @param request
-     * @param userAssertionHash
+     * @param clientId - client id
+     * @param request - developer provided CommonOnBehalfOfRequest
      */
     private readAccessTokenFromCacheForOBO(
         clientId: string,
@@ -246,8 +247,8 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * Make a network call to the server requesting credentials
-     * @param request
-     * @param authority
+     * @param request - developer provided CommonOnBehalfOfRequest
+     * @param authority - authority object
      */
     private async executeTokenRequest(
         request: CommonOnBehalfOfRequest,
@@ -307,42 +308,59 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * generate a server request in accepable format
-     * @param request
+     * @param request - developer provided CommonOnBehalfOfRequest
      */
     private async createTokenRequestBody(
         request: CommonOnBehalfOfRequest
     ): Promise<string> {
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameters = new Map<string, string>();
 
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
+        RequestParameterBuilder.addClientId(
+            parameters,
+            this.config.authOptions.clientId
+        );
 
-        parameterBuilder.addScopes(request.scopes);
+        RequestParameterBuilder.addScopes(parameters, request.scopes);
 
-        parameterBuilder.addGrantType(GrantType.JWT_BEARER);
+        RequestParameterBuilder.addGrantType(parameters, GrantType.JWT_BEARER);
 
-        parameterBuilder.addClientInfo();
+        RequestParameterBuilder.addClientInfo(parameters);
 
-        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-        parameterBuilder.addApplicationTelemetry(
+        RequestParameterBuilder.addLibraryInfo(
+            parameters,
+            this.config.libraryInfo
+        );
+        RequestParameterBuilder.addApplicationTelemetry(
+            parameters,
             this.config.telemetry.application
         );
-        parameterBuilder.addThrottling();
+        RequestParameterBuilder.addThrottling(parameters);
 
         if (this.serverTelemetryManager) {
-            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+            RequestParameterBuilder.addServerTelemetry(
+                parameters,
+                this.serverTelemetryManager
+            );
         }
 
         const correlationId =
             request.correlationId ||
             this.config.cryptoInterface.createNewGuid();
-        parameterBuilder.addCorrelationId(correlationId);
+        RequestParameterBuilder.addCorrelationId(parameters, correlationId);
 
-        parameterBuilder.addRequestTokenUse(AADServerParamKeys.ON_BEHALF_OF);
+        RequestParameterBuilder.addRequestTokenUse(
+            parameters,
+            AADServerParamKeys.ON_BEHALF_OF
+        );
 
-        parameterBuilder.addOboAssertion(request.oboAssertion);
+        RequestParameterBuilder.addOboAssertion(
+            parameters,
+            request.oboAssertion
+        );
 
         if (this.config.clientCredentials.clientSecret) {
-            parameterBuilder.addClientSecret(
+            RequestParameterBuilder.addClientSecret(
+                parameters,
                 this.config.clientCredentials.clientSecret
             );
         }
@@ -351,14 +369,16 @@ export class OnBehalfOfClient extends BaseClient {
             this.config.clientCredentials.clientAssertion;
 
         if (clientAssertion) {
-            parameterBuilder.addClientAssertion(
+            RequestParameterBuilder.addClientAssertion(
+                parameters,
                 await getClientAssertion(
                     clientAssertion.assertion,
                     this.config.authOptions.clientId,
                     request.resourceRequestUri
                 )
             );
-            parameterBuilder.addClientAssertionType(
+            RequestParameterBuilder.addClientAssertionType(
+                parameters,
                 clientAssertion.assertionType
             );
         }
@@ -368,12 +388,13 @@ export class OnBehalfOfClient extends BaseClient {
             (this.config.authOptions.clientCapabilities &&
                 this.config.authOptions.clientCapabilities.length > 0)
         ) {
-            parameterBuilder.addClaims(
+            RequestParameterBuilder.addClaims(
+                parameters,
                 request.claims,
                 this.config.authOptions.clientCapabilities
             );
         }
 
-        return parameterBuilder.createQueryString();
+        return UrlUtils.mapToQueryString(parameters);
     }
 }

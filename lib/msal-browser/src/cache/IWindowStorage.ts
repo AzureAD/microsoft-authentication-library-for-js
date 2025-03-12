@@ -5,10 +5,19 @@
 
 export interface IWindowStorage<T> {
     /**
+     * Async initializer
+     */
+    initialize(correlationId: string): Promise<void>;
+    /**
      * Get the item from the window storage object matching the given key.
      * @param key
      */
     getItem(key: string): T | null;
+
+    /**
+     * Getter for sensitive data that may contain PII.
+     */
+    getUserData(key: string): T | null;
 
     /**
      * Sets the item in the window storage object with the given key.
@@ -16,6 +25,11 @@ export interface IWindowStorage<T> {
      * @param value
      */
     setItem(key: string, value: T): void;
+
+    /**
+     * Setter for sensitive data that may contain PII.
+     */
+    setUserData(key: string, value: T, correlationId: string): Promise<void>;
 
     /**
      * Removes the item in the window storage object matching the given key.

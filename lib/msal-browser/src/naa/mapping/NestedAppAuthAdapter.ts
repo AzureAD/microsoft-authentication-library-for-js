@@ -29,6 +29,7 @@ import {
     AccessTokenEntity,
     TenantProfile,
     buildTenantProfile,
+    TimeUtils,
 } from "@azure/msal-common/browser";
 import { isBridgeError } from "../BridgeError.js";
 import { BridgeStatusCode } from "../BridgeStatusCode.js";
@@ -72,8 +73,9 @@ export class NestedAppAuthAdapter {
             );
         }
 
-        const requestBuilder = new RequestParameterBuilder();
-        const claims = requestBuilder.addClientCapabilitiesToClaims(
+        const correlationId =
+            request.correlationId || this.crypto.createNewGuid();
+        const claims = RequestParameterBuilder.addClientCapabilitiesToClaims(
             request.claims,
             this.clientCapabilities
         );
@@ -83,10 +85,7 @@ export class NestedAppAuthAdapter {
             clientId: this.clientId,
             authority: request.authority,
             scope: scopes.join(" "),
-            correlationId:
-                request.correlationId !== undefined
-                    ? request.correlationId
-                    : this.crypto.createNewGuid(),
+            correlationId,
             claims: !StringUtils.isEmptyObj(claims) ? claims : undefined,
             state: request.state,
             authenticationScheme:
@@ -106,8 +105,9 @@ export class NestedAppAuthAdapter {
             throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken);
         }
 
-        const expiresOn = new Date(
-            (reqTimestamp + (response.token.expires_in || 0)) * 1000
+        // Request timestamp and AuthResult expires_in are in seconds, converting to Date for AuthenticationResult
+        const expiresOn = TimeUtils.toDateFromSeconds(
+            reqTimestamp + (response.token.expires_in || 0)
         );
         const idTokenClaims = AuthToken.extractTokenClaims(
             response.token.id_token,
@@ -305,13 +305,13 @@ export class NestedAppAuthAdapter {
             idTokenClaims: idTokenClaims || {},
             accessToken: accessToken.secret,
             fromCache: true,
-            expiresOn: new Date(Number(accessToken.expiresOn) * 1000),
+            expiresOn: TimeUtils.toDateFromSeconds(accessToken.expiresOn),
+            extExpiresOn: TimeUtils.toDateFromSeconds(
+                accessToken.extendedExpiresOn
+            ),
             tokenType:
                 request.authenticationScheme || AuthenticationScheme.BEARER,
             correlationId,
-            extExpiresOn: new Date(
-                Number(accessToken.extendedExpiresOn) * 1000
-            ),
             state: request.state,
         };
 

@@ -36,6 +36,8 @@ import {
     ClientAssertion as ClientAssertionType,
     getClientAssertion,
     ClientAssertionCallback,
+    CacheOutcome,
+    ClientAuthError,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -133,6 +135,7 @@ export abstract class ClientApplication {
         const authClientConfig = await this.buildOauthClientConfiguration(
             validRequest.authority,
             validRequest.correlationId,
+            validRequest.redirectUri,
             undefined,
             undefined,
             request.azureCloudOptions
@@ -180,6 +183,7 @@ export abstract class ClientApplication {
             const authClientConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
                 validRequest.correlationId,
+                validRequest.redirectUri,
                 serverTelemetryManager,
                 undefined,
                 request.azureCloudOptions
@@ -233,6 +237,7 @@ export abstract class ClientApplication {
                 await this.buildOauthClientConfiguration(
                     validRequest.authority,
                     validRequest.correlationId,
+                    validRequest.redirectUri || "",
                     serverTelemetryManager,
                     undefined,
                     request.azureCloudOptions
@@ -276,30 +281,87 @@ export abstract class ClientApplication {
             validRequest.correlationId,
             validRequest.forceRefresh
         );
+
         try {
-            const silentFlowClientConfig =
+            const clientConfiguration =
                 await this.buildOauthClientConfiguration(
                     validRequest.authority,
                     validRequest.correlationId,
+                    validRequest.redirectUri || "",
                     serverTelemetryManager,
                     undefined,
-                    request.azureCloudOptions
+                    validRequest.azureCloudOptions
                 );
-            const silentFlowClient = new SilentFlowClient(
-                silentFlowClientConfig
-            );
+            const silentFlowClient = new SilentFlowClient(clientConfiguration);
             this.logger.verbose(
                 "Silent flow client created",
                 validRequest.correlationId
             );
-            return await silentFlowClient.acquireToken(validRequest);
-        } catch (e) {
-            if (e instanceof AuthError) {
-                e.setCorrelationId(validRequest.correlationId);
+            try {
+                // always overwrite the in-memory cache with the persistence cache (if it exists) before a cache lookup
+                await this.tokenCache.overwriteCache();
+                return await this.acquireCachedTokenSilent(
+                    validRequest,
+                    silentFlowClient,
+                    clientConfiguration
+                );
+            } catch (error) {
+                if (
+                    error instanceof ClientAuthError &&
+                    error.errorCode ===
+                        ClientAuthErrorCodes.tokenRefreshRequired
+                ) {
+                    const refreshTokenClient = new RefreshTokenClient(
+                        clientConfiguration
+                    );
+                    return refreshTokenClient.acquireTokenByRefreshToken(
+                        validRequest
+                    );
+                }
+                throw error;
             }
-            serverTelemetryManager.cacheFailedRequest(e as AuthError);
-            throw e;
+        } catch (error) {
+            if (error instanceof AuthError) {
+                error.setCorrelationId(validRequest.correlationId);
+            }
+            serverTelemetryManager.cacheFailedRequest(error);
+            throw error;
         }
+    }
+
+    private async acquireCachedTokenSilent(
+        validRequest: CommonSilentFlowRequest,
+        silentFlowClient: SilentFlowClient,
+        clientConfiguration: ClientConfiguration
+    ): Promise<AuthenticationResult> {
+        const [authResponse, cacheOutcome] =
+            await silentFlowClient.acquireCachedToken({
+                ...validRequest,
+                scopes: validRequest.scopes?.length
+                    ? validRequest.scopes
+                    : [...OIDC_DEFAULT_SCOPES],
+            });
+
+        if (cacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
+            this.logger.info(
+                "ClientApplication:acquireCachedTokenSilent - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
+            );
+            // refresh the access token in the background
+            const refreshTokenClient = new RefreshTokenClient(
+                clientConfiguration
+            );
+
+            try {
+                await refreshTokenClient.acquireTokenByRefreshToken(
+                    validRequest
+                );
+            } catch {
+                // do nothing, this is running in the background and no action is to be taken upon success or failure
+            }
+        }
+
+        // return the cached token
+        return authResponse;
     }
 
     /**
@@ -311,6 +373,7 @@ export abstract class ClientApplication {
      * https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-authentication-flows#usernamepassword
      *
      * @param request - UsenamePasswordRequest
+     * @deprecated - Use a more secure flow instead
      */
     async acquireTokenByUsernamePassword(
         request: UsernamePasswordRequest
@@ -332,6 +395,7 @@ export abstract class ClientApplication {
                 await this.buildOauthClientConfiguration(
                     validRequest.authority,
                     validRequest.correlationId,
+                    "",
                     serverTelemetryManager,
                     undefined,
                     request.azureCloudOptions
@@ -367,8 +431,8 @@ export abstract class ClientApplication {
      * This API is provided for scenarios where you would use OAuth2.0 state parameter to mitigate against
      * CSRF attacks.
      * For more information about state, visit https://datatracker.ietf.org/doc/html/rfc6819#section-3.6.
-     * @param state
-     * @param cachedState
+     * @param state - Unique GUID generated by the user that is cached by the user and sent to the server during the first leg of the flow
+     * @param cachedState - This string is sent back by the server with the authorization code
      */
     protected validateState(state: string, cachedState: string): void {
         if (!state) {
@@ -403,6 +467,7 @@ export abstract class ClientApplication {
     protected async buildOauthClientConfiguration(
         authority: string,
         requestCorrelationId: string,
+        redirectUri: string,
         serverTelemetryManager?: ServerTelemetryManager,
         azureRegionConfiguration?: AzureRegionConfiguration,
         azureCloudOptions?: AzureCloudOptions
@@ -439,6 +504,7 @@ export abstract class ClientApplication {
                 clientId: this.config.auth.clientId,
                 authority: discoveredAuthority,
                 clientCapabilities: this.config.auth.clientCapabilities,
+                redirectUri,
             },
             loggerOptions: {
                 logLevel: this.config.system.loggerOptions.logLevel,
@@ -612,6 +678,6 @@ export abstract class ClientApplication {
      * Clear the cache
      */
     clearCache(): void {
-        void this.storage.clear();
+        this.storage.clear();
     }
 }

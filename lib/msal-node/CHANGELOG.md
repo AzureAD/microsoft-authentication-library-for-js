@@ -1,8 +1,129 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Thu, 03 Oct 2024 00:40:42 GMT and should not be manually modified.
+<!-- This log was last generated on Tue, 11 Mar 2025 18:51:25 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.3.0
+
+Tue, 11 Mar 2025 18:51:25 GMT
+
+### Minor changes
+
+- Reworked Managed Identity Retry Policy to be per-request, which is based on the Managed Identity source. #7603 (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v15.2.1
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.2.3
+
+Tue, 04 Mar 2025 23:02:15 GMT
+
+## 3.2.3
+
+Tue, 18 Feb 2025 18:51:41 GMT
+
+### Patches
+
+- Deprecate ROPC flow (shylasummers@microsoft.com)
+- Bump @azure/msal-common to v15.2.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.2.2
+
+Tue, 11 Feb 2025 16:09:10 GMT
+
+### Patches
+
+- ManagedIdentityTokenResponse's expires_in can now be accepted in ISO 8601 date format #7544 (rginsburg@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.2.1
+
+Wed, 05 Feb 2025 00:15:19 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.1.1
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.2.0
+
+Mon, 03 Feb 2025 17:48:09 GMT
+
+### Minor changes
+
+- Search in persistent cache for cached token (shylasummers@microsoft.com)
+- Bump @azure/msal-common to v15.1.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fixed some test constants and imports #7545 (rginsburg@microsoft.com)
+
+## 3.1.0
+
+Wed, 22 Jan 2025 21:45:31 GMT
+
+### Minor changes
+
+- Added Machine Learning as a Managed Identity Source #7512 (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v15.0.2
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fixed incorrect IMDS resource ID query parameter (rginsburg@microsoft.com)
+- Avoid calling class methods in their own constructors (thomas.norling@microsoft.com)
+
+## 3.0.1
+
+Wed, 15 Jan 2025 05:05:17 GMT
+
+### Breaking Changes
+
+- NodeStorage is no longer exported
+
+Please see the [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/v2-migration.md) for more details.
+
+## 2.16.2
+
+Tue, 19 Nov 2024 17:21:57 GMT
+
+### Patches
+
+- removeAccount method now clears client cache by retrieving partitionKey when accountEntities are empty (#7329) (luccarebtoledo@gmail.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 2.16.1
+
+Tue, 12 Nov 2024 15:32:46 GMT
+
+### Patches
+
+- Fixes bug where getAllAccounts always writes to the cache (shylasummers@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 2.16.0
+
+Tue, 05 Nov 2024 18:58:45 GMT
+
+### Minor changes
+
+- Add first order broker parameters #7348 (kshabelko@microsoft.com)
+- Make clear synchronous (shylasummers@microsoft.com)
+- Remove NetworkManager class (thomas.norling@microsoft.com)
+- Region auto enable on env variable #7354 (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v14.16.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 2.15.0
 

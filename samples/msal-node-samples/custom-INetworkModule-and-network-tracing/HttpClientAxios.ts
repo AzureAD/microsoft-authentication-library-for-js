@@ -19,7 +19,6 @@ enum HttpMethod {
  * This class implements the API for network requests.
  */
 export class HttpClientAxios implements INetworkModule {
-
     /**
      * Http Get request
      * @param url
@@ -35,7 +34,7 @@ export class HttpClientAxios implements INetworkModule {
             /* istanbul ignore next */
             headers: options && options.headers,
             /* istanbul ignore next */
-            validateStatus: () => true
+            validateStatus: () => true,
         };
 
         const response = await axios(request);
@@ -54,7 +53,7 @@ export class HttpClientAxios implements INetworkModule {
     async sendPostRequestAsync<T>(
         url: string,
         options?: NetworkRequestOptions,
-        cancellationToken?: number 
+        cancellationToken?: number
     ): Promise<NetworkResponse<T>> {
         const request: AxiosRequestConfig = {
             method: HttpMethod.POST,
@@ -65,7 +64,7 @@ export class HttpClientAxios implements INetworkModule {
             /* istanbul ignore next */
             headers: options && options.headers,
             /* istanbul ignore next */
-            validateStatus: () => true
+            validateStatus: () => true,
         };
 
         const response = await axios(request);

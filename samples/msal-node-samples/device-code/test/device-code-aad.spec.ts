@@ -12,7 +12,6 @@ import {
     approveRemoteConnect,
     enterCredentials,
     enterDeviceCode,
-    SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
     NodeCacheTestUtils,
     LabClient,
@@ -21,6 +20,7 @@ import {
     AzureEnvironments,
 } from "e2e-test-utils";
 import { Configuration, PublicClientApplication } from "@azure/msal-node";
+import path from "path";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
@@ -46,13 +46,13 @@ describe("Device Code AAD Prod Tests", () => {
     let username: string;
     let accountPwd: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/device-code/aad`;
+    const screenshotFolder = path.join(__dirname, "screenshots/device-code/aad");
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
         // @ts-ignore
         browser = await global.__BROWSER__;
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        createFolder(screenshotFolder);
 
         // Configure Lab API Query Parameters
         const labApiParms: LabApiQueryParams = {
@@ -81,7 +81,7 @@ describe("Device Code AAD Prod Tests", () => {
         });
 
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(5000);
         });

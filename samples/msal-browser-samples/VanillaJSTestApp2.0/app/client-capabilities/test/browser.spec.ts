@@ -16,8 +16,9 @@ import {
     LabClient,
 } from "e2e-test-utils";
 import { JWT } from "jose";
+import path from "path";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screenshots/client-capabilities");
 let sampleHomeUrl = "";
 let username = "";
 let accountPwd = "";
@@ -48,7 +49,7 @@ describe("Browser tests", function () {
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
     beforeEach(async () => {
-        context = await browser.createIncognitoBrowserContext();
+        context = await browser.createBrowserContext();
         page = await context.newPage();
         page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
@@ -98,9 +99,7 @@ describe("Browser tests", function () {
         expect(tokenStore.idTokens).toHaveLength(1);
         expect(tokenStore.accessTokens).toHaveLength(1);
         expect(tokenStore.refreshTokens).toHaveLength(1);
-        const cachedAccount = await BrowserCache.getAccountFromCache(
-            tokenStore.idTokens[0]
-        );
+        const cachedAccount = await BrowserCache.getAccountFromCache();
         const defaultCachedToken =
             await BrowserCache.accessTokenForScopesExists(
                 tokenStore.accessTokens,

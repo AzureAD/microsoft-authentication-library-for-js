@@ -12,6 +12,10 @@ import { TokenCache } from "../TokenCache.js";
 import { IPartitionManager } from "./IPartitionManager.js";
 import { ICacheClient } from "./ICacheClient.js";
 
+/**
+ * Cache plugin that serializes data to the cache and deserializes data from the cache
+ * @public
+ */
 export class DistributedCachePlugin implements ICachePlugin {
     private client: ICacheClient;
     private partitionManager: IPartitionManager;
@@ -21,6 +25,10 @@ export class DistributedCachePlugin implements ICachePlugin {
         this.partitionManager = partitionManager;
     }
 
+    /**
+     * Deserializes the cache before accessing it
+     * @param cacheContext - TokenCacheContext
+     */
     public async beforeCacheAccess(
         cacheContext: TokenCacheContext
     ): Promise<void> {
@@ -29,6 +37,10 @@ export class DistributedCachePlugin implements ICachePlugin {
         cacheContext.tokenCache.deserialize(cacheData);
     }
 
+    /**
+     * Serializes the cache after accessing it
+     * @param cacheContext - TokenCacheContext
+     */
     public async afterCacheAccess(
         cacheContext: TokenCacheContext
     ): Promise<void> {
@@ -40,17 +52,20 @@ export class DistributedCachePlugin implements ICachePlugin {
                 AccountEntity.isAccountEntity(value as object)
             );
 
+            let partitionKey: string;
             if (accountEntities.length > 0) {
                 const accountEntity = accountEntities[0] as AccountEntity;
-                const partitionKey = await this.partitionManager.extractKey(
+                partitionKey = await this.partitionManager.extractKey(
                     accountEntity
                 );
-
-                await this.client.set(
-                    partitionKey,
-                    cacheContext.tokenCache.serialize()
-                );
+            } else {
+                partitionKey = await this.partitionManager.getKey();
             }
+
+            await this.client.set(
+                partitionKey,
+                cacheContext.tokenCache.serialize()
+            );
         }
     }
 }

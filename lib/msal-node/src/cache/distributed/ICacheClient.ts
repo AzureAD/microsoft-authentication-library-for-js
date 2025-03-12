@@ -3,11 +3,15 @@
  * Licensed under the MIT License.
  */
 
+/**
+ * Interface for the cache that defines a getter and setter
+ * @public
+ */
 export interface ICacheClient {
     /**
      * Retrieve the value from the cache
      *
-     * @param key string
+     * @param key - key of item in the cache
      * @returns Promise<string>
      */
     get(key: string): Promise<string>;
@@ -15,8 +19,8 @@ export interface ICacheClient {
     /**
      * Save the required value using the provided key to cache
      *
-     * @param key string
-     * @param value string
+     * @param key - key of item in the cache
+     * @param value - value of item to be saved in the cache
      * @returns Promise<string>
      */
     set(key: string, value: string): Promise<string>;

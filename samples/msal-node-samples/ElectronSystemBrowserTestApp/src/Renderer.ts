@@ -20,5 +20,3 @@
 
 import "./app/index.tsx";
 import "./index.css";
-
-

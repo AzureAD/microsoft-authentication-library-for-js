@@ -16,19 +16,15 @@ import {
     TEST_STATE_VALUES,
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
-    calculateExpiresDate,
 } from "../utils/StringConstants.js";
 import {
     AccountInfo,
     TokenClaims,
     PromptValue,
-    CommonAuthorizationUrlRequest,
     AuthorizationCodeClient,
-    ResponseMode,
     AuthenticationScheme,
     ServerTelemetryManager,
     ProtocolUtils,
-    NetworkManager,
     TenantProfile,
     Authority,
 } from "@azure/msal-common";
@@ -51,6 +47,8 @@ import {
     BrowserConstants,
     InteractionType,
 } from "../../src/utils/BrowserConstants.js";
+import { FetchClient } from "../../src/network/FetchClient.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 describe("SilentIframeClient", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
@@ -140,8 +138,8 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -293,8 +291,8 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -362,8 +360,8 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -401,7 +399,7 @@ describe("SilentIframeClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
 
@@ -473,8 +471,8 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -511,7 +509,7 @@ describe("SilentIframeClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
 
@@ -575,8 +573,8 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -712,10 +710,10 @@ describe("SilentIframeClient", () => {
                 fromNativeBroker: false,
                 code: undefined,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                expiresOn: calculateExpiresDate(
+                expiresOn: TestTimeUtils.calculateExpiresDate(
                     testServerTokenResponse.expires_in
                 ),
-                extExpiresOn: calculateExpiresDate(
+                extExpiresOn: TestTimeUtils.calculateExpiresDate(
                     testServerTokenResponse.expires_in +
                         testServerTokenResponse.ext_expires_in
                 ),
@@ -736,7 +734,7 @@ describe("SilentIframeClient", () => {
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
             );
             const sendPostRequestSpy = jest
-                .spyOn(NetworkManager.prototype, "sendPostRequest")
+                .spyOn(FetchClient.prototype, "sendPostRequestAsync")
                 .mockResolvedValueOnce(testServerErrorResponse)
                 .mockResolvedValueOnce(testServerResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -788,7 +786,7 @@ describe("SilentIframeClient", () => {
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT
             );
             const sendPostRequestSpy = jest
-                .spyOn(NetworkManager.prototype, "sendPostRequest")
+                .spyOn(FetchClient.prototype, "sendPostRequestAsync")
                 .mockResolvedValueOnce(testFirstServerErrorResponse)
                 .mockResolvedValueOnce(testSecondServerErrorResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -880,8 +878,8 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -983,8 +981,8 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -1093,8 +1091,8 @@ describe("SilentIframeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -1151,8 +1149,8 @@ describe("SilentIframeClient", () => {
                     "monitorIframeForHash"
                 ).mockResolvedValue(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
                 jest.spyOn(
-                    NetworkManager.prototype,
-                    "sendPostRequest"
+                    FetchClient.prototype,
+                    "sendPostRequestAsync"
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
                 jest.spyOn(
                     PkceGenerator,

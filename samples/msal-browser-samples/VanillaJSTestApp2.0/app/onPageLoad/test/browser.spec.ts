@@ -13,8 +13,9 @@ import {
     AppTypes,
     LabClient,
 } from "e2e-test-utils";
+import path from "path";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screenshots/onPageLoad");
 let sampleHomeUrl = "";
 let username = "";
 let accountPwd = "";
@@ -45,7 +46,7 @@ describe("On Page Load tests", function () {
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
     beforeEach(async () => {
-        context = await browser.createIncognitoBrowserContext();
+        context = await browser.createBrowserContext();
         page = await context.newPage();
         page.setDefaultTimeout(ONE_SECOND_IN_MS * 10);
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
@@ -79,7 +80,7 @@ describe("On Page Load tests", function () {
         expect(tokenStore.accessTokens).toHaveLength(1);
         expect(tokenStore.refreshTokens).toHaveLength(1);
         expect(
-            await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
+            await BrowserCache.getAccountFromCache()
         ).toBeDefined();
         expect(
             await BrowserCache.accessTokenForScopesExists(
@@ -87,8 +88,6 @@ describe("On Page Load tests", function () {
                 ["openid", "profile", "user.read"]
             )
         ).toBeTruthy();
-        const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(7);
     }, 60000);
 
     it("Performs loginRedirect on page load from a page other than redirectUri", async () => {
@@ -110,7 +109,7 @@ describe("On Page Load tests", function () {
         expect(tokenStore.accessTokens).toHaveLength(1);
         expect(tokenStore.refreshTokens).toHaveLength(1);
         expect(
-            await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
+            await BrowserCache.getAccountFromCache()
         ).toBeDefined();
         expect(
             await BrowserCache.accessTokenForScopesExists(
@@ -118,7 +117,5 @@ describe("On Page Load tests", function () {
                 ["openid", "profile", "user.read"]
             )
         ).toBeTruthy();
-        const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(7);
     }, 60000);
 });

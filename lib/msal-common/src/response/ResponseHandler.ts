@@ -52,6 +52,7 @@ import {
     updateAccountTenantProfileData,
 } from "../account/AccountInfo.js";
 import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
+import * as TimeUtils from "../utils/TimeUtils.js";
 
 function parseServerErrorNo(
     serverResponse: ServerAuthorizationCodeResponse
@@ -376,7 +377,7 @@ export class ResponseHandler {
                 cacheRecord.account
             ) {
                 const key = cacheRecord.account.generateAccountKey();
-                const account = this.cacheStorage.getAccount(key, this.logger);
+                const account = this.cacheStorage.getAccount(key);
                 if (!account) {
                     this.logger.warning(
                         "Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache"
@@ -396,8 +397,8 @@ export class ResponseHandler {
             }
             await this.cacheStorage.saveCacheRecord(
                 cacheRecord,
-                request.storeInCache,
-                request.correlationId
+                request.correlationId,
+                request.storeInCache
             );
         } finally {
             if (
@@ -632,15 +633,16 @@ export class ResponseHandler {
             responseScopes = ScopeSet.fromString(
                 cacheRecord.accessToken.target
             ).asArray();
-            expiresOn = new Date(
-                Number(cacheRecord.accessToken.expiresOn) * 1000
+            // Access token expiresOn cached in seconds, converting to Date for AuthenticationResult
+            expiresOn = TimeUtils.toDateFromSeconds(
+                cacheRecord.accessToken.expiresOn
             );
-            extExpiresOn = new Date(
-                Number(cacheRecord.accessToken.extendedExpiresOn) * 1000
+            extExpiresOn = TimeUtils.toDateFromSeconds(
+                cacheRecord.accessToken.extendedExpiresOn
             );
             if (cacheRecord.accessToken.refreshOn) {
-                refreshOn = new Date(
-                    Number(cacheRecord.accessToken.refreshOn) * 1000
+                refreshOn = TimeUtils.toDateFromSeconds(
+                    cacheRecord.accessToken.refreshOn
                 );
             }
         }
@@ -724,7 +726,7 @@ export function buildAccountToCache(
 
     let cachedAccount: AccountEntity | null = null;
     if (baseAccountKey) {
-        cachedAccount = cacheStorage.getAccount(baseAccountKey, logger);
+        cachedAccount = cacheStorage.getAccount(baseAccountKey);
     }
 
     const baseAccount =

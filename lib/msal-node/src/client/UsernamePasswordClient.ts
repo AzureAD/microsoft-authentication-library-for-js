@@ -20,12 +20,15 @@ import {
     StringUtils,
     TimeUtils,
     UrlString,
+    UrlUtils,
     getClientAssertion,
 } from "@azure/msal-common/node";
 
 /**
  * Oauth2.0 Password grant client
  * Note: We are only supporting public clients for password grant and for purely testing purposes
+ * @public
+ * @deprecated - Use a more secure flow instead
  */
 export class UsernamePasswordClient extends BaseClient {
     constructor(configuration: ClientConfiguration) {
@@ -35,7 +38,7 @@ export class UsernamePasswordClient extends BaseClient {
     /**
      * API to acquire a token by passing the username and password to the service in exchage of credentials
      * password_grant
-     * @param request
+     * @param request - CommonUsernamePasswordRequest
      */
     async acquireToken(
         request: CommonUsernamePasswordRequest
@@ -71,8 +74,8 @@ export class UsernamePasswordClient extends BaseClient {
 
     /**
      * Executes POST request to token endpoint
-     * @param authority
-     * @param request
+     * @param authority - authority object
+     * @param request - CommonUsernamePasswordRequest provided by the developer
      */
     private async executeTokenRequest(
         authority: Authority,
@@ -111,41 +114,55 @@ export class UsernamePasswordClient extends BaseClient {
 
     /**
      * Generates a map for all the params to be sent to the service
-     * @param request
+     * @param request - CommonUsernamePasswordRequest provided by the developer
      */
     private async createTokenRequestBody(
         request: CommonUsernamePasswordRequest
     ): Promise<string> {
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameters = new Map<string, string>();
 
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
-        parameterBuilder.addUsername(request.username);
-        parameterBuilder.addPassword(request.password);
+        RequestParameterBuilder.addClientId(
+            parameters,
+            this.config.authOptions.clientId
+        );
+        RequestParameterBuilder.addUsername(parameters, request.username);
+        RequestParameterBuilder.addPassword(parameters, request.password);
 
-        parameterBuilder.addScopes(request.scopes);
+        RequestParameterBuilder.addScopes(parameters, request.scopes);
 
-        parameterBuilder.addResponseTypeForTokenAndIdToken();
+        RequestParameterBuilder.addResponseTypeForTokenAndIdToken(parameters);
 
-        parameterBuilder.addGrantType(GrantType.RESOURCE_OWNER_PASSWORD_GRANT);
-        parameterBuilder.addClientInfo();
+        RequestParameterBuilder.addGrantType(
+            parameters,
+            GrantType.RESOURCE_OWNER_PASSWORD_GRANT
+        );
+        RequestParameterBuilder.addClientInfo(parameters);
 
-        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-        parameterBuilder.addApplicationTelemetry(
+        RequestParameterBuilder.addLibraryInfo(
+            parameters,
+            this.config.libraryInfo
+        );
+        RequestParameterBuilder.addApplicationTelemetry(
+            parameters,
             this.config.telemetry.application
         );
-        parameterBuilder.addThrottling();
+        RequestParameterBuilder.addThrottling(parameters);
 
         if (this.serverTelemetryManager) {
-            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+            RequestParameterBuilder.addServerTelemetry(
+                parameters,
+                this.serverTelemetryManager
+            );
         }
 
         const correlationId =
             request.correlationId ||
             this.config.cryptoInterface.createNewGuid();
-        parameterBuilder.addCorrelationId(correlationId);
+        RequestParameterBuilder.addCorrelationId(parameters, correlationId);
 
         if (this.config.clientCredentials.clientSecret) {
-            parameterBuilder.addClientSecret(
+            RequestParameterBuilder.addClientSecret(
+                parameters,
                 this.config.clientCredentials.clientSecret
             );
         }
@@ -154,14 +171,16 @@ export class UsernamePasswordClient extends BaseClient {
             this.config.clientCredentials.clientAssertion;
 
         if (clientAssertion) {
-            parameterBuilder.addClientAssertion(
+            RequestParameterBuilder.addClientAssertion(
+                parameters,
                 await getClientAssertion(
                     clientAssertion.assertion,
                     this.config.authOptions.clientId,
                     request.resourceRequestUri
                 )
             );
-            parameterBuilder.addClientAssertionType(
+            RequestParameterBuilder.addClientAssertionType(
+                parameters,
                 clientAssertion.assertionType
             );
         }
@@ -171,7 +190,8 @@ export class UsernamePasswordClient extends BaseClient {
             (this.config.authOptions.clientCapabilities &&
                 this.config.authOptions.clientCapabilities.length > 0)
         ) {
-            parameterBuilder.addClaims(
+            RequestParameterBuilder.addClaims(
+                parameters,
                 request.claims,
                 this.config.authOptions.clientCapabilities
             );
@@ -181,9 +201,9 @@ export class UsernamePasswordClient extends BaseClient {
             this.config.systemOptions.preventCorsPreflight &&
             request.username
         ) {
-            parameterBuilder.addCcsUpn(request.username);
+            RequestParameterBuilder.addCcsUpn(parameters, request.username);
         }
 
-        return parameterBuilder.createQueryString();
+        return UrlUtils.mapToQueryString(parameters);
     }
 }

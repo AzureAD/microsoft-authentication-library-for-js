@@ -10,7 +10,6 @@ import {
     setupCredentials,
     RETRY_TIMES,
     enterCredentials,
-    SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
     SAMPLE_HOME_URL,
     NodeCacheTestUtils,
@@ -19,6 +18,7 @@ import {
     AppTypes,
     AzureEnvironments,
 } from "e2e-test-utils";
+import path from "path";
 
 import { PublicClientApplication } from "@azure/msal-node";
 
@@ -46,7 +46,7 @@ describe("Auth Code AAD Prod Tests", () => {
     let username: string;
     let accountPwd: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/auth-code/aad`;
+    const screenshotFolder = path.join(__dirname, "screenshots/auth-code/aad");
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -97,7 +97,7 @@ describe("Auth Code AAD Prod Tests", () => {
         });
 
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(5000);
             page.on("dialog", async (dialog) => {

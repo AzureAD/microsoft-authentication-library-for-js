@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import {
     AuthErrorCodes,
     BaseClient,
@@ -19,10 +24,13 @@ import {
     CORS_SIMPLE_REQUEST_HEADERS,
     RANDOM_TEST_GUID,
     SERVER_UNEXPECTED_ERROR,
-} from "../test_kit/StringConstants";
-import { checkMockedNetworkRequest, ClientTestUtils } from "./ClientTestUtils";
-import { DeviceCodeClient } from "../../src";
-import { mockNetworkClient } from "../utils/MockNetworkClient";
+} from "../test_kit/StringConstants.js";
+import {
+    checkMockedNetworkRequest,
+    ClientTestUtils,
+} from "./ClientTestUtils.js";
+import { DeviceCodeClient } from "../../src/index.js";
+import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 
 describe("DeviceCodeClient unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;

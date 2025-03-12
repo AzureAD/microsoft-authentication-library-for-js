@@ -11,13 +11,13 @@ import {
     approveRemoteConnect,
     enterCredentials,
     enterDeviceCode,
-    SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
     NodeCacheTestUtils,
     getKeyVaultSecretClient,
     getCredentials,
 } from "e2e-test-utils";
 import { Configuration, PublicClientApplication } from "@azure/msal-node";
+import path from "path";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad-agc.cache.json`;
@@ -53,13 +53,13 @@ describe("Device Code AAD AGC Tests", () => {
     let username: string;
     let password: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/device-code/aad-agc`;
+    const screenshotFolder = path.join(__dirname, "screenshots/device-code/aad-agc");
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
         // @ts-ignore
         browser = await global.__BROWSER__;
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        createFolder(screenshotFolder);
 
         const keyVaultSecretClient = await getKeyVaultSecretClient();
         [username, password] = await getCredentials(keyVaultSecretClient);
@@ -76,7 +76,7 @@ describe("Device Code AAD AGC Tests", () => {
         });
 
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(5000);
         });

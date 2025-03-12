@@ -44,12 +44,12 @@ import {
     ServerTelemetryManager,
     AccountEntity,
     AuthError,
-    NetworkManager,
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
     IdTokenEntity,
     CredentialType,
     InProgressPerformanceEvent,
+    StubPerformanceClient,
 } from "@azure/msal-common";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
@@ -80,7 +80,11 @@ import { NativeInteractionClient } from "../../src/interaction_client/NativeInte
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
-import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
+import {
+    buildAccountFromIdTokenClaims,
+    buildIdToken,
+    TestTimeUtils,
+} from "msal-test-utils";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
 
 const cacheConfig = {
@@ -511,8 +515,8 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -561,7 +565,7 @@ describe("RedirectClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
 
@@ -673,8 +677,8 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -723,7 +727,7 @@ describe("RedirectClient", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    allowNativeBroker: true,
+                    allowPlatformBroker: true,
                 },
             });
 
@@ -990,8 +994,8 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -1140,8 +1144,8 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token!,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in! * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in!
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -1305,8 +1309,8 @@ describe("RedirectClient", () => {
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -1400,7 +1404,9 @@ describe("RedirectClient", () => {
                 "different-client-id",
                 cacheConfig,
                 browserCrypto,
-                logger
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             secondInstanceStorage.setInteractionInProgress(true);
             browserStorage.setInteractionInProgress(false);
@@ -1986,7 +1992,9 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
@@ -2048,7 +2056,9 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
+                new StubPerformanceClient(),
+                new EventHandler()
             );
 
             jest.spyOn(
@@ -2161,7 +2171,9 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
@@ -2238,7 +2250,9 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
@@ -2308,7 +2322,9 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await redirectClient.acquireToken(tokenRequest);
             const cachedRequest: CommonAuthorizationCodeRequest = JSON.parse(
@@ -2351,7 +2367,9 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -2384,362 +2402,6 @@ describe("RedirectClient", () => {
                 );
                 expect(failureObj.errors[0]).toEqual(testError.errorCode);
             }
-        });
-
-        it("Uses adal token from cache if it is present and sets upn as the login hint.", async () => {
-            const idTokenClaims: TokenClaims = {
-                iss: "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
-                exp: 1536279024,
-                name: "abeli",
-                nonce: "123523",
-                oid: "05833b6b-aa1d-42d4-9ec0-1b2bb9194438",
-                sub: "5_J9rSss8-jvt_Icu6ueRNL8xXb8LF4Fsg_KooC2RJQ",
-                tid: "fa15d692-e9c7-4460-a743-29f2956fd429",
-                ver: "1.0",
-                upn: "AbeLincoln@contoso.com",
-            };
-            const browserCrypto = new CryptoOps(new Logger({}));
-            const testLogger = new Logger(loggerOptions);
-            const browserStorage: BrowserCacheManager = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                testLogger
-            );
-            browserStorage.setTemporaryCache(
-                PersistentCacheKeys.ADAL_ID_TOKEN,
-                TEST_TOKENS.IDTOKEN_V1
-            );
-            const loginUrlSpy = jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            );
-            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
-                challenge: TEST_CONFIG.TEST_CHALLENGE,
-                verifier: TEST_CONFIG.TEST_VERIFIER,
-            });
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    expect(options.noHistory).toBeFalsy();
-                    expect(urlNavigate).not.toBe("");
-                    return Promise.resolve(true);
-                }
-            );
-            const emptyRequest: CommonAuthorizationUrlRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: [],
-                state: TEST_STATE_VALUES.USER_STATE,
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
-                nonce: "",
-                authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-            };
-            await redirectClient.acquireToken(emptyRequest);
-            const validatedRequest: CommonAuthorizationUrlRequest = {
-                ...emptyRequest,
-                scopes: [],
-                loginHint: idTokenClaims.upn,
-                state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                correlationId: RANDOM_TEST_GUID,
-                nonce: RANDOM_TEST_GUID,
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
-                responseMode: ResponseMode.FRAGMENT,
-                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
-                nativeBroker: false,
-            };
-            expect(loginUrlSpy).toHaveBeenCalledWith(validatedRequest);
-        });
-
-        it("Uses adal token from cache if it is present and sets preferred_name as the login hint.", async () => {
-            const idTokenClaims: TokenClaims = {
-                iss: "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
-                exp: 1536279024,
-                name: "abeli",
-                nonce: "123523",
-                oid: "05833b6b-aa1d-42d4-9ec0-1b2bb9194438",
-                sub: "5_J9rSss8-jvt_Icu6ueRNL8xXb8LF4Fsg_KooC2RJQ",
-                tid: "fa15d692-e9c7-4460-a743-29f2956fd429",
-                ver: "1.0",
-                preferred_username: "AbeLincoln@contoso.com",
-            };
-            const browserCrypto = new CryptoOps(new Logger({}));
-            const testLogger = new Logger(loggerOptions);
-            const browserStorage: BrowserCacheManager = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                testLogger
-            );
-            browserStorage.setTemporaryCache(
-                PersistentCacheKeys.ADAL_ID_TOKEN,
-                TEST_TOKENS.IDTOKEN_V1
-            );
-            const loginUrlSpy = jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            );
-            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
-                challenge: TEST_CONFIG.TEST_CHALLENGE,
-                verifier: TEST_CONFIG.TEST_VERIFIER,
-            });
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    expect(options.noHistory).toBeFalsy();
-                    expect(urlNavigate).not.toBe("");
-                    return Promise.resolve(true);
-                }
-            );
-            const emptyRequest: CommonAuthorizationUrlRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: [],
-                state: TEST_STATE_VALUES.USER_STATE,
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
-                nonce: "",
-                authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-            };
-            await redirectClient.acquireToken(emptyRequest);
-            const validatedRequest: CommonAuthorizationUrlRequest = {
-                ...emptyRequest,
-                scopes: [],
-                loginHint: idTokenClaims.preferred_username,
-                state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                correlationId: RANDOM_TEST_GUID,
-                nonce: RANDOM_TEST_GUID,
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
-                responseMode: ResponseMode.FRAGMENT,
-                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
-                nativeBroker: false,
-            };
-            expect(loginUrlSpy).toHaveBeenCalledWith(validatedRequest);
-        });
-
-        it("Uses adal token from cache if it is present and sets preferred_name as the login hint when upn is also populated.", async () => {
-            const idTokenClaims: TokenClaims = {
-                iss: "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
-                exp: 1536279024,
-                name: "abeli",
-                nonce: "123523",
-                oid: "05833b6b-aa1d-42d4-9ec0-1b2bb9194438",
-                sub: "5_J9rSss8-jvt_Icu6ueRNL8xXb8LF4Fsg_KooC2RJQ",
-                tid: "fa15d692-e9c7-4460-a743-29f2956fd429",
-                ver: "1.0",
-                upn: "AbeLincol_gmail.com#EXT#@AbeLincolgmail.onmicrosoft.com",
-                preferred_username: "AbeLincoln@contoso.com",
-            };
-            const browserCrypto = new CryptoOps(new Logger({}));
-            const testLogger = new Logger(loggerOptions);
-            const browserStorage: BrowserCacheManager = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                testLogger
-            );
-            browserStorage.setTemporaryCache(
-                PersistentCacheKeys.ADAL_ID_TOKEN,
-                TEST_TOKENS.IDTOKEN_V1
-            );
-            const loginUrlSpy = jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            );
-            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
-                challenge: TEST_CONFIG.TEST_CHALLENGE,
-                verifier: TEST_CONFIG.TEST_VERIFIER,
-            });
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    expect(options.noHistory).toBeFalsy();
-                    expect(urlNavigate).not.toBe("");
-                    return Promise.resolve(true);
-                }
-            );
-            const emptyRequest: CommonAuthorizationUrlRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: [],
-                state: TEST_STATE_VALUES.USER_STATE,
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
-                nonce: "",
-                authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-            };
-            await redirectClient.acquireToken(emptyRequest);
-            const validatedRequest: CommonAuthorizationUrlRequest = {
-                ...emptyRequest,
-                scopes: [],
-                loginHint: idTokenClaims.preferred_username,
-                state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                correlationId: RANDOM_TEST_GUID,
-                nonce: RANDOM_TEST_GUID,
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
-                responseMode: ResponseMode.FRAGMENT,
-                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
-                nativeBroker: false,
-            };
-            expect(loginUrlSpy).toHaveBeenCalledWith(validatedRequest);
-        });
-
-        it("Uses msal v1 token from cache if it is present and sets preferred_name as the login hint.", async () => {
-            const idTokenClaims: TokenClaims = {
-                iss: "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
-                exp: 1536279024,
-                name: "abeli",
-                nonce: "123523",
-                oid: "05833b6b-aa1d-42d4-9ec0-1b2bb9194438",
-                sub: "5_J9rSss8-jvt_Icu6ueRNL8xXb8LF4Fsg_KooC2RJQ",
-                tid: "fa15d692-e9c7-4460-a743-29f2956fd429",
-                ver: "1.0",
-                preferred_username: "AbeLincoln@contoso.com",
-            };
-            const browserCrypto = new CryptoOps(new Logger({}));
-            const testLogger = new Logger(loggerOptions);
-            const browserStorage: BrowserCacheManager = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                testLogger
-            );
-            browserStorage.setTemporaryCache(
-                PersistentCacheKeys.ID_TOKEN,
-                TEST_TOKENS.IDTOKEN_V1,
-                true
-            );
-            const loginUrlSpy = jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            );
-            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
-                challenge: TEST_CONFIG.TEST_CHALLENGE,
-                verifier: TEST_CONFIG.TEST_VERIFIER,
-            });
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    expect(options.noHistory).toBeFalsy();
-                    expect(urlNavigate).not.toBe("");
-                    return Promise.resolve(true);
-                }
-            );
-            const emptyRequest: CommonAuthorizationUrlRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: [],
-                state: TEST_STATE_VALUES.USER_STATE,
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
-                nonce: "",
-                authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-            };
-            await redirectClient.acquireToken(emptyRequest);
-            const validatedRequest: CommonAuthorizationUrlRequest = {
-                ...emptyRequest,
-                scopes: [],
-                loginHint: idTokenClaims.preferred_username,
-                state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                correlationId: RANDOM_TEST_GUID,
-                nonce: RANDOM_TEST_GUID,
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
-                responseMode: ResponseMode.FRAGMENT,
-                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
-                nativeBroker: false,
-            };
-            expect(loginUrlSpy).toHaveBeenCalledWith(validatedRequest);
-        });
-
-        it("Does not use adal token from cache if it is present and SSO params have been given.", async () => {
-            const browserCrypto = new CryptoOps(new Logger({}));
-            const testLogger = new Logger(loggerOptions);
-            const browserStorage: BrowserCacheManager = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                testLogger
-            );
-            browserStorage.setTemporaryCache(
-                PersistentCacheKeys.ADAL_ID_TOKEN,
-                TEST_TOKENS.IDTOKEN_V1
-            );
-            const loginUrlSpy = jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            );
-            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
-                challenge: TEST_CONFIG.TEST_CHALLENGE,
-                verifier: TEST_CONFIG.TEST_VERIFIER,
-            });
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    expect(options.noHistory).toBeFalsy();
-                    expect(urlNavigate).not.toBe("");
-                    return Promise.resolve(true);
-                }
-            );
-            const loginRequest: CommonAuthorizationUrlRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: [],
-                loginHint: "AbeLi@microsoft.com",
-                state: TEST_STATE_VALUES.USER_STATE,
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
-                nonce: "",
-                authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-            };
-            await redirectClient.acquireToken(loginRequest);
-            const validatedRequest: CommonAuthorizationUrlRequest = {
-                ...loginRequest,
-                scopes: [],
-                state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                correlationId: RANDOM_TEST_GUID,
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
-                nonce: RANDOM_TEST_GUID,
-                responseMode: ResponseMode.FRAGMENT,
-                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
-                nativeBroker: false,
-            };
-            expect(loginUrlSpy).toHaveBeenCalledWith(validatedRequest);
         });
 
         it("navigates to created login url", (done) => {
@@ -2840,7 +2502,9 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await redirectClient.acquireToken(emptyRequest);
             expect(
@@ -2902,7 +2566,9 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             await redirectClient.acquireToken(tokenRequest);
             const cachedRequest: CommonAuthorizationCodeRequest = JSON.parse(
@@ -2945,7 +2611,9 @@ describe("RedirectClient", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
                 browserCrypto,
-                testLogger
+                testLogger,
+                new StubPerformanceClient(),
+                new EventHandler()
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -2980,151 +2648,14 @@ describe("RedirectClient", () => {
             }
         });
 
-        it("Uses adal token from cache if it is present.", async () => {
-            const testScope = "testscope";
-            const idTokenClaims: TokenClaims = {
-                iss: "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
-                exp: 1536279024,
-                name: "abeli",
-                nonce: "123523",
-                oid: "05833b6b-aa1d-42d4-9ec0-1b2bb9194438",
-                sub: "5_J9rSss8-jvt_Icu6ueRNL8xXb8LF4Fsg_KooC2RJQ",
-                tid: "fa15d692-e9c7-4460-a743-29f2956fd429",
-                ver: "1.0",
-                upn: "AbeLincoln@contoso.com",
-            };
-            const browserCrypto = new CryptoOps(new Logger({}));
-            const testLogger = new Logger(loggerOptions);
-            const browserStorage: BrowserCacheManager = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                testLogger
-            );
-            browserStorage.setTemporaryCache(
-                PersistentCacheKeys.ADAL_ID_TOKEN,
-                TEST_TOKENS.IDTOKEN_V1
-            );
-            const acquireTokenUrlSpy = jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            );
-            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
-                challenge: TEST_CONFIG.TEST_CHALLENGE,
-                verifier: TEST_CONFIG.TEST_VERIFIER,
-            });
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    expect(options.noHistory).toBeFalsy();
-                    expect(urlNavigate).not.toBe("");
-                    return Promise.resolve(true);
-                }
-            );
-            const emptyRequest: CommonAuthorizationUrlRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: [testScope],
-                state: TEST_STATE_VALUES.USER_STATE,
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
-                nonce: "",
-                authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-            };
-            await redirectClient.acquireToken(emptyRequest);
-            const validatedRequest: CommonAuthorizationUrlRequest = {
-                ...emptyRequest,
-                scopes: [...emptyRequest.scopes],
-                loginHint: idTokenClaims.upn,
-                state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                correlationId: RANDOM_TEST_GUID,
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
-                nonce: RANDOM_TEST_GUID,
-                responseMode: ResponseMode.FRAGMENT,
-                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
-                nativeBroker: false,
-            };
-            expect(acquireTokenUrlSpy).toHaveBeenCalledWith(validatedRequest);
-        });
-
-        it("Does not use adal token from cache if it is present and SSO params have been given.", async () => {
-            const browserCrypto = new CryptoOps(new Logger({}));
-            const testLogger = new Logger(loggerOptions);
-            const browserStorage: BrowserCacheManager = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                testLogger
-            );
-            browserStorage.setTemporaryCache(
-                PersistentCacheKeys.ADAL_ID_TOKEN,
-                TEST_TOKENS.IDTOKEN_V1
-            );
-            const acquireTokenUrlSpy = jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
-            );
-            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
-                challenge: TEST_CONFIG.TEST_CHALLENGE,
-                verifier: TEST_CONFIG.TEST_VERIFIER,
-            });
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation(
-                (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    expect(options.noHistory).toBeFalsy();
-                    expect(urlNavigate).not.toBe("");
-                    return Promise.resolve(true);
-                }
-            );
-            const testScope = "testscope";
-            const loginRequest: CommonAuthorizationUrlRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: [testScope],
-                loginHint: "AbeLi@microsoft.com",
-                state: TEST_STATE_VALUES.USER_STATE,
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
-                nonce: "",
-                authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-            };
-            await redirectClient.acquireToken(loginRequest);
-            const validatedRequest: CommonAuthorizationUrlRequest = {
-                ...loginRequest,
-                scopes: [...loginRequest.scopes],
-                state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                correlationId: RANDOM_TEST_GUID,
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
-                nonce: RANDOM_TEST_GUID,
-                responseMode: ResponseMode.FRAGMENT,
-                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
-                nativeBroker: false,
-            };
-            expect(acquireTokenUrlSpy).toHaveBeenCalledWith(validatedRequest);
-        });
-
         describe("storeInCache tests", () => {
             beforeEach(() => {
                 jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
                     TEST_STATE_VALUES.TEST_STATE_REDIRECT
                 );
                 jest.spyOn(
-                    NetworkManager.prototype,
-                    "sendPostRequest"
+                    FetchClient.prototype,
+                    "sendPostRequestAsync"
                 ).mockResolvedValue(TEST_TOKEN_RESPONSE);
                 jest.spyOn(
                     PkceGenerator,
@@ -3301,7 +2832,7 @@ describe("RedirectClient", () => {
             });
         });
 
-        it("includes postLogoutRedirectUri if one is configured", async () => {
+        it("includes postLogoutRedirectUri if one is configured", (done) => {
             const postLogoutRedirectUri = "https://localhost:8000/logout";
             jest.spyOn(
                 NavigationClient.prototype,
@@ -3316,6 +2847,7 @@ describe("RedirectClient", () => {
                             postLogoutRedirectUri
                         )}`
                     );
+                    done();
                     return Promise.resolve(true);
                 }
             );
@@ -3326,8 +2858,6 @@ describe("RedirectClient", () => {
                     postLogoutRedirectUri,
                 },
             });
-
-            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -3352,10 +2882,10 @@ describe("RedirectClient", () => {
                 pca.nativeInternalStorage
             );
 
-            redirectClient.logout();
+            pca.initialize().then(() => redirectClient.logout());
         });
 
-        it("does not include postLogoutRedirectUri if null is configured", async () => {
+        it("does not include postLogoutRedirectUri if null is configured", (done) => {
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateExternal"
@@ -3367,6 +2897,7 @@ describe("RedirectClient", () => {
                     expect(urlNavigate).not.toContain(
                         `post_logout_redirect_uri`
                     );
+                    done();
                     return Promise.resolve(true);
                 }
             );
@@ -3377,8 +2908,6 @@ describe("RedirectClient", () => {
                     postLogoutRedirectUri: null,
                 },
             });
-
-            await pca.initialize();
 
             //PCA implementation moved to controller
             pca = (pca as any).controller;
@@ -3401,7 +2930,7 @@ describe("RedirectClient", () => {
                 pca.performanceClient
             );
 
-            redirectClient.logout();
+            pca.initialize().then(() => redirectClient.logout());
         });
 
         it("does not include postLogoutRedirectUri if null is set on request", (done) => {
@@ -3500,8 +3029,6 @@ describe("RedirectClient", () => {
             testAccount.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-            browserStorage.setAccount(testAccount);
-
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateExternal"
@@ -3517,7 +3044,11 @@ describe("RedirectClient", () => {
                     return Promise.resolve(true);
                 }
             );
-            redirectClient.logout({ account: testAccountInfo });
+            browserStorage
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .then(() =>
+                    redirectClient.logout({ account: testAccountInfo })
+                );
         });
 
         it("logoutHint attribute takes precedence over ID Token Claims from provided account when setting logout_hint", (done) => {
@@ -3555,8 +3086,6 @@ describe("RedirectClient", () => {
             testAccount.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-            browserStorage.setAccount(testAccount);
-
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateExternal"
@@ -3575,10 +3104,14 @@ describe("RedirectClient", () => {
                     return Promise.resolve(true);
                 }
             );
-            redirectClient.logout({
-                account: testAccountInfo,
-                logoutHint: logoutHint,
-            });
+            browserStorage
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .then(() =>
+                    redirectClient.logout({
+                        account: testAccountInfo,
+                        logoutHint: logoutHint,
+                    })
+                );
         });
 
         it("doesnt navigate if onRedirectNavigate returns false", (done) => {
@@ -3642,8 +3175,6 @@ describe("RedirectClient", () => {
             testAccount.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-            browserStorage.setAccount(testAccount);
-
             const logoutUriSpy = jest
                 .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
                 .mockReturnValue(testLogoutUrl);
@@ -3661,28 +3192,34 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage.setInteractionInProgress(true);
-            redirectClient
-                .logout({
-                    account: testAccountInfo,
-                    onRedirectNavigate: (url: string) => {
-                        expect(url).toEqual(testLogoutUrl);
-                        return false;
-                    },
-                })
-                .then(() => {
-                    expect(
-                        browserStorage.getInteractionInProgress()
-                    ).toBeFalsy();
+            browserStorage
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .then(() =>
+                    redirectClient
+                        .logout({
+                            account: testAccountInfo,
+                            onRedirectNavigate: (url: string) => {
+                                expect(url).toEqual(testLogoutUrl);
+                                return false;
+                            },
+                        })
+                        .then(() => {
+                            expect(
+                                browserStorage.getInteractionInProgress()
+                            ).toBeFalsy();
 
-                    const validatedLogoutRequest: CommonEndSessionRequest = {
-                        correlationId: RANDOM_TEST_GUID,
-                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
-                    };
-                    expect(logoutUriSpy).toHaveBeenCalledWith(
-                        expect.objectContaining(validatedLogoutRequest)
-                    );
-                    done();
-                });
+                            const validatedLogoutRequest: CommonEndSessionRequest =
+                                {
+                                    correlationId: RANDOM_TEST_GUID,
+                                    postLogoutRedirectUri:
+                                        TEST_URIS.TEST_REDIR_URI,
+                                };
+                            expect(logoutUriSpy).toHaveBeenCalledWith(
+                                expect.objectContaining(validatedLogoutRequest)
+                            );
+                            done();
+                        })
+                );
         });
 
         it("does navigate if onRedirectNavigate returns true", (done) => {
@@ -3752,8 +3289,6 @@ describe("RedirectClient", () => {
             testAccount.clientInfo =
                 TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-            browserStorage.setAccount(testAccount);
-
             const logoutUriSpy = jest
                 .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
                 .mockReturnValue(testLogoutUrl);
@@ -3771,31 +3306,37 @@ describe("RedirectClient", () => {
                 }
             );
             browserStorage.setInteractionInProgress(true);
-            redirectClient
-                .logout({
-                    account: testAccountInfo,
-                    onRedirectNavigate: (url) => {
-                        expect(url).toEqual(testLogoutUrl);
-                        return true;
-                    },
-                })
-                .then(() => {
-                    expect(
-                        browserStorage.getInteractionInProgress()
-                    ).toBeTruthy();
+            browserStorage
+                .setAccount(testAccount, TEST_CONFIG.CORRELATION_ID)
+                .then(() =>
+                    redirectClient
+                        .logout({
+                            account: testAccountInfo,
+                            onRedirectNavigate: (url) => {
+                                expect(url).toEqual(testLogoutUrl);
+                                return true;
+                            },
+                        })
+                        .then(() => {
+                            expect(
+                                browserStorage.getInteractionInProgress()
+                            ).toBeTruthy();
 
-                    // Reset after testing it was properly set
-                    browserStorage.setInteractionInProgress(false);
+                            // Reset after testing it was properly set
+                            browserStorage.setInteractionInProgress(false);
 
-                    const validatedLogoutRequest: CommonEndSessionRequest = {
-                        correlationId: RANDOM_TEST_GUID,
-                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
-                    };
-                    expect(logoutUriSpy).toHaveBeenCalledWith(
-                        expect.objectContaining(validatedLogoutRequest)
-                    );
-                    done();
-                });
+                            const validatedLogoutRequest: CommonEndSessionRequest =
+                                {
+                                    correlationId: RANDOM_TEST_GUID,
+                                    postLogoutRedirectUri:
+                                        TEST_URIS.TEST_REDIR_URI,
+                                };
+                            expect(logoutUriSpy).toHaveBeenCalledWith(
+                                expect.objectContaining(validatedLogoutRequest)
+                            );
+                            done();
+                        })
+                );
         });
 
         it("errors thrown are cached for telemetry and logout failure event is raised", (done) => {
@@ -3877,8 +3418,14 @@ describe("RedirectClient", () => {
                 }
             );
 
-            browserStorage.setAccount(testAccountEntity);
-            browserStorage.setIdTokenCredential(testIdToken);
+            await browserStorage.setAccount(
+                testAccountEntity,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            await browserStorage.setIdTokenCredential(
+                testIdToken,
+                TEST_CONFIG.CORRELATION_ID
+            );
 
             pca.setActiveAccount(testAccountInfo);
             expect(pca.getActiveAccount()).toStrictEqual(testAccountInfo);

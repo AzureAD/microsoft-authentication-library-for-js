@@ -52,11 +52,9 @@ acquireToken().then((response) => {
     callMicrosoftGraph(response.accessToken).then((graphResponse) => {
         console.log(graphResponse);
         process.exit(0);
-    }).catch((e) => {
-        console.log(e);
+    }).catch((error) => {
         process.exit(1);
     });
-}).catch(e => {
-    console.error(e);
+}).catch((error) => {
     process.exit(1);
 });

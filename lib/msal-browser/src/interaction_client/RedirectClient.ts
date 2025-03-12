@@ -170,7 +170,7 @@ export class RedirectClient extends StandardInteractionClient {
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl({
                 ...validRequest,
-                nativeBroker: NativeMessageHandler.isNativeAvailable(
+                platformBroker: NativeMessageHandler.isPlatformBrokerAvailable(
                     this.config,
                     this.logger,
                     this.nativeMessageHandler,

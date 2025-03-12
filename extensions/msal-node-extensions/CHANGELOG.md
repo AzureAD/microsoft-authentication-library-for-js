@@ -1,8 +1,101 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Tue, 08 Oct 2024 16:51:05 GMT and should not be manually modified.
+<!-- This log was last generated on Tue, 11 Mar 2025 18:51:25 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 1.5.7
+
+Tue, 11 Mar 2025 18:51:25 GMT
+
+### Patches
+
+- Use TimeUtils for time/date conversion #7613 (joarroyo@microsoft.com)
+- Bump @azure/msal-common to v15.2.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 1.5.6
+
+Tue, 04 Mar 2025 23:02:15 GMT
+
+### Patches
+
+- Fix NativeBrokerPlugin expiresOn bug #7602 (joarroyo@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 1.5.5
+
+Tue, 18 Feb 2025 18:51:41 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.2.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 1.5.4
+
+Wed, 05 Feb 2025 00:15:19 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.1.1
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 1.5.3
+
+Mon, 03 Feb 2025 17:48:09 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.1.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 1.5.2
+
+Wed, 22 Jan 2025 21:45:31 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v15.0.2
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 1.5.1
+
+Wed, 15 Jan 2025 05:05:17 GMT
+
+### Patches
+
+- Update msal-common dependency (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.0.1
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 1.5.0
+
+Tue, 19 Nov 2024 17:21:57 GMT
+
+### Minor changes
+
+- Allow requiring msal-node-extensions without Dpapi dependency (tyleonha@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 1.4.0
+
+Tue, 05 Nov 2024 18:58:46 GMT
+
+### Minor changes
+
+- Bump @azure/msal-common to v14.16.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 1.3.0
 

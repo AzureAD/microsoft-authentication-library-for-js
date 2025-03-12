@@ -17,21 +17,9 @@ async function verifyTokenStore(
     BrowserCache: BrowserCacheUtils,
     scopes: string[]
 ): Promise<void> {
-    const tokenStore = await BrowserCache.getTokens();
-    expect(tokenStore.idTokens.length).toBe(1);
-    expect(tokenStore.accessTokens.length).toBe(1);
-    expect(tokenStore.refreshTokens.length).toBe(1);
-    expect(
-        await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])
-    ).not.toBeNull();
-    expect(
-        await BrowserCache.accessTokenForScopesExists(
-            tokenStore.accessTokens,
-            scopes
-        )
-    ).toBeTruthy;
-    const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(9);
+    await BrowserCache.verifyTokenStore({
+        scopes,
+      });
     const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry(
         "b5c2e510-4a17-4feb-b219-e55aa5b74144"
     );
@@ -72,7 +60,7 @@ describe("/profile", () => {
     });
 
     beforeEach(async () => {
-        context = await browser.createIncognitoBrowserContext();
+        context = await browser.createBrowserContext();
         page = await context.newPage();
         page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
@@ -89,7 +77,7 @@ describe("/profile", () => {
         const screenshot = new Screenshot(
             `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
         );
-        await page.waitForXPath("//a[contains(., 'MS Identity Platform')]");
+        await page.waitForSelector("xpath/.//a[contains(., 'MS Identity Platform')]");
         await screenshot.takeScreenshot(page, "Home page loaded");
 
         // Navigate to /profile and expect redirect to occur to AAD without interaction
@@ -100,17 +88,17 @@ describe("/profile", () => {
         await screenshot.takeScreenshot(page, "Returned to app");
 
         // Wait for Graph data to display
-        await page.waitForXPath("//div/ul/li[contains(., 'Name')]");
+        await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]");
         await screenshot.takeScreenshot(page, "Graph data acquired");
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(.,'Welcome,')]");
+        await page.waitForSelector("xpath/.//header[contains(.,'Welcome,')]");
         const profileButton = await page.waitForSelector(
             "xpath=//header//button"
         );
         await profileButton.click();
-        const logoutButtons = await page.$x(
-            "//li[contains(., 'Logout using')]"
+        const logoutButtons = await page.$$(
+            "xpath/.//li[contains(., 'Logout using')]"
         );
         expect(logoutButtons.length).toBe(2);
         await screenshot.takeScreenshot(page, "App signed in");
@@ -124,7 +112,7 @@ describe("/profile", () => {
         const screenshot = new Screenshot(
             `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
         );
-        await page.waitForXPath("//a[contains(., 'MS Identity Platform')]");
+        await page.waitForSelector("xpath/.//a[contains(., 'MS Identity Platform')]");
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
@@ -136,28 +124,31 @@ describe("/profile", () => {
         const loginPopupButton = await page.waitForSelector(
             "xpath=//li[contains(., 'Sign in using Popup')]"
         );
-        const newPopupWindowPromise = new Promise<puppeteer.Page>((resolve) =>
+        const newPopupWindowPromise = new Promise<puppeteer.Page|null>((resolve) =>
             page.once("popup", resolve)
         );
         await loginPopupButton.click();
         const popupPage = await newPopupWindowPromise;
+        if (!popupPage) {
+            throw new Error('Popup window was not opened');
+          }
         const popupWindowClosed = new Promise<void>((resolve) =>
             popupPage.once("close", resolve)
         );
 
         await enterCredentials(popupPage, screenshot, username, accountPwd);
         await popupWindowClosed;
-        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        await page.waitForSelector("xpath/.//header[contains(., 'Welcome,')]");
         await screenshot.takeScreenshot(page, "Popup closed");
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(.,'Welcome,')]");
+        await page.waitForSelector("xpath/.//header[contains(.,'Welcome,')]");
         const profileButton = await page.waitForSelector(
             "xpath=//header//button"
         );
         await profileButton.click();
-        const logoutButtons = await page.$x(
-            "//li[contains(., 'Logout using')]"
+        const logoutButtons = await page.$$(
+            "xpath/.//li[contains(., 'Logout using')]"
         );
         expect(logoutButtons.length).toBe(2);
         await screenshot.takeScreenshot(page, "App signed in");
@@ -165,7 +156,7 @@ describe("/profile", () => {
         // Go to protected page
         await page.goto(`http://localhost:${port}/profile`);
         // Wait for Graph data to display
-        await page.waitForXPath("//div/ul/li[contains(., 'Name')]");
+        await page.waitForSelector("xpath/.//div/ul/li[contains(., 'Name')]");
         await screenshot.takeScreenshot(page, "Graph data acquired");
         // Verify tokens are in cache
         await verifyTokenStore(BrowserCache, ["User.Read"]);

@@ -8,8 +8,7 @@ import {
     Screenshot,
     createFolder,
     setupCredentials,
-    enterCredentials,
-    SCREENSHOT_BASE_FOLDER_NAME,
+    enterCredentials
     validateCacheLocation,
     SAMPLE_HOME_URL,
     NodeCacheTestUtils,
@@ -60,7 +59,7 @@ describe("OBO AAD Tests", () => {
     let username: string;
     let accountPwd: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/obo/aad`;
+    const screenshotFolder = path.join(__dirname, "screenshots/on-behalf-of")
 
     beforeAll(async () => {
         await validateCacheLocation(WEB_APP_TEST_CACHE_LOCATION);
@@ -147,7 +146,7 @@ describe("OBO AAD Tests", () => {
         });
 
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(5000);
             page.on("dialog", async (dialog) => {

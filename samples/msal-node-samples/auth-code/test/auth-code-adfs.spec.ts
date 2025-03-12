@@ -6,7 +6,6 @@ import {
     RETRY_TIMES,
     enterCredentialsADFS,
     enterCredentialsADFSWithConsent,
-    SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
     NodeCacheTestUtils,
     LabClient,
@@ -17,6 +16,7 @@ import {
     UserTypes,
 } from "e2e-test-utils";
 import { PublicClientApplication } from "@azure/msal-node";
+import path from "path";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/adfs.cache.json`;
 
@@ -37,7 +37,7 @@ describe("Auth Code ADFS 2019 Tests", () => {
     let page: puppeteer.Page;
     let port: string;
     let homeRoute: string;
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/auth-code/adfs`;
+    const screenshotFolder = path.join(__dirname, "screenshots/auth-code/adfs");
 
     beforeAll(async () => {
         // @ts-ignore
@@ -88,7 +88,7 @@ describe("Auth Code ADFS 2019 Tests", () => {
         });
 
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(5000);
         });
