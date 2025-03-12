@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update TestConstants to use TimeUtils #7613",
-  "packageName": "@azure/msal-react",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "none"
-}
