@@ -18,6 +18,7 @@ import {
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { SilentRequest } from "../../src/request/SilentRequest.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 /**
  * Tests for PublicClientApplication.ts when run in a non-browser environment
@@ -479,7 +480,7 @@ describe("Non-browser environment", () => {
             accessToken: TEST_TOKENS.ACCESS_TOKEN,
             fromCache: false,
             correlationId: RANDOM_TEST_GUID,
-            expiresOn: new Date(Date.now() + 3600000),
+            expiresOn: TestTimeUtils.nowDateWithOffset(3600),
             account: testAccount,
             tokenType: AuthenticationScheme.BEARER,
         };

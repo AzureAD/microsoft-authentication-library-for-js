@@ -4,7 +4,6 @@
  */
 
 import { BaseAuthRequest } from "./BaseAuthRequest.js";
-import { StringDict } from "../utils/MsalTypes.js";
 import { CcsCredential } from "../account/CcsCredential.js";
 
 /**
@@ -26,7 +25,6 @@ export type CommonAuthorizationCodeRequest = BaseAuthRequest & {
     code: string;
     redirectUri: string;
     codeVerifier?: string;
-    tokenBodyParameters?: StringDict;
     enableSpaAuthorizationCode?: boolean;
     clientInfo?: string;
     ccsCredential?: CcsCredential;

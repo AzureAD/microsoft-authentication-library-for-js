@@ -20,13 +20,6 @@ import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
 import https from "https";
 import { ManagedIdentityId } from "./ManagedIdentityId.js";
-import {
-    MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON,
-    MANAGED_IDENTITY_MAX_RETRIES,
-    MANAGED_IDENTITY_RETRY_DELAY,
-} from "../utils/Constants.js";
-import { LinearRetryPolicy } from "../retry/LinearRetryPolicy.js";
-import { HttpClientWithRetries } from "../network/HttpClientWithRetries.js";
 import { NodeAuthError } from "../error/NodeAuthError.js";
 
 /**
@@ -251,6 +244,7 @@ export type ManagedIdentityNodeConfiguration = {
     system: Required<
         Pick<NodeSystemOptions, "loggerOptions" | "networkClient">
     >;
+    disableInternalRetries: boolean;
 };
 
 export function buildManagedIdentityConfiguration({
@@ -276,24 +270,12 @@ export function buildManagedIdentityConfiguration({
         );
     }
 
-    // wrap the network client with a retry policy if the developer has not disabled the option to do so
-    if (!system?.disableInternalRetries) {
-        const linearRetryPolicy: LinearRetryPolicy = new LinearRetryPolicy(
-            MANAGED_IDENTITY_MAX_RETRIES,
-            MANAGED_IDENTITY_RETRY_DELAY,
-            MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON
-        );
-        networkClient = new HttpClientWithRetries(
-            networkClient,
-            linearRetryPolicy
-        );
-    }
-
     return {
         managedIdentityId: managedIdentityId,
         system: {
             loggerOptions,
             networkClient,
         },
+        disableInternalRetries: system?.disableInternalRetries || false,
     };
 }

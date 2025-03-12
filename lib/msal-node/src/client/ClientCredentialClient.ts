@@ -34,6 +34,7 @@ import {
     createClientAuthError,
     ClientAssertion,
     getClientAssertion,
+    UrlUtils,
 } from "@azure/msal-common/node";
 import {
     ManagedIdentityConfiguration,
@@ -336,32 +337,46 @@ export class ClientCredentialClient extends BaseClient {
     private async createTokenRequestBody(
         request: CommonClientCredentialRequest
     ): Promise<string> {
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameters = new Map<string, string>();
 
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
+        RequestParameterBuilder.addClientId(
+            parameters,
+            this.config.authOptions.clientId
+        );
 
-        parameterBuilder.addScopes(request.scopes, false);
+        RequestParameterBuilder.addScopes(parameters, request.scopes, false);
 
-        parameterBuilder.addGrantType(GrantType.CLIENT_CREDENTIALS_GRANT);
+        RequestParameterBuilder.addGrantType(
+            parameters,
+            GrantType.CLIENT_CREDENTIALS_GRANT
+        );
 
-        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-        parameterBuilder.addApplicationTelemetry(
+        RequestParameterBuilder.addLibraryInfo(
+            parameters,
+            this.config.libraryInfo
+        );
+        RequestParameterBuilder.addApplicationTelemetry(
+            parameters,
             this.config.telemetry.application
         );
 
-        parameterBuilder.addThrottling();
+        RequestParameterBuilder.addThrottling(parameters);
 
         if (this.serverTelemetryManager) {
-            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+            RequestParameterBuilder.addServerTelemetry(
+                parameters,
+                this.serverTelemetryManager
+            );
         }
 
         const correlationId =
             request.correlationId ||
             this.config.cryptoInterface.createNewGuid();
-        parameterBuilder.addCorrelationId(correlationId);
+        RequestParameterBuilder.addCorrelationId(parameters, correlationId);
 
         if (this.config.clientCredentials.clientSecret) {
-            parameterBuilder.addClientSecret(
+            RequestParameterBuilder.addClientSecret(
+                parameters,
                 this.config.clientCredentials.clientSecret
             );
         }
@@ -372,14 +387,16 @@ export class ClientCredentialClient extends BaseClient {
             this.config.clientCredentials.clientAssertion;
 
         if (clientAssertion) {
-            parameterBuilder.addClientAssertion(
+            RequestParameterBuilder.addClientAssertion(
+                parameters,
                 await getClientAssertion(
                     clientAssertion.assertion,
                     this.config.authOptions.clientId,
                     request.resourceRequestUri
                 )
             );
-            parameterBuilder.addClientAssertionType(
+            RequestParameterBuilder.addClientAssertionType(
+                parameters,
                 clientAssertion.assertionType
             );
         }
@@ -389,12 +406,13 @@ export class ClientCredentialClient extends BaseClient {
             (this.config.authOptions.clientCapabilities &&
                 this.config.authOptions.clientCapabilities.length > 0)
         ) {
-            parameterBuilder.addClaims(
+            RequestParameterBuilder.addClaims(
+                parameters,
                 request.claims,
                 this.config.authOptions.clientCapabilities
             );
         }
 
-        return parameterBuilder.createQueryString();
+        return UrlUtils.mapToQueryString(parameters);
     }
 }
