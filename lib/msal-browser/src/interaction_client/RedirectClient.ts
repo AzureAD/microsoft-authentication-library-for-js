@@ -174,7 +174,13 @@ export class RedirectClient extends StandardInteractionClient {
             );
 
             // Create acquire token url.
-            const navigateUrl = await getAuthCodeRequestUrl(
+            const navigateUrl = await invokeAsync(
+                getAuthCodeRequestUrl,
+                PerformanceEvents.GetAuthCodeUrl,
+                this.logger,
+                this.performanceClient,
+                validRequest.correlationId
+            )(
                 this.config,
                 authClient.authority,
                 {

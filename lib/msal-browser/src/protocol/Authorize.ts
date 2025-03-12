@@ -117,13 +117,13 @@ export async function getAuthCodeRequestUrl(
         );
     }
 
-    const parameters = await getStandardParameters(
-        config,
-        authority,
-        request,
+    const parameters = await invokeAsync(
+        getStandardParameters,
+        PerformanceEvents.GetStandardParams,
         logger,
-        performanceClient
-    );
+        performanceClient,
+        request.correlationId
+    )(config, authority, request, logger, performanceClient);
     RequestParameterBuilder.addResponseTypeCode(parameters);
 
     RequestParameterBuilder.addCodeChallengeParams(

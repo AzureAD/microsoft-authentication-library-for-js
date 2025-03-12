@@ -219,6 +219,7 @@ export const PerformanceEvents = {
      * getAuthCodeUrl API (msal-browser and msal-node).
      */
     GetAuthCodeUrl: "getAuthCodeUrl",
+    GetStandardParams: "getStandardParams",
 
     /**
      * Functions from InteractionHandler (msal-browser)
@@ -233,7 +234,6 @@ export const PerformanceEvents = {
     AuthClientAcquireToken: "authClientAcquireToken",
     AuthClientExecuteTokenRequest: "authClientExecuteTokenRequest",
     AuthClientCreateTokenRequestBody: "authClientCreateTokenRequestBody",
-    AuthClientCreateQueryString: "authClientCreateQueryString",
 
     /**
      * Generate functions in PopTokenGenerator (msal-common)
@@ -446,10 +446,6 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         [
             PerformanceEvents.AuthClientCreateTokenRequestBody,
             "AuthClientCreateTReqBody",
-        ],
-        [
-            PerformanceEvents.AuthClientCreateQueryString,
-            "AuthClientCreateQueryStr",
         ],
         [PerformanceEvents.PopTokenGenerateCnf, "PopTGenCnf"],
         [PerformanceEvents.PopTokenGenerateKid, "PopTGenKid"],
