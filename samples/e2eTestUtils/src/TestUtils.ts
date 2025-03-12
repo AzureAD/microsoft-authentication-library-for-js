@@ -284,6 +284,7 @@ export async function enterCredentials(
     if (page.url().startsWith(SAMPLE_HOME_URL)) {
         return;
     }
+    await screenshot.takeScreenshot(page, "passwordSubmitted");
 
     // agce: check if the "help us protect your account" dialog appears
     try {
