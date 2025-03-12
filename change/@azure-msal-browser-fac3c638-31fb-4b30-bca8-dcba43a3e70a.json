@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fix acquireTokenSilent deduplication for pairwise broker requests",
+  "comment": "refactor RequestParameterBuilder",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

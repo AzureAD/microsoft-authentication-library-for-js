@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { RequestParameterBuilder, UrlString } from "@azure/msal-common/node";
+import {
+    RequestParameterBuilder,
+    UrlString,
+    UrlUtils,
+} from "@azure/msal-common/node";
 import {
     HttpMethod,
     MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON,
@@ -41,13 +45,16 @@ export class ManagedIdentityRequestParameters {
     }
 
     public computeUri(): string {
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameters = new Map<string, string>();
 
         if (this.queryParameters) {
-            parameterBuilder.addExtraQueryParameters(this.queryParameters);
+            RequestParameterBuilder.addExtraQueryParameters(
+                parameters,
+                this.queryParameters
+            );
         }
 
-        const queryParametersString = parameterBuilder.createQueryString();
+        const queryParametersString = UrlUtils.mapToQueryString(parameters);
 
         return UrlString.appendQueryString(
             this._baseEndpoint,
@@ -56,12 +63,15 @@ export class ManagedIdentityRequestParameters {
     }
 
     public computeParametersBodyString(): string {
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameters = new Map<string, string>();
 
         if (this.bodyParameters) {
-            parameterBuilder.addExtraQueryParameters(this.bodyParameters);
+            RequestParameterBuilder.addExtraQueryParameters(
+                parameters,
+                this.bodyParameters
+            );
         }
 
-        return parameterBuilder.createQueryString();
+        return UrlUtils.mapToQueryString(parameters);
     }
 }
