@@ -1,6 +1,14 @@
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
 
 describe("TimeUtils.ts Class Unit Tests", () => {
+    beforeAll(() => {
+        jest.useFakeTimers();
+    });
+
+    afterAll(() => {
+        jest.useRealTimers();
+    });
+
     it("nowSeconds() gets the current Unix time in seconds", () => {
         const currSeconds = TimeUtils.nowSeconds();
         expect(typeof currSeconds).toBe("number");
