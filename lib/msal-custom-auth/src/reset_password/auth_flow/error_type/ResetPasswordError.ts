@@ -20,16 +20,28 @@ export class ResetPasswordError extends AuthFlowErrorBase {
         return this.isUnsupportedChallengeTypeError();
     }
 
+    /**
+     * Checks if the challenge type is redirect (authentication method is not supported by by Microsoft Entra)
+     * @returns {boolean} True if the challenge type is redirect, false otherwise.
+     */
     isRedirect(): boolean {
         return this.isRedirectError();
     }
 }
 
 export class ResetPasswordSubmitPasswordError extends AuthFlowErrorBase {
+    /**
+     * Checks if the new password is invalid or incorrect.
+     * @returns {boolean} True if the new password is invalid, false otherwise.
+     */
     isInvalidPassword(): boolean {
         return this.isInvalidNewPasswordError() || this.isPasswordIncorrectError();
     }
 
+    /**
+     * Checks if the password reset failed due to reset timeout or password change failed.
+     * @returns {boolean} True if the password reset failed, false otherwise.
+     */
     isPasswordResetFailed(): boolean {
         return (
             this.errorData instanceof CustomAuthApiError &&
@@ -44,12 +56,20 @@ export class ResetPasswordSubmitCodeError extends AuthFlowErrorBase {
         return this.isInvalidCodeError();
     }
 
+    /**
+     * Checks if the challenge type is redirect (authentication method is not supported by by Microsoft Entra)
+     * @returns {boolean} True if the challenge type is redirect, false otherwise.
+     */
     isRedirect(): boolean {
         return this.isRedirectError();
     }
 }
 
 export class ResetPasswordResendCodeError extends AuthFlowErrorBase {
+    /**
+     * Checks if the challenge type is redirect (authentication method is not supported by by Microsoft Entra)
+     * @returns {boolean} True if the challenge type is redirect, false otherwise.
+     */
     isRedirect(): boolean {
         return this.isRedirectError();
     }

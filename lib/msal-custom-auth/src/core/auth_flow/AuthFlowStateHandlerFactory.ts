@@ -25,7 +25,15 @@ import { UnexpectedError } from "../error/UnexpectedError.js";
 import { AuthFlowStateBase } from "./AuthFlowStateBase.js";
 import { AuthFlowStateHandlerBase } from "./AuthFlowStateHandlerBase.js";
 
+/**
+ * Create corresponding state handler based on the provided state to continue the auth flow.
+ */
 export class AuthFlowStateHandlerFactory {
+    /**
+     * Create corresponding state handler based on the provided state
+     * @param {SignUpAttributesRequired} state - state for the auth flow.
+     * @returns {SignUpAttributesRequiredStateHandler} state handler instance
+     */
     public static create(state: SignUpAttributesRequired): SignUpAttributesRequiredStateHandler;
     public static create(state: SignInCodeRequired): SignInCodeRequiredStateHandler;
     public static create(state: SignUpCodeRequired): SignUpCodeRequiredStateHandler;

@@ -33,10 +33,11 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
         super(username, signInClient, cacheClient, correlationId, logger, continuationToken, config);
     }
 
-    /*
-     * Submits a code for sign-in.
-     * @param code - The code to submit.
-     * @returns The result of the operation.
+    /**
+     * Once user configures email one-time passcode as a authentication method in Microsoft Entra, a one-time passcode will be sent to the user’s email.
+     * Submit this one-time passcode to continue sign-in flow.
+     * @param {string} code - The code to submit.
+     * @returns {Promise<SignInSubmitCodeResult>} The result of the operation.
      */
     async submitCode(code: string): Promise<SignInSubmitCodeResult> {
         try {
@@ -74,9 +75,9 @@ export class SignInCodeRequiredStateHandler extends SignInStateHandler {
         }
     }
 
-    /*
-     * Resends a code for sign-in.
-     * @returns The result of the operation.
+    /**
+     * Resends the another one-time passcode for sign-in flow if the previous one hasn't been verified.
+     * @returns {Promise<SignInResendCodeResult>} The result of the operation.
      */
     async resendCode(): Promise<SignInResendCodeResult> {
         try {

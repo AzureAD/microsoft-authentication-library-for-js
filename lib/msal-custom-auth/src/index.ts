@@ -21,6 +21,7 @@ export {
     SignUpInputs,
     ResetPasswordInputs,
     AccountRetrievalInputs,
+    SignInWithContinuationTokenInputs,
 } from "./CustomAuthActionInputs.js";
 
 // Operation Results
@@ -31,10 +32,30 @@ export { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
 export { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
 
 // Operation Errors
-export { GetAccountError } from "./get_account/auth_flow/error_type/GetAccountError.js";
-export { SignInError } from "./sign_in/auth_flow/error_type/SignInError.js";
-export { SignUpError } from "./sign_up/auth_flow/error_type/SignUpError.js";
-export { ResetPasswordError } from "./reset_password/auth_flow/error_type/ResetPasswordError.js";
+export {
+    GetAccountError,
+    SignOutError,
+    GetCurrentAccountAccessTokenError,
+} from "./get_account/auth_flow/error_type/GetAccountError.js";
+export {
+    SignInError,
+    SignInSubmitPasswordError,
+    SignInSubmitCodeError,
+    SignInResendCodeError,
+} from "./sign_in/auth_flow/error_type/SignInError.js";
+export {
+    SignUpError,
+    SignUpSubmitPasswordError,
+    SignUpSubmitCodeError,
+    SignUpSubmitAttributesError,
+    SignUpResendCodeError,
+} from "./sign_up/auth_flow/error_type/SignUpError.js";
+export {
+    ResetPasswordError,
+    ResetPasswordSubmitPasswordError,
+    ResetPasswordSubmitCodeError,
+    ResetPasswordResendCodeError,
+} from "./reset_password/auth_flow/error_type/ResetPasswordError.js";
 
 // Handler Factory
 export { AuthFlowStateHandlerFactory } from "./core/auth_flow/AuthFlowStateHandlerFactory.js";
