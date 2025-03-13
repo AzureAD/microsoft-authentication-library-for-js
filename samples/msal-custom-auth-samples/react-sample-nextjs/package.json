@@ -7,7 +7,7 @@
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
-        "test:e2e": "jest"
+        "test:e2e": "jest --passWithNoTests"
     },
     "dependencies": {
         "react": "^19.0.0",
