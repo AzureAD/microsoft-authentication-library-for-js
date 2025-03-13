@@ -39,7 +39,7 @@ export class ResetPasswordSubmitPasswordError extends AuthFlowErrorBase {
     }
 
     /**
-     * Checks if the password reset failed due to reset timeout or change failed.
+     * Checks if the password reset failed due to reset timeout or password change failed.
      * @returns {boolean} True if the password reset failed, false otherwise.
      */
     isPasswordResetFailed(): boolean {

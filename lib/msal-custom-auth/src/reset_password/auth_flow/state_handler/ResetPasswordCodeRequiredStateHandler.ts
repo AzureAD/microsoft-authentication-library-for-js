@@ -42,7 +42,7 @@ export class ResetPasswordCodeRequiredStateHandler extends ResetPasswordStateHan
     }
 
     /**
-     * Submits a code for reset password.
+     * Submits a one-time passcode that the customer user received in their email in order to continue password reset flow.
      * @param {string} code - The code to submit.
      * @returns {Promise<ResetPasswordSubmitCodeResult>} The result of the operation.
      */
@@ -83,7 +83,7 @@ export class ResetPasswordCodeRequiredStateHandler extends ResetPasswordStateHan
     }
 
     /**
-     * Resends a code for reset password.
+     * Resends another one-time passcode if the previous one hasn't been verified
      * @returns {Promise<ResetPasswordResendCodeResult>} The result of the operation.
      */
     async resendCode(): Promise<ResetPasswordResendCodeResult> {

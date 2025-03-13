@@ -39,7 +39,7 @@ export class ResetPasswordPasswordRequiredStateHandler extends ResetPasswordStat
     }
 
     /**
-     * Submits a new password for reset password.
+     * Submits a new password for reset password flow.
      * @param {string} password - The password to submit.
      * @returns {Promise<ResetPasswordSubmitPasswordResult>} The result of the operation.
      */

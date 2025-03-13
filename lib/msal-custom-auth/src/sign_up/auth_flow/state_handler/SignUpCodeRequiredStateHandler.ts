@@ -42,7 +42,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
     }
 
     /**
-     * Submits a code for sign-up.
+     * Submit one-time passcode to continue sign-up flow.
      * @param {string} code - The code to submit.
      * @returns {Promise<SignUpSubmitCodeResult>} The result of the operation.
      */
@@ -124,7 +124,7 @@ export class SignUpCodeRequiredStateHandler extends SignUpStateHandler {
     }
 
     /**
-     * Resends a code for sign-up.
+     * Resends the another one-time passcode for sign-up flow if the previous one hasn't been verified.
      * @returns {Promise<SignUpResendCodeResult>} The result of the operation.
      */
     async resendCode(): Promise<SignUpResendCodeResult> {

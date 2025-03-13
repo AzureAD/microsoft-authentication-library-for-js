@@ -42,7 +42,9 @@ export class SignUpAttributesRequiredStateHandler extends SignUpStateHandler {
     }
 
     /**
-     * Submits attributes for sign-up.
+     * Submits attributes to continue sign-up flow.
+     * This methods is used to submit required attributes.
+     * These attributes, built in or custom, were configured in the Microsoft Entra admin center by the tenant administrator.
      * @param {UserAccountAttributes} attributes - The attributes to submit.
      * @returns {Promise<SignUpSubmitAttributesResult>} The result of the operation.
      */

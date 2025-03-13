@@ -39,7 +39,9 @@ export class CustomAuthAccountData {
     }
 
     /**
-     * Signs the current user out.
+     * This method triggers a sign-out operation,
+     * which removes the current account info and its tokens from browser cache.
+     * If sign-out successfully, redirect the page to postLogoutRedirectUri if provided in the configuration.
      * @returns {Promise<SignOutResult>} The result of the SignOut operation.
      */
     async signOut(): Promise<SignOutResult> {
@@ -67,16 +69,14 @@ export class CustomAuthAccountData {
         }
     }
 
-    /**
-     * Gets the current account data.
-     * @returns {AccountInfo} The account data.
-     */
     getAccount(): AccountInfo {
         return this.account;
     }
 
     /**
-     * Gets the id-token of current account.
+     * Gets the raw id-token of current account.
+     * Idtoken is only issued if openid scope is present in the scopes parameter when requesting for tokens,
+     * otherwise will return undefined from the response.
      * @returns {string|undefined} The account id-token.
      */
     getIdToken(): string | undefined {
@@ -84,7 +84,7 @@ export class CustomAuthAccountData {
     }
 
     /**
-     * Gets the token claims of current account.
+     * Gets the id token claims extracted from raw IdToken of current account.
      * @returns {AuthTokenClaims|undefined} The token claims.
      */
     getClaims(): AuthTokenClaims | undefined {
@@ -92,7 +92,9 @@ export class CustomAuthAccountData {
     }
 
     /**
-     * Gets the access token from cache.
+     * Gets the access token of current account from browser cache if it is not expired,
+     * otherwise renew the token using cached refresh token if valid.
+     * If no refresh token is found or it is expired, then throws error.
      * @param {AccessTokenRetrievalInputs} accessTokenRetrievalInputs - The inputs for retrieving the access token.
      * @returns {Promise<GetAccessTokenResult>} The result of the operation.
      */

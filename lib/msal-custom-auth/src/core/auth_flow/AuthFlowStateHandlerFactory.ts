@@ -26,7 +26,7 @@ import { AuthFlowStateBase } from "./AuthFlowStateBase.js";
 import { AuthFlowStateHandlerBase } from "./AuthFlowStateHandlerBase.js";
 
 /**
- * Create corresponding state handler based on the provided state
+ * Create corresponding state handler based on the provided state to continue the auth flow.
  */
 export class AuthFlowStateHandlerFactory {
     /**

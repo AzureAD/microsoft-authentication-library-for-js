@@ -31,7 +31,7 @@ export class SignInPasswordRequiredStateHandler extends SignInStateHandler {
     }
 
     /**
-     * Submits a password for sign-in.
+     * Once user configures email with password as a authentication method in Microsoft Entra, user submits a password to continue sign-in flow.
      * @param {string} password - The password to submit.
      * @returns {Promise<SignInSubmitPasswordResult>} The result of the operation.
      */
