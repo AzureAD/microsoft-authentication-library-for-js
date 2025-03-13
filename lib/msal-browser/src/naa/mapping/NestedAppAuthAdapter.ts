@@ -29,6 +29,7 @@ import {
     AccessTokenEntity,
     TenantProfile,
     buildTenantProfile,
+    TimeUtils,
 } from "@azure/msal-common/browser";
 import { isBridgeError } from "../BridgeError.js";
 import { BridgeStatusCode } from "../BridgeStatusCode.js";
@@ -74,8 +75,7 @@ export class NestedAppAuthAdapter {
 
         const correlationId =
             request.correlationId || this.crypto.createNewGuid();
-        const requestBuilder = new RequestParameterBuilder(correlationId);
-        const claims = requestBuilder.addClientCapabilitiesToClaims(
+        const claims = RequestParameterBuilder.addClientCapabilitiesToClaims(
             request.claims,
             this.clientCapabilities
         );
@@ -105,8 +105,9 @@ export class NestedAppAuthAdapter {
             throw createClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken);
         }
 
-        const expiresOn = new Date(
-            (reqTimestamp + (response.token.expires_in || 0)) * 1000
+        // Request timestamp and AuthResult expires_in are in seconds, converting to Date for AuthenticationResult
+        const expiresOn = TimeUtils.toDateFromSeconds(
+            reqTimestamp + (response.token.expires_in || 0)
         );
         const idTokenClaims = AuthToken.extractTokenClaims(
             response.token.id_token,
@@ -304,13 +305,13 @@ export class NestedAppAuthAdapter {
             idTokenClaims: idTokenClaims || {},
             accessToken: accessToken.secret,
             fromCache: true,
-            expiresOn: new Date(Number(accessToken.expiresOn) * 1000),
+            expiresOn: TimeUtils.toDateFromSeconds(accessToken.expiresOn),
+            extExpiresOn: TimeUtils.toDateFromSeconds(
+                accessToken.extendedExpiresOn
+            ),
             tokenType:
                 request.authenticationScheme || AuthenticationScheme.BEARER,
             correlationId,
-            extExpiresOn: new Date(
-                Number(accessToken.extendedExpiresOn) * 1000
-            ),
             state: request.state,
         };
 

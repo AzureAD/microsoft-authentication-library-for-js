@@ -19,10 +19,10 @@ import { SignUpStateHandler } from "./SignUpStateHandler.js";
  * Sign-up handler used for the state of password required.
  */
 export class SignUpPasswordRequiredStateHandler extends SignUpStateHandler {
-    /*
+    /**
      * Submits a password for sign-up.
-     * @param password - The password to submit.
-     * @returns The result of the operation.
+     * @param {string} password - The password to submit.
+     * @returns {Promise<SignUpSubmitPasswordResult>} The result of the operation.
      */
     async submitPassword(password: string): Promise<SignUpSubmitPasswordResult> {
         try {

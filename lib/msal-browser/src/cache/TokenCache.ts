@@ -19,6 +19,7 @@ import {
     TokenClaims,
     CacheHelpers,
     buildAccountToCache,
+    TimeUtils,
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { SilentRequest } from "../request/SilentRequest.js";
@@ -299,13 +300,12 @@ export class TokenCache implements ITokenCache {
             ? ScopeSet.fromString(response.scope)
             : new ScopeSet(request.scopes);
         const expiresOn =
-            options.expiresOn ||
-            response.expires_in + new Date().getTime() / 1000;
+            options.expiresOn || response.expires_in + TimeUtils.nowSeconds();
 
         const extendedExpiresOn =
             options.extendedExpiresOn ||
             (response.ext_expires_in || response.expires_in) +
-                new Date().getTime() / 1000;
+                TimeUtils.nowSeconds();
 
         const accessTokenEntity = CacheHelpers.createAccessTokenEntity(
             homeAccountId,
@@ -389,11 +389,12 @@ export class TokenCache implements ITokenCache {
             responseScopes = ScopeSet.fromString(
                 cacheRecord.accessToken.target
             ).asArray();
-            expiresOn = new Date(
-                Number(cacheRecord.accessToken.expiresOn) * 1000
+            // Access token expiresOn stored in seconds, converting to Date for AuthenticationResult
+            expiresOn = TimeUtils.toDateFromSeconds(
+                cacheRecord.accessToken.expiresOn
             );
-            extExpiresOn = new Date(
-                Number(cacheRecord.accessToken.extendedExpiresOn) * 1000
+            extExpiresOn = TimeUtils.toDateFromSeconds(
+                cacheRecord.accessToken.extendedExpiresOn
             );
         }
 

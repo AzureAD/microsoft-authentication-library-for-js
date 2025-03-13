@@ -52,6 +52,7 @@ import {
     BrowserConstants,
 } from "../../src/utils/BrowserConstants.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 class TestInteractionHandler extends InteractionHandler {
     constructor(
@@ -302,8 +303,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
                 ),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
@@ -395,8 +396,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
                 ),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
@@ -495,8 +496,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
                 ),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,

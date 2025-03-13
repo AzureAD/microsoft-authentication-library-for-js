@@ -103,7 +103,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
     }
 
     /**
-     * Resends the code for password reset.
+     * Resends the another one-time passcode if the previous one hasn't been verified
      * @param parameters The parameters for resending the code for password reset.
      * @returns The result of resending the code for password reset.
      */

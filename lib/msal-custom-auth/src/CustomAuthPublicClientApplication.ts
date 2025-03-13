@@ -29,10 +29,11 @@ export class CustomAuthPublicClientApplication
 {
     private readonly customAuthController: ICustomAuthStandardController;
 
-    /*
-     * Creates a new instance of a PublicClientApplication with the given configuration.
-     * @param config - A configuration object for the PublicClientApplication instance
-     * @param controller - A controller object for the PublicClientApplication instance
+    /**
+     * Creates a new instance of a PublicClientApplication with the given configuration and controller to start Native authentication flows.
+     * @param {CustomAuthConfiguration} config - A configuration object for the PublicClientApplication instance
+     * @param {ICustomAuthStandardController} controller - A controller object for the PublicClientApplication instance
+     * @returns {Promise<ICustomAuthPublicClientApplication>} - A promise that resolves to a CustomAuthPublicClientApplication instance
      */
     static async create(
         config: CustomAuthConfiguration,
@@ -53,48 +54,49 @@ export class CustomAuthPublicClientApplication
         return app;
     }
 
-    /*
-     * Creates a new instance of a PublicClientApplication with the given configuration and controller.
-     * @param config - A configuration object for the PublicClientApplication instance
-     * @param controller - A controller object for the PublicClientApplication instance
-     */
     private constructor(config: CustomAuthConfiguration, controller: ICustomAuthStandardController) {
         super(config, controller);
 
         this.customAuthController = controller;
     }
 
-    /*
-     * Gets the current account from the cache.
-     * @param getAccountInputs - Inputs for getting the current cached account
-     * @returns - The result of the operation
+    /**
+     * Gets the current account from the browser cache.
+     * @param {AccountRetrievalInputs} accountRetrievalInputs?:AccountRetrievalInputs
+     * @returns {GetAccountResult} - The result of the get account operation
      */
     getCurrentAccount(accountRetrievalInputs?: AccountRetrievalInputs): GetAccountResult {
         return this.customAuthController.getCurrentAccount(accountRetrievalInputs);
     }
 
-    /*
+    /**
      * Initiates the sign-in flow.
-     * @param signInInputs - Inputs for the sign-in flow
-     * @returns - A promise that resolves to SignInResult
+     * This method results in sign-in completion, or extra actions (password, code, etc.) required to complete the sign-in.
+     * Create result with error details if any exception thrown.
+     * @param {SignInInputs} signInInputs - Inputs for the sign-in flow
+     * @returns {Promise<SignInResult>} - A promise that resolves to SignInResult
      */
     signIn(signInInputs: SignInInputs): Promise<SignInResult> {
         return this.customAuthController.signIn(signInInputs);
     }
 
-    /*
+    /**
      * Initiates the sign-up flow.
-     * @param signUpInputs - Inputs for the sign-up flow
-     * @returns - A promise that resolves to SignUpResult
+     * This method results in sign-up completion, or extra actions (password, code, etc.) required to complete the sign-up.
+     * Create result with error details if any exception thrown.
+     * @param {SignUpInputs} signUpInputs
+     * @returns {Promise<SignUpResult>} - A promise that resolves to SignUpResult
      */
     signUp(signUpInputs: SignUpInputs): Promise<SignUpResult> {
         return this.customAuthController.signUp(signUpInputs);
     }
 
-    /*
+    /**
      * Initiates the reset password flow.
-     * @param resetPasswordInputs - Inputs for the reset password flow
-     * @returns - A promise that resolves to ResetPasswordStartResult
+     * This method results in triggering extra action (submit code) to complete the reset password.
+     * Create result with error details if any exception thrown.
+     * @param {ResetPasswordInputs} resetPasswordInputs - Inputs for the reset password flow
+     * @returns {Promise<ResetPasswordStartResult>} - A promise that resolves to ResetPasswordStartResult
      */
     resetPassword(resetPasswordInputs: ResetPasswordInputs): Promise<ResetPasswordStartResult> {
         return this.customAuthController.resetPassword(resetPasswordInputs);
@@ -102,7 +104,8 @@ export class CustomAuthPublicClientApplication
 
     /**
      * Validates the configuration to ensure it is a valid CustomAuthConfiguration object.
-     * @param config The configuration object for the PublicClientApplication.
+     * @param {CustomAuthConfiguration} config - The configuration object for the PublicClientApplication.
+     * @returns {void}
      */
     private static validateConfig(config: CustomAuthConfiguration): void {
         // Ensure the configuration object has a valid CIAM authority URL.

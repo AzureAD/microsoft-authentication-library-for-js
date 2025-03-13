@@ -4086,7 +4086,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(queryString).toContain(
                 `brk_client_id=${config.authOptions.clientId}`
             );
-            expect(queryString).toContain(`brk_redirect_uri=https://localhost`);
+            expect(queryString).toContain(
+                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`
+            );
         });
 
         it("broker params take precedence over extra query params", async () => {
@@ -4111,7 +4113,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(queryString).toContain(
                 `brk_client_id=${config.authOptions.clientId}`
             );
-            expect(queryString).toContain(`brk_redirect_uri=https://localhost`);
+            expect(queryString).toContain(
+                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`
+            );
         });
     });
 
@@ -4168,7 +4172,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(queryString).toContain(
                 `brk_client_id=${config.authOptions.clientId}`
             );
-            expect(queryString).toContain(`brk_redirect_uri=https://localhost`);
+            expect(queryString).toContain(
+                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`
+            );
         });
 
         it("broker params take precedence over token body params", async () => {
@@ -4193,7 +4199,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(queryString).toContain(
                 `brk_client_id=${config.authOptions.clientId}`
             );
-            expect(queryString).toContain(`brk_redirect_uri=https://localhost`);
+            expect(queryString).toContain(
+                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`
+            );
         });
     });
 });

@@ -32,9 +32,10 @@ export class SignInContinuationStateHandler extends SignInStateHandler {
         super(username, signInClient, cacheClient, correlationId, logger, continuationToken, config);
     }
 
-    /*
+    /**
      * Initiates the sign-in flow with continuation token.
-     * @returns The result of the operation.
+     * @param {SignInWithContinuationTokenInputs} signInWithContinuationTokenInputs - The result of the operation.
+     * @returns {Promise<SignInResult>} The result of the operation.
      */
     async signIn(signInWithContinuationTokenInputs?: SignInWithContinuationTokenInputs): Promise<SignInResult> {
         try {
