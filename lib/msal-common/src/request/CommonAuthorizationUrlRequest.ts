@@ -49,9 +49,9 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     extraQueryParameters?: StringDict;
     extraScopesToConsent?: Array<string>;
     loginHint?: string;
-    nonce?: string;
+    nonce: string;
     prompt?: string;
     sid?: string;
-    state?: string;
+    state: string;
     platformBroker?: boolean;
 };

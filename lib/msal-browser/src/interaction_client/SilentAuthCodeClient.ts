@@ -11,9 +11,9 @@ import {
     IPerformanceClient,
     PerformanceEvents,
     invokeAsync,
+    CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -73,7 +73,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         }
 
         // Create silent request
-        const silentRequest: AuthorizationUrlRequest = await invokeAsync(
+        const silentRequest: CommonAuthorizationUrlRequest = await invokeAsync(
             this.initializeAuthorizationRequest.bind(this),
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
