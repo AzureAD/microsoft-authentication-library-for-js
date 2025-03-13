@@ -5,7 +5,6 @@
 
 import { CustomAuthAccountData } from "../../src/get_account/auth_flow/CustomAuthAccountData.js";
 import { CustomAuthPublicClientApplication } from "../../src/CustomAuthPublicClientApplication.js";
-import { ICustomAuthPublicClientApplication } from "../../src/ICustomAuthPublicClientApplication.js";
 import { SignUpSubmitCodeResult } from "../../src/sign_up/auth_flow/result/SignUpSubmitCodeResult.js";
 import { SignUpSubmitPasswordResult } from "../../src/sign_up/auth_flow/result/SignUpSubmitPasswordResult.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
@@ -20,6 +19,7 @@ import { UserAccountAttributes } from "../../src/UserAccountAttributes.js";
 import { SignUpResult } from "../../src/sign_up/auth_flow/result/SignUpResult.js";
 import { SignUpAttributesRequired } from "../../src/sign_up/auth_flow/state/SignUpAttributesRequired.js";
 import { SignUpSubmitAttributesResult } from "../../src/sign_up/auth_flow/result/SignUpSubmitAttributesResult.js";
+import { CustomAuthStandardController } from "../../src/controller/CustomAuthStandardController.js";
 
 jest.mock("@azure/msal-browser", () => {
     const actualModule = jest.requireActual("@azure/msal-browser");
@@ -49,16 +49,21 @@ jest.mock("@azure/msal-browser", () => {
 });
 
 describe("Sign up", () => {
-    let app: ICustomAuthPublicClientApplication;
+    let app: CustomAuthPublicClientApplication;
     const correlationId = "test-correlation-id";
 
     beforeEach(async () => {
-        app = await CustomAuthPublicClientApplication.create(customAuthConfig);
+        app = (await CustomAuthPublicClientApplication.create(customAuthConfig)) as CustomAuthPublicClientApplication;
 
         global.fetch = jest.fn(); // Mock the fetch API
     });
 
     afterEach(() => {
+        const controller = app["customAuthController"] as CustomAuthStandardController;
+        if (controller && controller["eventHandler"] && controller["eventHandler"]["broadcastChannel"]) {
+            controller["eventHandler"]["broadcastChannel"].close();
+        }
+
         jest.clearAllMocks(); // Clear mocks between tests
     });
 

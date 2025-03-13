@@ -7,6 +7,7 @@ import { SignUpResult } from "../src/sign_up/auth_flow/result/SignUpResult.js";
 import { CustomAuthError } from "../src/core/error/CustomAuthError.js";
 import { ResetPasswordStartResult } from "../src/reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import { GetAccountResult } from "../src/get_account/auth_flow/result/GetAccountResult.js";
+import { CustomAuthStandardController } from "../src/controller/CustomAuthStandardController.js";
 
 describe("CustomAuthPublicClientApplication", () => {
     let mockController: jest.Mocked<ICustomAuthStandardController>;
@@ -65,6 +66,10 @@ describe("CustomAuthPublicClientApplication", () => {
             const app = await CustomAuthPublicClientApplication.create(customAuthConfig);
 
             expect(app).toBeInstanceOf(CustomAuthPublicClientApplication);
+
+            ((app as CustomAuthPublicClientApplication)["customAuthController"] as CustomAuthStandardController)[
+                "eventHandler"
+            ]["broadcastChannel"].close();
         });
     });
 
