@@ -12,7 +12,7 @@ import {
     PerformanceEvents,
 } from "@azure/msal-common/browser";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants.js";
-import { urlEncodeArr } from "../encode/Base64Encode.js";
+import { base64Encode, urlEncodeArr } from "../encode/Base64Encode.js";
 import { base64DecToArr } from "../encode/Base64Decode.js";
 
 /**
@@ -224,6 +224,22 @@ export async function sign(
         key,
         data
     ) as Promise<ArrayBuffer>;
+}
+
+/**
+ * Generates Base64 encoded jwk used in the Encrypted Authorize Response (EAR) flow
+ */
+export async function generateEarKey(): Promise<string> {
+    const key = await generateBaseKey();
+    const keyStr = urlEncodeArr(new Uint8Array(key));
+
+    const jwk = {
+        alg: "dir",
+        kty: "oct",
+        k: keyStr
+    }
+
+    return base64Encode(JSON.stringify(jwk));
 }
 
 /**

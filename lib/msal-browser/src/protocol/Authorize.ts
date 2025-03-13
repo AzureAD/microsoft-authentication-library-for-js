@@ -140,7 +140,7 @@ export async function getAuthCodeRequestUrl(
 /**
  * Gets the form that will be posted to /authorize with request parameters when using EAR
  */
-export async function getEARForm(config: BrowserConfiguration,
+export async function getEARForm(frame: Document, config: BrowserConfiguration,
     authority: Authority,
     request: CommonAuthorizationUrlRequest,
     logger: Logger,
@@ -161,7 +161,7 @@ export async function getEARForm(config: BrowserConfiguration,
     RequestParameterBuilder.addResponseType(parameters, OAuthResponseType.IDTOKEN_TOKEN)
     RequestParameterBuilder.addEARParameters(parameters, request.earJwk);
 
-    return createForm(document, authority.authorizationEndpoint, parameters);
+    return createForm(frame, authority.authorizationEndpoint, parameters);
 }
 
 /**
