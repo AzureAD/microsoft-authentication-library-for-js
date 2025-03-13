@@ -88,13 +88,16 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
   };
 }
 
-@NgModule({ declarations: [
+@NgModule({ 
+    declarations: [
         AppComponent,
         HomeComponent,
         ProfileComponent,
         FailedComponent,
     ],
-    bootstrap: [AppComponent], imports: [BrowserModule,
+    bootstrap: [AppComponent], 
+    imports: [
+        BrowserModule,
         NoopAnimationsModule, // Animations cause delay which interfere with E2E tests
         AppRoutingModule,
         MatButtonModule,
@@ -102,7 +105,9 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
         MatListModule,
         MatMenuModule,
         MatTableModule,
-        MsalModule], providers: [
+        MsalModule
+    ], 
+    providers: [
         {
             provide: HTTP_INTERCEPTORS,
             useClass: MsalInterceptor,

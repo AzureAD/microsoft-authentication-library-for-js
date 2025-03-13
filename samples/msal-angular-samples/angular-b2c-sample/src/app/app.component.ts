@@ -32,17 +32,15 @@ export class AppComponent implements OnInit, OnDestroy {
     async ngOnInit(): Promise<void> {
         this.isIframe = window !== window.parent && !window.opener; // Remove this line to use Angular Universal
 
-        await (this.authService.instance as PublicClientApplication).initialize();
-
-        this.authService.instance.handleRedirectPromise()
-        .then((response) => {
-        if (response && response.account) {
-            this.authService.instance.setActiveAccount(response.account);
-        }
-        this.setLoginDisplay();
-        })
-        .catch(error => console.error("Redirect handling error:", error));
-
+        this.authService.handleRedirectObservable().subscribe({
+            next: (response) => {
+                if (response && response.account) {
+                    this.authService.instance.setActiveAccount(response.account);
+                }
+                this.setLoginDisplay();
+            },
+            error: (error) => console.error("Redirect handling error:", error)
+        });
 
         this.authService.instance.enableAccountStorageEvents(); // Optional - This will enable ACCOUNT_ADDED and ACCOUNT_REMOVED events emitted when a user logs in or out of another tab or window
         this.msalBroadcastService.msalSubject$
