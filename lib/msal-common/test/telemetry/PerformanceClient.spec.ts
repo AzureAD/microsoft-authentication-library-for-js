@@ -944,7 +944,7 @@ describe("PerformanceClient.spec.ts", () => {
             );
 
             const thirdChildEventChild = mockPerfClient.startMeasurement(
-                PerformanceEvents.AuthClientCreateQueryString,
+                PerformanceEvents.GetAuthCodeUrl,
                 correlationId
             );
             thirdChildEventChild.end({ success: true });
