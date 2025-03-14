@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+
 import 'zone.js';
 import 'zone.js/testing';
 // eslint-disable-next-line import/no-unresolved
