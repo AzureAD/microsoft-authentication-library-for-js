@@ -2,9 +2,8 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-
-import "zone.js/zone";
-import "zone.js/zone-testing";
+import 'zone.js';
+import 'zone.js/testing';
 // eslint-disable-next-line import/no-unresolved
 import { getTestBed } from "@angular/core/testing";
 import {
