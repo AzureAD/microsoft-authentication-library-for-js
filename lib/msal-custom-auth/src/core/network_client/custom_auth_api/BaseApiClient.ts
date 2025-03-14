@@ -18,7 +18,7 @@ export abstract class BaseApiClient {
         private readonly clientId: string,
         private httpClient: IHttpClient,
     ) {
-        this.baseRequestUrl = UrlUtils.parseSecureUrl(!baseUrl.endsWith("/") ? `${baseUrl}/` : baseUrl);
+        this.baseRequestUrl = UrlUtils.parseUrl(!baseUrl.endsWith("/") ? `${baseUrl}/` : baseUrl);
     }
 
     protected async request<T>(
@@ -37,7 +37,7 @@ export abstract class BaseApiClient {
         let response: Response;
 
         try {
-            response = await this.httpClient.post(url, formData, correlationId, headers);
+            response = await this.httpClient.post(url, formData, headers);
         } catch (e) {
             throw new CustomAuthApiError(
                 CustomAuthApiErrorCode.HTTP_REQUEST_FAILED,

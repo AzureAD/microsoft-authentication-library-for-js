@@ -15,12 +15,10 @@ import { CustomAuthConfiguration } from "./configuration/CustomAuthConfiguration
 import { CustomAuthOperatingContext } from "./operating_context/CustomAuthOperatingContext.js";
 import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import {
-    InvalidAuthApiProxyDomain,
     InvalidAuthority,
     InvalidConfigurationError,
     MissingConfiguration,
 } from "./core/error/InvalidConfigurationError.js";
-import { UrlUtils } from "./core/utils/UrlUtils.js";
 import { StringUtils } from "./core/utils/StringUtils.js";
 
 export class CustomAuthPublicClientApplication
@@ -126,13 +124,6 @@ export class CustomAuthPublicClientApplication
             throw new InvalidConfigurationError(
                 InvalidAuthority,
                 `The authority URL '${config.auth?.authority}' is not a CIAM authority.`,
-            );
-        }
-
-        if (config.customAuth.authApiProxyUrl && !UrlUtils.IsValidSecureUrl(config.customAuth.authApiProxyUrl)) {
-            throw new InvalidConfigurationError(
-                InvalidAuthApiProxyDomain,
-                `The authApiProxyDomain URL '${config.customAuth.authApiProxyUrl}' is not a valid secure URL.`,
             );
         }
     }
