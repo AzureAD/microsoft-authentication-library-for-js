@@ -58,7 +58,7 @@ export function instrumentBrokerParams(
  * @param responseType 
  */
 export function addResponseType(parameters: Map<string, string>, responseType: OAuthResponseType): void {
-    parameters.set(AADServerParamKeys.RESPONSE_TYPE, encodeURIComponent(responseType));
+    parameters.set(AADServerParamKeys.RESPONSE_TYPE, responseType);
 }
 
 /**
@@ -107,7 +107,7 @@ export function addScopes(
     const scopeSet = new ScopeSet(requestScopes);
     parameters.set(
         AADServerParamKeys.SCOPE,
-        encodeURIComponent(scopeSet.printScopes())
+        scopeSet.printScopes()
     );
 }
 
@@ -132,7 +132,7 @@ export function addRedirectUri(
 ): void {
     parameters.set(
         AADServerParamKeys.REDIRECT_URI,
-        encodeURIComponent(redirectUri)
+        redirectUri
     );
 }
 
