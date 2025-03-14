@@ -165,7 +165,7 @@ export async function getEARForm(
 
     RequestParameterBuilder.addResponseType(
         parameters,
-        OAuthResponseType.IDTOKEN_TOKEN
+        OAuthResponseType.IDTOKEN_TOKEN_REFRESHTOKEN
     );
     RequestParameterBuilder.addEARParameters(parameters, request.earJwk);
 
