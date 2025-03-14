@@ -236,8 +236,8 @@ export async function generateEarKey(): Promise<string> {
     const jwk = {
         alg: "dir",
         kty: "oct",
-        k: keyStr
-    }
+        k: keyStr,
+    };
 
     return base64Encode(JSON.stringify(jwk));
 }

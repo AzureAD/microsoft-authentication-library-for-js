@@ -17,7 +17,10 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
-import { BrowserConfiguration, DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration.js";
+import {
+    BrowserConfiguration,
+    DEFAULT_IFRAME_TIMEOUT_MS,
+} from "../config/Configuration.js";
 import { getEARForm } from "../protocol/Authorize.js";
 
 /**
@@ -61,8 +64,8 @@ export async function initiateCodeRequest(
 }
 
 export async function initiateEarRequest(
-    config: BrowserConfiguration, 
-    authority: Authority, 
+    config: BrowserConfiguration,
+    authority: Authority,
     request: CommonAuthorizationUrlRequest,
     logger: Logger,
     performanceClient: IPerformanceClient
@@ -71,7 +74,14 @@ export async function initiateEarRequest(
     if (!frame.contentDocument) {
         throw "No document associated with iframe!";
     }
-    const form = await getEARForm(frame.contentDocument, config, authority, request, logger, performanceClient);
+    const form = await getEARForm(
+        frame.contentDocument,
+        config,
+        authority,
+        request,
+        logger,
+        performanceClient
+    );
     form.submit();
     return frame;
 }

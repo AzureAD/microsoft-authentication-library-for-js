@@ -126,29 +126,34 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.performanceClient,
             request.correlationId
         )(inputRequest, InteractionType.Silent);
-        silentRequest.platformBroker = NativeMessageHandler.isPlatformBrokerAvailable(
-            this.config,
-            this.logger,
-            this.nativeMessageHandler,
-            silentRequest.authenticationScheme
-        )
+        silentRequest.platformBroker =
+            NativeMessageHandler.isPlatformBrokerAvailable(
+                this.config,
+                this.logger,
+                this.nativeMessageHandler,
+                silentRequest.authenticationScheme
+            );
         BrowserUtils.preconnect(silentRequest.authority);
 
         if (this.config.auth.protocolMode === ProtocolMode.EAR) {
             return this.executeEarFlow(silentRequest);
         } else {
             return this.executeCodeFlow(silentRequest);
-        }        
+        }
     }
 
     /**
      * Executes auth code + PKCE flow
-     * @param request 
-     * @returns 
+     * @param request
+     * @returns
      */
-    async executeCodeFlow(request: CommonAuthorizationUrlRequest): Promise<AuthenticationResult> {
+    async executeCodeFlow(
+        request: CommonAuthorizationUrlRequest
+    ): Promise<AuthenticationResult> {
         let authClient: AuthorizationCodeClient | undefined;
-        const serverTelemetryManager = this.initializeServerTelemetryManager(this.apiId);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(
+            this.apiId
+        );
 
         try {
             // Initialize the client
@@ -206,9 +211,11 @@ export class SilentIframeClient extends StandardInteractionClient {
 
     /**
      * Executes EAR flow
-     * @param request 
+     * @param request
      */
-    async executeEarFlow(request: CommonAuthorizationUrlRequest): Promise<AuthenticationResult> {
+    async executeEarFlow(
+        request: CommonAuthorizationUrlRequest
+    ): Promise<AuthenticationResult> {
         const correlationId = request.correlationId;
         // Get the frame handle for the silent request
         const discoveredAuthority = await invokeAsync(
@@ -224,10 +231,16 @@ export class SilentIframeClient extends StandardInteractionClient {
             account: request.account,
         });
 
-        const earJwk = await invokeAsync(generateEarKey, PerformanceEvents.GenerateEarKey, this.logger, this.performanceClient, correlationId)();
+        const earJwk = await invokeAsync(
+            generateEarKey,
+            PerformanceEvents.GenerateEarKey,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )();
         const silentRequest = {
             ...request,
-            earJwk: earJwk
+            earJwk: earJwk,
         };
         const msalFrame = await invokeAsync(
             initiateEarRequest,
@@ -332,7 +345,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             correlationId,
             this.config.system.navigateFrameWait
         );
-        
+
         const responseType = this.config.auth.OIDCOptions.serverResponseType;
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(

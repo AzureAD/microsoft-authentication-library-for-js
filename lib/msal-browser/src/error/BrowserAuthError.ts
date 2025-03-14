@@ -15,7 +15,8 @@ const ErrorLink = "For more visit: aka.ms/msaljs/browser-errors";
 export const BrowserAuthErrorMessages = {
     [BrowserAuthErrorCodes.pkceNotCreated]:
         "The PKCE code challenge and verifier could not be generated.",
-    [BrowserAuthErrorCodes.earJwkEmpty]: "No EAR encryption key provided. This is unexpected.",
+    [BrowserAuthErrorCodes.earJwkEmpty]:
+        "No EAR encryption key provided. This is unexpected.",
     [BrowserAuthErrorCodes.cryptoNonExistent]:
         "The crypto object or function is not available.",
     [BrowserAuthErrorCodes.emptyNavigateUri]:

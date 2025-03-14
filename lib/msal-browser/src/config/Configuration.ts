@@ -81,7 +81,7 @@ export type BrowserAuthOptions = {
     /**
      * Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
      */
-    protocolMode?: ProtocolMode
+    protocolMode?: ProtocolMode;
     /**
      * Enum that configures options for the OIDC protocol mode.
      */
@@ -408,7 +408,9 @@ export function buildConfiguration(
      */
     if (overlayedConfig.auth.protocolMode === ProtocolMode.EAR) {
         const logger = new Logger(providedSystemOptions.loggerOptions);
-        logger.warning("EAR Protocol Mode is not yet supported. Overriding to use PKCE auth");
+        logger.warning(
+            "EAR Protocol Mode is not yet supported. Overriding to use PKCE auth"
+        );
         overlayedConfig.auth.protocolMode = ProtocolMode.AAD;
     }
 

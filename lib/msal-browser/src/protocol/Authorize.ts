@@ -24,7 +24,10 @@ import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserConstants } from "../utils/BrowserConstants.js";
 import { version } from "../packageMetadata.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
-import { BrowserAuthErrorCodes, createBrowserAuthError } from "../error/BrowserAuthError.js";
+import {
+    BrowserAuthErrorCodes,
+    createBrowserAuthError,
+} from "../error/BrowserAuthError.js";
 
 /**
  * Returns map of parameters that are applicable to all calls to /authorize whether using PKCE or EAR
@@ -140,7 +143,9 @@ export async function getAuthCodeRequestUrl(
 /**
  * Gets the form that will be posted to /authorize with request parameters when using EAR
  */
-export async function getEARForm(frame: Document, config: BrowserConfiguration,
+export async function getEARForm(
+    frame: Document,
+    config: BrowserConfiguration,
     authority: Authority,
     request: CommonAuthorizationUrlRequest,
     logger: Logger,
@@ -158,7 +163,10 @@ export async function getEARForm(frame: Document, config: BrowserConfiguration,
         performanceClient
     );
 
-    RequestParameterBuilder.addResponseType(parameters, OAuthResponseType.IDTOKEN_TOKEN)
+    RequestParameterBuilder.addResponseType(
+        parameters,
+        OAuthResponseType.IDTOKEN_TOKEN
+    );
     RequestParameterBuilder.addEARParameters(parameters, request.earJwk);
 
     return createForm(frame, authority.authorizationEndpoint, parameters);
@@ -166,17 +174,21 @@ export async function getEARForm(frame: Document, config: BrowserConfiguration,
 
 /**
  * Creates form element in the provided document with auth parameters in the post body
- * @param frame 
- * @param authorizeUrl 
- * @param parameters 
- * @returns 
+ * @param frame
+ * @param authorizeUrl
+ * @param parameters
+ * @returns
  */
-function createForm(frame: Document, authorizeUrl: string, parameters: Map<string, string>): HTMLFormElement {
+function createForm(
+    frame: Document,
+    authorizeUrl: string,
+    parameters: Map<string, string>
+): HTMLFormElement {
     const form = frame.createElement("form");
     form.method = "post";
     form.action = authorizeUrl;
 
-    parameters.forEach((value: string, key:string) => {
+    parameters.forEach((value: string, key: string) => {
         const param = frame.createElement("input");
         param.hidden = true;
         param.name = key;
