@@ -1,14 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { CustomAuthPublicClientApplication } from "../../../../../../lib/msal-custom-auth/src";
-import { SignUpState } from "../../../../../../lib/msal-custom-auth/src";
-import { UserAccountAttributes } from "../../../../../../lib/msal-custom-auth/src";
 import { customAuthConfig } from "../../config/auth-config";
 import { styles } from "./styles/styles";
 import { InitialForm } from "./components/InitialForm";
 import { CodeForm } from "./components/CodeForm";
 import { SignUpResult } from "./components/SignUpResult";
+import {
+    AuthFlowStateHandlerFactory,
+    SignUpCodeRequired,
+    CustomAuthPublicClientApplication,
+    SignUpState,
+    UserAccountAttributes,
+} from "@azure/msal-custom-auth";
+import { SignUpCompleted } from "@azure/msal-custom-auth";
 
 export default function SignUp() {
     const [firstName, setFirstName] = useState("");
@@ -40,7 +45,7 @@ export default function SignUp() {
                 if (result.error.isUserAlreadyExists()) {
                     setError("An account with this email already exists");
                 } else {
-                    setError("An error occurred during sign up");
+                    setError(result.error.errorData.errorDescription || "An error occurred while signing up");
                 }
                 return;
             }
@@ -60,28 +65,20 @@ export default function SignUp() {
         setLoading(true);
 
         try {
-            const result = await flowState.submitCode(code);
-
-            if (result.error) {
-                if (result.error.isInvalidCode()) {
-                    setError("Invalid verification code");
-                } else {
-                    setError("An error occurred while verifying the code");
-                }
-                return;
-            }
-
-            if (result.state?.type === SignUpState.Completed) {
-                const signInResult = await flowState.signIn();
-                if (signInResult.error) {
-                    setError("Sign up successful but automatic sign in failed");
+            if (flowState instanceof SignUpCodeRequired) {
+                const handler = AuthFlowStateHandlerFactory.create(flowState);
+                const result = await handler.submitCode(code);
+                if (result.error) {
+                    if (result.error.isInvalidCode()) {
+                        setError("Invalid verification code");
+                    } else {
+                        setError("An error occurred while verifying the code");
+                    }
                     return;
                 }
-                setSignUpResult(signInResult);
-                return;
+                setFlowState(result.state);
+            } else if (flowState instanceof SignUpCompleted) {
             }
-
-            setFlowState(result.state);
         } catch (err) {
             setError("An unexpected error occurred");
             console.error(err);
