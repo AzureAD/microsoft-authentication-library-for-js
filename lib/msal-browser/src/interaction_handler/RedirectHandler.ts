@@ -30,7 +30,6 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 export type RedirectParams = {
     navigationClient: INavigationClient;
     redirectTimeout: number;
-    redirectStartPage: string;
     onRedirectNavigate?: (url: string) => void | boolean;
 };
 
@@ -66,24 +65,6 @@ export class RedirectHandler {
         this.logger.verbose("RedirectHandler.initiateAuthRequest called");
         // Navigate if valid URL
         if (requestUrl) {
-            // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
-            if (params.redirectStartPage) {
-                this.logger.verbose(
-                    "RedirectHandler.initiateAuthRequest: redirectStartPage set, caching start page"
-                );
-                this.browserStorage.setTemporaryCache(
-                    TemporaryCacheKeys.ORIGIN_URI,
-                    params.redirectStartPage,
-                    true
-                );
-            }
-
-            // Set interaction status in the library.
-            this.browserStorage.setTemporaryCache(
-                TemporaryCacheKeys.CORRELATION_ID,
-                this.authCodeRequest.correlationId,
-                true
-            );
             this.browserStorage.cacheCodeRequest(this.authCodeRequest);
             this.logger.infoPii(
                 `RedirectHandler.initiateAuthRequest: Navigate to: ${requestUrl}`

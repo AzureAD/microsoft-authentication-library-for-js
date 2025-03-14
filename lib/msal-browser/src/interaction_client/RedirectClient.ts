@@ -22,6 +22,7 @@ import {
     ServerResponseType,
     UrlUtils,
     InProgressPerformanceEvent,
+    CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import {
@@ -48,8 +49,9 @@ import { INavigationClient } from "../navigation/INavigationClient.js";
 import { EventError } from "../event/EventMessage.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
-import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
+import { getAuthCodeRequestUrl, getEARForm } from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
+import { generateEarKey } from "../crypto/BrowserCrypto.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -109,15 +111,6 @@ export class RedirectClient extends StandardInteractionClient {
             this.correlationId
         )(request, InteractionType.Redirect);
 
-        const pkceCodes = await invokeAsync(
-            generatePkceCodes,
-            PerformanceEvents.GeneratePkceCodes,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
-        )(this.performanceClient, this.logger, this.correlationId);
-        validRequest.codeChallenge = pkceCodes.challenge;
-
         this.browserStorage.updateCacheEntries(
             validRequest.state,
             validRequest.nonce,
@@ -125,8 +118,12 @@ export class RedirectClient extends StandardInteractionClient {
             validRequest.loginHint || "",
             validRequest.account || null
         );
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.acquireTokenRedirect
+
+        validRequest.platformBroker = NativeMessageHandler.isPlatformBrokerAvailable(
+            this.config,
+            this.logger,
+            this.nativeMessageHandler,
+            request.authenticationScheme
         );
 
         const handleBackButton = (event: PageTransitionEvent) => {
@@ -143,6 +140,67 @@ export class RedirectClient extends StandardInteractionClient {
             }
         };
 
+        const redirectStartPage = this.getRedirectStartPage(
+            request.redirectStartPage
+        );
+        this.logger.verbosePii(`Redirect start page: ${redirectStartPage}`);
+        // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
+        this.browserStorage.setTemporaryCache(
+            TemporaryCacheKeys.ORIGIN_URI,
+            redirectStartPage,
+            true
+        );
+
+        // Set interaction status in the library.
+        this.browserStorage.setTemporaryCache(
+            TemporaryCacheKeys.CORRELATION_ID,
+            validRequest.correlationId,
+            true
+        );
+
+        // Clear temporary cache if the back button is clicked during the redirect flow.
+        window.addEventListener("pageshow", handleBackButton);
+
+        try {
+            if(this.config.auth.protocolMode === ProtocolMode.EAR) {
+                await this.executeEarFlow(validRequest);
+            } else {
+                await this.executeCodeFlow(validRequest, request.onRedirectNavigate);
+            }
+        } catch (e) {
+            if (e instanceof AuthError) {
+                e.setCorrelationId(this.correlationId);
+            }
+            window.removeEventListener("pageshow", handleBackButton);
+            this.browserStorage.cleanRequestByState(validRequest.state);
+            throw e;
+        }
+    }
+
+    /**
+     * Executes auth code + PKCE flow
+     * @param request
+     * @returns
+     */
+    async executeCodeFlow(request: CommonAuthorizationUrlRequest, onRedirectNavigate?: (url: string) => boolean | void): Promise<void> {
+        const correlationId = request.correlationId;
+        const serverTelemetryManager = this.initializeServerTelemetryManager(
+            ApiId.acquireTokenRedirect
+        );
+        
+        const pkceCodes = await invokeAsync(
+            generatePkceCodes,
+            PerformanceEvents.GeneratePkceCodes,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(this.performanceClient, this.logger, correlationId);
+
+        const redirectRequest = {
+            ...request,
+            codeChallenge: pkceCodes.challenge
+        }
+
         try {
             // Initialize the client
             const authClient: AuthorizationCodeClient = await invokeAsync(
@@ -153,14 +211,14 @@ export class RedirectClient extends StandardInteractionClient {
                 this.correlationId
             )({
                 serverTelemetryManager,
-                requestAuthority: validRequest.authority,
-                requestAzureCloudOptions: validRequest.azureCloudOptions,
-                requestExtraQueryParameters: validRequest.extraQueryParameters,
-                account: validRequest.account,
+                requestAuthority: redirectRequest.authority,
+                requestAzureCloudOptions: redirectRequest.azureCloudOptions,
+                requestExtraQueryParameters: redirectRequest.extraQueryParameters,
+                account: redirectRequest.account,
             });
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                ...validRequest,
+                ...request,
                 code: "", // Will get filled in after the redirect
                 codeVerifier: pkceCodes.verifier,
             };
@@ -179,39 +237,20 @@ export class RedirectClient extends StandardInteractionClient {
                 PerformanceEvents.GetAuthCodeUrl,
                 this.logger,
                 this.performanceClient,
-                validRequest.correlationId
+                request.correlationId
             )(
                 this.config,
                 authClient.authority,
-                {
-                    ...validRequest,
-                    platformBroker:
-                        NativeMessageHandler.isPlatformBrokerAvailable(
-                            this.config,
-                            this.logger,
-                            this.nativeMessageHandler,
-                            request.authenticationScheme
-                        ),
-                },
+                redirectRequest,
                 this.logger,
                 this.performanceClient
             );
-
-            const redirectStartPage = this.getRedirectStartPage(
-                request.redirectStartPage
-            );
-            this.logger.verbosePii(`Redirect start page: ${redirectStartPage}`);
-
-            // Clear temporary cache if the back button is clicked during the redirect flow.
-            window.addEventListener("pageshow", handleBackButton);
-
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             return await interactionHandler.initiateAuthRequest(navigateUrl, {
                 navigationClient: this.navigationClient,
                 redirectTimeout: this.config.system.redirectNavigationTimeout,
-                redirectStartPage: redirectStartPage,
                 onRedirectNavigate:
-                    request.onRedirectNavigate ||
+                    onRedirectNavigate ||
                     this.config.auth.onRedirectNavigate,
             });
         } catch (e) {
@@ -219,10 +258,50 @@ export class RedirectClient extends StandardInteractionClient {
                 e.setCorrelationId(this.correlationId);
                 serverTelemetryManager.cacheFailedRequest(e);
             }
-            window.removeEventListener("pageshow", handleBackButton);
-            this.browserStorage.cleanRequestByState(validRequest.state);
             throw e;
         }
+    }
+
+    /**
+     * Executes EAR flow
+     * @param request
+     */
+    async executeEarFlow(request: CommonAuthorizationUrlRequest): Promise<void> {
+        const correlationId = request.correlationId;
+        // Get the frame handle for the silent request
+        const discoveredAuthority = await invokeAsync(
+            this.getDiscoveredAuthority.bind(this),
+            PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )({
+            requestAuthority: request.authority,
+            requestAzureCloudOptions: request.azureCloudOptions,
+            requestExtraQueryParameters: request.extraQueryParameters,
+            account: request.account,
+        });
+
+        const earJwk = await invokeAsync(
+            generateEarKey,
+            PerformanceEvents.GenerateEarKey,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )();
+        const redirectRequest = {
+            ...request,
+            earJwk: earJwk,
+        };
+        const form = await getEARForm(
+            document,
+            this.config,
+            discoveredAuthority,
+            redirectRequest,
+            this.logger,
+            this.performanceClient
+        );
+        form.submit();
     }
 
     /**
