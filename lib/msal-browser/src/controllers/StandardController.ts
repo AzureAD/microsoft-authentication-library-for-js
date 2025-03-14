@@ -20,7 +20,7 @@ import {
     BaseAuthRequest,
     PromptValue,
     InProgressPerformanceEvent,
-    RequestThumbprint,
+    getRequestThumbprint,
     AccountEntity,
     invokeAsync,
     createClientAuthError,
@@ -1519,7 +1519,8 @@ export class StandardController implements IController {
     public async acquireTokenNative(
         request: PopupRequest | SilentRequest | SsoSilentRequest,
         apiId: ApiId,
-        accountId?: string
+        accountId?: string,
+        cacheLookupPolicy?: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenNative called");
         if (!this.nativeExtensionProvider) {
@@ -1543,7 +1544,7 @@ export class StandardController implements IController {
             request.correlationId
         );
 
-        return nativeClient.acquireToken(request);
+        return nativeClient.acquireToken(request, cacheLookupPolicy);
     }
 
     /**
@@ -1959,30 +1960,71 @@ export class StandardController implements IController {
         }
         atsMeasurement.add({ accountType: getAccountType(account) });
 
-        const thumbprint: RequestThumbprint = {
-            clientId: this.config.auth.clientId,
-            authority: request.authority || Constants.EMPTY_STRING,
-            scopes: request.scopes,
-            homeAccountIdentifier: account.homeAccountId,
-            claims: request.claims,
-            authenticationScheme: request.authenticationScheme,
-            resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims,
-            sshKid: request.sshKid,
-            shrOptions: request.shrOptions,
-        };
+        return this.acquireTokenSilentDeduped(request, account, correlationId)
+            .then((result) => {
+                atsMeasurement.end({
+                    success: true,
+                    fromCache: result.fromCache,
+                    isNativeBroker: result.fromNativeBroker,
+                    accessTokenSize: result.accessToken.length,
+                    idTokenSize: result.idToken.length,
+                });
+                return {
+                    ...result,
+                    state: request.state,
+                    correlationId: correlationId, // Ensures PWB scenarios can correctly match request to response
+                };
+            })
+            .catch((error: Error) => {
+                if (error instanceof AuthError) {
+                    // Ensures PWB scenarios can correctly match request to response
+                    error.setCorrelationId(correlationId);
+                }
+
+                atsMeasurement.end(
+                    {
+                        success: false,
+                    },
+                    error
+                );
+                throw error;
+            });
+    }
+
+    /**
+     * Checks if identical request is already in flight and returns reference to the existing promise or fires off a new one if this is the first
+     * @param request
+     * @param account
+     * @param correlationId
+     * @returns
+     */
+    private async acquireTokenSilentDeduped(
+        request: SilentRequest,
+        account: AccountInfo,
+        correlationId: string
+    ): Promise<AuthenticationResult> {
+        const thumbprint = getRequestThumbprint(
+            this.config.auth.clientId,
+            {
+                ...request,
+                authority: request.authority || this.config.auth.authority,
+                correlationId: correlationId,
+            },
+            account.homeAccountId
+        );
         const silentRequestKey = JSON.stringify(thumbprint);
 
-        const cachedResponse =
+        const inProgressRequest =
             this.activeSilentTokenRequests.get(silentRequestKey);
-        if (typeof cachedResponse === "undefined") {
+
+        if (typeof inProgressRequest === "undefined") {
             this.logger.verbose(
                 "acquireTokenSilent called for the first time, storing active request",
                 correlationId
             );
+            this.performanceClient.addFields({ deduped: false }, correlationId);
 
-            const response = invokeAsync(
+            const activeRequest = invokeAsync(
                 this.acquireTokenSilentAsync.bind(this),
                 PerformanceEvents.AcquireTokenSilentAsync,
                 this.logger,
@@ -1994,45 +2036,19 @@ export class StandardController implements IController {
                     correlationId,
                 },
                 account
-            )
-                .then((result) => {
-                    this.activeSilentTokenRequests.delete(silentRequestKey);
-                    atsMeasurement.end({
-                        success: true,
-                        fromCache: result.fromCache,
-                        isNativeBroker: result.fromNativeBroker,
-                        cacheLookupPolicy: request.cacheLookupPolicy,
-                        accessTokenSize: result.accessToken.length,
-                        idTokenSize: result.idToken.length,
-                    });
-                    return result;
-                })
-                .catch((error: Error) => {
-                    this.activeSilentTokenRequests.delete(silentRequestKey);
-                    atsMeasurement.end(
-                        {
-                            success: false,
-                        },
-                        error
-                    );
-                    throw error;
-                });
-            this.activeSilentTokenRequests.set(silentRequestKey, response);
-            return {
-                ...(await response),
-                state: request.state,
-            };
+            );
+            this.activeSilentTokenRequests.set(silentRequestKey, activeRequest);
+
+            return activeRequest.finally(() => {
+                this.activeSilentTokenRequests.delete(silentRequestKey);
+            });
         } else {
             this.logger.verbose(
                 "acquireTokenSilent has been called previously, returning the result from the first call",
                 correlationId
             );
-            // Discard measurements for memoized calls, as they are usually only a couple of ms and will artificially deflate metrics
-            atsMeasurement.discard();
-            return {
-                ...(await cachedResponse),
-                state: request.state,
-            };
+            this.performanceClient.addFields({ deduped: true }, correlationId);
+            return inProgressRequest;
         }
     }
 
@@ -2223,6 +2239,7 @@ export class StandardController implements IController {
         silentRequest: CommonSilentFlowRequest,
         cacheLookupPolicy: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
+        // if the cache policy is set to access_token only, we should not be hitting the native layer yet
         if (
             NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
@@ -2237,7 +2254,9 @@ export class StandardController implements IController {
             );
             return this.acquireTokenNative(
                 silentRequest,
-                ApiId.acquireTokenSilent_silentFlow
+                ApiId.acquireTokenSilent_silentFlow,
+                silentRequest.account.nativeAccountId,
+                cacheLookupPolicy
             ).catch(async (e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to web flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
@@ -2257,6 +2276,12 @@ export class StandardController implements IController {
             this.logger.verbose(
                 "acquireTokenSilent - attempting to acquire token from web flow"
             );
+            // add logs to identify embedded cache retrieval
+            if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
+                this.logger.verbose(
+                    "acquireTokenSilent - cache lookup policy set to AccessToken, attempting to acquire token from local cache"
+                );
+            }
             return invokeAsync(
                 this.acquireTokenFromCache.bind(this),
                 PerformanceEvents.AcquireTokenFromCache,

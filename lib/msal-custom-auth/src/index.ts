@@ -21,6 +21,7 @@ export {
     SignUpInputs,
     ResetPasswordInputs,
     AccountRetrievalInputs,
+    SignInWithContinuationTokenInputs,
 } from "./CustomAuthActionInputs.js";
 
 // Operation Results
@@ -31,13 +32,50 @@ export { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
 export { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
 
 // Operation Errors
-export { GetAccountError } from "./get_account/auth_flow/error_type/GetAccountError.js";
-export { SignInError } from "./sign_in/auth_flow/error_type/SignInError.js";
-export { SignUpError } from "./sign_up/auth_flow/error_type/SignUpError.js";
-export { ResetPasswordError } from "./reset_password/auth_flow/error_type/ResetPasswordError.js";
+export {
+    GetAccountError,
+    SignOutError,
+    GetCurrentAccountAccessTokenError,
+} from "./get_account/auth_flow/error_type/GetAccountError.js";
+export {
+    SignInError,
+    SignInSubmitPasswordError,
+    SignInSubmitCodeError,
+    SignInResendCodeError,
+} from "./sign_in/auth_flow/error_type/SignInError.js";
+export {
+    SignUpError,
+    SignUpSubmitPasswordError,
+    SignUpSubmitCodeError,
+    SignUpSubmitAttributesError,
+    SignUpResendCodeError,
+} from "./sign_up/auth_flow/error_type/SignUpError.js";
+export {
+    ResetPasswordError,
+    ResetPasswordSubmitPasswordError,
+    ResetPasswordSubmitCodeError,
+    ResetPasswordResendCodeError,
+} from "./reset_password/auth_flow/error_type/ResetPasswordError.js";
 
 // Handler Factory
 export { AuthFlowStateHandlerFactory } from "./core/auth_flow/AuthFlowStateHandlerFactory.js";
+
+// Auth Flow State
+export {
+    AuthFlowStateBase,
+    SignInState,
+    SignUpState,
+    ResetPasswordState,
+    SignOutState,
+    GetAccountState,
+    GetAccessTokenState,
+} from "./core/auth_flow/AuthFlowStateBase.js";
+
+// Sign-in State
+export { SignInCodeRequired } from "./sign_in/auth_flow/state/SignInCodeRequired.js";
+export { SignInPasswordRequired } from "./sign_in/auth_flow/state/SignInPasswordRequired.js";
+export { SignInCompleted } from "./sign_in/auth_flow/state/SignInCompleted.js";
+export { SignInFailed } from "./sign_in/auth_flow/state/SignInFailed.js";
 
 // Sign-in Handlers
 export { SignInCodeRequiredStateHandler } from "./sign_in/auth_flow/state_handler/SignInCodeRequiredStateHandler.js";
@@ -52,6 +90,13 @@ export { SignInSubmitPasswordResult } from "./sign_in/auth_flow/result/SignInSub
 // Sign up User Account Attributes
 export { UserAccountAttributes } from "./UserAccountAttributes.js";
 
+// Sign-up State
+export { SignUpAttributesRequired } from "./sign_up/auth_flow/state/SignUpAttributesRequired.js";
+export { SignUpCodeRequired } from "./sign_up/auth_flow/state/SignUpCodeRequired.js";
+export { SignUpPasswordRequired } from "./sign_up/auth_flow/state/SignUpPasswordRequired.js";
+export { SignUpCompleted } from "./sign_up/auth_flow/state/SignUpCompleted.js";
+export { SignUpFailed } from "./sign_up/auth_flow/state/SignUpFailed.js";
+
 // Sign-up Handlers
 export { SignUpAttributesRequiredStateHandler } from "./sign_up/auth_flow/state_handler/SignUpAttributesRequiredStateHandler.js";
 export { SignUpCodeRequiredStateHandler } from "./sign_up/auth_flow/state_handler/SignUpCodeRequiredStateHandler.js";
@@ -62,6 +107,12 @@ export { SignUpSubmitAttributesResult } from "./sign_up/auth_flow/result/SignUpS
 export { SignUpSubmitCodeResult } from "./sign_up/auth_flow/result/SignUpSubmitCodeResult.js";
 export { SignUpResendCodeResult } from "./sign_up/auth_flow/result/SignUpResendCodeResult.js";
 export { SignUpSubmitPasswordResult } from "./sign_up/auth_flow/result/SignUpSubmitPasswordResult.js";
+
+// Reset Password State
+export { ResetPasswordCodeRequired } from "./reset_password/auth_flow/state/ResetPasswordCodeRequired.js";
+export { ResetPasswordPasswordRequired } from "./reset_password/auth_flow/state/ResetPasswordPasswordRequired.js";
+export { ResetPasswordCompleted } from "./reset_password/auth_flow/state/ResetPasswordCompleted.js";
+export { ResetPasswordFailed } from "./reset_password/auth_flow/state/ResetPasswordFailed.js";
 
 // Reset Password Handlers
 export { ResetPasswordCodeRequiredStateHandler } from "./reset_password/auth_flow/state_handler/ResetPasswordCodeRequiredStateHandler.js";

@@ -34,9 +34,16 @@ export class Imds extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         identityEndpoint: string
     ) {
-        super(logger, nodeStorage, networkClient, cryptoProvider);
+        super(
+            logger,
+            nodeStorage,
+            networkClient,
+            cryptoProvider,
+            disableInternalRetries
+        );
 
         this.identityEndpoint = identityEndpoint;
     }
@@ -45,7 +52,8 @@ export class Imds extends BaseManagedIdentitySource {
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
-        cryptoProvider: CryptoProvider
+        cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean
     ): Imds {
         let validatedIdentityEndpoint: string;
 
@@ -88,6 +96,7 @@ export class Imds extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
+            disableInternalRetries,
             validatedIdentityEndpoint
         );
     }

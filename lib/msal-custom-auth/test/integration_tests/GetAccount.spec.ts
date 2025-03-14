@@ -6,20 +6,26 @@
 import { CustomAuthPublicClientApplication } from "../../src/CustomAuthPublicClientApplication.js";
 import { ICustomAuthPublicClientApplication } from "../../src/ICustomAuthPublicClientApplication.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
-import { GetAccountState, SignInState, SignOutState } from "../../src/core/auth_flow/AuthFlowStateBase.js";
+import { GetAccountState, SignOutState } from "../../src/core/auth_flow/AuthFlowStateBase.js";
 import { CustomAuthAccountData } from "../../src/get_account/auth_flow/CustomAuthAccountData.js";
 import { TestHomeAccountId, TestTenantId, TestTokenResponse, TestUsername } from "../test_resources/TestConstants.js";
+import { CustomAuthStandardController } from "../../src/controller/CustomAuthStandardController.js";
 
 describe("GetAccount", () => {
-    let app: ICustomAuthPublicClientApplication;
+    let app: CustomAuthPublicClientApplication;
 
     beforeEach(async () => {
-        app = await CustomAuthPublicClientApplication.create(customAuthConfig);
+        app = (await CustomAuthPublicClientApplication.create(customAuthConfig)) as CustomAuthPublicClientApplication;
 
         global.fetch = jest.fn(); // Mock the fetch API
     });
 
     afterEach(() => {
+        const controller = app["customAuthController"] as CustomAuthStandardController;
+        if (controller && controller["eventHandler"] && controller["eventHandler"]["broadcastChannel"]) {
+            controller["eventHandler"]["broadcastChannel"].close();
+        }
+
         jest.clearAllMocks(); // Clear mocks between tests
     });
 

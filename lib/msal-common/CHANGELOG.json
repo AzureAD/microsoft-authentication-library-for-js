@@ -2,6 +2,45 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 11 Mar 2025 18:51:25 GMT",
+      "version": "15.2.1",
+      "tag": "@azure/msal-common_v15.2.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "6f441e3c2deb388242c10be98186935cfe7d2a2e",
+            "comment": "Add embeddedClientId to RequestThumbprint"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "6f441e3c2deb388242c10be98186935cfe7d2a2e",
+            "comment": "Add TimeUtils for time/date conversions #7613"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 18 Feb 2025 18:51:40 GMT",
       "version": "15.2.0",
       "tag": "@azure/msal-common_v15.2.0",

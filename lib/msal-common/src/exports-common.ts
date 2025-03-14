@@ -93,7 +93,10 @@ export {
 } from "./network/INetworkModule.js";
 export { NetworkResponse } from "./network/NetworkResponse.js";
 export { ThrottlingUtils } from "./network/ThrottlingUtils.js";
-export { RequestThumbprint } from "./network/RequestThumbprint.js";
+export {
+    RequestThumbprint,
+    getRequestThumbprint,
+} from "./network/RequestThumbprint.js";
 export { IUri } from "./url/IUri.js";
 export { UrlString } from "./url/UrlString.js";
 export {
@@ -108,7 +111,7 @@ export { CommonAuthorizationCodeRequest } from "./request/CommonAuthorizationCod
 export { CommonRefreshTokenRequest } from "./request/CommonRefreshTokenRequest.js";
 export { CommonSilentFlowRequest } from "./request/CommonSilentFlowRequest.js";
 export { CommonEndSessionRequest } from "./request/CommonEndSessionRequest.js";
-export { RequestParameterBuilder } from "./request/RequestParameterBuilder.js";
+export * as RequestParameterBuilder from "./request/RequestParameterBuilder.js";
 export { StoreInCache } from "./request/StoreInCache.js";
 export { AzureRegion } from "./authority/AzureRegion.js";
 export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration.js";

@@ -2,6 +2,41 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Tue, 11 Mar 2025 18:51:25 GMT",
+      "version": "3.0.6",
+      "tag": "@azure/msal-react_v3.0.6",
+      "comments": {
+        "none": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "6f441e3c2deb388242c10be98186935cfe7d2a2e",
+            "comment": "Update TestConstants to use TimeUtils #7613"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v4.7.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 18 Feb 2025 18:51:41 GMT",
       "version": "3.0.5",
       "tag": "@azure/msal-react_v3.0.5",

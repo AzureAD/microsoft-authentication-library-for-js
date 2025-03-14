@@ -74,9 +74,16 @@ export class AzureArc extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         identityEndpoint: string
     ) {
-        super(logger, nodeStorage, networkClient, cryptoProvider);
+        super(
+            logger,
+            nodeStorage,
+            networkClient,
+            cryptoProvider,
+            disableInternalRetries
+        );
 
         this.identityEndpoint = identityEndpoint;
     }
@@ -122,6 +129,7 @@ export class AzureArc extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         managedIdentityId: ManagedIdentityId
     ): AzureArc | null {
         const [identityEndpoint, imdsEndpoint] =
@@ -181,6 +189,7 @@ export class AzureArc extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
+            disableInternalRetries,
             identityEndpoint
         );
     }

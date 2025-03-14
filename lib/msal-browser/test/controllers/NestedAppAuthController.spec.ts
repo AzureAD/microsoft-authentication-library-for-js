@@ -49,6 +49,7 @@ import BridgeProxy from "../../src/naa/BridgeProxy.js";
 import { NestedAppAuthAdapter } from "../../src/naa/mapping/NestedAppAuthAdapter.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import exp from "constants";
+import { TestTimeUtils } from "msal-test-utils";
 
 function stubProvider(config: Configuration) {
     const browserEnvironment = typeof window !== "undefined";
@@ -157,7 +158,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(Date.now() + 3600000),
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
                 state: "test-state",

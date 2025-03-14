@@ -16,6 +16,7 @@ import { ResetPasswordCodeRequired } from "../../src/reset_password/auth_flow/st
 import { ResetPasswordPasswordRequired } from "../../src/reset_password/auth_flow/state/ResetPasswordPasswordRequired.js";
 import { ResetPasswordCompleted } from "../../src/reset_password/auth_flow/state/ResetPasswordCompleted.js";
 import { SignInResult } from "../../src/sign_in/auth_flow/result/SignInResult.js";
+import { CustomAuthStandardController } from "../../src/controller/CustomAuthStandardController.js";
 
 jest.mock("@azure/msal-browser", () => {
     const actualModule = jest.requireActual("@azure/msal-browser");
@@ -45,16 +46,21 @@ jest.mock("@azure/msal-browser", () => {
 });
 
 describe("Reset password", () => {
-    let app: ICustomAuthPublicClientApplication;
+    let app: CustomAuthPublicClientApplication;
     const correlationId = "test-correlation-id";
 
     beforeEach(async () => {
-        app = await CustomAuthPublicClientApplication.create(customAuthConfig);
+        app = (await CustomAuthPublicClientApplication.create(customAuthConfig)) as CustomAuthPublicClientApplication;
 
         global.fetch = jest.fn(); // Mock the fetch API
     });
 
     afterEach(() => {
+        const controller = app["customAuthController"] as CustomAuthStandardController;
+        if (controller && controller["eventHandler"] && controller["eventHandler"]["broadcastChannel"]) {
+            controller["eventHandler"]["broadcastChannel"].close();
+        }
+
         jest.clearAllMocks(); // Clear mocks between tests
     });
 

@@ -23,12 +23,20 @@ export class SignInError extends AuthFlowErrorBase {
         return this.isUnsupportedChallengeTypeError();
     }
 
+    /**
+     * Checks if challenge type is redirect (authentication method is not supported by by Microsoft Entra)
+     * @returns {boolean} True if the error is due to the challenge type being redirect, false otherwise.
+     */
     isRedirect(): boolean {
         return this.isRedirectError();
     }
 }
 
 export class SignInSubmitPasswordError extends AuthFlowErrorBase {
+    /**
+     * Checks if the password submitted during sign-in is incorrect.
+     * @returns {boolean} True if the error is due to the password being invalid, false otherwise.
+     */
     isInvalidPassword(): boolean {
         return this.isPasswordIncorrectError();
     }
@@ -41,6 +49,10 @@ export class SignInSubmitCodeError extends AuthFlowErrorBase {
 }
 
 export class SignInResendCodeError extends AuthFlowErrorBase {
+    /**
+     * Checks if challenge type is redirect (authentication method is not supported by by Microsoft Entra)
+     * @returns {boolean} True if the error is due to the challenge type being redirect, false otherwise.
+     */
     isRedirect(): boolean {
         return this.isRedirectError();
     }
