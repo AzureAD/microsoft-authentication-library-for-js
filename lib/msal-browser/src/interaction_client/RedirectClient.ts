@@ -119,12 +119,13 @@ export class RedirectClient extends StandardInteractionClient {
             validRequest.account || null
         );
 
-        validRequest.platformBroker = NativeMessageHandler.isPlatformBrokerAvailable(
-            this.config,
-            this.logger,
-            this.nativeMessageHandler,
-            request.authenticationScheme
-        );
+        validRequest.platformBroker =
+            NativeMessageHandler.isPlatformBrokerAvailable(
+                this.config,
+                this.logger,
+                this.nativeMessageHandler,
+                request.authenticationScheme
+            );
 
         const handleBackButton = (event: PageTransitionEvent) => {
             // Clear temporary cache if the back button is clicked during the redirect flow.
@@ -162,10 +163,13 @@ export class RedirectClient extends StandardInteractionClient {
         window.addEventListener("pageshow", handleBackButton);
 
         try {
-            if(this.config.auth.protocolMode === ProtocolMode.EAR) {
+            if (this.config.auth.protocolMode === ProtocolMode.EAR) {
                 await this.executeEarFlow(validRequest);
             } else {
-                await this.executeCodeFlow(validRequest, request.onRedirectNavigate);
+                await this.executeCodeFlow(
+                    validRequest,
+                    request.onRedirectNavigate
+                );
             }
         } catch (e) {
             if (e instanceof AuthError) {
@@ -182,12 +186,15 @@ export class RedirectClient extends StandardInteractionClient {
      * @param request
      * @returns
      */
-    async executeCodeFlow(request: CommonAuthorizationUrlRequest, onRedirectNavigate?: (url: string) => boolean | void): Promise<void> {
+    async executeCodeFlow(
+        request: CommonAuthorizationUrlRequest,
+        onRedirectNavigate?: (url: string) => boolean | void
+    ): Promise<void> {
         const correlationId = request.correlationId;
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.acquireTokenRedirect
         );
-        
+
         const pkceCodes = await invokeAsync(
             generatePkceCodes,
             PerformanceEvents.GeneratePkceCodes,
@@ -198,8 +205,8 @@ export class RedirectClient extends StandardInteractionClient {
 
         const redirectRequest = {
             ...request,
-            codeChallenge: pkceCodes.challenge
-        }
+            codeChallenge: pkceCodes.challenge,
+        };
 
         try {
             // Initialize the client
@@ -213,7 +220,8 @@ export class RedirectClient extends StandardInteractionClient {
                 serverTelemetryManager,
                 requestAuthority: redirectRequest.authority,
                 requestAzureCloudOptions: redirectRequest.azureCloudOptions,
-                requestExtraQueryParameters: redirectRequest.extraQueryParameters,
+                requestExtraQueryParameters:
+                    redirectRequest.extraQueryParameters,
                 account: redirectRequest.account,
             });
 
@@ -250,8 +258,7 @@ export class RedirectClient extends StandardInteractionClient {
                 navigationClient: this.navigationClient,
                 redirectTimeout: this.config.system.redirectNavigationTimeout,
                 onRedirectNavigate:
-                    onRedirectNavigate ||
-                    this.config.auth.onRedirectNavigate,
+                    onRedirectNavigate || this.config.auth.onRedirectNavigate,
             });
         } catch (e) {
             if (e instanceof AuthError) {
@@ -266,7 +273,9 @@ export class RedirectClient extends StandardInteractionClient {
      * Executes EAR flow
      * @param request
      */
-    async executeEarFlow(request: CommonAuthorizationUrlRequest): Promise<void> {
+    async executeEarFlow(
+        request: CommonAuthorizationUrlRequest
+    ): Promise<void> {
         const correlationId = request.correlationId;
         // Get the frame handle for the silent request
         const discoveredAuthority = await invokeAsync(
