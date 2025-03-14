@@ -38,6 +38,7 @@ import {
     StoreInCache,
     CacheError,
     invokeAsync,
+    TimeUtils,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
@@ -1436,8 +1437,13 @@ export class BrowserCacheManager extends CacheManager {
             this.clientId,
             result.tenantId,
             result.scopes.join(" "),
-            result.expiresOn ? result.expiresOn.getTime() / 1000 : 0,
-            result.extExpiresOn ? result.extExpiresOn.getTime() / 1000 : 0,
+            // Access token expiresOn stored in seconds, converting from AuthenticationResult expiresOn stored as Date
+            result.expiresOn
+                ? TimeUtils.toSecondsFromDate(result.expiresOn)
+                : 0,
+            result.extExpiresOn
+                ? TimeUtils.toSecondsFromDate(result.extExpiresOn)
+                : 0,
             base64Decode,
             undefined, // refreshOn
             result.tokenType as AuthenticationScheme,

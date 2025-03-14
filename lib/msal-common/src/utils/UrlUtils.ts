@@ -58,3 +58,16 @@ export function getDeserializedResponse(
 
     return null;
 }
+
+/**
+ * Utility to create a URL from the params map
+ */
+export function mapToQueryString(parameters: Map<string, string>): string {
+    const queryParameterArray: Array<string> = new Array<string>();
+
+    parameters.forEach((value, key) => {
+        queryParameterArray.push(`${key}=${value}`);
+    });
+
+    return queryParameterArray.join("&");
+}

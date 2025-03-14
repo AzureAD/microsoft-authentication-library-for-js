@@ -111,7 +111,8 @@ export class ManagedIdentityApplication {
             this.logger,
             ManagedIdentityApplication.nodeStorage as NodeStorage,
             this.networkClient,
-            this.cryptoProvider
+            this.cryptoProvider,
+            this.config.disableInternalRetries
         );
     }
 
