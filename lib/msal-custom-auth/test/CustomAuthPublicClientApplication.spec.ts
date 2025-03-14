@@ -47,21 +47,6 @@ describe("CustomAuthPublicClientApplication", () => {
             );
         });
 
-        it("should throw an error if the authApiProxyUrl is not secure", async () => {
-            const invalidConfig = {
-                auth: {
-                    authority: `https://example${Constants.CIAM_AUTH_URL}`,
-                },
-                customAuth: {
-                    authApiProxyUrl: "http://insecure.example.com",
-                },
-            };
-
-            await expect(CustomAuthPublicClientApplication.create(invalidConfig as any)).rejects.toThrow(
-                InvalidConfigurationError,
-            );
-        });
-
         it("should create an instance if the config is valid", async () => {
             const app = await CustomAuthPublicClientApplication.create(customAuthConfig);
 

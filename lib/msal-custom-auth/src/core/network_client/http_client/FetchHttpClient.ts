@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Logger } from "@azure/msal-browser";
+import { AADServerParamKeys, Logger } from "@azure/msal-browser";
 import { HttpMethod, IHttpClient, RequestBody } from "./IHttpClient.js";
 import { FailedSendRequest, HttpError, NoNetworkConnectivity } from "../../error/HttpError.js";
 
@@ -13,14 +13,15 @@ import { FailedSendRequest, HttpError, NoNetworkConnectivity } from "../../error
 export class FetchHttpClient implements IHttpClient {
     constructor(private logger: Logger) {}
 
-    async sendAsync(url: string | URL, options: RequestInit, correlationId: string): Promise<Response> {
+    async sendAsync(url: string | URL, options: RequestInit): Promise<Response> {
+        const headers = options.headers as Record<string, string>;
+        const correlationId = headers?.[AADServerParamKeys.CLIENT_REQUEST_ID] || undefined;
+
         try {
             this.logger.verbosePii(`Sending request to ${url}`, correlationId);
 
             const startTime = performance.now();
-
             const response = await fetch(url, options);
-
             const endTime = performance.now();
 
             this.logger.verbosePii(
@@ -40,31 +41,18 @@ export class FetchHttpClient implements IHttpClient {
         }
     }
 
-    async post(
-        url: string | URL,
-        body: RequestBody,
-        correlationId: string,
-        headers: Record<string, string> = {},
-    ): Promise<Response> {
-        return this.sendAsync(
-            url,
-            {
-                method: HttpMethod.POST,
-                headers,
-                body,
-            },
-            correlationId,
-        );
+    async post(url: string | URL, body: RequestBody, headers: Record<string, string> = {}): Promise<Response> {
+        return this.sendAsync(url, {
+            method: HttpMethod.POST,
+            headers,
+            body,
+        });
     }
 
-    async get(url: string | URL, correlationId: string, headers: Record<string, string> = {}): Promise<Response> {
-        return this.sendAsync(
-            url,
-            {
-                method: HttpMethod.GET,
-                headers,
-            },
-            correlationId,
-        );
+    async get(url: string | URL, headers: Record<string, string> = {}): Promise<Response> {
+        return this.sendAsync(url, {
+            method: HttpMethod.GET,
+            headers,
+        });
     }
 }

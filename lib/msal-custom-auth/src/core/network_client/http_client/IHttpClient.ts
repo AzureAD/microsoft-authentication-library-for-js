@@ -12,31 +12,23 @@ export interface IHttpClient {
      * Sends a request.
      * @param url The URL to send the request to.
      * @param options Additional fetch options.
-     * @param correlationId The correlation ID for the request.
      */
-    sendAsync(url: string | URL, options: RequestInit, correlationId: string): Promise<Response>;
+    sendAsync(url: string | URL, options: RequestInit): Promise<Response>;
 
     /**
      * Sends a POST request.
      * @param url The URL to send the request to.
      * @param body The body of the request.
-     * @param correlationId The correlation ID for the request.
      * @param headers Optional headers for the request.
      */
-    post(
-        url: string | URL,
-        body: RequestBody,
-        correlationId: string,
-        headers?: Record<string, string>,
-    ): Promise<Response>;
+    post(url: string | URL, body: RequestBody, headers?: Record<string, string>): Promise<Response>;
 
     /**
      * Sends a GET request.
      * @param url The URL to send the request to.
-     * @param correlationId The correlation ID for the request.
      * @param headers Optional headers for the request.
      */
-    get(url: string | URL, correlationId: string, headers?: Record<string, string>): Promise<Response>;
+    get(url: string | URL, headers?: Record<string, string>): Promise<Response>;
 }
 
 /**

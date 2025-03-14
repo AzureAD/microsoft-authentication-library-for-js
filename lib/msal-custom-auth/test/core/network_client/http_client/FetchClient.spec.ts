@@ -52,7 +52,7 @@ describe("FetchHttpClient", () => {
             };
             const mockResponse = new MockResponse(null, { status: 200 });
             mockFetch.mockResolvedValue(mockResponse);
-            const response = await httpClient.sendAsync(url, options, "correlation-id");
+            const response = await httpClient.sendAsync(url, options);
             expect(mockFetch).toHaveBeenCalledWith(url, options);
             expect(response).toBe(mockResponse);
         });
@@ -61,7 +61,7 @@ describe("FetchHttpClient", () => {
             const url = "https://api.example.com";
             const error = new Error("Network error");
             mockFetch.mockRejectedValue(error);
-            await expect(httpClient.sendAsync(url, {}, "correlation-id")).rejects.toThrow("Network error");
+            await expect(httpClient.sendAsync(url, {})).rejects.toThrow("Network error");
         });
     });
 });
