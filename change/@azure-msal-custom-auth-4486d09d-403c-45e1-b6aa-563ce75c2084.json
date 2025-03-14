@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "[Fix] Fix development on local and remove not needed checks, improved correlationid agnostic fetch client",
+  "packageName": "@azure/msal-custom-auth",
+  "email": "axhaferllari@microsoft.com",
+  "dependentChangeType": "patch"
+}
