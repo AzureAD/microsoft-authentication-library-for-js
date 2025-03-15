@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { customAuthConfig } from "../../config/auth-config";
 import { styles } from "./styles/styles";
 import { InitialForm } from "./components/InitialForm";
@@ -16,6 +17,7 @@ import {
 import { SignUpCompleted } from "@azure/msal-custom-auth";
 
 export default function SignUp() {
+    const router = useRouter();
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
@@ -76,8 +78,9 @@ export default function SignUp() {
                     }
                     return;
                 }
-                setFlowState(result.state);
-            } else if (flowState instanceof SignUpCompleted) {
+                if (result.state instanceof SignUpCompleted) {
+                    setSignUpResult(result.state);
+                }
             }
         } catch (err) {
             setError("An unexpected error occurred");
