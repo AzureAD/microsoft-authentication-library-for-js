@@ -13,14 +13,14 @@
   },
   "description": "Microsoft Authentication Library for Native Authentication",
   "type": "module",
-  "module": "dist/index.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "main": "lib/msal-custom-auth.cjs",
   "exports": {
     ".": {
       "import": {
         "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
+        "default": "./dist/index.mjs"
       },
       "require": {
         "types": "./lib/types/index.d.ts",

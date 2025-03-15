@@ -15,12 +15,10 @@ import { CustomAuthConfiguration } from "./configuration/CustomAuthConfiguration
 import { CustomAuthOperatingContext } from "./operating_context/CustomAuthOperatingContext.js";
 import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import {
-    InvalidAuthApiProxyDomain,
     InvalidAuthority,
     InvalidConfigurationError,
     MissingConfiguration,
 } from "./core/error/InvalidConfigurationError.js";
-import { UrlUtils } from "./core/utils/UrlUtils.js";
 import { StringUtils } from "./core/utils/StringUtils.js";
 
 export class CustomAuthPublicClientApplication
