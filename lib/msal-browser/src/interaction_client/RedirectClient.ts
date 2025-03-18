@@ -192,7 +192,7 @@ export class RedirectClient extends StandardInteractionClient {
             codeChallenge: pkceCodes.challenge,
         };
 
-        this.browserStorage.cacheCodeRequest(
+        this.browserStorage.cacheAuthorizeRequest(
             redirectRequest,
             pkceCodes.verifier
         );
@@ -275,7 +275,7 @@ export class RedirectClient extends StandardInteractionClient {
             ...request,
             earJwk: earJwk,
         };
-        this.browserStorage.cacheCodeRequest(redirectRequest);
+        this.browserStorage.cacheAuthorizeRequest(redirectRequest);
 
         const form = await getEARForm(
             document,

@@ -1094,11 +1094,11 @@ export class BrowserCacheManager extends CacheManager {
         this.setInteractionInProgress(false);
     }
 
-    cacheCodeRequest(
+    cacheAuthorizeRequest(
         authCodeRequest: CommonAuthorizationUrlRequest,
         codeVerifier?: string
     ): void {
-        this.logger.trace("BrowserCacheManager.cacheCodeRequest called");
+        this.logger.trace("BrowserCacheManager.cacheAuthorizeRequest called");
 
         const encodedValue = base64Encode(JSON.stringify(authCodeRequest));
         this.setTemporaryCache(

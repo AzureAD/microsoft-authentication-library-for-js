@@ -457,9 +457,9 @@ export class StandardController implements IController {
             this.nativeExtensionProvider &&
             !hash;
         let rootMeasurement = this.performanceClient.startMeasurement(
-                PerformanceEvents.AcquireTokenRedirect,
-                platformBrokerRequest?.correlationId || ""
-            );
+            PerformanceEvents.AcquireTokenRedirect,
+            platformBrokerRequest?.correlationId || ""
+        );
         this.eventHandler.emitEvent(
             EventType.HANDLE_REDIRECT_START,
             InteractionType.Redirect
@@ -493,7 +493,8 @@ export class StandardController implements IController {
                 rootMeasurement.event.correlationId
             )(this.performanceClient, rootMeasurement.event.correlationId);
         } else {
-            const [standardRequest, codeVerifier] = this.browserStorage.getCachedRequest();
+            const [standardRequest, codeVerifier] =
+                this.browserStorage.getCachedRequest();
             const correlationId = standardRequest.correlationId;
             // Reset rootMeasurement now that we have correlationId
             rootMeasurement.discard();
