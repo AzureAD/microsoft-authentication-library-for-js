@@ -59,9 +59,7 @@
     "apiExtractor": "api-extractor run"
   },
   "beachball": {
-    "disallowedChangeTypes": [
-      "major"
-    ]
+    "disallowedChangeTypes": []
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.43.4",
