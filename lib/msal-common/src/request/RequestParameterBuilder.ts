@@ -622,7 +622,10 @@ export function addBrokerParameters(
  * @param parameters
  * @param jwk
  */
-export function addEARParameters(parameters: Map<string, string>, jwk: string) {
+export function addEARParameters(
+    parameters: Map<string, string>,
+    jwk: string
+): void {
     parameters.set(AADServerParamKeys.EAR_JWK, encodeURIComponent(jwk));
 
     // ear_jwe_crypto will always have value: {"alg":"dir","enc":"A256GCM"} so we can hardcode this

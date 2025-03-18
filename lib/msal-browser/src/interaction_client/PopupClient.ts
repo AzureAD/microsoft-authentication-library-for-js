@@ -472,7 +472,7 @@ export class PopupClient extends StandardInteractionClient {
         form.submit();
 
         // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-        const responseString = await invokeAsync(
+        await invokeAsync(
             this.monitorPopupForHash.bind(this),
             PerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
