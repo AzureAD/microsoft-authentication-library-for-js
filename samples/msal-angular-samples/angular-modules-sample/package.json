@@ -4,7 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "npm run postinstall:msal-angular && ng build",
+    "postinstall:msal-angular": "node ../sample-scripts/useMsalAngularTarball.js",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
@@ -12,26 +13,26 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^16.0.4",
-    "@angular/common": "^16.0.4",
-    "@angular/compiler": "^16.0.4",
-    "@angular/core": "^16.0.4",
-    "@angular/forms": "^16.0.4",
-    "@angular/material": "^16.2.14",
-    "@angular/platform-browser": "^16.0.4",
-    "@angular/platform-browser-dynamic": "^16.0.4",
-    "@angular/router": "^16.0.4",
+    "@angular/animations": "^19.2.1",
+    "@angular/common": "^19.2.1",
+    "@angular/compiler": "^19.2.1",
+    "@angular/core": "^19.2.1",
+    "@angular/forms": "^19.2.1",
+    "@angular/material": "^18.2.14",
+    "@angular/platform-browser": "^19.2.1",
+    "@angular/platform-browser-dynamic": "^19.2.1",
+    "@angular/router": "^19.2.1",
     "@azure/msal-angular": "^4.0.0",
     "@azure/msal-browser": "^4.0.0",
     "rxjs": "~7.8.0",
     "ts-node": "^10.9.1",
     "tslib": "^2.3.0",
-    "zone.js": "~0.13.0"
+    "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^16.0.4",
-    "@angular/cli": "~16.0.4",
-    "@angular/compiler-cli": "^16.0.4",
+    "@angular-devkit/build-angular": "^19.2.1",
+    "@angular/cli": "~19.2.1",
+    "@angular/compiler-cli": "^19.2.1",
     "@types/jasmine": "~4.3.0",
     "@types/jest": "^29.5.0",
     "e2e-test-utils": "file:../../e2eTestUtils",
@@ -45,6 +46,6 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.0.0",
     "ts-jest": "^29.1.0",
-    "typescript": "~4.9.4"
+    "typescript": "~5.8.2"
   }
 }
