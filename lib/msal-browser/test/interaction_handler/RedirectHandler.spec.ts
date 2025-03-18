@@ -206,7 +206,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
             redirectHandler
                 .initiateAuthRequest("", {
                     redirectTimeout: 3000,
-                    redirectStartPage: "",
                     navigationClient,
                 })
                 .catch((e) => {
@@ -248,7 +247,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
             redirectHandler.initiateAuthRequest(
                 TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                 {
-                    redirectStartPage: "",
                     redirectTimeout: 3000,
                     navigationClient,
                 }
@@ -289,7 +287,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                 {
                     redirectTimeout: 300,
-                    redirectStartPage: "",
                     onRedirectNavigate,
                     navigationClient,
                 }
@@ -328,7 +325,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                 {
                     redirectTimeout: 3000,
-                    redirectStartPage: "",
                     onRedirectNavigate,
                     navigationClient,
                 }

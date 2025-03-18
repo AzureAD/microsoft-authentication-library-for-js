@@ -5,6 +5,7 @@ import {
     GrantType,
     AuthenticationScheme,
     HeaderNames,
+    OAuthResponseType,
 } from "../../src/utils/Constants.js";
 import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
 import {
@@ -35,7 +36,10 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("Build query string from RequestParameterBuilder object", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addResponseTypeCode(parameters);
+        RequestParameterBuilder.addResponseType(
+            parameters,
+            OAuthResponseType.CODE
+        );
         RequestParameterBuilder.addResponseMode(
             parameters,
             ResponseMode.FORM_POST
@@ -101,7 +105,7 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`
+                `${AADServerParamKeys.RESPONSE_TYPE}=${OAuthResponseType.CODE}`
             )
         ).toBe(true);
         expect(
@@ -366,11 +370,16 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("addResponseTypeForIdToken does add response_type correctly", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addResponseTypeForTokenAndIdToken(parameters);
+        RequestParameterBuilder.addResponseType(
+            parameters,
+            OAuthResponseType.IDTOKEN_TOKEN
+        );
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.TOKEN_RESPONSE_TYPE}%20${Constants.ID_TOKEN_RESPONSE_TYPE}`
+                `${AADServerParamKeys.RESPONSE_TYPE}=${encodeURIComponent(
+                    OAuthResponseType.IDTOKEN_TOKEN
+                )}`
             )
         ).toBe(true);
     });
