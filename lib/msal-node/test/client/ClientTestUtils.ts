@@ -526,7 +526,9 @@ export const checkMockedNetworkRequest = (
     if (checks.msLibraryCapability !== undefined) {
         expect(
             returnVal.includes(
-                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${encodeURIComponent(
+                    ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                )}`
             )
         ).toBe(checks.msLibraryCapability);
     }
