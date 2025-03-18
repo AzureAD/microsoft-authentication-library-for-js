@@ -459,7 +459,7 @@ export class PopupClient extends StandardInteractionClient {
             earJwk: earJwk,
         };
         const popupWindow = popupParams.popup || this.openPopup("about:blank", popupParams);
-        
+
         const form = await getEARForm(
             popupWindow.document,
             this.config,
@@ -623,7 +623,6 @@ export class PopupClient extends StandardInteractionClient {
                 (e as AuthError).setCorrelationId(this.correlationId);
                 serverTelemetryManager.cacheFailedRequest(e);
             }
-            this.browserStorage.setInteractionInProgress(false);
             this.eventHandler.emitEvent(
                 EventType.LOGOUT_FAILURE,
                 InteractionType.Popup,
@@ -780,7 +779,6 @@ export class PopupClient extends StandardInteractionClient {
             this.logger.error(
                 "error opening popup " + (e as AuthError).message
             );
-            this.browserStorage.setInteractionInProgress(false);
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.popupWindowError
             );
@@ -871,9 +869,6 @@ export class PopupClient extends StandardInteractionClient {
      * Event callback to unload main window.
      */
     unloadWindow(e: Event): void {
-        this.browserStorage.cleanRequestByInteractionType(
-            InteractionType.Popup
-        );
         if (this.currentWindow) {
             this.currentWindow.close();
         }
@@ -894,9 +889,6 @@ export class PopupClient extends StandardInteractionClient {
             "beforeunload",
             this.unloadWindow
         );
-
-        // Interaction is completed - remove interaction status.
-        this.browserStorage.setInteractionInProgress(false);
     }
 
     /**

@@ -54,8 +54,6 @@ export const BrowserAuthErrorMessages = {
         "No token request found in cache.",
     [BrowserAuthErrorCodes.unableToParseTokenRequestCacheError]:
         "The cached token request could not be parsed.",
-    [BrowserAuthErrorCodes.noCachedAuthorityError]:
-        "No cached authority found.",
     [BrowserAuthErrorCodes.authRequestNotSetError]:
         "Auth Request not set. Please ensure initiateAuthRequest was called from the InteractionHandler",
     [BrowserAuthErrorCodes.invalidCacheType]: "Invalid cache type",
@@ -221,12 +219,6 @@ export const BrowserAuthErrorMessage = {
         code: BrowserAuthErrorCodes.unableToParseTokenRequestCacheError,
         desc: BrowserAuthErrorMessages[
             BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
-        ],
-    },
-    noCachedAuthorityError: {
-        code: BrowserAuthErrorCodes.noCachedAuthorityError,
-        desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.noCachedAuthorityError
         ],
     },
     authRequestNotSet: {

@@ -30,7 +30,6 @@ import {
     InteractionType,
     TemporaryCacheKeys,
 } from "../utils/BrowserConstants.js";
-import { RedirectHandler } from "../interaction_handler/RedirectHandler.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { EventType } from "../event/EventType.js";
@@ -52,6 +51,7 @@ import * as ResponseHandler from "../response/ResponseHandler.js";
 import { getAuthCodeRequestUrl, getEARForm } from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
+import { InteractionHandler } from "../interaction_handler/InteractionHandler.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -111,14 +111,6 @@ export class RedirectClient extends StandardInteractionClient {
             this.correlationId
         )(request, InteractionType.Redirect);
 
-        this.browserStorage.updateCacheEntries(
-            validRequest.state,
-            validRequest.nonce,
-            validRequest.authority,
-            validRequest.loginHint || "",
-            validRequest.account || null
-        );
-
         validRequest.platformBroker =
             NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
@@ -133,7 +125,7 @@ export class RedirectClient extends StandardInteractionClient {
                 this.logger.verbose(
                     "Page was restored from back/forward cache. Clearing temporary cache."
                 );
-                this.browserStorage.cleanRequestByState(validRequest.state);
+                this.browserStorage.resetRequestCache();
                 this.eventHandler.emitEvent(
                     EventType.RESTORE_FROM_BFCACHE,
                     InteractionType.Redirect
@@ -149,13 +141,6 @@ export class RedirectClient extends StandardInteractionClient {
         this.browserStorage.setTemporaryCache(
             TemporaryCacheKeys.ORIGIN_URI,
             redirectStartPage,
-            true
-        );
-
-        // Set interaction status in the library.
-        this.browserStorage.setTemporaryCache(
-            TemporaryCacheKeys.CORRELATION_ID,
-            validRequest.correlationId,
             true
         );
 
@@ -176,7 +161,6 @@ export class RedirectClient extends StandardInteractionClient {
                 e.setCorrelationId(this.correlationId);
             }
             window.removeEventListener("pageshow", handleBackButton);
-            this.browserStorage.cleanRequestByState(validRequest.state);
             throw e;
         }
     }
@@ -208,6 +192,11 @@ export class RedirectClient extends StandardInteractionClient {
             codeChallenge: pkceCodes.challenge,
         };
 
+        this.browserStorage.cacheCodeRequest(
+            redirectRequest,
+            pkceCodes.verifier
+        );
+
         try {
             // Initialize the client
             const authClient: AuthorizationCodeClient = await invokeAsync(
@@ -225,20 +214,6 @@ export class RedirectClient extends StandardInteractionClient {
                 account: redirectRequest.account,
             });
 
-            const authCodeRequest: CommonAuthorizationCodeRequest = {
-                ...request,
-                code: "", // Will get filled in after the redirect
-                codeVerifier: pkceCodes.verifier,
-            };
-            // Create redirect interaction handler.
-            const interactionHandler = new RedirectHandler(
-                authClient,
-                this.browserStorage,
-                authCodeRequest,
-                this.logger,
-                this.performanceClient
-            );
-
             // Create acquire token url.
             const navigateUrl = await invokeAsync(
                 getAuthCodeRequestUrl,
@@ -254,12 +229,10 @@ export class RedirectClient extends StandardInteractionClient {
                 this.performanceClient
             );
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            return await interactionHandler.initiateAuthRequest(navigateUrl, {
-                navigationClient: this.navigationClient,
-                redirectTimeout: this.config.system.redirectNavigationTimeout,
-                onRedirectNavigate:
-                    onRedirectNavigate || this.config.auth.onRedirectNavigate,
-            });
+            return await this.initiateAuthRequest(
+                navigateUrl,
+                onRedirectNavigate
+            );
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(this.correlationId);
@@ -302,6 +275,8 @@ export class RedirectClient extends StandardInteractionClient {
             ...request,
             earJwk: earJwk,
         };
+        this.browserStorage.cacheCodeRequest(redirectRequest);
+
         const form = await getEARForm(
             document,
             this.config,
@@ -322,6 +297,8 @@ export class RedirectClient extends StandardInteractionClient {
      */
     async handleRedirectPromise(
         hash: string = "",
+        request: CommonAuthorizationUrlRequest,
+        pkceVerifier: string,
         parentMeasurement: InProgressPerformanceEvent
     ): Promise<AuthenticationResult | null> {
         const serverTelemetryManager = this.initializeServerTelemetryManager(
@@ -329,12 +306,6 @@ export class RedirectClient extends StandardInteractionClient {
         );
 
         try {
-            if (!this.browserStorage.isInteractionInProgress(true)) {
-                this.logger.info(
-                    "handleRedirectPromise called but there is no interaction in progress, returning null."
-                );
-                return null;
-            }
             const [serverParams, responseString] = this.getRedirectResponse(
                 hash || ""
             );
@@ -343,9 +314,7 @@ export class RedirectClient extends StandardInteractionClient {
                 this.logger.info(
                     "handleRedirectPromise did not detect a response as a result of a redirect. Cleaning temporary cache."
                 );
-                this.browserStorage.cleanRequestByInteractionType(
-                    InteractionType.Redirect
-                );
+                this.browserStorage.resetRequestCache();
 
                 // Do not instrument "no_server_response" if user clicked back button
                 if (getNavigationType() !== "back_forward") {
@@ -386,6 +355,8 @@ export class RedirectClient extends StandardInteractionClient {
 
                 const handleHashResult = await this.handleResponse(
                     serverParams,
+                    request,
+                    pkceVerifier,
                     serverTelemetryManager
                 );
 
@@ -396,6 +367,8 @@ export class RedirectClient extends StandardInteractionClient {
                 );
                 return await this.handleResponse(
                     serverParams,
+                    request,
+                    pkceVerifier,
                     serverTelemetryManager
                 );
             } else if (
@@ -455,6 +428,8 @@ export class RedirectClient extends StandardInteractionClient {
                 if (!processHashOnRedirect) {
                     return await this.handleResponse(
                         serverParams,
+                        request,
+                        pkceVerifier,
                         serverTelemetryManager
                     );
                 }
@@ -466,9 +441,6 @@ export class RedirectClient extends StandardInteractionClient {
                 (e as AuthError).setCorrelationId(this.correlationId);
                 serverTelemetryManager.cacheFailedRequest(e);
             }
-            this.browserStorage.cleanRequestByInteractionType(
-                InteractionType.Redirect
-            );
             throw e;
         }
     }
@@ -547,15 +519,14 @@ export class RedirectClient extends StandardInteractionClient {
      */
     protected async handleResponse(
         serverParams: AuthorizeResponse,
+        request: CommonAuthorizationUrlRequest,
+        codeVerifier: string,
         serverTelemetryManager: ServerTelemetryManager
     ): Promise<AuthenticationResult> {
         const state = serverParams.state;
         if (!state) {
             throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash);
         }
-
-        const cachedRequest = this.browserStorage.getCachedRequest(state);
-        this.logger.verbose("handleResponse called, retrieved cached request");
 
         if (serverParams.accountId) {
             this.logger.verbose(
@@ -578,29 +549,17 @@ export class RedirectClient extends StandardInteractionClient {
                 this.nativeMessageHandler,
                 serverParams.accountId,
                 this.nativeStorage,
-                cachedRequest.correlationId
+                request.correlationId
             );
             const { userRequestState } = ProtocolUtils.parseRequestState(
                 this.browserCrypto,
                 state
             );
-            return nativeInteractionClient
-                .acquireToken({
-                    ...cachedRequest,
-                    state: userRequestState,
-                    prompt: undefined, // Server should handle the prompt, ideally native broker can do this part silently
-                })
-                .finally(() => {
-                    this.browserStorage.cleanRequestByState(state);
-                });
-        }
-
-        // Hash contains known properties - handle and return in callback
-        const currentAuthority = this.browserStorage.getCachedAuthority(state);
-        if (!currentAuthority) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.noCachedAuthorityError
-            );
+            return nativeInteractionClient.acquireToken({
+                ...request,
+                state: userRequestState,
+                prompt: undefined, // Server should handle the prompt, ideally native broker can do this part silently
+            });
         }
 
         const authClient = await invokeAsync(
@@ -609,21 +568,103 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )({ serverTelemetryManager, requestAuthority: currentAuthority });
+        )({ serverTelemetryManager, requestAuthority: request.authority });
 
         ThrottlingUtils.removeThrottle(
             this.browserStorage,
             this.config.auth.clientId,
-            cachedRequest
+            request
         );
-        const interactionHandler = new RedirectHandler(
+        const authCodeRequest: CommonAuthorizationCodeRequest = {
+            ...request,
+            code: serverParams.code || "",
+            codeVerifier: codeVerifier,
+        };
+        // Create silent handler
+        const interactionHandler = new InteractionHandler(
             authClient,
             this.browserStorage,
-            cachedRequest,
+            authCodeRequest,
             this.logger,
             this.performanceClient
         );
-        return interactionHandler.handleCodeResponse(serverParams, state);
+        return invokeAsync(
+            interactionHandler.handleCodeResponse.bind(interactionHandler),
+            PerformanceEvents.HandleCodeResponse,
+            this.logger,
+            this.performanceClient,
+            request.correlationId
+        )(serverParams, request);
+    }
+
+    /**
+     * Redirects window to given URL.
+     * @param urlNavigate
+     * @param onRedirectNavigateRequest - onRedirectNavigate callback provided on the request
+     */
+    async initiateAuthRequest(
+        requestUrl: string,
+        onRedirectNavigateRequest?: (url: string) => boolean | void
+    ): Promise<void> {
+        this.logger.verbose("RedirectHandler.initiateAuthRequest called");
+        // Navigate if valid URL
+        if (requestUrl) {
+            this.logger.infoPii(
+                `RedirectHandler.initiateAuthRequest: Navigate to: ${requestUrl}`
+            );
+            const navigationOptions: NavigationOptions = {
+                apiId: ApiId.acquireTokenRedirect,
+                timeout: this.config.system.redirectNavigationTimeout,
+                noHistory: false,
+            };
+
+            const onRedirectNavigate =
+                onRedirectNavigateRequest ||
+                this.config.auth.onRedirectNavigate;
+
+            // If onRedirectNavigate is implemented, invoke it and provide requestUrl
+            if (typeof onRedirectNavigate === "function") {
+                this.logger.verbose(
+                    "RedirectHandler.initiateAuthRequest: Invoking onRedirectNavigate callback"
+                );
+                const navigate = onRedirectNavigate(requestUrl);
+
+                // Returning false from onRedirectNavigate will stop navigation
+                if (navigate !== false) {
+                    this.logger.verbose(
+                        "RedirectHandler.initiateAuthRequest: onRedirectNavigate did not return false, navigating"
+                    );
+                    await this.navigationClient.navigateExternal(
+                        requestUrl,
+                        navigationOptions
+                    );
+                    return;
+                } else {
+                    this.logger.verbose(
+                        "RedirectHandler.initiateAuthRequest: onRedirectNavigate returned false, stopping navigation"
+                    );
+                    return;
+                }
+            } else {
+                // Navigate window to request URL
+                this.logger.verbose(
+                    "RedirectHandler.initiateAuthRequest: Navigating window to navigate url"
+                );
+                await this.navigationClient.navigateExternal(
+                    requestUrl,
+                    navigationOptions
+                );
+                return;
+            }
+        } else {
+            // Throw error if request URL is empty.
+            this.logger.info(
+                "RedirectHandler.initiateAuthRequest: Navigate url is empty"
+            );
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.emptyNavigateUri
+            );
+        }
     }
 
     /**

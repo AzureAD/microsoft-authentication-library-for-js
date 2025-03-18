@@ -29,7 +29,6 @@ export const silentPromptValueError = "silent_prompt_value_error";
 export const noTokenRequestCacheError = "no_token_request_cache_error";
 export const unableToParseTokenRequestCacheError =
     "unable_to_parse_token_request_cache_error";
-export const noCachedAuthorityError = "no_cached_authority_error";
 export const authRequestNotSetError = "auth_request_not_set_error";
 export const invalidCacheType = "invalid_cache_type";
 export const nonBrowserEnvironment = "non_browser_environment";

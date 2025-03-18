@@ -446,14 +446,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 request,
                 reqTimestamp
             );
-            this.browserStorage.setInteractionInProgress(false);
             const res = await result;
             const serverTelemetryManager =
                 this.initializeServerTelemetryManager(this.apiId);
             serverTelemetryManager.clearNativeBrokerErrorCode();
             return res;
         } catch (e) {
-            this.browserStorage.setInteractionInProgress(false);
             throw e;
         }
     }
