@@ -210,7 +210,6 @@ declare namespace BrowserAuthErrorCodes {
         silentPromptValueError,
         noTokenRequestCacheError,
         unableToParseTokenRequestCacheError,
-        noCachedAuthorityError,
         authRequestNotSetError,
         invalidCacheType,
         nonBrowserEnvironment,
@@ -332,10 +331,6 @@ export const BrowserAuthErrorMessage: {
         desc: string;
     };
     unableToParseTokenRequestCacheError: {
-        code: string;
-        desc: string;
-    };
-    noCachedAuthorityError: {
         code: string;
         desc: string;
     };
@@ -1284,11 +1279,6 @@ export { NetworkResponse }
 //
 // @public (undocumented)
 const noAccountError = "no_account_error";
-
-// Warning: (ae-missing-release-tag) "noCachedAuthorityError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const noCachedAuthorityError = "no_cached_authority_error";
 
 // Warning: (ae-missing-release-tag) "nonBrowserEnvironment" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
