@@ -162,9 +162,10 @@ export const CodeChallengeMethodValues = {
 export const OAuthResponseType = {
     CODE: "code",
     IDTOKEN_TOKEN: "id_token token",
-    IDTOKEN_TOKEN_REFRESHTOKEN: "id_token token refresh_token"
+    IDTOKEN_TOKEN_REFRESHTOKEN: "id_token token refresh_token",
 } as const;
-export type OAuthResponseType = (typeof OAuthResponseType)[keyof typeof OAuthResponseType];
+export type OAuthResponseType =
+    (typeof OAuthResponseType)[keyof typeof OAuthResponseType];
 
 /**
  * allowed values for server response type

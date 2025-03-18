@@ -458,8 +458,9 @@ export class PopupClient extends StandardInteractionClient {
             ...request,
             earJwk: earJwk,
         };
-        const popupWindow = popupParams.popup || this.openPopup("about:blank", popupParams);
-        
+        const popupWindow =
+            popupParams.popup || this.openPopup("about:blank", popupParams);
+
         const form = await getEARForm(
             popupWindow.document,
             this.config,

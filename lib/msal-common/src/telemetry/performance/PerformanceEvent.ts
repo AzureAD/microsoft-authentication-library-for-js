@@ -315,7 +315,7 @@ export const PerformanceEvents = {
     UrlEncodeArr: "urlEncodeArr",
     Encrypt: "encrypt",
     Decrypt: "decrypt",
-    GenerateEarKey: "generateEarKey"
+    GenerateEarKey: "generateEarKey",
 } as const;
 export type PerformanceEvents =
     (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
@@ -543,7 +543,7 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         [PerformanceEvents.UrlEncodeArr, "urlEncArr"],
         [PerformanceEvents.Encrypt, "encrypt"],
         [PerformanceEvents.Decrypt, "decrypt"],
-        [PerformanceEvents.GenerateEarKey, "genEarKey"]
+        [PerformanceEvents.GenerateEarKey, "genEarKey"],
     ]);
 
 /**

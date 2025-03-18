@@ -19,6 +19,6 @@ export const ProtocolMode = {
     /**
      * Encrypted Authorize Response (EAR) with Entra ID specific optimizations and features
      */
-    EAR: "EAR"
+    EAR: "EAR",
 } as const;
 export type ProtocolMode = (typeof ProtocolMode)[keyof typeof ProtocolMode];

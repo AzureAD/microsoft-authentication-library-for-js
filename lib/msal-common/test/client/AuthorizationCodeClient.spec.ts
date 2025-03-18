@@ -844,7 +844,11 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                    `${
+                        AADServerParamKeys.X_MS_LIB_CAPABILITY
+                    }=${encodeURIComponent(
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
@@ -1025,7 +1029,11 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                    `${
+                        AADServerParamKeys.X_MS_LIB_CAPABILITY
+                    }=${encodeURIComponent(
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
