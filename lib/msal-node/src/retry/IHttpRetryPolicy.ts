@@ -6,6 +6,9 @@
 import http from "http";
 
 export interface IHttpRetryPolicy {
+    _isNewRequest?: boolean;
+    set isNewRequest(value: boolean);
+
     /**
      * Pauses execution for a specified amount of time before retrying an HTTP request.
      *
@@ -17,6 +20,6 @@ export interface IHttpRetryPolicy {
     pauseForRetry(
         httpStatusCode: number,
         currentRetry: number,
-        retryAfterHeader: http.IncomingHttpHeaders["retry-after"]
+        retryAfterHeader?: http.IncomingHttpHeaders["retry-after"]
     ): Promise<boolean>;
 }

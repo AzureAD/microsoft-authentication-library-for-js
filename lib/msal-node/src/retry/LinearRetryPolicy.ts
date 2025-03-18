@@ -33,8 +33,9 @@ export class LinearRetryPolicy extends BaseRetryPolicy {
             currentRetry < this.maxRetries
         ) {
             const retryAfterDelay: number =
-                this.retryAfterMillisecondsToSleep(retryAfterHeader);
+                this.calculateLinearDelay(retryAfterHeader);
 
+            // pause execution for the calculated delay
             await new Promise((resolve) => {
                 // retryAfterHeader value of 0 evaluates to false, and this.retryDelay will be used
                 return setTimeout(resolve, retryAfterDelay || this.retryDelay);
@@ -43,6 +44,7 @@ export class LinearRetryPolicy extends BaseRetryPolicy {
             return true;
         }
 
+        // if the status code is not retriable or max retries have been reached, do not retry
         return false;
     }
 }
