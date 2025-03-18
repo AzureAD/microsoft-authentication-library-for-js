@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "EAR protocol request support",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
