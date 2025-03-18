@@ -2444,7 +2444,6 @@ describe("RedirectClient", () => {
                     navigateUrl,
                     {
                         redirectTimeout: timeout,
-                        redirectStartPage,
                         onRedirectNavigate: onRedirectNavigateCb,
                     }
                 ): Promise<void> => {
