@@ -131,6 +131,8 @@ export abstract class ClientApplication {
             ...(await this.initializeBaseRequest(request)),
             responseMode: request.responseMode || ResponseMode.QUERY,
             authenticationScheme: AuthenticationScheme.BEARER,
+            state: request.state || "",
+            nonce: request.nonce || "",
         };
 
         const discoveredAuthority = await this.createAuthority(
