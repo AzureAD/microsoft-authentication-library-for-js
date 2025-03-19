@@ -38,6 +38,7 @@ import {
     StoreInCache,
     CacheError,
     invokeAsync,
+    TimeUtils,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
@@ -66,6 +67,8 @@ import { base64Decode } from "../encode/Base64Decode.js";
 import { base64Encode } from "../encode/Base64Encode.js";
 import { CookieStorage } from "./CookieStorage.js";
 import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
+import { EventType } from "../event/EventType.js";
+import { EventHandler } from "../event/EventHandler.js";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -87,6 +90,8 @@ export class BrowserCacheManager extends CacheManager {
     protected logger: Logger;
     // Telemetry perf client
     protected performanceClient: IPerformanceClient;
+    // Event Handler
+    private eventHandler: EventHandler;
 
     constructor(
         clientId: string,
@@ -94,53 +99,33 @@ export class BrowserCacheManager extends CacheManager {
         cryptoImpl: ICrypto,
         logger: Logger,
         performanceClient: IPerformanceClient,
+        eventHandler: EventHandler,
         staticAuthorityOptions?: StaticAuthorityOptions
     ) {
         super(clientId, cryptoImpl, logger, staticAuthorityOptions);
         this.cacheConfig = cacheConfig;
         this.logger = logger;
         this.internalStorage = new MemoryStorage();
-        this.browserStorage = this.setupBrowserStorage(
-            this.cacheConfig.cacheLocation
+        this.browserStorage = getStorageImplementation(
+            clientId,
+            cacheConfig.cacheLocation,
+            logger,
+            performanceClient
         );
-        this.temporaryCacheStorage = this.setupBrowserStorage(
-            this.cacheConfig.temporaryCacheLocation
+        this.temporaryCacheStorage = getStorageImplementation(
+            clientId,
+            cacheConfig.temporaryCacheLocation,
+            logger,
+            performanceClient
         );
         this.cookieStorage = new CookieStorage();
 
         this.performanceClient = performanceClient;
+        this.eventHandler = eventHandler;
     }
 
     async initialize(correlationId: string): Promise<void> {
         await this.browserStorage.initialize(correlationId);
-    }
-
-    /**
-     * Returns a window storage class implementing the IWindowStorage interface that corresponds to the configured cacheLocation.
-     * @param cacheLocation
-     */
-    protected setupBrowserStorage(
-        cacheLocation: BrowserCacheLocation | string
-    ): IWindowStorage<string> {
-        try {
-            switch (cacheLocation) {
-                case BrowserCacheLocation.LocalStorage:
-                    return new LocalStorage(
-                        this.clientId,
-                        this.logger,
-                        this.performanceClient
-                    );
-                case BrowserCacheLocation.SessionStorage:
-                    return new SessionStorage();
-                case BrowserCacheLocation.MemoryStorage:
-                default:
-                    break;
-            }
-        } catch (e) {
-            this.logger.error(e as string);
-        }
-        this.cacheConfig.cacheLocation = BrowserCacheLocation.MemoryStorage;
-        return new MemoryStorage();
     }
 
     /**
@@ -206,7 +191,22 @@ export class BrowserCacheManager extends CacheManager {
             this.logger,
             this.performanceClient
         )(key, JSON.stringify(account), correlationId);
-        this.addAccountKeyToMap(key);
+        const wasAdded = this.addAccountKeyToMap(key);
+
+        /**
+         * @deprecated - Remove this in next major version in favor of more consistent LOGIN event
+         */
+        if (
+            this.cacheConfig.cacheLocation ===
+                BrowserCacheLocation.LocalStorage &&
+            wasAdded
+        ) {
+            this.eventHandler.emitEvent(
+                EventType.ACCOUNT_ADDED,
+                undefined,
+                account.getAccountInfo()
+            );
+        }
     }
 
     /**
@@ -221,7 +221,7 @@ export class BrowserCacheManager extends CacheManager {
      * Add a new account to the key map
      * @param key
      */
-    addAccountKeyToMap(key: string): void {
+    addAccountKeyToMap(key: string): boolean {
         this.logger.trace("BrowserCacheManager.addAccountKeyToMap called");
         this.logger.tracePii(
             `BrowserCacheManager.addAccountKeyToMap called with key: ${key}`
@@ -237,10 +237,12 @@ export class BrowserCacheManager extends CacheManager {
             this.logger.verbose(
                 "BrowserCacheManager.addAccountKeyToMap account key added"
             );
+            return true;
         } else {
             this.logger.verbose(
                 "BrowserCacheManager.addAccountKeyToMap account key already exists in map"
             );
+            return false;
         }
     }
 
@@ -278,6 +280,27 @@ export class BrowserCacheManager extends CacheManager {
     async removeAccount(key: string): Promise<void> {
         void super.removeAccount(key);
         this.removeAccountKeyFromMap(key);
+    }
+
+    /**
+     * Removes credentials associated with the provided account
+     * @param account
+     */
+    async removeAccountContext(account: AccountEntity): Promise<void> {
+        await super.removeAccountContext(account);
+
+        /**
+         * @deprecated - Remove this in next major version in favor of more consistent LOGOUT event
+         */
+        if (
+            this.cacheConfig.cacheLocation === BrowserCacheLocation.LocalStorage
+        ) {
+            this.eventHandler.emitEvent(
+                EventType.ACCOUNT_REMOVED,
+                undefined,
+                account.getAccountInfo()
+            );
+        }
     }
 
     /**
@@ -814,6 +837,7 @@ export class BrowserCacheManager extends CacheManager {
             );
             this.browserStorage.removeItem(activeAccountKey);
         }
+        this.eventHandler.emitEvent(EventType.ACTIVE_ACCOUNT_CHANGED);
     }
 
     /**
@@ -1413,8 +1437,13 @@ export class BrowserCacheManager extends CacheManager {
             this.clientId,
             result.tenantId,
             result.scopes.join(" "),
-            result.expiresOn ? result.expiresOn.getTime() / 1000 : 0,
-            result.extExpiresOn ? result.extExpiresOn.getTime() / 1000 : 0,
+            // Access token expiresOn stored in seconds, converting from AuthenticationResult expiresOn stored as Date
+            result.expiresOn
+                ? TimeUtils.toSecondsFromDate(result.expiresOn)
+                : 0,
+            result.extExpiresOn
+                ? TimeUtils.toSecondsFromDate(result.extExpiresOn)
+                : 0,
             base64Decode,
             undefined, // refreshOn
             result.tokenType as AuthenticationScheme,
@@ -1473,10 +1502,38 @@ export class BrowserCacheManager extends CacheManager {
     }
 }
 
+/**
+ * Returns a window storage class implementing the IWindowStorage interface that corresponds to the configured cacheLocation.
+ * @param cacheLocation
+ */
+function getStorageImplementation(
+    clientId: string,
+    cacheLocation: BrowserCacheLocation | string,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): IWindowStorage<string> {
+    try {
+        switch (cacheLocation) {
+            case BrowserCacheLocation.LocalStorage:
+                return new LocalStorage(clientId, logger, performanceClient);
+            case BrowserCacheLocation.SessionStorage:
+                return new SessionStorage();
+            case BrowserCacheLocation.MemoryStorage:
+            default:
+                break;
+        }
+    } catch (e) {
+        logger.error(e as string);
+    }
+
+    return new MemoryStorage();
+}
+
 export const DEFAULT_BROWSER_CACHE_MANAGER = (
     clientId: string,
     logger: Logger,
-    performanceClient: IPerformanceClient
+    performanceClient: IPerformanceClient,
+    eventHandler: EventHandler
 ): BrowserCacheManager => {
     const cacheOptions: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.MemoryStorage,
@@ -1491,6 +1548,7 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
         cacheOptions,
         DEFAULT_CRYPTO_IMPLEMENTATION,
         logger,
-        performanceClient
+        performanceClient,
+        eventHandler
     );
 };

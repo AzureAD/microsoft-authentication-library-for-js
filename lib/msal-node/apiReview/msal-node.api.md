@@ -23,6 +23,7 @@ import { AuthErrorMessage } from '@azure/msal-common/node';
 import { Authority } from '@azure/msal-common/node';
 import { AuthorityMetadataEntity } from '@azure/msal-common/node';
 import { AuthorizationCodePayload } from '@azure/msal-common/node';
+import { AuthorizeResponse } from '@azure/msal-common/node';
 import { AzureCloudInstance } from '@azure/msal-common/node';
 import { AzureCloudOptions } from '@azure/msal-common/node';
 import { AzureRegionConfiguration } from '@azure/msal-common/node';
@@ -72,7 +73,6 @@ import { ProtocolMode } from '@azure/msal-common/node';
 import { RefreshTokenCache } from '@azure/msal-common/node';
 import { RefreshTokenEntity } from '@azure/msal-common/node';
 import { ResponseMode } from '@azure/msal-common/node';
-import { ServerAuthorizationCodeResponse } from '@azure/msal-common/node';
 import { ServerError } from '@azure/msal-common/node';
 import { ServerTelemetryEntity } from '@azure/msal-common/node';
 import { ServerTelemetryManager } from '@azure/msal-common/node';
@@ -113,6 +113,9 @@ export type AuthorizationUrlRequest = Partial<Omit<CommonAuthorizationUrlRequest
     redirectUri: string;
 };
 
+export { AuthorizeResponse }
+export { AuthorizeResponse as ServerAuthorizationCodeResponse }
+
 export { AzureCloudInstance }
 
 export { AzureCloudOptions }
@@ -136,14 +139,16 @@ export abstract class ClientApplication {
     protected constructor(configuration: Configuration);
     acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult>;
     acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
+    // @deprecated
     acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult>;
-    protected buildOauthClientConfiguration(authority: string, requestCorrelationId: string, redirectUri: string, serverTelemetryManager?: ServerTelemetryManager, azureRegionConfiguration?: AzureRegionConfiguration, azureCloudOptions?: AzureCloudOptions): Promise<ClientConfiguration>;
+    protected buildOauthClientConfiguration(discoveredAuthority: Authority, requestCorrelationId: string, redirectUri: string, serverTelemetryManager?: ServerTelemetryManager): Promise<ClientConfiguration>;
     clearCache(): void;
     protected clientAssertion: ClientAssertion;
     protected clientSecret: string;
     // Warning: (ae-forgotten-export) The symbol "NodeConfiguration" needs to be exported by the entry point index.d.ts
     protected config: NodeConfiguration;
+    protected createAuthority(authorityString: string, requestCorrelationId: string, azureRegionConfiguration?: AzureRegionConfiguration, azureCloudOptions?: AzureCloudOptions): Promise<Authority>;
     // (undocumented)
     protected readonly cryptoProvider: CryptoProvider;
     // (undocumented)
@@ -275,6 +280,7 @@ export interface IConfidentialClientApplication {
     acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null>;
     acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
     acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
+    // @deprecated
     acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
     acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null>;
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;
@@ -295,7 +301,7 @@ export interface ILoopbackClient {
     // (undocumented)
     getRedirectUri(): string;
     // (undocumented)
-    listenForAuthCode(successTemplate?: string, errorTemplate?: string): Promise<ServerAuthorizationCodeResponse>;
+    listenForAuthCode(successTemplate?: string, errorTemplate?: string): Promise<AuthorizeResponse>;
 }
 
 export { INativeBrokerPlugin }
@@ -346,6 +352,7 @@ export interface IPublicClientApplication {
     acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
     acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
     acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
+    // @deprecated
     acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
     acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult>;
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult>;
@@ -415,6 +422,7 @@ export const ManagedIdentitySourceNames: {
     readonly CLOUD_SHELL: "CloudShell";
     readonly DEFAULT_TO_IMDS: "DefaultToImds";
     readonly IMDS: "Imds";
+    readonly MACHINE_LEARNING: "MachineLearning";
     readonly SERVICE_FABRIC: "ServiceFabric";
 };
 
@@ -570,8 +578,6 @@ class Serializer {
     static serializeRefreshTokens(rtCache: RefreshTokenCache): Record<string, SerializedRefreshTokenEntity>;
 }
 
-export { ServerAuthorizationCodeResponse }
-
 export { ServerError }
 
 // @public (undocumented)
@@ -593,15 +599,19 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
     getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null>;
     getAllAccounts(): Promise<AccountInfo[]>;
+    getCacheSnapshot(): CacheKVStore;
     getKVStore(): CacheKVStore;
     hasChanged(): boolean;
+    overwriteCache(): Promise<void>;
+    // (undocumented)
+    readonly persistence: ICachePlugin;
     removeAccount(account: AccountInfo): Promise<void>;
     serialize(): string;
 }
 
 export { TokenCacheContext }
 
-// @public
+// @public @deprecated
 export class UsernamePasswordClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
     acquireToken(request: CommonUsernamePasswordRequest): Promise<AuthenticationResult | null>;
@@ -619,7 +629,7 @@ export { ValidCacheType }
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "3.0.1";
+export const version = "3.3.0";
 
 // Warnings were encountered during analysis:
 //

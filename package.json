@@ -45,6 +45,7 @@
         "beachball:release": "node ./.github/create-releases.js"
     },
     "workspaces": [
+        "shared-configs/eslint-plugin-custom-msal",
         "shared-configs/eslint-config-msal",
         "shared-configs/rollup-msal",
         "lib/msal-common",
@@ -57,7 +58,7 @@
         "shared-test-utils",
         "samples/e2eTestUtils",
         "samples/msal-browser-samples/*",
-        "samples/msal-angular-v3-samples/*",
+        "samples/msal-angular-samples/*",
         "samples/msal-react-samples/*",
         "samples/msal-node-samples/*",
         "regression-tests/msal-node/client-credential"

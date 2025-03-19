@@ -11,6 +11,7 @@ A common challenge for developers is the management of secrets, credentials, cer
 -   [Azure Arc](https://learn.microsoft.com/en-us/azure/azure-arc/overview)
 -   [Azure Cloud Shell](https://learn.microsoft.com/en-us/azure/cloud-shell/overview)
 -   [Azure Service Fabric](https://learn.microsoft.com/en-us/azure/service-fabric/service-fabric-overview)
+-   [Azure Machine Learning](https://azure.microsoft.com/products/machine-learning)
 
 For a complete list, refer to [Azure services that can use managed identities to access other services](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/managed-identities-status).
 

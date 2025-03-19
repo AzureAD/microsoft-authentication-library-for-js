@@ -52,6 +52,7 @@ import {
     TemporaryCacheKeys,
     NativeConstants,
     BrowserConstants,
+    CacheLookupPolicy,
 } from "../utils/BrowserConstants.js";
 import {
     NativeExtensionRequestBody,
@@ -83,7 +84,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
     protected silentCacheClient: SilentCacheClient;
     protected nativeStorageManager: BrowserCacheManager;
     protected skus: string;
-    protected serverTelemetryManager: ServerTelemetryManager;
 
     constructor(
         config: BrowserConfiguration,
@@ -125,9 +125,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
             provider,
             correlationId
         );
-        this.serverTelemetryManager = this.initializeServerTelemetryManager(
-            this.apiId
-        );
 
         const extensionName =
             this.nativeMessageHandler.getExtensionId() ===
@@ -161,7 +158,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param request
      */
     async acquireToken(
-        request: PopupRequest | SilentRequest | SsoSilentRequest
+        request: PopupRequest | SilentRequest | SsoSilentRequest,
+        cacheLookupPolicy?: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.NativeInteractionClientAcquireToken,
@@ -176,6 +174,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
         );
         const reqTimestamp = TimeUtils.nowSeconds();
 
+        const serverTelemetryManager = this.initializeServerTelemetryManager(
+            this.apiId
+        );
         try {
             // initialize native request
             const nativeRequest = await this.initializeNativeRequest(request);
@@ -193,6 +194,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 });
                 return result;
             } catch (e) {
+                if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
+                    this.logger.info(
+                        "MSAL internal Cache does not contain tokens, return error as per cache policy"
+                    );
+                    throw e;
+                }
                 // continue with a native call for any and all errors
                 this.logger.info(
                     "MSAL internal Cache does not contain tokens, proceed to make a native call"
@@ -223,7 +230,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                         isNativeBroker: true,
                         requestId: result.requestId,
                     });
-                    this.serverTelemetryManager.clearNativeBrokerErrorCode();
+                    serverTelemetryManager.clearNativeBrokerErrorCode();
                     return result;
                 })
                 .catch((error: AuthError) => {
@@ -237,9 +244,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 });
         } catch (e) {
             if (e instanceof NativeAuthError) {
-                this.serverTelemetryManager.setNativeBrokerErrorCode(
-                    e.errorCode
-                );
+                serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
             }
             throw e;
         }
@@ -346,9 +351,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
             if (e instanceof NativeAuthError) {
-                this.serverTelemetryManager.setNativeBrokerErrorCode(
-                    e.errorCode
-                );
+                const serverTelemetryManager =
+                    this.initializeServerTelemetryManager(this.apiId);
+                serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
                 if (isFatalNativeAuthError(e)) {
                     throw e;
                 }
@@ -443,7 +448,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
             );
             this.browserStorage.setInteractionInProgress(false);
             const res = await result;
-            this.serverTelemetryManager.clearNativeBrokerErrorCode();
+            const serverTelemetryManager =
+                this.initializeServerTelemetryManager(this.apiId);
+            serverTelemetryManager.clearNativeBrokerErrorCode();
             return res;
         } catch (e) {
             this.browserStorage.setInteractionInProgress(false);
@@ -491,7 +498,15 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 nativeAccountId: request.accountId,
             })?.homeAccountId;
 
+        // add exception for double brokering, please note this is temporary and will be fortified in future
         if (
+            request.extraParameters?.child_client_id &&
+            response.account.id !== request.accountId
+        ) {
+            this.logger.info(
+                "handleNativeServerResponse: Double broker flow detected, ignoring accountId mismatch"
+            );
+        } else if (
             homeAccountIdentifier !== cachedhomeAccountId &&
             response.account.id !== request.accountId
         ) {
@@ -517,6 +532,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response.account.id,
             this.logger
         );
+
+        // Ensure expires_in is in number format
+        response.expires_in = Number(response.expires_in);
 
         // generate authenticationResult
         const result = await this.generateAuthenticationResult(
@@ -706,8 +724,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
             idTokenClaims: idTokenClaims,
             accessToken: responseAccessToken,
             fromCache: mats ? this.isResponseFromCache(mats) : false,
-            expiresOn: new Date(
-                Number(reqTimestamp + response.expires_in) * 1000
+            // Request timestamp and NativeResponse expires_in are in seconds, converting to Date for AuthenticationResult
+            expiresOn: TimeUtils.toDateFromSeconds(
+                reqTimestamp + response.expires_in
             ),
             tokenType: tokenType,
             correlationId: this.correlationId,

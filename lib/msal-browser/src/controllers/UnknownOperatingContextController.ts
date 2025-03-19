@@ -40,6 +40,7 @@ import {
 import { EventCallbackFunction } from "../event/EventMessage.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { EventType } from "../event/EventType.js";
+import { EventHandler } from "../event/EventHandler.js";
 
 /**
  * UnknownOperatingContextController class
@@ -71,6 +72,9 @@ export class UnknownOperatingContextController implements IController {
     // Performance telemetry client
     protected readonly performanceClient: IPerformanceClient;
 
+    // Event handler
+    private readonly eventHandler: EventHandler;
+
     // Crypto interface implementation
     protected readonly browserCrypto: ICrypto;
 
@@ -98,6 +102,8 @@ export class UnknownOperatingContextController implements IController {
             ? new CryptoOps(this.logger, this.performanceClient)
             : DEFAULT_CRYPTO_IMPLEMENTATION;
 
+        this.eventHandler = new EventHandler(this.logger);
+
         // Initialize the browser storage class.
         this.browserStorage = this.isBrowserEnvironment
             ? new BrowserCacheManager(
@@ -106,12 +112,14 @@ export class UnknownOperatingContextController implements IController {
                   this.browserCrypto,
                   this.logger,
                   this.performanceClient,
+                  this.eventHandler,
                   undefined
               )
             : DEFAULT_BROWSER_CACHE_MANAGER(
                   this.config.auth.clientId,
                   this.logger,
-                  this.performanceClient
+                  this.performanceClient,
+                  this.eventHandler
               );
     }
     getBrowserStorage(): BrowserCacheManager {

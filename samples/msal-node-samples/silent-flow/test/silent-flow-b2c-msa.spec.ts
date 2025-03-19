@@ -12,7 +12,6 @@ import {
     ONE_SECOND_IN_MS,
     RETRY_TIMES,
     clickSignIn,
-    SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
     validateCacheLocation,
@@ -21,9 +20,8 @@ import {
     LabApiQueryParams,
     B2cProviders,
     UserTypes,
-    B2C_MSA_TEST_UPN,
 } from "e2e-test-utils";
-
+import path from "path";
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
 
 // Set test cache name/location
@@ -54,7 +52,7 @@ describe("Silent Flow B2C Tests (msa account)", () => {
     let username: string;
     let accountPwd: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/silent-flow/b2c/msa-account`;
+    const screenshotFolder = path.join(__dirname, "screenshots/silent-flow/b2c-msa");
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -65,7 +63,7 @@ describe("Silent Flow B2C Tests (msa account)", () => {
         port = 3008;
         homeRoute = `${SAMPLE_HOME_URL}:${port}`;
 
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        createFolder(screenshotFolder);
 
         const labApiParms: LabApiQueryParams = {
             userType: UserTypes.B2C,
@@ -80,9 +78,6 @@ describe("Silent Flow B2C Tests (msa account)", () => {
             envResponse[0],
             labClient
         );
-
-        // TODO: Remove when B2C MSA account is available in the lab
-        username = B2C_MSA_TEST_UPN;
 
         publicClientApplication = new PublicClientApplication({
             auth: config.authOptions,
@@ -108,7 +103,7 @@ describe("Silent Flow B2C Tests (msa account)", () => {
 
     describe("AcquireToken", () => {
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             await page.goto(homeRoute, { waitUntil: "networkidle0" });
@@ -218,7 +213,7 @@ describe("Silent Flow B2C Tests (msa account)", () => {
     describe("Get All Accounts", () => {
         describe("Authenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await page.goto(homeRoute, { waitUntil: "networkidle0" });
             });
@@ -268,7 +263,7 @@ describe("Silent Flow B2C Tests (msa account)", () => {
 
         describe("Unauthenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await publicClientApplication.clearCache();
             });

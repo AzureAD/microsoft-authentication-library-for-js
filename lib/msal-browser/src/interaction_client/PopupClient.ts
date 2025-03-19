@@ -20,6 +20,7 @@ import {
     ServerResponseType,
     invokeAsync,
     invoke,
+    PkceCodes,
 } from "@azure/msal-common/browser";
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import { EventType } from "../event/EventType.js";
@@ -47,6 +48,8 @@ import { PopupWindowAttributes } from "../request/PopupWindowAttributes.js";
 import { EventError } from "../event/EventMessage.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
+import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
+import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 
 export type PopupParams = {
     popup?: Window | null;
@@ -90,8 +93,12 @@ export class PopupClient extends StandardInteractionClient {
     /**
      * Acquires tokens by opening a popup window to the /authorize endpoint of the authority
      * @param request
+     * @param pkceCodes
      */
-    acquireToken(request: PopupRequest): Promise<AuthenticationResult> {
+    acquireToken(
+        request: PopupRequest,
+        pkceCodes?: PkceCodes
+    ): Promise<AuthenticationResult> {
         try {
             const popupName = this.generatePopupName(
                 request.scopes || OIDC_DEFAULT_SCOPES,
@@ -103,11 +110,20 @@ export class PopupClient extends StandardInteractionClient {
                 popupWindowParent: request.popupWindowParent ?? window,
             };
 
+            this.performanceClient.addFields(
+                { isAsyncPopup: this.config.system.asyncPopups },
+                this.correlationId
+            );
+
             // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
             if (this.config.system.asyncPopups) {
                 this.logger.verbose("asyncPopups set to true, acquiring token");
                 // Passes on popup position and dimensions if in request
-                return this.acquireTokenPopupAsync(request, popupParams);
+                return this.acquireTokenPopupAsync(
+                    request,
+                    popupParams,
+                    pkceCodes
+                );
             } else {
                 // asyncPopups flag is set to false. Opens popup before acquiring token.
                 this.logger.verbose(
@@ -117,7 +133,11 @@ export class PopupClient extends StandardInteractionClient {
                     "about:blank",
                     popupParams
                 );
-                return this.acquireTokenPopupAsync(request, popupParams);
+                return this.acquireTokenPopupAsync(
+                    request,
+                    popupParams,
+                    pkceCodes
+                );
             }
         } catch (e) {
             return Promise.reject(e);
@@ -175,16 +195,16 @@ export class PopupClient extends StandardInteractionClient {
 
     /**
      * Helper which obtains an access_token for your API via opening a popup window in the user's browser
-     * @param validRequest
-     * @param popupName
-     * @param popup
-     * @param popupWindowAttributes
+     * @param request
+     * @param popupParams
+     * @param pkceCodes
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     protected async acquireTokenPopupAsync(
         request: PopupRequest,
-        popupParams: PopupParams
+        popupParams: PopupParams,
+        pkceCodes?: PkceCodes
     ): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenPopupAsync called");
         const serverTelemetryManager = this.initializeServerTelemetryManager(
@@ -199,19 +219,26 @@ export class PopupClient extends StandardInteractionClient {
             this.correlationId
         )(request, InteractionType.Popup);
 
-        BrowserUtils.preconnect(validRequest.authority);
+        const pkce =
+            pkceCodes ||
+            (await invokeAsync(
+                generatePkceCodes,
+                PerformanceEvents.GeneratePkceCodes,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(this.performanceClient, this.logger, this.correlationId));
+        validRequest.codeChallenge = pkce.challenge;
+
+        /*
+         * Skip pre-connect for async popups to reduce time between user interaction and popup window creation to avoid
+         * popup from being blocked by browsers with shorter popup timers
+         */
+        if (popupParams.popup) {
+            BrowserUtils.preconnect(validRequest.authority);
+        }
 
         try {
-            // Create auth code request and generate PKCE params
-            const authCodeRequest: CommonAuthorizationCodeRequest =
-                await invokeAsync(
-                    this.initializeAuthorizationCodeRequest.bind(this),
-                    PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-                    this.logger,
-                    this.performanceClient,
-                    this.correlationId
-                )(validRequest);
-
             // Initialize the client
             const authClient: AuthorizationCodeClient = await invokeAsync(
                 this.createAuthCodeClient.bind(this),
@@ -245,16 +272,19 @@ export class PopupClient extends StandardInteractionClient {
             }
 
             // Create acquire token url.
-            const navigateUrl = await authClient.getAuthCodeUrl({
-                ...validRequest,
-                platformBroker: isPlatformBroker,
-            });
-
-            // Create popup interaction handler.
-            const interactionHandler = new InteractionHandler(
-                authClient,
-                this.browserStorage,
-                authCodeRequest,
+            const navigateUrl = await invokeAsync(
+                getAuthCodeRequestUrl,
+                PerformanceEvents.GetAuthCodeUrl,
+                this.logger,
+                this.performanceClient,
+                validRequest.correlationId
+            )(
+                this.config,
+                authClient.authority,
+                {
+                    ...validRequest,
+                    platformBroker: isPlatformBroker,
+                },
                 this.logger,
                 this.performanceClient
             );
@@ -292,7 +322,7 @@ export class PopupClient extends StandardInteractionClient {
             ThrottlingUtils.removeThrottle(
                 this.browserStorage,
                 this.config.auth.clientId,
-                authCodeRequest
+                validRequest
             );
 
             if (serverParams.accountId) {
@@ -337,6 +367,19 @@ export class PopupClient extends StandardInteractionClient {
                 });
             }
 
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                ...validRequest,
+                code: serverParams.code || "",
+                codeVerifier: pkce.verifier,
+            };
+            // Create popup interaction handler.
+            const interactionHandler = new InteractionHandler(
+                authClient,
+                this.browserStorage,
+                authCodeRequest,
+                this.logger,
+                this.performanceClient
+            );
             // Handle response from hash string.
             const result = await interactionHandler.handleCodeResponse(
                 serverParams,
@@ -352,7 +395,6 @@ export class PopupClient extends StandardInteractionClient {
                 (e as AuthError).setCorrelationId(this.correlationId);
                 serverTelemetryManager.cacheFailedRequest(e);
             }
-
             throw e;
         }
     }

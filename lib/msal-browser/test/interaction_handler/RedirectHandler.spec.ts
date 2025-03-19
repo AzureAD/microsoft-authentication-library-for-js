@@ -7,7 +7,6 @@ import {
     PkceCodes,
     NetworkRequestOptions,
     AccountInfo,
-    AuthorityFactory,
     CommonAuthorizationCodeRequest,
     Constants,
     AuthenticationResult,
@@ -51,6 +50,8 @@ import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
+import { EventHandler } from "../../src/event/EventHandler.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -115,7 +116,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
             configObj.cache,
             browserCrypto,
             logger,
-            new StubPerformanceClient()
+            new StubPerformanceClient(),
+            new EventHandler()
         );
         // Initialize authority after browser storage for proper use
         authorityInstance = new Authority(
@@ -367,8 +369,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
                 ),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
@@ -410,10 +412,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH),
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
             );
-            jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "handleFragmentResponse"
-            ).mockReturnValue(testCodeResponse);
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
                 "acquireToken"
@@ -460,11 +458,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
             };
-            const testCodeResponse: AuthorizationCodePayload = {
-                code: "authcode",
-                nonce: idTokenClaims.nonce,
-                state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-            };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED,
@@ -484,8 +477,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
                 ),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
@@ -532,10 +525,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 TemporaryCacheKeys.CCS_CREDENTIAL,
                 JSON.stringify(testCcsCred)
             );
-            jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "handleFragmentResponse"
-            ).mockReturnValue(testCodeResponse);
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
                 "acquireToken"

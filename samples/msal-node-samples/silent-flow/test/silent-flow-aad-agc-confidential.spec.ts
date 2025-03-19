@@ -11,7 +11,6 @@ import {
     RETRY_TIMES,
     clickSignIn,
     enterCredentials,
-    SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GRAPH_CALL_ID,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
@@ -22,6 +21,7 @@ import {
     getCredentials,
 } from "e2e-test-utils";
 import { ConfidentialClientApplication, TokenCache } from "@azure/msal-node";
+import path from "path";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad-agc-confidential.cache.json`;
@@ -63,7 +63,7 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
     let username: string;
     let password: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/silent-flow/aad-agc-confidential`;
+    const screenshotFolder = path.join(__dirname, "screenshots/silent-flow/aad-agc-confidential");
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -72,7 +72,7 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
         port = 3005;
         homeRoute = `${SAMPLE_HOME_URL}:${port}`;
 
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        createFolder(screenshotFolder);
 
         const keyVaultSecretClient = await getKeyVaultSecretClient();
         [username, password] = await getCredentials(keyVaultSecretClient);
@@ -100,7 +100,7 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
 
     describe("AcquireToken", () => {
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             await page.goto(homeRoute, { waitUntil: "networkidle0" });
@@ -203,7 +203,7 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
     describe("Get All Accounts", () => {
         describe("Authenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await page.goto(homeRoute, { waitUntil: "networkidle0" });
             });
@@ -248,7 +248,7 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
 
         describe("Unauthenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await confidentialClientApplication.clearCache();
             });

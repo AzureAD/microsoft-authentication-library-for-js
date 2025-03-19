@@ -14,8 +14,9 @@ import {
     LabClient,
 } from "e2e-test-utils";
 import { JWK, JWT } from "jose";
+import path from "path";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screenshots/pop");
 let sampleHomeUrl = "";
 let username = "";
 let accountPwd = "";
@@ -46,7 +47,7 @@ describe("Browser PoP tests", function () {
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
     beforeEach(async () => {
-        context = await browser.createIncognitoBrowserContext();
+        context = await browser.createBrowserContext();
         page = await context.newPage();
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
         await page.goto(sampleHomeUrl);

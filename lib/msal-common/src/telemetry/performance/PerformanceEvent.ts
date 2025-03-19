@@ -214,13 +214,12 @@ export const PerformanceEvents = {
         "standardInteractionClientGetClientConfiguration",
     StandardInteractionClientInitializeAuthorizationRequest:
         "standardInteractionClientInitializeAuthorizationRequest",
-    StandardInteractionClientInitializeAuthorizationCodeRequest:
-        "standardInteractionClientInitializeAuthorizationCodeRequest",
 
     /**
      * getAuthCodeUrl API (msal-browser and msal-node).
      */
     GetAuthCodeUrl: "getAuthCodeUrl",
+    GetStandardParams: "getStandardParams",
 
     /**
      * Functions from InteractionHandler (msal-browser)
@@ -235,7 +234,6 @@ export const PerformanceEvents = {
     AuthClientAcquireToken: "authClientAcquireToken",
     AuthClientExecuteTokenRequest: "authClientExecuteTokenRequest",
     AuthClientCreateTokenRequestBody: "authClientCreateTokenRequestBody",
-    AuthClientCreateQueryString: "authClientCreateQueryString",
 
     /**
      * Generate functions in PopTokenGenerator (msal-common)
@@ -301,6 +299,7 @@ export const PerformanceEvents = {
     CacheManagerGetRefreshToken: "cacheManagerGetRefreshToken",
     ImportExistingCache: "importExistingCache",
     SetUserData: "setUserData",
+    LocalStorageUpdated: "localStorageUpdated",
 
     /**
      * Crypto Operations
@@ -407,6 +406,7 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         [PerformanceEvents.InitializeCache, "InitCache"],
         [PerformanceEvents.ImportExistingCache, "importCache"],
         [PerformanceEvents.SetUserData, "setUserData"],
+        [PerformanceEvents.LocalStorageUpdated, "localStorageUpdated"],
         [PerformanceEvents.SilentIframeClientTokenHelper, "SIClientTHelper"],
         [
             PerformanceEvents.SilentHandlerInitiateAuthRequest,
@@ -431,10 +431,6 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             "StdIntClientInitAuthReq",
         ],
-        [
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-            "StdIntClientInitAuthCodeReq",
-        ],
 
         [PerformanceEvents.GetAuthCodeUrl, "GetAuthCodeUrl"],
 
@@ -450,10 +446,6 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         [
             PerformanceEvents.AuthClientCreateTokenRequestBody,
             "AuthClientCreateTReqBody",
-        ],
-        [
-            PerformanceEvents.AuthClientCreateQueryString,
-            "AuthClientCreateQueryStr",
         ],
         [PerformanceEvents.PopTokenGenerateCnf, "PopTGenCnf"],
         [PerformanceEvents.PopTokenGenerateKid, "PopTGenKid"],
@@ -868,6 +860,21 @@ export type PerformanceEvent = {
 
     embeddedClientId?: string;
     embeddedRedirectUri?: string;
+
+    isAsyncPopup?: boolean;
+
+    rtExpiresOnMs?: number;
+
+    sidFromClaims?: boolean;
+    sidFromRequest?: boolean;
+    loginHintFromRequest?: boolean;
+    loginHintFromUpn?: boolean;
+    loginHintFromClaim?: boolean;
+    domainHintFromRequest?: boolean;
+
+    prompt?: string;
+
+    usePreGeneratedPkce?: boolean;
 };
 
 export type PerformanceEventContext = {
