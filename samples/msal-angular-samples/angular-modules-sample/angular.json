@@ -11,11 +11,12 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/angular-modules-sample",
+            "outputPath": {
+              "base": "dist/angular-modules-sample"
+            },
             "index": "src/index.html",
-            "main": "src/main.ts",
             "polyfills": [
               "zone.js"
             ],
@@ -27,7 +28,8 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [],
+            "browser": "src/main.ts"
           },
           "configurations": {
             "production": {
@@ -65,9 +67,7 @@
               ]
             },
             "dev": {
-              "buildOptimizer": false,
               "optimization": false,
-              "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true,
@@ -85,13 +85,13 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "angular-modules-sample:build:production"
+              "buildTarget": "angular-modules-sample:build:production"
             },
             "e2e": {
-              "browserTarget": "angular-modules-sample:build:e2e"
+              "buildTarget": "angular-modules-sample:build:e2e"
             },
             "dev": {
-              "browserTarget": "angular-modules-sample:build:dev"
+              "buildTarget": "angular-modules-sample:build:dev"
             }
           },
           "defaultConfiguration": "dev"
@@ -99,7 +99,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "angular-modules-sample:build"
+            "buildTarget": "angular-modules-sample:build"
           }
         },
         "test": {

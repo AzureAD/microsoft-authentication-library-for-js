@@ -1,6 +1,6 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
-import { AuthenticationResult, InteractionStatus, PopupRequest, RedirectRequest, EventMessage, EventType, InteractionType, AccountInfo, IdTokenClaims, PromptValue } from '@azure/msal-browser';
+import { AuthenticationResult, InteractionStatus, PopupRequest, RedirectRequest, EventMessage, EventType, InteractionType, AccountInfo, IdTokenClaims, PromptValue, PublicClientApplication } from '@azure/msal-browser';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 
@@ -14,7 +14,8 @@ type IdTokenClaimsWithPolicyId = IdTokenClaims & {
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
-    styleUrls: ['./app.component.css']
+    styleUrls: ['./app.component.css'],
+    standalone: false
 })
 export class AppComponent implements OnInit, OnDestroy {
     title = 'Angular B2C Sample - MSAL Angular';
@@ -28,8 +29,18 @@ export class AppComponent implements OnInit, OnDestroy {
         private msalBroadcastService: MsalBroadcastService
     ) { }
 
-    ngOnInit(): void {
+    async ngOnInit(): Promise<void> {
         this.isIframe = window !== window.parent && !window.opener; // Remove this line to use Angular Universal
+
+        this.authService.handleRedirectObservable().subscribe({
+            next: (response) => {
+                if (response && response.account) {
+                    this.authService.instance.setActiveAccount(response.account);
+                }
+                this.setLoginDisplay();
+            },
+            error: (error) => console.error("Redirect handling error:", error)
+        });
 
         this.authService.instance.enableAccountStorageEvents(); // Optional - This will enable ACCOUNT_ADDED and ACCOUNT_REMOVED events emitted when a user logs in or out of another tab or window
         this.msalBroadcastService.msalSubject$
