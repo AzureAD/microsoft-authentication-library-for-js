@@ -3,5 +3,8 @@
   "dest": "./dist",
   "lib": {
     "entryFile": "src/public-api.ts"
-  }
+  },
+  "allowedNonPeerDependencies": [
+    "@azure/msal-common"
+  ]
 }

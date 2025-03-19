@@ -15,11 +15,11 @@ import {
   InteractionType,
   BrowserConfigurationAuthError,
   BrowserUtils,
-  UrlString,
   PopupRequest,
   RedirectRequest,
   AuthenticationResult,
 } from "@azure/msal-browser";
+import { UrlUtils } from "@azure/msal-common/browser";
 import { Observable, of } from "rxjs";
 import { concatMap, catchError, map } from "rxjs/operators";
 import { MsalService } from "./msal.service";
@@ -139,7 +139,7 @@ export class MsalGuard {
      */
     if (typeof window !== "undefined") {
       if (
-        UrlString.hashContainsKnownProperties(window.location.hash) &&
+        !!UrlUtils.getDeserializedResponse(window.location.hash) &&
         BrowserUtils.isInIframe() &&
         !this.authService.instance.getConfiguration().system
           .allowRedirectInIframe
