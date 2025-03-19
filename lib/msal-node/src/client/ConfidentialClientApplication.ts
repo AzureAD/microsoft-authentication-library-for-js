@@ -221,14 +221,18 @@ export class ConfidentialClientApplication
             validRequest.skipCache
         );
         try {
+            const discoveredAuthority = await this.createAuthority(
+                validRequest.authority,
+                validRequest.correlationId,
+                azureRegionConfiguration,
+                request.azureCloudOptions
+            );
             const clientCredentialConfig =
                 await this.buildOauthClientConfiguration(
-                    validRequest.authority,
+                    discoveredAuthority,
                     validRequest.correlationId,
                     "",
-                    serverTelemetryManager,
-                    azureRegionConfiguration,
-                    request.azureCloudOptions
+                    serverTelemetryManager
                 );
             const clientCredentialClient = new ClientCredentialClient(
                 clientCredentialConfig,
@@ -271,13 +275,17 @@ export class ConfidentialClientApplication
             ...(await this.initializeBaseRequest(request)),
         };
         try {
-            const onBehalfOfConfig = await this.buildOauthClientConfiguration(
+            const discoveredAuthority = await this.createAuthority(
                 validRequest.authority,
                 validRequest.correlationId,
-                "",
-                undefined,
                 undefined,
                 request.azureCloudOptions
+            );
+            const onBehalfOfConfig = await this.buildOauthClientConfiguration(
+                discoveredAuthority,
+                validRequest.correlationId,
+                "",
+                undefined
             );
             const oboClient = new OnBehalfOfClient(onBehalfOfConfig);
             this.logger.verbose(

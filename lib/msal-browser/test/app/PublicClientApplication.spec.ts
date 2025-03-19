@@ -5,8 +5,6 @@
 
 import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
 import {
-    DEFAULT_OPENID_CONFIG_RESPONSE,
-    DEFAULT_TENANT_DISCOVERY_RESPONSE,
     ID_TOKEN_ALT_CLAIMS,
     ID_TOKEN_CLAIMS,
     RANDOM_TEST_GUID,
@@ -17,11 +15,10 @@ import {
     TEST_SSH_VALUES,
     TEST_STATE_VALUES,
     TEST_TOKEN_LIFETIMES,
-    TEST_TOKEN_RESPONSE,
     TEST_TOKENS,
     TEST_URIS,
     testLogoutUrl,
-    testNavUrlNoRequest,
+    verifyUrl,
 } from "../utils/StringConstants.js";
 import {
     AccountEntity,
@@ -57,6 +54,7 @@ import {
     ServerTelemetryEntity,
     TokenClaims,
     StubPerformanceClient,
+    OIDC_DEFAULT_SCOPES,
 } from "@azure/msal-common/browser";
 import {
     ApiId,
@@ -1289,9 +1287,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 RedirectHandler.prototype,
                 "initiateAuthRequest"
             ).mockImplementation((navigateUrl): Promise<void> => {
-                expect(
-                    navigateUrl.startsWith(testNavUrlNoRequest)
-                ).toBeTruthy();
+                verifyUrl(navigateUrl);
                 return Promise.resolve(done());
             });
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({

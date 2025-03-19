@@ -11,7 +11,7 @@ import {
     ServerTelemetryManager,
     Constants,
     ProtocolUtils,
-    ServerAuthorizationCodeResponse,
+    AuthorizeResponse,
     ThrottlingUtils,
     ICrypto,
     Logger,
@@ -48,6 +48,8 @@ import { INavigationClient } from "../navigation/INavigationClient.js";
 import { EventError } from "../event/EventMessage.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
+import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
+import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -107,6 +109,15 @@ export class RedirectClient extends StandardInteractionClient {
             this.correlationId
         )(request, InteractionType.Redirect);
 
+        const pkceCodes = await invokeAsync(
+            generatePkceCodes,
+            PerformanceEvents.GeneratePkceCodes,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(this.performanceClient, this.logger, this.correlationId);
+        validRequest.codeChallenge = pkceCodes.challenge;
+
         this.browserStorage.updateCacheEntries(
             validRequest.state,
             validRequest.nonce,
@@ -133,16 +144,6 @@ export class RedirectClient extends StandardInteractionClient {
         };
 
         try {
-            // Create auth code request and generate PKCE params
-            const authCodeRequest: CommonAuthorizationCodeRequest =
-                await invokeAsync(
-                    this.initializeAuthorizationCodeRequest.bind(this),
-                    PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-                    this.logger,
-                    this.performanceClient,
-                    this.correlationId
-                )(validRequest);
-
             // Initialize the client
             const authClient: AuthorizationCodeClient = await invokeAsync(
                 this.createAuthCodeClient.bind(this),
@@ -158,6 +159,11 @@ export class RedirectClient extends StandardInteractionClient {
                 account: validRequest.account,
             });
 
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                ...validRequest,
+                code: "", // Will get filled in after the redirect
+                codeVerifier: pkceCodes.verifier,
+            };
             // Create redirect interaction handler.
             const interactionHandler = new RedirectHandler(
                 authClient,
@@ -168,15 +174,28 @@ export class RedirectClient extends StandardInteractionClient {
             );
 
             // Create acquire token url.
-            const navigateUrl = await authClient.getAuthCodeUrl({
-                ...validRequest,
-                platformBroker: NativeMessageHandler.isPlatformBrokerAvailable(
-                    this.config,
-                    this.logger,
-                    this.nativeMessageHandler,
-                    request.authenticationScheme
-                ),
-            });
+            const navigateUrl = await invokeAsync(
+                getAuthCodeRequestUrl,
+                PerformanceEvents.GetAuthCodeUrl,
+                this.logger,
+                this.performanceClient,
+                validRequest.correlationId
+            )(
+                this.config,
+                authClient.authority,
+                {
+                    ...validRequest,
+                    platformBroker:
+                        NativeMessageHandler.isPlatformBrokerAvailable(
+                            this.config,
+                            this.logger,
+                            this.nativeMessageHandler,
+                            request.authenticationScheme
+                        ),
+                },
+                this.logger,
+                this.performanceClient
+            );
 
             const redirectStartPage = this.getRedirectStartPage(
                 request.redirectStartPage
@@ -373,7 +392,7 @@ export class RedirectClient extends StandardInteractionClient {
      */
     protected getRedirectResponse(
         userProvidedResponse: string
-    ): [ServerAuthorizationCodeResponse | null, string] {
+    ): [AuthorizeResponse | null, string] {
         this.logger.verbose("getRedirectResponseHash called");
         // Get current location hash from window or cache.
         let responseString = userProvidedResponse;
@@ -439,7 +458,7 @@ export class RedirectClient extends StandardInteractionClient {
      * @param state
      */
     protected async handleResponse(
-        serverParams: ServerAuthorizationCodeResponse,
+        serverParams: AuthorizeResponse,
         serverTelemetryManager: ServerTelemetryManager
     ): Promise<AuthenticationResult> {
         const state = serverParams.state;
