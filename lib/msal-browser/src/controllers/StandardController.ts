@@ -41,7 +41,6 @@ import {
     ApiId,
     BrowserCacheLocation,
     WrapperSKU,
-    TemporaryCacheKeys,
     CacheLookupPolicy,
     DEFAULT_REQUEST,
     BrowserConstants,
