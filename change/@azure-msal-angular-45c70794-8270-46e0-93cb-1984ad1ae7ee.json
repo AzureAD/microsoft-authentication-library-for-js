@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Adjust injection token constants to support typed injection",
+  "packageName": "@azure/msal-angular",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
