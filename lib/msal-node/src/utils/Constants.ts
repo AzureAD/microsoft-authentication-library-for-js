@@ -4,6 +4,7 @@
  */
 
 import { HttpStatus } from "@azure/msal-common/node";
+import { ImdsRetryPolicy } from "../retry/ImdsRetryPolicy.js";
 import { LinearRetryPolicy } from "../retry/LinearRetryPolicy.js";
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
@@ -180,8 +181,4 @@ export const MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON = [
     HttpStatus.GATEWAY_TIMEOUT,
 ];
 
-/**
- * Retry Policy Types
- * TODO: add IMDS retry policy
- */
-export type RetryPolicies = LinearRetryPolicy; // | ImdsRetryPolicy;
+export type RetryPolicies = LinearRetryPolicy | ImdsRetryPolicy;

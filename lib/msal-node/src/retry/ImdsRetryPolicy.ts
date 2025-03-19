@@ -3,16 +3,23 @@
  * Licensed under the MIT License.
  */
 
+import { HttpStatus, Logger } from "@azure/msal-common";
 import { BaseRetryPolicy } from "./BaseRetryPolicy.js";
 
-const IMDS_UNDERGOING_UPDATES_STATUS_CODE: number = 410;
-const IMDS_410_RETRY_AFTER_MS: number = 10 * 1000; // 10 seconds
+const HTTP_STATUS_400_CODES_FOR_EXPONENTIAL_STRATEGY: Array<number> = [
+    HttpStatus.NOT_FOUND,
+    HttpStatus.REQUEST_TIMEOUT,
+    HttpStatus.GONE,
+    HttpStatus.TOO_MANY_REQUESTS,
+];
 
-export class ExponentialRetryPolicy extends BaseRetryPolicy {
+export const HTTP_STATUS_GONE_RETRY_AFTER_MS: number = 10 * 1000; // 10 seconds
+
+const EXPONENTIAL_STRATEGY_NUM_RETRIES = 3;
+const LINEAR_STRATEGY_NUM_RETRIES = 7;
+
+export class ImdsRetryPolicy extends BaseRetryPolicy {
     private maxRetries: number;
-    private httpStatusCodesToExponentialRetryOn: Array<number> = [
-        404, 408, 429,
-    ]; // additionally, any 5xx status code
 
     constructor() {
         super();
@@ -28,32 +35,49 @@ export class ExponentialRetryPolicy extends BaseRetryPolicy {
      */
     async pauseForRetry(
         httpStatusCode: number,
-        currentRetry: number
+        currentRetry: number,
+        logger: Logger
     ): Promise<boolean> {
         if (this._isNewRequest) {
             this._isNewRequest = false;
 
             // calculate the maxRetries based on the status code, once per request
             this.maxRetries =
-                httpStatusCode === IMDS_UNDERGOING_UPDATES_STATUS_CODE ? 7 : 3;
+                httpStatusCode === HttpStatus.GONE
+                    ? LINEAR_STRATEGY_NUM_RETRIES
+                    : EXPONENTIAL_STRATEGY_NUM_RETRIES;
         }
 
+        /**
+         * (status code is one of the retriable 400 status code
+         * or
+         * status code is >= 500 and <= 599)
+         * and
+         * current count of retries is less than the max number of retries
+         */
         if (
-            this.httpStatusCodesToExponentialRetryOn.includes(httpStatusCode) &&
-            httpStatusCode >= 500 &&
-            httpStatusCode < 600 &&
+            (HTTP_STATUS_400_CODES_FOR_EXPONENTIAL_STRATEGY.includes(
+                httpStatusCode
+            ) ||
+                (httpStatusCode >= HttpStatus.SERVER_ERROR_RANGE_START &&
+                    httpStatusCode <= HttpStatus.SERVER_ERROR_RANGE_END &&
+                    currentRetry < this.maxRetries)) &&
             currentRetry < this.maxRetries
         ) {
-            let delay: number;
-            if (httpStatusCode === IMDS_UNDERGOING_UPDATES_STATUS_CODE) {
-                delay = IMDS_410_RETRY_AFTER_MS;
-            } else {
-                delay = this.calculateExponentialDelay(currentRetry);
-            }
+            const retryAfterDelay: number =
+                httpStatusCode === HttpStatus.GONE
+                    ? HTTP_STATUS_GONE_RETRY_AFTER_MS
+                    : this.calculateExponentialDelay(currentRetry);
+
+            logger.verbose(
+                `Retrying request in ${retryAfterDelay}ms (retry attempt: ${
+                    currentRetry + 1
+                })`
+            );
 
             // pause execution for the calculated delay
             await new Promise((resolve) => {
-                return setTimeout(resolve, delay);
+                return setTimeout(resolve, retryAfterDelay);
             });
 
             return true;

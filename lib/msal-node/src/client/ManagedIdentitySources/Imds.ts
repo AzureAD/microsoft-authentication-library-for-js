@@ -18,6 +18,7 @@ import {
     RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
 } from "../../utils/Constants.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
+import { ImdsRetryPolicy } from "../../retry/ImdsRetryPolicy.js";
 
 // IMDS constants. Docs for IMDS are available here https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http
 const IMDS_TOKEN_PATH: string = "/metadata/identity/oauth2/token";
@@ -131,10 +132,7 @@ export class Imds extends BaseManagedIdentitySource {
 
         // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
 
-        /*
-         * TODO: define IMDS.
-         * request.retryPolicy = ...
-         */
+        request.retryPolicy = new ImdsRetryPolicy();
 
         return request;
     }

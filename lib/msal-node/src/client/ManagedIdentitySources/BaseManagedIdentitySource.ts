@@ -164,7 +164,8 @@ export abstract class BaseManagedIdentitySource {
             ? this.networkClient
             : new HttpClientWithRetries(
                   this.networkClient,
-                  networkRequest.retryPolicy
+                  networkRequest.retryPolicy,
+                  this.logger
               );
 
         const reqTimestamp = TimeUtils.nowSeconds();

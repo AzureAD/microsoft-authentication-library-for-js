@@ -4,6 +4,7 @@
  */
 
 import http from "http";
+import { Logger } from "@azure/msal-common";
 
 export interface IHttpRetryPolicy {
     _isNewRequest?: boolean;
@@ -20,6 +21,7 @@ export interface IHttpRetryPolicy {
     pauseForRetry(
         httpStatusCode: number,
         currentRetry: number,
+        logger: Logger,
         retryAfterHeader?: http.IncomingHttpHeaders["retry-after"]
     ): Promise<boolean>;
 }

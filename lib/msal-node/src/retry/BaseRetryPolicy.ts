@@ -4,6 +4,7 @@
  */
 
 import http from "http";
+import { Logger } from "@azure/msal-common";
 import { IHttpRetryPolicy } from "./IHttpRetryPolicy.js";
 
 /**
@@ -26,6 +27,7 @@ export abstract class BaseRetryPolicy implements IHttpRetryPolicy {
     abstract pauseForRetry(
         httpStatusCode: number,
         currentRetry: number,
+        logger: Logger,
         retryAfterHeader?: http.IncomingHttpHeaders["retry-after"]
     ): Promise<boolean>;
 

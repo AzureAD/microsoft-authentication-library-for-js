@@ -4,6 +4,7 @@
  */
 
 import http from "http";
+import { Logger } from "@azure/msal-common";
 import { BaseRetryPolicy } from "./BaseRetryPolicy.js";
 
 export class LinearRetryPolicy extends BaseRetryPolicy {
@@ -26,6 +27,7 @@ export class LinearRetryPolicy extends BaseRetryPolicy {
     async pauseForRetry(
         httpStatusCode: number,
         currentRetry: number,
+        logger: Logger,
         retryAfterHeader: http.IncomingHttpHeaders["retry-after"]
     ): Promise<boolean> {
         if (
@@ -34,6 +36,12 @@ export class LinearRetryPolicy extends BaseRetryPolicy {
         ) {
             const retryAfterDelay: number =
                 this.calculateLinearDelay(retryAfterHeader);
+
+            logger.verbose(
+                `Retrying request in ${retryAfterDelay}ms (retry attempt: ${
+                    currentRetry + 1
+                })`
+            );
 
             // pause execution for the calculated delay
             await new Promise((resolve) => {
