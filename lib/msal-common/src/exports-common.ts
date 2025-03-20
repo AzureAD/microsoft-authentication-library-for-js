@@ -105,6 +105,8 @@ export {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     SignedHttpRequestParameters,
 } from "./crypto/ICrypto.js";
+
+export * as AuthorizeProtocol from "./protocol/Authorize.js";
 export { BaseAuthRequest } from "./request/BaseAuthRequest.js";
 export { CommonAuthorizationUrlRequest } from "./request/CommonAuthorizationUrlRequest.js";
 export { CommonAuthorizationCodeRequest } from "./request/CommonAuthorizationCodeRequest.js";
@@ -117,7 +119,7 @@ export { AzureRegion } from "./authority/AzureRegion.js";
 export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration.js";
 export { AuthenticationResult } from "./response/AuthenticationResult.js";
 export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload.js";
-export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse.js";
+export { AuthorizeResponse } from "./response/AuthorizeResponse.js";
 export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse.js";
 export {
     ResponseHandler,

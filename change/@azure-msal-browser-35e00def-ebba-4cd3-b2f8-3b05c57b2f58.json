@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Fix expires_in format & double brokering errors #7646",
+    "packageName": "@azure/msal-browser",
+    "email": "sameera.gajjarapu@microsoft.com",
+    "dependentChangeType": "patch"
+}
