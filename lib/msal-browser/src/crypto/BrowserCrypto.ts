@@ -274,33 +274,49 @@ export async function decryptEarResponse(
 ): Promise<string> {
     const earJweParts = earJwe.split(".");
     if (earJweParts.length != 5) {
-        throw "Not a valid EAR response. Unexpected!";
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            "jwe_length"
+        );
     }
 
-    const key = await importEarKey(earJwk);
+    const key = await importEarKey(earJwk).catch((e) => {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            "import_key"
+        );
+    });
 
-    const header = new TextEncoder().encode(earJweParts[0]);
-    const iv = base64DecToArr(earJweParts[2]);
-    const ciphertext = base64DecToArr(earJweParts[3]);
-    const tag = base64DecToArr(earJweParts[4]);
-    const tagLengthBits = tag.byteLength * 8;
+    try {
+        const header = new TextEncoder().encode(earJweParts[0]);
+        const iv = base64DecToArr(earJweParts[2]);
+        const ciphertext = base64DecToArr(earJweParts[3]);
+        const tag = base64DecToArr(earJweParts[4]);
+        const tagLengthBits = tag.byteLength * 8;
 
-    const encryptedData = new Uint8Array(ciphertext.length + tag.length);
-    encryptedData.set(ciphertext);
-    encryptedData.set(tag, ciphertext.length);
+        // Concat ciphertext and tag
+        const encryptedData = new Uint8Array(ciphertext.length + tag.length);
+        encryptedData.set(ciphertext);
+        encryptedData.set(tag, ciphertext.length);
 
-    const decryptedData = await window.crypto.subtle.decrypt(
-        {
-            name: AES_GCM,
-            iv: iv,
-            tagLength: tagLengthBits,
-            additionalData: header,
-        },
-        key,
-        encryptedData
-    );
+        const decryptedData = await window.crypto.subtle.decrypt(
+            {
+                name: AES_GCM,
+                iv: iv,
+                tagLength: tagLengthBits,
+                additionalData: header,
+            },
+            key,
+            encryptedData
+        );
 
-    return new TextDecoder().decode(decryptedData);
+        return new TextDecoder().decode(decryptedData);
+    } catch (e) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            "decrypt"
+        );
+    }
 }
 
 /**
