@@ -242,14 +242,14 @@ export function getStandardAuthorizeRequestParameters(
         );
     }
 
-    if (request.extraQueryParameters) {
-        RequestParameterBuilder.addExtraQueryParameters(
-            parameters,
-            request.extraQueryParameters
-        );
-    }
-
-    if (authOptions.instanceAware) {
+    // If extraQueryParameters includes instance_aware its value will be added when extraQueryParameters are added
+    if (
+        authOptions.instanceAware &&
+        (!request.extraQueryParameters ||
+            !Object.keys(request.extraQueryParameters).includes(
+                AADServerParamKeys.INSTANCE_AWARE
+            ))
+    ) {
         RequestParameterBuilder.addInstanceAware(parameters);
     }
 

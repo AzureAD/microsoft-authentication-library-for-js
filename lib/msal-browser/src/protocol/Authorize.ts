@@ -149,6 +149,8 @@ export async function getAuthCodeRequestUrl(
         Constants.S256_CODE_CHALLENGE_METHOD
     );
 
+    RequestParameterBuilder.addExtraQueryParameters(parameters, request.extraQueryParameters || {});
+
     return AuthorizeProtocol.getAuthorizeUrl(authority, parameters);
 }
 
@@ -181,7 +183,11 @@ export async function getEARForm(
     );
     RequestParameterBuilder.addEARParameters(parameters, request.earJwk);
 
-    return createForm(frame, authority.authorizationEndpoint, parameters);
+    const queryParams = new Map<string,string>();
+    RequestParameterBuilder.addExtraQueryParameters(queryParams, request.extraQueryParameters || {});
+    const url = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
+
+    return createForm(frame, url, parameters);
 }
 
 /**
