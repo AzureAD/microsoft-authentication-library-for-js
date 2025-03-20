@@ -277,7 +277,7 @@ export async function handleResponsePlatformBroker(
         browserCrypto,
         request.state
     );
-    return await invokeAsync(
+    return invokeAsync(
         nativeInteractionClient.acquireToken.bind(nativeInteractionClient),
         PerformanceEvents.NativeInteractionClientAcquireToken,
         logger,

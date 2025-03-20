@@ -253,13 +253,9 @@ async function importEarKey(earJwk: string): Promise<CryptoKey> {
     const rawKey = jwkJson.k;
     const keyBuffer = base64DecToArr(rawKey);
 
-    return await window.crypto.subtle.importKey(
-        RAW,
-        keyBuffer,
-        AES_GCM,
-        false,
-        [DECRYPT]
-    );
+    return window.crypto.subtle.importKey(RAW, keyBuffer, AES_GCM, false, [
+        DECRYPT,
+    ]);
 }
 
 /**
@@ -273,14 +269,14 @@ export async function decryptEarResponse(
     earJwe: string
 ): Promise<string> {
     const earJweParts = earJwe.split(".");
-    if (earJweParts.length != 5) {
+    if (earJweParts.length !== 5) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.failedToDecryptEarResponse,
             "jwe_length"
         );
     }
 
-    const key = await importEarKey(earJwk).catch((e) => {
+    const key = await importEarKey(earJwk).catch(() => {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.failedToDecryptEarResponse,
             "import_key"

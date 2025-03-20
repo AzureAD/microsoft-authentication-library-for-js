@@ -31,7 +31,6 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
 import { NavigationOptions } from "../navigation/NavigationOptions.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { PopupRequest } from "../request/PopupRequest.js";
-import { NativeInteractionClient } from "./NativeInteractionClient.js";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import {
     createBrowserAuthError,
@@ -286,16 +285,6 @@ export class PopupClient extends StandardInteractionClient {
                 account: popupRequest.account,
             });
 
-            // Start measurement for server calls with native brokering enabled
-            let fetchNativeAccountIdMeasurement;
-            if (popupRequest.platformBroker) {
-                fetchNativeAccountIdMeasurement =
-                    this.performanceClient.startMeasurement(
-                        PerformanceEvents.FetchAccountIdWithNativeBroker,
-                        request.correlationId
-                    );
-            }
-
             // Create acquire token url.
             const navigateUrl = await invokeAsync(
                 Authorize.getAuthCodeRequestUrl,
@@ -341,7 +330,7 @@ export class PopupClient extends StandardInteractionClient {
                 this.logger
             );
 
-            return invokeAsync(
+            return await invokeAsync(
                 Authorize.handleResponseCode,
                 PerformanceEvents.HandleResponseCode,
                 this.logger,
