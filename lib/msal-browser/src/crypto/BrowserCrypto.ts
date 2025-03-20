@@ -243,6 +243,26 @@ export async function generateEarKey(): Promise<string> {
 }
 
 /**
+ * Parses earJwk for encryption key and returns CryptoKey object
+ * @param earJwk 
+ * @returns 
+ */
+async function importEarKey(earJwk: string): Promise<CryptoKey> {
+    const b64DecodedJwk = base64Decode(earJwk);
+    const jwkJson = JSON.parse(b64DecodedJwk);
+    const rawKey = jwkJson.k;
+    const keyBuffer = base64DecToArr(rawKey);
+
+    return await window.crypto.subtle.importKey(
+        RAW,
+        keyBuffer,
+        AES_GCM,
+        false,
+        [DECRYPT]
+    );
+}
+
+/**
  * Decrypt ear_jwe response returned in the Encrypted Authorize Response (EAR) flow
  * @param earJwk
  * @param earJwe
@@ -257,29 +277,27 @@ export async function decryptEarResponse(
         throw "Not a valid EAR response. Unexpected!";
     }
 
-    const rawKey = JSON.parse(base64Decode(earJwk)).k;
-    const key = await window.crypto.subtle.importKey(
-        RAW,
-        rawKey,
-        AES_GCM,
-        false,
-        [DECRYPT]
-    );
+    const key = await importEarKey(earJwk);
 
-    const header = base64DecToArr(earJweParts[0]);
+    const header = new TextEncoder().encode(earJweParts[0]);
     const iv = base64DecToArr(earJweParts[2]);
     const ciphertext = base64DecToArr(earJweParts[3]);
-    const tagLength = base64DecToArr(earJweParts[4]).length;
-    
+    const tag = base64DecToArr(earJweParts[4]);
+    const tagLengthBits = tag.byteLength * 8;
+
+    const encryptedData = new Uint8Array(ciphertext.length + tag.length);
+    encryptedData.set(ciphertext);
+    encryptedData.set(tag, ciphertext.length);
+
     const decryptedData = await window.crypto.subtle.decrypt(
         {
             name: AES_GCM,
             iv: iv,
-            tagLength: tagLength,
+            tagLength: tagLengthBits,
             additionalData: header,
         },
         key,
-        ciphertext
+        encryptedData
     );
 
     return new TextDecoder().decode(decryptedData);
