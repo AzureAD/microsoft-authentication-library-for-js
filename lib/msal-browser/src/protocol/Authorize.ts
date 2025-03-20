@@ -24,6 +24,8 @@ import {
     ProtocolUtils,
     ThrottlingUtils,
     AuthorizeResponse,
+    ResponseHandler,
+    TimeUtils,
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { ApiId, BrowserConstants } from "../utils/BrowserConstants.js";
@@ -350,6 +352,7 @@ export async function handleResponseEAR(
     response: AuthorizeResponse,
     apiId: ApiId,
     config: BrowserConfiguration,
+    authority: Authority,
     browserStorage: BrowserCacheManager,
     nativeStorage: BrowserCacheManager,
     eventHandler: EventHandler,
@@ -371,7 +374,40 @@ export async function handleResponseEAR(
         throw "No EAR response";
     }
 
-    const decryptedData = decryptEarResponse(request.earJwk, response.ear_jwe);
+    const decryptedData = JSON.parse(await decryptEarResponse(request.earJwk, response.ear_jwe));
+    
+    if (decryptedData.accountId) {
+        return handleResponsePlatformBroker(request, decryptedData.accountId, apiId, config, browserStorage, nativeStorage, eventHandler, logger, performanceClient, nativeMessageHandler);
+    }
 
-    return {} as AuthenticationResult;
+    const responseHandler = new ResponseHandler(
+        config.auth.clientId,
+        browserStorage,
+        new CryptoOps(logger, performanceClient),
+        logger,
+        null,
+        null,
+        performanceClient
+    );
+
+    // Validate response. This function throws a server error if an error is returned by the server.
+    responseHandler.validateTokenResponse(decryptedData);
+
+    return await invokeAsync(
+        responseHandler.handleServerTokenResponse.bind(responseHandler),
+        PerformanceEvents.HandleServerTokenResponse,
+        logger,
+        performanceClient,
+        request.correlationId
+    )(
+        decryptedData,
+        authority,
+        TimeUtils.nowSeconds(),
+        request,
+        undefined,
+        undefined,
+        true,
+        undefined,
+        undefined
+    ) as AuthenticationResult;
 }

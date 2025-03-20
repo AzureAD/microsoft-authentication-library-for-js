@@ -440,6 +440,7 @@ export class PopupClient extends StandardInteractionClient {
             serverParams,
             ApiId.acquireTokenPopup,
             this.config,
+            discoveredAuthority,
             this.browserStorage,
             this.nativeStorage,
             this.eventHandler,

@@ -525,11 +525,24 @@ export class RedirectClient extends StandardInteractionClient {
         }
 
         if (serverParams.ear_jwe) {
+            const discoveredAuthority = await invokeAsync(
+                this.getDiscoveredAuthority.bind(this),
+                PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+                this.logger,
+                this.performanceClient,
+                request.correlationId
+            )({
+                requestAuthority: request.authority,
+                requestAzureCloudOptions: request.azureCloudOptions,
+                requestExtraQueryParameters: request.extraQueryParameters,
+                account: request.account,
+            });
             return Authorize.handleResponseEAR(
                 request,
                 serverParams,
                 ApiId.acquireTokenRedirect,
                 this.config,
+                discoveredAuthority,
                 this.browserStorage,
                 this.nativeStorage,
                 this.eventHandler,

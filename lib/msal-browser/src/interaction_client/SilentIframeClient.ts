@@ -213,7 +213,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         request: CommonAuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
         const correlationId = request.correlationId;
-        // Get the frame handle for the silent request
+        
         const discoveredAuthority = await invokeAsync(
             this.getDiscoveredAuthority.bind(this),
             PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
@@ -283,6 +283,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             serverParams,
             this.apiId,
             this.config,
+            discoveredAuthority,
             this.browserStorage,
             this.nativeStorage,
             this.eventHandler,
