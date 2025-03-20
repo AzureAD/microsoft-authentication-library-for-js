@@ -226,6 +226,9 @@ export const PerformanceEvents = {
      */
     HandleCodeResponseFromServer: "handleCodeResponseFromServer",
     HandleCodeResponse: "handleCodeResponse",
+    HandleResponseEar: "handleResponseEar",
+    HandleResponsePlatformBroker: "handleResponsePlatformBroker",
+    HandleResponseCode: "handleResponseCode",
     UpdateTokenEndpointAuthority: "updateTokenEndpointAuthority",
 
     /**
@@ -316,6 +319,7 @@ export const PerformanceEvents = {
     Encrypt: "encrypt",
     Decrypt: "decrypt",
     GenerateEarKey: "generateEarKey",
+    DecryptEarResponse: "decryptEarResponse"
 } as const;
 export type PerformanceEvents =
     (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
@@ -440,6 +444,9 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
             "HandleCodeResFromServer",
         ],
         [PerformanceEvents.HandleCodeResponse, "HandleCodeResp"],
+        [PerformanceEvents.HandleResponseEar, "HandleRespEar"],
+        [PerformanceEvents.HandleResponseCode, "HandleRespCode"],
+        [PerformanceEvents.HandleResponsePlatformBroker, "HandleRespPlatBroker"],
         [PerformanceEvents.UpdateTokenEndpointAuthority, "UpdTEndpointAuth"],
 
         [PerformanceEvents.AuthClientAcquireToken, "AuthClientAT"],
@@ -544,6 +551,7 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         [PerformanceEvents.Encrypt, "encrypt"],
         [PerformanceEvents.Decrypt, "decrypt"],
         [PerformanceEvents.GenerateEarKey, "genEarKey"],
+        [PerformanceEvents.DecryptEarResponse, "decryptEarResp"]
     ]);
 
 /**

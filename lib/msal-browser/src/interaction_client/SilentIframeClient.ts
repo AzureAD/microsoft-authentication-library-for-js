@@ -278,7 +278,13 @@ export class SilentIframeClient extends StandardInteractionClient {
             correlationId
         )(responseString, responseType, this.logger);
 
-        return Authorize.handleResponseEAR(
+        return invokeAsync(
+            Authorize.handleResponseEAR,
+            PerformanceEvents.HandleResponseEar,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(
             silentRequest,
             serverParams,
             this.apiId,
@@ -387,7 +393,13 @@ export class SilentIframeClient extends StandardInteractionClient {
             correlationId
         )(responseString, responseType, this.logger);
 
-        return Authorize.handleResponseCode(
+        return invokeAsync(
+            Authorize.handleResponseCode,
+            PerformanceEvents.HandleResponseCode,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(
             request,
             serverParams,
             pkceCodes.verifier,

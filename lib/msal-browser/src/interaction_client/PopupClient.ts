@@ -341,7 +341,13 @@ export class PopupClient extends StandardInteractionClient {
                 this.logger
             );
 
-            return Authorize.handleResponseCode(
+            return invokeAsync(
+                Authorize.handleResponseCode,
+                PerformanceEvents.HandleResponseCode,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
                 request,
                 serverParams,
                 pkce.verifier,
@@ -435,7 +441,13 @@ export class PopupClient extends StandardInteractionClient {
             this.logger
         );
 
-        return Authorize.handleResponseEAR(
+        return invokeAsync(
+            Authorize.handleResponseEAR,
+            PerformanceEvents.HandleResponseEar,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(
             popupRequest,
             serverParams,
             ApiId.acquireTokenPopup,

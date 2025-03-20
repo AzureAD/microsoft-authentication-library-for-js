@@ -279,7 +279,13 @@ export async function handleResponsePlatformBroker(
         browserCrypto,
         request.state
     );
-    return await nativeInteractionClient.acquireToken({
+    return await invokeAsync(
+        nativeInteractionClient.acquireToken.bind(nativeInteractionClient),
+        PerformanceEvents.NativeInteractionClientAcquireToken,
+        logger,
+        performanceClient,
+        request.correlationId
+    )({
         ...request,
         state: userRequestState,
         prompt: undefined, // Server should handle the prompt, ideally native broker can do this part silently
@@ -318,7 +324,13 @@ export async function handleResponseCode(
         request
     );
     if (response.accountId) {
-        return handleResponsePlatformBroker(
+        return invokeAsync(
+            handleResponsePlatformBroker,
+            PerformanceEvents.HandleResponsePlatformBroker,
+            logger,
+            performanceClient,
+            request.correlationId
+        )(
             request,
             response.accountId,
             apiId,
@@ -345,14 +357,32 @@ export async function handleResponseCode(
         performanceClient
     );
     // Handle response from hash string.
-    const result = await interactionHandler.handleCodeResponse(
-        response,
-        request
-    );
+    const result = await invokeAsync(
+        interactionHandler.handleCodeResponse.bind(interactionHandler),
+        PerformanceEvents.HandleCodeResponse,
+        logger,
+        performanceClient,
+        request.correlationId
+    )(response, request);
 
     return result;
 }
 
+/**
+ * Response handler when server returns ear_jwe on the /authorize request
+ * @param request
+ * @param response
+ * @param apiId
+ * @param config
+ * @param authority
+ * @param browserStorage
+ * @param nativeStorage
+ * @param eventHandler
+ * @param logger
+ * @param performanceClient
+ * @param nativeMessageHandler
+ * @returns
+ */
 export async function handleResponseEAR(
     request: CommonAuthorizationUrlRequest,
     response: AuthorizeResponse,
@@ -381,11 +411,23 @@ export async function handleResponseEAR(
     }
 
     const decryptedData = JSON.parse(
-        await decryptEarResponse(request.earJwk, response.ear_jwe)
+        await invokeAsync(
+            decryptEarResponse,
+            PerformanceEvents.DecryptEarResponse,
+            logger,
+            performanceClient,
+            request.correlationId
+        )(request.earJwk, response.ear_jwe)
     );
 
     if (decryptedData.accountId) {
-        return handleResponsePlatformBroker(
+        return invokeAsync(
+            handleResponsePlatformBroker,
+            PerformanceEvents.HandleResponsePlatformBroker,
+            logger,
+            performanceClient,
+            request.correlationId
+        )(
             request,
             decryptedData.accountId,
             apiId,

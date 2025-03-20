@@ -537,7 +537,13 @@ export class RedirectClient extends StandardInteractionClient {
                 requestExtraQueryParameters: request.extraQueryParameters,
                 account: request.account,
             });
-            return Authorize.handleResponseEAR(
+            return invokeAsync(
+                Authorize.handleResponseEAR,
+                PerformanceEvents.HandleResponseEar,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
                 request,
                 serverParams,
                 ApiId.acquireTokenRedirect,
@@ -559,7 +565,13 @@ export class RedirectClient extends StandardInteractionClient {
             this.performanceClient,
             this.correlationId
         )({ serverTelemetryManager, requestAuthority: request.authority });
-        return Authorize.handleResponseCode(
+        return invokeAsync(
+            Authorize.handleResponseCode,
+            PerformanceEvents.HandleResponseCode,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(
             request,
             serverParams,
             codeVerifier,
