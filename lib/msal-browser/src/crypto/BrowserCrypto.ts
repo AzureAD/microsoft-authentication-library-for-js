@@ -13,7 +13,7 @@ import {
 } from "@azure/msal-common/browser";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants.js";
 import { base64Encode, urlEncodeArr } from "../encode/Base64Encode.js";
-import { base64DecToArr } from "../encode/Base64Decode.js";
+import { base64Decode, base64DecToArr } from "../encode/Base64Decode.js";
 
 /**
  * This file defines functions used by the browser library to perform cryptography operations such as
@@ -240,6 +240,49 @@ export async function generateEarKey(): Promise<string> {
     };
 
     return base64Encode(JSON.stringify(jwk));
+}
+
+/**
+ * Decrypt ear_jwe response returned in the Encrypted Authorize Response (EAR) flow
+ * @param earJwk
+ * @param earJwe
+ * @returns
+ */
+export async function decryptEarResponse(
+    earJwk: string,
+    earJwe: string
+): Promise<string> {
+    const earJweParts = earJwe.split(".");
+    if (earJweParts.length != 5) {
+        throw "Not a valid EAR response. Unexpected!";
+    }
+
+    const rawKey = JSON.parse(base64Decode(earJwk)).k;
+    const key = await window.crypto.subtle.importKey(
+        RAW,
+        rawKey,
+        AES_GCM,
+        false,
+        [DECRYPT]
+    );
+
+    const header = base64DecToArr(earJweParts[0]);
+    const iv = base64DecToArr(earJweParts[2]);
+    const ciphertext = base64DecToArr(earJweParts[3]);
+    const tagLength = base64DecToArr(earJweParts[4]).length;
+    
+    const decryptedData = await window.crypto.subtle.decrypt(
+        {
+            name: AES_GCM,
+            iv: iv,
+            tagLength: tagLength,
+            additionalData: header,
+        },
+        key,
+        ciphertext
+    );
+
+    return new TextDecoder().decode(decryptedData);
 }
 
 /**

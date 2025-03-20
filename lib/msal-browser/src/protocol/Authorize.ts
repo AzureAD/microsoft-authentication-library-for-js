@@ -39,6 +39,7 @@ import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { NativeInteractionClient } from "../interaction_client/NativeInteractionClient.js";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import { EventHandler } from "../event/EventHandler.js";
+import { decryptEarResponse } from "../crypto/BrowserCrypto.js";
 
 /**
  * Returns map of parameters that are applicable to all calls to /authorize whether using PKCE or EAR
@@ -274,7 +275,7 @@ export async function handleResponsePlatformBroker(
 /**
  * Response handler when server returns code on the /authorize request
  * @param request
- * @param serverParams
+ * @param response
  * @param codeVerifier
  * @param authClient
  * @param browserStorage
@@ -284,7 +285,7 @@ export async function handleResponsePlatformBroker(
  */
 export async function handleResponseCode(
     request: CommonAuthorizationUrlRequest,
-    serverParams: AuthorizeResponse,
+    response: AuthorizeResponse,
     codeVerifier: string,
     apiId: ApiId,
     config: BrowserConfiguration,
@@ -302,10 +303,10 @@ export async function handleResponseCode(
         config.auth.clientId,
         request
     );
-    if (serverParams.accountId) {
+    if (response.accountId) {
         return handleResponsePlatformBroker(
             request,
-            serverParams.accountId,
+            response.accountId,
             apiId,
             config,
             browserStorage,
@@ -318,7 +319,7 @@ export async function handleResponseCode(
     }
     const authCodeRequest: CommonAuthorizationCodeRequest = {
         ...request,
-        code: serverParams.code || "",
+        code: response.code || "",
         codeVerifier: codeVerifier,
     };
     // Create popup interaction handler.
@@ -331,7 +332,7 @@ export async function handleResponseCode(
     );
     // Handle response from hash string.
     const result = await interactionHandler.handleCodeResponse(
-        serverParams,
+        response,
         request
     );
 
@@ -356,6 +357,15 @@ export async function handleResponseEAR(
         config.auth.clientId,
         request
     );
+
+    // Validate state & check response for errors
+    AuthorizeProtocol.validateAuthorizationResponse(response, request.state);
+
+    if (!request.earJwk || !response.ear_jwe) {
+        throw "No EAR response";
+    }
+
+    const decryptedData = decryptEarResponse(request.earJwk, response.ear_jwe);
 
     return {} as AuthenticationResult;
 }
