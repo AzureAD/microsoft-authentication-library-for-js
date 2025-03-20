@@ -14,7 +14,8 @@ import {
     CcsCredential,
     invokeAsync,
     PerformanceEvents,
-    ServerAuthorizationCodeResponse,
+    AuthorizeResponse,
+    AuthorizeProtocol,
 } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
@@ -143,7 +144,7 @@ export class RedirectHandler {
      * @param hash
      */
     async handleCodeResponse(
-        response: ServerAuthorizationCodeResponse,
+        response: AuthorizeResponse,
         state: string
     ): Promise<AuthenticationResult> {
         this.logger.verbose("RedirectHandler.handleCodeResponse called");
@@ -163,7 +164,7 @@ export class RedirectHandler {
 
         let authCodeResponse;
         try {
-            authCodeResponse = this.authModule.handleFragmentResponse(
+            authCodeResponse = AuthorizeProtocol.getAuthorizationCodePayload(
                 response,
                 requestState
             );

@@ -65,6 +65,18 @@ const MOCK_WAM_RESPONSE = {
     properties: {},
 };
 
+const MOCK_WAM_RESPONSE_STRING_EXPIRES_IN = {
+    access_token: TEST_TOKENS.ACCESS_TOKEN,
+    id_token: TEST_TOKENS.IDTOKEN_V2,
+    scope: "User.Read",
+    expires_in: "3600",
+    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+    account: {
+        id: "nativeAccountId",
+    },
+    properties: {},
+};
+
 const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
     ID_TOKEN_CLAIMS,
     undefined,
@@ -250,6 +262,35 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+        });
+
+        it("acquires token successfully with string expires_in", async () => {
+            jest.spyOn(
+                NativeMessageHandler.prototype,
+                "sendMessage"
+            ).mockImplementation((): Promise<object> => {
+                return Promise.resolve(MOCK_WAM_RESPONSE_STRING_EXPIRES_IN);
+            });
+            const response = await nativeInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+            });
+            expect(response.accessToken).toEqual(
+                MOCK_WAM_RESPONSE.access_token
+            );
+            expect(response.idToken).toEqual(
+                MOCK_WAM_RESPONSE_STRING_EXPIRES_IN.id_token
+            );
+            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
+            expect(response.scopes).toContain(
+                MOCK_WAM_RESPONSE_STRING_EXPIRES_IN.scope
+            );
+            expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
+            expect(response.account).toEqual(TEST_ACCOUNT_INFO);
+            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.expiresOn).toBeDefined();
         });
 
         it("throws if prompt: select_account", (done) => {
@@ -442,6 +483,59 @@ describe("NativeInteractionClient Tests", () => {
                     );
                     done();
                 });
+        });
+
+        it("does not throw error on user switch for double brokering", (done) => {
+            const raw_client_info =
+                "eyJ1aWQiOiAiMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAwIiwgInV0aWQiOiI3MmY5ODhiZi04NmYxLTQxYWYtOTFhYi0yZDdjZDAxMWRiNDcifQ==";
+
+            const mockWamResponse = {
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2_ALT,
+                scope: "User.Read",
+                expires_in: 3600,
+                client_info: raw_client_info,
+                account: {
+                    id: "different-nativeAccountId",
+                },
+                properties: {},
+            };
+
+            jest.spyOn(
+                CacheManager.prototype,
+                "getAccountInfoFilteredBy"
+            ).mockReturnValue(TEST_ACCOUNT_INFO);
+
+            jest.spyOn(
+                NativeMessageHandler.prototype,
+                "sendMessage"
+            ).mockImplementation((): Promise<object> => {
+                return Promise.resolve(mockWamResponse);
+            });
+
+            nativeInteractionClient
+                .acquireToken({
+                    scopes: ["User.Read"],
+                    redirectUri: "localhost",
+                    extraQueryParameters: {
+                        brk_client_id: "broker_client_id",
+                        brk_redirect_uri: "https://broker_redirect_uri.com",
+                        client_id: "parent_client_id",
+                    },
+                })
+                .catch((e) => {
+                    console.error(
+                        "User switch error should not have been thrown."
+                    );
+                    expect(e.errorCode).not.toBe(
+                        NativeAuthErrorCodes.userSwitch
+                    );
+                    expect(e.errorMessage).not.toBe(
+                        NativeAuthErrorMessages[NativeAuthErrorCodes.userSwitch]
+                    );
+                    done();
+                });
+            done();
         });
 
         it("ssoSilent overwrites prompt to be 'none' and succeeds", async () => {

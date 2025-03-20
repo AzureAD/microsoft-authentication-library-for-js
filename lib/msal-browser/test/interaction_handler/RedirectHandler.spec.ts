@@ -7,7 +7,6 @@ import {
     PkceCodes,
     NetworkRequestOptions,
     AccountInfo,
-    AuthorityFactory,
     CommonAuthorizationCodeRequest,
     Constants,
     AuthenticationResult,
@@ -415,10 +414,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
             );
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
-                "handleFragmentResponse"
-            ).mockReturnValue(testCodeResponse);
-            jest.spyOn(
-                AuthorizationCodeClient.prototype,
                 "acquireToken"
             ).mockResolvedValue(testTokenResponse);
 
@@ -462,11 +457,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
-            };
-            const testCodeResponse: AuthorizationCodePayload = {
-                code: "authcode",
-                nonce: idTokenClaims.nonce,
-                state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -535,10 +525,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 TemporaryCacheKeys.CCS_CREDENTIAL,
                 JSON.stringify(testCcsCred)
             );
-            jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "handleFragmentResponse"
-            ).mockReturnValue(testCodeResponse);
             jest.spyOn(
                 AuthorizationCodeClient.prototype,
                 "acquireToken"

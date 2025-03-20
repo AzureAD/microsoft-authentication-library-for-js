@@ -23,6 +23,7 @@ import { AuthErrorMessage } from '@azure/msal-common/node';
 import { Authority } from '@azure/msal-common/node';
 import { AuthorityMetadataEntity } from '@azure/msal-common/node';
 import { AuthorizationCodePayload } from '@azure/msal-common/node';
+import { AuthorizeResponse } from '@azure/msal-common/node';
 import { AzureCloudInstance } from '@azure/msal-common/node';
 import { AzureCloudOptions } from '@azure/msal-common/node';
 import { AzureRegionConfiguration } from '@azure/msal-common/node';
@@ -72,7 +73,6 @@ import { ProtocolMode } from '@azure/msal-common/node';
 import { RefreshTokenCache } from '@azure/msal-common/node';
 import { RefreshTokenEntity } from '@azure/msal-common/node';
 import { ResponseMode } from '@azure/msal-common/node';
-import { ServerAuthorizationCodeResponse } from '@azure/msal-common/node';
 import { ServerError } from '@azure/msal-common/node';
 import { ServerTelemetryEntity } from '@azure/msal-common/node';
 import { ServerTelemetryManager } from '@azure/msal-common/node';
@@ -113,6 +113,9 @@ export type AuthorizationUrlRequest = Partial<Omit<CommonAuthorizationUrlRequest
     redirectUri: string;
 };
 
+export { AuthorizeResponse }
+export { AuthorizeResponse as ServerAuthorizationCodeResponse }
+
 export { AzureCloudInstance }
 
 export { AzureCloudOptions }
@@ -139,12 +142,13 @@ export abstract class ClientApplication {
     // @deprecated
     acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult>;
-    protected buildOauthClientConfiguration(authority: string, requestCorrelationId: string, redirectUri: string, serverTelemetryManager?: ServerTelemetryManager, azureRegionConfiguration?: AzureRegionConfiguration, azureCloudOptions?: AzureCloudOptions): Promise<ClientConfiguration>;
+    protected buildOauthClientConfiguration(discoveredAuthority: Authority, requestCorrelationId: string, redirectUri: string, serverTelemetryManager?: ServerTelemetryManager): Promise<ClientConfiguration>;
     clearCache(): void;
     protected clientAssertion: ClientAssertion;
     protected clientSecret: string;
     // Warning: (ae-forgotten-export) The symbol "NodeConfiguration" needs to be exported by the entry point index.d.ts
     protected config: NodeConfiguration;
+    protected createAuthority(authorityString: string, requestCorrelationId: string, azureRegionConfiguration?: AzureRegionConfiguration, azureCloudOptions?: AzureCloudOptions): Promise<Authority>;
     // (undocumented)
     protected readonly cryptoProvider: CryptoProvider;
     // (undocumented)
@@ -297,7 +301,7 @@ export interface ILoopbackClient {
     // (undocumented)
     getRedirectUri(): string;
     // (undocumented)
-    listenForAuthCode(successTemplate?: string, errorTemplate?: string): Promise<ServerAuthorizationCodeResponse>;
+    listenForAuthCode(successTemplate?: string, errorTemplate?: string): Promise<AuthorizeResponse>;
 }
 
 export { INativeBrokerPlugin }
@@ -573,8 +577,6 @@ class Serializer {
     static serializeJSONBlob(data: JsonCache): string;
     static serializeRefreshTokens(rtCache: RefreshTokenCache): Record<string, SerializedRefreshTokenEntity>;
 }
-
-export { ServerAuthorizationCodeResponse }
 
 export { ServerError }
 
