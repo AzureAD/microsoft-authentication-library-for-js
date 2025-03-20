@@ -244,8 +244,8 @@ export async function generateEarKey(): Promise<string> {
 
 /**
  * Parses earJwk for encryption key and returns CryptoKey object
- * @param earJwk 
- * @returns 
+ * @param earJwk
+ * @returns
  */
 async function importEarKey(earJwk: string): Promise<CryptoKey> {
     const b64DecodedJwk = base64Decode(earJwk);

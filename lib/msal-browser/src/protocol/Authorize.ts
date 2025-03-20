@@ -151,7 +151,10 @@ export async function getAuthCodeRequestUrl(
         Constants.S256_CODE_CHALLENGE_METHOD
     );
 
-    RequestParameterBuilder.addExtraQueryParameters(parameters, request.extraQueryParameters || {});
+    RequestParameterBuilder.addExtraQueryParameters(
+        parameters,
+        request.extraQueryParameters || {}
+    );
 
     return AuthorizeProtocol.getAuthorizeUrl(authority, parameters);
 }
@@ -185,8 +188,11 @@ export async function getEARForm(
     );
     RequestParameterBuilder.addEARParameters(parameters, request.earJwk);
 
-    const queryParams = new Map<string,string>();
-    RequestParameterBuilder.addExtraQueryParameters(queryParams, request.extraQueryParameters || {});
+    const queryParams = new Map<string, string>();
+    RequestParameterBuilder.addExtraQueryParameters(
+        queryParams,
+        request.extraQueryParameters || {}
+    );
     const url = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
 
     return createForm(frame, url, parameters);
@@ -374,10 +380,23 @@ export async function handleResponseEAR(
         throw "No EAR response";
     }
 
-    const decryptedData = JSON.parse(await decryptEarResponse(request.earJwk, response.ear_jwe));
+    const decryptedData = JSON.parse(
+        await decryptEarResponse(request.earJwk, response.ear_jwe)
+    );
 
     if (decryptedData.accountId) {
-        return handleResponsePlatformBroker(request, decryptedData.accountId, apiId, config, browserStorage, nativeStorage, eventHandler, logger, performanceClient, nativeMessageHandler);
+        return handleResponsePlatformBroker(
+            request,
+            decryptedData.accountId,
+            apiId,
+            config,
+            browserStorage,
+            nativeStorage,
+            eventHandler,
+            logger,
+            performanceClient,
+            nativeMessageHandler
+        );
     }
 
     const responseHandler = new ResponseHandler(
@@ -393,7 +412,7 @@ export async function handleResponseEAR(
     // Validate response. This function throws a server error if an error is returned by the server.
     responseHandler.validateTokenResponse(decryptedData);
 
-    return await invokeAsync(
+    return (await invokeAsync(
         responseHandler.handleServerTokenResponse.bind(responseHandler),
         PerformanceEvents.HandleServerTokenResponse,
         logger,
@@ -409,5 +428,5 @@ export async function handleResponseEAR(
         undefined,
         undefined,
         undefined
-    ) as AuthenticationResult;
+    )) as AuthenticationResult;
 }
