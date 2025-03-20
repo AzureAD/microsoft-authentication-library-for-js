@@ -279,7 +279,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         )(responseString, responseType, this.logger);
 
         return Authorize.handleResponseEAR(
-            request,
+            silentRequest,
             serverParams,
             this.apiId,
             this.config,

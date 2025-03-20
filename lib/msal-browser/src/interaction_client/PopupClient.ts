@@ -436,7 +436,7 @@ export class PopupClient extends StandardInteractionClient {
         );
 
         return Authorize.handleResponseEAR(
-            request,
+            popupRequest,
             serverParams,
             ApiId.acquireTokenPopup,
             this.config,
