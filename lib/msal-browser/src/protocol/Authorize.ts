@@ -375,7 +375,7 @@ export async function handleResponseEAR(
     }
 
     const decryptedData = JSON.parse(await decryptEarResponse(request.earJwk, response.ear_jwe));
-    
+
     if (decryptedData.accountId) {
         return handleResponsePlatformBroker(request, decryptedData.accountId, apiId, config, browserStorage, nativeStorage, eventHandler, logger, performanceClient, nativeMessageHandler);
     }
@@ -406,7 +406,7 @@ export async function handleResponseEAR(
         request,
         undefined,
         undefined,
-        true,
+        undefined,
         undefined,
         undefined
     ) as AuthenticationResult;
