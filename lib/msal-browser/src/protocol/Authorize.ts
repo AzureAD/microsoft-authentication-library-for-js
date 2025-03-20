@@ -253,8 +253,6 @@ export async function handleResponsePlatformBroker(
     performanceClient: IPerformanceClient,
     nativeMessageHandler?: NativeMessageHandler
 ): Promise<AuthenticationResult> {
-    logger.verbose("Account id found in hash, calling WAM for token");
-
     if (!nativeMessageHandler) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.nativeConnectionNotEstablished
@@ -406,8 +404,12 @@ export async function handleResponseEAR(
     // Validate state & check response for errors
     AuthorizeProtocol.validateAuthorizationResponse(response, request.state);
 
-    if (!request.earJwk || !response.ear_jwe) {
-        throw "No EAR response";
+    if (!response.ear_jwe) {
+        throw createBrowserAuthError(BrowserAuthErrorCodes.earJweEmpty);
+    }
+
+    if (!request.earJwk) {
+        throw createBrowserAuthError(BrowserAuthErrorCodes.earJwkEmpty);
     }
 
     const decryptedData = JSON.parse(

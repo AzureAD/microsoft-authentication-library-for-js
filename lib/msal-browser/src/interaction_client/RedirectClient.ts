@@ -542,7 +542,7 @@ export class RedirectClient extends StandardInteractionClient {
                 PerformanceEvents.HandleResponseEar,
                 this.logger,
                 this.performanceClient,
-                correlationId
+                request.correlationId
             )(
                 request,
                 serverParams,
@@ -570,7 +570,7 @@ export class RedirectClient extends StandardInteractionClient {
             PerformanceEvents.HandleResponseCode,
             this.logger,
             this.performanceClient,
-            correlationId
+            request.correlationId
         )(
             request,
             serverParams,

@@ -17,6 +17,8 @@ export const BrowserAuthErrorMessages = {
         "The PKCE code challenge and verifier could not be generated.",
     [BrowserAuthErrorCodes.earJwkEmpty]:
         "No EAR encryption key provided. This is unexpected.",
+    [BrowserAuthErrorCodes.earJweEmpty]:
+        "Server response does not contain ear_jwe property. This is unexpected.",
     [BrowserAuthErrorCodes.cryptoNonExistent]:
         "The crypto object or function is not available.",
     [BrowserAuthErrorCodes.emptyNavigateUri]:
