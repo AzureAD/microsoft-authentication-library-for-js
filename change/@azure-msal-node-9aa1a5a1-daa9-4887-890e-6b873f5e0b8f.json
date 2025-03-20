@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Implemented IMDS retry policy #7614",
+  "comment": "Implemented a Retry Policy for the IMDS Managed Identity Source #7614",
   "packageName": "@azure/msal-node",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
