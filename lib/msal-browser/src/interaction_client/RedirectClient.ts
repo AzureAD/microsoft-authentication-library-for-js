@@ -4,15 +4,12 @@
  */
 
 import {
-    CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,
     UrlString,
     AuthError,
     ServerTelemetryManager,
     Constants,
-    ProtocolUtils,
     AuthorizeResponse,
-    ThrottlingUtils,
     ICrypto,
     Logger,
     IPerformanceClient,
@@ -48,10 +45,9 @@ import { INavigationClient } from "../navigation/INavigationClient.js";
 import { EventError } from "../event/EventMessage.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
-import { getAuthCodeRequestUrl, getEARForm } from "../protocol/Authorize.js";
+import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
-import { InteractionHandler } from "../interaction_handler/InteractionHandler.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -216,7 +212,7 @@ export class RedirectClient extends StandardInteractionClient {
 
             // Create acquire token url.
             const navigateUrl = await invokeAsync(
-                getAuthCodeRequestUrl,
+                Authorize.getAuthCodeRequestUrl,
                 PerformanceEvents.GetAuthCodeUrl,
                 this.logger,
                 this.performanceClient,
@@ -277,7 +273,7 @@ export class RedirectClient extends StandardInteractionClient {
         };
         this.browserStorage.cacheAuthorizeRequest(redirectRequest);
 
-        const form = await getEARForm(
+        const form = await Authorize.getEARForm(
             document,
             this.config,
             discoveredAuthority,
@@ -528,40 +524,6 @@ export class RedirectClient extends StandardInteractionClient {
             throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash);
         }
 
-        if (serverParams.accountId) {
-            this.logger.verbose(
-                "Account id found in hash, calling WAM for token"
-            );
-            if (!this.nativeMessageHandler) {
-                throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.nativeConnectionNotEstablished
-                );
-            }
-            const nativeInteractionClient = new NativeInteractionClient(
-                this.config,
-                this.browserStorage,
-                this.browserCrypto,
-                this.logger,
-                this.eventHandler,
-                this.navigationClient,
-                ApiId.acquireTokenPopup,
-                this.performanceClient,
-                this.nativeMessageHandler,
-                serverParams.accountId,
-                this.nativeStorage,
-                request.correlationId
-            );
-            const { userRequestState } = ProtocolUtils.parseRequestState(
-                this.browserCrypto,
-                state
-            );
-            return nativeInteractionClient.acquireToken({
-                ...request,
-                state: userRequestState,
-                prompt: undefined, // Server should handle the prompt, ideally native broker can do this part silently
-            });
-        }
-
         const authClient = await invokeAsync(
             this.createAuthCodeClient.bind(this),
             PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
@@ -569,32 +531,20 @@ export class RedirectClient extends StandardInteractionClient {
             this.performanceClient,
             this.correlationId
         )({ serverTelemetryManager, requestAuthority: request.authority });
-
-        ThrottlingUtils.removeThrottle(
-            this.browserStorage,
-            this.config.auth.clientId,
-            request
-        );
-        const authCodeRequest: CommonAuthorizationCodeRequest = {
-            ...request,
-            code: serverParams.code || "",
-            codeVerifier: codeVerifier,
-        };
-        // Create silent handler
-        const interactionHandler = new InteractionHandler(
+        return Authorize.handleResponseCode(
+            request,
+            serverParams,
+            codeVerifier,
+            ApiId.acquireTokenRedirect,
+            this.config,
             authClient,
             this.browserStorage,
-            authCodeRequest,
-            this.logger,
-            this.performanceClient
-        );
-        return invokeAsync(
-            interactionHandler.handleCodeResponse.bind(interactionHandler),
-            PerformanceEvents.HandleCodeResponse,
+            this.nativeStorage,
+            this.eventHandler,
             this.logger,
             this.performanceClient,
-            request.correlationId
-        )(serverParams, request);
+            this.nativeMessageHandler
+        );
     }
 
     /**
