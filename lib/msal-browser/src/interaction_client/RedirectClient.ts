@@ -524,6 +524,21 @@ export class RedirectClient extends StandardInteractionClient {
             throw createBrowserAuthError(BrowserAuthErrorCodes.noStateInHash);
         }
 
+        if (serverParams.ear_jwe) {
+            return Authorize.handleResponseEAR(
+                request,
+                serverParams,
+                ApiId.acquireTokenRedirect,
+                this.config,
+                this.browserStorage,
+                this.nativeStorage,
+                this.eventHandler,
+                this.logger,
+                this.performanceClient,
+                this.nativeMessageHandler
+            );
+        }
+
         const authClient = await invokeAsync(
             this.createAuthCodeClient.bind(this),
             PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
