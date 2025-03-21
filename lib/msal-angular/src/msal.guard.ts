@@ -18,14 +18,16 @@ import {
   PopupRequest,
   RedirectRequest,
   AuthenticationResult,
+  BrowserAuthError,
+  BrowserAuthErrorCodes,
 } from "@azure/msal-browser";
-import { UrlUtils } from "@azure/msal-common/browser";
 import { Observable, of } from "rxjs";
 import { concatMap, catchError, map } from "rxjs/operators";
 import { MsalService } from "./msal.service";
 import { MsalGuardConfiguration } from "./msal.guard.config";
 import { MsalBroadcastService } from "./msal.broadcast.service";
 import { MSAL_GUARD_CONFIG } from "./constants";
+import { blockReloadInHiddenIframes } from "@azure/msal-browser/dist/utils/BrowserUtils";
 
 @Injectable()
 export class MsalGuard {
@@ -137,27 +139,31 @@ export class MsalGuard {
      * If a page with MSAL Guard is set as the redirect for acquireTokenSilent,
      * short-circuit to prevent redirecting or popups.
      */
-    if (typeof window !== "undefined") {
-      if (
-        !!UrlUtils.getDeserializedResponse(window.location.hash) &&
-        BrowserUtils.isInIframe() &&
-        !this.authService.instance.getConfiguration().system
-          .allowRedirectInIframe
-      ) {
-        this.authService
-          .getLogger()
-          .warning(
-            "Guard - redirectUri set to page with MSAL Guard. It is recommended to not set redirectUri to a page that requires authentication."
-          );
-        return of(false);
-      }
-    } else {
+    if (typeof window == "undefined") {
       this.authService
         .getLogger()
         .info(
           "Guard - window is undefined, MSAL does not support server-side token acquisition"
         );
       return of(true);
+    } else {
+      try {
+        BrowserUtils.blockReloadInHiddenIframes();
+      } catch (error) {
+        if (
+          error instanceof BrowserAuthError &&
+          error.errorCode === BrowserAuthErrorCodes.blockIframeReload &&
+          !this.authService.instance.getConfiguration().system
+            .allowRedirectInIframe
+        ) {
+          this.authService
+            .getLogger()
+            .warning(
+              "Guard - redirectUri set to page with MSAL Guard. It is recommended to not set redirectUri to a page that requires authentication."
+            );
+          return of(false);
+        }
+      }
     }
 
     /**
