@@ -26,6 +26,8 @@ import {
     AuthorizeResponse,
     ResponseHandler,
     TimeUtils,
+    AuthorizationCodePayload,
+    ServerAuthorizationTokenResponse,
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { ApiId, BrowserConstants } from "../utils/BrowserConstants.js";
@@ -420,7 +422,7 @@ export async function handleResponseEAR(
             performanceClient,
             request.correlationId
         )(request.earJwk, response.ear_jwe)
-    );
+    ) as AuthorizeResponse & ServerAuthorizationTokenResponse;
 
     if (decryptedData.accountId) {
         return invokeAsync(
@@ -456,6 +458,18 @@ export async function handleResponseEAR(
     // Validate response. This function throws a server error if an error is returned by the server.
     responseHandler.validateTokenResponse(decryptedData);
 
+    // Temporary until response handler is refactored to be more flow agnostic.
+    const additionalData: AuthorizationCodePayload = {
+        code: "",
+        state: request.state,
+        nonce: request.nonce,
+        client_info: decryptedData.client_info,
+        cloud_graph_host_name: decryptedData.cloud_graph_host_name,
+        cloud_instance_host_name: decryptedData.cloud_instance_host_name,
+        cloud_instance_name: decryptedData.cloud_instance_name,
+        msgraph_host: decryptedData.msgraph_host,
+    };
+
     return (await invokeAsync(
         responseHandler.handleServerTokenResponse.bind(responseHandler),
         PerformanceEvents.HandleServerTokenResponse,
@@ -467,7 +481,7 @@ export async function handleResponseEAR(
         authority,
         TimeUtils.nowSeconds(),
         request,
-        undefined,
+        additionalData,
         undefined,
         undefined,
         undefined,
