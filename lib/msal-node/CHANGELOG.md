@@ -1,8 +1,23 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 11 Mar 2025 18:51:25 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 20 Mar 2025 22:09:04 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.4.0
+
+Thu, 20 Mar 2025 22:09:04 GMT
+
+### Minor changes
+
+- Refactor /authorize request generation (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.3.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- refactor RequestParameterBuilder (thomas.norling@microsoft.com)
 
 ## 3.3.0
 
