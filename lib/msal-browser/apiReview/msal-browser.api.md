@@ -188,6 +188,7 @@ declare namespace BrowserAuthErrorCodes {
     export {
         pkceNotCreated,
         earJwkEmpty,
+        earJweEmpty,
         cryptoNonExistent,
         emptyNavigateUri,
         hashEmptyError,
@@ -233,7 +234,8 @@ declare namespace BrowserAuthErrorCodes {
         invalidBase64String,
         invalidPopTokenRequest,
         failedToBuildHeaders,
-        failedToParseHeaders
+        failedToParseHeaders,
+        failedToDecryptEarResponse
     }
 }
 export { BrowserAuthErrorCodes }
@@ -711,6 +713,11 @@ const databaseUnavailable = "database_unavailable";
 // @public (undocumented)
 export const DEFAULT_IFRAME_TIMEOUT_MS = 10000;
 
+// Warning: (ae-missing-release-tag) "earJweEmpty" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const earJweEmpty = "ear_jwe_empty";
+
 // Warning: (ae-missing-release-tag) "earJwkEmpty" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -838,6 +845,11 @@ export { ExternalTokenResponse }
 //
 // @public (undocumented)
 const failedToBuildHeaders = "failed_to_build_headers";
+
+// Warning: (ae-missing-release-tag) "failedToDecryptEarResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const failedToDecryptEarResponse = "failed_to_decrypt_ear_response";
 
 // Warning: (ae-missing-release-tag) "failedToParseHeaders" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
