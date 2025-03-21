@@ -2,6 +2,53 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Thu, 20 Mar 2025 22:09:04 GMT",
+      "version": "15.3.0",
+      "tag": "@azure/msal-common_v15.3.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0de0f206568d7f075d12177172d108efc01c9fab",
+            "comment": "Refactor /authorize request generation"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0de0f206568d7f075d12177172d108efc01c9fab",
+            "comment": "refactor RequestParameterBuilder"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0de0f206568d7f075d12177172d108efc01c9fab",
+            "comment": "encodeURIComponent during QS generation"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 11 Mar 2025 18:51:25 GMT",
       "version": "15.2.1",
       "tag": "@azure/msal-common_v15.2.1",
