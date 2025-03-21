@@ -138,7 +138,7 @@ export class MsalGuard {
      * If a page with MSAL Guard is set as the redirect for acquireTokenSilent,
      * short-circuit to prevent redirecting or popups.
      */
-    if (typeof window == "undefined") {
+    if (typeof window === "undefined") {
       this.authService
         .getLogger()
         .info(
