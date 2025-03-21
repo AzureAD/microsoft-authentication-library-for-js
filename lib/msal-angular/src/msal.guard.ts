@@ -18,8 +18,6 @@ import {
   PopupRequest,
   RedirectRequest,
   AuthenticationResult,
-  BrowserAuthError,
-  BrowserAuthErrorCodes,
 } from "@azure/msal-browser";
 import { Observable, of } from "rxjs";
 import { concatMap, catchError, map } from "rxjs/operators";
