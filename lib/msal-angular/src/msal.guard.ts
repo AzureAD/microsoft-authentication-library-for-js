@@ -27,7 +27,6 @@ import { MsalService } from "./msal.service";
 import { MsalGuardConfiguration } from "./msal.guard.config";
 import { MsalBroadcastService } from "./msal.broadcast.service";
 import { MSAL_GUARD_CONFIG } from "./constants";
-import { blockReloadInHiddenIframes } from "@azure/msal-browser/dist/utils/BrowserUtils";
 
 @Injectable()
 export class MsalGuard {
