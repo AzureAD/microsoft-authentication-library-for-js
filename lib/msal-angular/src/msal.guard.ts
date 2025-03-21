@@ -15,7 +15,6 @@ import {
   InteractionType,
   BrowserConfigurationAuthError,
   BrowserUtils,
-  UrlString,
   PopupRequest,
   RedirectRequest,
   AuthenticationResult,
@@ -137,27 +136,29 @@ export class MsalGuard {
      * If a page with MSAL Guard is set as the redirect for acquireTokenSilent,
      * short-circuit to prevent redirecting or popups.
      */
-    if (typeof window !== "undefined") {
-      if (
-        UrlString.hashContainsKnownProperties(window.location.hash) &&
-        BrowserUtils.isInIframe() &&
-        !this.authService.instance.getConfiguration().system
-          .allowRedirectInIframe
-      ) {
-        this.authService
-          .getLogger()
-          .warning(
-            "Guard - redirectUri set to page with MSAL Guard. It is recommended to not set redirectUri to a page that requires authentication."
-          );
-        return of(false);
-      }
-    } else {
+    if (typeof window === "undefined") {
       this.authService
         .getLogger()
         .info(
           "Guard - window is undefined, MSAL does not support server-side token acquisition"
         );
       return of(true);
+    } else {
+      try {
+        BrowserUtils.blockReloadInHiddenIframes();
+      } catch (error) {
+        if (
+          !this.authService.instance.getConfiguration().system
+            .allowRedirectInIframe
+        ) {
+          this.authService
+            .getLogger()
+            .warning(
+              "Guard - redirectUri set to page with MSAL Guard. It is recommended to not set redirectUri to a page that requires authentication."
+            );
+          return of(false);
+        }
+      }
     }
 
     /**

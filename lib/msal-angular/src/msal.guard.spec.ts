@@ -1,7 +1,6 @@
 import { provideHttpClientTesting } from "@angular/common/http/testing";
 import { TestBed } from "@angular/core/testing";
-import { UrlTree } from "@angular/router";
-import { RouterTestingModule } from "@angular/router/testing";
+import { provideRouter, UrlTree } from "@angular/router";
 import { Location } from "@angular/common";
 import {
   BrowserSystemOptions,
@@ -68,7 +67,6 @@ function initializeMsal(providers: any[] = []) {
         interactionType: InteractionType.Popup,
         protectedResourceMap: new Map(),
       }),
-      RouterTestingModule.withRoutes([]),
     ],
     providers: [
       MsalGuard,
@@ -77,6 +75,7 @@ function initializeMsal(providers: any[] = []) {
       ...providers,
       provideHttpClient(withInterceptorsFromDi()),
       provideHttpClientTesting(),
+      provideRouter([]),
     ],
   });
 
