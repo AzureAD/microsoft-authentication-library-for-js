@@ -32,6 +32,7 @@ import {
     ClientAuthError,
     ClientAuthErrorCodes,
 } from "../../src/error/ClientAuthError.js";
+import * as RequestParameterBuilder from "../../src/request/RequestParameterBuilder.js";
 
 describe("Authorize Protocol Tests", () => {
     let authOptions: AuthOptions;
@@ -1337,6 +1338,7 @@ describe("Authorize Protocol Tests", () => {
                     request,
                     new Logger({})
                 );
+            RequestParameterBuilder.addExtraQueryParameters(params, request.extraQueryParameters!);
             const queryString = UrlUtils.mapToQueryString(params);
 
             expect(queryString).toContain(`instance_aware=true`);
@@ -1365,6 +1367,7 @@ describe("Authorize Protocol Tests", () => {
                     request,
                     new Logger({})
                 );
+            RequestParameterBuilder.addExtraQueryParameters(params, request.extraQueryParameters!);
             const queryString = UrlUtils.mapToQueryString(params);
 
             expect(queryString).toContain(`instance_aware=false`);
@@ -1421,6 +1424,7 @@ describe("Authorize Protocol Tests", () => {
                     request,
                     new Logger({})
                 );
+            RequestParameterBuilder.addExtraQueryParameters(params, request.extraQueryParameters!);
             const queryString = UrlUtils.mapToQueryString(params);
             expect(queryString).toContain(`client_id=child_client_id_1`);
             expect(queryString).toContain(
