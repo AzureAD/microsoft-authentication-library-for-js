@@ -150,8 +150,6 @@ export class MsalGuard {
         BrowserUtils.blockReloadInHiddenIframes();
       } catch (error) {
         if (
-          error instanceof BrowserAuthError &&
-          error.errorCode === BrowserAuthErrorCodes.blockIframeReload &&
           !this.authService.instance.getConfiguration().system
             .allowRedirectInIframe
         ) {
