@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { CustomAuthPublicClientApplication } from "../../../../../../lib/msal-custom-auth/src/CustomAuthPublicClientApplication";
-import { SignInState } from "../../../../../../lib/msal-custom-auth/src/index";
+import { CustomAuthPublicClientApplication } from "@azure/msal-custom-auth";
+import { SignInState } from "@azure/msal-custom-auth";
 import { customAuthConfig } from "../../config/auth-config";
 import { styles } from "./styles/styles";
 import { handleError, ERROR_MESSAGES } from "./utils";
 import { InitialForm } from "./components/InitialForm";
 import { CodeForm } from "./components/CodeForm";
 import { UserInfo } from "./components/UserInfo";
+import { AuthFlowStateHandlerFactory, SignInCodeRequired } from "@azure/msal-custom-auth";
 
 export default function SignIn() {
     const [username, setUsername] = useState("");
@@ -62,19 +63,24 @@ export default function SignIn() {
         setLoading(true);
 
         try {
-            const result = await flowState.submitCode(code);
+            if (flowState instanceof SignInCodeRequired) {
+                const handler = AuthFlowStateHandlerFactory.create(flowState);
+                const result = await handler.submitCode(code);
 
-            if (result.error) {
-                if (result.error.isInvalidCode()) {
-                    setError("Invalid code");
-                } else {
-                    setError("An error occurred while verifying the code");
+                if (result.error) {
+                    if (result.error.isInvalidCode()) {
+                        setError("Invalid code");
+                    } else {
+                        setError("An error occurred while verifying the code");
+                    }
+                    return;
                 }
-                return;
-            }
 
-            if (result.data) {
-                setSignInResult(result);
+                if (result.state?.type === SignInState.Completed) {
+                    setSignInResult(result);
+                    setFlowState(result.state);
+                    return;
+                }
             }
         } catch (err) {
             handleError(err, setError);
