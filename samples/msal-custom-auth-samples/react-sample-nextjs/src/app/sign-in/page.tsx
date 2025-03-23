@@ -5,11 +5,12 @@ import { CustomAuthPublicClientApplication } from "@azure/msal-custom-auth";
 import { SignInState } from "@azure/msal-custom-auth";
 import { customAuthConfig } from "../../config/auth-config";
 import { styles } from "./styles/styles";
-import { handleError, ERROR_MESSAGES } from "./utils";
+import { handleError } from "./utils";
 import { InitialForm } from "./components/InitialForm";
+import { PasswordForm } from "./components/PasswordForm";
 import { CodeForm } from "./components/CodeForm";
 import { UserInfo } from "./components/UserInfo";
-import { AuthFlowStateHandlerFactory, SignInCodeRequired } from "@azure/msal-custom-auth";
+import { AuthFlowStateHandlerFactory, SignInCodeRequired, SignInPasswordRequired } from "@azure/msal-custom-auth";
 
 export default function SignIn() {
     const [username, setUsername] = useState("");
@@ -29,14 +30,11 @@ export default function SignIn() {
             const app = await CustomAuthPublicClientApplication.create(customAuthConfig);
             const result = await app.signIn({
                 username,
-                password,
             });
 
             if (result.error) {
                 if (result.error.isUserNotFound()) {
                     setError("User not found");
-                } else if (result.error.isPasswordIncorrect()) {
-                    setError("Incorrect password");
                 } else {
                     setError("An error occurred during sign in");
                 }
@@ -50,6 +48,42 @@ export default function SignIn() {
             }
 
             setFlowState(result.state);
+        } catch (err) {
+            handleError(err, setError);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePasswordSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError("");
+        setLoading(true);
+
+        try {
+            if (flowState instanceof SignInPasswordRequired) {
+                const handler = AuthFlowStateHandlerFactory.create(flowState);
+                const result = await handler.submitPassword(password);
+
+                if (result.error) {
+                    if (result.error.errorData?.error === "invalid_password") {
+                        setError("Incorrect password");
+                    } else {
+                        setError(
+                            result.error.errorData?.errorDescription || "An error occurred while verifying the password"
+                        );
+                    }
+                    return;
+                }
+
+                if (result.state?.type === SignInState.Completed) {
+                    setSignInResult(result);
+                    setFlowState(result.state);
+                    return;
+                }
+
+                setFlowState(result.state);
+            }
         } catch (err) {
             handleError(err, setError);
         } finally {
@@ -90,25 +124,31 @@ export default function SignIn() {
     };
 
     const renderForm = () => {
-        if (flowState && flowState.type === SignInState.CodeRequired) {
-            return <CodeForm onSubmit={handleCodeSubmit} code={code} setCode={setCode} loading={loading} />;
-        }
-        if (flowState && flowState.type === SignInState.Completed) {
-            return <UserInfo signInResult={signInResult} />;
-        }
-
-        if (!flowState) {
+        if (flowState?.type === SignInState.PasswordRequired) {
             return (
-                <InitialForm
-                    onSubmit={handleInitialSubmit}
-                    username={username}
-                    setUsername={setUsername}
+                <PasswordForm
+                    onSubmit={handlePasswordSubmit}
                     password={password}
                     setPassword={setPassword}
                     loading={loading}
                 />
             );
         }
+        if (flowState?.type === SignInState.CodeRequired) {
+            return <CodeForm onSubmit={handleCodeSubmit} code={code} setCode={setCode} loading={loading} />;
+        }
+        if (flowState?.type === SignInState.Completed) {
+            return <UserInfo signInResult={signInResult} />;
+        }
+
+        return (
+            <InitialForm
+                onSubmit={handleInitialSubmit}
+                username={username}
+                setUsername={setUsername}
+                loading={loading}
+            />
+        );
     };
 
     return (
