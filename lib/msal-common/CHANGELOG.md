@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 11 Mar 2025 18:51:25 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 20 Mar 2025 22:09:04 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 15.3.0
+
+Thu, 20 Mar 2025 22:09:04 GMT
+
+### Minor changes
+
+- Refactor /authorize request generation (thomas.norling@microsoft.com)
+- refactor RequestParameterBuilder (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- encodeURIComponent during QS generation (thomas.norling@microsoft.com)
 
 ## 15.2.1
 
