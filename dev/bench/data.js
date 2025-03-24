@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1742598490702,
+  "lastUpdate": 1742857660084,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -14652,6 +14652,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.86%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3f96e7fb3eff3e67cb04b114c5bb2e0d7f213bad",
+          "message": "Redirect flow temporary cache refactor (#7648)\n\nThis PR makes several changes to temporary cache used in the redirect\nflow to prepare for the addition of the EAR protocol and has the added\nbenefit of consolidating response handling across flows (more work to be\ndone here but that's a tomorrow problem)\n\n- Cache the full request + verifier rather than prebuilding the\nAuthCodeRequest before redirecting.\n- Stop caching nonce, state, correlationId and authority separately as\nthey will be included in the full request above ^\n- Stop caching CCSCredential as everything needed to build it is in the\nfull request above ^\n- Move temporary storage cleanup (including interaction_in_progress) to\nmore centralized locations",
+          "timestamp": "2025-03-24T16:01:05-07:00",
+          "tree_id": "21465f8988e31b31859cc2fbb9e52a0277a07bb0",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/3f96e7fb3eff3e67cb04b114c5bb2e0d7f213bad"
+        },
+        "date": 1742857658221,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 254176,
+            "range": "±0.72%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 253889,
+            "range": "±0.84%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
