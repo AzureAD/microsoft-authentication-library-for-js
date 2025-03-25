@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1742857660084,
+  "lastUpdate": 1742862087829,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -14690,6 +14690,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.84%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8bbed7012616d9106c923d08b5c4e408a741577f",
+          "message": "EAR protocol response handling (#7656)\n\nFinishes the initial implementation of the EAR protocol by adding\nresponse decryption and parsing.",
+          "timestamp": "2025-03-24T17:14:56-07:00",
+          "tree_id": "a326e59471f4a4907f25412e1ad0d991cfdd1a2c",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8bbed7012616d9106c923d08b5c4e408a741577f"
+        },
+        "date": 1742862086642,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 252323,
+            "range": "±0.73%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 246820,
+            "range": "±0.92%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
