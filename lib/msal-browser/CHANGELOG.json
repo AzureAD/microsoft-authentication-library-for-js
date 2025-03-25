@@ -2,6 +2,59 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Thu, 20 Mar 2025 22:09:04 GMT",
+      "version": "4.8.0",
+      "tag": "@azure/msal-browser_v4.8.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0de0f206568d7f075d12177172d108efc01c9fab",
+            "comment": "Fix expires_in format & double brokering errors #7646"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0de0f206568d7f075d12177172d108efc01c9fab",
+            "comment": "refactor RequestParameterBuilder"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0de0f206568d7f075d12177172d108efc01c9fab",
+            "comment": "Refactor /authorize request generation"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v15.3.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 11 Mar 2025 18:51:24 GMT",
       "version": "4.7.0",
       "tag": "@azure/msal-browser_v4.7.0",

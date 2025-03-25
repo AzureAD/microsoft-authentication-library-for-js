@@ -1,6 +1,6 @@
 {
-  "type": "minor",
-  "comment": "Refactor /authorize request generation",
+  "type": "patch",
+  "comment": "Move addition of extraQueryParameters during request generation",
   "packageName": "@azure/msal-node",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

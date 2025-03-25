@@ -1,7 +1,7 @@
 {
   "type": "minor",
-  "comment": "refactor RequestParameterBuilder",
-  "packageName": "@azure/msal-common",
+  "comment": "EAR Protocol response handling",
+  "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
 }
