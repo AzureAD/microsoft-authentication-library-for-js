@@ -31,6 +31,7 @@ import {
     ClientAssertionCallback,
     ClientAssertionConfig,
     PasswordGrantConstants,
+    OAuthResponseType,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -576,7 +577,9 @@ export const checkMockedNetworkRequest = (
     if (checks.responseType !== undefined) {
         expect(
             returnVal.includes(
-                `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.TOKEN_RESPONSE_TYPE}%20${Constants.ID_TOKEN_RESPONSE_TYPE}`
+                `${AADServerParamKeys.RESPONSE_TYPE}=${encodeURIComponent(
+                    OAuthResponseType.IDTOKEN_TOKEN
+                )}`
             )
         ).toBe(checks.responseType);
     }

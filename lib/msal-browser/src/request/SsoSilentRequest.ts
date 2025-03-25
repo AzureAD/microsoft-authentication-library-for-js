@@ -34,6 +34,7 @@ export type SsoSilentRequest = Partial<
     Omit<
         CommonAuthorizationUrlRequest,
         | "responseMode"
+        | "earJwk"
         | "codeChallenge"
         | "codeChallengeMethod"
         | "requestedClaimsHash"

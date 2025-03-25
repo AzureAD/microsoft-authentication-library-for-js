@@ -41,7 +41,6 @@ import {
     ApiId,
     BrowserCacheLocation,
     WrapperSKU,
-    TemporaryCacheKeys,
     CacheLookupPolicy,
     DEFAULT_REQUEST,
     BrowserConstants,
@@ -437,11 +436,18 @@ export class StandardController implements IController {
     private async handleRedirectPromiseInternal(
         hash?: string
     ): Promise<AuthenticationResult | null> {
+        if (!this.browserStorage.isInteractionInProgress(true)) {
+            this.logger.info(
+                "handleRedirectPromise called but there is no interaction in progress, returning null."
+            );
+            return null;
+        }
+
         const loggedInAccounts = this.getAllAccounts();
-        const request: NativeTokenRequest | null =
+        const platformBrokerRequest: NativeTokenRequest | null =
             this.browserStorage.getCachedNativeRequest();
         const useNative =
-            request &&
+            platformBrokerRequest &&
             NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
                 this.logger,
@@ -449,15 +455,9 @@ export class StandardController implements IController {
             ) &&
             this.nativeExtensionProvider &&
             !hash;
-        const correlationId = useNative
-            ? request?.correlationId
-            : this.browserStorage.getTemporaryCache(
-                  TemporaryCacheKeys.CORRELATION_ID,
-                  true
-              ) || "";
-        const rootMeasurement = this.performanceClient.startMeasurement(
+        let rootMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.AcquireTokenRedirect,
-            correlationId
+            platformBrokerRequest?.correlationId || ""
         );
         this.eventHandler.emitEvent(
             EventType.HANDLE_REDIRECT_START,
@@ -479,9 +479,9 @@ export class StandardController implements IController {
                 ApiId.handleRedirectPromise,
                 this.performanceClient,
                 this.nativeExtensionProvider,
-                request.accountId,
+                platformBrokerRequest.accountId,
                 this.nativeInternalStorage,
-                request.correlationId
+                platformBrokerRequest.correlationId
             );
 
             redirectResponse = invokeAsync(
@@ -492,6 +492,15 @@ export class StandardController implements IController {
                 rootMeasurement.event.correlationId
             )(this.performanceClient, rootMeasurement.event.correlationId);
         } else {
+            const [standardRequest, codeVerifier] =
+                this.browserStorage.getCachedRequest();
+            const correlationId = standardRequest.correlationId;
+            // Reset rootMeasurement now that we have correlationId
+            rootMeasurement.discard();
+            rootMeasurement = this.performanceClient.startMeasurement(
+                PerformanceEvents.AcquireTokenRedirect,
+                correlationId
+            );
             this.logger.trace(
                 "handleRedirectPromise - acquiring token from web flow"
             );
@@ -502,14 +511,14 @@ export class StandardController implements IController {
                 this.logger,
                 this.performanceClient,
                 rootMeasurement.event.correlationId
-            )(hash, rootMeasurement);
+            )(hash, standardRequest, codeVerifier, rootMeasurement);
         }
 
         return redirectResponse
             .then((result: AuthenticationResult | null) => {
                 if (result) {
+                    this.browserStorage.resetRequestCache();
                     // Emit login event if number of accounts change
-
                     const isLoggingIn =
                         loggedInAccounts.length < this.getAllAccounts().length;
                     if (isLoggingIn) {
@@ -555,6 +564,7 @@ export class StandardController implements IController {
                 return result;
             })
             .catch((e) => {
+                this.browserStorage.resetRequestCache();
                 const eventError = e as EventError;
                 // Emit login event if there is an account
                 if (loggedInAccounts.length > 0) {
@@ -702,7 +712,6 @@ export class StandardController implements IController {
                                 this.createRedirectClient(correlationId);
                             return redirectClient.acquireToken(request);
                         }
-                        this.browserStorage.setInteractionInProgress(false);
                         throw e;
                     });
             } else {
@@ -712,6 +721,7 @@ export class StandardController implements IController {
 
             return await result;
         } catch (e) {
+            this.browserStorage.resetRequestCache();
             atrMeasurement.end({ success: false }, e);
             if (isLoggedIn) {
                 this.eventHandler.emitEvent(
@@ -792,7 +802,6 @@ export class StandardController implements IController {
                 ApiId.acquireTokenPopup
             )
                 .then((response) => {
-                    this.browserStorage.setInteractionInProgress(false);
                     atPopupMeasurement.end({
                         success: true,
                         isNativeBroker: true,
@@ -817,7 +826,6 @@ export class StandardController implements IController {
                             this.createPopupClient(correlationId);
                         return popupClient.acquireToken(request, pkce);
                     }
-                    this.browserStorage.setInteractionInProgress(false);
                     throw e;
                 });
         } else {
@@ -881,11 +889,12 @@ export class StandardController implements IController {
                 // Since this function is syncronous we need to reject
                 return Promise.reject(e);
             })
-            .finally(
-                () =>
-                    this.config.system.asyncPopups &&
-                    this.preGeneratePkceCodes(correlationId)
-            );
+            .finally(async () => {
+                this.browserStorage.setInteractionInProgress(false);
+                if (this.config.system.asyncPopups) {
+                    await this.preGeneratePkceCodes(correlationId);
+                }
+            });
     }
 
     private trackPageVisibilityWithMeasurement(): void {
@@ -1357,7 +1366,9 @@ export class StandardController implements IController {
             this.browserStorage.setInteractionInProgress(true);
 
             const popupClient = this.createPopupClient(correlationId);
-            return popupClient.logout(logoutRequest);
+            return popupClient.logout(logoutRequest).finally(() => {
+                this.browserStorage.setInteractionInProgress(false);
+            });
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);

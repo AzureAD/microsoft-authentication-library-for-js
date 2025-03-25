@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update @azure/msal-node-runtime dependency to ^0.18.1",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

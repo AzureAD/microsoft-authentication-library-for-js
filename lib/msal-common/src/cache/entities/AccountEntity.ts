@@ -150,10 +150,10 @@ export class AccountEntity {
 
         if (authority.authorityType === AuthorityType.Adfs) {
             account.authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
-        } else if (authority.protocolMode === ProtocolMode.AAD) {
-            account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
-        } else {
+        } else if (authority.protocolMode === ProtocolMode.OIDC) {
             account.authorityType = CacheAccountType.GENERIC_ACCOUNT_TYPE;
+        } else {
+            account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
         }
 
         let clientInfo: ClientInfo | undefined;

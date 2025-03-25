@@ -40,6 +40,7 @@ export type PopupRequest = Partial<
         CommonAuthorizationUrlRequest,
         | "responseMode"
         | "scopes"
+        | "earJwk"
         | "codeChallenge"
         | "codeChallengeMethod"
         | "requestedClaimsHash"

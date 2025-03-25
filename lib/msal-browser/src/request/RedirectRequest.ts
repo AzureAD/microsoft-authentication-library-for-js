@@ -38,6 +38,7 @@ export type RedirectRequest = Partial<
         CommonAuthorizationUrlRequest,
         | "responseMode"
         | "scopes"
+        | "earJwk"
         | "codeChallenge"
         | "codeChallengeMethod"
         | "requestedClaimsHash"

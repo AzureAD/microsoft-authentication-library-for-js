@@ -311,7 +311,7 @@ export class Authority {
                 authorityUri.PathSegments[0]
             ) &&
             this.getAuthorityType(authorityUri) === AuthorityType.Default &&
-            this.protocolMode === ProtocolMode.AAD
+            this.protocolMode !== ProtocolMode.OIDC
         );
     }
 
@@ -378,7 +378,7 @@ export class Authority {
         if (
             this.canonicalAuthority.endsWith("v2.0/") ||
             this.authorityType === AuthorityType.Adfs ||
-            (this.protocolMode !== ProtocolMode.AAD &&
+            (this.protocolMode === ProtocolMode.OIDC &&
                 !this.isAliasOfKnownMicrosoftAuthority(canonicalAuthorityHost))
         ) {
             return `${this.canonicalAuthority}.well-known/openid-configuration`;
