@@ -10,3 +10,4 @@ const config = {
 };
 
 module.exports = config;
+// This file is used to configure the proxy for the local development server.
