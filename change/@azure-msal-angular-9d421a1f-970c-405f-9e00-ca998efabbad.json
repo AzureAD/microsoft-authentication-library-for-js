@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Upgrade MSAL Angular to Angular 19",
+  "packageName": "@azure/msal-angular",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
