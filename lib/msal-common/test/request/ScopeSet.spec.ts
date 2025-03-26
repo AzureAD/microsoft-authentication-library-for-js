@@ -22,11 +22,15 @@ describe("ScopeSet.ts", () => {
         it("Throws error if scopes are null or empty and required", () => {
             // @ts-ignore
             expect(() => new ScopeSet(null)).toThrow(
-                new ClientConfigurationError(ClientConfigurationErrorCodes.emptyInputScopesError)
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.emptyInputScopesError
+                )
             );
 
             expect(() => new ScopeSet([])).toThrow(
-                new ClientConfigurationError(ClientConfigurationErrorCodes.emptyInputScopesError)
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.emptyInputScopesError
+                )
             );
         });
 
@@ -70,17 +74,23 @@ describe("ScopeSet.ts", () => {
     describe("fromString Constructor", () => {
         it("Throws error if scopeString is empty, null or undefined if scopes are required", () => {
             expect(() => ScopeSet.fromString("")).toThrow(
-                new ClientConfigurationError(ClientConfigurationErrorCodes.emptyInputScopesError)
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.emptyInputScopesError
+                )
             );
 
             // @ts-ignore
             expect(() => ScopeSet.fromString(null)).toThrow(
-                new ClientConfigurationError(ClientConfigurationErrorCodes.emptyInputScopesError)
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.emptyInputScopesError
+                )
             );
 
             // @ts-ignore
             expect(() => ScopeSet.fromString(undefined)).toThrow(
-                new ClientConfigurationError(ClientConfigurationErrorCodes.emptyInputScopesError)
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.emptyInputScopesError
+                )
             );
         });
 

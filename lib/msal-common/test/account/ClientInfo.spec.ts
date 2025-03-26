@@ -93,7 +93,9 @@ describe("ClientInfo.ts Class Unit Tests", () => {
 
             expect(() =>
                 buildClientInfo("", cryptoInterface.base64Decode)
-            ).toThrow(new ClientAuthError(ClientAuthErrorCodes.clientInfoEmptyError));
+            ).toThrow(
+                new ClientAuthError(ClientAuthErrorCodes.clientInfoEmptyError)
+            );
         });
 
         it("Throws error if function could not successfully decode ", () => {
@@ -102,7 +104,11 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                     "ThisCan'tbeParsed",
                     cryptoInterface.base64Decode
                 )
-            ).toThrow(new ClientAuthError(ClientAuthErrorCodes.clientInfoDecodingError));
+            ).toThrow(
+                new ClientAuthError(
+                    ClientAuthErrorCodes.clientInfoDecodingError
+                )
+            );
         });
 
         it("Succesfully returns decoded client info", () => {

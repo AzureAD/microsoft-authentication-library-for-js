@@ -949,11 +949,7 @@ export class BrowserCacheManager extends CacheManager {
             this.logger.trace(
                 "BrowserCacheManager.setTemporaryCache: storeAuthStateInCookie set to true, setting item cookie"
             );
-            this.cookieStorage.setItem(
-                key,
-                value,
-                undefined,
-            );
+            this.cookieStorage.setItem(key, value, undefined);
         }
     }
 

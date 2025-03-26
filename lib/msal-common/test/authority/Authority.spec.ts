@@ -153,7 +153,11 @@ describe("Authority.ts Class Unit Tests", () => {
                         logger,
                         TEST_CONFIG.CORRELATION_ID
                     )
-            ).toThrow(new ClientConfigurationError(ClientConfigurationErrorCodes.authorityUriInsecure));
+            ).toThrow(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.authorityUriInsecure
+                )
+            );
             expect(
                 () =>
                     new Authority(
@@ -164,7 +168,11 @@ describe("Authority.ts Class Unit Tests", () => {
                         logger,
                         TEST_CONFIG.CORRELATION_ID
                     )
-            ).toThrow(new ClientConfigurationError(ClientConfigurationErrorCodes.urlParseError));
+            ).toThrow(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.urlParseError
+                )
+            );
             expect(
                 () =>
                     new Authority(
@@ -175,7 +183,11 @@ describe("Authority.ts Class Unit Tests", () => {
                         logger,
                         TEST_CONFIG.CORRELATION_ID
                     )
-            ).toThrow(new ClientConfigurationError(ClientConfigurationErrorCodes.urlEmptyError));
+            ).toThrow(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.urlEmptyError
+                )
+            );
         });
     });
 
@@ -220,7 +232,11 @@ describe("Authority.ts Class Unit Tests", () => {
                 () =>
                     (authority.canonicalAuthority =
                         "http://login.microsoftonline.com/common")
-            ).toThrow(new ClientConfigurationError(ClientConfigurationErrorCodes.authorityUriInsecure));
+            ).toThrow(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.authorityUriInsecure
+                )
+            );
             expect(
                 () =>
                     (authority.canonicalAuthority =
@@ -228,7 +244,11 @@ describe("Authority.ts Class Unit Tests", () => {
             ).not.toThrow();
             expect(
                 () => (authority.canonicalAuthority = "This is not a URI")
-            ).toThrow(new ClientConfigurationError(ClientConfigurationErrorCodes.urlParseError));
+            ).toThrow(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.urlParseError
+                )
+            );
 
             authority.canonicalAuthority = `${TEST_URIS.ALTERNATE_INSTANCE}/${RANDOM_TEST_GUID}`;
             expect(authority.canonicalAuthority.endsWith("/")).toBe(true);
@@ -2504,7 +2524,9 @@ describe("Authority.ts Class Unit Tests", () => {
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toBe(
-                        ClientConfigurationErrorMessages[ClientConfigurationErrorCodes.untrustedAuthority]
+                        ClientConfigurationErrorMessages[
+                            ClientConfigurationErrorCodes.untrustedAuthority
+                        ]
                     );
                     expect(e.errorCode).toBe(
                         ClientConfigurationErrorCodes.untrustedAuthority
@@ -2544,7 +2566,9 @@ describe("Authority.ts Class Unit Tests", () => {
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toEqual(
-                        ClientConfigurationErrorMessages[ClientAuthErrorCodes.untrustedAuthority]
+                        ClientConfigurationErrorMessages[
+                            ClientAuthErrorCodes.untrustedAuthority
+                        ]
                     );
                     expect(e.errorCode).toEqual(
                         ClientConfigurationErrorCodes.untrustedAuthority

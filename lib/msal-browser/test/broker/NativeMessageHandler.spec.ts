@@ -171,7 +171,9 @@ describe("NativeMessageHandler Tests", () => {
                     BrowserAuthErrorCodes.nativeExtensionNotInstalled
                 );
                 expect(e.errorMessage).toBe(
-                    BrowserAuthErrorMessages[BrowserAuthErrorCodes.nativeExtensionNotInstalled]
+                    BrowserAuthErrorMessages[
+                        BrowserAuthErrorCodes.nativeExtensionNotInstalled
+                    ]
                 );
                 done();
             });
@@ -195,7 +197,9 @@ describe("NativeMessageHandler Tests", () => {
                         BrowserAuthErrorCodes.nativeHandshakeTimeout
                     );
                     expect(e.errorMessage).toBe(
-                        BrowserAuthErrorMessages[BrowserAuthErrorCodes.nativeHandshakeTimeout]
+                        BrowserAuthErrorMessages[
+                            BrowserAuthErrorCodes.nativeHandshakeTimeout
+                        ]
                     );
                     done();
                 })
@@ -479,7 +483,9 @@ describe("NativeMessageHandler Tests", () => {
                                 AuthErrorCodes.unexpectedError
                             );
                             expect(e.errorMessage).toContain(
-                                AuthErrorMessages[AuthErrorCodes.unexpectedError]
+                                AuthErrorMessages[
+                                    AuthErrorCodes.unexpectedError
+                                ]
                             );
                             done();
                         });

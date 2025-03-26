@@ -606,7 +606,9 @@ describe("SilentIframeClient", () => {
                         BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessages[BrowserAuthErrorCodes.nativeConnectionNotEstablished]
+                        BrowserAuthErrorMessages[
+                            BrowserAuthErrorCodes.nativeConnectionNotEstablished
+                        ]
                     );
                     done();
                 });

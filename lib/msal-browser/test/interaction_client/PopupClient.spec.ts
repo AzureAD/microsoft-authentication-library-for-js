@@ -554,7 +554,9 @@ describe("PopupClient", () => {
                         BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessages[BrowserAuthErrorCodes.nativeConnectionNotEstablished]
+                        BrowserAuthErrorMessages[
+                            BrowserAuthErrorCodes.nativeConnectionNotEstablished
+                        ]
                     );
                 });
         });
@@ -1964,7 +1966,9 @@ describe("PopupClient", () => {
                     popupWindowAttributes: {},
                     popupWindowParent: window,
                 })
-            ).toThrow(new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri));
+            ).toThrow(
+                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
+            );
             expect(() =>
                 popupClient.initiateAuthRequest("", {
                     popupName: "name",

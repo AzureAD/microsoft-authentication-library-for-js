@@ -211,7 +211,7 @@ export class PublicClientNext implements IPublicClientApplication {
     removePerformanceCallback(callbackId: string): boolean {
         return this.controller.removePerformanceCallback(callbackId);
     }
-    
+
     /**
      * Returns the first account found in the cache that matches the account filter passed in.
      * @param accountFilter

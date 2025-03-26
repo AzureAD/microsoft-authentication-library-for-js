@@ -33,7 +33,10 @@ import {
     TEST_TOKENS,
 } from "../utils/StringConstants.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
-import { BrowserAuthErrorMessages, BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
+import {
+    BrowserAuthErrorMessages,
+    BrowserAuthErrorCodes,
+} from "../../src/error/BrowserAuthError.js";
 import {
     NativeAuthError,
     NativeAuthErrorCodes,
@@ -263,7 +266,9 @@ describe("NativeInteractionClient Tests", () => {
                         BrowserAuthErrorCodes.nativePromptNotSupported
                     );
                     expect(e.errorMessage).toBe(
-                        BrowserAuthErrorMessages[BrowserAuthErrorCodes.nativePromptNotSupported]
+                        BrowserAuthErrorMessages[
+                            BrowserAuthErrorCodes.nativePromptNotSupported
+                        ]
                     );
                     done();
                 });
@@ -280,7 +285,9 @@ describe("NativeInteractionClient Tests", () => {
                         BrowserAuthErrorCodes.nativePromptNotSupported
                     );
                     expect(e.errorMessage).toBe(
-                        BrowserAuthErrorMessages[BrowserAuthErrorCodes.nativePromptNotSupported]
+                        BrowserAuthErrorMessages[
+                            BrowserAuthErrorCodes.nativePromptNotSupported
+                        ]
                     );
                     done();
                 });

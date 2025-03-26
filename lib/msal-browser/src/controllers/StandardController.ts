@@ -617,8 +617,7 @@ export class StandardController implements IController {
             scenarioId: request.scenarioId,
         });
 
-        const configOnRedirectNavigateCb =
-            this.config.auth.onRedirectNavigate;
+        const configOnRedirectNavigateCb = this.config.auth.onRedirectNavigate;
         this.config.auth.onRedirectNavigate = (url: string) => {
             const navigate =
                 typeof configOnRedirectNavigateCb === "function"

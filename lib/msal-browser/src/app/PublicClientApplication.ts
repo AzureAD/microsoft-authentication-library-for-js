@@ -245,7 +245,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     loginRedirect(request?: RedirectRequest | undefined): Promise<void> {
         return this.controller.loginRedirect(request);
     }
-    
+
     /**
      * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.

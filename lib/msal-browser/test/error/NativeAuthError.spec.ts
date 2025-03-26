@@ -114,7 +114,9 @@ describe("NativeAuthError Unit Tests", () => {
                     }
                 );
                 expect(error).toBeInstanceOf(InteractionRequiredAuthError);
-                expect(error.errorCode).toBe(InteractionRequiredAuthErrorCodes.nativeAccountUnavailable);
+                expect(error.errorCode).toBe(
+                    InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
+                );
             });
 
             it("translates USER_CANCEL status into corresponding BrowserAuthError", () => {
@@ -130,7 +132,9 @@ describe("NativeAuthError Unit Tests", () => {
                 );
                 expect(error).toBeInstanceOf(BrowserAuthError);
                 expect(error.errorCode).toBe(
-                    BrowserAuthErrorMessages[BrowserAuthErrorCodes.userCancelled]
+                    BrowserAuthErrorMessages[
+                        BrowserAuthErrorCodes.userCancelled
+                    ]
                 );
             });
 
@@ -147,7 +151,9 @@ describe("NativeAuthError Unit Tests", () => {
                 );
                 expect(error).toBeInstanceOf(BrowserAuthError);
                 expect(error.errorCode).toBe(
-                    BrowserAuthErrorMessages[BrowserAuthErrorCodes.noNetworkConnectivity]
+                    BrowserAuthErrorMessages[
+                        BrowserAuthErrorCodes.noNetworkConnectivity
+                    ]
                 );
             });
         });

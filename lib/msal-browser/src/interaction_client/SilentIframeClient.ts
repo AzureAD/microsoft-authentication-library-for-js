@@ -15,7 +15,7 @@ import {
     PerformanceEvents,
     invokeAsync,
     invoke,
-    CommonAuthorizationUrlRequest
+    CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -262,12 +262,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             correlationId
-        )(
-            navigateUrl,
-            this.performanceClient,
-            this.logger,
-            correlationId,
-        );
+        )(navigateUrl, this.performanceClient, this.logger, correlationId);
         const responseType = this.config.auth.OIDCOptions.serverResponseType;
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(

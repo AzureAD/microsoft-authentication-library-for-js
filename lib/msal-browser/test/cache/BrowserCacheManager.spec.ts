@@ -2859,7 +2859,9 @@ describe("BrowserCacheManager tests", () => {
             expect(() =>
                 browserStorage.getCachedRequest(RANDOM_TEST_GUID)
             ).toThrow(
-                new BrowserAuthError(BrowserAuthErrorCodes.noTokenRequestCacheError))
+                new BrowserAuthError(
+                    BrowserAuthErrorCodes.noTokenRequestCacheError
+                )
             );
         });
 
@@ -2896,7 +2898,9 @@ describe("BrowserCacheManager tests", () => {
             expect(() =>
                 browserStorage.getCachedRequest(RANDOM_TEST_GUID)
             ).toThrow(
-                new BrowserAuthError(BrowserAuthErrorCodes.unableToParseTokenRequestCacheError)
+                new BrowserAuthError(
+                    BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
+                )
             );
         });
 

@@ -26,7 +26,7 @@ export async function initiateAuthRequest(
     requestUrl: string,
     performanceClient: IPerformanceClient,
     logger: Logger,
-    correlationId: string,
+    correlationId: string
 ): Promise<HTMLIFrameElement> {
     performanceClient.addQueueMeasurement(
         PerformanceEvents.SilentHandlerInitiateAuthRequest,

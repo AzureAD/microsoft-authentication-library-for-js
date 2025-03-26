@@ -805,7 +805,9 @@ describe("RedirectClient", () => {
                         BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessages[BrowserAuthErrorCodes.nativeConnectionNotEstablished]
+                        BrowserAuthErrorMessages[
+                            BrowserAuthErrorCodes.nativeConnectionNotEstablished
+                        ]
                     );
                     done();
                 });
@@ -2443,8 +2445,10 @@ describe("RedirectClient", () => {
                     },
                 },
             });
-    
-            pca.initialize().then(() => {pca = (pca as any).controller;})
+
+            pca.initialize().then(() => {
+                pca = (pca as any).controller;
+            });
 
             jest.spyOn(
                 RedirectHandler.prototype,

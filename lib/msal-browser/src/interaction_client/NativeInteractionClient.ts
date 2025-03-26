@@ -332,9 +332,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             "NativeInteractionClient - acquireTokenRedirect called."
         );
 
-        const nativeRequest = await this.initializeNativeRequest(
-            request
-        );
+        const nativeRequest = await this.initializeNativeRequest(request);
 
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,

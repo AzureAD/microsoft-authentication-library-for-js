@@ -39,7 +39,9 @@ class testStandardInteractionClient extends StandardInteractionClient {
         return Promise.resolve();
     }
 
-    async initializeAuthorizationCodeRequest(request: CommonAuthorizationUrlRequest) {
+    async initializeAuthorizationCodeRequest(
+        request: CommonAuthorizationUrlRequest
+    ) {
         return super.initializeAuthorizationCodeRequest(request);
     }
 

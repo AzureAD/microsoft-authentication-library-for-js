@@ -216,7 +216,9 @@ describe("RedirectHandler.ts Unit Tests", () => {
                         BrowserAuthErrorCodes.emptyNavigateUri
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessages[BrowserAuthErrorCodes.emptyNavigateUri]
+                        BrowserAuthErrorMessages[
+                            BrowserAuthErrorCodes.emptyNavigateUri
+                        ]
                     );
                     done();
                 });

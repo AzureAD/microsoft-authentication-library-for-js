@@ -384,7 +384,11 @@ describe("RequestParameterBuilder unit tests", () => {
         const parameters = new Map<string, string>();
         expect(() =>
             RequestParameterBuilder.addClaims(parameters, claims, [])
-        ).toThrow(new ClientConfigurationError(ClientConfigurationErrorCodes.invalidClaimsRequest));
+        ).toThrow(
+            new ClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidClaimsRequest
+            )
+        );
     });
 
     it("adds clientAssertion (string) and assertionType if they are provided by the developer", async () => {
@@ -622,7 +626,9 @@ describe("RequestParameterBuilder unit tests", () => {
                     []
                 )
             ).toThrow(
-                new ClientConfigurationError(ClientConfigurationErrorCodes.invalidClaimsRequest)
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidClaimsRequest
+                )
             );
         });
     });

@@ -107,10 +107,14 @@ describe("AuthToken.ts Class Unit Tests", () => {
                     ClientAuthErrorCodes.nullOrEmptyToken
                 );
                 expect(parsedErr.errorMessage).toContain(
-                    ClientAuthErrorMessages[ClientAuthErrorCodes.nullOrEmptyToken]
+                    ClientAuthErrorMessages[
+                        ClientAuthErrorCodes.nullOrEmptyToken
+                    ]
                 );
                 expect(parsedErr.message).toContain(
-                    ClientAuthErrorMessages[ClientAuthErrorCodes.nullOrEmptyToken]
+                    ClientAuthErrorMessages[
+                        ClientAuthErrorCodes.nullOrEmptyToken
+                    ]
                 );
                 expect(parsedErr.name).toBe("ClientAuthError");
                 expect(parsedErr.stack).toContain("AuthToken.spec.ts");
@@ -130,10 +134,14 @@ describe("AuthToken.ts Class Unit Tests", () => {
                     ClientAuthErrorCodes.nullOrEmptyToken
                 );
                 expect(parsedErr.errorMessage).toContain(
-                    ClientAuthErrorMessages[ClientAuthErrorCodes.nullOrEmptyToken]
+                    ClientAuthErrorMessages[
+                        ClientAuthErrorCodes.nullOrEmptyToken
+                    ]
                 );
                 expect(parsedErr.message).toContain(
-                    ClientAuthErrorMessages[ClientAuthErrorCodes.nullOrEmptyToken]
+                    ClientAuthErrorMessages[
+                        ClientAuthErrorCodes.nullOrEmptyToken
+                    ]
                 );
                 expect(parsedErr.name).toBe("ClientAuthError");
                 expect(parsedErr.stack).toContain("AuthToken.spec.ts");
@@ -153,10 +161,14 @@ describe("AuthToken.ts Class Unit Tests", () => {
                     ClientAuthErrorCodes.tokenParsingError
                 );
                 expect(parsedErr.errorMessage).toContain(
-                    ClientAuthErrorMessages[ClientAuthErrorCodes.tokenParsingError]
+                    ClientAuthErrorMessages[
+                        ClientAuthErrorCodes.tokenParsingError
+                    ]
                 );
                 expect(parsedErr.message).toContain(
-                    ClientAuthErrorMessages[ClientAuthErrorCodes.tokenParsingError]
+                    ClientAuthErrorMessages[
+                        ClientAuthErrorCodes.tokenParsingError
+                    ]
                 );
                 expect(parsedErr.name).toBe("ClientAuthError");
                 expect(parsedErr.stack).toContain("AuthToken.spec.ts");
@@ -169,23 +181,31 @@ describe("AuthToken.ts Class Unit Tests", () => {
         it("Throws error if rawIdToken is null or empty", () => {
             expect(() =>
                 AuthToken.extractTokenClaims("", cryptoInterface.base64Decode)
-            ).toThrow(new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken));
+            ).toThrow(
+                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+            );
 
             expect(() =>
                 // @ts-ignore
                 AuthToken.extractTokenClaims(null, cryptoInterface)
-            ).toThrow(new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken));
+            ).toThrow(
+                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+            );
         });
 
         it("Throws error if idToken is null or empty", () => {
             expect(() =>
                 AuthToken.extractTokenClaims("", cryptoInterface.base64Decode)
-            ).toThrow(new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken));
+            ).toThrow(
+                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+            );
 
             expect(() =>
                 // @ts-ignore
                 AuthToken.extractTokenClaims(null, cryptoInterface)
-            ).toThrow(new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken));
+            ).toThrow(
+                new ClientAuthError(ClientAuthErrorCodes.nullOrEmptyToken)
+            );
         });
 
         it("Throws error if payload cannot be parsed", () => {
@@ -194,7 +214,9 @@ describe("AuthToken.ts Class Unit Tests", () => {
                     "not-a-real-token",
                     cryptoInterface.base64Decode
                 )
-            ).toThrow(new ClientAuthError(ClientAuthErrorCodes.tokenParsingError));
+            ).toThrow(
+                new ClientAuthError(ClientAuthErrorCodes.tokenParsingError)
+            );
         });
 
         it("Successfully extracts the idTokenClaims from the decodedJwt", () => {
