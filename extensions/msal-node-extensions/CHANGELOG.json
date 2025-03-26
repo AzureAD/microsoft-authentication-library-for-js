@@ -2,6 +2,45 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Tue, 25 Mar 2025 22:29:34 GMT",
+      "version": "1.5.9",
+      "tag": "@azure/msal-node-extensions_v1.5.9",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "8bbed7012616d9106c923d08b5c4e408a741577f",
+            "comment": "Update @azure/msal-node-runtime dependency to ^0.18.1"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v15.4.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 20 Mar 2025 22:09:04 GMT",
       "version": "1.5.8",
       "tag": "@azure/msal-node-extensions_v1.5.8",

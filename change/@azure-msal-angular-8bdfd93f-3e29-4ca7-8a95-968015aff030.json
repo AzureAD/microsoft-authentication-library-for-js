@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix request type for ssoSilent",
-  "packageName": "@azure/msal-angular",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
