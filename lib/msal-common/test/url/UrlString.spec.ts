@@ -152,41 +152,6 @@ describe("UrlString.ts Class Unit Tests", () => {
         expect(urlObj.urlString).toBe(TEST_URIS.TEST_AUTH_ENDPT + "/");
     });
 
-    it("hashContainsKnownProperties returns true if correct hash is given", () => {
-        expect(
-            UrlString.hashContainsKnownProperties(
-                TEST_HASHES.TEST_SUCCESS_ID_TOKEN_HASH
-            )
-        ).toBe(true);
-        expect(
-            UrlString.hashContainsKnownProperties(
-                TEST_HASHES.TEST_SUCCESS_ACCESS_TOKEN_HASH
-            )
-        ).toBe(true);
-        expect(
-            UrlString.hashContainsKnownProperties(
-                TEST_HASHES.TEST_SUCCESS_CODE_HASH
-            )
-        ).toBe(true);
-        expect(
-            UrlString.hashContainsKnownProperties(TEST_HASHES.TEST_ERROR_HASH)
-        ).toBe(true);
-    });
-
-    it("hashContainsKnownProperties returns false if incorrect hash is given", () => {
-        const exampleUnknownHash = "#param1=value1&param2=value2&param3=value3";
-        expect(UrlString.hashContainsKnownProperties(exampleUnknownHash)).toBe(
-            false
-        );
-    });
-
-    it("hashContainsKnownProperties returns false if hash does not contain key/value pairs", () => {
-        const exampleUnknownHash = "#testPage";
-        expect(UrlString.hashContainsKnownProperties(exampleUnknownHash)).toBe(
-            false
-        );
-    });
-
     describe("getDomainFromUrl tests", () => {
         it("tests domain is returned when provided url includes protocol", () => {
             expect(UrlString.getDomainFromUrl("https://domain.com")).toBe(

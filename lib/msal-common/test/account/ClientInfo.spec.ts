@@ -13,7 +13,6 @@ import { ICrypto } from "../../src/crypto/ICrypto";
 import {
     ClientAuthError,
     ClientAuthErrorCodes,
-    ClientAuthErrorMessage,
     createClientAuthError,
 } from "../../src/error/ClientAuthError";
 import { Constants } from "../../src";
@@ -88,20 +87,13 @@ describe("ClientInfo.ts Class Unit Tests", () => {
 
         it("Throws error if clientInfo is null or empty", () => {
             // @ts-ignore
-            expect(() => buildClientInfo(null, cryptoInterface)).toThrowError(
-                ClientAuthErrorMessage.clientInfoEmptyError.desc
-            );
-            // @ts-ignore
-            expect(() => buildClientInfo(null, cryptoInterface)).toThrowError(
-                ClientAuthError
+            expect(() => buildClientInfo(null, cryptoInterface)).toThrow(
+                new ClientAuthError(ClientAuthErrorCodes.clientInfoEmptyError)
             );
 
             expect(() =>
                 buildClientInfo("", cryptoInterface.base64Decode)
-            ).toThrowError(ClientAuthErrorMessage.clientInfoEmptyError.desc);
-            expect(() =>
-                buildClientInfo("", cryptoInterface.base64Decode)
-            ).toThrowError(ClientAuthError);
+            ).toThrow(new ClientAuthError(ClientAuthErrorCodes.clientInfoEmptyError));
         });
 
         it("Throws error if function could not successfully decode ", () => {
@@ -110,13 +102,7 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                     "ThisCan'tbeParsed",
                     cryptoInterface.base64Decode
                 )
-            ).toThrowError(ClientAuthErrorMessage.clientInfoDecodingError.desc);
-            expect(() =>
-                buildClientInfo(
-                    "ThisCan'tbeParsed",
-                    cryptoInterface.base64Decode
-                )
-            ).toThrowError(ClientAuthError);
+            ).toThrow(new ClientAuthError(ClientAuthErrorCodes.clientInfoDecodingError));
         });
 
         it("Succesfully returns decoded client info", () => {

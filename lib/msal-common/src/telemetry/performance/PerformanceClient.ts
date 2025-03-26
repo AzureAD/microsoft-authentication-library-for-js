@@ -366,22 +366,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
     abstract generateId(): string;
 
     /**
-     * Starts and returns an platform-specific implementation of IPerformanceMeasurement.
-     * Note: this function can be changed to abstract at the next major version bump.
-     *
-     * @param {string} measureName
-     * @param {string} correlationId
-     * @returns {IPerformanceMeasurement}
-     * @deprecated This method will be removed in the next major version
-     */
-    startPerformanceMeasurement(
-        measureName: string, // eslint-disable-line @typescript-eslint/no-unused-vars
-        correlationId: string // eslint-disable-line @typescript-eslint/no-unused-vars
-    ): IPerformanceMeasurement {
-        return {} as IPerformanceMeasurement;
-    }
-
-    /**
      * Sets pre-queue time by correlation Id
      *
      * @abstract
@@ -587,7 +571,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 );
             },
             event: inProgressEvent,
-            measurement: new StubPerformanceMeasurement(),
         };
     }
 

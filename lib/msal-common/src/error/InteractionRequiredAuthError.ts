@@ -39,31 +39,6 @@ const InteractionRequiredAuthErrorMessages = {
 };
 
 /**
- * Interaction required errors defined by the SDK
- * @deprecated Use InteractionRequiredAuthErrorCodes instead
- */
-export const InteractionRequiredAuthErrorMessage = {
-    noTokensFoundError: {
-        code: InteractionRequiredAuthErrorCodes.noTokensFound,
-        desc: InteractionRequiredAuthErrorMessages[
-            InteractionRequiredAuthErrorCodes.noTokensFound
-        ],
-    },
-    native_account_unavailable: {
-        code: InteractionRequiredAuthErrorCodes.nativeAccountUnavailable,
-        desc: InteractionRequiredAuthErrorMessages[
-            InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
-        ],
-    },
-    bad_token: {
-        code: InteractionRequiredAuthErrorCodes.badToken,
-        desc: InteractionRequiredAuthErrorMessages[
-            InteractionRequiredAuthErrorCodes.badToken
-        ],
-    },
-};
-
-/**
  * Error thrown when user interaction is required.
  */
 export class InteractionRequiredAuthError extends AuthError {

@@ -49,7 +49,7 @@ describe("BrowserPerformanceClient.ts", () => {
         });
     });
 
-    describe("startPerformanceMeasurement", () => {
+    describe("startMeasurement", () => {
         it("calculate performance duration", () => {
             const browserPerfClient = new BrowserPerformanceClient(
                 testAppConfig

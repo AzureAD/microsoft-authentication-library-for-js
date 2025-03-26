@@ -9,7 +9,7 @@ import {
   IPublicClientApplication,
   LogLevel,
   PublicClientApplication,
-  UrlString,
+  BrowserUtils,
 } from "@azure/msal-browser";
 import { of } from "rxjs";
 import {
@@ -100,7 +100,7 @@ describe("MsalGuard", () => {
   });
 
   it("returns false if page with MSAL Guard is set as redirectUri", (done) => {
-    spyOn(UrlString, "hashContainsKnownProperties").and.returnValue(true);
+    spyOn(BrowserUtils, "blockReloadInHiddenIframes").and.stub();
     spyOnProperty(window, "parent", "get").and.returnValue({ ...window });
 
     guard.canActivate(routeMock, routeStateMock).subscribe((result) => {

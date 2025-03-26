@@ -101,10 +101,10 @@ export {
     ClientAuthErrorMessage,
     ClientConfigurationError,
     ClientConfigurationErrorCodes,
-    ClientConfigurationErrorMessage,
+    ClientConfigurationErrorMessages,
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
-    InteractionRequiredAuthErrorMessage,
+    InteractionRequiredAuthErrorMessages,
     ServerError,
     // Network Interface
     INetworkModule,

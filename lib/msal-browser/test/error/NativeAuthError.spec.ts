@@ -6,7 +6,7 @@ import {
 } from "../../src/error/NativeAuthError";
 import {
     InteractionRequiredAuthError,
-    InteractionRequiredAuthErrorMessage,
+    InteractionRequiredAuthErrorCodes,
 } from "@azure/msal-common";
 import {
     BrowserAuthError,
@@ -114,10 +114,7 @@ describe("NativeAuthError Unit Tests", () => {
                     }
                 );
                 expect(error).toBeInstanceOf(InteractionRequiredAuthError);
-                expect(error.errorCode).toBe(
-                    InteractionRequiredAuthErrorMessage
-                        .native_account_unavailable.code
-                );
+                expect(error.errorCode).toBe(InteractionRequiredAuthErrorCodes.nativeAccountUnavailable);
             });
 
             it("translates USER_CANCEL status into corresponding BrowserAuthError", () => {

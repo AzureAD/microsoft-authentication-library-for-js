@@ -20,13 +20,13 @@ import * as RequestParameterBuilder from "../../src/request/RequestParameterBuil
 import * as UrlUtils from "../../src/utils/UrlUtils.js";
 import {
     ClientConfigurationErrorCodes,
-    ClientConfigurationErrorMessage,
     createClientConfigurationError,
 } from "../../src/error/ClientConfigurationError.js";
 import { ClientAssertion, ClientAssertionCallback } from "../../src/index.js";
 import { getClientAssertion } from "../../src/utils/ClientAssertionUtils.js";
 import { ClientAssertionConfig } from "../../src/account/ClientCredentials.js";
 import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
+import { ClientConfigurationError } from "../../lib/types/exports-common.js";
 
 describe("RequestParameterBuilder unit tests", () => {
     afterEach(() => {
@@ -384,7 +384,7 @@ describe("RequestParameterBuilder unit tests", () => {
         const parameters = new Map<string, string>();
         expect(() =>
             RequestParameterBuilder.addClaims(parameters, claims, [])
-        ).toThrow(ClientConfigurationErrorMessage.invalidClaimsRequest.desc);
+        ).toThrow(new ClientConfigurationError(ClientConfigurationErrorCodes.invalidClaimsRequest));
     });
 
     it("adds clientAssertion (string) and assertionType if they are provided by the developer", async () => {
@@ -621,8 +621,8 @@ describe("RequestParameterBuilder unit tests", () => {
                     testClaims,
                     []
                 )
-            ).toThrowError(
-                ClientConfigurationErrorMessage.invalidClaimsRequest.desc
+            ).toThrow(
+                new ClientConfigurationError(ClientConfigurationErrorCodes.invalidClaimsRequest)
             );
         });
     });

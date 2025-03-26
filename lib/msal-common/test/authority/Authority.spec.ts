@@ -18,7 +18,7 @@ import {
     B2C_OPENID_CONFIG_RESPONSE,
 } from "../test_kit/StringConstants";
 import {
-    ClientConfigurationErrorMessage,
+    ClientConfigurationErrorMessages,
     ClientConfigurationError,
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
@@ -153,9 +153,7 @@ describe("Authority.ts Class Unit Tests", () => {
                         logger,
                         TEST_CONFIG.CORRELATION_ID
                     )
-            ).toThrowError(
-                ClientConfigurationErrorMessage.authorityUriInsecure.desc
-            );
+            ).toThrow(new ClientConfigurationError(ClientConfigurationErrorCodes.authorityUriInsecure));
             expect(
                 () =>
                     new Authority(
@@ -166,7 +164,7 @@ describe("Authority.ts Class Unit Tests", () => {
                         logger,
                         TEST_CONFIG.CORRELATION_ID
                     )
-            ).toThrowError(ClientConfigurationErrorMessage.urlParseError.desc);
+            ).toThrow(new ClientConfigurationError(ClientConfigurationErrorCodes.urlParseError));
             expect(
                 () =>
                     new Authority(
@@ -177,7 +175,7 @@ describe("Authority.ts Class Unit Tests", () => {
                         logger,
                         TEST_CONFIG.CORRELATION_ID
                     )
-            ).toThrowError(ClientConfigurationErrorMessage.urlEmptyError.desc);
+            ).toThrow(new ClientConfigurationError(ClientConfigurationErrorCodes.urlEmptyError));
         });
     });
 
@@ -222,17 +220,15 @@ describe("Authority.ts Class Unit Tests", () => {
                 () =>
                     (authority.canonicalAuthority =
                         "http://login.microsoftonline.com/common")
-            ).toThrowError(
-                ClientConfigurationErrorMessage.authorityUriInsecure.desc
-            );
+            ).toThrow(new ClientConfigurationError(ClientConfigurationErrorCodes.authorityUriInsecure));
             expect(
                 () =>
                     (authority.canonicalAuthority =
                         "https://login.microsoftonline.com/")
-            ).not.toThrowError();
+            ).not.toThrow();
             expect(
                 () => (authority.canonicalAuthority = "This is not a URI")
-            ).toThrowError(ClientConfigurationErrorMessage.urlParseError.desc);
+            ).toThrow(new ClientConfigurationError(ClientConfigurationErrorCodes.urlParseError));
 
             authority.canonicalAuthority = `${TEST_URIS.ALTERNATE_INSTANCE}/${RANDOM_TEST_GUID}`;
             expect(authority.canonicalAuthority.endsWith("/")).toBe(true);
@@ -1083,8 +1079,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toBe(
-                        ClientConfigurationErrorMessage.invalidAuthorityMetadata
-                            .desc
+                        ClientConfigurationErrorMessages.invalidAuthorityMetadata
                     );
                     done();
                 });
@@ -2477,8 +2472,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toBe(
-                        ClientConfigurationErrorMessage
-                            .invalidCloudDiscoveryMetadata.desc
+                        ClientConfigurationErrorMessages
                     );
                     done();
                 });
@@ -2510,10 +2504,10 @@ describe("Authority.ts Class Unit Tests", () => {
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toBe(
-                        ClientConfigurationErrorMessage.untrustedAuthority.desc
+                        ClientConfigurationErrorMessages[ClientConfigurationErrorCodes.untrustedAuthority]
                     );
                     expect(e.errorCode).toBe(
-                        ClientConfigurationErrorMessage.untrustedAuthority.code
+                        ClientConfigurationErrorCodes.untrustedAuthority
                     );
                     done();
                 });
@@ -2550,10 +2544,10 @@ describe("Authority.ts Class Unit Tests", () => {
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toEqual(
-                        ClientConfigurationErrorMessage.untrustedAuthority.desc
+                        ClientConfigurationErrorMessages[ClientAuthErrorCodes.untrustedAuthority]
                     );
                     expect(e.errorCode).toEqual(
-                        ClientConfigurationErrorMessage.untrustedAuthority.code
+                        ClientConfigurationErrorCodes.untrustedAuthority
                     );
                     done();
                 });

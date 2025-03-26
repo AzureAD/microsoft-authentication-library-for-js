@@ -215,12 +215,4 @@ export class UrlString {
                 urlObject.PathSegments.join("/")
         );
     }
-
-    /**
-     * Check if the hash of the URL string contains known properties
-     * @deprecated This API will be removed in a future version
-     */
-    static hashContainsKnownProperties(response: string): boolean {
-        return !!UrlUtils.getDeserializedResponse(response);
-    }
 }

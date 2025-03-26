@@ -6,7 +6,8 @@
 import {
     Logger,
     AuthError,
-    AuthErrorMessage,
+    AuthErrorMessages,
+    AuthErrorCodes,
     IPerformanceClient,
 } from "@azure/msal-common";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
@@ -475,10 +476,10 @@ describe("NativeMessageHandler Tests", () => {
                         .catch((e) => {
                             expect(e).toBeInstanceOf(AuthError);
                             expect(e.errorCode).toEqual(
-                                AuthErrorMessage.unexpectedError.code
+                                AuthErrorCodes.unexpectedError
                             );
                             expect(e.errorMessage).toContain(
-                                AuthErrorMessage.unexpectedError.desc
+                                AuthErrorMessages[AuthErrorCodes.unexpectedError]
                             );
                             done();
                         });
