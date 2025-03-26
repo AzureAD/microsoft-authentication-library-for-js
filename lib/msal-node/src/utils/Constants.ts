@@ -4,8 +4,8 @@
  */
 
 import { HttpStatus } from "@azure/msal-common/node";
+import { DefaultManagedIdentityRetryPolicy } from "../retry/DefaultManagedIdentityRetryPolicy.js";
 import { ImdsRetryPolicy } from "../retry/ImdsRetryPolicy.js";
-import { LinearRetryPolicy } from "../retry/LinearRetryPolicy.js";
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
 export const AUTHORIZATION_HEADER_NAME: string = "Authorization";
@@ -168,17 +168,18 @@ export const LOOPBACK_SERVER_CONSTANTS = {
     TIMEOUT_MS: 5000,
 };
 
-export const AZURE_ARC_SECRET_FILE_MAX_SIZE_BYTES = 4096; // 4 KB
+export const AZURE_ARC_SECRET_FILE_MAX_SIZE_BYTES: number = 4096; // 4 KB
 
-export const MANAGED_IDENTITY_MAX_RETRIES = 3;
-export const MANAGED_IDENTITY_RETRY_DELAY = 1000;
-export const MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON = [
-    HttpStatus.NOT_FOUND,
-    HttpStatus.REQUEST_TIMEOUT,
-    HttpStatus.TOO_MANY_REQUESTS,
-    HttpStatus.SERVER_ERROR,
-    HttpStatus.SERVICE_UNAVAILABLE,
-    HttpStatus.GATEWAY_TIMEOUT,
-];
+export const DEFAULT_MANAGED_IDENTITY_MAX_RETRIES: number = 3;
+export const DEFAULT_MANAGED_IDENTITY_RETRY_DELAY: number = 1000;
+export const DEFAULT_MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON: Array<number> =
+    [
+        HttpStatus.NOT_FOUND,
+        HttpStatus.REQUEST_TIMEOUT,
+        HttpStatus.TOO_MANY_REQUESTS,
+        HttpStatus.SERVER_ERROR,
+        HttpStatus.SERVICE_UNAVAILABLE,
+        HttpStatus.GATEWAY_TIMEOUT,
+    ];
 
-export type RetryPolicies = LinearRetryPolicy | ImdsRetryPolicy;
+export type RetryPolicies = DefaultManagedIdentityRetryPolicy | ImdsRetryPolicy;

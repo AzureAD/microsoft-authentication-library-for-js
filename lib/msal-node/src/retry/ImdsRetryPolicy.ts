@@ -4,7 +4,8 @@
  */
 
 import { HttpStatus, Logger } from "@azure/msal-common";
-import { BaseRetryPolicy } from "./BaseRetryPolicy.js";
+import { ExponentialRetryStrategy } from "./ExponentialRetryStrategy.js";
+import { IHttpRetryPolicy } from "./IHttpRetryPolicy.js";
 
 const HTTP_STATUS_400_CODES_FOR_EXPONENTIAL_STRATEGY: Array<number> = [
     HttpStatus.NOT_FOUND,
@@ -13,17 +14,29 @@ const HTTP_STATUS_400_CODES_FOR_EXPONENTIAL_STRATEGY: Array<number> = [
     HttpStatus.TOO_MANY_REQUESTS,
 ];
 
-export const HTTP_STATUS_GONE_RETRY_AFTER_MS: number = 10 * 1000; // 10 seconds
-
 const EXPONENTIAL_STRATEGY_NUM_RETRIES = 3;
 const LINEAR_STRATEGY_NUM_RETRIES = 7;
 
-export class ImdsRetryPolicy extends BaseRetryPolicy {
+const MIN_EXPONENTIAL_BACKOFF_MS: number = 1000;
+const MAX_EXPONENTIAL_BACKOFF_MS: number = 4000;
+const EXPONENTIAL_DELTA_BACKOFF_MS: number = 2000;
+
+export const HTTP_STATUS_GONE_RETRY_AFTER_MS: number = 10 * 1000; // 10 seconds
+
+export class ImdsRetryPolicy implements IHttpRetryPolicy {
+    public _isNewRequest: boolean;
+    set isNewRequest(value: boolean) {
+        this._isNewRequest = value;
+    }
+
     private maxRetries: number;
 
-    constructor() {
-        super();
-    }
+    private exponentialRetryStrategy: ExponentialRetryStrategy =
+        new ExponentialRetryStrategy(
+            MIN_EXPONENTIAL_BACKOFF_MS,
+            MAX_EXPONENTIAL_BACKOFF_MS,
+            EXPONENTIAL_DELTA_BACKOFF_MS
+        );
 
     /**
      * Pauses execution for a calculated delay before retrying a request.
@@ -67,7 +80,9 @@ export class ImdsRetryPolicy extends BaseRetryPolicy {
             const retryAfterDelay: number =
                 httpStatusCode === HttpStatus.GONE
                     ? HTTP_STATUS_GONE_RETRY_AFTER_MS
-                    : this.calculateExponentialDelay(currentRetry);
+                    : this.exponentialRetryStrategy.calculateDelay(
+                          currentRetry
+                      );
 
             logger.verbose(
                 `Retrying request in ${retryAfterDelay}ms (retry attempt: ${

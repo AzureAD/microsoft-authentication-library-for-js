@@ -49,7 +49,9 @@ export class HttpClientWithRetries implements INetworkModule {
         let response: NetworkResponse<T> =
             await this.sendNetworkRequestAsyncHelper(httpMethod, url, options);
 
-        this.retryPolicy.isNewRequest = true;
+        if ("isNewRequest" in this.retryPolicy) {
+            this.retryPolicy.isNewRequest = true;
+        }
 
         let currentRetry: number = 0;
         while (

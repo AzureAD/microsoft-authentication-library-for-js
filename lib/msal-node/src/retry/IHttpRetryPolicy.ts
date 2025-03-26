@@ -8,7 +8,7 @@ import { Logger } from "@azure/msal-common";
 
 export interface IHttpRetryPolicy {
     _isNewRequest?: boolean;
-    set isNewRequest(value: boolean);
+    // set isNewRequest(value: boolean);
 
     /**
      * Pauses execution for a specified amount of time before retrying an HTTP request.
