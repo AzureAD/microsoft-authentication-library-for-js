@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Remove deprecated functions and parameters",
+  "packageName": "@azure/msal-node",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
