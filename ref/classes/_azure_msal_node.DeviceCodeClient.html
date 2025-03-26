@@ -27,7 +27,7 @@
 <ul class="tsd-hierarchy">
 <li><span class="target">DeviceCodeClient</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/client/DeviceCodeClient.ts#L31">msal-node/src/client/DeviceCodeClient.ts:31</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4f7d6f85a/lib/msal-node/src/client/DeviceCodeClient.ts#L33">msal-node/src/client/DeviceCodeClient.ts:33</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -47,6 +47,7 @@
 <div class="tsd-index-list"><a href="_azure_msal_node.DeviceCodeClient.html#acquireToken" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-2048"><rect fill="var(--color-icon-background)" stroke="#FF4DB8" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12"></rect><path d="M9.162 16V7.24H10.578L11.514 10.072C11.602 10.328 11.674 10.584 11.73 10.84C11.794 11.088 11.842 11.28 11.874 11.416C11.906 11.28 11.954 11.088 12.018 10.84C12.082 10.584 12.154 10.324 12.234 10.06L13.122 7.24H14.538V16H13.482V12.82C13.482 12.468 13.49 12.068 13.506 11.62C13.53 11.172 13.558 10.716 13.59 10.252C13.622 9.78 13.654 9.332 13.686 8.908C13.726 8.476 13.762 8.1 13.794 7.78L12.366 12.16H11.334L9.894 7.78C9.934 8.092 9.97 8.456 10.002 8.872C10.042 9.28 10.078 9.716 10.11 10.18C10.142 10.636 10.166 11.092 10.182 11.548C10.206 12.004 10.218 12.428 10.218 12.82V16H9.162Z" fill="var(--color-text)"></path></g></svg><span>acquire<wbr/>Token</span></a>
 <a href="_azure_msal_node.DeviceCodeClient.html#createExtraQueryParameters" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>create<wbr/>Extra<wbr/>Query<wbr/>Parameters</span></a>
 <a href="_azure_msal_node.DeviceCodeClient.html#createTokenQueryParameters" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>create<wbr/>Token<wbr/>Query<wbr/>Parameters</span></a>
+<a href="_azure_msal_node.DeviceCodeClient.html#sendPostRequest" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>send<wbr/>Post<wbr/>Request</span></a>
 <a href="_azure_msal_node.DeviceCodeClient.html#updateAuthority" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>update<wbr/>Authority</span></a>
 </div></section></div></details></section></section>
 <section class="tsd-panel-group tsd-member-group">
@@ -64,7 +65,7 @@
 <h4 class="tsd-returns-title">Returns <a href="_azure_msal_node.DeviceCodeClient.html" class="tsd-signature-type tsd-kind-class">DeviceCodeClient</a></h4><aside class="tsd-sources">
 <p>Overrides BaseClient.constructor</p>
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/client/DeviceCodeClient.ts#L32">msal-node/src/client/DeviceCodeClient.ts:32</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4f7d6f85a/lib/msal-node/src/client/DeviceCodeClient.ts#L34">msal-node/src/client/DeviceCodeClient.ts:34</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="authority" class="tsd-anchor"></a>
@@ -72,7 +73,7 @@
 <div class="tsd-signature"><span class="tsd-kind-property">authority</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Authority</span></div><aside class="tsd-sources">
 <p>Inherited from BaseClient.authority</p>
 <ul>
-<li>Defined in msal-common/dist/client/BaseClient.d.ts:26</li></ul></aside></section>
+<li>Defined in msal-common/dist/client/BaseClient.d.ts:25</li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="logger" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>logger</span><a href="#logger" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">logger</span><span class="tsd-signature-symbol">:</span> <a href="_azure_msal_node.Logger.html" class="tsd-signature-type tsd-kind-class">Logger</a></div><aside class="tsd-sources">
@@ -93,11 +94,14 @@ polls token endpoint to exchange device code for tokens</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">request</span>: <a href="../types/_azure_msal_common.CommonDeviceCodeRequest.html" class="tsd-signature-type tsd-kind-type-alias">CommonDeviceCodeRequest</a></h5></li></ul></div>
+<h5><span class="tsd-kind-parameter">request</span>: <a href="../types/_azure_msal_common.CommonDeviceCodeRequest.html" class="tsd-signature-type tsd-kind-type-alias">CommonDeviceCodeRequest</a></h5>
+<div class="tsd-comment tsd-typography"><p>developer provided CommonDeviceCodeRequest</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">null</span><span class="tsd-signature-symbol"> | </span><a href="../types/_azure_msal_node.AuthenticationResult.html" class="tsd-signature-type tsd-kind-type-alias">AuthenticationResult</a><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/client/DeviceCodeClient.ts#L41">msal-node/src/client/DeviceCodeClient.ts:41</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4f7d6f85a/lib/msal-node/src/client/DeviceCodeClient.ts#L43">msal-node/src/client/DeviceCodeClient.ts:43</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="createExtraQueryParameters" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>create<wbr/>Extra<wbr/>Query<wbr/>Parameters</span><a href="#createExtraQueryParameters" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -109,11 +113,14 @@ polls token endpoint to exchange device code for tokens</p>
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><span class="tsd-kind-parameter">request</span>: <a href="../types/_azure_msal_common.CommonDeviceCodeRequest.html" class="tsd-signature-type tsd-kind-type-alias">CommonDeviceCodeRequest</a></h5></li></ul></div>
+<h5><span class="tsd-kind-parameter">request</span>: <a href="../types/_azure_msal_common.CommonDeviceCodeRequest.html" class="tsd-signature-type tsd-kind-type-alias">CommonDeviceCodeRequest</a></h5>
+<div class="tsd-comment tsd-typography"><p>developer provided CommonDeviceCodeRequest</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/7ac298ee3/lib/msal-node/src/client/DeviceCodeClient.ts#L109">msal-node/src/client/DeviceCodeClient.ts:109</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4f7d6f85a/lib/msal-node/src/client/DeviceCodeClient.ts#L112">msal-node/src/client/DeviceCodeClient.ts:112</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="createTokenQueryParameters" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>create<wbr/>Token<wbr/>Query<wbr/>Parameters</span><a href="#createTokenQueryParameters" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -130,7 +137,47 @@ polls token endpoint to exchange device code for tokens</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from BaseClient.createTokenQueryParameters</p>
 <ul>
-<li>Defined in msal-common/dist/client/BaseClient.d.ts:50</li></ul></aside></li></ul></section>
+<li>Defined in msal-common/dist/client/BaseClient.d.ts:57</li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="sendPostRequest" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>send<wbr/>Post<wbr/>Request</span><a href="#sendPostRequest" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="sendPostRequest.sendPostRequest-1"><span class="tsd-kind-call-signature">send<wbr/>Post<wbr/>Request</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">thumbprint</span>, <span class="tsd-kind-parameter">tokenEndpoint</span>, <span class="tsd-kind-parameter">options</span>, <span class="tsd-kind-parameter">correlationId</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/_azure_msal_node.NetworkResponse.html" class="tsd-signature-type tsd-kind-type-alias">NetworkResponse</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><a href="#sendPostRequest.sendPostRequest-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Wraps sendPostRequestAsync with necessary preflight and postflight logic</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li>
+<h4><span class="tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol"> extends </span><a href="../types/_azure_msal_common.ServerAuthorizationTokenResponse.html" class="tsd-signature-type tsd-kind-type-alias">ServerAuthorizationTokenResponse</a></h4></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">thumbprint</span>: <a href="../types/_azure_msal_common.RequestThumbprint.html" class="tsd-signature-type tsd-kind-type-alias">RequestThumbprint</a></h5>
+<div class="tsd-comment tsd-typography"><p>Request thumbprint for throttling</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li>
+<h5><span class="tsd-kind-parameter">tokenEndpoint</span>: <span class="tsd-signature-type">string</span></h5>
+<div class="tsd-comment tsd-typography"><p>Endpoint to make the POST to</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li>
+<h5><span class="tsd-kind-parameter">options</span>: <a href="../types/_azure_msal_node.NetworkRequestOptions.html" class="tsd-signature-type tsd-kind-type-alias">NetworkRequestOptions</a></h5>
+<div class="tsd-comment tsd-typography"><p>Body and Headers to include on the POST request</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li>
+<li>
+<h5><span class="tsd-kind-parameter">correlationId</span>: <span class="tsd-signature-type">string</span></h5>
+<div class="tsd-comment tsd-typography"><p>CorrelationId for telemetry</p>
+</div>
+<div class="tsd-comment tsd-typography"></div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/_azure_msal_node.NetworkResponse.html" class="tsd-signature-type tsd-kind-type-alias">NetworkResponse</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></h4>
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<p>Inherited from BaseClient.sendPostRequest</p>
+<ul>
+<li>Defined in msal-common/dist/client/BaseClient.d.ts:47</li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="updateAuthority" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>update<wbr/>Authority</span><a href="#updateAuthority" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -149,7 +196,7 @@ polls token endpoint to exchange device code for tokens</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from BaseClient.updateAuthority</p>
 <ul>
-<li>Defined in msal-common/dist/client/BaseClient.d.ts:45</li></ul></aside></li></ul></section></section></div>
+<li>Defined in msal-common/dist/client/BaseClient.d.ts:52</li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -175,17 +222,19 @@ polls token endpoint to exchange device code for tokens</p>
 <li><a href="#acquireToken" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>acquire<wbr/>Token</span></a></li>
 <li><a href="#createExtraQueryParameters" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>create<wbr/>Extra<wbr/>Query<wbr/>Parameters</span></a></li>
 <li><a href="#createTokenQueryParameters" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>create<wbr/>Token<wbr/>Query<wbr/>Parameters</span></a></li>
+<li><a href="#sendPostRequest" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>send<wbr/>Post<wbr/>Request</span></a></li>
 <li><a href="#updateAuthority" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>update<wbr/>Authority</span></a></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../index.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-4"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-namespace)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.33 16V7.24H10.77L13.446 14.74C13.43 14.54 13.41 14.296 13.386 14.008C13.37 13.712 13.354 13.404 13.338 13.084C13.33 12.756 13.326 12.448 13.326 12.16V7.24H14.37V16H12.93L10.266 8.5C10.282 8.692 10.298 8.936 10.314 9.232C10.33 9.52 10.342 9.828 10.35 10.156C10.366 10.476 10.374 10.784 10.374 11.08V16H9.33Z" fill="var(--color-text)"></path></g></svg><span>Documentation</span></a>
 <ul class="tsd-small-nested-navigation">
-<li><a href="../modules/_azure_msal_angular.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>angular -<wbr/> v3.0.25</span></a></li>
-<li><a href="../modules/_azure_msal_browser.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>browser -<wbr/> v3.26.1</span></a></li>
-<li><a href="../modules/_azure_msal_common.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>common -<wbr/> v14.15.0</span></a></li>
+<li><a href="../modules/_azure_msal_angular.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>angular -<wbr/> v4.0.8</span></a></li>
+<li><a href="../modules/_azure_msal_browser.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>browser -<wbr/> v4.9.0</span></a></li>
+<li><a href="../modules/_azure_msal_common.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>common -<wbr/> v15.4.0</span></a></li>
 <li>
-<details class="tsd-index-accordion" open data-key="@azure/msal-node"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg><a href="../modules/_azure_msal_node.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node -<wbr/> v2.15.0</span></a></summary>
+<details class="tsd-index-accordion" open data-key="@azure/msal-node"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="#icon-chevronDown"></use></svg><a href="../modules/_azure_msal_node.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node -<wbr/> v3.4.1</span></a></summary>
 <div class="tsd-accordion-details">
 <ul class="tsd-nested-navigation">
+<li><a href="../modules/_azure_msal_node.html#ServerAuthorizationCodeResponse"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-8388608"><rect fill="var(--color-icon-background)" stroke="#FF4D82" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="12"></rect><path d="M10.354 17V8.24H13.066C13.586 8.24 14.042 8.348 14.434 8.564C14.826 8.772 15.13 9.064 15.346 9.44C15.562 9.816 15.67 10.256 15.67 10.76C15.67 11.352 15.514 11.86 15.202 12.284C14.898 12.708 14.482 13 13.954 13.16L15.79 17H14.518L12.838 13.28H11.434V17H10.354ZM11.434 12.308H13.066C13.514 12.308 13.874 12.168 14.146 11.888C14.418 11.6 14.554 11.224 14.554 10.76C14.554 10.288 14.418 9.912 14.146 9.632C13.874 9.352 13.514 9.212 13.066 9.212H11.434V12.308Z" fill="var(--color-text)"></path></g></svg><span>Server<wbr/>Authorization<wbr/>Code<wbr/>Response</span></a></li>
 <li><a href="../modules/_azure_msal_node.AuthErrorCodes.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Auth<wbr/>Error<wbr/>Codes</span></a></li>
 <li><a href="../modules/_azure_msal_node.ClientAuthErrorCodes.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Client<wbr/>Auth<wbr/>Error<wbr/>Codes</span></a></li>
 <li><a href="../modules/_azure_msal_node.ClientConfigurationErrorCodes.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Client<wbr/>Configuration<wbr/>Error<wbr/>Codes</span></a></li>
@@ -205,13 +254,12 @@ polls token endpoint to exchange device code for tokens</p>
 <li><a href="_azure_msal_node.InteractionRequiredAuthError.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Interaction<wbr/>Required<wbr/>Auth<wbr/>Error</span></a></li>
 <li><a href="_azure_msal_node.Logger.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Logger</span></a></li>
 <li><a href="_azure_msal_node.ManagedIdentityApplication.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Managed<wbr/>Identity<wbr/>Application</span></a></li>
-<li><a href="_azure_msal_node.NodeStorage.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Node<wbr/>Storage</span></a></li>
 <li><a href="_azure_msal_node.OnBehalfOfClient.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>On<wbr/>Behalf<wbr/>Of<wbr/>Client</span></a></li>
 <li><a href="_azure_msal_node.PublicClientApplication.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Public<wbr/>Client<wbr/>Application</span></a></li>
 <li><a href="_azure_msal_node.ServerError.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Server<wbr/>Error</span></a></li>
 <li><a href="_azure_msal_node.TokenCache.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Token<wbr/>Cache</span></a></li>
 <li><a href="_azure_msal_node.TokenCacheContext.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Token<wbr/>Cache<wbr/>Context</span></a></li>
-<li><a href="_azure_msal_node.UsernamePasswordClient.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Username<wbr/>Password<wbr/>Client</span></a></li>
+<li><a href="_azure_msal_node.UsernamePasswordClient.html" class="deprecated"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg><span>Username<wbr/>Password<wbr/>Client</span></a></li>
 <li><a href="../interfaces/_azure_msal_node.IAppTokenProvider.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-256"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-interface)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M9.51 16V15.016H11.298V8.224H9.51V7.24H14.19V8.224H12.402V15.016H14.19V16H9.51Z" fill="var(--color-text)"></path></g></svg><span>IApp<wbr/>Token<wbr/>Provider</span></a></li>
 <li><a href="../interfaces/_azure_msal_node.ICacheClient.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>ICache<wbr/>Client</span></a></li>
 <li><a href="../interfaces/_azure_msal_node.ICachePlugin.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-256"></use></svg><span>ICache<wbr/>Plugin</span></a></li>
@@ -230,6 +278,7 @@ polls token endpoint to exchange device code for tokens</p>
 <li><a href="../types/_azure_msal_node.AuthorizationCodePayload.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Authorization<wbr/>Code<wbr/>Payload</span></a></li>
 <li><a href="../types/_azure_msal_node.AuthorizationCodeRequest.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Authorization<wbr/>Code<wbr/>Request</span></a></li>
 <li><a href="../types/_azure_msal_node.AuthorizationUrlRequest.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Authorization<wbr/>Url<wbr/>Request</span></a></li>
+<li><a href="../types/_azure_msal_node.AuthorizeResponse.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Authorize<wbr/>Response</span></a></li>
 <li><a href="../types/_azure_msal_node.AzureCloudInstance.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Azure<wbr/>Cloud<wbr/>Instance</span></a></li>
 <li><a href="../types/_azure_msal_node.AzureCloudOptions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Azure<wbr/>Cloud<wbr/>Options</span></a></li>
 <li><a href="../types/_azure_msal_node.BrokerOptions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Broker<wbr/>Options</span></a></li>
@@ -261,7 +310,6 @@ polls token endpoint to exchange device code for tokens</p>
 <li><a href="../types/_azure_msal_node.SerializedAppMetadataEntity.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Serialized<wbr/>App<wbr/>Metadata<wbr/>Entity</span></a></li>
 <li><a href="../types/_azure_msal_node.SerializedIdTokenEntity.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Serialized<wbr/>Id<wbr/>Token<wbr/>Entity</span></a></li>
 <li><a href="../types/_azure_msal_node.SerializedRefreshTokenEntity.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Serialized<wbr/>Refresh<wbr/>Token<wbr/>Entity</span></a></li>
-<li><a href="../types/_azure_msal_node.ServerAuthorizationCodeResponse.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Server<wbr/>Authorization<wbr/>Code<wbr/>Response</span></a></li>
 <li><a href="../types/_azure_msal_node.SignOutRequest.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Sign<wbr/>Out<wbr/>Request</span></a></li>
 <li><a href="../types/_azure_msal_node.SilentFlowRequest.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Silent<wbr/>Flow<wbr/>Request</span></a></li>
 <li><a href="../types/_azure_msal_node.UsernamePasswordRequest.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4194304"></use></svg><span>Username<wbr/>Password<wbr/>Request</span></a></li>
@@ -275,8 +323,8 @@ polls token endpoint to exchange device code for tokens</p>
 <li><a href="../variables/_azure_msal_node.ProtocolMode-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Protocol<wbr/>Mode</span></a></li>
 <li><a href="../variables/_azure_msal_node.ResponseMode-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>Response<wbr/>Mode</span></a></li>
 <li><a href="../variables/_azure_msal_node.version.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-32"></use></svg><span>version</span></a></li></ul></div></details></li>
-<li><a href="../modules/_azure_msal_react.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>react -<wbr/> v2.1.1</span></a></li>
-<li><a href="../modules/_azure_msal_node_extensions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node-<wbr/>extensions -<wbr/> v1.3.0</span></a></li></ul></nav></div></div></div>
+<li><a href="../modules/_azure_msal_react.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>react -<wbr/> v3.0.8</span></a></li>
+<li><a href="../modules/_azure_msal_node_extensions.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>@azure/msal-<wbr/>node-<wbr/>extensions -<wbr/> v1.5.9</span></a></li></ul></nav></div></div></div>
 <div class="tsd-generator">
 <p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
 <div class="overlay"></div></body></html>
