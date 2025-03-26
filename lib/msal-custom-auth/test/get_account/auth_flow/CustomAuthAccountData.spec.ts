@@ -11,8 +11,8 @@ import { CustomAuthAccountData } from "../../../src/get_account/auth_flow/Custom
 import { SignOutResult } from "../../../src/get_account/auth_flow/result/SignOutResult.js";
 import { SignOutError } from "../../../src/get_account/auth_flow/error_type/GetAccountError.js";
 import { IdTokenClaims } from "../../../../msal-common/dist/exports-common.js";
-import { GetAccessTokenState } from "../../../src/core/auth_flow/AuthFlowStateBase.js";
 import { MsalCustomAuthError } from "../../../src/core/error/MsalCustomAuthError.js";
+import { AuthFlowStateType } from "../../../src/core/auth_flow/AuthFlowStateType.js";
 
 describe("CustomAuthAccountData", () => {
     let mockAccount: AccountInfo;
@@ -191,7 +191,7 @@ describe("CustomAuthAccountData", () => {
             const response = await accountData.getAccessToken({ forceRefresh: false });
 
             expect(response).toBeDefined();
-            expect(response.state?.type).toEqual(GetAccessTokenState.Completed);
+            expect(response.state?.type).toEqual(AuthFlowStateType.Completed);
             expect(response.data?.account).toEqual(mockAccount);
             expect(response.data?.idToken).toEqual(mockAuthenticationResult.idToken);
         });
@@ -215,7 +215,7 @@ describe("CustomAuthAccountData", () => {
             const response = await accountData.getAccessToken({ forceRefresh: false });
 
             expect(response).toBeDefined();
-            expect(response.state?.type).toEqual(GetAccessTokenState.Failed);
+            expect(response.state?.type).toEqual(AuthFlowStateType.Failed);
             expect(response.error?.errorData).toEqual(mockRefreshTokenExpiredError);
             expect(response.error?.errorData).toBeInstanceOf(MsalCustomAuthError);
 

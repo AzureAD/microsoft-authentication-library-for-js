@@ -69,9 +69,6 @@ export { AuthenticationResult } from "./response/AuthenticationResult.js";
 export { ClearCacheRequest } from "./request/ClearCacheRequest.js";
 export { InitializeApplicationRequest } from "./request/InitializeApplicationRequest.js";
 
-// Network
-export { FetchClient } from "./network/FetchClient.js";
-
 // Operating Context
 export { BaseOperatingContext } from "./operatingcontext/BaseOperatingContext.js";
 

@@ -8,12 +8,13 @@ import { CustomAuthError } from "../error/CustomAuthError.js";
 import { MsalCustomAuthError } from "../error/MsalCustomAuthError.js";
 import { UnexpectedError } from "../error/UnexpectedError.js";
 import { AuthFlowErrorBase } from "./AuthFlowErrorBase.js";
-import { AuthFlowStateBase } from "./AuthFlowStateBase.js";
+import { AuthFlowStateBase } from "./AuthFlowState.js";
 
 /*
  * Base class for a result of an authentication operation.
- * @typeParam TState - The type of the result data.
- * @typeParam TStateHandler - The type of state handler.
+ * @typeParam TState - The type of the auth flow state.
+ * @typeParam TError - The type of error.
+ * @typeParam TData - The type of the result data.
  */
 export abstract class AuthFlowResultBase<
     TState extends AuthFlowStateBase,
@@ -26,7 +27,7 @@ export abstract class AuthFlowResultBase<
      * @param data - The result data.
      */
     constructor(
-        public state?: TState,
+        public state: TState,
         public data?: TData,
     ) {}
 

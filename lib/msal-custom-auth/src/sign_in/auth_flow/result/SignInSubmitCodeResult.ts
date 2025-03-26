@@ -4,7 +4,7 @@
  */
 
 import { SignInSubmitCodeError } from "../error_type/SignInError.js";
-import { SignInFailed } from "../state/SignInFailed.js";
+import { SignInFailedState } from "../state/SignInFailedState.js";
 import { SignInSubmitCredentialResult } from "./SignInSubmitCredentialResult.js";
 
 /*
@@ -12,8 +12,7 @@ import { SignInSubmitCredentialResult } from "./SignInSubmitCredentialResult.js"
  */
 export class SignInSubmitCodeResult extends SignInSubmitCredentialResult<SignInSubmitCodeError> {
     static createWithError(error: unknown): SignInSubmitCodeResult {
-        const result = new SignInSubmitCodeResult();
-        result.state = new SignInFailed();
+        const result = new SignInSubmitCodeResult(new SignInFailedState());
         result.error = new SignInSubmitCodeError(SignInSubmitCodeResult.createErrorData(error));
 
         return result;

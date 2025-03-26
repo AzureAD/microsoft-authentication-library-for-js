@@ -6,7 +6,7 @@
 import { CustomAuthPublicClientApplication } from "../../src/CustomAuthPublicClientApplication.js";
 import { ICustomAuthPublicClientApplication } from "../../src/ICustomAuthPublicClientApplication.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
-import { GetAccountState, SignOutState } from "../../src/core/auth_flow/AuthFlowStateBase.js";
+import { AuthFlowStateType } from "../../src/core/auth_flow/AuthFlowStateType.js";
 import { CustomAuthAccountData } from "../../src/get_account/auth_flow/CustomAuthAccountData.js";
 import { TestHomeAccountId, TestTenantId, TestTokenResponse, TestUsername } from "../test_resources/TestConstants.js";
 import { CustomAuthStandardController } from "../../src/controller/CustomAuthStandardController.js";
@@ -39,7 +39,7 @@ describe("GetAccount", () => {
 
             expect(accountData).toBeDefined();
             expect(accountData.error).toBeUndefined();
-            expect(accountData.state?.type).toStrictEqual(GetAccountState.Completed);
+            expect(accountData.state?.type).toStrictEqual(AuthFlowStateType.Completed);
             expect(accountData.data).toBeDefined();
             expect(accountData.data).toBeInstanceOf(CustomAuthAccountData);
             expect(accountData.data?.getAccount()).toBeDefined();
@@ -62,7 +62,7 @@ describe("GetAccount", () => {
             expect(accountData.error).toBeDefined();
             expect(accountData.error?.errorData).toBeDefined();
             expect(accountData.error?.isCurrentAccountNotFound()).toBe(true);
-            expect(accountData.state?.type).toStrictEqual(GetAccountState.Failed);
+            expect(accountData.state?.type).toStrictEqual(AuthFlowStateType.Failed);
             expect(accountData.data).toBeUndefined();
         });
     });
@@ -83,7 +83,7 @@ describe("GetAccount", () => {
 
             expect(signOutResult).toBeDefined();
             expect(signOutResult?.error).toBeUndefined();
-            expect(signOutResult?.state?.type).toStrictEqual(SignOutState.Completed);
+            expect(signOutResult?.state?.type).toStrictEqual(AuthFlowStateType.Completed);
 
             const accountResultAfterSignOut = app.getCurrentAccount({
                 correlationId: "test-correlation-id",
@@ -108,7 +108,7 @@ describe("GetAccount", () => {
 
             expect(signOutResult).toBeDefined();
             expect(signOutResult?.error).toBeDefined();
-            expect(signOutResult?.state?.type).toStrictEqual(SignOutState.Failed);
+            expect(signOutResult?.state?.type).toStrictEqual(AuthFlowStateType.Failed);
             expect(signOutResult?.error?.isUserNotSignedIn()).toBe(true);
         });
     });

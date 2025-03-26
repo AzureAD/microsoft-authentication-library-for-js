@@ -34,21 +34,21 @@ import {
     SignUpCodeRequiredResult,
     SignUpPasswordRequiredResult,
 } from "../sign_up/interaction_client/result/SignUpActionResult.js";
-import { SignUpCodeRequired } from "../sign_up/auth_flow/state/SignUpCodeRequired.js";
-import { SignUpPasswordRequired } from "../sign_up/auth_flow/state/SignUpPasswordRequired.js";
-import { SignInCodeRequired } from "../sign_in/auth_flow/state/SignInCodeRequired.js";
-import { SignInPasswordRequired } from "../sign_in/auth_flow/state/SignInPasswordRequired.js";
-import { SignInCompleted } from "../sign_in/auth_flow/state/SignInCompleted.js";
 import { ICustomAuthApiClient } from "../core/network_client/custom_auth_api/ICustomAuthApiClient.js";
 import { CustomAuthApiClient } from "../core/network_client/custom_auth_api/CustomAuthApiClient.js";
 import { FetchHttpClient } from "../core/network_client/http_client/FetchHttpClient.js";
 import { ResetPasswordClient } from "../reset_password/interaction_client/ResetPasswordClient.js";
-import { ResetPasswordCodeRequired } from "../reset_password/auth_flow/state/ResetPasswordCodeRequired.js";
 import { NoCachedAccountFoundError } from "../core/error/NoCachedAccountFoundError.js";
 import { ArgumentValidator } from "../core/utils/ArgumentValidator.js";
 import { UserAlreadySignedInError } from "../core/error/UserAlreadySignedInError.js";
 import { CustomAuthSilentCacheClient } from "../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { UnsupportedEnvironmentError } from "../core/error/UnsupportedEnvironmentError.js";
+import { SignInCodeRequiredState } from "../sign_in/auth_flow/state/SignInCodeRequiredState.js";
+import { SignInPasswordRequiredState } from "../sign_in/auth_flow/state/SignInPasswordRequiredState.js";
+import { SignInCompletedState } from "../sign_in/auth_flow/state/SignInCompletedState.js";
+import { SignUpCodeRequiredState } from "../sign_up/auth_flow/state/SignUpCodeRequiredState.js";
+import { SignUpPasswordRequiredState } from "../sign_up/auth_flow/state/SignUpPasswordRequiredState.js";
+import { ResetPasswordCodeRequiredState } from "../reset_password/auth_flow/state/ResetPasswordCodeRequiredState.js";
 
 /*
  * Controller for standard native auth operations.
@@ -184,17 +184,17 @@ export class CustomAuthStandardController extends StandardController implements 
                 this.logger.verbose("Code required for sign-in.", correlationId);
 
                 return new SignInResult(
-                    new SignInCodeRequired(
-                        startResult.correlationId,
-                        startResult.continuationToken,
-                        this.logger,
-                        this.customAuthConfig,
-                        this.signInClient,
-                        this.cacheClient,
-                        signInInputs.username,
-                        startResult.codeLength,
-                        signInInputs.scopes ?? [],
-                    ),
+                    new SignInCodeRequiredState({
+                        correlationId: startResult.correlationId,
+                        continuationToken: startResult.continuationToken,
+                        logger: this.logger,
+                        config: this.customAuthConfig,
+                        signInClient: this.signInClient,
+                        cacheClient: this.cacheClient,
+                        username: signInInputs.username,
+                        codeLength: startResult.codeLength,
+                        scopes: signInInputs.scopes ?? [],
+                    }),
                 );
             } else if (startResult instanceof SignInPasswordRequiredResult) {
                 // require password
@@ -207,16 +207,16 @@ export class CustomAuthStandardController extends StandardController implements 
                     );
 
                     return new SignInResult(
-                        new SignInPasswordRequired(
-                            startResult.correlationId,
-                            startResult.continuationToken,
-                            this.logger,
-                            this.customAuthConfig,
-                            this.signInClient,
-                            this.cacheClient,
-                            signInInputs.username,
-                            signInInputs.scopes ?? [],
-                        ),
+                        new SignInPasswordRequiredState({
+                            correlationId: startResult.correlationId,
+                            continuationToken: startResult.continuationToken,
+                            logger: this.logger,
+                            config: this.customAuthConfig,
+                            signInClient: this.signInClient,
+                            cacheClient: this.cacheClient,
+                            username: signInInputs.username,
+                            scopes: signInInputs.scopes ?? [],
+                        }),
                     );
                 }
 
@@ -245,7 +245,7 @@ export class CustomAuthStandardController extends StandardController implements 
                     correlationId,
                 );
 
-                return new SignInResult(new SignInCompleted(), accountInfo);
+                return new SignInResult(new SignInCompletedState(), accountInfo);
             }
 
             this.logger.error("Unexpected sign-in result type. Returning error.", correlationId);
@@ -301,34 +301,34 @@ export class CustomAuthStandardController extends StandardController implements 
                 this.logger.verbose("Code required for sign-up.", correlationId);
 
                 return new SignUpResult(
-                    new SignUpCodeRequired(
-                        startResult.correlationId,
-                        startResult.continuationToken,
-                        this.logger,
-                        this.customAuthConfig,
-                        this.signInClient,
-                        this.signUpClient,
-                        this.cacheClient,
-                        signUpInputs.username,
-                        startResult.codeLength,
-                        startResult.interval,
-                    ),
+                    new SignUpCodeRequiredState({
+                        correlationId: startResult.correlationId,
+                        continuationToken: startResult.continuationToken,
+                        logger: this.logger,
+                        config: this.customAuthConfig,
+                        signInClient: this.signInClient,
+                        signUpClient: this.signUpClient,
+                        cacheClient: this.cacheClient,
+                        username: signUpInputs.username,
+                        codeLength: startResult.codeLength,
+                        codeResendInterval: startResult.interval,
+                    }),
                 );
             } else if (startResult instanceof SignUpPasswordRequiredResult) {
                 // Password required
                 this.logger.verbose("Password required for sign-up.", correlationId);
 
                 return new SignUpResult(
-                    new SignUpPasswordRequired(
-                        startResult.correlationId,
-                        startResult.continuationToken,
-                        this.logger,
-                        this.customAuthConfig,
-                        this.signInClient,
-                        this.signUpClient,
-                        this.cacheClient,
-                        signUpInputs.username,
-                    ),
+                    new SignUpPasswordRequiredState({
+                        correlationId: startResult.correlationId,
+                        continuationToken: startResult.continuationToken,
+                        logger: this.logger,
+                        config: this.customAuthConfig,
+                        signInClient: this.signInClient,
+                        signUpClient: this.signUpClient,
+                        cacheClient: this.cacheClient,
+                        username: signUpInputs.username,
+                    }),
                 );
             }
 
@@ -376,17 +376,17 @@ export class CustomAuthStandardController extends StandardController implements 
             this.logger.verbose("Password-reset flow started.", correlationId);
 
             return new ResetPasswordStartResult(
-                new ResetPasswordCodeRequired(
-                    startResult.correlationId,
-                    startResult.continuationToken,
-                    this.logger,
-                    this.customAuthConfig,
-                    this.resetPasswordClient,
-                    this.signInClient,
-                    this.cacheClient,
-                    resetPasswordInputs.username,
-                    startResult.codeLength,
-                ),
+                new ResetPasswordCodeRequiredState({
+                    correlationId: startResult.correlationId,
+                    continuationToken: startResult.continuationToken,
+                    logger: this.logger,
+                    config: this.customAuthConfig,
+                    signInClient: this.signInClient,
+                    resetPasswordClient: this.resetPasswordClient,
+                    cacheClient: this.cacheClient,
+                    username: resetPasswordInputs.username,
+                    codeLength: startResult.codeLength,
+                }),
             );
         } catch (error) {
             this.logger.errorPii(`An error occurred during starting reset-password: ${error}`, correlationId);

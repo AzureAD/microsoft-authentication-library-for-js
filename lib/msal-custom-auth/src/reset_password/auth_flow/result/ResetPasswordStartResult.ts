@@ -5,26 +5,27 @@
 
 import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { ResetPasswordError } from "../error_type/ResetPasswordError.js";
-import { ResetPasswordCodeRequired } from "../state/ResetPasswordCodeRequired.js";
-import { ResetPasswordFailed } from "../state/ResetPasswordFailed.js";
+import { ResetPasswordCodeRequiredState } from "../state/ResetPasswordCodeRequiredState.js";
+import { ResetPasswordFailedState } from "../state/ResetPasswordFailedState.js";
 
 /*
  * Result of a reset password operation.
  */
 export class ResetPasswordStartResult extends AuthFlowResultBase<
-    ResetPasswordCodeRequired | ResetPasswordFailed,
+    ResetPasswordStartResultState,
     ResetPasswordError,
     void
 > {
-    constructor(state?: ResetPasswordCodeRequired) {
+    constructor(state: ResetPasswordStartResultState) {
         super(state);
     }
 
     static createWithError(error: unknown): ResetPasswordStartResult {
-        const result = new ResetPasswordStartResult();
+        const result = new ResetPasswordStartResult(new ResetPasswordFailedState());
         result.error = new ResetPasswordError(ResetPasswordStartResult.createErrorData(error));
-        result.state = new ResetPasswordFailed();
 
         return result;
     }
 }
+
+export type ResetPasswordStartResultState = ResetPasswordCodeRequiredState | ResetPasswordFailedState;

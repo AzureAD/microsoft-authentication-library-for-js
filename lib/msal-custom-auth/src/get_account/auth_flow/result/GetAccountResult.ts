@@ -6,25 +6,25 @@
 import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { CustomAuthAccountData } from "../CustomAuthAccountData.js";
 import { GetAccountError } from "../error_type/GetAccountError.js";
-import { GetAccountCompleted } from "../state/GetAccountCompleted.js";
-import { GetAccountFailed } from "../state/GetAccountFailed.js";
+import { GetAccountCompletedState } from "../state/GetAccountCompletedState.js";
+import { GetAccountFailedState } from "../state/GetAccountFailedState.js";
 
 /*
  * Result of getting an account.
  */
 export class GetAccountResult extends AuthFlowResultBase<
-    GetAccountCompleted | GetAccountFailed,
+    GetAccountCompletedState | GetAccountFailedState,
     GetAccountError,
     CustomAuthAccountData
 > {
     constructor(resultData?: CustomAuthAccountData) {
-        super(new GetAccountCompleted(), resultData);
+        super(new GetAccountCompletedState(), resultData);
     }
 
     static createWithError(error: unknown): GetAccountResult {
         const result = new GetAccountResult();
         result.error = new GetAccountError(GetAccountResult.createErrorData(error));
-        result.state = new GetAccountFailed();
+        result.state = new GetAccountFailedState();
 
         return result;
     }

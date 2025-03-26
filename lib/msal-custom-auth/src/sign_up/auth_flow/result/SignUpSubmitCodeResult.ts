@@ -5,28 +5,33 @@
 
 import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { SignUpSubmitCodeError } from "../error_type/SignUpError.js";
-import { SignUpPasswordRequired } from "../state/SignUpPasswordRequired.js";
-import { SignUpCompleted } from "../state/SignUpCompleted.js";
-import { SignUpFailed } from "../state/SignUpFailed.js";
-import { SignUpAttributesRequired } from "../state/SignUpAttributesRequired.js";
+import { SignUpAttributesRequiredState } from "../state/SignUpAttributesRequiredState.js";
+import { SignUpPasswordRequiredState } from "../state/SignUpPasswordRequiredState.js";
+import { SignUpCompletedState } from "../state/SignUpCompletedState.js";
+import { SignUpFailedState } from "../state/SignUpFailedState.js";
 
 /*
  * Result of a sign-up operation that requires a code.
  */
 export class SignUpSubmitCodeResult extends AuthFlowResultBase<
-    SignUpPasswordRequired | SignUpAttributesRequired | SignUpCompleted | SignUpFailed,
+    SignUpSubmitCodeResultState,
     SignUpSubmitCodeError,
     void
 > {
-    constructor(state?: SignUpPasswordRequired | SignUpAttributesRequired | SignUpCompleted | SignUpFailed) {
+    constructor(state: SignUpSubmitCodeResultState) {
         super(state);
     }
 
     static createWithError(error: unknown): SignUpSubmitCodeResult {
-        const result = new SignUpSubmitCodeResult();
+        const result = new SignUpSubmitCodeResult(new SignUpFailedState());
         result.error = new SignUpSubmitCodeError(SignUpSubmitCodeResult.createErrorData(error));
-        result.state = new SignUpFailed();
 
         return result;
     }
 }
+
+export type SignUpSubmitCodeResultState =
+    | SignUpPasswordRequiredState
+    | SignUpAttributesRequiredState
+    | SignUpCompletedState
+    | SignUpFailedState;

@@ -6,25 +6,25 @@
 import { AuthenticationResult } from "@azure/msal-browser";
 import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { GetCurrentAccountAccessTokenError } from "../error_type/GetAccountError.js";
-import { GetAccessTokenCompleted } from "../state/GetAccessTokenCompleted.js";
-import { GetAccessTokenFailed } from "../state/GetAccessTokenFailed.js";
+import { GetAccessTokenCompletedState } from "../state/GetAccessTokenCompletedState.js";
+import { GetAccessTokenFailedState } from "../state/GetAccessTokenFailedState.js";
 
 /*
  * Result of getting an access token.
  */
 export class GetAccessTokenResult extends AuthFlowResultBase<
-    GetAccessTokenCompleted | GetAccessTokenFailed,
+    GetAccessTokenCompletedState | GetAccessTokenFailedState,
     GetCurrentAccountAccessTokenError,
     AuthenticationResult
 > {
     constructor(resultData?: AuthenticationResult) {
-        super(new GetAccessTokenCompleted(), resultData);
+        super(new GetAccessTokenCompletedState(), resultData);
     }
 
     static createWithError(error: unknown): GetAccessTokenResult {
         const result = new GetAccessTokenResult();
         result.error = new GetCurrentAccountAccessTokenError(GetAccessTokenResult.createErrorData(error));
-        result.state = new GetAccessTokenFailed();
+        result.state = new GetAccessTokenFailedState();
 
         return result;
     }

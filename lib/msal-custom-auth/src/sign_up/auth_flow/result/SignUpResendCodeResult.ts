@@ -5,26 +5,27 @@
 
 import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { SignUpResendCodeError } from "../error_type/SignUpError.js";
-import { SignUpCodeRequired } from "../state/SignUpCodeRequired.js";
-import { SignUpFailed } from "../state/SignUpFailed.js";
+import { SignUpCodeRequiredState } from "../state/SignUpCodeRequiredState.js";
+import { SignUpFailedState } from "../state/SignUpFailedState.js";
 
 /*
  * Result of resending code in a sign-up operation.
  */
 export class SignUpResendCodeResult extends AuthFlowResultBase<
-    SignUpCodeRequired | SignUpFailed,
+    SignUpResendCodeResultState,
     SignUpResendCodeError,
     void
 > {
-    constructor(state?: SignUpCodeRequired) {
+    constructor(state: SignUpResendCodeResultState) {
         super(state);
     }
 
     static createWithError(error: unknown): SignUpResendCodeResult {
-        const result = new SignUpResendCodeResult();
+        const result = new SignUpResendCodeResult(new SignUpFailedState());
         result.error = new SignUpResendCodeError(SignUpResendCodeResult.createErrorData(error));
-        result.state = new SignUpFailed();
 
         return result;
     }
 }
+
+export type SignUpResendCodeResultState = SignUpCodeRequiredState | SignUpFailedState;
