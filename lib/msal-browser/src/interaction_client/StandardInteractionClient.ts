@@ -21,9 +21,9 @@ import {
     BaseAuthRequest,
     StringDict,
     PkceCodes,
+    CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
 import {
     BrowserConstants,
     InteractionType,
@@ -49,7 +49,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param pkceCodes
      */
     protected async initializeAuthorizationCodeRequest(
-        request: AuthorizationUrlRequest,
+        request: CommonAuthorizationUrlRequest,
         pkceCodes?: PkceCodes
     ): Promise<CommonAuthorizationCodeRequest> {
         this.performanceClient.addQueueMeasurement(
@@ -330,7 +330,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected async initializeAuthorizationRequest(
         request: RedirectRequest | PopupRequest | SsoSilentRequest,
         interactionType: InteractionType
-    ): Promise<AuthorizationUrlRequest> {
+    ): Promise<CommonAuthorizationUrlRequest> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.correlationId
@@ -359,7 +359,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.logger
         );
 
-        const validatedRequest: AuthorizationUrlRequest = {
+        const validatedRequest: CommonAuthorizationUrlRequest = {
             ...baseRequest,
             redirectUri: redirectUri,
             state: state,

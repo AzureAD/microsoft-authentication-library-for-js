@@ -13,6 +13,7 @@ import {
     ServerResponseType,
     AccountEntity,
     AccountInfo,
+    CommonAuthorizationUrlRequest,
 } from "@azure/msal-common";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
 import { StandardInteractionClient } from "../../src/interaction_client/StandardInteractionClient.js";
@@ -27,7 +28,6 @@ import {
     ID_TOKEN_CLAIMS,
     TEST_TOKENS,
 } from "../utils/StringConstants.js";
-import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest.js";
 import { RedirectRequest } from "../../src/request/RedirectRequest.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
@@ -39,7 +39,7 @@ class testStandardInteractionClient extends StandardInteractionClient {
         return Promise.resolve();
     }
 
-    async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest) {
+    async initializeAuthorizationCodeRequest(request: CommonAuthorizationUrlRequest) {
         return super.initializeAuthorizationCodeRequest(request);
     }
 
@@ -128,7 +128,7 @@ describe("StandardInteractionClient", () => {
     });
 
     it("initializeAuthorizationCodeRequest", async () => {
-        const request: AuthorizationUrlRequest = {
+        const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
             loginHint: "AbeLi@microsoft.com",
@@ -154,7 +154,7 @@ describe("StandardInteractionClient", () => {
     });
 
     it("initializeAuthorizationCodeRequest validates the request and does not influence undefined popKid param", async () => {
-        const request: AuthorizationUrlRequest = {
+        const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
             loginHint: "AbeLi@microsoft.com",
@@ -178,7 +178,7 @@ describe("StandardInteractionClient", () => {
     });
 
     it("initializeAuthorizationCodeRequest validates the request and adds reqCnf param when user defined", async () => {
-        const request: AuthorizationUrlRequest = {
+        const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
             loginHint: "AbeLi@microsoft.com",
@@ -249,7 +249,7 @@ describe("StandardInteractionClient", () => {
         await pca.browserStorage.setAccount(testAccountEntity);
         pca.setActiveAccount(testAccount);
 
-        const request: AuthorizationUrlRequest = {
+        const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
             state: TEST_STATE_VALUES.USER_STATE,
@@ -267,7 +267,7 @@ describe("StandardInteractionClient", () => {
     });
 
     it("initializeAuthorizationRequest persists account in request", async () => {
-        const request: AuthorizationUrlRequest = {
+        const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
             account: { ...testAccount },
@@ -290,7 +290,7 @@ describe("StandardInteractionClient", () => {
         await pca.browserStorage.setAccount(testAccountEntity);
         pca.setActiveAccount(testAccount);
 
-        const request: AuthorizationUrlRequest = {
+        const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
             loginHint: "AbeLi@microsoft.com",
@@ -314,7 +314,7 @@ describe("StandardInteractionClient", () => {
         await pca.browserStorage.setAccount(testAccountEntity);
         pca.setActiveAccount(testAccount);
 
-        const request: AuthorizationUrlRequest = {
+        const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
             sid: "test_sid",
@@ -334,7 +334,7 @@ describe("StandardInteractionClient", () => {
     });
 
     it("initializeAuthorizationRequest keeps both loginHint and account", async () => {
-        const request: AuthorizationUrlRequest = {
+        const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
             loginHint: "AbeLi@microsoft.com",
@@ -355,7 +355,7 @@ describe("StandardInteractionClient", () => {
     });
 
     it("initializeAuthorizationRequest keeps both sid and account", async () => {
-        const request: AuthorizationUrlRequest = {
+        const request: CommonAuthorizationUrlRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
             sid: "test_sid",

@@ -41,7 +41,8 @@ import {
 } from "../utils/StringConstants.js";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler.js";
 import {
-    BrowserAuthErrorMessage,
+    BrowserAuthErrorMessages,
+    BrowserAuthErrorCodes,
     BrowserAuthError,
 } from "../../src/error/BrowserAuthError.js";
 import { TemporaryCacheKeys } from "../../src/utils/BrowserConstants.js";
@@ -213,10 +214,10 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 .catch((e) => {
                     expect(e).toBeInstanceOf(BrowserAuthError);
                     expect(e.errorCode).toEqual(
-                        BrowserAuthErrorMessage.emptyNavigateUriError.code
+                        BrowserAuthErrorCodes.emptyNavigateUri
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessage.emptyNavigateUriError.desc
+                        BrowserAuthErrorMessages[BrowserAuthErrorCodes.emptyNavigateUri]
                     );
                     done();
                 });

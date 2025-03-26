@@ -48,17 +48,11 @@ export interface IPublicClientApplication {
     removeEventCallback(callbackId: string): void;
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
     removePerformanceCallback(callbackId: string): boolean;
-    enableAccountStorageEvents(): void;
-    disableAccountStorageEvents(): void;
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
-    getAccountByHomeId(homeAccountId: string): AccountInfo | null;
-    getAccountByLocalId(localId: string): AccountInfo | null;
-    getAccountByUsername(userName: string): AccountInfo | null;
     getAllAccounts(): AccountInfo[];
     handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
     loginRedirect(request?: RedirectRequest): Promise<void>;
-    logout(logoutRequest?: EndSessionRequest): Promise<void>;
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
@@ -124,15 +118,6 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     getAccount: () => {
         return null;
     },
-    getAccountByHomeId: () => {
-        return null;
-    },
-    getAccountByUsername: () => {
-        return null;
-    },
-    getAccountByLocalId: () => {
-        return null;
-    },
     handleRedirectPromise: () => {
         return Promise.reject(
             createBrowserConfigurationAuthError(
@@ -148,13 +133,6 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         );
     },
     loginRedirect: () => {
-        return Promise.reject(
-            createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
-            )
-        );
-    },
-    logout: () => {
         return Promise.reject(
             createBrowserConfigurationAuthError(
                 BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
@@ -193,12 +171,6 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     removePerformanceCallback: () => {
         return false;
-    },
-    enableAccountStorageEvents: () => {
-        return;
-    },
-    disableAccountStorageEvents: () => {
-        return;
     },
     getTokenCache: () => {
         throw createBrowserConfigurationAuthError(

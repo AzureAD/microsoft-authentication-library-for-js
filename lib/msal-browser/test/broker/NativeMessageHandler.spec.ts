@@ -10,11 +10,12 @@ import {
     IPerformanceClient,
 } from "@azure/msal-common";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
-import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/index.js";
+import { BrowserAuthError, BrowserAuthErrorCodes } from "../../src/index.js";
 import { NativeExtensionMethod } from "../../src/utils/BrowserConstants.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
+import { BrowserAuthErrorMessages } from "../../src/error/BrowserAuthError.js";
 
 let performanceClient: IPerformanceClient;
 
@@ -166,10 +167,10 @@ describe("NativeMessageHandler Tests", () => {
             ).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e.errorCode).toBe(
-                    BrowserAuthErrorMessage.nativeExtensionNotInstalled.code
+                    BrowserAuthErrorCodes.nativeExtensionNotInstalled
                 );
                 expect(e.errorMessage).toBe(
-                    BrowserAuthErrorMessage.nativeExtensionNotInstalled.desc
+                    BrowserAuthErrorMessages[BrowserAuthErrorCodes.nativeExtensionNotInstalled]
                 );
                 done();
             });
@@ -190,10 +191,10 @@ describe("NativeMessageHandler Tests", () => {
                 .catch((e) => {
                     expect(e).toBeInstanceOf(BrowserAuthError);
                     expect(e.errorCode).toBe(
-                        BrowserAuthErrorMessage.nativeHandshakeTimeout.code
+                        BrowserAuthErrorCodes.nativeHandshakeTimeout
                     );
                     expect(e.errorMessage).toBe(
-                        BrowserAuthErrorMessage.nativeHandshakeTimeout.desc
+                        BrowserAuthErrorMessages[BrowserAuthErrorCodes.nativeHandshakeTimeout]
                     );
                     done();
                 })

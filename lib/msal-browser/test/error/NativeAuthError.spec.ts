@@ -10,9 +10,10 @@ import {
 } from "@azure/msal-common";
 import {
     BrowserAuthError,
-    BrowserAuthErrorMessage,
+    BrowserAuthErrorMessages,
 } from "../../src/error/BrowserAuthError";
 import * as NativeStatusCode from "../../src/broker/nativeBroker/NativeStatusCodes";
+import { BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
 
 describe("NativeAuthError Unit Tests", () => {
     describe("NativeAuthError", () => {
@@ -132,7 +133,7 @@ describe("NativeAuthError Unit Tests", () => {
                 );
                 expect(error).toBeInstanceOf(BrowserAuthError);
                 expect(error.errorCode).toBe(
-                    BrowserAuthErrorMessage.userCancelledError.code
+                    BrowserAuthErrorMessages[BrowserAuthErrorCodes.userCancelled]
                 );
             });
 
@@ -149,7 +150,7 @@ describe("NativeAuthError Unit Tests", () => {
                 );
                 expect(error).toBeInstanceOf(BrowserAuthError);
                 expect(error.errorCode).toBe(
-                    BrowserAuthErrorMessage.noNetworkConnectivity.code
+                    BrowserAuthErrorMessages[BrowserAuthErrorCodes.noNetworkConnectivity]
                 );
             });
         });

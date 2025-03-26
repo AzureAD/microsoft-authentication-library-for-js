@@ -217,11 +217,11 @@ describe("BaseInteractionClient", () => {
             expect(pca.getAllAccounts().length).toBe(2);
             expect(pca.getActiveAccount()).toMatchObject(testAccountInfo1);
             await testClient.logout({ account: testAccountInfo1 });
-            expect(pca.getAccountByHomeId(testAccountInfo1.homeAccountId)).toBe(
+            expect(pca.getAccount({homeAccountId: testAccountInfo1.homeAccountId})).toBe(
                 null
             );
             expect(
-                pca.getAccountByHomeId(testAccountInfo2.homeAccountId)
+                pca.getAccount({homeAccountId: testAccountInfo2.homeAccountId})
             ).toMatchObject(testAccountInfo2);
             expect(pca.getActiveAccount()).toBe(null);
         });

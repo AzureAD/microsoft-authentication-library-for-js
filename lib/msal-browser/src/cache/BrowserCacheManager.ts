@@ -953,7 +953,6 @@ export class BrowserCacheManager extends CacheManager {
                 key,
                 value,
                 undefined,
-                this.cacheConfig.secureCookies
             );
         }
     }
@@ -1539,7 +1538,6 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
         cacheLocation: BrowserCacheLocation.MemoryStorage,
         temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
         storeAuthStateInCookie: false,
-        secureCookies: false,
         cacheMigrationEnabled: false,
         claimsBasedCachingEnabled: false,
     };

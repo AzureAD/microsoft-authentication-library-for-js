@@ -62,7 +62,7 @@ import { base64Encode } from "../../src/encode/Base64Encode.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import {
     createBrowserAuthError,
-    BrowserAuthErrorMessage,
+    BrowserAuthErrorMessages,
     BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError.js";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler.js";
@@ -91,7 +91,6 @@ const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
     storeAuthStateInCookie: false,
-    secureCookies: false,
     cacheMigrationEnabled: false,
     claimsBasedCachingEnabled: false,
 };
@@ -803,12 +802,10 @@ describe("RedirectClient", () => {
                 .handleRedirectPromise("", rootMeasurement)
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
-                        BrowserAuthErrorMessage.nativeConnectionNotEstablished
-                            .code
+                        BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessage.nativeConnectionNotEstablished
-                            .desc
+                        BrowserAuthErrorMessages[BrowserAuthErrorCodes.nativeConnectionNotEstablished]
                     );
                     done();
                 });
@@ -2435,6 +2432,20 @@ describe("RedirectClient", () => {
                 done();
             };
 
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                telemetry: {
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+    
+            pca.initialize().then(() => {pca = (pca as any).controller;})
+
             jest.spyOn(
                 RedirectHandler.prototype,
                 "initiateAuthRequest"
@@ -2461,7 +2472,6 @@ describe("RedirectClient", () => {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: ["user.read", "openid", "profile"],
                 state: TEST_STATE_VALUES.USER_STATE,
-                onRedirectNavigate,
             };
             redirectClient.acquireToken(loginRequest);
         });
@@ -2675,9 +2685,6 @@ describe("RedirectClient", () => {
                         idToken: false,
                     },
                     nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
-                    onRedirectNavigate: () => {
-                        return false; // Supress navigation
-                    },
                 });
 
                 const tokenResp = await redirectClient.handleRedirectPromise(
@@ -2712,9 +2719,6 @@ describe("RedirectClient", () => {
                         accessToken: false,
                     },
                     nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
-                    onRedirectNavigate: () => {
-                        return false; // Supress navigation
-                    },
                 });
 
                 const tokenResp = await redirectClient.handleRedirectPromise(
@@ -2749,9 +2753,6 @@ describe("RedirectClient", () => {
                         refreshToken: false,
                     },
                     nonce: ID_TOKEN_CLAIMS.nonce, // Ensures nonce matches the mocked idToken
-                    onRedirectNavigate: () => {
-                        return false; // Supress navigation
-                    },
                 });
 
                 const tokenResp = await redirectClient.handleRedirectPromise(

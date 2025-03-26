@@ -39,14 +39,8 @@ export {
 // Browser Errors
 export {
     BrowserAuthError,
-    BrowserAuthErrorMessage,
     BrowserAuthErrorCodes,
 } from "./error/BrowserAuthError.js";
-export {
-    BrowserConfigurationAuthError,
-    BrowserConfigurationAuthErrorCodes,
-    BrowserConfigurationAuthErrorMessage,
-} from "./error/BrowserConfigurationAuthError.js";
 
 // Interfaces
 export {
@@ -62,7 +56,6 @@ export { SilentRequest } from "./request/SilentRequest.js";
 export { SsoSilentRequest } from "./request/SsoSilentRequest.js";
 export { EndSessionRequest } from "./request/EndSessionRequest.js";
 export { EndSessionPopupRequest } from "./request/EndSessionPopupRequest.js";
-export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest.js";
 export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest.js";
 export { AuthenticationResult } from "./response/AuthenticationResult.js";
 export { ClearCacheRequest } from "./request/ClearCacheRequest.js";

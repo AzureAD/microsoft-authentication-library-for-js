@@ -15,9 +15,9 @@ import {
     PerformanceEvents,
     invokeAsync,
     invoke,
+    CommonAuthorizationUrlRequest
 } from "@azure/msal-common/browser";
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -114,7 +114,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         }
 
         // Create silent request
-        const silentRequest: AuthorizationUrlRequest = await invokeAsync(
+        const silentRequest: CommonAuthorizationUrlRequest = await invokeAsync(
             this.initializeAuthorizationRequest.bind(this),
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
@@ -173,7 +173,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.correlationId
             );
 
-            const retrySilentRequest: AuthorizationUrlRequest =
+            const retrySilentRequest: CommonAuthorizationUrlRequest =
                 await invokeAsync(
                     this.initializeAuthorizationRequest.bind(this),
                     PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
@@ -212,7 +212,7 @@ export class SilentIframeClient extends StandardInteractionClient {
      */
     protected async silentTokenHelper(
         authClient: AuthorizationCodeClient,
-        silentRequest: AuthorizationUrlRequest
+        silentRequest: CommonAuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
         const correlationId = silentRequest.correlationId;
         this.performanceClient.addQueueMeasurement(
@@ -267,7 +267,6 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.performanceClient,
             this.logger,
             correlationId,
-            this.config.system.navigateFrameWait
         );
         const responseType = this.config.auth.OIDCOptions.serverResponseType;
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.

@@ -85,7 +85,7 @@ import { FetchClient } from "../../src/network/FetchClient.js";
 import {
     BrowserAuthError,
     BrowserAuthErrorCodes,
-    BrowserAuthErrorMessage,
+    BrowserAuthErrorMessages,
     createBrowserAuthError,
 } from "../../src/error/BrowserAuthError.js";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
@@ -121,13 +121,12 @@ import {
     buildIdToken,
     TestTimeUtils,
 } from "msal-test-utils";
-import { nativeConnectionNotEstablished } from "../../src/error/BrowserAuthErrorCodes.js";
+import { blockNestedPopups, nativeConnectionNotEstablished } from "../../src/error/BrowserAuthErrorCodes.js";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
     cacheLocation: BrowserCacheLocation.SessionStorage,
     storeAuthStateInCookie: false,
-    secureCookies: false,
     cacheMigrationEnabled: false,
     claimsBasedCachingEnabled: false,
 };
@@ -1246,7 +1245,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("doesnt mutate request correlation id", async () => {
             const request: RedirectRequest = {
                 scopes: [],
-                onRedirectNavigate: () => false, // Skip the navigation
             };
 
             await pca.loginRedirect(request).catch(() => null);
@@ -1617,7 +1615,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("does not mutate request correlation id", async () => {
             const request: RedirectRequest = {
                 scopes: [],
-                onRedirectNavigate: () => false, // Skip the navigation
             };
 
             await pca.acquireTokenRedirect(request).catch(() => null);
@@ -1704,12 +1701,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .catch((e) => {
                     expect(e).toBeInstanceOf(BrowserAuthError);
                     expect(e.errorCode).toEqual(
-                        BrowserAuthErrorMessage.blockAcquireTokenInPopupsError
-                            .code
+                        BrowserAuthErrorCodes.blockNestedPopups
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessage.blockAcquireTokenInPopupsError
-                            .desc
+                        BrowserAuthErrorMessages[BrowserAuthErrorCodes.blockNestedPopups]
                     );
                     done();
                 })
@@ -1903,38 +1898,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
         });
 
-        it("emits pre-redirect telemetry event when onRedirectNavigate callback is set", (done) => {
-            const onRedirectNavigate = (url: string) => {
-                expect(url).toBeDefined();
-            };
-
-            const callbackId = pca.addPerformanceCallback((events) => {
-                expect(events[0].success).toBe(true);
-                expect(events[0].name).toBe(
-                    PerformanceEvents.AcquireTokenPreRedirect
-                );
-                pca.removePerformanceCallback(callbackId);
-                done();
-            });
-
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockResolvedValue(true);
-
-            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
-                challenge: TEST_CONFIG.TEST_CHALLENGE,
-                verifier: TEST_CONFIG.TEST_VERIFIER,
-            });
-            const loginRequest: RedirectRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: ["user.read", "openid", "profile"],
-                state: TEST_STATE_VALUES.USER_STATE,
-                onRedirectNavigate,
-            };
-            pca.acquireTokenRedirect(loginRequest);
-        });
-
         it("emits pre-redirect telemetry event when onRedirectNavigate callback is not set", (done) => {
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].success).toBe(true);
@@ -2013,6 +1976,30 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 return false;
             };
 
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    onRedirectNavigate,
+                },
+                telemetry: {
+                    client: new BrowserPerformanceClient(testAppConfig),
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+            pca = (pca as any).controller;
+            await pca.initialize();
+
+            const callbackId = pca.addPerformanceCallback((events) => {
+                expect(events[0].success).toBe(true);
+                expect(events[0].name).toBe(
+                    PerformanceEvents.AcquireTokenPreRedirect
+                );
+                pca.removePerformanceCallback(callbackId);
+            });
+            
             const measurementDiscardSpy = jest.spyOn(
                 PerformanceClient.prototype,
                 "discardMeasurements"
@@ -2031,8 +2018,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: ["user.read", "openid", "profile"],
                 state: TEST_STATE_VALUES.USER_STATE,
-                onRedirectNavigate,
             };
+
             await pca.acquireTokenRedirect(loginRequest);
             expect(measurementDiscardSpy).toHaveBeenCalledTimes(1);
         });
@@ -2806,12 +2793,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .catch((e) => {
                     expect(e).toBeInstanceOf(BrowserAuthError);
                     expect(e.errorCode).toEqual(
-                        BrowserAuthErrorMessage.blockAcquireTokenInPopupsError
-                            .code
+                        BrowserAuthErrorCodes.blockNestedPopups
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessage.blockAcquireTokenInPopupsError
-                            .desc
+                        BrowserAuthErrorMessages[BrowserAuthErrorCodes.blockNestedPopups]
                     );
                     done();
                 })
@@ -3549,12 +3534,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 })
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
-                        BrowserAuthErrorMessage
-                            .unableToAcquireTokenFromNativePlatform.code
+                        BrowserAuthErrorCodes.unableToAcquireTokenFromNativePlatform
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessage
-                            .unableToAcquireTokenFromNativePlatform.desc
+                        BrowserAuthErrorMessages[BrowserAuthErrorCodes.unableToAcquireTokenFromNativePlatform]
                     );
                 });
             expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(0);
@@ -6087,53 +6070,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
-    describe("logout", () => {
-        beforeEach(async () => {
-            pca = (pca as any).controller;
-            await pca.initialize();
-        });
-
-        it("throws an error if initialize was not called prior", (done) => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            });
-            pca.logout().catch((error: any) => {
-                expect(error).toMatchObject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
-                    )
-                );
-                done();
-            });
-        });
-
-        it("calls logoutRedirect", (done) => {
-            jest.spyOn(pca, "logoutRedirect").mockImplementation((request) => {
-                expect(request && request.postLogoutRedirectUri).toBe(
-                    "/logout"
-                );
-                done();
-                return Promise.resolve();
-            });
-
-            pca.logout({ postLogoutRedirectUri: "/logout" });
-        });
-
-        it("doesnt mutate request correlation id", async () => {
-            jest.spyOn(pca, "logoutRedirect").mockImplementation((request) => {
-                return Promise.resolve();
-            });
-            const request: EndSessionRequest = {};
-
-            await pca.logout(request).catch(() => null);
-            await pca.logout(request).catch(() => null);
-
-            expect(request.correlationId).toBe(undefined);
-        });
-    });
-
     describe("logoutRedirect", () => {
         beforeEach(async () => {
             pca = (pca as any).controller;
@@ -6381,77 +6317,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             window.sessionStorage.clear();
             const accounts = pca.getAllAccounts();
             expect(accounts).toEqual([]);
-        });
-
-        it("getAccountByUsername returns account specified", () => {
-            const account = pca.getAccountByUsername(
-                ID_TOKEN_CLAIMS.preferred_username
-            );
-            expect(account?.idTokenClaims).not.toBeUndefined();
-            expect(account).toEqual(testAccountInfo1);
-        });
-
-        it("getAccountByUsername returns account specified with case mismatch", () => {
-            const account = pca.getAccountByUsername(
-                ID_TOKEN_CLAIMS.preferred_username.toUpperCase()
-            );
-            expect(account?.idTokenClaims).not.toBeUndefined();
-            expect(account).toEqual(testAccountInfo1);
-
-            const account2 = pca.getAccountByUsername(
-                ID_TOKEN_ALT_CLAIMS.preferred_username.toUpperCase()
-            );
-            expect(account2?.idTokenClaims).not.toBeUndefined();
-            expect(account2).toEqual(testAccountInfo2);
-        });
-
-        it("getAccountByUsername returns null if account does not exist", () => {
-            const account = pca.getAccountByUsername(
-                "this-email-doesnt-exist@microsoft.com"
-            );
-            expect(account).toBe(null);
-        });
-
-        it("getAccountByUsername returns null if passed username is null", () => {
-            // @ts-ignore
-            const account = pca.getAccountByUsername(null);
-            expect(account).toBe(null);
-        });
-
-        it("getAccountByHomeId returns account specified", () => {
-            const account = pca.getAccountByHomeId(
-                testAccountInfo1.homeAccountId
-            );
-            expect(account?.idTokenClaims).not.toBeUndefined();
-            expect(account).toEqual(testAccountInfo1);
-        });
-
-        it("getAccountByHomeId returns null if passed id does not exist", () => {
-            const account = pca.getAccountByHomeId("this-id-doesnt-exist");
-            expect(account).toBe(null);
-        });
-
-        it("getAccountByHomeId returns null if passed id is null", () => {
-            // @ts-ignore
-            const account = pca.getAccountByHomeId(null);
-            expect(account).toBe(null);
-        });
-
-        it("getAccountByLocalId returns account specified", () => {
-            const account = pca.getAccountByLocalId(ID_TOKEN_CLAIMS.oid);
-            expect(account?.idTokenClaims).not.toBeUndefined();
-            expect(account).toEqual(testAccountInfo1);
-        });
-
-        it("getAccountByLocalId returns null if passed id does not exist", () => {
-            const account = pca.getAccountByLocalId("this-id-doesnt-exist");
-            expect(account).toBe(null);
-        });
-
-        it("getAccountByLocalId returns null if passed id is null", () => {
-            // @ts-ignore
-            const account = pca.getAccountByLocalId(null);
-            expect(account).toBe(null);
         });
 
         describe("getAccount", () => {
@@ -7187,7 +7052,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
                     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
                     storeAuthStateInCookie: false,
-                    secureCookies: true,
                     cacheMigrationEnabled: false,
                     claimsBasedCachingEnabled: false,
                 },
@@ -7224,7 +7088,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             callbackId = pca.addEventCallback(subscriber);
-            pca.enableAccountStorageEvents();
 
             secondBrowserStorageInstance.setAccount(
                 accountEntity,
@@ -7251,7 +7114,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             callbackId = pca.addEventCallback(subscriber, [
                 EventType.ACCOUNT_REMOVED,
             ]);
-            pca.enableAccountStorageEvents();
 
             secondBrowserStorageInstance
                 .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
@@ -7278,7 +7140,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             callbackId = pca.addEventCallback(subscriber, [
                 EventType.ACTIVE_ACCOUNT_CHANGED,
             ]);
-            pca.enableAccountStorageEvents();
 
             secondBrowserStorageInstance
                 .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)

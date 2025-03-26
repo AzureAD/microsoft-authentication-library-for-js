@@ -235,14 +235,6 @@ export class UnknownOperatingContextController implements IController {
         blockNonBrowserEnvironment();
         return true;
     }
-    enableAccountStorageEvents(): void {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
-    }
-    disableAccountStorageEvents(): void {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
-    }
 
     handleRedirectPromise(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
