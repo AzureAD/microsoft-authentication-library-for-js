@@ -23,7 +23,7 @@ export class LinearRetryStrategy {
         }
 
         // retry-after header is in seconds
-        const millisToSleep = Math.round(parseFloat(retryHeader) * 1000);
+        let millisToSleep = Math.round(parseFloat(retryHeader) * 1000);
 
         /*
          * retry-after header is in HTTP Date format
@@ -31,7 +31,8 @@ export class LinearRetryStrategy {
          */
         if (isNaN(millisToSleep)) {
             // .valueOf() is needed to subtract dates in TypeScript
-            new Date(retryHeader).valueOf() - new Date().valueOf();
+            millisToSleep =
+                new Date(retryHeader).valueOf() - new Date().valueOf();
         }
 
         return Math.max(minimumDelay, millisToSleep);
