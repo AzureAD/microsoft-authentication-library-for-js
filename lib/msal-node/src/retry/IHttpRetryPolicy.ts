@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import http from "http";
+import { IncomingHttpHeaders } from "http";
 import { Logger } from "@azure/msal-common";
 
 export interface IHttpRetryPolicy {
@@ -22,6 +22,6 @@ export interface IHttpRetryPolicy {
         httpStatusCode: number,
         currentRetry: number,
         logger: Logger,
-        retryAfterHeader?: http.IncomingHttpHeaders["retry-after"]
+        retryAfterHeader?: IncomingHttpHeaders["retry-after"]
     ): Promise<boolean>;
 }

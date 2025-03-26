@@ -170,16 +170,4 @@ export const LOOPBACK_SERVER_CONSTANTS = {
 
 export const AZURE_ARC_SECRET_FILE_MAX_SIZE_BYTES: number = 4096; // 4 KB
 
-export const DEFAULT_MANAGED_IDENTITY_MAX_RETRIES: number = 3;
-export const DEFAULT_MANAGED_IDENTITY_RETRY_DELAY: number = 1000;
-export const DEFAULT_MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON: Array<number> =
-    [
-        HttpStatus.NOT_FOUND,
-        HttpStatus.REQUEST_TIMEOUT,
-        HttpStatus.TOO_MANY_REQUESTS,
-        HttpStatus.SERVER_ERROR,
-        HttpStatus.SERVICE_UNAVAILABLE,
-        HttpStatus.GATEWAY_TIMEOUT,
-    ];
-
 export type RetryPolicies = DefaultManagedIdentityRetryPolicy | ImdsRetryPolicy;

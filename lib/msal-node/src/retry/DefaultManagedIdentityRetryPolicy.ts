@@ -3,15 +3,21 @@
  * Licensed under the MIT License.
  */
 
-import http from "http";
-import { Logger } from "@azure/msal-common";
+import { IncomingHttpHeaders } from "http";
+import { HttpStatus, Logger } from "@azure/msal-common";
 import { IHttpRetryPolicy } from "./IHttpRetryPolicy.js";
 import { LinearRetryStrategy } from "./LinearRetryStrategy.js";
-import {
-    DEFAULT_MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON,
-    DEFAULT_MANAGED_IDENTITY_MAX_RETRIES,
-    DEFAULT_MANAGED_IDENTITY_RETRY_DELAY,
-} from "../utils/Constants.js";
+
+const DEFAULT_MANAGED_IDENTITY_MAX_RETRIES: number = 3;
+const DEFAULT_MANAGED_IDENTITY_RETRY_DELAY_MS: number = 1000;
+const DEFAULT_MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON: Array<number> = [
+    HttpStatus.NOT_FOUND,
+    HttpStatus.REQUEST_TIMEOUT,
+    HttpStatus.TOO_MANY_REQUESTS,
+    HttpStatus.SERVER_ERROR,
+    HttpStatus.SERVICE_UNAVAILABLE,
+    HttpStatus.GATEWAY_TIMEOUT,
+];
 
 export class DefaultManagedIdentityRetryPolicy implements IHttpRetryPolicy {
     private linearRetryStrategy: LinearRetryStrategy =
@@ -21,7 +27,7 @@ export class DefaultManagedIdentityRetryPolicy implements IHttpRetryPolicy {
         httpStatusCode: number,
         currentRetry: number,
         logger: Logger,
-        retryAfterHeader: http.IncomingHttpHeaders["retry-after"]
+        retryAfterHeader: IncomingHttpHeaders["retry-after"]
     ): Promise<boolean> {
         if (
             DEFAULT_MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON.includes(
@@ -30,7 +36,10 @@ export class DefaultManagedIdentityRetryPolicy implements IHttpRetryPolicy {
             currentRetry < DEFAULT_MANAGED_IDENTITY_MAX_RETRIES
         ) {
             const retryAfterDelay: number =
-                this.linearRetryStrategy.calculateDelay(retryAfterHeader);
+                this.linearRetryStrategy.calculateDelay(
+                    retryAfterHeader,
+                    DEFAULT_MANAGED_IDENTITY_RETRY_DELAY_MS
+                );
 
             logger.verbose(
                 `Retrying request in ${retryAfterDelay}ms (retry attempt: ${
@@ -40,11 +49,8 @@ export class DefaultManagedIdentityRetryPolicy implements IHttpRetryPolicy {
 
             // pause execution for the calculated delay
             await new Promise((resolve) => {
-                // retryAfterHeader value of 0 evaluates to false, and DEFAULT_MANAGED_IDENTITY_RETRY_DELAY will be used
-                return setTimeout(
-                    resolve,
-                    retryAfterDelay || DEFAULT_MANAGED_IDENTITY_RETRY_DELAY
-                );
+                // retryAfterHeader value of 0 evaluates to false, and DEFAULT_MANAGED_IDENTITY_RETRY_DELAY_MS will be used
+                return setTimeout(resolve, retryAfterDelay);
             });
 
             return true;

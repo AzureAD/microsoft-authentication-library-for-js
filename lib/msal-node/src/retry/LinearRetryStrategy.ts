@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import http from "http";
+import { IncomingHttpHeaders } from "http";
 
 export class LinearRetryStrategy {
     /**
@@ -15,27 +15,25 @@ export class LinearRetryStrategy {
      *          present or cannot be parsed, returns 0.
      */
     public calculateDelay(
-        retryHeader: http.IncomingHttpHeaders["retry-after"]
+        retryHeader: IncomingHttpHeaders["retry-after"],
+        minimumDelay: number
     ): number {
         if (!retryHeader) {
-            return 0;
+            return minimumDelay;
         }
 
         // retry-after header is in seconds
-        let millisToSleep = Math.round(parseFloat(retryHeader) * 1000);
+        const millisToSleep = Math.round(parseFloat(retryHeader) * 1000);
 
         /*
          * retry-after header is in HTTP Date format
          * <day-name>, <day> <month> <year> <hour>:<minute>:<second> GMT
          */
         if (isNaN(millisToSleep)) {
-            millisToSleep = Math.max(
-                0,
-                // .valueOf() is needed to subtract dates in TypeScript
-                new Date(retryHeader).valueOf() - new Date().valueOf()
-            );
+            // .valueOf() is needed to subtract dates in TypeScript
+            new Date(retryHeader).valueOf() - new Date().valueOf();
         }
 
-        return millisToSleep;
+        return Math.max(minimumDelay, millisToSleep);
     }
 }
