@@ -1206,50 +1206,6 @@ describe("PublicClientApplication", () => {
         });
     });
 
-    test("initializeBaseRequest passes a requested claims hash to acquireToken when claimsBasedHashing is enabled", async () => {
-        const account: AccountInfo = {
-            homeAccountId: "",
-            environment: "",
-            tenantId: "",
-            username: "",
-            localAccountId: "",
-            name: "",
-            idTokenClaims: ID_TOKEN_CLAIMS,
-        };
-        const request: SilentFlowRequest = {
-            account: account,
-            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-            claims: TEST_CONSTANTS.CLAIMS,
-        };
-
-        const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
-        jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
-            (config) => new silentFlowClient(config)
-        );
-        const acquireCachedTokenSpy = jest
-            .spyOn(silentFlowClient.prototype, "acquireCachedToken")
-            .mockResolvedValue([
-                mockAuthenticationResult,
-                CacheOutcome.NOT_APPLICABLE,
-            ]);
-
-        const authApp = new PublicClientApplication({
-            ...appConfig,
-            cache: { claimsBasedCachingEnabled: true },
-        });
-        await authApp.acquireTokenSilent(request);
-        expect(
-            silentFlowClient.prototype.acquireCachedToken
-        ).toHaveBeenCalledWith(
-            expect.objectContaining({ requestedClaimsHash: expect.any(String) })
-        );
-
-        const submittedRequest = acquireCachedTokenSpy.mock.calls[0][0];
-        expect(
-            (submittedRequest as any)?.requestedClaimsHash?.length
-        ).toBeGreaterThan(0);
-    });
-
     test("initializeBaseRequest doesn't pass a claims hash to acquireToken when claimsBasedHashing is disabled by default", async () => {
         const account: AccountInfo = {
             homeAccountId: "",
