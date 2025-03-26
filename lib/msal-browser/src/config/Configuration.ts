@@ -377,10 +377,10 @@ export function buildConfiguration(
         );
     }
 
-    // Throw an error if user has set allowPlatformBroker to true without being in AAD protocol mode
+    // Throw an error if user has set allowPlatformBroker to true with OIDC protocol mode
     if (
         userInputAuth?.protocolMode &&
-        userInputAuth.protocolMode !== ProtocolMode.AAD &&
+        userInputAuth.protocolMode === ProtocolMode.OIDC &&
         providedSystemOptions?.allowPlatformBroker
     ) {
         throw createClientConfigurationError(
