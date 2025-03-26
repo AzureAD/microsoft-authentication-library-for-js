@@ -8,6 +8,7 @@ import {
     AuthorizeProtocol,
     CommonAuthorizationUrlRequest,
     Logger,
+    OAuthResponseType,
     ProtocolMode,
     RequestParameterBuilder,
 } from "@azure/msal-common/node";
@@ -50,7 +51,7 @@ export function getAuthCodeRequestUrl(
             config.telemetry.application
         );
     }
-    RequestParameterBuilder.addResponseTypeCode(parameters);
+    RequestParameterBuilder.addResponseType(parameters, OAuthResponseType.CODE);
     if (request.codeChallenge && request.codeChallengeMethod) {
         RequestParameterBuilder.addCodeChallengeParams(
             parameters,
@@ -58,6 +59,11 @@ export function getAuthCodeRequestUrl(
             request.codeChallengeMethod
         );
     }
+
+    RequestParameterBuilder.addExtraQueryParameters(
+        parameters,
+        request.extraQueryParameters || {}
+    );
 
     return AuthorizeProtocol.getAuthorizeUrl(authority, parameters);
 }

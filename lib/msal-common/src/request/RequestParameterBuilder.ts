@@ -4,7 +4,6 @@
  */
 
 import {
-    Constants,
     ResponseMode,
     CLIENT_INFO,
     AuthenticationScheme,
@@ -13,6 +12,7 @@ import {
     OIDC_DEFAULT_SCOPES,
     ThrottlingConstants,
     HeaderNames,
+    OAuthResponseType,
 } from "../utils/Constants.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import { ScopeSet } from "./ScopeSet.js";
@@ -53,25 +53,15 @@ export function instrumentBrokerParams(
 }
 
 /**
- * add response_type = code
+ * Add the given response_type
+ * @param parameters
+ * @param responseType
  */
-export function addResponseTypeCode(parameters: Map<string, string>): void {
-    parameters.set(
-        AADServerParamKeys.RESPONSE_TYPE,
-        Constants.CODE_RESPONSE_TYPE
-    );
-}
-
-/**
- * add response_type = token id_token
- */
-export function addResponseTypeForTokenAndIdToken(
-    parameters: Map<string, string>
+export function addResponseType(
+    parameters: Map<string, string>,
+    responseType: OAuthResponseType
 ): void {
-    parameters.set(
-        AADServerParamKeys.RESPONSE_TYPE,
-        `${Constants.TOKEN_RESPONSE_TYPE} ${Constants.ID_TOKEN_RESPONSE_TYPE}`
-    );
+    parameters.set(AADServerParamKeys.RESPONSE_TYPE, responseType);
 }
 
 /**
@@ -625,4 +615,20 @@ export function addBrokerParameters(
             brokerRedirectUri
         );
     }
+}
+
+/**
+ * Add EAR (Encrypted Authorize Response) request parameters
+ * @param parameters
+ * @param jwk
+ */
+export function addEARParameters(
+    parameters: Map<string, string>,
+    jwk: string
+): void {
+    parameters.set(AADServerParamKeys.EAR_JWK, encodeURIComponent(jwk));
+
+    // ear_jwe_crypto will always have value: {"alg":"dir","enc":"A256GCM"} so we can hardcode this
+    const jweCryptoB64Encoded = "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0";
+    parameters.set(AADServerParamKeys.EAR_JWE_CRYPTO, jweCryptoB64Encoded);
 }

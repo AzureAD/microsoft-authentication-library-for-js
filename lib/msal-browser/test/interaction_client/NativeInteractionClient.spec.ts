@@ -1272,54 +1272,6 @@ describe("NativeInteractionClient Tests", () => {
             expect(response).toEqual(testTokenResponse);
         });
 
-        it("clears interaction in progress if native broker call fails", (done) => {
-            //here
-
-            jest.spyOn(
-                NavigationClient.prototype,
-                "navigateExternal"
-            ).mockImplementation((url: string) => {
-                expect(url).toBe(window.location.href);
-                return Promise.resolve(true);
-            });
-            let firstTime = true;
-            jest.spyOn(
-                NativeMessageHandler.prototype,
-                "sendMessage"
-            ).mockImplementation((): Promise<object> => {
-                if (firstTime) {
-                    firstTime = false;
-                    return Promise.resolve(MOCK_WAM_RESPONSE); // The acquireTokenRedirect call should succeed
-                }
-                return Promise.reject(
-                    new NativeAuthError("ContentError", "extension call failed")
-                ); // handleRedirectPromise call should fail
-            });
-            // @ts-ignore
-            pca.browserStorage.setInteractionInProgress(true);
-            nativeInteractionClient
-                .acquireTokenRedirect(
-                    { scopes: ["User.Read"] },
-                    perfMeasurement
-                )
-                .then(() => {
-                    const inProgress =
-                        // @ts-ignore
-                        pca.browserStorage.getInteractionInProgress();
-                    expect(inProgress).toBeTruthy();
-                    nativeInteractionClient
-                        .handleRedirectPromise()
-                        .catch((e) => {
-                            expect(e.errorCode).toBe("ContentError");
-                            const isInProgress =
-                                // @ts-ignore
-                                pca.browserStorage.getInteractionInProgress();
-                            expect(isInProgress).toBeFalsy();
-                            done();
-                        });
-                });
-        });
-
         it("returns null if interaction is not in progress", async () => {
             //here
 

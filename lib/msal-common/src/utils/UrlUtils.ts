@@ -47,6 +47,7 @@ export function getDeserializedResponse(
         // Check for known response properties
         if (
             deserializedHash.code ||
+            deserializedHash.ear_jwe ||
             deserializedHash.error ||
             deserializedHash.error_description ||
             deserializedHash.state

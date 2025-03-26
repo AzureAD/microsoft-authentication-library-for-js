@@ -12,6 +12,10 @@ export type AuthorizeResponse = {
      */
     code?: string;
     /**
+     * Encrypted Authorize Response (EAR) JWE
+     */
+    ear_jwe?: string;
+    /**
      * Client info object containing UserId and TenantId
      */
     client_info?: string;

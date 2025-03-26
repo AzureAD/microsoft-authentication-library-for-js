@@ -377,10 +377,10 @@ export function buildConfiguration(
         );
     }
 
-    // Throw an error if user has set allowPlatformBroker to true without being in AAD protocol mode
+    // Throw an error if user has set allowPlatformBroker to true with OIDC protocol mode
     if (
         userInputAuth?.protocolMode &&
-        userInputAuth.protocolMode !== ProtocolMode.AAD &&
+        userInputAuth.protocolMode === ProtocolMode.OIDC &&
         providedSystemOptions?.allowPlatformBroker
     ) {
         throw createClientConfigurationError(
@@ -401,6 +401,18 @@ export function buildConfiguration(
         system: providedSystemOptions,
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
     };
+
+    /**
+     * Temporarily disable EAR until implementation is complete
+     * TODO: Remove this
+     */
+    if (overlayedConfig.auth.protocolMode === ProtocolMode.EAR) {
+        const logger = new Logger(providedSystemOptions.loggerOptions);
+        logger.warning(
+            "EAR Protocol Mode is not yet supported. Overriding to use PKCE auth"
+        );
+        overlayedConfig.auth.protocolMode = ProtocolMode.AAD;
+    }
 
     return overlayedConfig;
 }
