@@ -5,7 +5,6 @@
 
 import {
     ServerTelemetryManager,
-    CommonAuthorizationCodeRequest,
     Constants,
     AuthorizationCodeClient,
     ClientConfiguration,
@@ -20,9 +19,9 @@ import {
     invokeAsync,
     BaseAuthRequest,
     StringDict,
+    CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
 import {
     BrowserConstants,
     InteractionType,
@@ -34,7 +33,6 @@ import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
-import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { initializeBaseRequest } from "../request/RequestHelpers.js";
 
@@ -42,38 +40,6 @@ import { initializeBaseRequest } from "../request/RequestHelpers.js";
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
  */
 export abstract class StandardInteractionClient extends BaseInteractionClient {
-    /**
-     * Generates an auth code request tied to the url request.
-     * @param request
-     */
-    protected async initializeAuthorizationCodeRequest(
-        request: AuthorizationUrlRequest
-    ): Promise<CommonAuthorizationCodeRequest> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-            this.correlationId
-        );
-        const generatedPkceParams = await invokeAsync(
-            generatePkceCodes,
-            PerformanceEvents.GeneratePkceCodes,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
-        )(this.performanceClient, this.logger, this.correlationId);
-
-        const authCodeRequest: CommonAuthorizationCodeRequest = {
-            ...request,
-            redirectUri: request.redirectUri,
-            code: Constants.EMPTY_STRING,
-            codeVerifier: generatedPkceParams.verifier,
-        };
-
-        request.codeChallenge = generatedPkceParams.challenge;
-        request.codeChallengeMethod = Constants.S256_CODE_CHALLENGE_METHOD;
-
-        return authCodeRequest;
-    }
-
     /**
      * Initializer for the logout request.
      * @param logoutRequest
@@ -324,7 +290,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected async initializeAuthorizationRequest(
         request: RedirectRequest | PopupRequest | SsoSilentRequest,
         interactionType: InteractionType
-    ): Promise<AuthorizationUrlRequest> {
+    ): Promise<CommonAuthorizationUrlRequest> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.correlationId
@@ -353,7 +319,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.logger
         );
 
-        const validatedRequest: AuthorizationUrlRequest = {
+        const validatedRequest: CommonAuthorizationUrlRequest = {
             ...baseRequest,
             redirectUri: redirectUri,
             state: state,
@@ -361,6 +327,11 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             responseMode: this.config.auth.OIDCOptions
                 .serverResponseType as ResponseMode,
         };
+
+        // Skip active account lookup if either login hint or session id is set
+        if (request.loginHint || request.sid) {
+            return validatedRequest;
+        }
 
         const account =
             request.account || this.browserStorage.getActiveAccount();
@@ -374,14 +345,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 this.correlationId
             );
             validatedRequest.account = account;
-        }
-
-        // Check for ADAL/MSAL v1 SSO
-        if (!validatedRequest.loginHint && !account) {
-            const legacyLoginHint = this.browserStorage.getLegacyLoginHint();
-            if (legacyLoginHint) {
-                validatedRequest.loginHint = legacyLoginHint;
-            }
         }
 
         return validatedRequest;

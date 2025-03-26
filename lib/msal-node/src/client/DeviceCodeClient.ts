@@ -21,6 +21,7 @@ import {
     StringUtils,
     TimeUtils,
     UrlString,
+    UrlUtils,
     createAuthError,
     createClientAuthError,
 } from "@azure/msal-common/node";
@@ -111,15 +112,16 @@ export class DeviceCodeClient extends BaseClient {
     public createExtraQueryParameters(
         request: CommonDeviceCodeRequest
     ): string {
-        const parameterBuilder = new RequestParameterBuilder();
+        const parameters = new Map<string, string>();
 
         if (request.extraQueryParameters) {
-            parameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraQueryParameters(
+                parameters,
                 request.extraQueryParameters
             );
         }
 
-        return parameterBuilder.createQueryString();
+        return UrlUtils.mapToQueryString(parameters);
     }
 
     /**
@@ -171,14 +173,17 @@ export class DeviceCodeClient extends BaseClient {
      * @param request - developer provided CommonDeviceCodeRequest
      */
     private createQueryString(request: CommonDeviceCodeRequest): string {
-        const parameterBuilder: RequestParameterBuilder =
-            new RequestParameterBuilder();
+        const parameters = new Map<string, string>();
 
-        parameterBuilder.addScopes(request.scopes);
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
+        RequestParameterBuilder.addScopes(parameters, request.scopes);
+        RequestParameterBuilder.addClientId(
+            parameters,
+            this.config.authOptions.clientId
+        );
 
         if (request.extraQueryParameters) {
-            parameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraQueryParameters(
+                parameters,
                 request.extraQueryParameters
             );
         }
@@ -188,13 +193,14 @@ export class DeviceCodeClient extends BaseClient {
             (this.config.authOptions.clientCapabilities &&
                 this.config.authOptions.clientCapabilities.length > 0)
         ) {
-            parameterBuilder.addClaims(
+            RequestParameterBuilder.addClaims(
+                parameters,
                 request.claims,
                 this.config.authOptions.clientCapabilities
             );
         }
 
-        return parameterBuilder.createQueryString();
+        return UrlUtils.mapToQueryString(parameters);
     }
 
     /**
@@ -342,25 +348,40 @@ export class DeviceCodeClient extends BaseClient {
         request: CommonDeviceCodeRequest,
         deviceCodeResponse: DeviceCodeResponse
     ): string {
-        const requestParameters: RequestParameterBuilder =
-            new RequestParameterBuilder();
+        const parameters = new Map<string, string>();
 
-        requestParameters.addScopes(request.scopes);
-        requestParameters.addClientId(this.config.authOptions.clientId);
-        requestParameters.addGrantType(GrantType.DEVICE_CODE_GRANT);
-        requestParameters.addDeviceCode(deviceCodeResponse.deviceCode);
+        RequestParameterBuilder.addScopes(parameters, request.scopes);
+        RequestParameterBuilder.addClientId(
+            parameters,
+            this.config.authOptions.clientId
+        );
+        RequestParameterBuilder.addGrantType(
+            parameters,
+            GrantType.DEVICE_CODE_GRANT
+        );
+        RequestParameterBuilder.addDeviceCode(
+            parameters,
+            deviceCodeResponse.deviceCode
+        );
         const correlationId =
             request.correlationId ||
             this.config.cryptoInterface.createNewGuid();
-        requestParameters.addCorrelationId(correlationId);
-        requestParameters.addClientInfo();
-        requestParameters.addLibraryInfo(this.config.libraryInfo);
-        requestParameters.addApplicationTelemetry(
+        RequestParameterBuilder.addCorrelationId(parameters, correlationId);
+        RequestParameterBuilder.addClientInfo(parameters);
+        RequestParameterBuilder.addLibraryInfo(
+            parameters,
+            this.config.libraryInfo
+        );
+        RequestParameterBuilder.addApplicationTelemetry(
+            parameters,
             this.config.telemetry.application
         );
-        requestParameters.addThrottling();
+        RequestParameterBuilder.addThrottling(parameters);
         if (this.serverTelemetryManager) {
-            requestParameters.addServerTelemetry(this.serverTelemetryManager);
+            RequestParameterBuilder.addServerTelemetry(
+                parameters,
+                this.serverTelemetryManager
+            );
         }
 
         if (
@@ -368,11 +389,12 @@ export class DeviceCodeClient extends BaseClient {
             (this.config.authOptions.clientCapabilities &&
                 this.config.authOptions.clientCapabilities.length > 0)
         ) {
-            requestParameters.addClaims(
+            RequestParameterBuilder.addClaims(
+                parameters,
                 request.claims,
                 this.config.authOptions.clientCapabilities
             );
         }
-        return requestParameters.createQueryString();
+        return UrlUtils.mapToQueryString(parameters);
     }
 }

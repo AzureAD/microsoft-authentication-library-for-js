@@ -10,20 +10,19 @@
     "start": "next start"
   },
   "dependencies": {
-    "@azure/msal-browser": "^3.1.0",
-    "@azure/msal-react": "^2.0.3",
+    "@azure/msal-browser": "^4.0.0",
+    "@azure/msal-react": "^3.0.0",
     "@emotion/cache": "^11.10.5",
     "@emotion/react": "^11.10.5",
     "@emotion/server": "^11.10.0",
     "@emotion/styled": "^11.10.5",
     "@mui/icons-material": "^5.10.14",
     "@mui/material": "^5.10.14",
-    "next": "^14.2.10",
+    "next": "^14.2.25",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@azure/msal-common": "^14.7.0",
     "@types/jest": "^29.5.2",
     "e2e-test-utils": "file:../../e2eTestUtils",
     "jest": "^29.5.0",

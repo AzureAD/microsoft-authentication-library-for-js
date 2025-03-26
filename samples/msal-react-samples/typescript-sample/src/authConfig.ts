@@ -6,19 +6,19 @@ export const msalConfig: Configuration = {
         clientId: "b5c2e510-4a17-4feb-b219-e55aa5b74144",
         authority: "https://login.microsoftonline.com/common",
         redirectUri: "/",
-        postLogoutRedirectUri: "/"
+        postLogoutRedirectUri: "/",
     },
     system: {
-        allowNativeBroker: false // Disables WAM Broker
-    }
+        allowPlatformBroker: false, // Disables WAM Broker
+    },
 };
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 export const loginRequest: PopupRequest = {
-    scopes: ["User.Read"]
+    scopes: ["User.Read"],
 };
 
 // Add here the endpoints for MS Graph API services you would like to use.
 export const graphConfig = {
-    graphMeEndpoint: "https://graph.microsoft.com/v1.0/me"
+    graphMeEndpoint: "https://graph.microsoft.com/v1.0/me",
 };

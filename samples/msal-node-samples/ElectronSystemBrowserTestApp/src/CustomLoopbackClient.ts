@@ -4,7 +4,10 @@
  */
 
 import http from "http";
-import { ILoopbackClient, ServerAuthorizationCodeResponse } from "@azure/msal-node";
+import {
+    ILoopbackClient,
+    ServerAuthorizationCodeResponse,
+} from "@azure/msal-node";
 
 /**
  * Implements ILoopbackClient interface to listen for authZ code response.
@@ -25,13 +28,17 @@ export class CustomLoopbackClient implements ILoopbackClient {
      * @param logger
      * @returns
      */
-    static async initialize(preferredPort: number | undefined): Promise<CustomLoopbackClient> {
+    static async initialize(
+        preferredPort: number | undefined
+    ): Promise<CustomLoopbackClient> {
         const loopbackClient = new CustomLoopbackClient();
 
         if (preferredPort === 0 || preferredPort === undefined) {
             return loopbackClient;
         }
-        const isPortAvailable = await loopbackClient.isPortAvailable(preferredPort);
+        const isPortAvailable = await loopbackClient.isPortAvailable(
+            preferredPort
+        );
 
         if (isPortAvailable) {
             loopbackClient.port = preferredPort;
@@ -46,40 +53,67 @@ export class CustomLoopbackClient implements ILoopbackClient {
      * @param errorTemplate
      * @returns
      */
-    async listenForAuthCode(successTemplate?: string, errorTemplate?: string): Promise<ServerAuthorizationCodeResponse> {
+    async listenForAuthCode(
+        successTemplate?: string,
+        errorTemplate?: string
+    ): Promise<ServerAuthorizationCodeResponse> {
         if (!!this.server) {
-            throw new Error('Loopback server already exists. Cannot create another.')
+            throw new Error(
+                "Loopback server already exists. Cannot create another."
+            );
         }
 
-        const authCodeListener = new Promise<ServerAuthorizationCodeResponse>((resolve, reject) => {
-            this.server = http.createServer(async (req: http.IncomingMessage, res: http.ServerResponse) => {
-                const url = req.url;
-                if (!url) {
-                    res.end(errorTemplate || "Error occurred loading redirectUrl");
-                    reject(new Error('Loopback server callback was invoked without a url. This is unexpected.'));
-                    return;
-                } else if (url === "/") {
-                    res.end(successTemplate || "Auth code was successfully acquired. You can close this window now.");
-                    return;
-                }
+        const authCodeListener = new Promise<ServerAuthorizationCodeResponse>(
+            (resolve, reject) => {
+                this.server = http.createServer(
+                    async (
+                        req: http.IncomingMessage,
+                        res: http.ServerResponse
+                    ) => {
+                        const url = req.url;
+                        if (!url) {
+                            res.end(
+                                errorTemplate ||
+                                    "Error occurred loading redirectUrl"
+                            );
+                            reject(
+                                new Error(
+                                    "Loopback server callback was invoked without a url. This is unexpected."
+                                )
+                            );
+                            return;
+                        } else if (url === "/") {
+                            res.end(
+                                successTemplate ||
+                                    "Auth code was successfully acquired. You can close this window now."
+                            );
+                            return;
+                        }
 
-                const authCodeResponse = CustomLoopbackClient.getDeserializedQueryString(url);
-                if (authCodeResponse.code) {
-                    const redirectUri = await this.getRedirectUri();
-                    res.writeHead(302, { location: redirectUri }); // Prevent auth code from being saved in the browser history
-                    res.end();
-                }
-                resolve(authCodeResponse);
-            });
-            this.server.listen(this.port);
-        });
+                        const authCodeResponse =
+                            CustomLoopbackClient.getDeserializedQueryString(
+                                url
+                            );
+                        if (authCodeResponse.code) {
+                            const redirectUri = await this.getRedirectUri();
+                            res.writeHead(302, { location: redirectUri }); // Prevent auth code from being saved in the browser history
+                            res.end();
+                        }
+                        resolve(authCodeResponse);
+                    }
+                );
+                this.server.listen(this.port);
+            }
+        );
 
         // Wait for server to be listening
         await new Promise<void>((resolve) => {
             let ticks = 0;
             const id = setInterval(() => {
-                if ((5000 / 100) < ticks) {
-                    throw new Error('Timed out waiting for auth code listener to be registered.');
+                if (5000 / 100 < ticks) {
+                    throw new Error(
+                        "Timed out waiting for auth code listener to be registered."
+                    );
                 }
 
                 if (this.server.listening) {
@@ -99,13 +133,15 @@ export class CustomLoopbackClient implements ILoopbackClient {
      */
     getRedirectUri(): string {
         if (!this.server) {
-            throw new Error('No loopback server exists yet.')
+            throw new Error("No loopback server exists yet.");
         }
 
         const address = this.server.address();
         if (!address || typeof address === "string" || !address.port) {
             this.closeServer();
-            throw new Error('Loopback server address is not type string. This is unexpected.')
+            throw new Error(
+                "Loopback server address is not type string. This is unexpected."
+            );
         }
 
         const port = address && address.port;
@@ -128,8 +164,9 @@ export class CustomLoopbackClient implements ILoopbackClient {
      * @returns
      */
     isPortAvailable(port: number): Promise<boolean> {
-        return new Promise(resolve => {
-            const server = http.createServer()
+        return new Promise((resolve) => {
+            const server = http
+                .createServer()
                 .listen(port, () => {
                     server.close();
                     resolve(true);
@@ -154,9 +191,7 @@ export class CustomLoopbackClient implements ILoopbackClient {
         const parsedQueryString = this.parseQueryString(query);
         // If ? symbol was not present, above will return empty string, so give original query value
         const deserializedQueryString: ServerAuthorizationCodeResponse =
-            this.queryStringToObject(
-                parsedQueryString || query
-            );
+            this.queryStringToObject(parsedQueryString || query);
         // Check if deserialization didn't work
         if (!deserializedQueryString) {
             throw "Unable to deserialize query string";
@@ -185,7 +220,7 @@ export class CustomLoopbackClient implements ILoopbackClient {
      * @param query
      */
     static queryStringToObject(query: string): ServerAuthorizationCodeResponse {
-        const obj: {[key:string]:string} = {};
+        const obj: { [key: string]: string } = {};
         const params = query.split("&");
         const decode = (s: string) => decodeURIComponent(s.replace(/\+/g, " "));
         params.forEach((pair) => {

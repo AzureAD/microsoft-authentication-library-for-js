@@ -9,7 +9,6 @@ import {
     createFolder,
     RETRY_TIMES,
     enterCredentials,
-    SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
     SAMPLE_HOME_URL,
     NodeCacheTestUtils,
@@ -17,6 +16,7 @@ import {
     getCredentials,
 } from "e2e-test-utils";
 import { ConfidentialClientApplication } from "@azure/msal-node";
+import path from "path";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad-agc-confidential.cache.json`;
@@ -53,7 +53,7 @@ describe("Auth Code AAD AGC Confidential Tests", () => {
     let username: string;
     let password: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/auth-code/aad-agc-confidential`;
+    const screenshotFolder = path.join(__dirname, "screenshots/auth-code/aad-agc-confidential");
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -97,7 +97,7 @@ describe("Auth Code AAD AGC Confidential Tests", () => {
         });
 
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(5000);
             page.on("dialog", async (dialog) => {

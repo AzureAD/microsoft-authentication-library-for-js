@@ -20,7 +20,6 @@ import {
     ProtocolMode,
     AuthorityOptions,
     AuthorityMetadataEntity,
-    ValidCredentialType,
     Logger,
     LogLevel,
     TokenKeys,
@@ -32,6 +31,7 @@ import {
     ClientAssertionCallback,
     ClientAssertionConfig,
     PasswordGrantConstants,
+    OAuthResponseType,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -43,9 +43,9 @@ import {
     TEST_DATA_CLIENT_INFO,
     TEST_POP_VALUES,
     TEST_TOKENS,
-} from "../test_kit/StringConstants";
-import { Configuration } from "../../src/config/Configuration";
-import { TEST_CONSTANTS } from "../utils/TestConstants";
+} from "../test_kit/StringConstants.js";
+import { Configuration } from "../../src/config/Configuration.js";
+import { TEST_CONSTANTS } from "../utils/TestConstants.js";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
@@ -66,7 +66,7 @@ export class MockStorageClass extends CacheManager {
         return this.getAccount(accountKey);
     }
 
-    setAccount(value: AccountEntity): void {
+    async setAccount(value: AccountEntity): Promise<void> {
         const key = value.generateAccountKey();
         this.store[key] = value;
 
@@ -87,10 +87,6 @@ export class MockStorageClass extends CacheManager {
         }
     }
 
-    removeOutdatedAccount(accountKey: string): void {
-        this.removeAccount(accountKey);
-    }
-
     getAccountKeys(): string[] {
         return this.store[ACCOUNT_KEYS] || [];
     }
@@ -109,7 +105,7 @@ export class MockStorageClass extends CacheManager {
     getIdTokenCredential(key: string): IdTokenEntity | null {
         return (this.store[key] as IdTokenEntity) || null;
     }
-    setIdTokenCredential(value: IdTokenEntity): void {
+    async setIdTokenCredential(value: IdTokenEntity): Promise<void> {
         const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
@@ -124,7 +120,7 @@ export class MockStorageClass extends CacheManager {
     getAccessTokenCredential(key: string): AccessTokenEntity | null {
         return (this.store[key] as AccessTokenEntity) || null;
     }
-    setAccessTokenCredential(value: AccessTokenEntity): void {
+    async setAccessTokenCredential(value: AccessTokenEntity): Promise<void> {
         const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
@@ -139,7 +135,7 @@ export class MockStorageClass extends CacheManager {
     getRefreshTokenCredential(key: string): RefreshTokenEntity | null {
         return (this.store[key] as RefreshTokenEntity) || null;
     }
-    setRefreshTokenCredential(value: RefreshTokenEntity): void {
+    async setRefreshTokenCredential(value: RefreshTokenEntity): Promise<void> {
         const key = CacheHelpers.generateCredentialKey(value);
         this.store[key] = value;
 
@@ -199,23 +195,6 @@ export class MockStorageClass extends CacheManager {
     }
     async clear(): Promise<void> {
         this.store = {};
-    }
-    updateCredentialCacheKey(
-        currentCacheKey: string,
-        credential: ValidCredentialType
-    ): string {
-        const updatedCacheKey = CacheHelpers.generateCredentialKey(credential);
-
-        if (currentCacheKey !== updatedCacheKey) {
-            const cacheItem = this.store[currentCacheKey];
-            if (cacheItem) {
-                this.removeItem(currentCacheKey);
-                this.store[updatedCacheKey] = cacheItem;
-                return updatedCacheKey;
-            }
-        }
-
-        return currentCacheKey;
     }
 }
 
@@ -548,7 +527,9 @@ export const checkMockedNetworkRequest = (
     if (checks.msLibraryCapability !== undefined) {
         expect(
             returnVal.includes(
-                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${encodeURIComponent(
+                    ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                )}`
             )
         ).toBe(checks.msLibraryCapability);
     }
@@ -596,7 +577,9 @@ export const checkMockedNetworkRequest = (
     if (checks.responseType !== undefined) {
         expect(
             returnVal.includes(
-                `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.TOKEN_RESPONSE_TYPE}%20${Constants.ID_TOKEN_RESPONSE_TYPE}`
+                `${AADServerParamKeys.RESPONSE_TYPE}=${encodeURIComponent(
+                    OAuthResponseType.IDTOKEN_TOKEN
+                )}`
             )
         ).toBe(checks.responseType);
     }

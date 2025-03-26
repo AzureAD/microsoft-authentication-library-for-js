@@ -1,11 +1,16 @@
-import { HttpClient } from "../../src/network/HttpClient";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { HttpClient } from "../../src/network/HttpClient.js";
 import {
     NetworkResponse,
     NetworkRequestOptions,
     HttpStatus,
 } from "@azure/msal-common";
-import { MockedMetadataResponse } from "../utils/TestConstants";
-import { ProxyStatus } from "../../src/utils/Constants";
+import { MockedMetadataResponse } from "../utils/TestConstants.js";
+import { ProxyStatus } from "../../src/utils/Constants.js";
 import { UrlToHttpRequestOptions } from "../../src/utils/NetworkUtils.js";
 
 import http from "http";

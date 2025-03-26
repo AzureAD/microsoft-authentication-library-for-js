@@ -25,8 +25,9 @@ import {
     request as b2cTokenRequest,
 } from "../authConfigs/b2cAuthConfig.json";
 import fs from "fs";
+import path from "path";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/default tests`;
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screenshots/customizable-e2e-test/browserB2C");
 let sampleHomeUrl = "";
 
 describe("B2C Tests", () => {
@@ -56,7 +57,8 @@ describe("B2C Tests", () => {
         await browser.close();
     });
 
-    describe("AAD Account", () => {
+    // TODO: Unskip when AAD client app registration is updated
+    describe.skip("AAD Account", () => {
         beforeAll(async () => {
             const labApiParams: LabApiQueryParams = {
                 azureEnvironment: AzureEnvironments.CLOUD,
@@ -76,7 +78,7 @@ describe("B2C Tests", () => {
 
         describe("login Tests", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
                 BrowserCache = new BrowserCacheUtils(
@@ -151,7 +153,7 @@ describe("B2C Tests", () => {
             let screenshot: Screenshot;
 
             beforeAll(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
                 BrowserCache = new BrowserCacheUtils(
@@ -310,7 +312,7 @@ describe("B2C Tests", () => {
 
         describe("login Tests", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
                 BrowserCache = new BrowserCacheUtils(
@@ -385,7 +387,7 @@ describe("B2C Tests", () => {
             let screenshot: Screenshot;
 
             beforeAll(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
                 BrowserCache = new BrowserCacheUtils(

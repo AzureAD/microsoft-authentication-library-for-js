@@ -4,14 +4,13 @@
  */
 
 import { BaseClient } from "./BaseClient.js";
-import { CommonAuthorizationUrlRequest } from "../request/CommonAuthorizationUrlRequest.js";
 import { CommonAuthorizationCodeRequest } from "../request/CommonAuthorizationCodeRequest.js";
 import { Authority } from "../authority/Authority.js";
-import { RequestParameterBuilder } from "../request/RequestParameterBuilder.js";
+import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js";
+import * as UrlUtils from "../utils/UrlUtils.js";
 import {
     GrantType,
     AuthenticationScheme,
-    PromptValue,
     Separators,
     HeaderNames,
 } from "../utils/Constants.js";
@@ -30,13 +29,10 @@ import {
     createClientAuthError,
 } from "../error/ClientAuthError.js";
 import { UrlString } from "../url/UrlString.js";
-import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse.js";
 import { CommonEndSessionRequest } from "../request/CommonEndSessionRequest.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
-import { RequestThumbprint } from "../network/RequestThumbprint.js";
 import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
-import { AccountInfo } from "../account/AccountInfo.js";
 import {
     buildClientInfoFromHomeAccountId,
     buildClientInfo,
@@ -52,6 +48,7 @@ import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js"
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import { ClientAssertion } from "../account/ClientCredentials.js";
 import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
+import { getRequestThumbprint } from "../network/RequestThumbprint.js";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -69,38 +66,6 @@ export class AuthorizationCodeClient extends BaseClient {
         super(configuration, performanceClient);
         this.oidcDefaultScopes =
             this.config.authOptions.authority.options.OIDCOptions?.defaultScopes;
-    }
-
-    /**
-     * Creates the URL of the authorization request letting the user input credentials and consent to the
-     * application. The URL target the /authorize endpoint of the authority configured in the
-     * application object.
-     *
-     * Once the user inputs their credentials and consents, the authority will send a response to the redirect URI
-     * sent in the request and should contain an authorization code, which can then be used to acquire tokens via
-     * acquireToken(AuthorizationCodeRequest)
-     * @param request
-     */
-    async getAuthCodeUrl(
-        request: CommonAuthorizationUrlRequest
-    ): Promise<string> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.GetAuthCodeUrl,
-            request.correlationId
-        );
-
-        const queryString = await invokeAsync(
-            this.createAuthCodeUrlQueryString.bind(this),
-            PerformanceEvents.AuthClientCreateQueryString,
-            this.logger,
-            this.performanceClient,
-            request.correlationId
-        )(request);
-
-        return UrlString.appendQueryString(
-            this.authority.authorizationEndpoint,
-            queryString
-        );
     }
 
     /**
@@ -165,41 +130,6 @@ export class AuthorizationCodeClient extends BaseClient {
             undefined,
             requestId
         );
-    }
-
-    /**
-     * Handles the hash fragment response from public client code request. Returns a code response used by
-     * the client to exchange for a token in acquireToken.
-     * @param hashFragment
-     */
-    handleFragmentResponse(
-        serverParams: ServerAuthorizationCodeResponse,
-        cachedState: string
-    ): AuthorizationCodePayload {
-        // Handle responses.
-        const responseHandler = new ResponseHandler(
-            this.config.authOptions.clientId,
-            this.cacheManager,
-            this.cryptoUtils,
-            this.logger,
-            null,
-            null
-        );
-
-        // Get code response
-        responseHandler.validateServerAuthorizationCodeResponse(
-            serverParams,
-            cachedState
-        );
-
-        // throw when there is no auth code in the response
-        if (!serverParams.code) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.authorizationCodeMissingFromServerResponse
-            );
-        }
-
-        return serverParams as AuthorizationCodePayload;
     }
 
     /**
@@ -272,19 +202,10 @@ export class AuthorizationCodeClient extends BaseClient {
             ccsCredential || request.ccsCredential
         );
 
-        const thumbprint: RequestThumbprint = {
-            clientId:
-                request.tokenBodyParameters?.clientId ||
-                this.config.authOptions.clientId,
-            authority: authority.canonicalAuthority,
-            scopes: request.scopes,
-            claims: request.claims,
-            authenticationScheme: request.authenticationScheme,
-            resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims,
-            sshKid: request.sshKid,
-        };
+        const thumbprint = getRequestThumbprint(
+            this.config.authOptions.clientId,
+            request
+        );
 
         return invokeAsync(
             this.executePostToTokenEndpoint.bind(this),
@@ -314,12 +235,10 @@ export class AuthorizationCodeClient extends BaseClient {
             request.correlationId
         );
 
-        const parameterBuilder = new RequestParameterBuilder(
-            request.correlationId,
-            this.performanceClient
-        );
+        const parameters = new Map<string, string>();
 
-        parameterBuilder.addClientId(
+        RequestParameterBuilder.addClientId(
+            parameters,
             request.embeddedClientId ||
                 request.tokenBodyParameters?.[AADServerParamKeys.CLIENT_ID] ||
                 this.config.authOptions.clientId
@@ -334,37 +253,52 @@ export class AuthorizationCodeClient extends BaseClient {
             RequestValidator.validateRedirectUri(request.redirectUri);
         } else {
             // Validate and include redirect uri
-            parameterBuilder.addRedirectUri(request.redirectUri);
+            RequestParameterBuilder.addRedirectUri(
+                parameters,
+                request.redirectUri
+            );
         }
 
         // Add scope array, parameter builder will add default scopes and dedupe
-        parameterBuilder.addScopes(
+        RequestParameterBuilder.addScopes(
+            parameters,
             request.scopes,
             true,
             this.oidcDefaultScopes
         );
 
         // add code: user set, not validated
-        parameterBuilder.addAuthorizationCode(request.code);
+        RequestParameterBuilder.addAuthorizationCode(parameters, request.code);
 
         // Add library metadata
-        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-        parameterBuilder.addApplicationTelemetry(
+        RequestParameterBuilder.addLibraryInfo(
+            parameters,
+            this.config.libraryInfo
+        );
+        RequestParameterBuilder.addApplicationTelemetry(
+            parameters,
             this.config.telemetry.application
         );
-        parameterBuilder.addThrottling();
+        RequestParameterBuilder.addThrottling(parameters);
 
         if (this.serverTelemetryManager && !isOidcProtocolMode(this.config)) {
-            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+            RequestParameterBuilder.addServerTelemetry(
+                parameters,
+                this.serverTelemetryManager
+            );
         }
 
         // add code_verifier if passed
         if (request.codeVerifier) {
-            parameterBuilder.addCodeVerifier(request.codeVerifier);
+            RequestParameterBuilder.addCodeVerifier(
+                parameters,
+                request.codeVerifier
+            );
         }
 
         if (this.config.clientCredentials.clientSecret) {
-            parameterBuilder.addClientSecret(
+            RequestParameterBuilder.addClientSecret(
+                parameters,
                 this.config.clientCredentials.clientSecret
             );
         }
@@ -373,20 +307,25 @@ export class AuthorizationCodeClient extends BaseClient {
             const clientAssertion: ClientAssertion =
                 this.config.clientCredentials.clientAssertion;
 
-            parameterBuilder.addClientAssertion(
+            RequestParameterBuilder.addClientAssertion(
+                parameters,
                 await getClientAssertion(
                     clientAssertion.assertion,
                     this.config.authOptions.clientId,
                     request.resourceRequestUri
                 )
             );
-            parameterBuilder.addClientAssertionType(
+            RequestParameterBuilder.addClientAssertionType(
+                parameters,
                 clientAssertion.assertionType
             );
         }
 
-        parameterBuilder.addGrantType(GrantType.AUTHORIZATION_CODE_GRANT);
-        parameterBuilder.addClientInfo();
+        RequestParameterBuilder.addGrantType(
+            parameters,
+            GrantType.AUTHORIZATION_CODE_GRANT
+        );
+        RequestParameterBuilder.addClientInfo(parameters);
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(
@@ -409,10 +348,10 @@ export class AuthorizationCodeClient extends BaseClient {
             }
 
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
-            parameterBuilder.addPopToken(reqCnfData);
+            RequestParameterBuilder.addPopToken(parameters, reqCnfData);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
             if (request.sshJwk) {
-                parameterBuilder.addSshJwk(request.sshJwk);
+                RequestParameterBuilder.addSshJwk(parameters, request.sshJwk);
             } else {
                 throw createClientConfigurationError(
                     ClientConfigurationErrorCodes.missingSshJwk
@@ -425,7 +364,8 @@ export class AuthorizationCodeClient extends BaseClient {
             (this.config.authOptions.clientCapabilities &&
                 this.config.authOptions.clientCapabilities.length > 0)
         ) {
-            parameterBuilder.addClaims(
+            RequestParameterBuilder.addClaims(
+                parameters,
                 request.claims,
                 this.config.authOptions.clientCapabilities
             );
@@ -459,7 +399,10 @@ export class AuthorizationCodeClient extends BaseClient {
                         const clientInfo = buildClientInfoFromHomeAccountId(
                             ccsCred.credential
                         );
-                        parameterBuilder.addCcsOid(clientInfo);
+                        RequestParameterBuilder.addCcsOid(
+                            parameters,
+                            clientInfo
+                        );
                     } catch (e) {
                         this.logger.verbose(
                             "Could not parse home account ID for CCS Header: " +
@@ -468,20 +411,25 @@ export class AuthorizationCodeClient extends BaseClient {
                     }
                     break;
                 case CcsCredentialType.UPN:
-                    parameterBuilder.addCcsUpn(ccsCred.credential);
+                    RequestParameterBuilder.addCcsUpn(
+                        parameters,
+                        ccsCred.credential
+                    );
                     break;
             }
         }
 
         if (request.embeddedClientId) {
-            parameterBuilder.addBrokerParameters({
-                brokerClientId: this.config.authOptions.clientId,
-                brokerRedirectUri: this.config.authOptions.redirectUri,
-            });
+            RequestParameterBuilder.addBrokerParameters(
+                parameters,
+                this.config.authOptions.clientId,
+                this.config.authOptions.redirectUri
+            );
         }
 
         if (request.tokenBodyParameters) {
-            parameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraQueryParameters(
+                parameters,
                 request.tokenBodyParameters
             );
         }
@@ -494,235 +442,17 @@ export class AuthorizationCodeClient extends BaseClient {
                     AADServerParamKeys.RETURN_SPA_CODE
                 ])
         ) {
-            parameterBuilder.addExtraQueryParameters({
+            RequestParameterBuilder.addExtraQueryParameters(parameters, {
                 [AADServerParamKeys.RETURN_SPA_CODE]: "1",
             });
         }
 
-        return parameterBuilder.createQueryString();
-    }
-
-    /**
-     * This API validates the `AuthorizationCodeUrlRequest` and creates a URL
-     * @param request
-     */
-    private async createAuthCodeUrlQueryString(
-        request: CommonAuthorizationUrlRequest
-    ): Promise<string> {
-        // generate the correlationId if not set by the user and add
-        const correlationId =
-            request.correlationId ||
-            this.config.cryptoInterface.createNewGuid();
-
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthClientCreateQueryString,
-            correlationId
-        );
-
-        const parameterBuilder = new RequestParameterBuilder(
-            correlationId,
+        RequestParameterBuilder.instrumentBrokerParams(
+            parameters,
+            request.correlationId,
             this.performanceClient
         );
-
-        parameterBuilder.addClientId(
-            request.embeddedClientId ||
-                request.extraQueryParameters?.[AADServerParamKeys.CLIENT_ID] ||
-                this.config.authOptions.clientId
-        );
-
-        const requestScopes = [
-            ...(request.scopes || []),
-            ...(request.extraScopesToConsent || []),
-        ];
-        parameterBuilder.addScopes(requestScopes, true, this.oidcDefaultScopes);
-
-        // validate the redirectUri (to be a non null value)
-        parameterBuilder.addRedirectUri(request.redirectUri);
-
-        parameterBuilder.addCorrelationId(correlationId);
-
-        // add response_mode. If not passed in it defaults to query.
-        parameterBuilder.addResponseMode(request.responseMode);
-
-        // add response_type = code
-        parameterBuilder.addResponseTypeCode();
-
-        // add library info parameters
-        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-        if (!isOidcProtocolMode(this.config)) {
-            parameterBuilder.addApplicationTelemetry(
-                this.config.telemetry.application
-            );
-        }
-
-        // add client_info=1
-        parameterBuilder.addClientInfo();
-
-        if (request.codeChallenge && request.codeChallengeMethod) {
-            parameterBuilder.addCodeChallengeParams(
-                request.codeChallenge,
-                request.codeChallengeMethod
-            );
-        }
-
-        if (request.prompt) {
-            parameterBuilder.addPrompt(request.prompt);
-        }
-
-        if (request.domainHint) {
-            parameterBuilder.addDomainHint(request.domainHint);
-        }
-
-        // Add sid or loginHint with preference for login_hint claim (in request) -> sid -> loginHint (upn/email) -> username of AccountInfo object
-        if (request.prompt !== PromptValue.SELECT_ACCOUNT) {
-            // AAD will throw if prompt=select_account is passed with an account hint
-            if (request.sid && request.prompt === PromptValue.NONE) {
-                // SessionID is only used in silent calls
-                this.logger.verbose(
-                    "createAuthCodeUrlQueryString: Prompt is none, adding sid from request"
-                );
-                parameterBuilder.addSid(request.sid);
-            } else if (request.account) {
-                const accountSid = this.extractAccountSid(request.account);
-                let accountLoginHintClaim = this.extractLoginHint(
-                    request.account
-                );
-
-                if (accountLoginHintClaim && request.domainHint) {
-                    this.logger.warning(
-                        `AuthorizationCodeClient.createAuthCodeUrlQueryString: "domainHint" param is set, skipping opaque "login_hint" claim. Please consider not passing domainHint`
-                    );
-                    accountLoginHintClaim = null;
-                }
-
-                // If login_hint claim is present, use it over sid/username
-                if (accountLoginHintClaim) {
-                    this.logger.verbose(
-                        "createAuthCodeUrlQueryString: login_hint claim present on account"
-                    );
-                    parameterBuilder.addLoginHint(accountLoginHintClaim);
-                    try {
-                        const clientInfo = buildClientInfoFromHomeAccountId(
-                            request.account.homeAccountId
-                        );
-                        parameterBuilder.addCcsOid(clientInfo);
-                    } catch (e) {
-                        this.logger.verbose(
-                            "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header"
-                        );
-                    }
-                } else if (accountSid && request.prompt === PromptValue.NONE) {
-                    /*
-                     * If account and loginHint are provided, we will check account first for sid before adding loginHint
-                     * SessionId is only used in silent calls
-                     */
-                    this.logger.verbose(
-                        "createAuthCodeUrlQueryString: Prompt is none, adding sid from account"
-                    );
-                    parameterBuilder.addSid(accountSid);
-                    try {
-                        const clientInfo = buildClientInfoFromHomeAccountId(
-                            request.account.homeAccountId
-                        );
-                        parameterBuilder.addCcsOid(clientInfo);
-                    } catch (e) {
-                        this.logger.verbose(
-                            "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header"
-                        );
-                    }
-                } else if (request.loginHint) {
-                    this.logger.verbose(
-                        "createAuthCodeUrlQueryString: Adding login_hint from request"
-                    );
-                    parameterBuilder.addLoginHint(request.loginHint);
-                    parameterBuilder.addCcsUpn(request.loginHint);
-                } else if (request.account.username) {
-                    // Fallback to account username if provided
-                    this.logger.verbose(
-                        "createAuthCodeUrlQueryString: Adding login_hint from account"
-                    );
-                    parameterBuilder.addLoginHint(request.account.username);
-                    try {
-                        const clientInfo = buildClientInfoFromHomeAccountId(
-                            request.account.homeAccountId
-                        );
-                        parameterBuilder.addCcsOid(clientInfo);
-                    } catch (e) {
-                        this.logger.verbose(
-                            "createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header"
-                        );
-                    }
-                }
-            } else if (request.loginHint) {
-                this.logger.verbose(
-                    "createAuthCodeUrlQueryString: No account, adding login_hint from request"
-                );
-                parameterBuilder.addLoginHint(request.loginHint);
-                parameterBuilder.addCcsUpn(request.loginHint);
-            }
-        } else {
-            this.logger.verbose(
-                "createAuthCodeUrlQueryString: Prompt is select_account, ignoring account hints"
-            );
-        }
-
-        if (request.nonce) {
-            parameterBuilder.addNonce(request.nonce);
-        }
-
-        if (request.state) {
-            parameterBuilder.addState(request.state);
-        }
-
-        if (
-            request.claims ||
-            (this.config.authOptions.clientCapabilities &&
-                this.config.authOptions.clientCapabilities.length > 0)
-        ) {
-            parameterBuilder.addClaims(
-                request.claims,
-                this.config.authOptions.clientCapabilities
-            );
-        }
-
-        if (request.embeddedClientId) {
-            parameterBuilder.addBrokerParameters({
-                brokerClientId: this.config.authOptions.clientId,
-                brokerRedirectUri: this.config.authOptions.redirectUri,
-            });
-        }
-
-        this.addExtraQueryParams(request, parameterBuilder);
-
-        if (request.nativeBroker) {
-            // signal ests that this is a WAM call
-            parameterBuilder.addNativeBroker();
-
-            // pass the req_cnf for POP
-            if (request.authenticationScheme === AuthenticationScheme.POP) {
-                const popTokenGenerator = new PopTokenGenerator(
-                    this.cryptoUtils
-                );
-
-                // req_cnf is always sent as a string for SPAs
-                let reqCnfData;
-                if (!request.popKid) {
-                    const generatedReqCnfData = await invokeAsync(
-                        popTokenGenerator.generateCnf.bind(popTokenGenerator),
-                        PerformanceEvents.PopTokenGenerateCnf,
-                        this.logger,
-                        this.performanceClient,
-                        request.correlationId
-                    )(request, this.logger);
-                    reqCnfData = generatedReqCnfData.reqCnfString;
-                } else {
-                    reqCnfData = this.cryptoUtils.encodeKid(request.popKid);
-                }
-                parameterBuilder.addPopToken(reqCnfData);
-            }
-        }
-
-        return parameterBuilder.createQueryString();
+        return UrlUtils.mapToQueryString(parameters);
     }
 
     /**
@@ -732,68 +462,51 @@ export class AuthorizationCodeClient extends BaseClient {
     private createLogoutUrlQueryString(
         request: CommonEndSessionRequest
     ): string {
-        const parameterBuilder = new RequestParameterBuilder(
-            request.correlationId,
-            this.performanceClient
-        );
+        const parameters = new Map<string, string>();
 
         if (request.postLogoutRedirectUri) {
-            parameterBuilder.addPostLogoutRedirectUri(
+            RequestParameterBuilder.addPostLogoutRedirectUri(
+                parameters,
                 request.postLogoutRedirectUri
             );
         }
 
         if (request.correlationId) {
-            parameterBuilder.addCorrelationId(request.correlationId);
+            RequestParameterBuilder.addCorrelationId(
+                parameters,
+                request.correlationId
+            );
         }
 
         if (request.idTokenHint) {
-            parameterBuilder.addIdTokenHint(request.idTokenHint);
+            RequestParameterBuilder.addIdTokenHint(
+                parameters,
+                request.idTokenHint
+            );
         }
 
         if (request.state) {
-            parameterBuilder.addState(request.state);
+            RequestParameterBuilder.addState(parameters, request.state);
         }
 
         if (request.logoutHint) {
-            parameterBuilder.addLogoutHint(request.logoutHint);
-        }
-
-        this.addExtraQueryParams(request, parameterBuilder);
-
-        return parameterBuilder.createQueryString();
-    }
-
-    private addExtraQueryParams(
-        request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
-        parameterBuilder: RequestParameterBuilder
-    ) {
-        const hasRequestInstanceAware =
-            request.extraQueryParameters &&
-            request.extraQueryParameters.hasOwnProperty("instance_aware");
-
-        // Set instance_aware flag if config auth param is set
-        if (!hasRequestInstanceAware && this.config.authOptions.instanceAware) {
-            request.extraQueryParameters = request.extraQueryParameters || {};
-            request.extraQueryParameters["instance_aware"] = "true";
+            RequestParameterBuilder.addLogoutHint(
+                parameters,
+                request.logoutHint
+            );
         }
 
         if (request.extraQueryParameters) {
-            parameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraQueryParameters(
+                parameters,
                 request.extraQueryParameters
             );
         }
-    }
 
-    /**
-     * Helper to get sid from account. Returns null if idTokenClaims are not present or sid is not present.
-     * @param account
-     */
-    private extractAccountSid(account: AccountInfo): string | null {
-        return account.idTokenClaims?.sid || null;
-    }
+        if (this.config.authOptions.instanceAware) {
+            RequestParameterBuilder.addInstanceAware(parameters);
+        }
 
-    private extractLoginHint(account: AccountInfo): string | null {
-        return account.idTokenClaims?.login_hint || null;
+        return UrlUtils.mapToQueryString(parameters);
     }
 }

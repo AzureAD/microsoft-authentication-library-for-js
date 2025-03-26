@@ -6,42 +6,42 @@ The sample applications contained in this directory are independent samples of M
 
 Review our [scenario docs](https://docs.microsoft.com/azure/active-directory/develop/authentication-flows-app-scenarios) to pick an app type and authentication flow. Continue to the appropriate sample to learn how it works, or to build it in to your existing app.
 
-| sample                                                     | app type                          | auth flow                           |
-|------------------------------------------------------------|-----------------------------------|-------------------------------------|
-| [auth-code](./auth-code/README.md)                         | web app (public client)           | authorization code                  |
-| [auth-code-pkce](./auth-code-pkce/README.md)               | web app (public client) (typescript)           | authorization code with PKCE in typescript      |
-| [auth-code-with-certs](./auth-code-with-certs/README.md)   | web app (confidential client)     | authorization code                  |
-| [auth-code-key-vault](./auth-code-key-vault/README.md)     | web app (confidential client)     | authorization code                  |
-| [auth-code-distributed-cache](./auth-code-distributed-cache/README.md)     | web app (confidential client) (typescript)     | authorization code                  |
-| [auth-code-cli-app](./auth-code-cli-app/README.md)     | console app (public client)     | authorization code                  |
-| [auth-code-cli-brokered-app](./auth-code-cli-brokered-app/README.md)     | console app (public client)     | authorization code                  |
-| [silent-flow](./silent-flow/README.md)                     | web app (confidential client)     | authorization code                  |
-| [on-behalf-of](./on-behalf-of/README.md)                   | web API (confidential client)     | on-behalf-of                        |
-| [on-behalf-of-distributed-cache](./on-behalf-of-distributed-cache/README.md)                   | web API (confidential client) (typescript)     | on-behalf-of                        |
-| [refresh-token](./refresh-token/README.md)                 | web app (confidential client)     | refresh token                       |
-| [username-password](./username-password/README.md)         | console app (public client)       | resource owner password credentials |
-| [username-password-cca](./username-password-cca/README.md) | console app (confidential client) | resource owner password credentials |
-| [device-code](./device-code/README.md)                     | browserless app (public client)      | device code                         |
-| [client-credentials](./client-credentials/README.md)       | daemon app (confidential client) | client credentials                  |
-| [client-credentials-distributed-cache](./client-credentials-distributed-cache/README.md)       | daemon app (confidential client) (typescript) | client credentials                  |
-| [b2c-user-flows](./b2c-user-flows/README.md)                 | web app (confidential client)     | authorization code                  |
-| [ElectronTestApp](./ElectronTestApp/README.md)             | desktop app (public client)       | authorization code with PKCE        |
+| sample                                                                                   | app type                                      | auth flow                                  |
+| ---------------------------------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------ |
+| [auth-code](./auth-code/README.md)                                                       | web app (public client)                       | authorization code                         |
+| [auth-code-pkce](./auth-code-pkce/README.md)                                             | web app (public client) (typescript)          | authorization code with PKCE in typescript |
+| [auth-code-with-certs](./auth-code-with-certs/README.md)                                 | web app (confidential client)                 | authorization code                         |
+| [auth-code-key-vault](./auth-code-key-vault/README.md)                                   | web app (confidential client)                 | authorization code                         |
+| [auth-code-distributed-cache](./auth-code-distributed-cache/README.md)                   | web app (confidential client) (typescript)    | authorization code                         |
+| [auth-code-cli-app](./auth-code-cli-app/README.md)                                       | console app (public client)                   | authorization code                         |
+| [auth-code-cli-brokered-app](./auth-code-cli-brokered-app/README.md)                     | console app (public client)                   | authorization code                         |
+| [silent-flow](./silent-flow/README.md)                                                   | web app (confidential client)                 | authorization code                         |
+| [on-behalf-of](./on-behalf-of/README.md)                                                 | web API (confidential client)                 | on-behalf-of                               |
+| [on-behalf-of-distributed-cache](./on-behalf-of-distributed-cache/README.md)             | web API (confidential client) (typescript)    | on-behalf-of                               |
+| [refresh-token](./refresh-token/README.md)                                               | web app (confidential client)                 | refresh token                              |
+| [username-password](./username-password/README.md)                                       | console app (public client)                   | resource owner password credentials        |
+| [username-password-cca](./username-password-cca/README.md)                               | console app (confidential client)             | resource owner password credentials        |
+| [device-code](./device-code/README.md)                                                   | browserless app (public client)               | device code                                |
+| [client-credentials](./client-credentials/README.md)                                     | daemon app (confidential client)              | client credentials                         |
+| [client-credentials-distributed-cache](./client-credentials-distributed-cache/README.md) | daemon app (confidential client) (typescript) | client credentials                         |
+| [b2c-user-flows](./b2c-user-flows/README.md)                                             | web app (confidential client)                 | authorization code                         |
+| [ElectronTestApp](./ElectronTestApp/README.md)                                           | desktop app (public client)                   | authorization code with PKCE               |
 
 For in-depth tutorials, see:
 
-- [Developing a web app with MSAL Node](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-webapp-msal)
-- [Developing a daemon app with MSAL Node](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-console)
-- [Developing a desktop app with MSAL Node](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-desktop)
-- [Tutorial: Enable your Express web app to sign-in users and call APIs with the Microsoft identity platform](https://github.com/Azure-Samples/ms-identity-javascript-nodejs-tutorial)
+-   [Developing a web app with MSAL Node](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-webapp-msal)
+-   [Developing a daemon app with MSAL Node](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-console)
+-   [Developing a desktop app with MSAL Node](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-desktop)
+-   [Tutorial: Enable your Express web app to sign-in users and call APIs with the Microsoft identity platform](https://github.com/Azure-Samples/ms-identity-javascript-nodejs-tutorial)
 
 ### Other samples
 
 These samples use MSAL Node in a variety of scenarios:
 
-- [React SPA with Express web app using the Backend For Frontend (BFF) Proxy architecture to authenticate users with Microsoft Entra ID and call Microsoft Graph](https://github.com/Azure-Samples/ms-identity-javascript-nodejs-tutorial/tree/main/5-AdvancedScenarios/1-call-graph-bff): Sample illustrating the BFF pattern to acquire tokens in a secure backend and share authentication state with a React single-page application.
-- [B2C user management sample](https://github.com/Azure-Samples/ms-identity-b2c-javascript-nodejs-management/tree/main/Chapter2): Command line app using OAuth 2.0 client credentials flow for performing user management operations in an Azure Active Directory B2C tenant
-- [Function API sample deployed to Azure Static Web Apps](https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/4-Deployment/2-deploy-static): Azure Function web API using on-behalf-of flow
-- [Teams Tab SSO sample](https://github.com/pnp/teams-dev-samples/tree/main/samples/tab-sso/src/nodejs): Teams tab app demonstrating how integrate MSAL React and MSAL Node to achieve single sign-on
+-   [React SPA with Express web app using the Backend For Frontend (BFF) Proxy architecture to authenticate users with Microsoft Entra ID and call Microsoft Graph](https://github.com/Azure-Samples/ms-identity-javascript-nodejs-tutorial/tree/main/5-AdvancedScenarios/1-call-graph-bff): Sample illustrating the BFF pattern to acquire tokens in a secure backend and share authentication state with a React single-page application.
+-   [B2C user management sample](https://github.com/Azure-Samples/ms-identity-b2c-javascript-nodejs-management/tree/main/Chapter2): Command line app using OAuth 2.0 client credentials flow for performing user management operations in an Azure Active Directory B2C tenant
+-   [Function API sample deployed to Azure Static Web Apps](https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/4-Deployment/2-deploy-static): Azure Function web API using on-behalf-of flow
+-   [Teams Tab SSO sample](https://github.com/pnp/teams-dev-samples/tree/main/samples/tab-sso/src/nodejs): Teams tab app demonstrating how integrate MSAL React and MSAL Node to achieve single sign-on
 
 ## How to run the samples?
 
@@ -73,9 +73,9 @@ From the repository's root directory, navigate to a sample application:
 
 ### Pre-requisites
 
-- By using MSAL Node, you are working with the Microsoft identity platform. Read about [App Registration](https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app#register-an-application) and register one to use with this code.
-- Install [Node.js](https://nodejs.org/en/) if needed.
-- Build MSAL Node. See the [guide](../../lib/msal-node/README.md#build-and-test).
+-   By using MSAL Node, you are working with the Microsoft identity platform. Read about [App Registration](https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app#register-an-application) and register one to use with this code.
+-   Install [Node.js](https://nodejs.org/en/) if needed.
+-   Build MSAL Node. See the [guide](../../lib/msal-node/README.md#build-and-test).
 
 ### Configure the application
 
@@ -93,8 +93,8 @@ const config = {
         clientId: "YOUR_CLIENT_ID",
         authority: "YOUR_AUTHORITY_URL",
         knownAuthorities: ["YOUR_KNOWN_AUTHORITY"], // typically applies to apps on Azure Active Directory B2C
-        clientSecret: process.env.CLIENT_SECRET // only applies to Confidential Client applications, such as backend web applications
-    }
+        clientSecret: process.env.CLIENT_SECRET, // only applies to Confidential Client applications, such as backend web applications
+    },
 };
 ```
 

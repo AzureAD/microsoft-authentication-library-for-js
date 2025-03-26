@@ -25,9 +25,10 @@ import {
     tenants as aadTenants,
 } from "../authConfigs/aadMultiTenantAuthConfig.json";
 import fs from "fs";
+import path from "path";
 import { GuestHomedIn } from "e2e-test-utils/src/Constants";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/multiTenantTests`;
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screenshots/customizable-e2e-test/browserAADMultiTenant");
 let sampleHomeUrl = "";
 
 describe("AAD-Prod Tests", () => {
@@ -81,7 +82,7 @@ describe("AAD-Prod Tests", () => {
         let screenshot: Screenshot;
 
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             BrowserCache = new BrowserCacheUtils(
@@ -163,7 +164,7 @@ describe("AAD-Prod Tests", () => {
         let screenshot: Screenshot;
 
         beforeAll(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             BrowserCache = new BrowserCacheUtils(

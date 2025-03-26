@@ -12,7 +12,6 @@
  * Warning: This set of exports is purely intended to be used by other MSAL libraries, and should be considered potentially unstable. We strongly discourage using them directly, you do so at your own risk.
  * Breaking changes to these APIs will be shipped under a minor version, instead of a major version.
  */
-
 import * as internals from "./internals.js";
 export { internals };
 
@@ -48,7 +47,6 @@ export { ClientAssertion } from "./client/ClientAssertion.js";
 
 // Cache and Storage
 export { TokenCache } from "./cache/TokenCache.js";
-export { NodeStorage } from "./cache/NodeStorage.js";
 export {
     CacheKVStore,
     JsonCache,
@@ -88,7 +86,11 @@ export {
     AuthorizationCodePayload,
     // Response
     AuthenticationResult,
-    ServerAuthorizationCodeResponse,
+    AuthorizeResponse,
+    /**
+     * @deprecated Use AuthorizeResponse instead
+     */
+    AuthorizeResponse as ServerAuthorizationCodeResponse,
     IdTokenClaims,
     // Cache
     AccountInfo,

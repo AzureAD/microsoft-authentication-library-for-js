@@ -10,7 +10,6 @@ import {
     setupCredentials,
     b2cMsaAccountEnterCredentials,
     RETRY_TIMES,
-    SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
     SAMPLE_HOME_URL,
     NodeCacheTestUtils,
@@ -18,8 +17,8 @@ import {
     LabApiQueryParams,
     B2cProviders,
     UserTypes,
-    B2C_MSA_TEST_UPN,
 } from "e2e-test-utils";
+import path from "path";
 
 import { ConfidentialClientApplication } from "@azure/msal-node";
 
@@ -49,7 +48,7 @@ describe("B2C User Flow Tests", () => {
 
     let clientSecret: { secret: string; value: string };
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/user-flows/msa-account`;
+    const screenshotFolder = path.join(__dirname, "screenshots/b2c-user-flows/msa");
 
     beforeAll(async () => {
         createFolder(screenshotFolder);
@@ -74,9 +73,6 @@ describe("B2C User Flow Tests", () => {
             envResponse[0],
             labClient
         );
-        
-        // TODO: Remove when B2C MSA account is available in the lab
-        username = B2C_MSA_TEST_UPN;
     });
 
     afterAll(async () => {
@@ -112,7 +108,7 @@ describe("B2C User Flow Tests", () => {
         });
 
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(5000);
             page.on("dialog", async (dialog) => {

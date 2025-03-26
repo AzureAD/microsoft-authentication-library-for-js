@@ -12,7 +12,6 @@ import {
     RETRY_TIMES,
     clickSignIn,
     enterCredentialsADFS,
-    SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GRAPH_CALL_ID,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
@@ -26,7 +25,7 @@ import {
     FederationProviders,
     UserTypes,
 } from "e2e-test-utils";
-
+import path from "path";
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
 
 // Set test cache name/location
@@ -57,7 +56,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
     let username: string;
     let accountPwd: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/silent-flow/adfs`;
+    const screenshotFolder = path.join(__dirname, "screenshots/silent-flow/adfs");
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -66,7 +65,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
         port = 3003;
         homeRoute = `${SAMPLE_HOME_URL}:${port}`;
 
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        createFolder(screenshotFolder);
         const labApiParms: LabApiQueryParams = {
             azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD,
@@ -107,7 +106,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
 
     describe("Acquire Token", () => {
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             await page.goto(homeRoute);
@@ -143,6 +142,26 @@ describe("Silent Flow ADFS 2019 Tests", () => {
             await clickSignIn(page, screenshot);
             await enterCredentialsADFS(page, screenshot, username, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
+            await page.click("#acquireTokenSilent");
+            await page.waitForSelector(
+                `#${SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID}`
+            );
+            await page.click("#callGraph");
+            await page.waitForSelector(`#${SUCCESSFUL_GRAPH_CALL_ID}`);
+            await screenshot.takeScreenshot(
+                page,
+                "acquireTokenSilentGotTokens"
+            );
+        });
+
+        it("Performs acquire token silent when tokens are only present in persistent cache", async () => {
+            const screenshot = new Screenshot(
+                `${screenshotFolder}/AcquireTokenSilentFromPersistent`
+            );
+            await clickSignIn(page, screenshot);
+            await enterCredentialsADFS(page, screenshot, username, accountPwd);
+            await page.waitForSelector("#acquireTokenSilent");
+            publicClientApplication.clearCache();
             await page.click("#acquireTokenSilent");
             await page.waitForSelector(
                 `#${SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID}`
@@ -207,7 +226,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
     describe("Get All Accounts", () => {
         describe("Authenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await page.goto(homeRoute);
             });
@@ -257,7 +276,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
 
         describe("Unauthenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await publicClientApplication.clearCache();
                 await page.goto(homeRoute);

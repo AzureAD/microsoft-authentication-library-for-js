@@ -11,7 +11,6 @@ import {
     RETRY_TIMES,
     clickSignIn,
     enterCredentials,
-    SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GRAPH_CALL_ID,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
@@ -22,6 +21,7 @@ import {
     getCredentials,
 } from "e2e-test-utils";
 import { PublicClientApplication, TokenCache } from "@azure/msal-node";
+import path from "path";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad-agc-public.cache.json`;
@@ -62,7 +62,7 @@ describe("Silent Flow AAD AGC Public Tests", () => {
     let username: string;
     let password: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/silent-flow/aad-agc-public`;
+    const screenshotFolder = path.join(__dirname, "screenshots/silent-flow/aad-agc-public");
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -71,7 +71,7 @@ describe("Silent Flow AAD AGC Public Tests", () => {
         port = 3004;
         homeRoute = `${SAMPLE_HOME_URL}:${port}`;
 
-        createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        createFolder(screenshotFolder);
 
         const keyVaultSecretClient = await getKeyVaultSecretClient();
         [username, password] = await getCredentials(keyVaultSecretClient);
@@ -99,7 +99,7 @@ describe("Silent Flow AAD AGC Public Tests", () => {
 
     describe("AcquireToken", () => {
         beforeEach(async () => {
-            context = await browser.createIncognitoBrowserContext();
+            context = await browser.createBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
             await page.goto(homeRoute, { waitUntil: "networkidle0" });
@@ -135,6 +135,29 @@ describe("Silent Flow AAD AGC Public Tests", () => {
             await clickSignIn(page, screenshot);
             await enterCredentials(page, screenshot, username, password);
             await page.waitForSelector("#acquireTokenSilent");
+            await screenshot.takeScreenshot(page, "ATS");
+            await page.click("#acquireTokenSilent");
+            await page.waitForSelector(
+                `#${SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID}`
+            );
+            await page.click("#callGraph");
+            await page.waitForSelector("#graph-called-successfully");
+            await screenshot.takeScreenshot(
+                page,
+                "acquireTokenSilentGotTokens"
+            );
+            const htmlBody = await page.evaluate(() => document.body.innerHTML);
+            expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
+        });
+
+        it("Performs acquire token silent when tokens are only present in persistent cache", async () => {
+            const screenshot = new Screenshot(
+                `${screenshotFolder}/AcquireTokenSilentFromPersistent`
+            );
+            await clickSignIn(page, screenshot);
+            await enterCredentials(page, screenshot, username, password);
+            await page.waitForSelector("#acquireTokenSilent");
+            publicClientApplication.clearCache();
             await screenshot.takeScreenshot(page, "ATS");
             await page.click("#acquireTokenSilent");
             await page.waitForSelector(
@@ -202,7 +225,7 @@ describe("Silent Flow AAD AGC Public Tests", () => {
     describe("Get All Accounts", () => {
         describe("Authenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await page.goto(homeRoute, { waitUntil: "networkidle0" });
             });
@@ -247,7 +270,7 @@ describe("Silent Flow AAD AGC Public Tests", () => {
 
         describe("Unauthenticated", () => {
             beforeEach(async () => {
-                context = await browser.createIncognitoBrowserContext();
+                context = await browser.createBrowserContext();
                 page = await context.newPage();
                 await publicClientApplication.clearCache();
             });

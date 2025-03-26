@@ -13,8 +13,8 @@ import {
 import {
     DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
     DEFAULT_MANAGED_IDENTITY_ID,
-} from "../../src/utils/Constants";
-import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse";
+} from "../../src/utils/Constants.js";
+import { ManagedIdentityTokenResponse } from "../../src/response/ManagedIdentityTokenResponse.js";
 
 // This file contains the string constants used by the test classes.
 
@@ -349,8 +349,8 @@ export const AUTHENTICATION_RESULT = {
     body: {
         token_type: AuthenticationScheme.BEARER,
         scope: "openid profile User.Read email",
-        expires_in: 3599,
-        ext_expires_in: 3599,
+        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         access_token: "thisIs.an.accessT0ken",
         refresh_token: "thisIsARefreshT0ken",
         id_token:
@@ -364,8 +364,8 @@ export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
     body: {
         token_type: AuthenticationScheme.BEARER,
         scope: "openid profile offline_access User.Read",
-        expires_in: 3599,
-        ext_expires_in: 3599,
+        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         access_token: "thisIs.an.accessT0ken",
         refresh_token: "thisIsARefreshT0ken",
         id_token:
@@ -393,6 +393,11 @@ export const MANAGED_IDENTITY_NETWORK_REQUEST_500_ERROR: ManagedIdentityTokenRes
 
 // App Service 400 error response
 export const MANAGED_IDENTITY_APP_SERVICE_NETWORK_REQUEST_400_ERROR: ManagedIdentityTokenResponse =
+    {
+        ...MANAGED_IDENTITY_NETWORK_REQUEST_500_ERROR,
+    };
+// Machine Learning 400 error response
+export const MANAGED_IDENTITY_MACHINE_LEARNING_NETWORK_REQUEST_400_ERROR: ManagedIdentityTokenResponse =
     {
         ...MANAGED_IDENTITY_NETWORK_REQUEST_500_ERROR,
     };
@@ -482,8 +487,8 @@ export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
     status: 200,
     body: {
         token_type: AuthenticationScheme.BEARER,
-        expires_in: 3599,
-        ext_expires_in: 3599,
+        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         access_token: "thisIs.an.accessT0ken",
     },
 };

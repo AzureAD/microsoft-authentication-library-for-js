@@ -190,6 +190,8 @@ export const PerformanceEvents = {
 
     InitializeClientApplication: "initializeClientApplication",
 
+    InitializeCache: "initializeCache",
+
     /**
      * Helper function in SilentIframeClient class (msal-browser).
      */
@@ -212,19 +214,21 @@ export const PerformanceEvents = {
         "standardInteractionClientGetClientConfiguration",
     StandardInteractionClientInitializeAuthorizationRequest:
         "standardInteractionClientInitializeAuthorizationRequest",
-    StandardInteractionClientInitializeAuthorizationCodeRequest:
-        "standardInteractionClientInitializeAuthorizationCodeRequest",
 
     /**
      * getAuthCodeUrl API (msal-browser and msal-node).
      */
     GetAuthCodeUrl: "getAuthCodeUrl",
+    GetStandardParams: "getStandardParams",
 
     /**
      * Functions from InteractionHandler (msal-browser)
      */
     HandleCodeResponseFromServer: "handleCodeResponseFromServer",
     HandleCodeResponse: "handleCodeResponse",
+    HandleResponseEar: "handleResponseEar",
+    HandleResponsePlatformBroker: "handleResponsePlatformBroker",
+    HandleResponseCode: "handleResponseCode",
     UpdateTokenEndpointAuthority: "updateTokenEndpointAuthority",
 
     /**
@@ -233,7 +237,6 @@ export const PerformanceEvents = {
     AuthClientAcquireToken: "authClientAcquireToken",
     AuthClientExecuteTokenRequest: "authClientExecuteTokenRequest",
     AuthClientCreateTokenRequestBody: "authClientCreateTokenRequestBody",
-    AuthClientCreateQueryString: "authClientCreateQueryString",
 
     /**
      * Generate functions in PopTokenGenerator (msal-common)
@@ -297,6 +300,9 @@ export const PerformanceEvents = {
      */
     ClearTokensAndKeysWithClaims: "clearTokensAndKeysWithClaims",
     CacheManagerGetRefreshToken: "cacheManagerGetRefreshToken",
+    ImportExistingCache: "importExistingCache",
+    SetUserData: "setUserData",
+    LocalStorageUpdated: "localStorageUpdated",
 
     /**
      * Crypto Operations
@@ -306,6 +312,14 @@ export const PerformanceEvents = {
     GenerateCodeChallengeFromVerifier: "generateCodeChallengeFromVerifier",
     Sha256Digest: "sha256Digest",
     GetRandomValues: "getRandomValues",
+    GenerateHKDF: "generateHKDF",
+    GenerateBaseKey: "generateBaseKey",
+    Base64Decode: "base64Decode",
+    UrlEncodeArr: "urlEncodeArr",
+    Encrypt: "encrypt",
+    Decrypt: "decrypt",
+    GenerateEarKey: "generateEarKey",
+    DecryptEarResponse: "decryptEarResponse",
 } as const;
 export type PerformanceEvents =
     (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
@@ -394,6 +408,10 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
             PerformanceEvents.InitializeClientApplication,
             "InitClientApplication",
         ],
+        [PerformanceEvents.InitializeCache, "InitCache"],
+        [PerformanceEvents.ImportExistingCache, "importCache"],
+        [PerformanceEvents.SetUserData, "setUserData"],
+        [PerformanceEvents.LocalStorageUpdated, "localStorageUpdated"],
         [PerformanceEvents.SilentIframeClientTokenHelper, "SIClientTHelper"],
         [
             PerformanceEvents.SilentHandlerInitiateAuthRequest,
@@ -418,10 +436,6 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             "StdIntClientInitAuthReq",
         ],
-        [
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-            "StdIntClientInitAuthCodeReq",
-        ],
 
         [PerformanceEvents.GetAuthCodeUrl, "GetAuthCodeUrl"],
 
@@ -430,6 +444,12 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
             "HandleCodeResFromServer",
         ],
         [PerformanceEvents.HandleCodeResponse, "HandleCodeResp"],
+        [PerformanceEvents.HandleResponseEar, "HandleRespEar"],
+        [PerformanceEvents.HandleResponseCode, "HandleRespCode"],
+        [
+            PerformanceEvents.HandleResponsePlatformBroker,
+            "HandleRespPlatBroker",
+        ],
         [PerformanceEvents.UpdateTokenEndpointAuthority, "UpdTEndpointAuth"],
 
         [PerformanceEvents.AuthClientAcquireToken, "AuthClientAT"],
@@ -437,10 +457,6 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         [
             PerformanceEvents.AuthClientCreateTokenRequestBody,
             "AuthClientCreateTReqBody",
-        ],
-        [
-            PerformanceEvents.AuthClientCreateQueryString,
-            "AuthClientCreateQueryStr",
         ],
         [PerformanceEvents.PopTokenGenerateCnf, "PopTGenCnf"],
         [PerformanceEvents.PopTokenGenerateKid, "PopTGenKid"],
@@ -531,6 +547,14 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         ],
         [PerformanceEvents.Sha256Digest, "Sha256Digest"],
         [PerformanceEvents.GetRandomValues, "GetRandomValues"],
+        [PerformanceEvents.GenerateHKDF, "genHKDF"],
+        [PerformanceEvents.GenerateBaseKey, "genBaseKey"],
+        [PerformanceEvents.Base64Decode, "b64Decode"],
+        [PerformanceEvents.UrlEncodeArr, "urlEncArr"],
+        [PerformanceEvents.Encrypt, "encrypt"],
+        [PerformanceEvents.Decrypt, "decrypt"],
+        [PerformanceEvents.GenerateEarKey, "genEarKey"],
+        [PerformanceEvents.DecryptEarResponse, "decryptEarResp"],
     ]);
 
 /**
@@ -805,9 +829,9 @@ export type PerformanceEvent = {
     contentLengthHeader?: string;
 
     /**
-     * Native broker fields
+     * Platform broker fields
      */
-    allowNativeBroker?: boolean;
+    allowPlatformBroker?: boolean;
     extensionInstalled?: boolean;
     extensionHandshakeTimeoutMs?: number;
     extensionHandshakeTimedOut?: boolean;
@@ -849,6 +873,21 @@ export type PerformanceEvent = {
 
     embeddedClientId?: string;
     embeddedRedirectUri?: string;
+
+    isAsyncPopup?: boolean;
+
+    rtExpiresOnMs?: number;
+
+    sidFromClaims?: boolean;
+    sidFromRequest?: boolean;
+    loginHintFromRequest?: boolean;
+    loginHintFromUpn?: boolean;
+    loginHintFromClaim?: boolean;
+    domainHintFromRequest?: boolean;
+
+    prompt?: string;
+
+    usePreGeneratedPkce?: boolean;
 };
 
 export type PerformanceEventContext = {
@@ -876,4 +915,6 @@ export const IntFields: ReadonlySet<string> = new Set([
     "multiMatchedAT",
     "multiMatchedID",
     "multiMatchedRT",
+    "unencryptedCacheCount",
+    "encryptedCacheExpiredCount",
 ]);

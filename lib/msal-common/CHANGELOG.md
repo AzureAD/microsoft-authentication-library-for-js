@@ -1,8 +1,112 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Tue, 05 Nov 2024 18:58:46 GMT and should not be manually modified.
+<!-- This log was last generated on Tue, 25 Mar 2025 22:29:34 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 15.4.0
+
+Tue, 25 Mar 2025 22:29:34 GMT
+
+### Minor changes
+
+- EAR protocol request support (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Additional PerformanceEvents (thomas.norling@microsoft.com)
+
+## 15.3.0
+
+Thu, 20 Mar 2025 22:09:04 GMT
+
+### Minor changes
+
+- Refactor /authorize request generation (thomas.norling@microsoft.com)
+- refactor RequestParameterBuilder (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- encodeURIComponent during QS generation (thomas.norling@microsoft.com)
+
+## 15.2.1
+
+Tue, 11 Mar 2025 18:51:25 GMT
+
+### Patches
+
+- Add embeddedClientId to RequestThumbprint (thomas.norling@microsoft.com)
+- Add TimeUtils for time/date conversions #7613 (joarroyo@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.2.0
+
+Tue, 18 Feb 2025 18:51:40 GMT
+
+### Minor changes
+
+- Pre-generate PKCE for async popup flow to blocked async popups in Safari #7568 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.1.1
+
+Wed, 05 Feb 2025 00:15:19 GMT
+
+### Patches
+
+- Additional telemetry event #7550 (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.1.0
+
+Mon, 03 Feb 2025 17:48:08 GMT
+
+### Minor changes
+
+- Search in persistent cache for cached token (shylasummers@microsoft.com)
+- Instrument additional data points #7543 (kshabelko@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fixed some test constants and imports #7545 (rginsburg@microsoft.com)
+
+## 15.0.2
+
+Wed, 22 Jan 2025 21:45:31 GMT
+
+### Patches
+
+- Avoid calling class methods in their own constructors (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 15.0.1
+
+Wed, 15 Jan 2025 05:05:17 GMT
+
+### Patches
+
+- Rename `native` to `platformBroker` in public API and docs (sameera.gajjarapu@microsoft.com)
+- Asynchronous cache writes (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 14.16.0
 

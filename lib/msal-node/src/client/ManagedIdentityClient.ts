@@ -24,6 +24,7 @@ import { ManagedIdentityId } from "../config/ManagedIdentityId.js";
 import { NodeStorage } from "../cache/NodeStorage.js";
 import { BaseManagedIdentitySource } from "./ManagedIdentitySources/BaseManagedIdentitySource.js";
 import { ManagedIdentitySourceNames } from "../utils/Constants.js";
+import { MachineLearning } from "./ManagedIdentitySources/MachineLearning.js";
 
 /*
  * Class to initialize a managed identity and identify the service.
@@ -34,6 +35,7 @@ export class ManagedIdentityClient {
     private nodeStorage: NodeStorage;
     private networkClient: INetworkModule;
     private cryptoProvider: CryptoProvider;
+    private disableInternalRetries: boolean;
 
     private static identitySource?: BaseManagedIdentitySource;
     public static sourceName?: ManagedIdentitySourceNames;
@@ -42,12 +44,14 @@ export class ManagedIdentityClient {
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
-        cryptoProvider: CryptoProvider
+        cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean
     ) {
         this.logger = logger;
         this.nodeStorage = nodeStorage;
         this.networkClient = networkClient;
         this.cryptoProvider = cryptoProvider;
+        this.disableInternalRetries = disableInternalRetries;
     }
 
     public async sendManagedIdentityTokenRequest(
@@ -63,6 +67,7 @@ export class ManagedIdentityClient {
                     this.nodeStorage,
                     this.networkClient,
                     this.cryptoProvider,
+                    this.disableInternalRetries,
                     managedIdentityId
                 );
         }
@@ -100,6 +105,10 @@ export class ManagedIdentityClient {
                   )
                 ? ManagedIdentitySourceNames.APP_SERVICE
                 : this.allEnvironmentVariablesAreDefined(
+                      MachineLearning.getEnvironmentVariables()
+                  )
+                ? ManagedIdentitySourceNames.MACHINE_LEARNING
+                : this.allEnvironmentVariablesAreDefined(
                       CloudShell.getEnvironmentVariables()
                   )
                 ? ManagedIdentitySourceNames.CLOUD_SHELL
@@ -121,6 +130,7 @@ export class ManagedIdentityClient {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         managedIdentityId: ManagedIdentityId
     ): BaseManagedIdentitySource {
         const source =
@@ -129,19 +139,29 @@ export class ManagedIdentityClient {
                 nodeStorage,
                 networkClient,
                 cryptoProvider,
+                disableInternalRetries,
                 managedIdentityId
             ) ||
             AppService.tryCreate(
                 logger,
                 nodeStorage,
                 networkClient,
-                cryptoProvider
+                cryptoProvider,
+                disableInternalRetries
+            ) ||
+            MachineLearning.tryCreate(
+                logger,
+                nodeStorage,
+                networkClient,
+                cryptoProvider,
+                disableInternalRetries
             ) ||
             CloudShell.tryCreate(
                 logger,
                 nodeStorage,
                 networkClient,
                 cryptoProvider,
+                disableInternalRetries,
                 managedIdentityId
             ) ||
             AzureArc.tryCreate(
@@ -149,9 +169,16 @@ export class ManagedIdentityClient {
                 nodeStorage,
                 networkClient,
                 cryptoProvider,
+                disableInternalRetries,
                 managedIdentityId
             ) ||
-            Imds.tryCreate(logger, nodeStorage, networkClient, cryptoProvider);
+            Imds.tryCreate(
+                logger,
+                nodeStorage,
+                networkClient,
+                cryptoProvider,
+                disableInternalRetries
+            );
         if (!source) {
             throw createManagedIdentityError(
                 ManagedIdentityErrorCodes.unableToCreateSource

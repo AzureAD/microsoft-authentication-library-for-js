@@ -61,6 +61,7 @@ import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { generateCredentialKey } from "../../src/cache/utils/CacheHelpers.js";
+import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
@@ -346,12 +347,17 @@ describe("RefreshTokenClient unit tests", () => {
             ).mockReturnValue(testRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setAccount(testAccountEntity);
-            config.storageInterface!.setRefreshTokenCredential(
-                testRefreshTokenEntity
+            await config.storageInterface!.setAccount(
+                testAccountEntity,
+                TEST_CONFIG.CORRELATION_ID
             );
-            config.storageInterface!.setRefreshTokenCredential(
-                testFamilyRefreshTokenEntity
+            await config.storageInterface!.setRefreshTokenCredential(
+                testRefreshTokenEntity,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            await config.storageInterface!.setRefreshTokenCredential(
+                testFamilyRefreshTokenEntity,
+                TEST_CONFIG.CORRELATION_ID
             );
             config.storageInterface!.setAppMetadata(testAppMetadata);
             client = new RefreshTokenClient(config, stubPerformanceClient);
@@ -513,7 +519,11 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                    `${
+                        AADServerParamKeys.X_MS_LIB_CAPABILITY
+                    }=${encodeURIComponent(
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
@@ -775,7 +785,11 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                    `${
+                        AADServerParamKeys.X_MS_LIB_CAPABILITY
+                    }=${encodeURIComponent(
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
@@ -893,7 +907,11 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                    `${
+                        AADServerParamKeys.X_MS_LIB_CAPABILITY
+                    }=${encodeURIComponent(
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
@@ -1074,12 +1092,17 @@ describe("RefreshTokenClient unit tests", () => {
             ).mockReturnValue(testFamilyRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setAccount(testAccountEntity);
-            config.storageInterface!.setRefreshTokenCredential(
-                testRefreshTokenEntity
+            await config.storageInterface!.setAccount(
+                testAccountEntity,
+                TEST_CONFIG.CORRELATION_ID
             );
-            config.storageInterface!.setRefreshTokenCredential(
-                testFamilyRefreshTokenEntity
+            await config.storageInterface!.setRefreshTokenCredential(
+                testRefreshTokenEntity,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            await config.storageInterface!.setRefreshTokenCredential(
+                testFamilyRefreshTokenEntity,
+                TEST_CONFIG.CORRELATION_ID
             );
             config.storageInterface!.setAppMetadata(testAppMetadata);
             client = new RefreshTokenClient(config, stubPerformanceClient);
@@ -1294,11 +1317,9 @@ describe("RefreshTokenClient unit tests", () => {
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config, stubPerformanceClient);
             await expect(
-                client.acquireToken(tokenRequest)
+                client.acquireCachedToken(tokenRequest)
             ).rejects.toMatchObject(
-                createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.noTokensFound
-                )
+                createClientAuthError(ClientAuthErrorCodes.tokenRefreshRequired)
             );
         });
 
@@ -1313,14 +1334,24 @@ describe("RefreshTokenClient unit tests", () => {
             };
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setRefreshTokenCredential({
-                ...testRefreshTokenEntity,
-                expiresOn: (TimeUtils.nowSeconds() - 48 * 60 * 60).toString(), // Set expiration to yesterday
-            });
-            const client = new RefreshTokenClient(
-                config,
-                stubPerformanceClient
+            const rtExpiresOn = TimeUtils.nowSeconds() - 48 * 60 * 60;
+            await config.storageInterface!.setRefreshTokenCredential(
+                {
+                    ...testRefreshTokenEntity,
+                    expiresOn: rtExpiresOn.toString(), // Set expiration to yesterday
+                },
+                TEST_CONFIG.CORRELATION_ID
             );
+            const mockPerfClient = new MockPerformanceClient();
+            const client = new RefreshTokenClient(config, mockPerfClient);
+            const rootMeasurement = mockPerfClient.startMeasurement(
+                "test-measurement",
+                TEST_CONFIG.CORRELATION_ID
+            );
+            let resEvents;
+            mockPerfClient.addPerformanceCallback((events) => {
+                resEvents = events;
+            });
             await expect(
                 client.acquireTokenByRefreshToken(tokenRequest)
             ).rejects.toMatchObject(
@@ -1328,6 +1359,9 @@ describe("RefreshTokenClient unit tests", () => {
                     InteractionRequiredAuthErrorCodes.refreshTokenExpired
                 )
             );
+            rootMeasurement.end({ success: false });
+            // @ts-ignore
+            expect(resEvents[0].rtExpiresOnMs).toEqual(rtExpiresOn);
         });
 
         it("Throws error if cached RT expiration is within provided offset", async () => {
@@ -1342,10 +1376,13 @@ describe("RefreshTokenClient unit tests", () => {
             };
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setRefreshTokenCredential({
-                ...testRefreshTokenEntity,
-                expiresOn: (TimeUtils.nowSeconds() + 30 * 60).toString(), // Set expiration to 30 minutes from now
-            });
+            await config.storageInterface!.setRefreshTokenCredential(
+                {
+                    ...testRefreshTokenEntity,
+                    expiresOn: (TimeUtils.nowSeconds() + 30 * 60).toString(), // Set expiration to 30 minutes from now
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
             const client = new RefreshTokenClient(
                 config,
                 stubPerformanceClient
@@ -1362,15 +1399,30 @@ describe("RefreshTokenClient unit tests", () => {
         it("Removes refresh token if server returns invalid_grant with bad_token suberror", async () => {
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface!.setAccount(testAccountEntity);
-            config.storageInterface!.setRefreshTokenCredential(
-                testRefreshTokenEntity
+            await config.storageInterface!.setAccount(
+                testAccountEntity,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            const rtExpiresOn = TimeUtils.nowSeconds() + 60 * 60;
+            const rtEntity = {
+                ...testRefreshTokenEntity,
+                expiresOn: rtExpiresOn.toString(),
+            };
+            await config.storageInterface!.setRefreshTokenCredential(
+                rtEntity,
+                TEST_CONFIG.CORRELATION_ID
             );
             config.storageInterface!.setAppMetadata(testAppMetadata);
-            const client = new RefreshTokenClient(
-                config,
-                stubPerformanceClient
+            const mockPerfClient = new MockPerformanceClient();
+            const rootMeasurement = mockPerfClient.startMeasurement(
+                "test-measurement",
+                TEST_CONFIG.CORRELATION_ID
             );
+            let resEvents;
+            mockPerfClient.addPerformanceCallback((events) => {
+                resEvents = events;
+            });
+            const client = new RefreshTokenClient(config, mockPerfClient);
             const testAccount: AccountInfo =
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
             testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
@@ -1399,15 +1451,13 @@ describe("RefreshTokenClient unit tests", () => {
                 forceRefresh: false,
             };
 
-            const badRefreshTokenKey = generateCredentialKey(
-                testRefreshTokenEntity
-            );
+            const badRefreshTokenKey = generateCredentialKey(rtEntity);
 
             expect(
                 config.storageInterface!.getRefreshTokenCredential(
                     badRefreshTokenKey
                 )
-            ).toBe(testRefreshTokenEntity);
+            ).toBe(rtEntity);
 
             await expect(
                 client.acquireTokenByRefreshToken(silentFlowRequest)
@@ -1418,6 +1468,10 @@ describe("RefreshTokenClient unit tests", () => {
                     badRefreshTokenKey
                 )
             ).toBe(null);
+
+            rootMeasurement.end({ success: false });
+            // @ts-ignore
+            expect(resEvents[0].rtExpiresOnMs).toEqual(rtExpiresOn);
         });
     });
     describe("Telemetry protocol mode tests", () => {
@@ -1507,7 +1561,9 @@ describe("RefreshTokenClient unit tests", () => {
             expect(queryString).toContain(
                 `brk_client_id=${config.authOptions.clientId}`
             );
-            expect(queryString).toContain(`brk_redirect_uri=https://localhost`);
+            expect(queryString).toContain(
+                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`
+            );
         });
 
         it("broker params take precedence over token body params", async () => {
@@ -1532,7 +1588,9 @@ describe("RefreshTokenClient unit tests", () => {
             expect(queryString).toContain(
                 `brk_client_id=${config.authOptions.clientId}`
             );
-            expect(queryString).toContain(`brk_redirect_uri=https://localhost`);
+            expect(queryString).toContain(
+                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`
+            );
         });
     });
 });

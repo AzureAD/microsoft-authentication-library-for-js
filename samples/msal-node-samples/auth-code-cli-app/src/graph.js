@@ -13,7 +13,6 @@ async function callMicrosoftGraph(accessToken) {
         const response = await axios.get(graphMeEndpoint, options);
         return response.data;
     } catch (error) {
-        console.log(error)
         return error;
     }
 };

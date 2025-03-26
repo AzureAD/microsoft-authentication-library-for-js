@@ -53,7 +53,7 @@ Please check the [roadmap](https://github.com/AzureAD/microsoft-authentication-l
 
 -   [GitHub Issues](../../issues) is the best place to ask questions, report bugs, and new request features.
 
--   [FAQs](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/FAQs) for access to our frequently asked questions.
+-   [FAQs](https://aka.ms/msaljs-faq) for access to our frequently asked questions.
 
 -   [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) using "msal" and "msal.js" tag.
 
