@@ -52,7 +52,6 @@ import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
 
 describe("SilentIframeClient", () => {
-    globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let silentIframeClient: SilentIframeClient;
     let pca: PublicClientApplication;
     let browserCacheManager: BrowserCacheManager;

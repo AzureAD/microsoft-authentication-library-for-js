@@ -170,8 +170,6 @@ const testRequest: CommonAuthorizationUrlRequest = {
 };
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let pca: PublicClientApplication;
     let browserStorage: BrowserCacheManager;
     beforeEach(async () => {
@@ -244,7 +242,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("initialize tests", () => {
-        globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
 
         beforeEach(() => {
             jest.spyOn(MessageEvent.prototype, "source", "get").mockReturnValue(

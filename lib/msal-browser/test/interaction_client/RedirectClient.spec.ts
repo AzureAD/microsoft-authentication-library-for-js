@@ -118,7 +118,6 @@ const loggerOptions = {
 };
 
 describe("RedirectClient", () => {
-    globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let redirectClient: RedirectClient;
     let browserStorage: BrowserCacheManager;
     let pca: PublicClientApplication;

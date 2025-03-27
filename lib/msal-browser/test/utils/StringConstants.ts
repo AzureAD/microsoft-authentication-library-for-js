@@ -4,16 +4,18 @@
  */
 
 import {
+    AccountInfo,
     AuthenticationScheme,
     Constants,
     NetworkResponse,
     OIDC_DEFAULT_SCOPES,
     ServerAuthorizationTokenResponse,
+    TimeUtils,
 } from "@azure/msal-common";
-import { version } from "../../src/packageMetadata";
-import { importEarKey } from "../../src/crypto/BrowserCrypto.js";
-import { base64DecToArr } from "../../src/encode/Base64Decode.js";
+import { version } from "../../src/packageMetadata.js";
+import { base64Decode, base64DecToArr } from "../../src/encode/Base64Decode.js";
 import { urlEncodeArr } from "../../src/encode/Base64Encode.js";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
 
 /**
  * This file contains the string constants used by the test classes.
@@ -113,6 +115,10 @@ export const ID_TOKEN_CLAIMS = {
     nonce: "123523",
     aio: "Df2UVXL1ix!lMCWMSOJBcFatzcGfvFGhjKv8q5g0x732dR5MB5BisvGQO7YWByjd8iQDLq!eGbIDakyp5mnOrcdqHeYSnltepQmRp6AIZ8jY",
 };
+
+export const ID_TOKEN_CLAIMS_NEW_CLAIM = {
+    ...ID_TOKEN_CLAIMS
+}
 
 export const GUEST_ID_TOKEN_CLAIMS = {
     ...ID_TOKEN_CLAIMS,
@@ -408,7 +414,7 @@ export const TEST_TOKEN_RESPONSE: NetworkResponse<ServerAuthorizationTokenRespon
             expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
             access_token: TEST_TOKENS.ACCESS_TOKEN,
             refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-            id_token: TEST_TOKENS.IDTOKEN_V2_NEWCLAIM,
+            id_token: TEST_TOKENS.IDTOKEN_V2,
             client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
         },
         status: 200,
@@ -480,7 +486,7 @@ export const testLogoutUrl = `https://login.microsoftonline.com/common/oauth2/v2
 )}`;
 
 export const validEarJWK = "eyJhbGciOiJkaXIiLCJrdHkiOiJvY3QiLCJrIjoieTBPQXJYaUNvdEl5dEIxdnRmMGVUUFZFaEd4SnBQY1AyRUhHUUZaYjFCZyJ9";
-export const validEarJWE = "eyJlbmMiOiJBMjU2R0NNIiwidHlwIjoiSldUIiwiYWxnIjoiZGlyIn0..TZmjdyAECSgPQNIm.PenCVJ3ULXstdQHr1c2x-KyQB-odDHJc1G6ofNpAhT9VDUVTPa_6rfRWG_csurU5pWTdfBVWZ6kOFk4wjqpotIy-5MMovVHVewrj5dAzsmMEf5NqLy6jqOrie6MgcxqfCyuZvOrFKI9KAhBgKiHkDuhyMN3YzM7jlzS_JCzCsFCrY8oGFcDt4yHSW33BXGWnuov30Ca7W2tGh4qmdTx95UVICDI0jpYk0DOHNAmFoekUgKHJfsJMExUZB8-PKjLAHmdeRwKOrDRLghsDe3O-Y8jpQdqYEJTj6-yx1Ttlaq9mNg4iIJjPJ1lYb7CRyIl8l71hynQLZKyIywWCNlkCNBY99GPYl2smvIc1LKSXsXVA_dkkiU12WHhjKtbteRYK18wsywyRrDXC6mN49lFC4XT0tq4tSaXQTD1TC_AqGV9UspO_qBbr2VAuHVARi8T3N_bYrOIDd3xOYUfTzKZAWrGq1zRzlzVMkvhaLMyR-8C0mTMFApGQKCq0J9qNIzlLzVviiUvF276IdnVtpSvZiV2ba2hwrOcOU5VS_c95TML8zQ7o1j6ozCikATnSmGPQ0_CRenDdGmyiQTvFEQAfa8Z4Ro1AlBd-8A2opOZC4BWr2I8pBY2GM7fLNKLG2a7TpLDfZjgninf3PkTvKLETYnFKuO4OhU_zaQQQy3VIlr-b6FCSXl2db84B4fZWLNLjEA2WeyKdhh8WaDIpGJPyW1RShlcnEi-BAnJpfp-KQndwhw3oCQF6KO6HNBqy2yEK-wvLYMcfkfRh3LSsJm38yCA4rCA0XdfC93pXvAV1z5wZ4nGwgC5kJmW9rDyUuZyeBudDfy0EwH-P8n-Pmwz86mX29XQe3EZCDMoQ7sQXiL7mVsQNohKZPhbkwpbZRO-L2T0Yuyl-psoepuS5GXLZt6xBQDs6vrWcL8ty7x_f1tpSuJZdFieXyiWSHn6DC2s8Ng_BcUlM4mXjMwsCxqeLiJYDcDNGSBFwo6RnMIrs4AqLGfqlbXCISBCTZ3pt1CXyJslJAwOAWan0_nMREH85qVl27lPfqgSPxfCi86CTwrWlKaG6-Fb9FHSzMigYkb7N56OKPUnWVdV2hZZWazdo3FeAsrTBszeBMjSyMCH4oVK4due9TeJjd1V1mHc3D6A8hQfkZ-6bMAe_rKbniObufo4U7uaZQdQeCWFvrX6-sX-H1a7odeIiNwFFcka6epwhObR52Z-CTkQgwXMfLtlw1WXxypui3yA4dhFEgpd61CrebteTcAkrnCji4VDDu2TrlcTYsKMeRqSF2JsKPId2MMgOCAfFYXrlS-sCiEMv37o7GrcyN3cybNtSzF7qeENFih0dadF4R_ZgegPTLuFQg_Y4-LNTlrcy9CkINJBVw7RC2GjJJgJ0cl8MZaZ_gb-D91V63sSZl82deAIA6UeK5WQNfcXLq82vUiGzaDa637wAv5plyawUQ06FVsTMr7n8whDMo2Q2EVgKQcnYtDgRtY4wBe67iq1uewFhxG_fNX_hK81dcxmGkRWKXKwsUPqG4da8mV563NOajeh3pHRaBGtvBI4JsCjzQJ62oK_BPLgoV0O6EYwyG10Ll5A_coBwoYUPCKVjr3gps92flmS_xvnQlOGIKTajsjzwOJoIJTN80xxIegCyOe-HUE-SZvI2C63dVLF9Ux0ifWEte1V3Nh8rkXn-Fl4crreJl12XH0rrEx-DZxBDyhH6BHN-D7-60IQHDSfk2-GN4Cfyx6W7_fk5VPSZ4brxrK8R218DXAmHSmMZ8msUgJkVJzZXdKO_sMXh4DrUuBvf6SA_t6_O8Tz-XnL4URNoBsPn8P2OFbu17rXQtGsFb30WF6ADMQ_fx_2r0yKU4w9yok0ANDd9yRWxQ6UQMZpEtFfOapqa-GVycQuLmzSET7knP0nRMzuZORVoWdaiicVpcCAyNb_Y85ev-36RPZgRjGghA_UhYb4stHzY2U30x6rWcQu7sVRHys86peU6OL0jnFlEsHnXwG2s8RRRmpRV_R6g_taJyCFNIQkGeVBSC4cm4M-5JdNSPtf9ac3JX8W6y2SfhwWLcrGpzMoLfxKC2P6YziBDex9Qlg.eTnR4gzyr8fwRQjmVo5ztw";
+export const validEarJWE = "eyJlbmMiOiJBMjU2R0NNIiwidHlwIjoiSldUIiwiYWxnIjoiZGlyIn0..TZmjdyAECSgPQNIm.PenCVJ3ULXstdQHr1c2x-KyQB-odDHJc1G6ofNpAhT9VDUVTPa_6rfRWG_csurU5pWTdfBVWZ6kOFk4wjqpotIy-5MMovVHVewrj5dAzsmMEf5NqLy6jqOrie6MgcxqfCyuZvOrFKI9KAhBgKiHkDuhyMN3YzM7jlzS_JCzCsFCrY8oGFcDt4yHSW33BXGWnuov30Ca7W2tGh4qmdTx95UVICDI0jpYk0DOHNAmFoekUgKHJfsJMExUZB8-PKjLAHmdeRwKOrDRLghsDe3O-Y8jpQdqYEJTj6-u59CN0EuBxGzg_D5v6DXVbZ72R17Roi7tytG0jTqmQvHqXGk0CZXYcwj_2sBhC66QnV5eAkV1m2flpsm5eRn9pI-fnKwMt4uwMyw-QkyqR9ERMwCxTr1ikneIPRcOUYGxOEfl7TQtKl5iQ-jO1mXkcfw8f9ZnPDO7G7pgKYis3a1L29ZFOWM2KnV0ZoTd3tOFEHfWc2PGBrgBdNaW8XQmTOrq-KhV66jHsoXHL8J6xeHxesj_5oXW7T2QQoMgFNIlX9dx9X8bvyR3sxTq7yDugEj3BnHDc8JK0RGDgFVO9Ek7hMAcpeNp5F_9ZoAhN3S-6lZtm-jab5J4EHq6ALbLvOYrixKfygq3SfQY6rkDTNB6eVpESFAlRpp47i3DSUh4F5kR8jLqozVKRNUaQfrcl0dI_O_3NaD6uVQGEsmQoUQIQMZ7adSxyj25IAzqtfFVWFqi-cUsOsAieNxZWGsCjbB-A1it1gBbaX7g4op5W1q2FWHPf5DEWgxUJR_PB10t4nGlvyZRJ-D6Dm1JmAh-ZjxCEsr-zO8N4MyYLwUG-jkC0qAXh1VDogWAn1ERlK_8dtvkcpZDjSOstthzNEhmMwOzsc_av3QoJhgxws4ks9t-ZKA_Yhqd-RhgZg7iyN8RzzhTpw5Vy6MhydSyW8TezBES5JlQKMy_lfnB950WPLzA757KNvKgnQxtSNz4rnYNMGKz3_ieoE9KweGmzezGdVDx2zg7WEPpXOiaKKojR9XYjNHBIsXN77G7_nBK--Nagztiw25KqCfyW-E3lL1qFKw4vwdvr3r2hBXDMLdxjm65Ibxdi53OeuOznvgyZDz7oTwLPggaDbPGVaPl-WWZRt2wOKNcL-jPILMqSNiuIiqjB4-jrWrUZ49rJPYwmO2hl0kSXnUet5pakTvkGCiRhXlm_Sr9SCZJR4aujYVoEx20mKMh6-3fWgpbCplImZ3tei5gc4ir3a_CVFnIm1jTYtFvshSDgkd3wz749XML9--YXC6VUW9Q6BkbYaHz3V84xuWAw_4MXZ5BVBVQ2aflK31HOUzV3mB0sOLF6Q_pCLDjUC_kmmvBZ96Fxl6Yt5iYPDLdh7PAt427NMDZVPGg-Eb5QuJCk-lMC0pmfmPGOAGNf1k2902hmGJOwvfCQdjq5P3-nv85whbcHzvJ5e06tZ-WRgoX5zBr9qkMXOUUZZOD61DlUnulwBsyDrrpFFAk5yUb7EVT0EPBTPxXt5XSLaLVXJ6OzyNS9hXgslLW319sH_DRxT1BhJ4h4rgXSQJuKnbHmH4UqFhrrEckjM1hxtasyeKV3oaFzU4ASmWINkN2cuwSa4NyJm-yJABOY9lL3PJ8faA5jrhw1Pj6EPa27SF-YSftGNaz3bqtAQTM6YVotTmACPj8u_328FXwA9ICzsFfVcUuSNQmiYxVKwwjQM1F3SK2H1o5SGCT_7LnLh3z5yeaRhLVYTM7fyM6wrPQEwkFqLweSdU84xVAPtaxNKgd3IIqHourV5TXisDHhw18ysc-KoCbVcE2lRCVyBszD_L-HGZa9-sCAlntLfQFxSLE3Pl_RrIO68R6d9C1_p1R8CFxQiQa5J78UK7dbpl7Weca8xWATXzux-1PRAbx9FH_qLhaEBzl8EKKzgL9hVRobKpj53ouj7XurXe4it3RWBeg6EaYry0bQ7V_75eniYRiklBo28tAjt-sqAKsEq1la7ljp3DWpyh8DjbZjxBv7oYey2R8DLSYjIWolFZ5ftbPxKMcOecrhe8OzRcD3xEeawS2CEZ-r2P9zSx-IqNC3-hpvW0UTigKLo77UuEz5ObzR_F9NiJc6rBWJE_WjrrDi2SM90fXux7DmUTvO5OzR8hxt015Y2mVMcJyaiwLdNrJ3731WW5T4QzHGO5Sq4r_Hw4plc7h2EhCboYZJPLNOrFW6E94gwGYrBMkq26eCp78mmLQqhVLaWXahgZ5XCVizTmGdRsZDZsEA-YXsZzHznDawYHRmwRI.vzeZKFIHG7nytYT5z8tzUw";
 
 /**
  * Use to generate a valid EAR JWE for testing using the JWK above
@@ -488,7 +494,11 @@ export const validEarJWE = "eyJlbmMiOiJBMjU2R0NNIiwidHlwIjoiSldUIiwiYWxnIjoiZGly
  * @returns 
  */
 export async function generateValidEarJWE(dataToEncrypt: string, jwk: string) {
-    const key = await importEarKey(jwk);
+    const b64DecodedJwk = base64Decode(jwk);
+    const rawKey = JSON.parse(b64DecodedJwk).k;
+    const keyBuffer = base64DecToArr(rawKey);
+    
+    const key = await window.crypto.subtle.importKey("raw", keyBuffer, "AES-GCM", false, ["encrypt"]);
     const header = "eyJlbmMiOiJBMjU2R0NNIiwidHlwIjoiSldUIiwiYWxnIjoiZGlyIn0";
     const iv = "TZmjdyAECSgPQNIm";
     const data = new TextEncoder().encode(dataToEncrypt);
@@ -496,4 +506,45 @@ export async function generateValidEarJWE(dataToEncrypt: string, jwk: string) {
     const [ciphertext, tag] = [encrypted.slice(0, encrypted.byteLength - 16), encrypted.slice(encrypted.byteLength -16)];
 
     return `${header}..${iv}.${urlEncodeArr(new Uint8Array(ciphertext))}.${urlEncodeArr(new Uint8Array(tag))}`;
+};
+
+const testTenantProfilesMap = new Map();
+testTenantProfilesMap.set(ID_TOKEN_CLAIMS.tid, { isHomeTenant: true, localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID, name: ID_TOKEN_CLAIMS.name, tenantId: ID_TOKEN_CLAIMS.tid})
+
+export const TEST_ACCOUNT_INFO: AccountInfo = {
+    authorityType: "MSSTS",
+    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+    localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+    environment: "login.windows.net",
+    tenantId: ID_TOKEN_CLAIMS.tid,
+    username: ID_TOKEN_CLAIMS.preferred_username,
+    idToken: TEST_TOKENS.IDTOKEN_V2,
+    idTokenClaims: ID_TOKEN_CLAIMS,
+    name: ID_TOKEN_CLAIMS.name,
+    nativeAccountId: undefined,
+    tenantProfiles: testTenantProfilesMap
+}
+
+export const TEST_AUTHENTICATION_RESULT: AuthenticationResult = {
+    authority: TEST_CONFIG.validAuthority, 
+    uniqueId: ID_TOKEN_CLAIMS.oid,
+    tenantId: ID_TOKEN_CLAIMS.tid,
+    scopes: TEST_TOKEN_RESPONSE.body.scope!.split(" "),
+    idToken: TEST_TOKENS.IDTOKEN_V2,
+    accessToken: TEST_TOKEN_RESPONSE.body.access_token!,
+    idTokenClaims: ID_TOKEN_CLAIMS,
+    fromCache: false,
+    expiresOn: new Date((TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN) * 1000),
+    tokenType: "Bearer",
+    correlationId: TEST_CONFIG.CORRELATION_ID,
+    account: TEST_ACCOUNT_INFO,
+    state: TEST_STATE_VALUES.USER_STATE,
+    cloudGraphHostName: "",
+    code: undefined,
+    extExpiresOn: new Date((TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN) * 1000),
+    fromNativeBroker: false,
+    msGraphHost: "",
+    refreshOn: undefined,
+    requestId: "",
+    familyId: ""
 };
