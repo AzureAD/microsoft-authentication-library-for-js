@@ -20,8 +20,6 @@ import {
     PerformanceEventStackedContext,
     PerformanceEventStatus,
 } from "./PerformanceEvent.js";
-import { IPerformanceMeasurement } from "./IPerformanceMeasurement.js";
-import { StubPerformanceMeasurement } from "./StubPerformanceClient.js";
 import { AuthError } from "../../error/AuthError.js";
 import { CacheError } from "../../error/CacheError.js";
 import { ServerError } from "../../error/ServerError.js";

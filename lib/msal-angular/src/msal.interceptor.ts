@@ -14,10 +14,10 @@ import {
 import {
   AccountInfo,
   AuthenticationResult,
-  BrowserConfigurationAuthError,
   InteractionStatus,
   InteractionType,
   StringUtils,
+  BrowserConfigurationAuthError,
 } from "@azure/msal-browser";
 import { Observable, EMPTY, of } from "rxjs";
 import { switchMap, catchError, take, filter } from "rxjs/operators";
@@ -55,7 +55,7 @@ export class MsalInterceptor implements HttpInterceptor {
       this.msalInterceptorConfig.interactionType !== InteractionType.Popup &&
       this.msalInterceptorConfig.interactionType !== InteractionType.Redirect
     ) {
-      throw new BrowserConfigurationAuthError(
+      new BrowserConfigurationAuthError(
         "invalid_interaction_type",
         "Invalid interaction type provided to MSAL Interceptor. InteractionType.Popup, InteractionType.Redirect must be provided in the msalInterceptorConfiguration"
       );

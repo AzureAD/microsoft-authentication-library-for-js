@@ -103,7 +103,6 @@ export {
     ClientConfigurationErrorMessages,
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
-    InteractionRequiredAuthErrorMessages,
     ServerError,
     // Network Interface
     INetworkModule,

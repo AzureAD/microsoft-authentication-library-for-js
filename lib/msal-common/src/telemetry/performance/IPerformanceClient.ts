@@ -4,7 +4,6 @@
  */
 
 import { PerformanceEvent } from "./PerformanceEvent.js";
-import { IPerformanceMeasurement } from "./IPerformanceMeasurement.js";
 
 export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
 

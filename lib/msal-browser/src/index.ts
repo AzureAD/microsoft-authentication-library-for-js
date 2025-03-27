@@ -41,6 +41,7 @@ export {
     BrowserAuthError,
     BrowserAuthErrorCodes,
 } from "./error/BrowserAuthError.js";
+export { BrowserConfigurationAuthError } from "./error/BrowserConfigurationAuthError.js";
 
 // Interfaces
 export {
@@ -117,7 +118,6 @@ export {
     ClientConfigurationErrorMessages,
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
-    InteractionRequiredAuthErrorMessages,
     ServerError,
     // Network
     INetworkModule,

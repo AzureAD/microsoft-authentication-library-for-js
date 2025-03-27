@@ -131,7 +131,6 @@ export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger.js";
 export {
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
-    InteractionRequiredAuthErrorMessages,
     createInteractionRequiredAuthError,
 } from "./error/InteractionRequiredAuthError.js";
 export {
