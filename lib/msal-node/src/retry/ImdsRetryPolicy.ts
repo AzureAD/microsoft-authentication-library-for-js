@@ -21,9 +21,26 @@ const MIN_EXPONENTIAL_BACKOFF_MS: number = 1000;
 const MAX_EXPONENTIAL_BACKOFF_MS: number = 4000;
 const EXPONENTIAL_DELTA_BACKOFF_MS: number = 2000;
 
-export const HTTP_STATUS_GONE_RETRY_AFTER_MS: number = 10 * 1000; // 10 seconds
+const HTTP_STATUS_GONE_RETRY_AFTER_MS: number = 10 * 1000; // 10 seconds
 
 export class ImdsRetryPolicy implements IHttpRetryPolicy {
+    /*
+     * these are defined here as static variables despite being defined as constants outside of the
+     * class because they need to be overridden in the unit tests so that the unit tests run faster
+     */
+    static get MIN_EXPONENTIAL_BACKOFF_MS(): number {
+        return MIN_EXPONENTIAL_BACKOFF_MS;
+    }
+    static get MAX_EXPONENTIAL_BACKOFF_MS(): number {
+        return MAX_EXPONENTIAL_BACKOFF_MS;
+    }
+    static get EXPONENTIAL_DELTA_BACKOFF_MS(): number {
+        return EXPONENTIAL_DELTA_BACKOFF_MS;
+    }
+    static get HTTP_STATUS_GONE_RETRY_AFTER_MS(): number {
+        return HTTP_STATUS_GONE_RETRY_AFTER_MS;
+    }
+
     public _isNewRequest: boolean;
     set isNewRequest(value: boolean) {
         this._isNewRequest = value;
@@ -33,9 +50,9 @@ export class ImdsRetryPolicy implements IHttpRetryPolicy {
 
     private exponentialRetryStrategy: ExponentialRetryStrategy =
         new ExponentialRetryStrategy(
-            MIN_EXPONENTIAL_BACKOFF_MS,
-            MAX_EXPONENTIAL_BACKOFF_MS,
-            EXPONENTIAL_DELTA_BACKOFF_MS
+            ImdsRetryPolicy.MIN_EXPONENTIAL_BACKOFF_MS,
+            ImdsRetryPolicy.MAX_EXPONENTIAL_BACKOFF_MS,
+            ImdsRetryPolicy.EXPONENTIAL_DELTA_BACKOFF_MS
         );
 
     /**
@@ -79,7 +96,7 @@ export class ImdsRetryPolicy implements IHttpRetryPolicy {
         ) {
             const retryAfterDelay: number =
                 httpStatusCode === HttpStatus.GONE
-                    ? HTTP_STATUS_GONE_RETRY_AFTER_MS
+                    ? ImdsRetryPolicy.HTTP_STATUS_GONE_RETRY_AFTER_MS
                     : this.exponentialRetryStrategy.calculateDelay(
                           currentRetry
                       );

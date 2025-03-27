@@ -9,6 +9,7 @@ import {
     LINEAR_POLICY_MAX_RETRIES_IN_MS,
     MANAGED_IDENTITY_SERVICE_FABRIC_NETWORK_REQUEST_400_ERROR,
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR_MESSAGE,
+    ONE_HUNDRED_TIMES_FASTER,
 } from "../../test_kit/StringConstants.js";
 
 import {
@@ -28,6 +29,7 @@ import {
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentitySourceNames,
 } from "../../../src/utils/Constants.js";
+import { DefaultManagedIdentityRetryPolicy } from "../../../src/retry/DefaultManagedIdentityRetryPolicy.js";
 
 describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Learning, Service Fabric)", () => {
     beforeAll(() => {
@@ -51,6 +53,17 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
         delete process.env[
             ManagedIdentityEnvironmentVariableNames.IDENTITY_SERVER_THUMBPRINT
         ];
+    });
+
+    beforeEach(() => {
+        jest.spyOn(
+            DefaultManagedIdentityRetryPolicy,
+            "DEFAULT_MANAGED_IDENTITY_RETRY_DELAY_MS",
+            "get"
+        ).mockReturnValue(
+            DefaultManagedIdentityRetryPolicy.DEFAULT_MANAGED_IDENTITY_RETRY_DELAY_MS *
+                ONE_HUNDRED_TIMES_FASTER
+        );
     });
 
     afterEach(() => {
@@ -162,7 +175,9 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
             expect(
                 timeAfterNetworkRequest.valueOf() -
                     timeBeforeNetworkRequest.valueOf()
-            ).toBeLessThan(LINEAR_POLICY_MAX_RETRIES_IN_MS);
+            ).toBeGreaterThan(
+                DefaultManagedIdentityRetryPolicy.DEFAULT_MANAGED_IDENTITY_RETRY_DELAY_MS
+            ); // only 1 retry out of 3 possible
 
             expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
             expect(networkManagedIdentityResult.accessToken).toEqual(
@@ -172,7 +187,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
 
         test("returns a 500 error response from the network request, just the first time, with a retry-after header of 3 seconds", async () => {
             const headers: Record<string, string> = {
-                "Retry-After": "3", // 3 seconds
+                "Retry-After": ".03", // 3 seconds, but make it one hundred times faster so the test completes quickly
             };
             const managedIdentityNetworkErrorClient =
                 new ManagedIdentityNetworkErrorClient(undefined, headers);
@@ -199,7 +214,9 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
             expect(
                 timeAfterNetworkRequest.valueOf() -
                     timeBeforeNetworkRequest.valueOf()
-            ).toBeGreaterThan(LINEAR_POLICY_MAX_RETRIES_IN_MS);
+            ).toBeGreaterThan(
+                LINEAR_POLICY_MAX_RETRIES_IN_MS * ONE_HUNDRED_TIMES_FASTER
+            );
 
             expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
             expect(networkManagedIdentityResult.accessToken).toEqual(
@@ -211,7 +228,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
             var retryAfterHttpDate = new Date();
             retryAfterHttpDate.setSeconds(
                 retryAfterHttpDate.getSeconds() + 4 // 4 seconds. An extra second has been added to account for this date operation
-            );
+            ); // this test can not be made one hundred times faster because it is based on a date
             const headers: Record<string, string> = {
                 "Retry-After": retryAfterHttpDate.toString(),
             };
@@ -304,7 +321,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
             } catch (e) {
                 expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(12); // 12 total, 3 x (request + 3 retries)
             }
-        }, 15000); // triple the timeout value for this test because there are 3 acquireToken calls (3 x 1 second in between retries)
+        });
 
         test("ensures that a retry does not happen when the http status code from a failed network response is not included in the retry policy", async () => {
             const sendGetRequestAsyncSpyApp: jest.SpyInstance = jest

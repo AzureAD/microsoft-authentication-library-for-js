@@ -6,7 +6,6 @@
 import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication.js";
 import { ManagedIdentityConfiguration } from "../../../src/config/Configuration.js";
 import {
-    DEFAULT_JEST_TIMEOUT_MS,
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_IN_MS,
@@ -19,6 +18,7 @@ import {
     MANAGED_IDENTITY_RESOURCE_ID,
     MANAGED_IDENTITY_RESOURCE_ID_2,
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR_MESSAGE,
+    ONE_HUNDRED_TIMES_FASTER,
     TEST_CONFIG,
     TEST_TOKEN_LIFETIMES,
     getCacheKey,
@@ -59,7 +59,7 @@ import { ClientCredentialClient } from "../../../src/client/ClientCredentialClie
 import { NodeStorage } from "../../../src/cache/NodeStorage.js";
 import { CacheKVStore } from "../../../src/cache/serializer/SerializerTypes.js";
 import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/client/ManagedIdentitySources/BaseManagedIdentitySource.js";
-import { HTTP_STATUS_GONE_RETRY_AFTER_MS } from "../../../src/retry/ImdsRetryPolicy.js";
+import { ImdsRetryPolicy } from "../../../src/retry/ImdsRetryPolicy.js";
 
 describe("Acquires a token successfully via an IMDS Managed Identity", () => {
     // IMDS doesn't need environment variables because there is a default IMDS endpoint
@@ -210,7 +210,44 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
     describe("Managed Identity Retry Policy", () => {
         let uamiApplication: ManagedIdentityApplication; // user-assigned
         let samiApplication: ManagedIdentityApplication; // system-assigned
+
         beforeEach(() => {
+            jest.spyOn(
+                ImdsRetryPolicy,
+                "MIN_EXPONENTIAL_BACKOFF_MS",
+                "get"
+            ).mockReturnValue(
+                ImdsRetryPolicy.MIN_EXPONENTIAL_BACKOFF_MS *
+                    ONE_HUNDRED_TIMES_FASTER
+            );
+
+            jest.spyOn(
+                ImdsRetryPolicy,
+                "MAX_EXPONENTIAL_BACKOFF_MS",
+                "get"
+            ).mockReturnValue(
+                ImdsRetryPolicy.MAX_EXPONENTIAL_BACKOFF_MS *
+                    ONE_HUNDRED_TIMES_FASTER
+            );
+
+            jest.spyOn(
+                ImdsRetryPolicy,
+                "EXPONENTIAL_DELTA_BACKOFF_MS",
+                "get"
+            ).mockReturnValue(
+                ImdsRetryPolicy.EXPONENTIAL_DELTA_BACKOFF_MS *
+                    ONE_HUNDRED_TIMES_FASTER
+            );
+
+            jest.spyOn(
+                ImdsRetryPolicy,
+                "HTTP_STATUS_GONE_RETRY_AFTER_MS",
+                "get"
+            ).mockReturnValue(
+                ImdsRetryPolicy.HTTP_STATUS_GONE_RETRY_AFTER_MS *
+                    ONE_HUNDRED_TIMES_FASTER
+            );
+
             uamiApplication = new ManagedIdentityApplication(
                 userAssignedClientIdConfig
             );
@@ -269,7 +306,8 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     timeAfterNetworkRequest.valueOf() -
                         timeBeforeNetworkRequest.valueOf()
                 ).toBeGreaterThanOrEqual(
-                    IMDS_EXPONENTIAL_STRATEGY_TWO_RETRIES_IN_MS
+                    IMDS_EXPONENTIAL_STRATEGY_TWO_RETRIES_IN_MS *
+                        ONE_HUNDRED_TIMES_FASTER
                 );
 
                 expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(3); // request + 2 retries
@@ -329,18 +367,17 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 expect(
                     timeAfterNetworkRequest.valueOf() -
                         timeBeforeNetworkRequest.valueOf()
-                ).toBeGreaterThanOrEqual(HTTP_STATUS_GONE_RETRY_AFTER_MS * 4);
+                ).toBeGreaterThanOrEqual(
+                    ImdsRetryPolicy.HTTP_STATUS_GONE_RETRY_AFTER_MS *
+                        4 *
+                        ONE_HUNDRED_TIMES_FASTER
+                );
 
                 expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(5); // request + 4 retries
                 expect(networkManagedIdentityResult.accessToken).toEqual(
                     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
                 );
-                /**
-                 * add additional seconds to the timeout value for this test because there are 5 acquireToken calls:
-                 * 1 x initial request + 4 x linear backoff (10 seconds) in between retries
-                 */
-            },
-            DEFAULT_JEST_TIMEOUT_MS + HTTP_STATUS_GONE_RETRY_AFTER_MS * 4
+            }
         );
 
         test.each([
@@ -385,7 +422,11 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 expect(
                     timeAfterNetworkRequest.valueOf() -
                         timeBeforeNetworkRequest.valueOf()
-                ).toBeGreaterThanOrEqual(HTTP_STATUS_GONE_RETRY_AFTER_MS * 7);
+                ).toBeGreaterThanOrEqual(
+                    ImdsRetryPolicy.HTTP_STATUS_GONE_RETRY_AFTER_MS *
+                        7 *
+                        ONE_HUNDRED_TIMES_FASTER
+                );
 
                 expect(
                     serverError.errorMessage.includes(
@@ -393,12 +434,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     )
                 ).toBe(true);
                 expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(8); // request + 7 retries
-                /**
-                 * add additional seconds to the timeout value for this test because there are 8 acquireToken calls:
-                 * 1 x initial request + 7 x linear backoff (10 seconds) in between retries
-                 */
-            },
-            DEFAULT_JEST_TIMEOUT_MS + HTTP_STATUS_GONE_RETRY_AFTER_MS * 7
+            }
         );
 
         test.each([
@@ -444,7 +480,8 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     timeAfterNetworkRequest.valueOf() -
                         timeBeforeNetworkRequest.valueOf()
                 ).toBeGreaterThanOrEqual(
-                    IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_IN_MS
+                    IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_IN_MS *
+                        ONE_HUNDRED_TIMES_FASTER
                 );
 
                 expect(
@@ -453,13 +490,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     )
                 ).toBe(true);
                 expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(4); // request + 3 retries
-                /**
-                 * add additional seconds to the timeout value for this test because there are 4 acquireToken calls:
-                 * 1 x initial request + 3 x exponential backoff (1 second -> 2 seconds -> 4 seconds) in between retries
-                 */
-            },
-            DEFAULT_JEST_TIMEOUT_MS +
-                IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_IN_MS
+            }
         );
 
         test.each([
@@ -506,13 +537,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_NUM_REQUESTS * 3
                     ); // 12 total, 3 x (request + 3 retries)
                 }
-            },
-            /**
-             * add additional seconds to the timeout value for this test because there are 4 acquireToken calls:
-             * 3 x (1 x initial request + 3 x exponential backoff (1 second -> 2 seconds -> 4 seconds) in between retries)
-             */
-            DEFAULT_JEST_TIMEOUT_MS +
-                IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_IN_MS * 3
+            }
         );
 
         test.each([
@@ -552,7 +577,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             ["UAMI", userAssignedClientIdConfig],
             ["SAMI", systemAssignedConfig],
         ])(
-            "%s: ensures that a retry does not happen when the http status code from a failed network response (500) is not included in the list of retriable status codes, but the retry policy has been disabled",
+            "%s: ensures that a retry does not happen when the http status code from a failed network response (500) is included in the list of retriable status codes, but the retry policy has been disabled",
             async (_description, config) => {
                 const managedIdentityApplicationNoRetry: ManagedIdentityApplication =
                     new ManagedIdentityApplication({

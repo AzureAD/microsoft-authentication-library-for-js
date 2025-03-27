@@ -20,6 +20,14 @@ const DEFAULT_MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON: Array<number> = [
 ];
 
 export class DefaultManagedIdentityRetryPolicy implements IHttpRetryPolicy {
+    /*
+     * this is defined here as a static variable despite being defined as a constant outside of the
+     * class because it needs to be overridden in the unit tests so that the unit tests run faster
+     */
+    static get DEFAULT_MANAGED_IDENTITY_RETRY_DELAY_MS(): number {
+        return DEFAULT_MANAGED_IDENTITY_RETRY_DELAY_MS;
+    }
+
     private linearRetryStrategy: LinearRetryStrategy =
         new LinearRetryStrategy();
 
@@ -38,7 +46,7 @@ export class DefaultManagedIdentityRetryPolicy implements IHttpRetryPolicy {
             const retryAfterDelay: number =
                 this.linearRetryStrategy.calculateDelay(
                     retryAfterHeader,
-                    DEFAULT_MANAGED_IDENTITY_RETRY_DELAY_MS
+                    DefaultManagedIdentityRetryPolicy.DEFAULT_MANAGED_IDENTITY_RETRY_DELAY_MS
                 );
 
             logger.verbose(

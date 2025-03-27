@@ -567,7 +567,7 @@ export const CORS_SIMPLE_REQUEST_HEADERS = [
     "content-type",
 ];
 
-export const DEFAULT_JEST_TIMEOUT_MS = 5000;
+export const ONE_HUNDRED_TIMES_FASTER: number = 0.01;
 
 export const LINEAR_POLICY_MAX_RETRIES_IN_MS = 3000;
 export const IMDS_EXPONENTIAL_STRATEGY_TWO_RETRIES_IN_MS = 3000; // 1 -> 2
