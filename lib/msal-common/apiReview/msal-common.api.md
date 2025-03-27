@@ -2412,6 +2412,7 @@ export const HttpStatus: {
     readonly UNAUTHORIZED: 401;
     readonly NOT_FOUND: 404;
     readonly REQUEST_TIMEOUT: 408;
+    readonly GONE: 410;
     readonly TOO_MANY_REQUESTS: 429;
     readonly CLIENT_ERROR_RANGE_END: 499;
     readonly SERVER_ERROR: 500;
