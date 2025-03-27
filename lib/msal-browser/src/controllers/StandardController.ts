@@ -20,7 +20,7 @@ import {
     BaseAuthRequest,
     PromptValue,
     InProgressPerformanceEvent,
-    RequestThumbprint,
+    getRequestThumbprint,
     AccountEntity,
     invokeAsync,
     createClientAuthError,
@@ -41,7 +41,6 @@ import {
     ApiId,
     BrowserCacheLocation,
     WrapperSKU,
-    TemporaryCacheKeys,
     CacheLookupPolicy,
     DEFAULT_REQUEST,
     BrowserConstants,
@@ -437,11 +436,18 @@ export class StandardController implements IController {
     private async handleRedirectPromiseInternal(
         hash?: string
     ): Promise<AuthenticationResult | null> {
+        if (!this.browserStorage.isInteractionInProgress(true)) {
+            this.logger.info(
+                "handleRedirectPromise called but there is no interaction in progress, returning null."
+            );
+            return null;
+        }
+
         const loggedInAccounts = this.getAllAccounts();
-        const request: NativeTokenRequest | null =
+        const platformBrokerRequest: NativeTokenRequest | null =
             this.browserStorage.getCachedNativeRequest();
         const useNative =
-            request &&
+            platformBrokerRequest &&
             NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
                 this.logger,
@@ -449,15 +455,9 @@ export class StandardController implements IController {
             ) &&
             this.nativeExtensionProvider &&
             !hash;
-        const correlationId = useNative
-            ? request?.correlationId
-            : this.browserStorage.getTemporaryCache(
-                  TemporaryCacheKeys.CORRELATION_ID,
-                  true
-              ) || "";
-        const rootMeasurement = this.performanceClient.startMeasurement(
+        let rootMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.AcquireTokenRedirect,
-            correlationId
+            platformBrokerRequest?.correlationId || ""
         );
         this.eventHandler.emitEvent(
             EventType.HANDLE_REDIRECT_START,
@@ -479,9 +479,9 @@ export class StandardController implements IController {
                 ApiId.handleRedirectPromise,
                 this.performanceClient,
                 this.nativeExtensionProvider,
-                request.accountId,
+                platformBrokerRequest.accountId,
                 this.nativeInternalStorage,
-                request.correlationId
+                platformBrokerRequest.correlationId
             );
 
             redirectResponse = invokeAsync(
@@ -492,6 +492,15 @@ export class StandardController implements IController {
                 rootMeasurement.event.correlationId
             )(this.performanceClient, rootMeasurement.event.correlationId);
         } else {
+            const [standardRequest, codeVerifier] =
+                this.browserStorage.getCachedRequest();
+            const correlationId = standardRequest.correlationId;
+            // Reset rootMeasurement now that we have correlationId
+            rootMeasurement.discard();
+            rootMeasurement = this.performanceClient.startMeasurement(
+                PerformanceEvents.AcquireTokenRedirect,
+                correlationId
+            );
             this.logger.trace(
                 "handleRedirectPromise - acquiring token from web flow"
             );
@@ -502,14 +511,14 @@ export class StandardController implements IController {
                 this.logger,
                 this.performanceClient,
                 rootMeasurement.event.correlationId
-            )(hash, rootMeasurement);
+            )(hash, standardRequest, codeVerifier, rootMeasurement);
         }
 
         return redirectResponse
             .then((result: AuthenticationResult | null) => {
                 if (result) {
+                    this.browserStorage.resetRequestCache();
                     // Emit login event if number of accounts change
-
                     const isLoggingIn =
                         loggedInAccounts.length < this.getAllAccounts().length;
                     if (isLoggingIn) {
@@ -555,6 +564,7 @@ export class StandardController implements IController {
                 return result;
             })
             .catch((e) => {
+                this.browserStorage.resetRequestCache();
                 const eventError = e as EventError;
                 // Emit login event if there is an account
                 if (loggedInAccounts.length > 0) {
@@ -702,7 +712,6 @@ export class StandardController implements IController {
                                 this.createRedirectClient(correlationId);
                             return redirectClient.acquireToken(request);
                         }
-                        this.browserStorage.setInteractionInProgress(false);
                         throw e;
                     });
             } else {
@@ -712,6 +721,7 @@ export class StandardController implements IController {
 
             return await result;
         } catch (e) {
+            this.browserStorage.resetRequestCache();
             atrMeasurement.end({ success: false }, e);
             if (isLoggedIn) {
                 this.eventHandler.emitEvent(
@@ -792,7 +802,6 @@ export class StandardController implements IController {
                 ApiId.acquireTokenPopup
             )
                 .then((response) => {
-                    this.browserStorage.setInteractionInProgress(false);
                     atPopupMeasurement.end({
                         success: true,
                         isNativeBroker: true,
@@ -817,7 +826,6 @@ export class StandardController implements IController {
                             this.createPopupClient(correlationId);
                         return popupClient.acquireToken(request, pkce);
                     }
-                    this.browserStorage.setInteractionInProgress(false);
                     throw e;
                 });
         } else {
@@ -881,11 +889,12 @@ export class StandardController implements IController {
                 // Since this function is syncronous we need to reject
                 return Promise.reject(e);
             })
-            .finally(
-                () =>
-                    this.config.system.asyncPopups &&
-                    this.preGeneratePkceCodes(correlationId)
-            );
+            .finally(async () => {
+                this.browserStorage.setInteractionInProgress(false);
+                if (this.config.system.asyncPopups) {
+                    await this.preGeneratePkceCodes(correlationId);
+                }
+            });
     }
 
     private trackPageVisibilityWithMeasurement(): void {
@@ -1357,7 +1366,9 @@ export class StandardController implements IController {
             this.browserStorage.setInteractionInProgress(true);
 
             const popupClient = this.createPopupClient(correlationId);
-            return popupClient.logout(logoutRequest);
+            return popupClient.logout(logoutRequest).finally(() => {
+                this.browserStorage.setInteractionInProgress(false);
+            });
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -1519,7 +1530,8 @@ export class StandardController implements IController {
     public async acquireTokenNative(
         request: PopupRequest | SilentRequest | SsoSilentRequest,
         apiId: ApiId,
-        accountId?: string
+        accountId?: string,
+        cacheLookupPolicy?: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenNative called");
         if (!this.nativeExtensionProvider) {
@@ -1543,7 +1555,7 @@ export class StandardController implements IController {
             request.correlationId
         );
 
-        return nativeClient.acquireToken(request);
+        return nativeClient.acquireToken(request, cacheLookupPolicy);
     }
 
     /**
@@ -1959,30 +1971,71 @@ export class StandardController implements IController {
         }
         atsMeasurement.add({ accountType: getAccountType(account) });
 
-        const thumbprint: RequestThumbprint = {
-            clientId: this.config.auth.clientId,
-            authority: request.authority || Constants.EMPTY_STRING,
-            scopes: request.scopes,
-            homeAccountIdentifier: account.homeAccountId,
-            claims: request.claims,
-            authenticationScheme: request.authenticationScheme,
-            resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims,
-            sshKid: request.sshKid,
-            shrOptions: request.shrOptions,
-        };
+        return this.acquireTokenSilentDeduped(request, account, correlationId)
+            .then((result) => {
+                atsMeasurement.end({
+                    success: true,
+                    fromCache: result.fromCache,
+                    isNativeBroker: result.fromNativeBroker,
+                    accessTokenSize: result.accessToken.length,
+                    idTokenSize: result.idToken.length,
+                });
+                return {
+                    ...result,
+                    state: request.state,
+                    correlationId: correlationId, // Ensures PWB scenarios can correctly match request to response
+                };
+            })
+            .catch((error: Error) => {
+                if (error instanceof AuthError) {
+                    // Ensures PWB scenarios can correctly match request to response
+                    error.setCorrelationId(correlationId);
+                }
+
+                atsMeasurement.end(
+                    {
+                        success: false,
+                    },
+                    error
+                );
+                throw error;
+            });
+    }
+
+    /**
+     * Checks if identical request is already in flight and returns reference to the existing promise or fires off a new one if this is the first
+     * @param request
+     * @param account
+     * @param correlationId
+     * @returns
+     */
+    private async acquireTokenSilentDeduped(
+        request: SilentRequest,
+        account: AccountInfo,
+        correlationId: string
+    ): Promise<AuthenticationResult> {
+        const thumbprint = getRequestThumbprint(
+            this.config.auth.clientId,
+            {
+                ...request,
+                authority: request.authority || this.config.auth.authority,
+                correlationId: correlationId,
+            },
+            account.homeAccountId
+        );
         const silentRequestKey = JSON.stringify(thumbprint);
 
-        const cachedResponse =
+        const inProgressRequest =
             this.activeSilentTokenRequests.get(silentRequestKey);
-        if (typeof cachedResponse === "undefined") {
+
+        if (typeof inProgressRequest === "undefined") {
             this.logger.verbose(
                 "acquireTokenSilent called for the first time, storing active request",
                 correlationId
             );
+            this.performanceClient.addFields({ deduped: false }, correlationId);
 
-            const response = invokeAsync(
+            const activeRequest = invokeAsync(
                 this.acquireTokenSilentAsync.bind(this),
                 PerformanceEvents.AcquireTokenSilentAsync,
                 this.logger,
@@ -1994,45 +2047,19 @@ export class StandardController implements IController {
                     correlationId,
                 },
                 account
-            )
-                .then((result) => {
-                    this.activeSilentTokenRequests.delete(silentRequestKey);
-                    atsMeasurement.end({
-                        success: true,
-                        fromCache: result.fromCache,
-                        isNativeBroker: result.fromNativeBroker,
-                        cacheLookupPolicy: request.cacheLookupPolicy,
-                        accessTokenSize: result.accessToken.length,
-                        idTokenSize: result.idToken.length,
-                    });
-                    return result;
-                })
-                .catch((error: Error) => {
-                    this.activeSilentTokenRequests.delete(silentRequestKey);
-                    atsMeasurement.end(
-                        {
-                            success: false,
-                        },
-                        error
-                    );
-                    throw error;
-                });
-            this.activeSilentTokenRequests.set(silentRequestKey, response);
-            return {
-                ...(await response),
-                state: request.state,
-            };
+            );
+            this.activeSilentTokenRequests.set(silentRequestKey, activeRequest);
+
+            return activeRequest.finally(() => {
+                this.activeSilentTokenRequests.delete(silentRequestKey);
+            });
         } else {
             this.logger.verbose(
                 "acquireTokenSilent has been called previously, returning the result from the first call",
                 correlationId
             );
-            // Discard measurements for memoized calls, as they are usually only a couple of ms and will artificially deflate metrics
-            atsMeasurement.discard();
-            return {
-                ...(await cachedResponse),
-                state: request.state,
-            };
+            this.performanceClient.addFields({ deduped: true }, correlationId);
+            return inProgressRequest;
         }
     }
 
@@ -2223,6 +2250,7 @@ export class StandardController implements IController {
         silentRequest: CommonSilentFlowRequest,
         cacheLookupPolicy: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
+        // if the cache policy is set to access_token only, we should not be hitting the native layer yet
         if (
             NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
@@ -2237,7 +2265,9 @@ export class StandardController implements IController {
             );
             return this.acquireTokenNative(
                 silentRequest,
-                ApiId.acquireTokenSilent_silentFlow
+                ApiId.acquireTokenSilent_silentFlow,
+                silentRequest.account.nativeAccountId,
+                cacheLookupPolicy
             ).catch(async (e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to web flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
@@ -2257,6 +2287,12 @@ export class StandardController implements IController {
             this.logger.verbose(
                 "acquireTokenSilent - attempting to acquire token from web flow"
             );
+            // add logs to identify embedded cache retrieval
+            if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
+                this.logger.verbose(
+                    "acquireTokenSilent - cache lookup policy set to AccessToken, attempting to acquire token from local cache"
+                );
+            }
             return invokeAsync(
                 this.acquireTokenFromCache.bind(this),
                 PerformanceEvents.AcquireTokenFromCache,

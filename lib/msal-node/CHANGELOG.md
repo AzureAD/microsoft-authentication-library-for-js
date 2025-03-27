@@ -1,8 +1,50 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 18 Feb 2025 18:51:41 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 25 Mar 2025 22:29:34 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.4.1
+
+Tue, 25 Mar 2025 22:29:34 GMT
+
+### Patches
+
+- Move addition of extraQueryParameters during request generation (thomas.norling@microsoft.com)
+- Minor updates to Authorize query string generation (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.4.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.4.0
+
+Thu, 20 Mar 2025 22:09:04 GMT
+
+### Minor changes
+
+- Refactor /authorize request generation (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.3.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- refactor RequestParameterBuilder (thomas.norling@microsoft.com)
+
+## 3.3.0
+
+Tue, 11 Mar 2025 18:51:25 GMT
+
+### Minor changes
+
+- Reworked Managed Identity Retry Policy to be per-request, which is based on the Managed Identity source. #7603 (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v15.2.1
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
+
+## 3.2.3
+
+Tue, 04 Mar 2025 23:02:15 GMT
 
 ## 3.2.3
 

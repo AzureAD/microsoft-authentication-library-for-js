@@ -35,6 +35,8 @@ import {
     CacheManager,
     PerformanceEvent,
     StubPerformanceClient,
+    CommonAuthorizationUrlRequest,
+    ResponseMode,
 } from "@azure/msal-common";
 import {
     BrowserCacheLocation,
@@ -2690,75 +2692,7 @@ describe("BrowserCacheManager tests", () => {
     });
 
     describe("Helpers", () => {
-        it("generateAuthorityKey() creates a valid cache key for authority strings", () => {
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger,
-                new StubPerformanceClient(),
-                new EventHandler()
-            );
-            const authorityKey = browserStorage.generateAuthorityKey(
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
-            );
-            expect(authorityKey).toBe(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${RANDOM_TEST_GUID}`
-            );
-        });
-
-        it("generateNonceKey() create a valid cache key for nonce strings", () => {
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger,
-                new StubPerformanceClient(),
-                new EventHandler()
-            );
-            const nonceKey = browserStorage.generateNonceKey(
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
-            );
-            expect(nonceKey).toBe(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${RANDOM_TEST_GUID}`
-            );
-        });
-
-        it("updateCacheEntries() correctly updates the authority, state and nonce in the cache", () => {
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger,
-                new StubPerformanceClient(),
-                new EventHandler()
-            );
-            const testNonce = "testNonce";
-            const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            ProtocolUtils.parseRequestState(browserCrypto, stateString)
-                .libraryState.id;
-            browserStorage.updateCacheEntries(
-                stateString,
-                testNonce,
-                `${Constants.DEFAULT_AUTHORITY}/`,
-                "",
-                null
-            );
-
-            const stateKey = browserStorage.generateStateKey(stateString);
-            const nonceKey = browserStorage.generateNonceKey(stateString);
-            const authorityKey =
-                browserStorage.generateAuthorityKey(stateString);
-
-            expect(window.sessionStorage[`${stateKey}`]).toBe(stateString);
-            expect(window.sessionStorage[`${nonceKey}`]).toBe(testNonce);
-            expect(window.sessionStorage[`${authorityKey}`]).toBe(
-                `${Constants.DEFAULT_AUTHORITY}/`
-            );
-        });
-
         it("resetTempCacheItems() resets all temporary cache items with the given state", () => {
-            const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserStorage = new BrowserCacheManager(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 cacheConfig,
@@ -2767,51 +2701,28 @@ describe("BrowserCacheManager tests", () => {
                 new StubPerformanceClient(),
                 new EventHandler()
             );
-            browserStorage.updateCacheEntries(
-                stateString,
-                "nonce",
-                `${TEST_URIS.DEFAULT_INSTANCE}/`,
-                "",
-                null
-            );
+            const requestParamsKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`;
             window.sessionStorage.setItem(
-                TemporaryCacheKeys.REQUEST_PARAMS,
+                requestParamsKey,
                 "TestRequestParams"
             );
+            const originUriKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`;
             window.sessionStorage.setItem(
-                TemporaryCacheKeys.ORIGIN_URI,
+                originUriKey,
                 TEST_URIS.TEST_REDIR_URI
             );
 
-            browserStorage.resetRequestCache(stateString);
-            const nonceKey = browserStorage.generateNonceKey(stateString);
-            const authorityKey =
-                browserStorage.generateAuthorityKey(stateString);
-            expect(
-                window.sessionStorage[
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${nonceKey}`
-                ]
-            ).toBeUndefined();
-            expect(
-                window.sessionStorage[
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${authorityKey}`
-                ]
-            ).toBeUndefined();
-            expect(
-                window.sessionStorage[
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}`
-                ]
-            ).toBeUndefined();
-            expect(
-                window.sessionStorage[
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`
-                ]
-            ).toBeUndefined();
-            expect(
-                window.sessionStorage[
-                    `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`
-                ]
-            ).toBeUndefined();
+            expect(window.sessionStorage[requestParamsKey]).toBe(
+                "TestRequestParams"
+            );
+            expect(window.sessionStorage[originUriKey]).toBe(
+                TEST_URIS.TEST_REDIR_URI
+            );
+
+            browserStorage.resetRequestCache();
+
+            expect(window.sessionStorage[requestParamsKey]).toBeUndefined();
+            expect(window.sessionStorage[originUriKey]).toBeUndefined();
         });
 
         it("Successfully retrieves and decodes response from cache", async () => {
@@ -2823,27 +2734,26 @@ describe("BrowserCacheManager tests", () => {
                 new StubPerformanceClient(),
                 new EventHandler()
             );
-            const tokenRequest: AuthorizationCodeRequest = {
+            const tokenRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
                 scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
-                code: "thisIsAnAuthCode",
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
                 correlationId: `${RANDOM_TEST_GUID}`,
                 authenticationScheme: AuthenticationScheme.BEARER,
+                responseMode: ResponseMode.FRAGMENT,
+                state: TEST_CONFIG.STATE,
+                nonce: RANDOM_TEST_GUID,
             };
 
-            browserStorage.setTemporaryCache(
-                TemporaryCacheKeys.REQUEST_PARAMS,
-                browserCrypto.base64Encode(JSON.stringify(tokenRequest)),
-                true
+            browserStorage.cacheAuthorizeRequest(
+                tokenRequest,
+                TEST_CONFIG.TEST_VERIFIER
             );
 
-            const cachedRequest =
-                browserStorage.getCachedRequest(RANDOM_TEST_GUID);
+            const [cachedRequest, codeVerifier] =
+                browserStorage.getCachedRequest();
             expect(cachedRequest).toEqual(tokenRequest);
-
-            // expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
+            expect(codeVerifier).toEqual(TEST_CONFIG.TEST_VERIFIER);
         });
 
         it("Throws error if request cannot be retrieved from cache", async () => {
@@ -2855,11 +2765,8 @@ describe("BrowserCacheManager tests", () => {
                 new StubPerformanceClient(),
                 new EventHandler()
             );
-            // browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
 
-            expect(() =>
-                browserStorage.getCachedRequest(RANDOM_TEST_GUID)
-            ).toThrowError(
+            expect(() => browserStorage.getCachedRequest()).toThrowError(
                 BrowserAuthErrorMessage.noTokenRequestCacheError.desc
             );
         });
@@ -2894,153 +2801,9 @@ describe("BrowserCacheManager tests", () => {
                 stringifiedRequest.substring(0, stringifiedRequest.length / 2),
                 true
             );
-            expect(() =>
-                browserStorage.getCachedRequest(RANDOM_TEST_GUID)
-            ).toThrowError(
+            expect(() => browserStorage.getCachedRequest()).toThrowError(
                 BrowserAuthErrorMessage.unableToParseTokenRequestCacheError.desc
             );
-        });
-
-        it("Uses authority from cache if not present in cached request", async () => {
-            let dbStorage = {};
-            jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
-                async (): Promise<void> => {
-                    dbStorage = {};
-                }
-            );
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger,
-                new StubPerformanceClient(),
-                new EventHandler()
-            );
-            // Set up cache
-            const authorityKey = browserStorage.generateAuthorityKey(
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
-            );
-            const alternateAuthority = `${TEST_URIS.ALTERNATE_INSTANCE}/common/`;
-            window.sessionStorage.setItem(authorityKey, alternateAuthority);
-
-            const cachedRequest: AuthorizationCodeRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                code: "thisIsACode",
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                correlationId: RANDOM_TEST_GUID,
-                scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
-                authority: "",
-                authenticationScheme: AuthenticationScheme.BEARER,
-            };
-            const stringifiedRequest = browserCrypto.base64Encode(
-                JSON.stringify(cachedRequest)
-            );
-            browserStorage.setTemporaryCache(
-                TemporaryCacheKeys.REQUEST_PARAMS,
-                stringifiedRequest,
-                true
-            );
-
-            // Perform test
-            const tokenRequest = browserStorage.getCachedRequest(
-                TEST_STATE_VALUES.TEST_STATE_REDIRECT
-            );
-            expect(tokenRequest.authority).toBe(alternateAuthority);
-        });
-
-        it("cleanRequestByInteractionType() returns early if state is not present", () => {
-            let dbStorage = {};
-            jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
-                async (): Promise<void> => {
-                    dbStorage = {};
-                }
-            );
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger,
-                new StubPerformanceClient(),
-                new EventHandler()
-            );
-
-            const cacheKey = "cacheKey";
-            const cacheValue = "cacheValue";
-            browserStorage.setTemporaryCache(cacheKey, cacheValue, true);
-            browserStorage.cleanRequestByInteractionType(
-                InteractionType.Redirect
-            );
-            expect(browserStorage.getTemporaryCache(cacheKey, true)).toBe(
-                cacheValue
-            );
-            browserStorage.clear();
-        });
-
-        it("cleanRequestByInteractionType() cleans cache", () => {
-            let dbStorage = {};
-            jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
-                async (): Promise<void> => {
-                    dbStorage = {};
-                }
-            );
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                cacheConfig,
-                browserCrypto,
-                logger,
-                new StubPerformanceClient(),
-                new EventHandler()
-            );
-
-            const browserState: BrowserStateObject = {
-                interactionType: InteractionType.Redirect,
-            };
-
-            jest.spyOn(CryptoOps.prototype, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
-            );
-            const state = ProtocolUtils.setRequestState(
-                browserCrypto,
-                undefined,
-                browserState
-            );
-            const cacheKey = `cacheKey.${state}`;
-            const cacheValue = "cacheValue";
-            browserStorage.setTemporaryCache(cacheKey, cacheValue, true);
-            browserStorage.setTemporaryCache(
-                `${TemporaryCacheKeys.REQUEST_STATE}.${RANDOM_TEST_GUID}`,
-                state,
-                true
-            );
-            browserStorage.cleanRequestByInteractionType(
-                InteractionType.Redirect
-            );
-            expect(browserStorage.getKeys()).toHaveLength(0);
-        });
-        it("cleanRequestByInteractionType() interaction status even no request is in progress", () => {
-            let dbStorage = {};
-            jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(
-                async (): Promise<void> => {
-                    dbStorage = {};
-                }
-            );
-            const browserStorage = new BrowserCacheManager(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                {
-                    ...cacheConfig,
-                    storeAuthStateInCookie: true,
-                },
-                browserCrypto,
-                logger,
-                new StubPerformanceClient(),
-                new EventHandler()
-            );
-
-            browserStorage.setInteractionInProgress(true);
-            browserStorage.cleanRequestByInteractionType(
-                InteractionType.Redirect
-            );
-            expect(browserStorage.getInteractionInProgress()).toBeFalsy();
         });
 
         it("addTokenKey adds credential to key map and removeTokenKey removes the given credential from the key map", () => {

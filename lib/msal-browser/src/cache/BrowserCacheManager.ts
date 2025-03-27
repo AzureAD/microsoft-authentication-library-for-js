@@ -7,7 +7,6 @@ import {
     Constants,
     PersistentCacheKeys,
     StringUtils,
-    CommonAuthorizationCodeRequest,
     ICrypto,
     AccountEntity,
     IdTokenEntity,
@@ -17,14 +16,11 @@ import {
     CacheManager,
     ServerTelemetryEntity,
     ThrottlingEntity,
-    ProtocolUtils,
     Logger,
     AuthorityMetadataEntity,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     AccountInfo,
     ActiveAccountFilters,
-    CcsCredential,
-    CcsCredentialType,
     TokenKeys,
     CredentialType,
     CacheRecord,
@@ -38,6 +34,8 @@ import {
     StoreInCache,
     CacheError,
     invokeAsync,
+    TimeUtils,
+    CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
@@ -46,7 +44,6 @@ import {
 } from "../error/BrowserAuthError.js";
 import {
     BrowserCacheLocation,
-    InteractionType,
     TemporaryCacheKeys,
     InMemoryCacheKeys,
     StaticCacheKeys,
@@ -55,7 +52,6 @@ import { LocalStorage } from "./LocalStorage.js";
 import { SessionStorage } from "./SessionStorage.js";
 import { MemoryStorage } from "./MemoryStorage.js";
 import { IWindowStorage } from "./IWindowStorage.js";
-import { extractBrowserRequestState } from "../utils/BrowserProtocolUtils.js";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { SilentRequest } from "../request/SilentRequest.js";
@@ -1074,130 +1070,17 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * Create authorityKey to cache authority
-     * @param state
-     */
-    generateAuthorityKey(stateString: string): string {
-        const {
-            libraryState: { id: stateId },
-        } = ProtocolUtils.parseRequestState(this.cryptoImpl, stateString);
-
-        return this.generateCacheKey(
-            `${TemporaryCacheKeys.AUTHORITY}.${stateId}`
-        );
-    }
-
-    /**
-     * Create Nonce key to cache nonce
-     * @param state
-     */
-    generateNonceKey(stateString: string): string {
-        const {
-            libraryState: { id: stateId },
-        } = ProtocolUtils.parseRequestState(this.cryptoImpl, stateString);
-
-        return this.generateCacheKey(
-            `${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`
-        );
-    }
-
-    /**
-     * Creates full cache key for the request state
-     * @param stateString State string for the request
-     */
-    generateStateKey(stateString: string): string {
-        // Use the library state id to key temp storage for uniqueness for multiple concurrent requests
-        const {
-            libraryState: { id: stateId },
-        } = ProtocolUtils.parseRequestState(this.cryptoImpl, stateString);
-        return this.generateCacheKey(
-            `${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`
-        );
-    }
-
-    /**
-     * Gets the cached authority based on the cached state. Returns empty if no cached state found.
-     */
-    getCachedAuthority(cachedState: string): string | null {
-        const stateCacheKey = this.generateStateKey(cachedState);
-        const state = this.getTemporaryCache(stateCacheKey);
-        if (!state) {
-            return null;
-        }
-
-        const authorityCacheKey = this.generateAuthorityKey(state);
-        return this.getTemporaryCache(authorityCacheKey);
-    }
-
-    /**
-     * Updates account, authority, and state in cache
-     * @param serverAuthenticationRequest
-     * @param account
-     */
-    updateCacheEntries(
-        state: string,
-        nonce: string,
-        authorityInstance: string,
-        loginHint: string,
-        account: AccountInfo | null
-    ): void {
-        this.logger.trace("BrowserCacheManager.updateCacheEntries called");
-        // Cache the request state
-        const stateCacheKey = this.generateStateKey(state);
-        this.setTemporaryCache(stateCacheKey, state, false);
-
-        // Cache the nonce
-        const nonceCacheKey = this.generateNonceKey(state);
-        this.setTemporaryCache(nonceCacheKey, nonce, false);
-
-        // Cache authorityKey
-        const authorityCacheKey = this.generateAuthorityKey(state);
-        this.setTemporaryCache(authorityCacheKey, authorityInstance, false);
-
-        if (account) {
-            const ccsCredential: CcsCredential = {
-                credential: account.homeAccountId,
-                type: CcsCredentialType.HOME_ACCOUNT_ID,
-            };
-            this.setTemporaryCache(
-                TemporaryCacheKeys.CCS_CREDENTIAL,
-                JSON.stringify(ccsCredential),
-                true
-            );
-        } else if (loginHint) {
-            const ccsCredential: CcsCredential = {
-                credential: loginHint,
-                type: CcsCredentialType.UPN,
-            };
-            this.setTemporaryCache(
-                TemporaryCacheKeys.CCS_CREDENTIAL,
-                JSON.stringify(ccsCredential),
-                true
-            );
-        }
-    }
-
-    /**
      * Reset all temporary cache items
      * @param state
      */
-    resetRequestCache(state: string): void {
+    resetRequestCache(): void {
         this.logger.trace("BrowserCacheManager.resetRequestCache called");
-        // check state and remove associated cache items
-        if (state) {
-            this.temporaryCacheStorage.getKeys().forEach((key) => {
-                if (key.indexOf(state) !== -1) {
-                    this.removeTemporaryItem(key);
-                }
-            });
 
-            // delete generic interactive request parameters
-            this.removeTemporaryItem(this.generateStateKey(state));
-            this.removeTemporaryItem(this.generateNonceKey(state));
-            this.removeTemporaryItem(this.generateAuthorityKey(state));
-        }
         this.removeTemporaryItem(
             this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS)
+        );
+        this.removeTemporaryItem(
+            this.generateCacheKey(TemporaryCacheKeys.VERIFIER)
         );
         this.removeTemporaryItem(
             this.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI)
@@ -1206,75 +1089,16 @@ export class BrowserCacheManager extends CacheManager {
             this.generateCacheKey(TemporaryCacheKeys.URL_HASH)
         );
         this.removeTemporaryItem(
-            this.generateCacheKey(TemporaryCacheKeys.CORRELATION_ID)
-        );
-        this.removeTemporaryItem(
-            this.generateCacheKey(TemporaryCacheKeys.CCS_CREDENTIAL)
-        );
-        this.removeTemporaryItem(
             this.generateCacheKey(TemporaryCacheKeys.NATIVE_REQUEST)
         );
         this.setInteractionInProgress(false);
     }
 
-    /**
-     * Removes temporary cache for the provided state
-     * @param stateString
-     */
-    cleanRequestByState(stateString: string): void {
-        this.logger.trace("BrowserCacheManager.cleanRequestByState called");
-        // Interaction is completed - remove interaction status.
-        if (stateString) {
-            const stateKey = this.generateStateKey(stateString);
-            const cachedState = this.temporaryCacheStorage.getItem(stateKey);
-            this.logger.infoPii(
-                `BrowserCacheManager.cleanRequestByState: Removing temporary cache items for state: ${cachedState}`
-            );
-            this.resetRequestCache(cachedState || Constants.EMPTY_STRING);
-        }
-    }
-
-    /**
-     * Looks in temporary cache for any state values with the provided interactionType and removes all temporary cache items for that state
-     * Used in scenarios where temp cache needs to be cleaned but state is not known, such as clicking browser back button.
-     * @param interactionType
-     */
-    cleanRequestByInteractionType(interactionType: InteractionType): void {
-        this.logger.trace(
-            "BrowserCacheManager.cleanRequestByInteractionType called"
-        );
-        // Loop through all keys to find state key
-        this.temporaryCacheStorage.getKeys().forEach((key) => {
-            // If this key is not the state key, move on
-            if (key.indexOf(TemporaryCacheKeys.REQUEST_STATE) === -1) {
-                return;
-            }
-
-            // Retrieve state value, return if not a valid value
-            const stateValue = this.temporaryCacheStorage.getItem(key);
-            if (!stateValue) {
-                return;
-            }
-            // Extract state and ensure it matches given InteractionType, then clean request cache
-            const parsedState = extractBrowserRequestState(
-                this.cryptoImpl,
-                stateValue
-            );
-            if (
-                parsedState &&
-                parsedState.interactionType === interactionType
-            ) {
-                this.logger.infoPii(
-                    `BrowserCacheManager.cleanRequestByInteractionType: Removing temporary cache items for state: ${stateValue}`
-                );
-                this.resetRequestCache(stateValue);
-            }
-        });
-        this.setInteractionInProgress(false);
-    }
-
-    cacheCodeRequest(authCodeRequest: CommonAuthorizationCodeRequest): void {
-        this.logger.trace("BrowserCacheManager.cacheCodeRequest called");
+    cacheAuthorizeRequest(
+        authCodeRequest: CommonAuthorizationUrlRequest,
+        codeVerifier?: string
+    ): void {
+        this.logger.trace("BrowserCacheManager.cacheAuthorizeRequest called");
 
         const encodedValue = base64Encode(JSON.stringify(authCodeRequest));
         this.setTemporaryCache(
@@ -1282,12 +1106,21 @@ export class BrowserCacheManager extends CacheManager {
             encodedValue,
             true
         );
+
+        if (codeVerifier) {
+            const encodedVerifier = base64Encode(codeVerifier);
+            this.setTemporaryCache(
+                TemporaryCacheKeys.VERIFIER,
+                encodedVerifier,
+                true
+            );
+        }
     }
 
     /**
      * Gets the token exchange parameters from the cache. Throws an error if nothing is found.
      */
-    getCachedRequest(state: string): CommonAuthorizationCodeRequest {
+    getCachedRequest(): [CommonAuthorizationUrlRequest, string] {
         this.logger.trace("BrowserCacheManager.getCachedRequest called");
         // Get token request from cache and parse as TokenExchangeParameters.
         const encodedTokenRequest = this.getTemporaryCache(
@@ -1299,10 +1132,18 @@ export class BrowserCacheManager extends CacheManager {
                 BrowserAuthErrorCodes.noTokenRequestCacheError
             );
         }
+        const encodedVerifier = this.getTemporaryCache(
+            TemporaryCacheKeys.VERIFIER,
+            true
+        );
 
-        let parsedRequest: CommonAuthorizationCodeRequest;
+        let parsedRequest: CommonAuthorizationUrlRequest;
+        let verifier = "";
         try {
             parsedRequest = JSON.parse(base64Decode(encodedTokenRequest));
+            if (encodedVerifier) {
+                verifier = base64Decode(encodedVerifier);
+            }
         } catch (e) {
             this.logger.errorPii(`Attempted to parse: ${encodedTokenRequest}`);
             this.logger.error(
@@ -1312,23 +1153,8 @@ export class BrowserCacheManager extends CacheManager {
                 BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
             );
         }
-        this.removeTemporaryItem(
-            this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS)
-        );
 
-        // Get cached authority and use if no authority is cached with request.
-        if (!parsedRequest.authority) {
-            const authorityCacheKey: string = this.generateAuthorityKey(state);
-            const cachedAuthority = this.getTemporaryCache(authorityCacheKey);
-            if (!cachedAuthority) {
-                throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.noCachedAuthorityError
-                );
-            }
-            parsedRequest.authority = cachedAuthority;
-        }
-
-        return parsedRequest;
+        return [parsedRequest, verifier];
     }
 
     /**
@@ -1436,8 +1262,13 @@ export class BrowserCacheManager extends CacheManager {
             this.clientId,
             result.tenantId,
             result.scopes.join(" "),
-            result.expiresOn ? result.expiresOn.getTime() / 1000 : 0,
-            result.extExpiresOn ? result.extExpiresOn.getTime() / 1000 : 0,
+            // Access token expiresOn stored in seconds, converting from AuthenticationResult expiresOn stored as Date
+            result.expiresOn
+                ? TimeUtils.toSecondsFromDate(result.expiresOn)
+                : 0,
+            result.extExpiresOn
+                ? TimeUtils.toSecondsFromDate(result.extExpiresOn)
+                : 0,
             base64Decode,
             undefined, // refreshOn
             result.tokenType as AuthenticationScheme,

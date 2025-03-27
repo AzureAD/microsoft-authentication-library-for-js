@@ -1,8 +1,90 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 19 Feb 2025 23:57:02 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 26 Mar 2025 17:56:52 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.9.1
+
+Wed, 26 Mar 2025 17:56:52 GMT
+
+### Patches
+
+- remove EAR override (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.9.0
+
+Tue, 25 Mar 2025 22:29:34 GMT
+
+### Minor changes
+
+- EAR Protocol response handling (thomas.norling@microsoft.com)
+- EAR protocol request support (thomas.norling@microsoft.com)
+- refactor redirect request caching (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.4.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.8.0
+
+Thu, 20 Mar 2025 22:09:04 GMT
+
+### Minor changes
+
+- Refactor /authorize request generation (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.3.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fix expires_in format & double brokering errors #7646 (sameera.gajjarapu@microsoft.com)
+- refactor RequestParameterBuilder (thomas.norling@microsoft.com)
+
+## 4.7.0
+
+Tue, 11 Mar 2025 18:51:24 GMT
+
+### Minor changes
+
+- Bump msal-browser to 4.6.0 #7628 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.2.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Fix exception when BroadcastChannel is not available in JS Runtime (#7569) (dasau@microsoft.com)
+- Use TimeUtils for time/date conversions #7613 (joarroyo@microsoft.com)
+- Fix acquireTokenSilent deduplication for pairwise broker requests (thomas.norling@microsoft.com)
+
+## 4.5.1
+
+Tue, 04 Mar 2025 23:02:15 GMT
+
+### Patches
+
+- Fix double brokering bug: Native flow should not be triggered for cache only look up (sameera.gajjarapu@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.5.0
+
+Wed, 26 Feb 2025 01:12:33 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser (lalimasharda@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.4.0
 
