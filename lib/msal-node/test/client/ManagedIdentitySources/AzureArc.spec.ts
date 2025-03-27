@@ -236,7 +236,9 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                         ManagedIdentityEnvironmentVariableNames
                             .IDENTITY_ENDPOINT
                     ]
-                }?api-version=${ARC_API_VERSION}&resource=${MANAGED_IDENTITY_RESOURCE_BASE}`,
+                }?api-version=${ARC_API_VERSION}&resource=${encodeURIComponent(
+                    MANAGED_IDENTITY_RESOURCE_BASE
+                )}`,
                 {
                     headers: {
                         Authorization:

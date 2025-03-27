@@ -5,12 +5,12 @@
 
 import {
   EndSessionRequest,
-  AuthorizationUrlRequest,
   AuthenticationResult,
   PopupRequest,
   RedirectRequest,
   SilentRequest,
   Logger,
+  SsoSilentRequest,
 } from "@azure/msal-browser";
 import { Observable } from "rxjs";
 
@@ -25,7 +25,7 @@ export interface IMsalService {
   loginPopup(request?: PopupRequest): Observable<AuthenticationResult>;
   loginRedirect(request?: RedirectRequest): Observable<void>;
   logout(logoutRequest?: EndSessionRequest): Observable<void>;
-  ssoSilent(request: AuthorizationUrlRequest): Observable<AuthenticationResult>;
+  ssoSilent(request: SsoSilentRequest): Observable<AuthenticationResult>;
   getLogger(): Logger;
   setLogger(logger: Logger): void;
 }

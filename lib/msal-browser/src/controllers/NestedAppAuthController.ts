@@ -599,6 +599,7 @@ export class NestedAppAuthController implements IController {
                       CommonAuthorizationUrlRequest,
                       | "requestedClaimsHash"
                       | "responseMode"
+                      | "earJwk"
                       | "codeChallenge"
                       | "codeChallengeMethod"
                       | "platformBroker"
@@ -780,6 +781,7 @@ export class NestedAppAuthController implements IController {
                 CommonAuthorizationUrlRequest,
                 | "requestedClaimsHash"
                 | "responseMode"
+                | "earJwk"
                 | "codeChallenge"
                 | "codeChallengeMethod"
                 | "platformBroker"
