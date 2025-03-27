@@ -19,7 +19,7 @@ import { AppTokenProviderResult } from '@azure/msal-common/node';
 import { AuthenticationResult } from '@azure/msal-common/node';
 import { AuthError } from '@azure/msal-common/node';
 import { AuthErrorCodes } from '@azure/msal-common/node';
-import { AuthErrorMessage } from '@azure/msal-common/node';
+import { AuthErrorMessages } from '@azure/msal-common/node';
 import { Authority } from '@azure/msal-common/node';
 import { AuthorityMetadataEntity } from '@azure/msal-common/node';
 import { AuthorizationCodePayload } from '@azure/msal-common/node';
@@ -34,11 +34,11 @@ import { CacheOutcome } from '@azure/msal-common/node';
 import { ClientAssertionCallback } from '@azure/msal-common/node';
 import { ClientAuthError } from '@azure/msal-common/node';
 import { ClientAuthErrorCodes } from '@azure/msal-common/node';
-import { ClientAuthErrorMessage } from '@azure/msal-common/node';
+import { ClientAuthErrorMessages } from '@azure/msal-common/node';
 import { ClientConfiguration } from '@azure/msal-common/node';
 import { ClientConfigurationError } from '@azure/msal-common/node';
 import { ClientConfigurationErrorCodes } from '@azure/msal-common/node';
-import { ClientConfigurationErrorMessage } from '@azure/msal-common/node';
+import { ClientConfigurationErrorMessages } from '@azure/msal-common/node';
 import { CommonAuthorizationCodeRequest } from '@azure/msal-common/node';
 import { CommonAuthorizationUrlRequest } from '@azure/msal-common/node';
 import { CommonClientCredentialRequest } from '@azure/msal-common/node';
@@ -60,7 +60,6 @@ import { INativeBrokerPlugin } from '@azure/msal-common/node';
 import { INetworkModule } from '@azure/msal-common/node';
 import { InteractionRequiredAuthError } from '@azure/msal-common/node';
 import { InteractionRequiredAuthErrorCodes } from '@azure/msal-common/node';
-import { InteractionRequiredAuthErrorMessage } from '@azure/msal-common/node';
 import { ISerializableTokenCache } from '@azure/msal-common/node';
 import { Logger } from '@azure/msal-common/node';
 import { LoggerOptions } from '@azure/msal-common/node';
@@ -95,7 +94,7 @@ export { AuthError }
 
 export { AuthErrorCodes }
 
-export { AuthErrorMessage }
+export { AuthErrorMessages }
 
 export { AuthorizationCodePayload }
 
@@ -131,7 +130,6 @@ export type CacheKVStore = Record<string, ValidCacheType>;
 // @public
 export type CacheOptions = {
     cachePlugin?: ICachePlugin;
-    claimsBasedCachingEnabled?: boolean;
 };
 
 // @public
@@ -181,13 +179,13 @@ export { ClientAuthError }
 
 export { ClientAuthErrorCodes }
 
-export { ClientAuthErrorMessage }
+export { ClientAuthErrorMessages }
 
 export { ClientConfigurationError }
 
 export { ClientConfigurationErrorCodes }
 
-export { ClientConfigurationErrorMessage }
+export { ClientConfigurationErrorMessages }
 
 // @public
 export class ClientCredentialClient extends BaseClient {
@@ -320,8 +318,6 @@ export type InMemoryCache = {
 export { InteractionRequiredAuthError }
 
 export { InteractionRequiredAuthErrorCodes }
-
-export { InteractionRequiredAuthErrorMessage }
 
 // @public
 export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "requestedClaimsHash" | "storeInCache">> & {
