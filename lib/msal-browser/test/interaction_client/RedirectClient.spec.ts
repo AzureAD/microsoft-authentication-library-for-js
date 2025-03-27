@@ -1992,7 +1992,7 @@ describe("RedirectClient", () => {
                     },
                 },
             });
-            
+
             pca.initialize().then(() => {
                 pca = (pca as any).controller;
                 let redirectClient = new RedirectClient(
@@ -2013,12 +2013,15 @@ describe("RedirectClient", () => {
                     //@ts-ignore
                     pca.nativeInternalStorage
                 );
-    
+
                 let initiateAuthRequestSpy = jest.spyOn(
                     RedirectClient.prototype,
                     "initiateAuthRequest"
                 );
-                jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                jest.spyOn(
+                    PkceGenerator,
+                    "generatePkceCodes"
+                ).mockResolvedValue({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
                     verifier: TEST_CONFIG.TEST_VERIFIER,
                 });
