@@ -11,7 +11,6 @@ import {
     UrlString,
     CommonEndSessionRequest,
     ProtocolUtils,
-    ResponseMode,
     IdTokenClaims,
     AccountInfo,
     AzureCloudOptions,

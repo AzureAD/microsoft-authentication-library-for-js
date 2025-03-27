@@ -7,7 +7,6 @@ import {
     Logger,
     IPerformanceClient,
     PerformanceEvents,
-    invokeAsync,
     invoke,
     ResponseMode,
     Authority,

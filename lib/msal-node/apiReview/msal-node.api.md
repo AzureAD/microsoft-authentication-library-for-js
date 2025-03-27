@@ -113,7 +113,6 @@ export type AuthorizationUrlRequest = Partial<Omit<CommonAuthorizationUrlRequest
 };
 
 export { AuthorizeResponse }
-export { AuthorizeResponse as ServerAuthorizationCodeResponse }
 
 export { AzureCloudInstance }
 
