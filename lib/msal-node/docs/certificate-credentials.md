@@ -6,7 +6,7 @@ You can build confidential client applications with MSAL Node (web apps, daemon 
 
 -   `managed identity`: this is a certificateless scenario, where trust is established via the Azure infrastructure. No secret / certificate management is required. MSAL does not yet implement this feature, but you may use Azure Identity SDK instead. See https://learn.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/
 -   `clientSecret`: a secret string generated during the app registration, or updated post registration for an existing application. This is not recommended for production.
--   `clientCertificate`: a certificate set during the app registration. The certificate needs to have the private key, because it will be used for signing [an assertion](https://learn.microsoft.com/azure/active-directory/develop/certificate-credentials) that MSAL generates. The `thumbprint` is a _X.509 SHA-1_ thumbprint of the certificate (x5t), and the `privateKey` is the PEM encoded private key.
+-   `clientCertificate`: a certificate set during the app registration. The certificate needs to have the private key, because it will be used for signing [an assertion](https://learn.microsoft.com/azure/active-directory/develop/certificate-credentials) that MSAL generates. The `thumbprintSha256` is a _X.509 SHA-256_ thumbprint of the certificate, and the `privateKey` is the PEM encoded private key.
 -   `clientAssertion`: instead of letting MSAL create an [assertion](https://learn.microsoft.com/azure/active-directory/develop/certificate-credentials), the app developer takes control. Useful for adding extra claims to the assertion or for using KeyVault for signing, instead of a local certificate. The certificate used to sign the assertion still needs to be set during app registration.
 
 Note: 1p apps may be required to also send `x5c`. This is the _X.509_ certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/sni.md).
@@ -30,7 +30,7 @@ You need to upload your certificate to **Azure AD**.
 1. Navigate to [Azure portal](https://portal.azure.com) and select your Azure AD app registration.
 2. Select **Certificates & secrets** blade on the left.
 3. Click on **Upload** certificate and select the certificate file to upload (e.g. _example.crt_).
-4. Click **Add**. Once the certificate is uploaded, the _thumbprint_, _start date_, and _expiration_ values are displayed.
+4. Click **Add**. Once the certificate is uploaded, the _thumbprint (SHA-256)_, _start date_, and _expiration_ values are displayed.
 
 For more information, see: [Register your certificate with Microsoft identity platform](https://docs.microsoft.com/azure/active-directory/develop/active-directory-certificate-credentials#register-your-certificate-with-microsoft-identity-platform)
 
@@ -45,7 +45,7 @@ const config = {
         clientId: "YOUR_CLIENT_ID",
         authority: "https://login.microsoftonline.com/YOUR_TENANT_ID",
         clientCertificate: {
-            thumbprint: process.env.thumbprint, // a 40-digit hexadecimal string
+            thumbprintSha256: process.env.thumbprint,
             privateKey: process.env.privateKey,
         },
     },
@@ -55,7 +55,7 @@ const config = {
 const cca = new msal.ConfidentialClientApplication(config);
 ```
 
-Both `thumbprint` and `privateKey` are expected to be strings. `privateKey` is further expected to be in the following form (_PKCS#8_):
+Both `thumbprintSha256` and `privateKey` are expected to be strings. `privateKey` is further expected to be in the following form (_PKCS#8_):
 
 ```text
 -----BEGIN ENCRYPTED PRIVATE KEY-----
@@ -65,7 +65,7 @@ z2HCpDsa7dxOsKIrm7F1AtGBjyB0yVDjlh/FA7jT5sd2ypBh3FVsZGJudQsLRKfE
 -----END ENCRYPTED PRIVATE KEY-----
 ```
 
-> :information_source: Alternatively, your private key may begin with `-----BEGIN PRIVATE KEY-----` (unencrypted _PKCS#8_) or `-----BEGIN RSA PRIVATE KEY-----` (_PKCS#1_). These formats are also permissible. The following can be used to convert any compatible key to the PKCS#8 key type:
+> :information*source: Alternatively, your private key may begin with `-----BEGIN PRIVATE KEY-----` (unencrypted \_PKCS#8*) or `-----BEGIN RSA PRIVATE KEY-----` (_PKCS#1_). These formats are also permissible. The following can be used to convert any compatible key to the PKCS#8 key type:
 >
 > ```bash
 > openssl pkcs8 -topk8 -inform PEM -outform PEM -in example.key -out example.key
@@ -204,7 +204,7 @@ const config = {
         clientId: "YOUR_CLIENT_ID",
         authority: "https://login.microsoftonline.com/YOUR_TENANT_ID",
         clientCertificate: {
-            thumbprint: process.env.thumbprint, // a 40-digit hexadecimal string
+            thumbprintSha256: process.env.thumbprint,
             privateKey: privateKey,
         },
     },
