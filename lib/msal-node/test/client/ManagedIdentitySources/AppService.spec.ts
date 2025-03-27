@@ -73,7 +73,6 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
                 await managedIdentityApplication.acquireToken(
                     managedIdentityRequestParams
                 );
-
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
@@ -83,9 +82,14 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
             );
             expect(
                 url.has(
-                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2019
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID
                 )
             ).toBe(true);
+            expect(
+                url.has(
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2017
+                )
+            ).toBe(false);
         });
 
         test("acquires a User Assigned Resource Id token", async () => {
