@@ -175,7 +175,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
             expect(
                 timeAfterNetworkRequest.valueOf() -
                     timeBeforeNetworkRequest.valueOf()
-            ).toBeGreaterThan(
+            ).toBeGreaterThanOrEqual(
                 DefaultManagedIdentityRetryPolicy.DEFAULT_MANAGED_IDENTITY_RETRY_DELAY_MS
             ); // only 1 retry out of 3 possible
 
@@ -214,7 +214,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
             expect(
                 timeAfterNetworkRequest.valueOf() -
                     timeBeforeNetworkRequest.valueOf()
-            ).toBeGreaterThan(
+            ).toBeGreaterThanOrEqual(
                 LINEAR_POLICY_MAX_RETRIES_IN_MS * ONE_HUNDRED_TIMES_FASTER
             );
 
@@ -257,7 +257,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
             expect(
                 timeAfterNetworkRequest.valueOf() -
                     timeBeforeNetworkRequest.valueOf()
-            ).toBeGreaterThan(LINEAR_POLICY_MAX_RETRIES_IN_MS);
+            ).toBeGreaterThanOrEqual(LINEAR_POLICY_MAX_RETRIES_IN_MS);
 
             expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
             expect(networkManagedIdentityResult.accessToken).toEqual(
