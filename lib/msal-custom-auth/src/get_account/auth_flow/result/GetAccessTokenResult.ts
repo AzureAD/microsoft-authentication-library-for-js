@@ -13,7 +13,7 @@ import { GetAccessTokenFailedState } from "../state/GetAccessTokenFailedState.js
  * Result of getting an access token.
  */
 export class GetAccessTokenResult extends AuthFlowResultBase<
-    GetAccessTokenCompletedState | GetAccessTokenFailedState,
+    GetAccessTokenResultState,
     GetCurrentAccountAccessTokenError,
     AuthenticationResult
 > {
@@ -29,3 +29,5 @@ export class GetAccessTokenResult extends AuthFlowResultBase<
         return result;
     }
 }
+
+export type GetAccessTokenResultState = GetAccessTokenCompletedState | GetAccessTokenFailedState;

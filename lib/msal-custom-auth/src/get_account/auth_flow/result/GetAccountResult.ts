@@ -13,7 +13,7 @@ import { GetAccountFailedState } from "../state/GetAccountFailedState.js";
  * Result of getting an account.
  */
 export class GetAccountResult extends AuthFlowResultBase<
-    GetAccountCompletedState | GetAccountFailedState,
+    GetAccountResultState,
     GetAccountError,
     CustomAuthAccountData
 > {
@@ -29,3 +29,5 @@ export class GetAccountResult extends AuthFlowResultBase<
         return result;
     }
 }
+
+export type GetAccountResultState = GetAccountCompletedState | GetAccountFailedState;
