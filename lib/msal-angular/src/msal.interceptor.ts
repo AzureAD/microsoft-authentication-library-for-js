@@ -55,7 +55,7 @@ export class MsalInterceptor implements HttpInterceptor {
       this.msalInterceptorConfig.interactionType !== InteractionType.Popup &&
       this.msalInterceptorConfig.interactionType !== InteractionType.Redirect
     ) {
-      new BrowserConfigurationAuthError(
+      throw new BrowserConfigurationAuthError(
         "invalid_interaction_type",
         "Invalid interaction type provided to MSAL Interceptor. InteractionType.Popup, InteractionType.Redirect must be provided in the msalInterceptorConfiguration"
       );

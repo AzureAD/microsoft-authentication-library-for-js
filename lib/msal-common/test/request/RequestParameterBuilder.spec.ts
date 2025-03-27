@@ -21,13 +21,12 @@ import * as RequestParameterBuilder from "../../src/request/RequestParameterBuil
 import * as UrlUtils from "../../src/utils/UrlUtils.js";
 import {
     ClientConfigurationErrorCodes,
-    createClientConfigurationError,
+    ClientConfigurationError,
 } from "../../src/error/ClientConfigurationError.js";
 import { ClientAssertion, ClientAssertionCallback } from "../../src/index.js";
 import { getClientAssertion } from "../../src/utils/ClientAssertionUtils.js";
 import { ClientAssertionConfig } from "../../src/account/ClientCredentials.js";
 import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
-import { ClientConfigurationError } from "../../lib/types/exports-common.js";
 
 describe("RequestParameterBuilder unit tests", () => {
     afterEach(() => {
@@ -346,8 +345,8 @@ describe("RequestParameterBuilder unit tests", () => {
                 TEST_CONFIG.TEST_CHALLENGE,
                 ""
             )
-        ).toThrowError(
-            createClientConfigurationError(
+        ).toThrow(
+            new ClientConfigurationError(
                 ClientConfigurationErrorCodes.pkceParamsMissing
             )
         );
@@ -361,8 +360,8 @@ describe("RequestParameterBuilder unit tests", () => {
                 "",
                 AADServerParamKeys.CODE_CHALLENGE_METHOD
             )
-        ).toThrowError(
-            createClientConfigurationError(
+        ).toThrow(
+            new ClientConfigurationError(
                 ClientConfigurationErrorCodes.pkceParamsMissing
             )
         );
@@ -395,7 +394,7 @@ describe("RequestParameterBuilder unit tests", () => {
             RequestParameterBuilder.addClaims(parameters, claims, [])
         ).toThrow(
             new ClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidClaimsRequest
+                ClientConfigurationErrorCodes.invalidClaims
             )
         );
     });
@@ -636,7 +635,7 @@ describe("RequestParameterBuilder unit tests", () => {
                 )
             ).toThrow(
                 new ClientConfigurationError(
-                    ClientConfigurationErrorCodes.invalidClaimsRequest
+                    ClientConfigurationErrorCodes.invalidClaims
                 )
             );
         });

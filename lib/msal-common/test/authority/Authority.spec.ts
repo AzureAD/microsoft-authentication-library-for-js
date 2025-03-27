@@ -1099,7 +1099,10 @@ describe("Authority.ts Class Unit Tests", () => {
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toBe(
-                        ClientConfigurationErrorMessages.invalidAuthorityMetadata
+                        ClientConfigurationErrorMessages[
+                            ClientConfigurationErrorCodes
+                                .invalidAuthorityMetadata
+                        ]
                     );
                     done();
                 });
@@ -2492,7 +2495,10 @@ describe("Authority.ts Class Unit Tests", () => {
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toBe(
-                        ClientConfigurationErrorMessages
+                        ClientConfigurationErrorMessages[
+                            ClientConfigurationErrorCodes
+                                .invalidCloudDiscoveryMetadata
+                        ]
                     );
                     done();
                 });
@@ -2567,7 +2573,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toEqual(
                         ClientConfigurationErrorMessages[
-                            ClientAuthErrorCodes.untrustedAuthority
+                            ClientConfigurationErrorCodes.untrustedAuthority
                         ]
                     );
                     expect(e.errorCode).toEqual(

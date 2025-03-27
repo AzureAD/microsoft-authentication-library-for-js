@@ -64,9 +64,7 @@ describe("Non-browser environment", () => {
             await instance.acquireTokenPopup({ scopes: ["openid"] });
         } catch (error: any) {
             expect(error.errorCode).toEqual(
-                BrowserAuthErrorMessages[
-                    BrowserAuthErrorCodes.nonBrowserEnvironment
-                ]
+                BrowserAuthErrorCodes.nonBrowserEnvironment
             );
         }
     });
@@ -83,9 +81,7 @@ describe("Non-browser environment", () => {
             await instance.acquireTokenRedirect({ scopes: ["openid"] });
         } catch (error: any) {
             expect(error.errorCode).toEqual(
-                BrowserAuthErrorMessages[
-                    BrowserAuthErrorCodes.nonBrowserEnvironment
-                ]
+                BrowserAuthErrorCodes.nonBrowserEnvironment
             );
         }
     });
@@ -105,9 +101,7 @@ describe("Non-browser environment", () => {
             });
         } catch (error: any) {
             expect(error.errorCode).toEqual(
-                BrowserAuthErrorMessages[
-                    BrowserAuthErrorCodes.nonBrowserEnvironment
-                ]
+                BrowserAuthErrorCodes.nonBrowserEnvironment
             );
         }
     });
@@ -127,9 +121,7 @@ describe("Non-browser environment", () => {
             });
         } catch (error: any) {
             expect(error.errorCode).toEqual(
-                BrowserAuthErrorMessages[
-                    BrowserAuthErrorCodes.nonBrowserEnvironment
-                ]
+                BrowserAuthErrorCodes.nonBrowserEnvironment
             );
         }
     });
@@ -168,9 +160,7 @@ describe("Non-browser environment", () => {
             instance.addPerformanceCallback(() => {});
         } catch (error: any) {
             expect(error.errorCode).toEqual(
-                BrowserAuthErrorMessages[
-                    BrowserAuthErrorCodes.nonBrowserEnvironment
-                ]
+                BrowserAuthErrorCodes.nonBrowserEnvironment
             );
         }
     });
@@ -245,9 +235,7 @@ describe("Non-browser environment", () => {
             await instance.loginPopup({ scopes: ["openid"] });
         } catch (error: any) {
             expect(error.errorCode).toEqual(
-                BrowserAuthErrorMessages[
-                    BrowserAuthErrorCodes.nonBrowserEnvironment
-                ]
+                BrowserAuthErrorCodes.nonBrowserEnvironment
             );
         }
     });
@@ -264,9 +252,7 @@ describe("Non-browser environment", () => {
             await instance.loginRedirect({ scopes: ["openid"] });
         } catch (error: any) {
             expect(error.errorCode).toEqual(
-                BrowserAuthErrorMessages[
-                    BrowserAuthErrorCodes.nonBrowserEnvironment
-                ]
+                BrowserAuthErrorCodes.nonBrowserEnvironment
             );
         }
     });
@@ -283,9 +269,7 @@ describe("Non-browser environment", () => {
             await instance.logoutRedirect();
         } catch (error: any) {
             expect(error.errorCode).toEqual(
-                BrowserAuthErrorMessages[
-                    BrowserAuthErrorCodes.nonBrowserEnvironment
-                ]
+                BrowserAuthErrorCodes.nonBrowserEnvironment
             );
         }
     });
@@ -301,9 +285,7 @@ describe("Non-browser environment", () => {
             await instance.logoutPopup();
         } catch (error: any) {
             expect(error.errorCode).toEqual(
-                BrowserAuthErrorMessages[
-                    BrowserAuthErrorCodes.nonBrowserEnvironment
-                ]
+                BrowserAuthErrorCodes.nonBrowserEnvironment
             );
         }
     });
@@ -320,9 +302,7 @@ describe("Non-browser environment", () => {
             await instance.ssoSilent({});
         } catch (error: any) {
             expect(error.errorCode).toEqual(
-                BrowserAuthErrorMessages[
-                    BrowserAuthErrorCodes.nonBrowserEnvironment
-                ]
+                BrowserAuthErrorCodes.nonBrowserEnvironment
             );
         }
     });

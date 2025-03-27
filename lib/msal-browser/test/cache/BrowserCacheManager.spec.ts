@@ -2765,9 +2765,7 @@ describe("BrowserCacheManager tests", () => {
                 new EventHandler()
             );
 
-            expect(() =>
-                browserStorage.getCachedRequest()
-            ).toThrow(
+            expect(() => browserStorage.getCachedRequest()).toThrow(
                 new BrowserAuthError(
                     BrowserAuthErrorCodes.noTokenRequestCacheError
                 )
@@ -2804,9 +2802,7 @@ describe("BrowserCacheManager tests", () => {
                 stringifiedRequest.substring(0, stringifiedRequest.length / 2),
                 true
             );
-            expect(() =>
-                browserStorage.getCachedRequest()
-            ).toThrow(
+            expect(() => browserStorage.getCachedRequest()).toThrow(
                 new BrowserAuthError(
                     BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
                 )

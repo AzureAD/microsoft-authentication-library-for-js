@@ -1,4 +1,4 @@
-import { TEST_URIS, TEST_HASHES } from "../test_kit/StringConstants.js";
+import { TEST_URIS } from "../test_kit/StringConstants.js";
 import { UrlString } from "../../src/url/UrlString.js";
 import {
     ClientConfigurationError,

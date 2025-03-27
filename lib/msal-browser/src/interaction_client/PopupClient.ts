@@ -676,8 +676,7 @@ export class PopupClient extends StandardInteractionClient {
                 clearInterval(intervalId);
 
                 let responseString = "";
-                const responseType =
-                    this.config.auth.OIDCOptions.responseMode;
+                const responseType = this.config.auth.OIDCOptions.responseMode;
                 if (popupWindow) {
                     if (responseType === ResponseMode.QUERY) {
                         responseString = popupWindow.location.search;

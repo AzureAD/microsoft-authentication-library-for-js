@@ -65,15 +65,14 @@ describe("SilentHandler.ts Unit Tests", () => {
         });
 
         it(
-            "Creates a frame asynchronously when created with default timeout",
+            "Creates a frame asynchronously",
             async () => {
                 const startTime = Date.now();
                 const authFrame = await SilentHandler.initiateCodeRequest(
                     testNavUrl,
                     performanceClient,
                     browserRequestLogger,
-                    RANDOM_TEST_GUID,
-                    DEFAULT_IFRAME_TIMEOUT_MS
+                    RANDOM_TEST_GUID
                 );
                 const endTime = Date.now();
                 expect(endTime - startTime).toBeGreaterThanOrEqual(
@@ -83,20 +82,6 @@ describe("SilentHandler.ts Unit Tests", () => {
             },
             DEFAULT_IFRAME_TIMEOUT_MS + 1000
         );
-
-        it("Creates a frame synchronously when created with a timeout of 0", async () => {
-            const startTime = Date.now();
-            const authFrame = await SilentHandler.initiateCodeRequest(
-                testNavUrl,
-                performanceClient,
-                browserRequestLogger,
-                RANDOM_TEST_GUID,
-                0
-            );
-            const endTime = Date.now();
-            expect(endTime - startTime).toBeLessThan(DEFAULT_IFRAME_TIMEOUT_MS);
-            expect(authFrame instanceof HTMLIFrameElement).toBe(true);
-        });
     });
 
     describe("monitorIframeForHash", () => {

@@ -132,9 +132,7 @@ describe("NativeAuthError Unit Tests", () => {
                 );
                 expect(error).toBeInstanceOf(BrowserAuthError);
                 expect(error.errorCode).toBe(
-                    BrowserAuthErrorMessages[
-                        BrowserAuthErrorCodes.userCancelled
-                    ]
+                    BrowserAuthErrorCodes.userCancelled
                 );
             });
 
@@ -151,9 +149,7 @@ describe("NativeAuthError Unit Tests", () => {
                 );
                 expect(error).toBeInstanceOf(BrowserAuthError);
                 expect(error.errorCode).toBe(
-                    BrowserAuthErrorMessages[
-                        BrowserAuthErrorCodes.noNetworkConnectivity
-                    ]
+                    BrowserAuthErrorCodes.noNetworkConnectivity
                 );
             });
         });
