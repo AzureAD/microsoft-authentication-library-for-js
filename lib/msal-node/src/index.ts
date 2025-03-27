@@ -87,10 +87,6 @@ export {
     // Response
     AuthenticationResult,
     AuthorizeResponse,
-    /**
-     * @deprecated Use AuthorizeResponse instead
-     */
-    AuthorizeResponse as ServerAuthorizationCodeResponse,
     IdTokenClaims,
     // Cache
     AccountInfo,

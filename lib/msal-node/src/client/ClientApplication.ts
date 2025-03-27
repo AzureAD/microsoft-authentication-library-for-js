@@ -586,16 +586,6 @@ export abstract class ClientApplication {
 
         authRequest.authenticationScheme = AuthenticationScheme.BEARER;
 
-        // Set requested claims hash if claims were requested
-        if (
-            authRequest.claims &&
-            // Checks for empty stringified object "{}" which doesn't qualify as requested claims
-            !StringUtils.isEmptyObj(authRequest.claims)
-        ) {
-            authRequest.requestedClaimsHash =
-                await this.cryptoProvider.hashString(authRequest.claims);
-        }
-
         return {
             ...authRequest,
             scopes: [
