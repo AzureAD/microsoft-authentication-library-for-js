@@ -218,7 +218,7 @@ export class PopupClient extends StandardInteractionClient {
          * Skip pre-connect for async popups to reduce time between user interaction and popup window creation to avoid
          * popup from being blocked by browsers with shorter popup timers
          */
-        if (popupParams.popup) {
+        if (popupParams.popup) { 
             BrowserUtils.preconnect(validRequest.authority);
         }
 
