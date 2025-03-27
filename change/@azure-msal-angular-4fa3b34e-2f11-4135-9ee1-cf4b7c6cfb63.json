@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Deprecate logout() in Angular",
+  "packageName": "@azure/msal-angular",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
