@@ -16,7 +16,7 @@ import {
     PerformanceEvents,
     ProtocolMode,
     invokeAsync,
-    ServerResponseType,
+    ResponseMode,
     UrlUtils,
     InProgressPerformanceEvent,
     CommonAuthorizationUrlRequest,
@@ -453,8 +453,8 @@ export class RedirectClient extends StandardInteractionClient {
         let responseString = userProvidedResponse;
         if (!responseString) {
             if (
-                this.config.auth.OIDCOptions.serverResponseType ===
-                ServerResponseType.QUERY
+                this.config.auth.OIDCOptions.responseMode ===
+                ResponseMode.QUERY
             ) {
                 responseString = window.location.search;
             } else {

@@ -14,7 +14,7 @@ import {
     Logger,
     ICrypto,
     ProtocolMode,
-    ServerResponseType,
+    ResponseMode,
     invokeAsync,
     invoke,
     PkceCodes,
@@ -326,7 +326,7 @@ export class PopupClient extends StandardInteractionClient {
                 this.correlationId
             )(
                 responseString,
-                this.config.auth.OIDCOptions.serverResponseType,
+                this.config.auth.OIDCOptions.responseMode,
                 this.logger
             );
 
@@ -426,7 +426,7 @@ export class PopupClient extends StandardInteractionClient {
             this.correlationId
         )(
             responseString,
-            this.config.auth.OIDCOptions.serverResponseType,
+            this.config.auth.OIDCOptions.responseMode,
             this.logger
         );
 
@@ -677,9 +677,9 @@ export class PopupClient extends StandardInteractionClient {
 
                 let responseString = "";
                 const responseType =
-                    this.config.auth.OIDCOptions.serverResponseType;
+                    this.config.auth.OIDCOptions.responseMode;
                 if (popupWindow) {
-                    if (responseType === ServerResponseType.QUERY) {
+                    if (responseType === ResponseMode.QUERY) {
                         responseString = popupWindow.location.search;
                     } else {
                         responseString = popupWindow.location.hash;

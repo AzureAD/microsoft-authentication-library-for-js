@@ -9,7 +9,7 @@ import {
     PerformanceEvents,
     invokeAsync,
     invoke,
-    ServerResponseType,
+    ResponseMode,
     Authority,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
@@ -89,7 +89,7 @@ export async function monitorIframeForHash(
     performanceClient: IPerformanceClient,
     logger: Logger,
     correlationId: string,
-    responseType: ServerResponseType
+    responseType: ResponseMode
 ): Promise<string> {
     performanceClient.addQueueMeasurement(
         PerformanceEvents.SilentHandlerMonitorIframeForHash,
@@ -134,7 +134,7 @@ export async function monitorIframeForHash(
 
             let responseString = "";
             if (contentWindow) {
-                if (responseType === ServerResponseType.QUERY) {
+                if (responseType === ResponseMode.QUERY) {
                     responseString = contentWindow.location.search;
                 } else {
                     responseString = contentWindow.location.hash;

@@ -49,7 +49,6 @@ import {
     RefreshTokenClient,
     ResponseMode,
     ServerError,
-    ServerResponseType,
     ServerTelemetryEntity,
     TokenClaims,
     StubPerformanceClient,
@@ -1288,7 +1287,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     protocolMode: ProtocolMode.OIDC,
                     OIDCOptions: {
-                        serverResponseType: ServerResponseType.QUERY,
+                        responseMode: ResponseMode.QUERY,
                     },
                 },
                 telemetry: {
@@ -1305,7 +1304,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
         });
 
-        it("Looks for server code response in query param if OIDCOptions.serverResponseType is set to query", async () => {
+        it("Looks for server code response in query param if OIDCOptions.responseMode is set to query", async () => {
             const responseSpy = jest.spyOn(
                 RedirectClient.prototype,
                 <any>"getRedirectResponse"

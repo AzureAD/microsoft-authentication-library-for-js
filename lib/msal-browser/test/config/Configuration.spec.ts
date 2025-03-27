@@ -10,7 +10,7 @@ import {
     Constants,
     AzureCloudInstance,
     ProtocolMode,
-    ServerResponseType,
+    ResponseMode,
     Logger,
 } from "@azure/msal-common";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants.js";
@@ -297,7 +297,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                     authority: TEST_CONFIG.validAuthority,
                     protocolMode: ProtocolMode.AAD,
                     OIDCOptions: {
-                        serverResponseType: ServerResponseType.QUERY,
+                        responseMode: ResponseMode.QUERY,
                     },
                 },
             },

@@ -161,7 +161,6 @@ export {
     PromptValue,
     PersistentCacheKeys,
     OAuthResponseType,
-    ServerResponseType,
     ResponseMode,
     CacheOutcome,
     CredentialType,

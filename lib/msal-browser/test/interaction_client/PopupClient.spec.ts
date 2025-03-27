@@ -1835,12 +1835,12 @@ describe("PopupClient", () => {
                 });
         });
 
-        it("returns server code response in query form when serverResponseType in OIDCOptions is query", async () => {
+        it("returns server code response in query form when responseMode in OIDCOptions is query", async () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     protocolMode: ProtocolMode.OIDC,
-                    OIDCOptions: { serverResponseType: "query" },
+                    OIDCOptions: { responseMode: "query" },
                 },
             });
 

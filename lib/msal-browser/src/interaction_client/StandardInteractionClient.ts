@@ -325,7 +325,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             state: state,
             nonce: request.nonce || createNewGuid(),
             responseMode: this.config.auth.OIDCOptions
-                .serverResponseType as ResponseMode,
+                .responseMode,
         };
 
         // Skip active account lookup if either login hint or session id is set

@@ -251,7 +251,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.performanceClient
         );
 
-        const responseType = this.config.auth.OIDCOptions.serverResponseType;
+        const responseType = this.config.auth.OIDCOptions.responseMode;
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
             monitorIframeForHash,
@@ -364,10 +364,9 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.performanceClient,
             this.logger,
             correlationId,
-            this.config.system.navigateFrameWait
         );
 
-        const responseType = this.config.auth.OIDCOptions.serverResponseType;
+        const responseType = this.config.auth.OIDCOptions.responseMode;
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
             monitorIframeForHash,

@@ -11,7 +11,7 @@ import {
     Constants,
     ProtocolMode,
     OIDCOptions,
-    ServerResponseType,
+    ResponseMode,
     LogLevel,
     StubbedNetworkModule,
     AzureCloudInstance,
@@ -266,7 +266,7 @@ export function buildConfiguration(
         clientCapabilities: [],
         protocolMode: ProtocolMode.AAD,
         OIDCOptions: {
-            serverResponseType: ServerResponseType.FRAGMENT,
+            responseMode: ResponseMode.FRAGMENT,
             defaultScopes: [
                 Constants.OPENID_SCOPE,
                 Constants.PROFILE_SCOPE,

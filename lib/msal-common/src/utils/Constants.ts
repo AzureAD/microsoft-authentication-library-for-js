@@ -168,17 +168,6 @@ export type OAuthResponseType =
     (typeof OAuthResponseType)[keyof typeof OAuthResponseType];
 
 /**
- * allowed values for server response type
- * @deprecated Use ResponseMode instead
- */
-export const ServerResponseType = {
-    QUERY: "query",
-    FRAGMENT: "fragment",
-} as const;
-export type ServerResponseType =
-    (typeof ServerResponseType)[keyof typeof ServerResponseType];
-
-/**
  * allowed values for response_mode
  */
 export const ResponseMode = {

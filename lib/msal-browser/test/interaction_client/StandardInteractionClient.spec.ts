@@ -10,7 +10,7 @@ import {
     AzureCloudInstance,
     Authority,
     ProtocolMode,
-    ServerResponseType,
+    ResponseMode,
     AccountEntity,
     AccountInfo,
     CommonAuthorizationUrlRequest,
@@ -306,7 +306,7 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 protocolMode: ProtocolMode.OIDC,
-                OIDCOptions: { serverResponseType: ServerResponseType.QUERY },
+                OIDCOptions: { responseMode: ResponseMode.QUERY },
             },
         });
 
@@ -354,7 +354,7 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
         });
     });
 
-    it("initializeAuthorizationRequest calls for a query response when OIDCOptions.serverResponseType is set to query", async () => {
+    it("initializeAuthorizationRequest calls for a query response when OIDCOptions.responseMode is set to query", async () => {
         const request: RedirectRequest = {
             redirectUri: TEST_URIS.TEST_REDIR_URI,
             scopes: ["scope"],
