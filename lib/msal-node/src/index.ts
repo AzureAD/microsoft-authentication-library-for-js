@@ -93,11 +93,11 @@ export {
     ValidCacheType,
     // Error
     AuthError,
-    AuthErrorMessage,
+    AuthErrorMessages,
     AuthErrorCodes,
     ClientAuthError,
     ClientAuthErrorCodes,
-    ClientAuthErrorMessage,
+    ClientAuthErrorMessages,
     ClientConfigurationError,
     ClientConfigurationErrorCodes,
     ClientConfigurationErrorMessages,

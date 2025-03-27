@@ -29,7 +29,6 @@ import {
     AzureCloudOptions,
     AuthorizationCodePayload,
     Constants,
-    StringUtils,
     createClientAuthError,
     ClientAuthErrorCodes,
     buildStaticAuthorityOptions,
