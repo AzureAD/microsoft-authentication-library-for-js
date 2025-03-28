@@ -83,7 +83,6 @@ import {
     TestTimeUtils,
 } from "msal-test-utils";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
-import { on } from "node:process";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -2890,22 +2889,40 @@ describe("RedirectClient", () => {
 
             pca.initialize().then(() => {
                 pca = (pca as any).controller;
-            });
-
-            const navigationClient = new NavigationClient();
-            navigationClient.navigateExternal = (
-                urlNavigate: string,
-                options: NavigationOptions
-            ): Promise<boolean> => {
-                done(
-                    "Navigatation should not happen if onRedirectNavigate returns false"
+                // @ts-ignore
+                redirectClient = new RedirectClient(
+                    //@ts-ignore
+                    pca.config,
+                    //@ts-ignore
+                    pca.browserStorage,
+                    //@ts-ignore
+                    pca.browserCrypto,
+                    //@ts-ignore
+                    pca.logger,
+                    //@ts-ignore
+                    pca.eventHandler,
+                    //@ts-ignore
+                    pca.navigationClient,
+                    //@ts-ignore
+                    pca.performanceClient,
+                    //@ts-ignore
+                    pca.nativeInternalStorage,
                 );
-                return Promise.reject();
-            };
+                const navigationClient = new NavigationClient();
+                navigationClient.navigateExternal = (
+                    urlNavigate: string,
+                    options: NavigationOptions
+                ): Promise<boolean> => {
+                    done(
+                        "Navigatation should not happen if onRedirectNavigate returns false"
+                    );
+                    return Promise.reject();
+                };
 
-            redirectClient.initiateAuthRequest(
-                TEST_URIS.TEST_ALTERNATE_REDIR_URI
-            );
+                redirectClient.initiateAuthRequest(
+                    TEST_URIS.TEST_ALTERNATE_REDIR_URI
+                );
+            });
         });
 
         it("navigates if onRedirectNavigate doesnt return false", (done) => {
@@ -2928,24 +2945,42 @@ describe("RedirectClient", () => {
 
             pca.initialize().then(() => {
                 pca = (pca as any).controller;
+                // @ts-ignore
+                redirectClient = new RedirectClient(
+                    //@ts-ignore
+                    pca.config,
+                    //@ts-ignore
+                    pca.browserStorage,
+                    //@ts-ignore
+                    pca.browserCrypto,
+                    //@ts-ignore
+                    pca.logger,
+                    //@ts-ignore
+                    pca.eventHandler,
+                    //@ts-ignore
+                    pca.navigationClient,
+                    //@ts-ignore
+                    pca.performanceClient,
+                    //@ts-ignore
+                    pca.nativeInternalStorage,
+                );
+                const navigationClient = new NavigationClient();
+                navigationClient.navigateExternal = (
+                    requestUrl,
+                    options
+                ): Promise<boolean> => {
+                    expect(requestUrl).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+                    done();
+                    return Promise.resolve(true);
+                };
+
+                //@ts-ignore
+                redirectClient.navigationClient = navigationClient;
+
+                redirectClient.initiateAuthRequest(
+                    TEST_URIS.TEST_ALTERNATE_REDIR_URI
+                );
             });
-
-            const navigationClient = new NavigationClient();
-            navigationClient.navigateExternal = (
-                requestUrl,
-                options
-            ): Promise<boolean> => {
-                expect(requestUrl).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
-                done();
-                return Promise.resolve(true);
-            };
-
-            //@ts-ignore
-            redirectClient.navigationClient = navigationClient;
-
-            redirectClient.initiateAuthRequest(
-                TEST_URIS.TEST_ALTERNATE_REDIR_URI
-            );
         });
     });
 });

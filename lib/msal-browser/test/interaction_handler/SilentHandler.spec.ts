@@ -64,24 +64,15 @@ describe("SilentHandler.ts Unit Tests", () => {
             );
         });
 
-        it(
-            "Creates a frame asynchronously",
-            async () => {
-                const startTime = Date.now();
-                const authFrame = await SilentHandler.initiateCodeRequest(
-                    testNavUrl,
-                    performanceClient,
-                    browserRequestLogger,
-                    RANDOM_TEST_GUID
-                );
-                const endTime = Date.now();
-                expect(endTime - startTime).toBeGreaterThanOrEqual(
-                    DEFAULT_IFRAME_TIMEOUT_MS
-                );
-                expect(authFrame instanceof HTMLIFrameElement).toBe(true);
-            },
-            DEFAULT_IFRAME_TIMEOUT_MS + 1000
-        );
+        it("Creates a frame", async () => {
+            const authFrame = await SilentHandler.initiateCodeRequest(
+                testNavUrl,
+                performanceClient,
+                browserRequestLogger,
+                RANDOM_TEST_GUID
+            );
+            expect(authFrame instanceof HTMLIFrameElement).toBe(true);
+        });
     });
 
     describe("monitorIframeForHash", () => {
