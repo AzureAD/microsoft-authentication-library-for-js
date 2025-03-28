@@ -242,7 +242,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("initialize tests", () => {
-
         beforeEach(() => {
             jest.spyOn(MessageEvent.prototype, "source", "get").mockReturnValue(
                 window
@@ -2348,7 +2347,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         beforeEach(async () => {
             const popupWindow = {
                 ...window,
+                location: {
+                    assign: () => {},
+                },
                 close: () => {},
+                focus: () => {},
             };
             // @ts-ignore
             jest.spyOn(window, "open").mockReturnValue(popupWindow);
@@ -3061,10 +3064,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
+            jest.spyOn(
+                PopupClient.prototype,
+                "monitorPopupForHash"
+            ).mockRejectedValue("Not important for this test");
+
             try {
                 await testPca.acquireTokenPopup(request);
             } catch (e) {}
-
             expect(spyPreGeneratePkceCodes).toHaveBeenCalledTimes(2);
             expect(spyPopupClientAcquireToken).toHaveBeenCalledWith(
                 request,
@@ -3117,6 +3124,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
+            jest.spyOn(
+                PopupClient.prototype,
+                "monitorPopupForHash"
+            ).mockRejectedValue("Not important for this test");
             try {
                 await testPca.acquireTokenPopup(request);
             } catch (e) {}

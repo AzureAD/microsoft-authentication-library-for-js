@@ -18,7 +18,7 @@ import {
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
     validEarJWK,
-    TEST_AUTHENTICATION_RESULT,
+    getTestAuthenticationResult,
     validEarJWE,
 } from "../utils/StringConstants.js";
 import {
@@ -832,11 +832,26 @@ describe("PopupClient", () => {
 
         describe("EAR Flow Tests", () => {
             let popupWindow: Window;
+            beforeAll(() => {
+                jest.useFakeTimers();
+            });
+
+            afterAll(() => {
+                jest.useRealTimers();
+            });
+
             beforeEach(async () => {
-                pca = new PublicClientApplication({ auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID, protocolMode: ProtocolMode.EAR }});
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        protocolMode: ProtocolMode.EAR,
+                    },
+                });
                 await pca.initialize();
-                
-                jest.spyOn(BrowserCrypto, "generateEarKey").mockResolvedValue(validEarJWK);
+
+                jest.spyOn(BrowserCrypto, "generateEarKey").mockResolvedValue(
+                    validEarJWK
+                );
                 popupWindow = {
                     ...window,
                     //@ts-ignore
@@ -855,18 +870,29 @@ describe("PopupClient", () => {
                     correlationId: TEST_CONFIG.CORRELATION_ID,
                     redirectUri: window.location.href,
                     state: TEST_STATE_VALUES.USER_STATE,
-                    nonce: ID_TOKEN_CLAIMS.nonce
+                    nonce: ID_TOKEN_CLAIMS.nonce,
                 };
-                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(TEST_STATE_VALUES.TEST_STATE_POPUP);
-                jest.spyOn(PopupClient.prototype, "openSizedPopup").mockReturnValue(popupWindow);
-                const earFormSpy = jest.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(() => {
-                    // Auto navigate back to replyUrl for test purposes
-                    popupWindow.location.hash = `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`
-                    popupWindow.location.href = `${window.location.href}${popupWindow.location.hash}`;
-                });
+                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                    TEST_STATE_VALUES.TEST_STATE_POPUP
+                );
+                jest.spyOn(
+                    PopupClient.prototype,
+                    "openSizedPopup"
+                ).mockReturnValue(popupWindow);
+                const earFormSpy = jest
+                    .spyOn(HTMLFormElement.prototype, "submit")
+                    .mockImplementation(() => {
+                        // Suppress navigation
+                    });
+                jest.spyOn(
+                    PopupClient.prototype,
+                    "monitorPopupForHash"
+                ).mockResolvedValue(
+                    `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`
+                );
 
                 const result = await pca.acquireTokenPopup(validRequest);
-                expect(result).toEqual(TEST_AUTHENTICATION_RESULT);
+                expect(result).toEqual(getTestAuthenticationResult());
                 expect(earFormSpy).toHaveBeenCalled();
             });
         });

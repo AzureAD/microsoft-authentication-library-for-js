@@ -17,7 +17,7 @@ import {
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
     validEarJWK,
-    TEST_AUTHENTICATION_RESULT,
+    getTestAuthenticationResult,
     validEarJWE,
 } from "../utils/StringConstants.js";
 import {
@@ -29,7 +29,7 @@ import {
     ProtocolUtils,
     TenantProfile,
     Authority,
-    ProtocolMode
+    ProtocolMode,
 } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
@@ -41,7 +41,7 @@ import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
 import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient.js";
-import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js"
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient.js";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
@@ -1244,11 +1244,26 @@ describe("SilentIframeClient", () => {
         });
 
         describe("EAR Flow Tests", () => {
+            beforeAll(() => {
+                jest.useFakeTimers();
+            });
+
+            afterAll(() => {
+                jest.useRealTimers();
+            });
+
             beforeEach(async () => {
-                pca = new PublicClientApplication({ auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID, protocolMode: ProtocolMode.EAR }});
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        protocolMode: ProtocolMode.EAR,
+                    },
+                });
                 await pca.initialize();
-                
-                jest.spyOn(BrowserCrypto, "generateEarKey").mockResolvedValue(validEarJWK);
+
+                jest.spyOn(BrowserCrypto, "generateEarKey").mockResolvedValue(
+                    validEarJWK
+                );
             });
 
             it("Invokes EAR flow when protocolMode is set to EAR", async () => {
@@ -1258,14 +1273,23 @@ describe("SilentIframeClient", () => {
                     correlationId: TEST_CONFIG.CORRELATION_ID,
                     redirectUri: window.location.href,
                     state: TEST_STATE_VALUES.USER_STATE,
-                    nonce: ID_TOKEN_CLAIMS.nonce
+                    nonce: ID_TOKEN_CLAIMS.nonce,
                 };
-                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(TEST_STATE_VALUES.TEST_STATE_SILENT);
-                const earFormSpy = jest.spyOn(SilentHandler, "initiateEarRequest").mockResolvedValue(document.createElement("iframe"));
-                jest.spyOn(SilentHandler, "monitorIframeForHash").mockResolvedValue(`#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`)
+                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                    TEST_STATE_VALUES.TEST_STATE_SILENT
+                );
+                const earFormSpy = jest
+                    .spyOn(SilentHandler, "initiateEarRequest")
+                    .mockResolvedValue(document.createElement("iframe"));
+                jest.spyOn(
+                    SilentHandler,
+                    "monitorIframeForHash"
+                ).mockResolvedValue(
+                    `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
+                );
 
                 const result = await pca.ssoSilent(validRequest);
-                expect(result).toEqual(TEST_AUTHENTICATION_RESULT);
+                expect(result).toEqual(getTestAuthenticationResult());
                 expect(earFormSpy).toHaveBeenCalled();
             });
         });

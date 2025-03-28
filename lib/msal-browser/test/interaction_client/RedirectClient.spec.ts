@@ -21,7 +21,7 @@ import {
     TEST_TOKEN_RESPONSE,
     verifyUrl,
     validEarJWK,
-    TEST_AUTHENTICATION_RESULT,
+    getTestAuthenticationResult,
     validEarJWE,
 } from "../utils/StringConstants.js";
 import {
@@ -2896,11 +2896,26 @@ describe("RedirectClient", () => {
     });
 
     describe("EAR Flow Tests", () => {
+        beforeAll(() => {
+            jest.useFakeTimers();
+        });
+
+        afterAll(() => {
+            jest.useRealTimers();
+        });
+
         beforeEach(async () => {
-            pca = new PublicClientApplication({ auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID, protocolMode: ProtocolMode.EAR }});
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    protocolMode: ProtocolMode.EAR,
+                },
+            });
             await pca.initialize();
-            
-            jest.spyOn(BrowserCrypto, "generateEarKey").mockResolvedValue(validEarJWK);
+
+            jest.spyOn(BrowserCrypto, "generateEarKey").mockResolvedValue(
+                validEarJWK
+            );
         });
 
         it("Invokes EAR flow when protocolMode is set to EAR", async () => {
@@ -2910,17 +2925,23 @@ describe("RedirectClient", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 redirectUri: window.location.href,
                 state: TEST_STATE_VALUES.USER_STATE,
-                nonce: ID_TOKEN_CLAIMS.nonce
+                nonce: ID_TOKEN_CLAIMS.nonce,
             };
-            jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
-            const earFormSpy = jest.spyOn(HTMLFormElement.prototype, "submit").mockImplementation(() => {
-                // Supress navigation
-            });
+            jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
+            const earFormSpy = jest
+                .spyOn(HTMLFormElement.prototype, "submit")
+                .mockImplementation(() => {
+                    // Supress navigation
+                });
 
             await pca.acquireTokenRedirect(validRequest);
             expect(earFormSpy).toHaveBeenCalled();
-            const result = await pca.handleRedirectPromise(`#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`);
-            expect(result).toEqual(TEST_AUTHENTICATION_RESULT);
+            const result = await pca.handleRedirectPromise(
+                `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
+            );
+            expect(result).toEqual(getTestAuthenticationResult());
         });
     });
 });
