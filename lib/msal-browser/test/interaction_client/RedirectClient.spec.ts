@@ -2906,7 +2906,7 @@ describe("RedirectClient", () => {
                     //@ts-ignore
                     pca.performanceClient,
                     //@ts-ignore
-                    pca.nativeInternalStorage,
+                    pca.nativeInternalStorage
                 );
                 const navigationClient = new NavigationClient();
                 navigationClient.navigateExternal = (
@@ -2962,14 +2962,16 @@ describe("RedirectClient", () => {
                     //@ts-ignore
                     pca.performanceClient,
                     //@ts-ignore
-                    pca.nativeInternalStorage,
+                    pca.nativeInternalStorage
                 );
                 const navigationClient = new NavigationClient();
                 navigationClient.navigateExternal = (
                     requestUrl,
                     options
                 ): Promise<boolean> => {
-                    expect(requestUrl).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+                    expect(requestUrl).toEqual(
+                        TEST_URIS.TEST_ALTERNATE_REDIR_URI
+                    );
                     done();
                     return Promise.resolve(true);
                 };
