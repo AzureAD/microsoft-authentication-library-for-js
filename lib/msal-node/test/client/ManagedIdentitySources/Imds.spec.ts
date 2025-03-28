@@ -8,15 +8,19 @@ import { ManagedIdentityConfiguration } from "../../../src/config/Configuration.
 import {
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
+    IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_IN_MS,
+    IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_NUM_REQUESTS,
+    IMDS_EXPONENTIAL_STRATEGY_TWO_RETRIES_IN_MS,
     MANAGED_IDENTITY_IMDS_NETWORK_REQUEST_400_ERROR,
+    MANAGED_IDENTITY_NETWORK_REQUEST_500_ERROR,
     MANAGED_IDENTITY_RESOURCE,
     MANAGED_IDENTITY_RESOURCE_BASE,
     MANAGED_IDENTITY_RESOURCE_ID,
     MANAGED_IDENTITY_RESOURCE_ID_2,
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR_MESSAGE,
+    ONE_HUNDRED_TIMES_FASTER,
     TEST_CONFIG,
     TEST_TOKEN_LIFETIMES,
-    THREE_SECONDS_IN_MILLI,
     getCacheKey,
 } from "../../test_kit/StringConstants.js";
 import {
@@ -55,6 +59,7 @@ import { ClientCredentialClient } from "../../../src/client/ClientCredentialClie
 import { NodeStorage } from "../../../src/cache/NodeStorage.js";
 import { CacheKVStore } from "../../../src/cache/serializer/SerializerTypes.js";
 import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/client/ManagedIdentitySources/BaseManagedIdentitySource.js";
+import { ImdsRetryPolicy } from "../../../src/retry/ImdsRetryPolicy.js";
 
 describe("Acquires a token successfully via an IMDS Managed Identity", () => {
     // IMDS doesn't need environment variables because there is a default IMDS endpoint
@@ -203,84 +208,85 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
     });
 
     describe("Managed Identity Retry Policy", () => {
-        describe("User Assigned", () => {
-            let managedIdentityApplication: ManagedIdentityApplication;
-            beforeEach(() => {
-                managedIdentityApplication = new ManagedIdentityApplication(
-                    userAssignedClientIdConfig
-                );
-                expect(
-                    managedIdentityApplication.getManagedIdentitySource()
-                ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
-            });
+        let uamiApplication: ManagedIdentityApplication; // user-assigned
+        let samiApplication: ManagedIdentityApplication; // system-assigned
 
-            test("returns a 500 error response from the network request, just the first time", async () => {
-                const sendGetRequestAsyncSpy: jest.SpyInstance = jest
-                    .spyOn(networkClient, <any>"sendGetRequestAsync")
-                    // override the networkClient's sendGetRequestAsync method to return a 500.
-                    // after this override, original functionality will be restored
-                    // and the network request will complete successfully
-                    .mockReturnValueOnce(
-                        managedIdentityNetworkErrorClientDefault500.sendGetRequestAsync()
-                    );
+        beforeEach(() => {
+            jest.spyOn(
+                ImdsRetryPolicy,
+                "MIN_EXPONENTIAL_BACKOFF_MS",
+                "get"
+            ).mockReturnValue(
+                ImdsRetryPolicy.MIN_EXPONENTIAL_BACKOFF_MS *
+                    ONE_HUNDRED_TIMES_FASTER
+            );
 
-                const networkManagedIdentityResult: AuthenticationResult =
-                    await managedIdentityApplication.acquireToken(
-                        managedIdentityRequestParams
-                    );
+            jest.spyOn(
+                ImdsRetryPolicy,
+                "MAX_EXPONENTIAL_BACKOFF_MS",
+                "get"
+            ).mockReturnValue(
+                ImdsRetryPolicy.MAX_EXPONENTIAL_BACKOFF_MS *
+                    ONE_HUNDRED_TIMES_FASTER
+            );
 
-                expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
-                expect(networkManagedIdentityResult.accessToken).toEqual(
-                    DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
-                );
-            });
+            jest.spyOn(
+                ImdsRetryPolicy,
+                "EXPONENTIAL_DELTA_BACKOFF_MS",
+                "get"
+            ).mockReturnValue(
+                ImdsRetryPolicy.EXPONENTIAL_DELTA_BACKOFF_MS *
+                    ONE_HUNDRED_TIMES_FASTER
+            );
 
-            test("returns a 500 error response from the network request permanently", async () => {
-                const sendGetRequestAsyncSpy: jest.SpyInstance = jest
-                    .spyOn(networkClient, <any>"sendGetRequestAsync")
-                    // permanently override the networkClient's sendGetRequestAsync method to return a 500
-                    .mockReturnValue(
-                        managedIdentityNetworkErrorClientDefault500.sendGetRequestAsync()
-                    );
+            jest.spyOn(
+                ImdsRetryPolicy,
+                "HTTP_STATUS_GONE_RETRY_AFTER_MS",
+                "get"
+            ).mockReturnValue(
+                ImdsRetryPolicy.HTTP_STATUS_GONE_RETRY_AFTER_MS *
+                    ONE_HUNDRED_TIMES_FASTER
+            );
 
-                let serverError: ServerError = new ServerError();
-                try {
-                    await managedIdentityApplication.acquireToken(
-                        managedIdentityRequestParams
-                    );
-                } catch (e) {
-                    serverError = e as ServerError;
-                }
+            uamiApplication = new ManagedIdentityApplication(
+                userAssignedClientIdConfig
+            );
+            expect(uamiApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.DEFAULT_TO_IMDS
+            );
 
-                expect(
-                    serverError.errorMessage.includes(
-                        MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR_MESSAGE
-                    )
-                ).toBe(true);
-
-                expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(4); // request + 3 retries
-            });
+            samiApplication = new ManagedIdentityApplication(
+                systemAssignedConfig
+            );
+            expect(samiApplication.getManagedIdentitySource()).toBe(
+                ManagedIdentitySourceNames.DEFAULT_TO_IMDS
+            );
         });
 
-        describe("System Assigned", () => {
-            let managedIdentityApplication: ManagedIdentityApplication;
-            beforeEach(() => {
-                managedIdentityApplication = new ManagedIdentityApplication(
-                    systemAssignedConfig
-                );
-                expect(
-                    managedIdentityApplication.getManagedIdentitySource()
-                ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
-            });
+        test.each([
+            ["UAMI", () => uamiApplication],
+            ["SAMI", () => samiApplication],
+        ])(
+            "%s: returns a 404 error response from the network request, the first two times",
+            async (_description, getMIA) => {
+                const managedIdentityApplication = getMIA();
 
-            test("returns a 500 error response from the network request, just the first time, with no retry-after header", async () => {
+                const managedIdentityNetworkErrorClient404 =
+                    new ManagedIdentityNetworkErrorClient(
+                        MANAGED_IDENTITY_IMDS_NETWORK_REQUEST_400_ERROR,
+                        undefined,
+                        HttpStatus.NOT_FOUND
+                    );
+
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
                     .spyOn(networkClient, <any>"sendGetRequestAsync")
-                    // override the networkClient's sendGetRequestAsync method to return a 500.
-                    // after this override, original functionality will be restored
-                    // and the network request will complete successfully
                     .mockReturnValueOnce(
-                        managedIdentityNetworkErrorClientDefault500.sendGetRequestAsync()
+                        // initial request, will trigger first retry
+                        managedIdentityNetworkErrorClient404.sendGetRequestAsync()
+                    )
+                    .mockReturnValueOnce(
+                        // first retry, will trigger second retry
+                        managedIdentityNetworkErrorClient404.sendGetRequestAsync()
                     );
 
                 const timeBeforeNetworkRequest = new Date();
@@ -292,32 +298,57 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const timeAfterNetworkRequest = new Date();
 
-                // ensure that no extra time has elapsed between requests, because no retry-after header was sent
+                /**
+                 * ensure that each retry followed the exponential backoff strategy
+                 * 2 x exponential backoff (1 second -> 2 seconds)
+                 */
                 expect(
                     timeAfterNetworkRequest.valueOf() -
                         timeBeforeNetworkRequest.valueOf()
-                ).toBeLessThan(THREE_SECONDS_IN_MILLI);
+                ).toBeGreaterThanOrEqual(
+                    IMDS_EXPONENTIAL_STRATEGY_TWO_RETRIES_IN_MS *
+                        ONE_HUNDRED_TIMES_FASTER
+                );
 
-                expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
+                expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(3); // request + 2 retries
                 expect(networkManagedIdentityResult.accessToken).toEqual(
                     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
                 );
-            });
+            }
+        );
 
-            test("returns a 500 error response from the network request, just the first time, with a retry-after header of 3 seconds", async () => {
-                const headers: Record<string, string> = {
-                    "Retry-After": "3", // 3 seconds
-                };
-                const managedIdentityNetworkErrorClient =
-                    new ManagedIdentityNetworkErrorClient(undefined, headers);
+        test.each([
+            ["UAMI", () => uamiApplication],
+            ["SAMI", () => samiApplication],
+        ])(
+            "%s: returns a 410 error response from the network request, the first four times",
+            async (_description, getMIA) => {
+                const managedIdentityApplication = getMIA();
+
+                const managedIdentityNetworkErrorClient410 =
+                    new ManagedIdentityNetworkErrorClient(
+                        MANAGED_IDENTITY_IMDS_NETWORK_REQUEST_400_ERROR,
+                        undefined,
+                        HttpStatus.GONE
+                    );
 
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
                     .spyOn(networkClient, <any>"sendGetRequestAsync")
-                    // override the networkClient's sendGetRequestAsync method to return a 500.
-                    // after this override, original functionality will be restored
-                    // and the network request will complete successfully
                     .mockReturnValueOnce(
-                        managedIdentityNetworkErrorClient.sendGetRequestAsync()
+                        // initial request, will trigger first retry
+                        managedIdentityNetworkErrorClient410.sendGetRequestAsync()
+                    )
+                    .mockReturnValueOnce(
+                        // first retry, will trigger second retry
+                        managedIdentityNetworkErrorClient410.sendGetRequestAsync()
+                    )
+                    .mockReturnValueOnce(
+                        // second retry, will trigger third retry
+                        managedIdentityNetworkErrorClient410.sendGetRequestAsync()
+                    )
+                    .mockReturnValueOnce(
+                        // third retry, will trigger fourth retry
+                        managedIdentityNetworkErrorClient410.sendGetRequestAsync()
                     );
 
                 const timeBeforeNetworkRequest = new Date();
@@ -329,66 +360,49 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const timeAfterNetworkRequest = new Date();
 
-                // ensure that the number of seconds in the retry-after header elapsed before the second network request was made
+                /**
+                 * ensure that each retry followed the exponential backoff strategy
+                 * 7 x linear backoff (10 seconds)
+                 */
                 expect(
                     timeAfterNetworkRequest.valueOf() -
                         timeBeforeNetworkRequest.valueOf()
-                ).toBeGreaterThan(THREE_SECONDS_IN_MILLI);
+                ).toBeGreaterThanOrEqual(
+                    ImdsRetryPolicy.HTTP_STATUS_GONE_RETRY_AFTER_MS *
+                        4 *
+                        ONE_HUNDRED_TIMES_FASTER
+                );
 
-                expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
+                expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(5); // request + 4 retries
                 expect(networkManagedIdentityResult.accessToken).toEqual(
                     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
                 );
-            });
+            }
+        );
 
-            test("returns a 500 error response from the network request, just the first time, with a retry-after header of 3 seconds (extrapolated from an http-date)", async () => {
-                var retryAfterHttpDate = new Date();
-                retryAfterHttpDate.setSeconds(
-                    retryAfterHttpDate.getSeconds() + 4 // 4 seconds. An extra second has been added to account for this date operation
-                );
-                const headers: Record<string, string> = {
-                    "Retry-After": retryAfterHttpDate.toString(),
-                };
-                const managedIdentityNetworkErrorClient =
-                    new ManagedIdentityNetworkErrorClient(undefined, headers);
+        test.each([
+            ["UAMI", () => uamiApplication],
+            ["SAMI", () => samiApplication],
+        ])(
+            "%s: returns a 410 error response from the network request permanently",
+            async (_description, getMIA) => {
+                const managedIdentityApplication = getMIA();
+
+                const managedIdentityNetworkErrorClient410 =
+                    new ManagedIdentityNetworkErrorClient(
+                        MANAGED_IDENTITY_IMDS_NETWORK_REQUEST_400_ERROR,
+                        undefined,
+                        HttpStatus.GONE
+                    );
 
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
                     .spyOn(networkClient, <any>"sendGetRequestAsync")
-                    // override the networkClient's sendGetRequestAsync method to return a 500.
-                    // after this override, original functionality will be restored
-                    // and the network request will complete successfully
-                    .mockReturnValueOnce(
-                        managedIdentityNetworkErrorClient.sendGetRequestAsync()
-                    );
-
-                const timeBeforeNetworkRequest = new Date();
-
-                const networkManagedIdentityResult: AuthenticationResult =
-                    await managedIdentityApplication.acquireToken(
-                        managedIdentityRequestParams
-                    );
-
-                const timeAfterNetworkRequest = new Date();
-
-                // ensure that the number of seconds in the retry-after header elapsed before the second network request was made
-                expect(
-                    timeAfterNetworkRequest.valueOf() -
-                        timeBeforeNetworkRequest.valueOf()
-                ).toBeGreaterThan(THREE_SECONDS_IN_MILLI);
-
-                expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
-                expect(networkManagedIdentityResult.accessToken).toEqual(
-                    DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
-                );
-            });
-
-            test("returns a 500 error response from the network request permanently", async () => {
-                const sendGetRequestAsyncSpy: jest.SpyInstance = jest
-                    .spyOn(networkClient, <any>"sendGetRequestAsync")
-                    // permanently override the networkClient's sendGetRequestAsync method to return a 500
+                    // permanently override the networkClient's sendGetRequestAsync method to return a 504
                     .mockReturnValue(
-                        managedIdentityNetworkErrorClientDefault500.sendGetRequestAsync()
+                        managedIdentityNetworkErrorClient410.sendGetRequestAsync()
                     );
+
+                const timeBeforeNetworkRequest = new Date();
 
                 let serverError: ServerError = new ServerError();
                 try {
@@ -399,15 +413,94 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     serverError = e as ServerError;
                 }
 
+                const timeAfterNetworkRequest = new Date();
+
+                /**
+                 * ensure that each retry followed the exponential backoff strategy
+                 * 7 x linear backoff (10 seconds)
+                 */
+                expect(
+                    timeAfterNetworkRequest.valueOf() -
+                        timeBeforeNetworkRequest.valueOf()
+                ).toBeGreaterThanOrEqual(
+                    ImdsRetryPolicy.HTTP_STATUS_GONE_RETRY_AFTER_MS *
+                        7 *
+                        ONE_HUNDRED_TIMES_FASTER
+                );
+
+                expect(
+                    serverError.errorMessage.includes(
+                        MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR_MESSAGE
+                    )
+                ).toBe(true);
+                expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(8); // request + 7 retries
+            }
+        );
+
+        test.each([
+            ["UAMI", () => uamiApplication],
+            ["SAMI", () => samiApplication],
+        ])(
+            "%s: returns a 5xx (504) error response from the network request permanently",
+            async (_description, getMIA) => {
+                const managedIdentityApplication = getMIA();
+
+                const managedIdentityNetworkErrorClient504 =
+                    new ManagedIdentityNetworkErrorClient(
+                        MANAGED_IDENTITY_NETWORK_REQUEST_500_ERROR,
+                        undefined,
+                        HttpStatus.GATEWAY_TIMEOUT
+                    );
+
+                const sendGetRequestAsyncSpy: jest.SpyInstance = jest
+                    .spyOn(networkClient, <any>"sendGetRequestAsync")
+                    // permanently override the networkClient's sendGetRequestAsync method to return a 504
+                    .mockReturnValue(
+                        managedIdentityNetworkErrorClient504.sendGetRequestAsync()
+                    );
+
+                const timeBeforeNetworkRequest = new Date();
+
+                let serverError: ServerError = new ServerError();
+                try {
+                    await managedIdentityApplication.acquireToken(
+                        managedIdentityRequestParams
+                    );
+                } catch (e) {
+                    serverError = e as ServerError;
+                }
+
+                const timeAfterNetworkRequest = new Date();
+
+                /**
+                 * ensure that each retry followed the exponential backoff strategy
+                 * 3 x exponential backoff (1 second -> 2 seconds -> 4 seconds)
+                 */
+                expect(
+                    timeAfterNetworkRequest.valueOf() -
+                        timeBeforeNetworkRequest.valueOf()
+                ).toBeGreaterThanOrEqual(
+                    IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_IN_MS *
+                        ONE_HUNDRED_TIMES_FASTER
+                );
+
                 expect(
                     serverError.errorMessage.includes(
                         MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR_MESSAGE
                     )
                 ).toBe(true);
                 expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(4); // request + 3 retries
-            });
+            }
+        );
 
-            test("makes three acquireToken calls on the same managed identity application (which returns a 500 error response from the network request permanently) to ensure that retry policy lifetime is per request", async () => {
+        test.each([
+            ["UAMI", () => uamiApplication],
+            ["SAMI", () => samiApplication],
+        ])(
+            "%s: makes three acquireToken calls on the same managed identity application (which returns a 500 error response from the network request permanently) to ensure that retry policy lifetime is per request",
+            async (_description, getMIA) => {
+                const managedIdentityApplication = getMIA();
+
                 const sendGetRequestAsyncSpyApp: jest.SpyInstance = jest
                     .spyOn(networkClient, <any>"sendGetRequestAsync")
                     // permanently override the networkClient's sendGetRequestAsync method to return a 500
@@ -420,7 +513,9 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         resource: "https://graph.microsoft1.com",
                     });
                 } catch (e) {
-                    expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(4); // request + 3 retries
+                    expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(
+                        IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_NUM_REQUESTS
+                    ); // request + 3 retries
                 }
 
                 try {
@@ -428,7 +523,9 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         resource: "https://graph.microsoft2.com",
                     });
                 } catch (e) {
-                    expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(8); // 8 total, 2 x (request + 3 retries)
+                    expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(
+                        IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_NUM_REQUESTS * 2
+                    ); // 8 total, 2 x (request + 3 retries)
                 }
 
                 try {
@@ -436,11 +533,21 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         resource: "https://graph.microsoft3.com",
                     });
                 } catch (e) {
-                    expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(12); // 12 total, 3 x (request + 3 retries)
+                    expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(
+                        IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_NUM_REQUESTS * 3
+                    ); // 12 total, 3 x (request + 3 retries)
                 }
-            }, 15000); // triple the timeout value for this test because there are 3 acquireToken calls (3 x 1 second in between retries)
+            }
+        );
 
-            test("ensures that a retry does not happen when the http status code from a failed network response is not included in the retry policy", async () => {
+        test.each([
+            ["UAMI", () => uamiApplication],
+            ["SAMI", () => samiApplication],
+        ])(
+            "%s: ensures that a retry does not happen when the http status code from a failed network response (400) is not included in the list of retriable status codes",
+            async (_description, getMIA) => {
+                const managedIdentityApplication = getMIA();
+
                 const sendGetRequestAsyncSpyApp: jest.SpyInstance = jest
                     .spyOn(networkClient, <any>"sendGetRequestAsync")
                     // permanently override the networkClient's sendGetRequestAsync method to return a 400
@@ -463,19 +570,22 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     )
                 ).toBe(true);
                 expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(1);
-            });
+            }
+        );
 
-            test("ensures that a retry does not happen when the http status code from a failed network response is included in the retry policy, but the retry policy has been disabled", async () => {
+        test.each([
+            ["UAMI", userAssignedClientIdConfig],
+            ["SAMI", systemAssignedConfig],
+        ])(
+            "%s: ensures that a retry does not happen when the http status code from a failed network response (500) is included in the list of retriable status codes, but the retry policy has been disabled",
+            async (_description, config) => {
                 const managedIdentityApplicationNoRetry: ManagedIdentityApplication =
                     new ManagedIdentityApplication({
                         system: {
-                            ...systemAssignedConfig.system,
+                            ...config.system,
                             disableInternalRetries: true,
                         },
                     });
-                expect(
-                    managedIdentityApplicationNoRetry.getManagedIdentitySource()
-                ).toBe(ManagedIdentitySourceNames.DEFAULT_TO_IMDS);
 
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
                     .spyOn(networkClient, <any>"sendGetRequestAsync")
@@ -499,8 +609,8 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     )
                 ).toBe(true);
                 expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(1);
-            });
-        });
+            }
+        );
     });
 
     describe("Miscellaneous", () => {

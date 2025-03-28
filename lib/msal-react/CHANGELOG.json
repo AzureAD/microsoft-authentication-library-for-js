@@ -2,6 +2,33 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Tue, 25 Mar 2025 22:29:34 GMT",
+      "version": "3.0.8",
+      "tag": "@azure/msal-react_v3.0.8",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v4.9.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 20 Mar 2025 22:09:04 GMT",
       "version": "3.0.7",
       "tag": "@azure/msal-react_v3.0.7",

@@ -1,8 +1,33 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Thu, 20 Mar 2025 22:09:04 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 26 Mar 2025 17:56:52 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.9.1
+
+Wed, 26 Mar 2025 17:56:52 GMT
+
+### Patches
+
+- remove EAR override (thomas.norling@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.9.0
+
+Tue, 25 Mar 2025 22:29:34 GMT
+
+### Minor changes
+
+- EAR Protocol response handling (thomas.norling@microsoft.com)
+- EAR protocol request support (thomas.norling@microsoft.com)
+- refactor redirect request caching (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.4.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 4.8.0
 
