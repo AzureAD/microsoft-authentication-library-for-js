@@ -116,10 +116,6 @@ export const ID_TOKEN_CLAIMS = {
     aio: "Df2UVXL1ix!lMCWMSOJBcFatzcGfvFGhjKv8q5g0x732dR5MB5BisvGQO7YWByjd8iQDLq!eGbIDakyp5mnOrcdqHeYSnltepQmRp6AIZ8jY",
 };
 
-export const ID_TOKEN_CLAIMS_NEW_CLAIM = {
-    ...ID_TOKEN_CLAIMS,
-};
-
 export const GUEST_ID_TOKEN_CLAIMS = {
     ...ID_TOKEN_CLAIMS,
     iss: "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47",
