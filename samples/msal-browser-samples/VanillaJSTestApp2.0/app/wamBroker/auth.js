@@ -46,7 +46,7 @@ async function signIn(signInType) {
 
 function signOut(interactionType) {
     const logoutRequest = {
-        account: myMSALObj.getAccountByHomeId(accountId)
+        account: myMSALObj.getAccount({accountId})
     };
 
     if (interactionType === "popup") {
