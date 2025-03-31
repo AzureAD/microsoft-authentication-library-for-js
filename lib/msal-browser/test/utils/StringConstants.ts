@@ -4,13 +4,18 @@
  */
 
 import {
+    AccountInfo,
     AuthenticationScheme,
     Constants,
     NetworkResponse,
     OIDC_DEFAULT_SCOPES,
     ServerAuthorizationTokenResponse,
+    TimeUtils,
 } from "@azure/msal-common";
-import { version } from "../../src/packageMetadata";
+import { version } from "../../src/packageMetadata.js";
+import { base64Decode, base64DecToArr } from "../../src/encode/Base64Decode.js";
+import { urlEncodeArr } from "../../src/encode/Base64Encode.js";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
 
 /**
  * This file contains the string constants used by the test classes.
@@ -405,7 +410,7 @@ export const TEST_TOKEN_RESPONSE: NetworkResponse<ServerAuthorizationTokenRespon
             expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
             access_token: TEST_TOKENS.ACCESS_TOKEN,
             refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-            id_token: TEST_TOKENS.IDTOKEN_V2_NEWCLAIM,
+            id_token: TEST_TOKENS.IDTOKEN_V2,
             client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
         },
         status: 200,
@@ -475,3 +480,102 @@ export function verifyUrl(
 export const testLogoutUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(
     `${TEST_URIS.TEST_REDIR_URI}`
 )}`;
+
+export const validEarJWK =
+    "eyJhbGciOiJkaXIiLCJrdHkiOiJvY3QiLCJrIjoieTBPQXJYaUNvdEl5dEIxdnRmMGVUUFZFaEd4SnBQY1AyRUhHUUZaYjFCZyJ9";
+export const validEarJWE =
+    "eyJlbmMiOiJBMjU2R0NNIiwidHlwIjoiSldUIiwiYWxnIjoiZGlyIn0..TZmjdyAECSgPQNIm.PenCVJ3ULXstdQHr1c2x-KyQB-odDHJc1G6ofNpAhT9VDUVTPa_6rfRWG_csurU5pWTdfBVWZ6kOFk4wjqpotIy-5MMovVHVewrj5dAzsmMEf5NqLy6jqOrie6MgcxqfCyuZvOrFKI9KAhBgKiHkDuhyMN3YzM7jlzS_JCzCsFCrY8oGFcDt4yHSW33BXGWnuov30Ca7W2tGh4qmdTx95UVICDI0jpYk0DOHNAmFoekUgKHJfsJMExUZB8-PKjLAHmdeRwKOrDRLghsDe3O-Y8jpQdqYEJTj6-u59CN0EuBxGzg_D5v6DXVbZ72R17Roi7tytG0jTqmQvHqXGk0CZXYcwj_2sBhC66QnV5eAkV1m2flpsm5eRn9pI-fnKwMt4uwMyw-QkyqR9ERMwCxTr1ikneIPRcOUYGxOEfl7TQtKl5iQ-jO1mXkcfw8f9ZnPDO7G7pgKYis3a1L29ZFOWM2KnV0ZoTd3tOFEHfWc2PGBrgBdNaW8XQmTOrq-KhV66jHsoXHL8J6xeHxesj_5oXW7T2QQoMgFNIlX9dx9X8bvyR3sxTq7yDugEj3BnHDc8JK0RGDgFVO9Ek7hMAcpeNp5F_9ZoAhN3S-6lZtm-jab5J4EHq6ALbLvOYrixKfygq3SfQY6rkDTNB6eVpESFAlRpp47i3DSUh4F5kR8jLqozVKRNUaQfrcl0dI_O_3NaD6uVQGEsmQoUQIQMZ7adSxyj25IAzqtfFVWFqi-cUsOsAieNxZWGsCjbB-A1it1gBbaX7g4op5W1q2FWHPf5DEWgxUJR_PB10t4nGlvyZRJ-D6Dm1JmAh-ZjxCEsr-zO8N4MyYLwUG-jkC0qAXh1VDogWAn1ERlK_8dtvkcpZDjSOstthzNEhmMwOzsc_av3QoJhgxws4ks9t-ZKA_Yhqd-RhgZg7iyN8RzzhTpw5Vy6MhydSyW8TezBES5JlQKMy_lfnB950WPLzA757KNvKgnQxtSNz4rnYNMGKz3_ieoE9KweGmzezGdVDx2zg7WEPpXOiaKKojR9XYjNHBIsXN77G7_nBK--Nagztiw25KqCfyW-E3lL1qFKw4vwdvr3r2hBXDMLdxjm65Ibxdi53OeuOznvgyZDz7oTwLPggaDbPGVaPl-WWZRt2wOKNcL-jPILMqSNiuIiqjB4-jrWrUZ49rJPYwmO2hl0kSXnUet5pakTvkGCiRhXlm_Sr9SCZJR4aujYVoEx20mKMh6-3fWgpbCplImZ3tei5gc4ir3a_CVFnIm1jTYtFvshSDgkd3wz749XML9--YXC6VUW9Q6BkbYaHz3V84xuWAw_4MXZ5BVBVQ2aflK31HOUzV3mB0sOLF6Q_pCLDjUC_kmmvBZ96Fxl6Yt5iYPDLdh7PAt427NMDZVPGg-Eb5QuJCk-lMC0pmfmPGOAGNf1k2902hmGJOwvfCQdjq5P3-nv85whbcHzvJ5e06tZ-WRgoX5zBr9qkMXOUUZZOD61DlUnulwBsyDrrpFFAk5yUb7EVT0EPBTPxXt5XSLaLVXJ6OzyNS9hXgslLW319sH_DRxT1BhJ4h4rgXSQJuKnbHmH4UqFhrrEckjM1hxtasyeKV3oaFzU4ASmWINkN2cuwSa4NyJm-yJABOY9lL3PJ8faA5jrhw1Pj6EPa27SF-YSftGNaz3bqtAQTM6YVotTmACPj8u_328FXwA9ICzsFfVcUuSNQmiYxVKwwjQM1F3SK2H1o5SGCT_7LnLh3z5yeaRhLVYTM7fyM6wrPQEwkFqLweSdU84xVAPtaxNKgd3IIqHourV5TXisDHhw18ysc-KoCbVcE2lRCVyBszD_L-HGZa9-sCAlntLfQFxSLE3Pl_RrIO68R6d9C1_p1R8CFxQiQa5J78UK7dbpl7Weca8xWATXzux-1PRAbx9FH_qLhaEBzl8EKKzgL9hVRobKpj53ouj7XurXe4it3RWBeg6EaYry0bQ7V_75eniYRiklBo28tAjt-sqAKsEq1la7ljp3DWpyh8DjbZjxBv7oYey2R8DLSYjIWolFZ5ftbPxKMcOecrhe8OzRcD3xEeawS2CEZ-r2P9zSx-IqNC3-hpvW0UTigKLo77UuEz5ObzR_F9NiJc6rBWJE_WjrrDi2SM90fXux7DmUTvO5OzR8hxt015Y2mVMcJyaiwLdNrJ3731WW5T4QzHGO5Sq4r_Hw4plc7h2EhCboYZJPLNOrFW6E94gwGYrBMkq26eCp78mmLQqhVLaWXahgZ5XCVizTmGdRsZDZsEA-YXsZzHznDawYHRmwRI.vzeZKFIHG7nytYT5z8tzUw";
+
+/**
+ * Use to generate a valid EAR JWE for testing using the JWK above
+ * @param dataToEncrypt
+ * @returns
+ */
+export async function generateValidEarJWE(dataToEncrypt: string, jwk: string) {
+    const b64DecodedJwk = base64Decode(jwk);
+    const rawKey = JSON.parse(b64DecodedJwk).k;
+    const keyBuffer = base64DecToArr(rawKey);
+
+    const key = await window.crypto.subtle.importKey(
+        "raw",
+        keyBuffer,
+        "AES-GCM",
+        false,
+        ["encrypt"]
+    );
+    const header = "eyJlbmMiOiJBMjU2R0NNIiwidHlwIjoiSldUIiwiYWxnIjoiZGlyIn0";
+    const iv = "TZmjdyAECSgPQNIm";
+    const data = new TextEncoder().encode(dataToEncrypt);
+    const encrypted = await window.crypto.subtle.encrypt(
+        {
+            name: "AES-GCM",
+            length: 256,
+            iv: base64DecToArr(iv),
+            additionalData: new TextEncoder().encode(header),
+        },
+        key,
+        data
+    );
+    const [ciphertext, tag] = [
+        encrypted.slice(0, encrypted.byteLength - 16),
+        encrypted.slice(encrypted.byteLength - 16),
+    ];
+
+    return `${header}..${iv}.${urlEncodeArr(
+        new Uint8Array(ciphertext)
+    )}.${urlEncodeArr(new Uint8Array(tag))}`;
+}
+
+const testTenantProfilesMap = new Map();
+testTenantProfilesMap.set(ID_TOKEN_CLAIMS.tid, {
+    isHomeTenant: true,
+    localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+    name: ID_TOKEN_CLAIMS.name,
+    tenantId: ID_TOKEN_CLAIMS.tid,
+});
+
+export const TEST_ACCOUNT_INFO: AccountInfo = {
+    authorityType: "MSSTS",
+    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+    localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+    environment: "login.windows.net",
+    tenantId: ID_TOKEN_CLAIMS.tid,
+    username: ID_TOKEN_CLAIMS.preferred_username,
+    idToken: TEST_TOKENS.IDTOKEN_V2,
+    idTokenClaims: ID_TOKEN_CLAIMS,
+    name: ID_TOKEN_CLAIMS.name,
+    nativeAccountId: undefined,
+    tenantProfiles: testTenantProfilesMap,
+};
+
+export function getTestAuthenticationResult(): AuthenticationResult {
+    return {
+        authority: TEST_CONFIG.validAuthority,
+        uniqueId: ID_TOKEN_CLAIMS.oid,
+        tenantId: ID_TOKEN_CLAIMS.tid,
+        scopes: TEST_TOKEN_RESPONSE.body.scope!.split(" "),
+        idToken: TEST_TOKENS.IDTOKEN_V2,
+        accessToken: TEST_TOKEN_RESPONSE.body.access_token!,
+        idTokenClaims: ID_TOKEN_CLAIMS,
+        fromCache: false,
+        expiresOn: new Date(
+            (TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN) *
+                1000
+        ),
+        tokenType: "Bearer",
+        correlationId: TEST_CONFIG.CORRELATION_ID,
+        account: TEST_ACCOUNT_INFO,
+        state: TEST_STATE_VALUES.USER_STATE,
+        cloudGraphHostName: "",
+        code: undefined,
+        extExpiresOn: new Date(
+            (TimeUtils.nowSeconds() + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN) *
+                1000
+        ),
+        fromNativeBroker: false,
+        msGraphHost: "",
+        refreshOn: undefined,
+        requestId: "",
+        familyId: "",
+    };
+}

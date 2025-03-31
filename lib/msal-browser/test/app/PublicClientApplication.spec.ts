@@ -170,8 +170,6 @@ const testRequest: CommonAuthorizationUrlRequest = {
 };
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let pca: PublicClientApplication;
     let browserStorage: BrowserCacheManager;
     beforeEach(async () => {
@@ -244,8 +242,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("initialize tests", () => {
-        globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
-
         beforeEach(() => {
             jest.spyOn(MessageEvent.prototype, "source", "get").mockReturnValue(
                 window
@@ -2351,7 +2347,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         beforeEach(async () => {
             const popupWindow = {
                 ...window,
+                location: {
+                    assign: () => {},
+                },
                 close: () => {},
+                focus: () => {},
             };
             // @ts-ignore
             jest.spyOn(window, "open").mockReturnValue(popupWindow);
@@ -3064,10 +3064,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
+            jest.spyOn(
+                PopupClient.prototype,
+                "monitorPopupForHash"
+            ).mockRejectedValue("Not important for this test");
+
             try {
                 await testPca.acquireTokenPopup(request);
             } catch (e) {}
-
             expect(spyPreGeneratePkceCodes).toHaveBeenCalledTimes(2);
             expect(spyPopupClientAcquireToken).toHaveBeenCalledWith(
                 request,
@@ -3120,6 +3124,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
             };
 
+            jest.spyOn(
+                PopupClient.prototype,
+                "monitorPopupForHash"
+            ).mockRejectedValue("Not important for this test");
             try {
                 await testPca.acquireTokenPopup(request);
             } catch (e) {}

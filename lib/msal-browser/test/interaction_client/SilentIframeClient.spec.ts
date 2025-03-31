@@ -16,18 +16,21 @@ import {
     TEST_STATE_VALUES,
     TEST_TOKEN_RESPONSE,
     ID_TOKEN_CLAIMS,
+    validEarJWK,
+    getTestAuthenticationResult,
+    validEarJWE,
 } from "../utils/StringConstants.js";
 import {
     AccountInfo,
     TokenClaims,
     PromptValue,
-    AuthorizationCodeClient,
     AuthenticationScheme,
     ServerTelemetryManager,
     ProtocolUtils,
     TenantProfile,
     Authority,
-} from "@azure/msal-common";
+    ProtocolMode,
+} from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorMessage,
@@ -39,20 +42,22 @@ import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
 import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
-import { ApiId, AuthenticationResult } from "../../src/index.js";
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient.js";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
 import {
+    ApiId,
     BrowserConstants,
     InteractionType,
 } from "../../src/utils/BrowserConstants.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
+import { SilentRequest } from "../../src/request/SilentRequest.js";
+import { SsoSilentRequest } from "../../src/index.js";
 
 describe("SilentIframeClient", () => {
-    globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let silentIframeClient: SilentIframeClient;
     let pca: PublicClientApplication;
     let browserCacheManager: BrowserCacheManager;
@@ -1235,6 +1240,57 @@ describe("SilentIframeClient", () => {
                 expect(tokenKeys.idToken).toHaveLength(1);
                 expect(tokenKeys.accessToken).toHaveLength(1);
                 expect(tokenKeys.refreshToken).toHaveLength(0);
+            });
+        });
+
+        describe("EAR Flow Tests", () => {
+            beforeAll(() => {
+                jest.useFakeTimers();
+            });
+
+            afterAll(() => {
+                jest.useRealTimers();
+            });
+
+            beforeEach(async () => {
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        protocolMode: ProtocolMode.EAR,
+                    },
+                });
+                await pca.initialize();
+
+                jest.spyOn(BrowserCrypto, "generateEarKey").mockResolvedValue(
+                    validEarJWK
+                );
+            });
+
+            it("Invokes EAR flow when protocolMode is set to EAR", async () => {
+                const validRequest: SsoSilentRequest = {
+                    authority: TEST_CONFIG.validAuthority,
+                    scopes: ["openid", "profile", "offline_access"],
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    redirectUri: window.location.href,
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    nonce: ID_TOKEN_CLAIMS.nonce,
+                };
+                jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                    TEST_STATE_VALUES.TEST_STATE_SILENT
+                );
+                const earFormSpy = jest
+                    .spyOn(SilentHandler, "initiateEarRequest")
+                    .mockResolvedValue(document.createElement("iframe"));
+                jest.spyOn(
+                    SilentHandler,
+                    "monitorIframeForHash"
+                ).mockResolvedValue(
+                    `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
+                );
+
+                const result = await pca.ssoSilent(validRequest);
+                expect(result).toEqual(getTestAuthenticationResult());
+                expect(earFormSpy).toHaveBeenCalled();
             });
         });
     });

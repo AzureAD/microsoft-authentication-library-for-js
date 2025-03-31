@@ -110,8 +110,6 @@ const testAccessTokenEntity: AccessTokenEntity = {
 };
 
 describe("NativeInteractionClient Tests", () => {
-    globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
-
     let pca: PublicClientApplication;
     let nativeInteractionClient: NativeInteractionClient;
 
