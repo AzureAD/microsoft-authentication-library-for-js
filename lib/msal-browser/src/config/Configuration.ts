@@ -402,17 +402,5 @@ export function buildConfiguration(
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
     };
 
-    /**
-     * Temporarily disable EAR until implementation is complete
-     * TODO: Remove this
-     */
-    if (overlayedConfig.auth.protocolMode === ProtocolMode.EAR) {
-        const logger = new Logger(providedSystemOptions.loggerOptions);
-        logger.warning(
-            "EAR Protocol Mode is not yet supported. Overriding to use PKCE auth"
-        );
-        overlayedConfig.auth.protocolMode = ProtocolMode.AAD;
-    }
-
     return overlayedConfig;
 }

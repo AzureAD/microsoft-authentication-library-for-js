@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "refactor redirect request caching",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
