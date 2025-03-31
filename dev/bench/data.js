@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1742862087829,
+  "lastUpdate": 1743441013026,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -14726,6 +14726,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 246820,
             "range": "±0.92%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c79920f9739955675a1449dc9de569f490345600",
+          "message": "Machine Learning Managed Identity now correctly uses MSI's 2017 API instead of the 2019 API (#7631)\n\nFixes #7597\nFixes #7627",
+          "timestamp": "2025-03-31T13:03:27-04:00",
+          "tree_id": "125a7846f2e1519968bfedcd1d13e5b9bd679692",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/c79920f9739955675a1449dc9de569f490345600"
+        },
+        "date": 1743441010849,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 242570,
+            "range": "±0.84%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 250513,
+            "range": "±0.81%",
             "unit": "ops/sec",
             "extra": "234 samples"
           }
