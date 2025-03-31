@@ -10,7 +10,6 @@ import {
 } from "../../../../src/sign_up/interaction_client/result/SignUpActionResult.js";
 import { SignUpClient } from "../../../../src/sign_up/interaction_client/SignUpClient.js";
 import { Logger } from "@azure/msal-browser";
-import { AuthFlowStateType } from "../../../../src/core/auth_flow/AuthFlowStateType.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { CustomAuthSilentCacheClient } from "../../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 
@@ -60,7 +59,7 @@ describe("SignUpPasswordRequiredState", () => {
         it("should return an error result if password is empty", async () => {
             const result = await state.submitPassword("");
 
-            expect(result.state?.type).toBe(AuthFlowStateType.Failed);
+            expect(result.isFailed()).toBeTruthy();
             expect(result.error).toBeInstanceOf(SignUpSubmitPasswordError);
             expect(result.error?.isInvalidPassword()).toBe(true);
             expect(result.error?.errorData).toBeInstanceOf(InvalidArgumentError);
@@ -76,7 +75,7 @@ describe("SignUpPasswordRequiredState", () => {
 
             expect(result).toBeDefined();
             expect(result).toBeInstanceOf(SignUpSubmitPasswordResult);
-            expect(result.state?.type).toBe(AuthFlowStateType.Completed);
+            expect(result.isCompleted()).toBe(true);
             expect(mockSignUpClient.submitPassword).toHaveBeenCalledWith({
                 clientId: "test-client-id",
                 correlationId: correlationId,
@@ -101,7 +100,7 @@ describe("SignUpPasswordRequiredState", () => {
 
             expect(result).toBeDefined();
             expect(result).toBeInstanceOf(SignUpSubmitPasswordResult);
-            expect(result.state?.type).toBe(AuthFlowStateType.AttributesRequired);
+            expect(result.isAttributesRequired()).toBe(true);
             expect(mockSignUpClient.submitPassword).toHaveBeenCalledWith({
                 clientId: "test-client-id",
                 correlationId: correlationId,

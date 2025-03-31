@@ -8,7 +8,6 @@ import { Logger } from "@azure/msal-browser";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { CustomAuthSilentCacheClient } from "../../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { ResetPasswordPasswordRequiredState } from "../../../../src/reset_password/auth_flow/state/ResetPasswordPasswordRequiredState.js";
-import { AuthFlowStateType } from "../../../../src/core/auth_flow/AuthFlowStateType.js";
 import { CustomAuthApiError } from "../../../../src/core/error/CustomAuthApiError.js";
 
 describe("ResetPasswordPasswordRequiredState", () => {
@@ -57,7 +56,7 @@ describe("ResetPasswordPasswordRequiredState", () => {
         it("should return an error result if password is empty", async () => {
             const result = await state.submitNewPassword("");
 
-            expect(result.state?.type).toBe(AuthFlowStateType.Failed);
+            expect(result.isFailed()).toBeTruthy();
             expect(result.error).toBeInstanceOf(ResetPasswordSubmitPasswordError);
             expect(result.error?.isInvalidPassword()).toBe(true);
             expect(result.error?.errorData).toBeInstanceOf(InvalidArgumentError);
@@ -73,7 +72,7 @@ describe("ResetPasswordPasswordRequiredState", () => {
 
             expect(result).toBeDefined();
             expect(result).toBeInstanceOf(ResetPasswordSubmitPasswordResult);
-            expect(result.state?.type).toBe(AuthFlowStateType.Completed);
+            expect(result.isCompleted()).toBe(true);
             expect(mockResetPasswordClient.submitNewPassword).toHaveBeenCalledWith({
                 clientId: "test-client-id",
                 correlationId: correlationId,
@@ -93,7 +92,7 @@ describe("ResetPasswordPasswordRequiredState", () => {
 
             expect(result).toBeDefined();
             expect(result).toBeInstanceOf(ResetPasswordSubmitPasswordResult);
-            expect(result.state?.type).toBe(AuthFlowStateType.Failed);
+            expect(result.isFailed()).toBe(true);
             expect(result.error).toBeInstanceOf(ResetPasswordSubmitPasswordError);
             expect(result.error?.isInvalidPassword()).toBe(true);
             expect(mockResetPasswordClient.submitNewPassword).toHaveBeenCalledWith({

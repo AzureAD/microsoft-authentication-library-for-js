@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowStateType } from "../../../core/auth_flow/AuthFlowStateType.js";
 import { UnexpectedError } from "../../../core/error/UnexpectedError.js";
 import { SignInScenario } from "../../../sign_in/auth_flow/SignInScenario.js";
 import {
@@ -20,14 +19,6 @@ import { SignUpPasswordRequiredStateParameters } from "./SignUpStateParameters.j
  * Sign-up password required state.
  */
 export class SignUpPasswordRequiredState extends SignUpState<SignUpPasswordRequiredStateParameters> {
-    /*
-     * Creates a new SignUpPasswordRequiredState.
-     * @param stateParameters - The state parameters.
-     */
-    constructor(stateParameters: SignUpPasswordRequiredStateParameters) {
-        super(AuthFlowStateType.PasswordRequired, stateParameters);
-    }
-
     /**
      * Submits a password for sign-up.
      * @param {string} password - The password to submit.

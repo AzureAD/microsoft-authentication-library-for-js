@@ -6,7 +6,6 @@
 import { AuthFlowActionRequiredStateBase } from "../../../core/auth_flow/AuthFlowState.js";
 import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 import { ResetPasswordStateParameters } from "./ResetPasswordStateParameters.js";
-import { AuthFlowStateType } from "../../../core/auth_flow/AuthFlowStateType.js";
 
 /*
  * Base state handler for reset password operation.
@@ -16,11 +15,10 @@ export abstract class ResetPasswordState<
 > extends AuthFlowActionRequiredStateBase<TParameters> {
     /*
      * Creates a new state for reset password operation.
-     * @param type - The type of reset-password state.
      * @param stateParameters - The state parameters for reset-password.
      */
-    constructor(type: AuthFlowStateType, stateParameters: TParameters) {
-        super(type, stateParameters);
+    constructor(stateParameters: TParameters) {
+        super(stateParameters);
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "config",

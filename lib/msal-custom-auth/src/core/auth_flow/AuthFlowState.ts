@@ -6,7 +6,6 @@
 import { Logger } from "@azure/msal-browser";
 import { ArgumentValidator } from "../utils/ArgumentValidator.js";
 import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
-import { AuthFlowStateType } from "./AuthFlowStateType.js";
 import { CustomAuthBrowserConfiguration } from "../../configuration/CustomAuthConfiguration.js";
 
 export interface AuthFlowActionRequiredStateParameters {
@@ -19,13 +18,7 @@ export interface AuthFlowActionRequiredStateParameters {
 /**
  * Base class for the state of an authentication flow.
  */
-export abstract class AuthFlowStateBase {
-    /**
-     * Creates a new instance of AuthFlowStateHandlerBase.
-     * @param type The state type of the authentication flow.
-     */
-    protected constructor(public readonly type: AuthFlowStateType) {}
-}
+export abstract class AuthFlowStateBase {}
 
 /**
  * Base class for the action requried state in an authentication flow.
@@ -34,16 +27,10 @@ export abstract class AuthFlowActionRequiredStateBase<
     TParameter extends AuthFlowActionRequiredStateParameters,
 > extends AuthFlowStateBase {
     /**
-     * Creates a new instance of AuthFlowStateHandlerBase.
-     * @param type The state type of the authentication flow.
-     * @param correlationId The correlation ID for the authentication flow.
-     * @param logger The logger for the authentication flow.
-     * @param continuationToken The continuation token for the authentication flow.
+     * Creates a new instance of AuthFlowActionRequiredStateBase.
+     * @param stateParameters The parameters for the auth state.
      */
-    protected constructor(
-        type: AuthFlowStateType,
-        protected readonly stateParameters: TParameter,
-    ) {
+    protected constructor(protected readonly stateParameters: TParameter) {
         ArgumentValidator.ensureArgumentIsNotEmptyString("correlationId", stateParameters.correlationId);
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "logger",
@@ -56,7 +43,7 @@ export abstract class AuthFlowActionRequiredStateBase<
             stateParameters.correlationId,
         );
 
-        super(type);
+        super();
     }
 
     protected ensureCodeIsValid(code: string, codeLength: number): void {
@@ -79,23 +66,5 @@ export abstract class AuthFlowActionRequiredStateBase<
 
             throw new InvalidArgumentError("password", this.stateParameters.correlationId);
         }
-    }
-}
-
-/**
- * Class representing the completed state of an authentication flow.
- */
-export abstract class AuthFlowCompletedState extends AuthFlowStateBase {
-    constructor() {
-        super(AuthFlowStateType.Completed);
-    }
-}
-
-/**
- * Class representing the failed state of an authentication flow.
- */
-export abstract class AuthFlowFailedState extends AuthFlowStateBase {
-    constructor() {
-        super(AuthFlowStateType.Failed);
     }
 }

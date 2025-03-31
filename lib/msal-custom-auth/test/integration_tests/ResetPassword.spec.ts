@@ -11,7 +11,6 @@ import { ResetPasswordSubmitPasswordResult } from "../../src/reset_password/auth
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { SignInResult } from "../../src/sign_in/auth_flow/result/SignInResult.js";
 import { CustomAuthStandardController } from "../../src/controller/CustomAuthStandardController.js";
-import { AuthFlowStateType } from "../../src/core/auth_flow/AuthFlowStateType.js";
 import { ResetPasswordCodeRequiredState } from "../../src/reset_password/auth_flow/state/ResetPasswordCodeRequiredState.js";
 import { ResetPasswordPasswordRequiredState } from "../../src/reset_password/auth_flow/state/ResetPasswordPasswordRequiredState.js";
 import { ResetPasswordCompletedState } from "../../src/reset_password/auth_flow/state/ResetPasswordCompletedState.js";
@@ -169,13 +168,13 @@ describe("Reset password", () => {
 
         expect(startResult).toBeInstanceOf(ResetPasswordStartResult);
         expect(startResult.error).toBeUndefined();
-        expect(startResult.state?.type).toStrictEqual(AuthFlowStateType.CodeRequired);
+        expect(startResult.isCodeRequired()).toBe(true);
 
         const submitCodeResult = await (startResult.state as ResetPasswordCodeRequiredState).submitCode("12345678");
 
         expect(submitCodeResult).toBeInstanceOf(ResetPasswordSubmitCodeResult);
         expect(submitCodeResult.error).toBeUndefined();
-        expect(submitCodeResult.state?.type).toStrictEqual(AuthFlowStateType.PasswordRequired);
+        expect(submitCodeResult.isPasswordRequired()).toBe(true);
 
         const submitPasswordResult = await (
             submitCodeResult.state as ResetPasswordPasswordRequiredState
@@ -183,13 +182,13 @@ describe("Reset password", () => {
 
         expect(submitPasswordResult).toBeInstanceOf(ResetPasswordSubmitPasswordResult);
         expect(submitPasswordResult.error).toBeUndefined();
-        expect(submitPasswordResult.state?.type).toStrictEqual(AuthFlowStateType.Completed);
+        expect(submitPasswordResult.isCompleted()).toBe(true);
 
         const signInResult = await (submitPasswordResult.state as ResetPasswordCompletedState).signIn();
 
         expect(signInResult).toBeInstanceOf(SignInResult);
         expect(signInResult.error).toBeUndefined();
-        expect(signInResult.state?.type).toStrictEqual(AuthFlowStateType.Completed);
+        expect(signInResult.isCompleted()).toBe(true);
         expect(signInResult.data).toBeDefined();
         expect(signInResult.data).toBeInstanceOf(CustomAuthAccountData);
         expect(signInResult.data?.getAccount()?.idToken).toStrictEqual("test-id-token");
@@ -227,7 +226,7 @@ describe("Reset password", () => {
 
         expect(startResult).toBeInstanceOf(ResetPasswordStartResult);
         expect(startResult.error).toBeDefined();
-        expect(startResult.state?.type).toStrictEqual(AuthFlowStateType.Failed);
+        expect(startResult.isFailed()).toBe(true);
         expect(startResult.error?.isRedirect()).toBe(true);
     });
 
@@ -257,7 +256,7 @@ describe("Reset password", () => {
 
         expect(startResult).toBeInstanceOf(ResetPasswordStartResult);
         expect(startResult.error).toBeDefined();
-        expect(startResult.state?.type).toStrictEqual(AuthFlowStateType.Failed);
+        expect(startResult.isFailed()).toBe(true);
         expect(startResult.error?.isUserNotFound()).toBe(true);
     });
 });

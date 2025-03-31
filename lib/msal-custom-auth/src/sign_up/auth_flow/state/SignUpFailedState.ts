@@ -3,6 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowFailedState } from "../../../core/auth_flow/AuthFlowState.js";
+import { AuthFlowStateBase } from "../../../core/auth_flow/AuthFlowState.js";
 
-export class SignUpFailedState extends AuthFlowFailedState {}
+/**
+ * Represents the state of a sign-up operation that has failed.
+ */
+export class SignUpFailedState extends AuthFlowStateBase {}

@@ -3,6 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowCompletedState } from "../../../core/auth_flow/AuthFlowState.js";
+import { AuthFlowStateBase } from "../../../core/auth_flow/AuthFlowState.js";
 
-export class SignInCompletedState extends AuthFlowCompletedState {}
+/**
+ * Represents the completed state of the sign-in operation.
+ * This state indicates that the sign-in process has finished successfully.
+ */
+export class SignInCompletedState extends AuthFlowStateBase {}

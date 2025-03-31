@@ -15,7 +15,6 @@ import { SignUpResult } from "../../src/sign_up/auth_flow/result/SignUpResult.js
 import { SignUpSubmitAttributesResult } from "../../src/sign_up/auth_flow/result/SignUpSubmitAttributesResult.js";
 import { CustomAuthStandardController } from "../../src/controller/CustomAuthStandardController.js";
 import { SignUpCodeRequiredState } from "../../src/sign_up/auth_flow/state/SignUpCodeRequiredState.js";
-import { AuthFlowStateType } from "../../src/core/auth_flow/AuthFlowStateType.js";
 import { SignUpCompletedState } from "../../src/sign_up/auth_flow/state/SignUpCompletedState.js";
 import { SignUpPasswordRequiredState } from "../../src/sign_up/auth_flow/state/SignUpPasswordRequiredState.js";
 import { SignUpAttributesRequiredState } from "../../src/sign_up/auth_flow/state/SignUpAttributesRequiredState.js";
@@ -162,13 +161,13 @@ describe("Sign up", () => {
 
         expect(startResult).toBeInstanceOf(SignUpResult);
         expect(startResult.error).toBeUndefined();
-        expect(startResult.state?.type).toStrictEqual(AuthFlowStateType.CodeRequired);
+        expect(startResult.isCodeRequired()).toBe(true);
 
         const submitCodeResult = await (startResult.state as SignUpCodeRequiredState).submitCode("12345678");
 
         expect(submitCodeResult).toBeInstanceOf(SignUpSubmitCodeResult);
         expect(submitCodeResult.error).toBeUndefined();
-        expect(submitCodeResult.state?.type).toStrictEqual(AuthFlowStateType.PasswordRequired);
+        expect(submitCodeResult.isPasswordRequired()).toBe(true);
 
         const submitPasswordResult = await (submitCodeResult.state as SignUpPasswordRequiredState).submitPassword(
             "valid-password",
@@ -176,13 +175,13 @@ describe("Sign up", () => {
 
         expect(submitPasswordResult).toBeInstanceOf(SignUpSubmitPasswordResult);
         expect(submitPasswordResult.error).toBeUndefined();
-        expect(submitPasswordResult.state?.type).toStrictEqual(AuthFlowStateType.Completed);
+        expect(submitPasswordResult.isCompleted()).toBe(true);
 
         const signInResult = await (submitPasswordResult.state as SignUpCompletedState).signIn();
 
         expect(signInResult).toBeInstanceOf(SignInResult);
         expect(signInResult.error).toBeUndefined();
-        expect(signInResult.state?.type).toStrictEqual(AuthFlowStateType.Completed);
+        expect(signInResult.isCompleted()).toBe(true);
         expect(signInResult.data).toBeDefined();
         expect(signInResult.data).toBeInstanceOf(CustomAuthAccountData);
         expect(signInResult.data?.getAccount()?.idToken).toStrictEqual("test-id-token");
@@ -296,13 +295,13 @@ describe("Sign up", () => {
 
         expect(startResult).toBeInstanceOf(SignUpResult);
         expect(startResult.error).toBeUndefined();
-        expect(startResult.state?.type).toStrictEqual(AuthFlowStateType.CodeRequired);
+        expect(startResult.isCodeRequired()).toBe(true);
 
         const submitCodeResult = await (startResult.state as SignUpCodeRequiredState).submitCode("12345678");
 
         expect(submitCodeResult).toBeInstanceOf(SignUpSubmitCodeResult);
         expect(submitCodeResult.error).toBeUndefined();
-        expect(submitCodeResult.state?.type).toStrictEqual(AuthFlowStateType.AttributesRequired);
+        expect(submitCodeResult.isAttributesRequired()).toBe(true);
         expect((submitCodeResult.state as SignUpAttributesRequiredState)?.getRequiredAttributes().length).toBe(3);
 
         const requiredAttributes = new UserAccountAttributes();
@@ -313,13 +312,13 @@ describe("Sign up", () => {
 
         expect(submitAttributesResult).toBeInstanceOf(SignUpSubmitAttributesResult);
         expect(submitAttributesResult.error).toBeUndefined();
-        expect(submitAttributesResult.state?.type).toStrictEqual(AuthFlowStateType.Completed);
+        expect(submitAttributesResult.isCompleted()).toBe(true);
 
         const signInResult = await (submitAttributesResult.state as SignUpCompletedState).signIn();
 
         expect(signInResult).toBeInstanceOf(SignInResult);
         expect(signInResult.error).toBeUndefined();
-        expect(signInResult.state?.type).toStrictEqual(AuthFlowStateType.Completed);
+        expect(signInResult.isCompleted()).toBe(true);
         expect(signInResult.data).toBeDefined();
         expect(signInResult.data).toBeInstanceOf(CustomAuthAccountData);
         expect(signInResult.data?.getAccount()?.idToken).toStrictEqual("test-id-token");
@@ -460,13 +459,13 @@ describe("Sign up", () => {
 
         expect(startResult).toBeInstanceOf(SignUpResult);
         expect(startResult.error).toBeUndefined();
-        expect(startResult.state?.type).toStrictEqual(AuthFlowStateType.CodeRequired);
+        expect(startResult.isCodeRequired()).toBe(true);
 
         const submitCodeResult = await (startResult.state as SignUpCodeRequiredState).submitCode("12345678");
 
         expect(submitCodeResult).toBeInstanceOf(SignUpSubmitCodeResult);
         expect(submitCodeResult.error).toBeUndefined();
-        expect(submitCodeResult.state?.type).toStrictEqual(AuthFlowStateType.PasswordRequired);
+        expect(submitCodeResult.isPasswordRequired()).toBe(true);
 
         const submitPasswordResult = await (submitCodeResult.state as SignUpPasswordRequiredState).submitPassword(
             "valid-password",
@@ -474,7 +473,7 @@ describe("Sign up", () => {
 
         expect(submitPasswordResult).toBeInstanceOf(SignUpSubmitPasswordResult);
         expect(submitPasswordResult.error).toBeUndefined();
-        expect(submitPasswordResult.state?.type).toStrictEqual(AuthFlowStateType.AttributesRequired);
+        expect(submitPasswordResult.isAttributesRequired()).toBe(true);
 
         const requiredAttributes = new UserAccountAttributes();
         requiredAttributes.setDisplayName("test-display-name");
@@ -484,13 +483,13 @@ describe("Sign up", () => {
 
         expect(submitAttributesResult).toBeInstanceOf(SignUpSubmitAttributesResult);
         expect(submitAttributesResult.error).toBeUndefined();
-        expect(submitAttributesResult.state?.type).toStrictEqual(AuthFlowStateType.Completed);
+        expect(submitAttributesResult.isCompleted()).toBe(true);
 
         const signInResult = await (submitAttributesResult.state as SignUpCompletedState).signIn();
 
         expect(signInResult).toBeInstanceOf(SignInResult);
         expect(signInResult.error).toBeUndefined();
-        expect(signInResult.state?.type).toStrictEqual(AuthFlowStateType.Completed);
+        expect(signInResult.isCompleted()).toBe(true);
         expect(signInResult.data).toBeDefined();
         expect(signInResult.data).toBeInstanceOf(CustomAuthAccountData);
         expect(signInResult.data?.getAccount()?.idToken).toStrictEqual("test-id-token");
@@ -566,19 +565,19 @@ describe("Sign up", () => {
 
         expect(startResult).toBeInstanceOf(SignUpResult);
         expect(startResult.error).toBeUndefined();
-        expect(startResult.state?.type).toStrictEqual(AuthFlowStateType.CodeRequired);
+        expect(startResult.isCodeRequired()).toBe(true);
 
         const submitCodeResult = await (startResult.state as SignUpCodeRequiredState).submitCode("12345678");
 
         expect(submitCodeResult).toBeInstanceOf(SignUpSubmitCodeResult);
         expect(submitCodeResult.error).toBeUndefined();
-        expect(submitCodeResult.state?.type).toStrictEqual(AuthFlowStateType.Completed);
+        expect(submitCodeResult.isCompleted()).toBe(true);
 
         const signInResult = await (submitCodeResult.state as SignUpCompletedState).signIn();
 
         expect(signInResult).toBeInstanceOf(SignInResult);
         expect(signInResult.error).toBeUndefined();
-        expect(signInResult.state?.type).toStrictEqual(AuthFlowStateType.Completed);
+        expect(signInResult.isCompleted()).toBe(true);
         expect(signInResult.data).toBeDefined();
         expect(signInResult.data).toBeInstanceOf(CustomAuthAccountData);
         expect(signInResult.data?.getAccount()?.idToken).toStrictEqual("test-id-token");
@@ -616,7 +615,7 @@ describe("Sign up", () => {
 
         expect(startResult).toBeInstanceOf(SignUpResult);
         expect(startResult.error).toBeDefined();
-        expect(startResult.state?.type).toStrictEqual(AuthFlowStateType.Failed);
+        expect(startResult.isFailed()).toBe(true);
         expect(startResult.error?.isRedirect()).toBe(true);
     });
 
@@ -646,7 +645,7 @@ describe("Sign up", () => {
 
         expect(startResult).toBeInstanceOf(SignUpResult);
         expect(startResult.error).toBeDefined();
-        expect(startResult.state?.type).toStrictEqual(AuthFlowStateType.Failed);
+        expect(startResult.isFailed()).toBe(true);
         expect(startResult.error?.isUserAlreadyExists()).toBe(true);
     });
 });

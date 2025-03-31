@@ -17,9 +17,20 @@ export abstract class SignInSubmitCredentialResult<TError extends AuthFlowErrorB
     TError,
     CustomAuthAccountData
 > {
+    /**
+     * Creates a new instance of SignInSubmitCredentialResult.
+     * @param state The state of the result.
+     * @param resultData The result data.
+     */
     constructor(state: SignInSubmitCredentialResultState, resultData?: CustomAuthAccountData) {
         super(state, resultData);
     }
 }
 
+/**
+ * The possible states of the SignInSubmitCredentialResult.
+ * This includes:
+ * - SignInCompletedState: The sign-in process has completed successfully.
+ * - SignInFailedState: The sign-in process has failed.
+ */
 export type SignInSubmitCredentialResultState = SignInCompletedState | SignInFailedState;

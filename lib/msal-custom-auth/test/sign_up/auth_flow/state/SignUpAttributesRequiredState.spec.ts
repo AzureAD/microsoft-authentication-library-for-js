@@ -8,7 +8,6 @@ import { Logger } from "@azure/msal-browser";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { UserAccountAttributes } from "../../../../src/UserAccountAttributes.js";
 import { CustomAuthSilentCacheClient } from "../../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
-import { AuthFlowStateType } from "../../../../src/core/auth_flow/AuthFlowStateType.js";
 
 describe("SignUpAttributesRequiredState", () => {
     const mockConfig = {
@@ -64,13 +63,13 @@ describe("SignUpAttributesRequiredState", () => {
         it("should return an error result if attributes is empty", async () => {
             const result1 = await state.submitAttributes(null as unknown as UserAccountAttributes);
 
-            expect(result1.state?.type).toBe(AuthFlowStateType.Failed);
+            expect(result1.isFailed()).toBeTruthy();
             expect(result1.error).toBeInstanceOf(SignUpSubmitAttributesError);
             expect(result1.error?.isAttributesValidationFailed()).toBe(true);
 
             const result2 = await state.submitAttributes(new UserAccountAttributes());
 
-            expect(result2.state?.type).toBe(AuthFlowStateType.Failed);
+            expect(result2.isFailed()).toBeTruthy();
             expect(result2.error).toBeInstanceOf(SignUpSubmitAttributesError);
             expect(result2.error?.isAttributesValidationFailed()).toBe(true);
         });
@@ -84,7 +83,7 @@ describe("SignUpAttributesRequiredState", () => {
 
             expect(result).toBeDefined();
             expect(result).toBeInstanceOf(SignUpSubmitAttributesResult);
-            expect(result.state?.type).toBe(AuthFlowStateType.Completed);
+            expect(result.isCompleted()).toBe(true);
             expect(mockSignUpClient.submitAttributes).toHaveBeenCalledWith({
                 clientId: "test-client-id",
                 correlationId: correlationId,

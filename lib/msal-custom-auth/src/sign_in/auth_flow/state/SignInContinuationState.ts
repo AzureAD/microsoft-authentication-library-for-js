@@ -7,7 +7,6 @@ import { CustomAuthAccountData } from "../../../get_account/auth_flow/CustomAuth
 import { SignInContinuationTokenParams } from "../../interaction_client/parameter/SignInParams.js";
 import { SignInResult } from "../result/SignInResult.js";
 import { SignInWithContinuationTokenInputs } from "../../../CustomAuthActionInputs.js";
-import { AuthFlowStateType } from "../../../core/auth_flow/AuthFlowStateType.js";
 import { SignInContinuationStateParameters } from "./SignInStateParameters.js";
 import { SignInState } from "./SignInState.js";
 import { SignInCompletedState } from "./SignInCompletedState.js";
@@ -16,10 +15,6 @@ import { SignInCompletedState } from "./SignInCompletedState.js";
  * Sign-in continuation state.
  */
 export class SignInContinuationState extends SignInState<SignInContinuationStateParameters> {
-    constructor(type: AuthFlowStateType, stateParameters: SignInContinuationStateParameters) {
-        super(type, stateParameters);
-    }
-
     /**
      * Initiates the sign-in flow with continuation token.
      * @param {SignInWithContinuationTokenInputs} signInWithContinuationTokenInputs - The result of the operation.

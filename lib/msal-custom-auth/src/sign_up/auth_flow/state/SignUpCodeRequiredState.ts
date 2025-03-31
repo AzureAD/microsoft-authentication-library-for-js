@@ -13,7 +13,6 @@ import { SignUpResendCodeResult } from "../result/SignUpResendCodeResult.js";
 import { SignUpSubmitCodeResult } from "../result/SignUpSubmitCodeResult.js";
 import { SignUpState } from "./SignUpState.js";
 import { SignUpCodeRequiredStateParameters } from "./SignUpStateParameters.js";
-import { AuthFlowStateType } from "../../../core/auth_flow/AuthFlowStateType.js";
 import { SignUpPasswordRequiredState } from "./SignUpPasswordRequiredState.js";
 import { SignUpAttributesRequiredState } from "./SignUpAttributesRequiredState.js";
 import { SignUpCompletedState } from "./SignUpCompletedState.js";
@@ -23,10 +22,6 @@ import { SignInScenario } from "../../../sign_in/auth_flow/SignInScenario.js";
  * Sign-up code required state.
  */
 export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredStateParameters> {
-    constructor(stateParameters: SignUpCodeRequiredStateParameters) {
-        super(AuthFlowStateType.CodeRequired, stateParameters);
-    }
-
     /**
      * Submit one-time passcode to continue sign-up flow.
      * @param {string} code - The code to submit.

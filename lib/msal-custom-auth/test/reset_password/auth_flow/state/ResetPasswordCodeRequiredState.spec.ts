@@ -12,7 +12,6 @@ import { ResetPasswordClient } from "../../../../src/reset_password/interaction_
 import { Logger } from "@azure/msal-browser";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { CustomAuthSilentCacheClient } from "../../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
-import { AuthFlowStateType } from "../../../../src/core/auth_flow/AuthFlowStateType.js";
 
 describe("ResetPasswordCodeRequiredState", () => {
     const mockConfig = {
@@ -62,7 +61,7 @@ describe("ResetPasswordCodeRequiredState", () => {
         it("should return an error result if code is empty", async () => {
             const result = await state.submitCode("");
 
-            expect(result.state?.type).toBe(AuthFlowStateType.Failed);
+            expect(result.isFailed()).toBeTruthy();
             expect(result.error).toBeInstanceOf(ResetPasswordSubmitCodeError);
             expect(result.error?.isInvalidCode()).toBe(true);
             expect(result.error?.errorData).toBeInstanceOf(InvalidArgumentError);
@@ -78,7 +77,7 @@ describe("ResetPasswordCodeRequiredState", () => {
 
             expect(result).toBeDefined();
             expect(result).toBeInstanceOf(ResetPasswordSubmitCodeResult);
-            expect(result.state?.type).toBe(AuthFlowStateType.PasswordRequired);
+            expect(result.isPasswordRequired()).toBe(true);
             expect(mockResetPasswordClient.submitCode).toHaveBeenCalledWith({
                 clientId: "test-client-id",
                 correlationId: correlationId,
@@ -98,7 +97,7 @@ describe("ResetPasswordCodeRequiredState", () => {
 
             expect(result).toBeDefined();
             expect(result).toBeInstanceOf(ResetPasswordSubmitCodeResult);
-            expect(result.state?.type).toBe(AuthFlowStateType.PasswordRequired);
+            expect(result.isPasswordRequired()).toBe(true);
             expect(mockResetPasswordClient.submitCode).toHaveBeenCalledWith({
                 clientId: "test-client-id",
                 correlationId: correlationId,
@@ -128,7 +127,7 @@ describe("ResetPasswordCodeRequiredState", () => {
             expect(result).toBeDefined();
             expect(result).toBeInstanceOf(ResetPasswordResendCodeResult);
             expect(result.data).toBeUndefined();
-            expect(result.state?.type).toBe(AuthFlowStateType.CodeRequired);
+            expect(result.isCodeRequired()).toBeTruthy();
         });
     });
 });

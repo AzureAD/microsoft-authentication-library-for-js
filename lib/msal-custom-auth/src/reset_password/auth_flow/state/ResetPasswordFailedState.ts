@@ -3,6 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowFailedState } from "../../../core/auth_flow/AuthFlowState.js";
+import { AuthFlowStateBase } from "../../../core/auth_flow/AuthFlowState.js";
 
-export class ResetPasswordFailedState extends AuthFlowFailedState {}
+/**
+ * State of a reset password operation that has failed.
+ */
+export class ResetPasswordFailedState extends AuthFlowStateBase {}

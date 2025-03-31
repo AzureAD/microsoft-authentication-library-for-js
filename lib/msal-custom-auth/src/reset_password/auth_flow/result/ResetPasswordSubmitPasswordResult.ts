@@ -16,6 +16,10 @@ export class ResetPasswordSubmitPasswordResult extends AuthFlowResultBase<
     ResetPasswordSubmitPasswordError,
     void
 > {
+    /**
+     * Creates a new instance of ResetPasswordSubmitPasswordResult.
+     * @param state The state of the result.
+     */
     constructor(state: ResetPasswordSubmitPasswordResultState) {
         super(state);
     }
@@ -26,6 +30,26 @@ export class ResetPasswordSubmitPasswordResult extends AuthFlowResultBase<
 
         return result;
     }
+
+    /**
+     * Checks if the result is in a failed state.
+     */
+    isFailed(): this is ResetPasswordSubmitPasswordResult & { state: ResetPasswordFailedState } {
+        return this.state instanceof ResetPasswordFailedState;
+    }
+
+    /**
+     * Checks if the result is in a completed state.
+     */
+    isCompleted(): this is ResetPasswordSubmitPasswordResult & { state: ResetPasswordCompletedState } {
+        return this.state instanceof ResetPasswordCompletedState;
+    }
 }
 
+/**
+ * The possible states for the ResetPasswordSubmitPasswordResult.
+ * This includes:
+ * - ResetPasswordCompletedState: The reset password process has completed successfully.
+ * - ResetPasswordFailedState: The reset password process has failed.
+ */
 export type ResetPasswordSubmitPasswordResultState = ResetPasswordCompletedState | ResetPasswordFailedState;

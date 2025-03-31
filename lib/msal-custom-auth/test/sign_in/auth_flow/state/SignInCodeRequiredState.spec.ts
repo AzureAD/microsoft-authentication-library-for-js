@@ -15,7 +15,6 @@ import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInC
 import { Logger } from "@azure/msal-browser";
 import { CustomAuthSilentCacheClient } from "../../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { SignInCodeRequiredState } from "../../../../src/sign_in/auth_flow/state/SignInCodeRequiredState.js";
-import { AuthFlowStateType } from "../../../../src/core/auth_flow/AuthFlowStateType.js";
 
 describe("SignInCodeRequiredState", () => {
     const mockConfig = {
@@ -65,7 +64,7 @@ describe("SignInCodeRequiredState", () => {
         it("should return an error result if code is empty", async () => {
             const result = await state.submitCode("");
 
-            expect(result.state?.type).toBe(AuthFlowStateType.Failed);
+            expect(result.isFailed()).toBeTruthy();
             expect(result.error).toBeInstanceOf(SignInSubmitCodeError);
             expect(result.error?.isInvalidCode()).toBe(true);
             expect(result.error?.errorData).toBeInstanceOf(InvalidArgumentError);
@@ -137,7 +136,7 @@ describe("SignInCodeRequiredState", () => {
             expect(result).toBeDefined();
             expect(result).toBeInstanceOf(SignInResendCodeResult);
             expect(result.data).toBeUndefined();
-            expect(result.state?.type).toBe(AuthFlowStateType.CodeRequired);
+            expect(result.isCodeRequired()).toBeTruthy();
         });
 
         it("should return an error result if resendCode throws an error", async () => {

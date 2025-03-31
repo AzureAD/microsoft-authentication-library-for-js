@@ -7,21 +7,12 @@ import { ResetPasswordResendCodeResult } from "../result/ResetPasswordResendCode
 import { ResetPasswordSubmitCodeResult } from "../result/ResetPasswordSubmitCodeResult.js";
 import { ResetPasswordCodeRequiredStateParameters } from "./ResetPasswordStateParameters.js";
 import { ResetPasswordState } from "./ResetPasswordState.js";
-import { AuthFlowStateType } from "../../../core/auth_flow/AuthFlowStateType.js";
 import { ResetPasswordPasswordRequiredState } from "./ResetPasswordPasswordRequiredState.js";
 
 /*
  * Reset password code required state.
  */
 export class ResetPasswordCodeRequiredState extends ResetPasswordState<ResetPasswordCodeRequiredStateParameters> {
-    /*
-     * Creates a new ResetPasswordCodeRequiredState.
-     * @param stateParameters - The state parameters.
-     */
-    constructor(stateParameters: ResetPasswordCodeRequiredStateParameters) {
-        super(AuthFlowStateType.CodeRequired, stateParameters);
-    }
-
     /**
      * Submits a one-time passcode that the customer user received in their email in order to continue password reset flow.
      * @param {string} code - The code to submit.

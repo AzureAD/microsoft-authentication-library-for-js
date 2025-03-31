@@ -6,7 +6,6 @@
 import { ResetPasswordSubmitPasswordResult } from "../result/ResetPasswordSubmitPasswordResult.js";
 import { ResetPasswordState } from "./ResetPasswordState.js";
 import { ResetPasswordPasswordRequiredStateParameters } from "./ResetPasswordStateParameters.js";
-import { AuthFlowStateType } from "../../../core/auth_flow/AuthFlowStateType.js";
 import { ResetPasswordCompletedState } from "./ResetPasswordCompletedState.js";
 import { SignInScenario } from "../../../sign_in/auth_flow/SignInScenario.js";
 
@@ -14,14 +13,6 @@ import { SignInScenario } from "../../../sign_in/auth_flow/SignInScenario.js";
  * Reset password password required state.
  */
 export class ResetPasswordPasswordRequiredState extends ResetPasswordState<ResetPasswordPasswordRequiredStateParameters> {
-    /*
-     * Creates a new ResetPasswordPasswordRequiredState.
-     * @param stateParameters - The state parameters.
-     */
-    constructor(stateParameters: ResetPasswordPasswordRequiredStateParameters) {
-        super(AuthFlowStateType.PasswordRequired, stateParameters);
-    }
-
     /**
      * Submits a new password for reset password flow.
      * @param {string} password - The password to submit.

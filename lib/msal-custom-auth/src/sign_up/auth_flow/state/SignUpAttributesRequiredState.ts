@@ -10,7 +10,6 @@ import { SignUpCompletedResult } from "../../interaction_client/result/SignUpAct
 import { SignUpSubmitAttributesResult } from "../result/SignUpSubmitAttributesResult.js";
 import { SignUpState } from "./SignUpState.js";
 import { SignUpAttributesRequiredStateParameters } from "./SignUpStateParameters.js";
-import { AuthFlowStateType } from "../../../core/auth_flow/AuthFlowStateType.js";
 import { UserAttribute } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 import { SignUpCompletedState } from "./SignUpCompletedState.js";
 import { SignInScenario } from "../../../sign_in/auth_flow/SignInScenario.js";
@@ -19,10 +18,6 @@ import { SignInScenario } from "../../../sign_in/auth_flow/SignInScenario.js";
  * Sign-up attributes required state.
  */
 export class SignUpAttributesRequiredState extends SignUpState<SignUpAttributesRequiredStateParameters> {
-    constructor(stateParameters: SignUpAttributesRequiredStateParameters) {
-        super(AuthFlowStateType.AttributesRequired, stateParameters);
-    }
-
     /**
      * Submits attributes to continue sign-up flow.
      * This methods is used to submit required attributes.

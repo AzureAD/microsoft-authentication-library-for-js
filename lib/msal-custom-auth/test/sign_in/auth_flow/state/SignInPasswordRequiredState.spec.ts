@@ -8,7 +8,6 @@ import { SignInPasswordRequiredState } from "../../../../src/sign_in/auth_flow/s
 import { SignInCompletedResult } from "../../../../src/sign_in/interaction_client/result/SignInActionResult.js";
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { CustomAuthSilentCacheClient } from "../../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
-import { AuthFlowStateType } from "../../../../src/core/auth_flow/AuthFlowStateType.js";
 
 describe("SignInPasswordRequiredState", () => {
     const mockConfig = {
@@ -55,7 +54,7 @@ describe("SignInPasswordRequiredState", () => {
     it("should return an error result if password is empty", async () => {
         const result = await state.submitPassword("");
 
-        expect(result.state?.type).toBe(AuthFlowStateType.Failed);
+        expect(result.isFailed()).toBe(true);
         expect(result.error).toBeInstanceOf(SignInSubmitPasswordError);
         expect(result.error?.errorData).toBeInstanceOf(InvalidArgumentError);
         expect(result.error?.errorData?.errorDescription).toContain("password");
@@ -90,7 +89,7 @@ describe("SignInPasswordRequiredState", () => {
 
         expect(result).toBeDefined();
         expect(result).toBeInstanceOf(SignInSubmitPasswordResult);
-        expect(result.state?.type).toBe(AuthFlowStateType.Completed);
+        expect(result.isCompleted()).toBe(true);
         expect(result.data).toBeInstanceOf(CustomAuthAccountData);
         expect(mockSignInClient.submitPassword).toHaveBeenCalledWith({
             clientId: "test-client-id",

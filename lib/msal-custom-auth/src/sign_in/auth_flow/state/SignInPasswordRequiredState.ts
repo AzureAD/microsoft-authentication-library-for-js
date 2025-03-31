@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowStateType } from "../../../core/auth_flow/AuthFlowStateType.js";
 import { CustomAuthAccountData } from "../../../get_account/auth_flow/CustomAuthAccountData.js";
 import { SignInSubmitPasswordParams } from "../../interaction_client/parameter/SignInParams.js";
 import { SignInSubmitPasswordResult } from "../result/SignInSubmitPasswordResult.js";
@@ -15,10 +14,6 @@ import { SignInPasswordRequiredStateParameters } from "./SignInStateParameters.j
  * Sign-in password required state.
  */
 export class SignInPasswordRequiredState extends SignInState<SignInPasswordRequiredStateParameters> {
-    constructor(stateParameters: SignInPasswordRequiredStateParameters) {
-        super(AuthFlowStateType.PasswordRequired, stateParameters);
-    }
-
     /**
      * Once user configures email with password as a authentication method in Microsoft Entra, user submits a password to continue sign-in flow.
      * @param {string} password - The password to submit.

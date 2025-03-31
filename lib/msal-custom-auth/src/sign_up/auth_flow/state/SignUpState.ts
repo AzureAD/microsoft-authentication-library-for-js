@@ -5,7 +5,6 @@
 
 import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 import { AuthFlowActionRequiredStateBase } from "../../../core/auth_flow/AuthFlowState.js";
-import { AuthFlowStateType } from "../../../core/auth_flow/AuthFlowStateType.js";
 import { SignUpStateParameters } from "./SignUpStateParameters.js";
 
 /*
@@ -16,11 +15,10 @@ export abstract class SignUpState<
 > extends AuthFlowActionRequiredStateBase<TParameters> {
     /*
      * Creates a new SignUpState.
-     * @param type - The type of sign-up state.
      * @param stateParameters - The state parameters for sign-up.
      */
-    constructor(type: AuthFlowStateType, stateParameters: TParameters) {
-        super(type, stateParameters);
+    constructor(stateParameters: TParameters) {
+        super(stateParameters);
 
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "config",

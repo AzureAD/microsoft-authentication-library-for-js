@@ -8,7 +8,6 @@ import { SignInCompletedResult } from "../../../../src/sign_in/interaction_clien
 import { SignInClient } from "../../../../src/sign_in/interaction_client/SignInClient.js";
 import { SignInScenario } from "../../../../src/sign_in/auth_flow/SignInScenario.js";
 import { CustomAuthSilentCacheClient } from "../../../../src/get_account/interaction_client/CustomAuthSilentCacheClient.js";
-import { AuthFlowStateType } from "../../../../src/core/auth_flow/AuthFlowStateType.js";
 
 describe("SignInContinuationState", () => {
     const mockConfig = {
@@ -36,7 +35,7 @@ describe("SignInContinuationState", () => {
     let state: SignInContinuationState;
 
     beforeEach(() => {
-        state = new SignInContinuationState(AuthFlowStateType.Completed, {
+        state = new SignInContinuationState({
             username: username,
             signInClient: mockSignInClient,
             cacheClient: mockCacheClient,

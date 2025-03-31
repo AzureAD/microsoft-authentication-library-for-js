@@ -14,7 +14,6 @@ import {
     CustomAuthApiSuberror,
 } from "../../src/core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 import { ResetPasswordError } from "../../src/reset_password/auth_flow/error_type/ResetPasswordError.js";
-import { AuthFlowStateType } from "../../src/core/auth_flow/AuthFlowStateType.js";
 import { ResetPasswordCodeRequiredState } from "../../src/reset_password/auth_flow/state/ResetPasswordCodeRequiredState.js";
 import { ResetPasswordStartResult } from "../../src/reset_password/auth_flow/result/ResetPasswordStartResult.js";
 
@@ -138,7 +137,7 @@ describe("CustomAuthStandardController", () => {
 
             expect(result).toBeInstanceOf(SignInResult);
             expect(result.error).toBeUndefined();
-            expect(result.state?.type).toStrictEqual(AuthFlowStateType.CodeRequired);
+            expect(result.isCodeRequired()).toBe(true);
         });
 
         it("should return password required result if the challenge type is password", async () => {
@@ -160,7 +159,7 @@ describe("CustomAuthStandardController", () => {
 
             expect(result).toBeInstanceOf(SignInResult);
             expect(result.error).toBeUndefined();
-            expect(result.state?.type).toStrictEqual(AuthFlowStateType.PasswordRequired);
+            expect(result.isPasswordRequired()).toBe(true);
         });
 
         it("should return correct completed result if the challenge type is password and password is provided", async () => {
@@ -191,7 +190,7 @@ describe("CustomAuthStandardController", () => {
 
             expect(result).toBeInstanceOf(SignInResult);
             expect(result.error).toBeUndefined();
-            expect(result.state?.type).toStrictEqual(AuthFlowStateType.Completed);
+            expect(result.isCompleted()).toBe(true);
             expect(result.data).toBeDefined();
             expect(result.data).toBeInstanceOf(CustomAuthAccountData);
         });
@@ -211,7 +210,7 @@ describe("CustomAuthStandardController", () => {
             expect(result.error).toBeDefined();
             expect(result.error?.errorData).toBeDefined();
             expect(result.error?.isRedirect()).toEqual(true);
-            expect(result.state?.type).toStrictEqual(AuthFlowStateType.Failed);
+            expect(result.isFailed()).toBe(true);
         });
     });
 
@@ -252,7 +251,7 @@ describe("CustomAuthStandardController", () => {
 
             expect(result).toBeInstanceOf(SignUpResult);
             expect(result.error).toBeUndefined();
-            expect(result.state?.type).toStrictEqual(AuthFlowStateType.CodeRequired);
+            expect(result.isCodeRequired()).toBe(true);
         });
 
         it("should return result with password required state if the challenge type is password", async () => {
@@ -274,7 +273,7 @@ describe("CustomAuthStandardController", () => {
 
             expect(result).toBeInstanceOf(SignUpResult);
             expect(result.error).toBeUndefined();
-            expect(result.state?.type).toStrictEqual(AuthFlowStateType.PasswordRequired);
+            expect(result.isPasswordRequired()).toBe(true);
         });
 
         it("should return failed result if the start endpoint returns redirect challenge type", async () => {
@@ -291,7 +290,7 @@ describe("CustomAuthStandardController", () => {
             expect(result.error).toBeDefined();
             expect(result.error?.errorData).toBeDefined();
             expect(result.error?.isRedirect()).toEqual(true);
-            expect(result.state?.type).toStrictEqual(AuthFlowStateType.Failed);
+            expect(result.isFailed()).toBe(true);
         });
 
         it("should return failed result if the challenge endpoint returns redirect challenge type", async () => {
@@ -311,7 +310,7 @@ describe("CustomAuthStandardController", () => {
             expect(result.error).toBeDefined();
             expect(result.error?.errorData).toBeDefined();
             expect(result.error?.isRedirect()).toEqual(true);
-            expect(result.state?.type).toStrictEqual(AuthFlowStateType.Failed);
+            expect(result.isFailed()).toBe(true);
         });
 
         it("should return failed result if the password is too weak", async () => {
@@ -336,7 +335,7 @@ describe("CustomAuthStandardController", () => {
             expect(result.error).toBeDefined();
             expect(result.error?.errorData).toBeDefined();
             expect(result.error?.isInvalidPassword()).toEqual(true);
-            expect(result.state?.type).toStrictEqual(AuthFlowStateType.Failed);
+            expect(result.isFailed()).toBe(true);
         });
     });
 
@@ -378,7 +377,7 @@ describe("CustomAuthStandardController", () => {
 
             expect(result.error).toBeUndefined();
             expect(result.state).toBeInstanceOf(ResetPasswordCodeRequiredState);
-            expect(result.state?.type).toStrictEqual(AuthFlowStateType.CodeRequired);
+            expect(result.isCodeRequired()).toBe(true);
         });
 
         it("should return redirect error if the return challenge is redirect", async () => {
@@ -395,7 +394,7 @@ describe("CustomAuthStandardController", () => {
             expect(result.error).toBeDefined();
             expect(result.error?.errorData).toBeDefined();
             expect(result.error?.isRedirect()).toEqual(true);
-            expect(result.state?.type).toStrictEqual(AuthFlowStateType.Failed);
+            expect(result.isFailed()).toBe(true);
         });
 
         it("should return failed result if the user is not found", async () => {
@@ -414,7 +413,7 @@ describe("CustomAuthStandardController", () => {
             expect(result.error).toBeDefined();
             expect(result.error?.errorData).toBeDefined();
             expect(result.error?.isUserNotFound()).toEqual(true);
-            expect(result.state?.type).toStrictEqual(AuthFlowStateType.Failed);
+            expect(result.isFailed()).toBe(true);
         });
     });
 });
