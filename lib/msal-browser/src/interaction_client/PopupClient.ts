@@ -50,6 +50,8 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
+import { PlatformDOMHandler } from "../broker/nativeBroker/PlatformDOMHandler.js";
+import { PlatformAuthProvider } from "../broker/nativeBroker/PlatformAuthProvider.js";
 
 export type PopupParams = {
     popup?: Window | null;
@@ -71,7 +73,8 @@ export class PopupClient extends StandardInteractionClient {
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
-        nativeMessageHandler?: NativeMessageHandler,
+        platformAuthHandler?: NativeMessageHandler | PlatformDOMHandler,
+        platformAuthType?: string,
         correlationId?: string
     ) {
         super(
@@ -82,7 +85,8 @@ export class PopupClient extends StandardInteractionClient {
             eventHandler,
             navigationClient,
             performanceClient,
-            nativeMessageHandler,
+            platformAuthHandler,
+            platformAuthType,
             correlationId
         );
         // Properly sets this reference for the unload event.
@@ -254,13 +258,12 @@ export class PopupClient extends StandardInteractionClient {
                 account: validRequest.account,
             });
 
-            const isPlatformBroker =
-                NativeMessageHandler.isPlatformBrokerAvailable(
-                    this.config,
-                    this.logger,
-                    this.nativeMessageHandler,
-                    request.authenticationScheme
-                );
+            const isPlatformBroker = PlatformAuthProvider.isBrokerAvailable(
+                this.config,
+                this.logger,
+                this.platformAuthProvider,
+                request.authenticationScheme
+            );
             // Start measurement for server calls with native brokering enabled
             let fetchNativeAccountIdMeasurement;
             if (isPlatformBroker) {
@@ -337,7 +340,7 @@ export class PopupClient extends StandardInteractionClient {
                     });
                 }
 
-                if (!this.nativeMessageHandler) {
+                if (!this.platformAuthType || !this.platformAuthProvider) {
                     throw createBrowserAuthError(
                         BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
@@ -351,7 +354,8 @@ export class PopupClient extends StandardInteractionClient {
                     this.navigationClient,
                     ApiId.acquireTokenPopup,
                     this.performanceClient,
-                    this.nativeMessageHandler,
+                    this.platformAuthProvider,
+                    this.platformAuthType,
                     serverParams.accountId,
                     this.nativeStorage,
                     validRequest.correlationId

@@ -50,6 +50,8 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
+import { PlatformDOMHandler } from "../broker/nativeBroker/PlatformDOMHandler.js";
+import { PlatformAuthProvider } from "../broker/nativeBroker/PlatformAuthProvider.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -79,7 +81,8 @@ export class RedirectClient extends StandardInteractionClient {
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
-        nativeMessageHandler?: NativeMessageHandler,
+        platformAuthHandler?: NativeMessageHandler | PlatformDOMHandler,
+        platformAuthType?: string,
         correlationId?: string
     ) {
         super(
@@ -90,7 +93,8 @@ export class RedirectClient extends StandardInteractionClient {
             eventHandler,
             navigationClient,
             performanceClient,
-            nativeMessageHandler,
+            platformAuthHandler,
+            platformAuthType,
             correlationId
         );
         this.nativeStorage = nativeStorageImpl;
@@ -185,13 +189,12 @@ export class RedirectClient extends StandardInteractionClient {
                 authClient.authority,
                 {
                     ...validRequest,
-                    platformBroker:
-                        NativeMessageHandler.isPlatformBrokerAvailable(
-                            this.config,
-                            this.logger,
-                            this.nativeMessageHandler,
-                            request.authenticationScheme
-                        ),
+                    platformBroker: PlatformAuthProvider.isBrokerAvailable(
+                        this.config,
+                        this.logger,
+                        this.platformAuthProvider,
+                        request.authenticationScheme
+                    ),
                 },
                 this.logger,
                 this.performanceClient
@@ -473,7 +476,7 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger.verbose(
                 "Account id found in hash, calling WAM for token"
             );
-            if (!this.nativeMessageHandler) {
+            if (!this.platformAuthType || !this.platformAuthProvider) {
                 throw createBrowserAuthError(
                     BrowserAuthErrorCodes.nativeConnectionNotEstablished
                 );
@@ -487,7 +490,8 @@ export class RedirectClient extends StandardInteractionClient {
                 this.navigationClient,
                 ApiId.acquireTokenPopup,
                 this.performanceClient,
-                this.nativeMessageHandler,
+                this.platformAuthProvider,
+                this.platformAuthType,
                 serverParams.accountId,
                 this.nativeStorage,
                 cachedRequest.correlationId

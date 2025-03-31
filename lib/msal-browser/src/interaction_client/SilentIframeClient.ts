@@ -44,6 +44,8 @@ import * as BrowserUtils from "../utils/BrowserUtils.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
+import { PlatformDOMHandler } from "../broker/nativeBroker/PlatformDOMHandler.js";
+import { PlatformAuthProvider } from "../broker/nativeBroker/PlatformAuthProvider.js";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
@@ -59,7 +61,8 @@ export class SilentIframeClient extends StandardInteractionClient {
         apiId: ApiId,
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
-        nativeMessageHandler?: NativeMessageHandler,
+        platformAuthProvider?: NativeMessageHandler | PlatformDOMHandler,
+        platformAuthType?: string,
         correlationId?: string
     ) {
         super(
@@ -70,7 +73,8 @@ export class SilentIframeClient extends StandardInteractionClient {
             eventHandler,
             navigationClient,
             performanceClient,
-            nativeMessageHandler,
+            platformAuthProvider,
+            platformAuthType,
             correlationId
         );
         this.apiId = apiId;
@@ -244,10 +248,10 @@ export class SilentIframeClient extends StandardInteractionClient {
             authClient.authority,
             {
                 ...silentRequest,
-                platformBroker: NativeMessageHandler.isPlatformBrokerAvailable(
+                platformBroker: PlatformAuthProvider.isBrokerAvailable(
                     this.config,
                     this.logger,
-                    this.nativeMessageHandler,
+                    this.platformAuthProvider,
                     silentRequest.authenticationScheme
                 ),
             },
@@ -298,7 +302,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.logger.verbose(
                 "Account id found in hash, calling WAM for token"
             );
-            if (!this.nativeMessageHandler) {
+            if (!this.platformAuthType || !this.platformAuthProvider) {
                 throw createBrowserAuthError(
                     BrowserAuthErrorCodes.nativeConnectionNotEstablished
                 );
@@ -312,7 +316,8 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.navigationClient,
                 this.apiId,
                 this.performanceClient,
-                this.nativeMessageHandler,
+                this.platformAuthProvider,
+                this.platformAuthType,
                 serverParams.accountId,
                 this.browserStorage,
                 correlationId

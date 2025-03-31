@@ -38,6 +38,7 @@ import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandle
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
+import { PlatformDOMHandler } from "../broker/nativeBroker/PlatformDOMHandler.js";
 
 export abstract class BaseInteractionClient {
     protected config: BrowserConfiguration;
@@ -47,7 +48,11 @@ export abstract class BaseInteractionClient {
     protected logger: Logger;
     protected eventHandler: EventHandler;
     protected navigationClient: INavigationClient;
-    protected nativeMessageHandler: NativeMessageHandler | undefined;
+    protected platformAuthProvider:
+        | NativeMessageHandler
+        | PlatformDOMHandler
+        | undefined;
+    protected readonly platformAuthType: string | undefined;
     protected correlationId: string;
     protected performanceClient: IPerformanceClient;
 
@@ -59,7 +64,8 @@ export abstract class BaseInteractionClient {
         eventHandler: EventHandler,
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
-        nativeMessageHandler?: NativeMessageHandler,
+        platformAuthProvider?: NativeMessageHandler | PlatformDOMHandler,
+        platformAuthType?: string,
         correlationId?: string
     ) {
         this.config = config;
@@ -68,7 +74,8 @@ export abstract class BaseInteractionClient {
         this.networkClient = this.config.system.networkClient;
         this.eventHandler = eventHandler;
         this.navigationClient = navigationClient;
-        this.nativeMessageHandler = nativeMessageHandler;
+        this.platformAuthProvider = platformAuthProvider;
+        this.platformAuthType = platformAuthType;
         this.correlationId = correlationId || createNewGuid();
         this.logger = logger.clone(
             BrowserConstants.MSAL_SKU,

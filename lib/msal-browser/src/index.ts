@@ -161,4 +161,4 @@ export {
 
 export { version } from "./packageMetadata.js";
 
-export { isPlatformBrokerAvailable } from "./controllers/StandardController.js";
+export { isPlatformBrokerAvailable } from "./broker/nativeBroker/PlatformAuthProvider.js";

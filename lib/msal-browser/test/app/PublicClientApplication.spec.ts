@@ -101,7 +101,7 @@ import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCod
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient.js";
-import { NativeTokenRequest } from "../../src/broker/nativeBroker/NativeRequest.js";
+import { NativeExtensionTokenRequest } from "../../src/broker/nativeBroker/NativeRequest.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
 import { StandardController } from "../../src/controllers/StandardController.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
@@ -719,7 +719,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 fromNativeBroker: true,
             };
 
-            const nativeRequest: NativeTokenRequest = {
+            const nativeRequest: NativeExtensionTokenRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
@@ -830,7 +830,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     fromNativeBroker: true,
                 };
 
-                const nativeRequest: NativeTokenRequest = {
+                const nativeRequest: NativeExtensionTokenRequest = {
                     authority: TEST_CONFIG.validAuthority,
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),

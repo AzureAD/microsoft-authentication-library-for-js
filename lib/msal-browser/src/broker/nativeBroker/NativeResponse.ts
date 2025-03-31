@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { AccountInfo } from "@azure/msal-common";
+
 /**
  * Account properties returned by Native Platform e.g. WAM
  */
@@ -53,4 +55,34 @@ export type MATS = {
     silent_status?: number;
     http_status?: number;
     http_event_count?: number;
+};
+
+export type PlatformDOMResponse = {
+    isSuccess: boolean;
+    state?: string;
+    accessToken?: string;
+    expiresIn: number;
+    account: Account;
+    clientInfo?: string;
+    idToken?: string;
+    scopes?: string;
+    proofOfPossessionPayload?: string;
+    extendedLifetimeToken: boolean;
+    error: ErrorResult;
+    properties?: Record<string, string>;
+};
+
+export type ErrorResult = {
+    code: string;
+    description?: string;
+    errorCode: string;
+    protocolError?: string;
+    status: string;
+    properties?: Record<string, string>;
+};
+
+export type Account = {
+    id: string;
+    userName: string;
+    properties?: Record<string, string>;
 };
