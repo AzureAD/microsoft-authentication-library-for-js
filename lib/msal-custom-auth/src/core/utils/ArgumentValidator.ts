@@ -6,7 +6,7 @@
 import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
 
 export class ArgumentValidator {
-    static ensureArgumentIsNotEmptyString(argName: string, argValue: string, correlationId?: string): void {
+    static ensureArgumentIsNotEmptyString(argName: string, argValue: string | undefined, correlationId?: string): void {
         if (!argValue || argValue.trim() === "") {
             throw new InvalidArgumentError(argName, correlationId);
         }

@@ -8,14 +8,26 @@ import { CustomAuthApiError } from "../../../core/error/CustomAuthApiError.js";
 import { CustomAuthApiErrorCode } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 
 export class ResetPasswordError extends AuthFlowErrorBase {
+    /**
+     * Checks if the error is due to the user not being found.
+     * @returns true if the error is due to the user not being found, false otherwise.
+     */
     isUserNotFound(): boolean {
         return this.isUserNotFoundError();
     }
 
+    /**
+     * Checks if the error is due to the username being invalid.
+     * @returns true if the error is due to the username being invalid, false otherwise.
+     */
     isInvalidUsername(): boolean {
         return this.isUserInvalidError();
     }
 
+    /**
+     * Checks if the error is due to the provided challenge type is not supported.
+     * @returns {boolean} True if the error is due to the provided challenge type is not supported, false otherwise.
+     */
     isUnsupportedChallengeType(): boolean {
         return this.isUnsupportedChallengeTypeError();
     }
@@ -52,6 +64,10 @@ export class ResetPasswordSubmitPasswordError extends AuthFlowErrorBase {
 }
 
 export class ResetPasswordSubmitCodeError extends AuthFlowErrorBase {
+    /**
+     * Checks if the provided code is invalid.
+     * @returns {boolean} True if the provided code is invalid, false otherwise.
+     */
     isInvalidCode(): boolean {
         return this.isInvalidCodeError();
     }

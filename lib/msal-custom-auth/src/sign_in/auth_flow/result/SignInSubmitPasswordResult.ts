@@ -4,7 +4,8 @@
  */
 
 import { SignInSubmitPasswordError } from "../error_type/SignInError.js";
-import { SignInFailed } from "../state/SignInFailed.js";
+import { SignInCompletedState } from "../state/SignInCompletedState.js";
+import { SignInFailedState } from "../state/SignInFailedState.js";
 import { SignInSubmitCredentialResult } from "./SignInSubmitCredentialResult.js";
 
 /*
@@ -12,10 +13,23 @@ import { SignInSubmitCredentialResult } from "./SignInSubmitCredentialResult.js"
  */
 export class SignInSubmitPasswordResult extends SignInSubmitCredentialResult<SignInSubmitPasswordError> {
     static createWithError(error: unknown): SignInSubmitPasswordResult {
-        const result = new SignInSubmitPasswordResult();
-        result.state = new SignInFailed();
+        const result = new SignInSubmitPasswordResult(new SignInFailedState());
         result.error = new SignInSubmitPasswordError(SignInSubmitPasswordResult.createErrorData(error));
 
         return result;
+    }
+
+    /**
+     * Checks if the result is in a failed state.
+     */
+    isFailed(): this is SignInSubmitPasswordResult & { state: SignInFailedState } {
+        return this.state instanceof SignInFailedState;
+    }
+
+    /**
+     * Checks if the result is in a completed state.
+     */
+    isCompleted(): this is SignInSubmitPasswordResult & { state: SignInCompletedState } {
+        return this.state instanceof SignInCompletedState;
     }
 }

@@ -5,18 +5,15 @@
 
 import { CustomAuthAccountData } from "../../src/get_account/auth_flow/CustomAuthAccountData.js";
 import { CustomAuthPublicClientApplication } from "../../src/CustomAuthPublicClientApplication.js";
-import { ICustomAuthPublicClientApplication } from "../../src/ICustomAuthPublicClientApplication.js";
 import { ResetPasswordStartResult } from "../../src/reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import { ResetPasswordSubmitCodeResult } from "../../src/reset_password/auth_flow/result/ResetPasswordSubmitCodeResult.js";
 import { ResetPasswordSubmitPasswordResult } from "../../src/reset_password/auth_flow/result/ResetPasswordSubmitPasswordResult.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
-import { ResetPasswordState, SignInState } from "../../src/core/auth_flow/AuthFlowStateBase.js";
-import { AuthFlowStateHandlerFactory } from "../../src/core/auth_flow/AuthFlowStateHandlerFactory.js";
-import { ResetPasswordCodeRequired } from "../../src/reset_password/auth_flow/state/ResetPasswordCodeRequired.js";
-import { ResetPasswordPasswordRequired } from "../../src/reset_password/auth_flow/state/ResetPasswordPasswordRequired.js";
-import { ResetPasswordCompleted } from "../../src/reset_password/auth_flow/state/ResetPasswordCompleted.js";
 import { SignInResult } from "../../src/sign_in/auth_flow/result/SignInResult.js";
 import { CustomAuthStandardController } from "../../src/controller/CustomAuthStandardController.js";
+import { ResetPasswordCodeRequiredState } from "../../src/reset_password/auth_flow/state/ResetPasswordCodeRequiredState.js";
+import { ResetPasswordPasswordRequiredState } from "../../src/reset_password/auth_flow/state/ResetPasswordPasswordRequiredState.js";
+import { ResetPasswordCompletedState } from "../../src/reset_password/auth_flow/state/ResetPasswordCompletedState.js";
 
 jest.mock("@azure/msal-browser", () => {
     const actualModule = jest.requireActual("@azure/msal-browser");
@@ -171,39 +168,27 @@ describe("Reset password", () => {
 
         expect(startResult).toBeInstanceOf(ResetPasswordStartResult);
         expect(startResult.error).toBeUndefined();
-        expect(startResult.state?.type).toStrictEqual(ResetPasswordState.CodeRequired);
-        expect((startResult.state as ResetPasswordCodeRequired)?.continuationToken).toStrictEqual(
-            "test-continuation-token-2",
-        );
+        expect(startResult.isCodeRequired()).toBe(true);
 
-        const codeRequiredHandler = AuthFlowStateHandlerFactory.create(startResult.state as ResetPasswordCodeRequired);
-        const submitCodeResult = await codeRequiredHandler.submitCode("12345678");
+        const submitCodeResult = await (startResult.state as ResetPasswordCodeRequiredState).submitCode("12345678");
 
         expect(submitCodeResult).toBeInstanceOf(ResetPasswordSubmitCodeResult);
         expect(submitCodeResult.error).toBeUndefined();
-        expect(submitCodeResult.state?.type).toStrictEqual(ResetPasswordState.PasswordRequired);
-        expect((submitCodeResult.state as ResetPasswordPasswordRequired)?.continuationToken).toStrictEqual(
-            "test-continuation-token-3",
-        );
+        expect(submitCodeResult.isPasswordRequired()).toBe(true);
 
-        const passwordRequiredHandler = AuthFlowStateHandlerFactory.create(
-            submitCodeResult.state as ResetPasswordPasswordRequired,
-        );
-        const submitPasswordResult = await passwordRequiredHandler.submitNewPassword("valid-password");
+        const submitPasswordResult = await (
+            submitCodeResult.state as ResetPasswordPasswordRequiredState
+        ).submitNewPassword("valid-password");
 
         expect(submitPasswordResult).toBeInstanceOf(ResetPasswordSubmitPasswordResult);
         expect(submitPasswordResult.error).toBeUndefined();
-        expect(submitPasswordResult.state?.type).toStrictEqual(ResetPasswordState.Completed);
-        expect((submitPasswordResult.state as ResetPasswordCompleted)?.continuationToken).toStrictEqual(
-            "test-continuation-token-5",
-        );
+        expect(submitPasswordResult.isCompleted()).toBe(true);
 
-        const signInHandler = AuthFlowStateHandlerFactory.create(submitPasswordResult.state as ResetPasswordCompleted);
-        const signInResult = await signInHandler.signIn();
+        const signInResult = await (submitPasswordResult.state as ResetPasswordCompletedState).signIn();
 
         expect(signInResult).toBeInstanceOf(SignInResult);
         expect(signInResult.error).toBeUndefined();
-        expect(signInResult.state?.type).toStrictEqual(SignInState.Completed);
+        expect(signInResult.isCompleted()).toBe(true);
         expect(signInResult.data).toBeDefined();
         expect(signInResult.data).toBeInstanceOf(CustomAuthAccountData);
         expect(signInResult.data?.getAccount()?.idToken).toStrictEqual("test-id-token");
@@ -241,7 +226,7 @@ describe("Reset password", () => {
 
         expect(startResult).toBeInstanceOf(ResetPasswordStartResult);
         expect(startResult.error).toBeDefined();
-        expect(startResult.state?.type).toStrictEqual(ResetPasswordState.Failed);
+        expect(startResult.isFailed()).toBe(true);
         expect(startResult.error?.isRedirect()).toBe(true);
     });
 
@@ -271,7 +256,7 @@ describe("Reset password", () => {
 
         expect(startResult).toBeInstanceOf(ResetPasswordStartResult);
         expect(startResult.error).toBeDefined();
-        expect(startResult.state?.type).toStrictEqual(ResetPasswordState.Failed);
+        expect(startResult.isFailed()).toBe(true);
         expect(startResult.error?.isUserNotFound()).toBe(true);
     });
 });

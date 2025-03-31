@@ -5,28 +5,56 @@
 
 import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { SignUpSubmitAttributesError } from "../error_type/SignUpError.js";
-import { SignUpCodeRequired } from "../state/SignUpCodeRequired.js";
-import { SignUpCompleted } from "../state/SignUpCompleted.js";
-import { SignUpFailed } from "../state/SignUpFailed.js";
-import { SignUpPasswordRequired } from "../state/SignUpPasswordRequired.js";
+import { SignUpCompletedState } from "../state/SignUpCompletedState.js";
+import { SignUpFailedState } from "../state/SignUpFailedState.js";
 
 /*
  * Result of a sign-up operation that requires attributes.
  */
 export class SignUpSubmitAttributesResult extends AuthFlowResultBase<
-    SignUpCodeRequired | SignUpPasswordRequired | SignUpCompleted | SignUpFailed,
+    SignUpSubmitAttributesResultState,
     SignUpSubmitAttributesError,
     void
 > {
-    constructor(state?: SignUpCodeRequired | SignUpPasswordRequired | SignUpCompleted) {
+    /**
+     * Creates a new instance of SignUpSubmitAttributesResult.
+     * @param state The state of the result.
+     */
+    constructor(state: SignUpSubmitAttributesResultState) {
         super(state);
     }
 
+    /**
+     * Creates a new instance of SignUpSubmitAttributesResult with an error.
+     * @param error The error that occurred.
+     * @returns {SignUpSubmitAttributesResult} A new instance of SignUpSubmitAttributesResult with the error set.
+     */
     static createWithError(error: unknown): SignUpSubmitAttributesResult {
-        const result = new SignUpSubmitAttributesResult();
+        const result = new SignUpSubmitAttributesResult(new SignUpFailedState());
         result.error = new SignUpSubmitAttributesError(SignUpSubmitAttributesResult.createErrorData(error));
-        result.state = new SignUpFailed();
 
         return result;
     }
+
+    /**
+     * Checks if the result is in a failed state.
+     */
+    isFailed(): this is SignUpSubmitAttributesResult & { state: SignUpFailedState } {
+        return this.state instanceof SignUpFailedState;
+    }
+
+    /**
+     * Checks if the result is in a completed state.
+     */
+    isCompleted(): this is SignUpSubmitAttributesResult & { state: SignUpCompletedState } {
+        return this.state instanceof SignUpCompletedState;
+    }
 }
+
+/**
+ * The possible states for the SignUpSubmitAttributesResult.
+ * This includes:
+ * - SignUpCompletedState: The sign-up process has completed successfully.
+ * - SignUpFailedState: The sign-up process has failed.
+ */
+export type SignUpSubmitAttributesResultState = SignUpCompletedState | SignUpFailedState;

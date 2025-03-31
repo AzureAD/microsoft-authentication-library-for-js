@@ -5,26 +5,51 @@
 
 import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { ResetPasswordSubmitPasswordError } from "../error_type/ResetPasswordError.js";
-import { ResetPasswordCompleted } from "../state/ResetPasswordCompleted.js";
-import { ResetPasswordFailed } from "../state/ResetPasswordFailed.js";
+import { ResetPasswordCompletedState } from "../state/ResetPasswordCompletedState.js";
+import { ResetPasswordFailedState } from "../state/ResetPasswordFailedState.js";
 
 /*
  * Result of a reset password operation that requires a password.
  */
 export class ResetPasswordSubmitPasswordResult extends AuthFlowResultBase<
-    ResetPasswordCompleted | ResetPasswordFailed,
+    ResetPasswordSubmitPasswordResultState,
     ResetPasswordSubmitPasswordError,
     void
 > {
-    constructor(state?: ResetPasswordCompleted | ResetPasswordFailed) {
+    /**
+     * Creates a new instance of ResetPasswordSubmitPasswordResult.
+     * @param state The state of the result.
+     */
+    constructor(state: ResetPasswordSubmitPasswordResultState) {
         super(state);
     }
 
     static createWithError(error: unknown): ResetPasswordSubmitPasswordResult {
-        const result = new ResetPasswordSubmitPasswordResult();
+        const result = new ResetPasswordSubmitPasswordResult(new ResetPasswordFailedState());
         result.error = new ResetPasswordSubmitPasswordError(ResetPasswordSubmitPasswordResult.createErrorData(error));
-        result.state = new ResetPasswordFailed();
 
         return result;
     }
+
+    /**
+     * Checks if the result is in a failed state.
+     */
+    isFailed(): this is ResetPasswordSubmitPasswordResult & { state: ResetPasswordFailedState } {
+        return this.state instanceof ResetPasswordFailedState;
+    }
+
+    /**
+     * Checks if the result is in a completed state.
+     */
+    isCompleted(): this is ResetPasswordSubmitPasswordResult & { state: ResetPasswordCompletedState } {
+        return this.state instanceof ResetPasswordCompletedState;
+    }
 }
+
+/**
+ * The possible states for the ResetPasswordSubmitPasswordResult.
+ * This includes:
+ * - ResetPasswordCompletedState: The reset password process has completed successfully.
+ * - ResetPasswordFailedState: The reset password process has failed.
+ */
+export type ResetPasswordSubmitPasswordResultState = ResetPasswordCompletedState | ResetPasswordFailedState;
