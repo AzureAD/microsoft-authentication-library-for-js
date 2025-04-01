@@ -14,10 +14,10 @@ import {
 import {
   AccountInfo,
   AuthenticationResult,
+  BrowserConfigurationAuthError,
   InteractionStatus,
   InteractionType,
   StringUtils,
-  BrowserConfigurationAuthError,
 } from "@azure/msal-browser";
 import { Observable, EMPTY, of } from "rxjs";
 import { switchMap, catchError, take, filter } from "rxjs/operators";
