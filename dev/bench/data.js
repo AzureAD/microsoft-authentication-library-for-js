@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1743441013026,
+  "lastUpdate": 1743535205601,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -14764,6 +14764,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 250513,
             "range": "±0.81%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sameera.gajjarapu@microsoft.com",
+            "name": "Sameera Gajjarapu",
+            "username": "sameerag"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c08754d672a14dec3685513f0151a9faf79c6540",
+          "message": "update cache miss to warning from error (#7657)\n\nNAA customer request to update cache miss as warning in logs instead of\nerror. Having `error` in log is confusing since the token request\nproceeds without throwing.",
+          "timestamp": "2025-04-01T12:13:48-07:00",
+          "tree_id": "d762d413312774e665cd56a10c9ad1da121e788f",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/c08754d672a14dec3685513f0151a9faf79c6540"
+        },
+        "date": 1743535204156,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 243500,
+            "range": "±0.86%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 240786,
+            "range": "±0.77%",
             "unit": "ops/sec",
             "extra": "234 samples"
           }
