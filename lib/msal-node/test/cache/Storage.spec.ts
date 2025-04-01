@@ -123,13 +123,13 @@ describe("Storage tests for msal-node: ", () => {
 
         const accountKey = "uid1.utid1-login.windows.net-samplerealm";
         const newMockAccountData = {
-                username: "Jane Doe",
-                localAccountId: "object5678",
-                realm: "samplerealm",
-                environment: "login.windows.net",
-                homeAccountId: "uid1.utid1",
-                authorityType: "MSSTS",
-                clientInfo: "eyJ1aWQiOiJ1aWQxIiwgInV0aWQiOiJ1dGlkMSJ9",
+            username: "Jane Doe",
+            localAccountId: "object5678",
+            realm: "samplerealm",
+            environment: "login.windows.net",
+            homeAccountId: "uid1.utid1",
+            authorityType: "MSSTS",
+            clientInfo: "eyJ1aWQiOiJ1aWQxIiwgInV0aWQiOiJ1dGlkMSJ9",
         };
         let account = {} as AccountEntity;
         account = CacheManager.toObject(account, newMockAccountData);
