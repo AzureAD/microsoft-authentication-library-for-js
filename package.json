@@ -39,8 +39,10 @@
         "doc:deploy": "gh-pages -d ref -a -e ref",
         "beachball:check": "beachball check --branch origin/msal-v5",
         "beachball:change": "beachball change --branch origin/msal-v5",
+        "beachball:bump": "beachball bump --branch origin/msal-v5 --bumpDeps false && node release-scripts/updateVersion.js",
         "beachball:bump:alpha": "beachball bump --branch origin/msal-v5 --bumpDeps false --prerelease-prefix alpha",
         "beachball:bump:beta": "beachball bump --branch origin/msal-v5 --bumpDeps false --prerelease-prefix beta",
+        "beachball:bump:official": "beachball bump --branch origin/msal-v5",
         "beachball:release": "node ./.github/create-releases.js"
     },
     "workspaces": [
