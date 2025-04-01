@@ -11,6 +11,7 @@ import { AppMetadataEntity } from "../../../src/cache/entities/AppMetadataEntity
 import { AuthenticationScheme } from "../../../src/utils/Constants";
 import { CacheHelpers } from "../../../src";
 import { TEST_CONFIG } from "../../test_kit/StringConstants";
+import { generateAccountKey } from "../../../src/index.js";
 
 // mock tokens
 export const mockAccessTokenEntity_1: AccessTokenEntity = {
@@ -132,10 +133,9 @@ export class mockCache {
     }
 
     static createMockAcc(): AccountEntity {
-        const acc = new AccountEntity();
-        Object.assign(acc, mockAccountEntity);
-
-        return acc;
+        return {
+            ...mockAccountEntity,
+        };
     }
 
     static createMockAmdt(): AppMetadataEntity {
@@ -164,7 +164,7 @@ export const MockCache = {
         mockCache.createMockRTWithFamilyId()
     ),
     acc: mockCache.createMockAcc(),
-    accKey: mockCache.createMockAcc().generateAccountKey(),
+    accKey: generateAccountKey(mockCache.createMockAcc()),
     amdt: mockCache.createMockAmdt(),
     amdtKey: CacheHelpers.generateAppMetadataKey(mockCache.createMockAmdt()),
 };

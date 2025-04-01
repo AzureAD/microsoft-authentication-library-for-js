@@ -13,6 +13,8 @@ import {
     IdTokenEntity,
     RefreshTokenEntity,
     CacheHelpers,
+    isAccountEntity,
+    generateAccountKey,
 } from "@azure/msal-common";
 import {
     JsonCache,
@@ -100,7 +102,7 @@ describe("Storage tests for msal-node: ", () => {
 
         const cache = nodeStorage.getCache();
         const account: AccountEntity = cache[ACCOUNT_KEY] as AccountEntity;
-        expect(account).toBeInstanceOf(AccountEntity);
+        expect(isAccountEntity(account)).toBe(true);
         expect(account.clientInfo).toBe(
             "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
         );
@@ -120,8 +122,7 @@ describe("Storage tests for msal-node: ", () => {
         nodeStorage.setInMemoryCache(inMemoryCache);
 
         const accountKey = "uid1.utid1-login.windows.net-samplerealm";
-        const newMockAccount = {
-            "uid1.utid1-login.windows.net-samplerealm": {
+        const newMockAccountData = {
                 username: "Jane Doe",
                 localAccountId: "object5678",
                 realm: "samplerealm",
@@ -129,15 +130,15 @@ describe("Storage tests for msal-node: ", () => {
                 homeAccountId: "uid1.utid1",
                 authorityType: "MSSTS",
                 clientInfo: "eyJ1aWQiOiJ1aWQxIiwgInV0aWQiOiJ1dGlkMSJ9",
-            },
         };
-        let account = new AccountEntity();
-        account = CacheManager.toObject(account, newMockAccount);
+        let account = {} as AccountEntity;
+        account = CacheManager.toObject(account, newMockAccountData);
 
         nodeStorage.setItem(accountKey, account);
         const fetchedAccount = nodeStorage.getItem(accountKey);
 
-        expect(fetchedAccount).toBeInstanceOf(AccountEntity);
+        //@ts-ignore
+        expect(isAccountEntity(fetchedAccount)).toBe(true);
         expect(account).toEqual(fetchedAccount);
     });
 
@@ -153,7 +154,8 @@ describe("Storage tests for msal-node: ", () => {
         const invalidAccountKey = "uid.utid-login.microsoftonline.com-invalid";
         const invalidAccount = nodeStorage.getAccount(invalidAccountKey);
 
-        expect(fetchedAccount).toBeInstanceOf(AccountEntity);
+        //@ts-ignore
+        expect(isAccountEntity(fetchedAccount)).toBe(true);
         expect(fetchedAccount).toEqual(inMemoryCache.accounts[ACCOUNT_KEY]);
         expect(invalidAccount).toBeNull();
 
@@ -176,13 +178,13 @@ describe("Storage tests for msal-node: ", () => {
         };
 
         let mockAccountEntity = CacheManager.toObject(
-            new AccountEntity(),
+            {} as AccountEntity,
             mockAccountData
         );
-        expect(mockAccountEntity).toBeInstanceOf(AccountEntity);
+        expect(isAccountEntity(mockAccountEntity)).toBe(true);
         await nodeStorage.setAccount(mockAccountEntity);
         expect(
-            nodeStorage.getAccount(mockAccountEntity.generateAccountKey())
+            nodeStorage.getAccount(generateAccountKey(mockAccountEntity))
         ).toEqual(mockAccountEntity);
     });
 
@@ -344,8 +346,8 @@ describe("Storage tests for msal-node: ", () => {
         nodeStorage.setInMemoryCache(inMemoryCache);
 
         const newInMemoryCache = nodeStorage.getInMemoryCache();
-        expect(newInMemoryCache.accounts[ACCOUNT_KEY]).toBeInstanceOf(
-            AccountEntity
+        expect(isAccountEntity(newInMemoryCache.accounts[ACCOUNT_KEY])).toBe(
+            true
         );
 
         nodeStorage.removeItem(ACCOUNT_KEY);

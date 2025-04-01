@@ -8,7 +8,6 @@ import {
     INetworkModule,
     Logger,
     AccountInfo,
-    AccountEntity,
     UrlString,
     ServerTelemetryManager,
     ServerTelemetryRequest,
@@ -22,6 +21,8 @@ import {
     AzureCloudOptions,
     invokeAsync,
     StringDict,
+    generateAccountCacheKey,
+    accountInfoIsEqual,
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
@@ -91,7 +92,7 @@ export abstract class BaseInteractionClient {
     ): Promise<void> {
         if (account) {
             if (
-                AccountEntity.accountInfoIsEqual(
+                accountInfoIsEqual(
                     account,
                     this.browserStorage.getActiveAccount(),
                     false
@@ -103,7 +104,7 @@ export abstract class BaseInteractionClient {
             // Clear given account.
             try {
                 await this.browserStorage.removeAccount(
-                    AccountEntity.generateAccountCacheKey(account)
+                    generateAccountCacheKey(account)
                 );
                 this.logger.verbose(
                     "Cleared cache items belonging to the account provided in the logout request."

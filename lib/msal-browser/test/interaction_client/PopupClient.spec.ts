@@ -1209,16 +1209,16 @@ describe("PopupClient", () => {
                 idTokenClaims: testIdTokenClaims,
             };
 
-            const testAccount: AccountEntity = new AccountEntity();
-            testAccount.homeAccountId = testAccountInfo.homeAccountId;
-            testAccount.localAccountId = testAccountInfo.localAccountId;
-            testAccount.environment = testAccountInfo.environment;
-            testAccount.realm = testAccountInfo.tenantId;
-            testAccount.username = testAccountInfo.username;
-            testAccount.name = testAccountInfo.name;
-            testAccount.authorityType = "MSSTS";
-            testAccount.clientInfo =
-                TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            const testAccount: AccountEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                localAccountId: testAccountInfo.localAccountId,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                username: testAccountInfo.username,
+                name: testAccountInfo.name,
+                authorityType: "MSSTS",
+                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+            };
 
             // @ts-ignore
             await pca.browserStorage.setAccount(testAccount);
@@ -1297,16 +1297,16 @@ describe("PopupClient", () => {
                 idTokenClaims: testIdTokenClaims,
             };
 
-            const testAccount: AccountEntity = new AccountEntity();
-            testAccount.homeAccountId = testAccountInfo.homeAccountId;
-            testAccount.localAccountId = testAccountInfo.localAccountId;
-            testAccount.environment = testAccountInfo.environment;
-            testAccount.realm = testAccountInfo.tenantId;
-            testAccount.username = testAccountInfo.username;
-            testAccount.name = testAccountInfo.name;
-            testAccount.authorityType = "MSSTS";
-            testAccount.clientInfo =
-                TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            const testAccount: AccountEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                localAccountId: testAccountInfo.localAccountId,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                username: testAccountInfo.username,
+                name: testAccountInfo.name,
+                authorityType: "MSSTS",
+                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+            };
 
             // @ts-ignore
             await pca.browserStorage.setAccount(testAccount);
@@ -1400,16 +1400,16 @@ describe("PopupClient", () => {
                 username: testIdTokenClaims.preferred_username || "",
             };
 
-            const testAccount: AccountEntity = new AccountEntity();
-            testAccount.homeAccountId = testAccountInfo.homeAccountId;
-            testAccount.localAccountId = testAccountInfo.localAccountId;
-            testAccount.environment = testAccountInfo.environment;
-            testAccount.realm = testAccountInfo.tenantId;
-            testAccount.username = testAccountInfo.username;
-            testAccount.name = testAccountInfo.name;
-            testAccount.authorityType = "MSSTS";
-            testAccount.clientInfo =
-                TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            const testAccount: AccountEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                localAccountId: testAccountInfo.localAccountId,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                username: testAccountInfo.username,
+                name: testAccountInfo.name,
+                authorityType: "MSSTS",
+                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+            };
 
             const validatedLogoutRequest: CommonEndSessionRequest = {
                 correlationId: RANDOM_TEST_GUID,

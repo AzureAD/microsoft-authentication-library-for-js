@@ -1,6 +1,7 @@
 import { AccountEntity } from "../../src";
 import * as AccountInfo from "../../src/account/AccountInfo";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
+import { getAccountInfo } from "../../src/cache/utils/AccountEntityUtils.js";
 import {
     ID_TOKEN_ALT_CLAIMS,
     ID_TOKEN_CLAIMS,
@@ -246,7 +247,7 @@ describe("AccountInfo Unit Tests", () => {
     describe("updateAccountTenantProfileData()", () => {
         const baseAccount: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const baseAccountInfo = baseAccount.getAccountInfo();
+        const baseAccountInfo = getAccountInfo(baseAccount);
         // Get non-overridable properties to make sure they're unchanged
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const {

@@ -22,6 +22,7 @@ import {
     TimeUtils,
     AuthenticationResult,
     AccountInfo,
+    getAccountInfo,
 } from "@azure/msal-common";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 
@@ -31,7 +32,7 @@ const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
     { environment: "login.microsoftonline.com" }
 );
 const testAccount: AccountInfo = {
-    ...testAccountEntity.getAccountInfo(),
+    ...getAccountInfo(testAccountEntity),
     idTokenClaims: ID_TOKEN_CLAIMS,
     idToken: TEST_TOKENS.IDTOKEN_V2,
 };

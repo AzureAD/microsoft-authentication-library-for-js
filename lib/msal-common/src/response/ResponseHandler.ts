@@ -52,6 +52,12 @@ import {
 } from "../account/AccountInfo.js";
 import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
+import {
+    createAccountEntity,
+    generateAccountKey,
+    generateHomeAccountId,
+    getAccountInfo,
+} from "../cache/utils/AccountEntityUtils.js";
 
 /**
  * Class that handles response parsing.
@@ -225,7 +231,7 @@ export class ResponseHandler {
         }
 
         // generate homeAccountId
-        this.homeAccountIdentifier = AccountEntity.generateHomeAccountId(
+        this.homeAccountIdentifier = generateHomeAccountId(
             serverTokenResponse.client_info || Constants.EMPTY_STRING,
             authority.authorityType,
             this.logger,
@@ -278,7 +284,7 @@ export class ResponseHandler {
                 !forceCacheRefreshTokenResponse &&
                 cacheRecord.account
             ) {
-                const key = cacheRecord.account.generateAccountKey();
+                const key = generateAccountKey(cacheRecord.account);
                 const account = this.cacheStorage.getAccount(key);
                 if (!account) {
                     this.logger.warning(
@@ -566,7 +572,7 @@ export class ResponseHandler {
 
         const accountInfo: AccountInfo | null = cacheRecord.account
             ? updateAccountTenantProfileData(
-                  cacheRecord.account.getAccountInfo(),
+                  getAccountInfo(cacheRecord.account),
                   undefined, // tenantProfile optional
                   idTokenClaims,
                   cacheRecord.idToken?.secret
@@ -633,7 +639,7 @@ export function buildAccountToCache(
 
     const baseAccount =
         cachedAccount ||
-        AccountEntity.createAccount(
+        createAccountEntity(
             {
                 homeAccountId,
                 idTokenClaims,

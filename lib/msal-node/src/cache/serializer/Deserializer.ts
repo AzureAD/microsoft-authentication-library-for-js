@@ -69,7 +69,7 @@ export class Deserializer {
                         }
                     ),
                 };
-                const account: AccountEntity = new AccountEntity();
+                const account: AccountEntity = {} as AccountEntity;
                 CacheManager.toObject(account, mappedAcc);
                 accountObjects[key] = account;
             });

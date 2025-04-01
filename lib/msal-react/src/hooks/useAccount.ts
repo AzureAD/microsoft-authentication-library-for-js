@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import {
     AccountInfo,
     IPublicClientApplication,
-    AccountEntity,
+    accountInfoIsEqual,
 } from "@azure/msal-browser";
 import { useMsal } from "./useMsal.js";
 import { AccountIdentifiers } from "../types/AccountIdentifiers.js";
@@ -49,13 +49,7 @@ export function useAccount(
     useEffect(() => {
         setAccount((currentAccount: AccountInfo | null) => {
             const nextAccount = getAccount(instance, accountIdentifiers);
-            if (
-                !AccountEntity.accountInfoIsEqual(
-                    currentAccount,
-                    nextAccount,
-                    true
-                )
-            ) {
+            if (!accountInfoIsEqual(currentAccount, nextAccount, true)) {
                 logger.info("useAccount - Updating account");
                 return nextAccount;
             }

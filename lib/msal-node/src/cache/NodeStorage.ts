@@ -20,6 +20,8 @@ import {
     ValidCredentialType,
     StaticAuthorityOptions,
     CacheHelpers,
+    generateAccountKey,
+    isAccountEntity,
 } from "@azure/msal-common/node";
 
 import { Deserializer } from "./serializer/Deserializer.js";
@@ -83,7 +85,7 @@ export class NodeStorage extends CacheManager {
             if (typeof value !== "object") {
                 continue;
             }
-            if (value instanceof AccountEntity) {
+            if (isAccountEntity(value)) {
                 inMemoryCache.accounts[key] = value as AccountEntity;
             } else if (CacheHelpers.isIdTokenEntity(value)) {
                 inMemoryCache.idTokens[key] = value as IdTokenEntity;
@@ -220,8 +222,8 @@ export class NodeStorage extends CacheManager {
      */
     getAccount(accountKey: string): AccountEntity | null {
         const cachedAccount = this.getItem(accountKey);
-        return cachedAccount
-            ? Object.assign(new AccountEntity(), this.getItem(accountKey))
+        return cachedAccount && typeof cachedAccount === "object"
+            ? ({ ...cachedAccount } as AccountEntity)
             : null;
     }
 
@@ -230,7 +232,7 @@ export class NodeStorage extends CacheManager {
      * @param account - cache value to be set of type AccountEntity
      */
     async setAccount(account: AccountEntity): Promise<void> {
-        const accountKey = account.generateAccountKey();
+        const accountKey = generateAccountKey(account);
         this.setItem(accountKey, account);
     }
 

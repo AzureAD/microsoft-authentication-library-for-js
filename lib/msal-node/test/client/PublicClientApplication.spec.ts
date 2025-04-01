@@ -40,6 +40,9 @@ import {
     RefreshTokenEntity,
     CacheManager,
     CommonSilentFlowRequest,
+    getAccountInfo,
+    createAccountEntity,
+    createAccountEntityFromAccountInfo,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -244,7 +247,7 @@ describe("PublicClientApplication", () => {
         const testAccountEntity: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         const testAccount: AccountInfo = {
-            ...testAccountEntity.getAccountInfo(),
+            ...getAccountInfo(testAccountEntity),
             idTokenClaims: ID_TOKEN_CLAIMS,
             idToken: TEST_TOKENS.IDTOKEN_V2,
         };
@@ -1037,7 +1040,7 @@ describe("PublicClientApplication", () => {
             });
 
             const cryptoProvider = new CryptoProvider();
-            const accountEntity: AccountEntity = AccountEntity.createAccount(
+            const accountEntity: AccountEntity = createAccountEntity(
                 {
                     homeAccountId: mockAccountInfo.homeAccountId,
                     idTokenClaims: AuthToken.extractTokenClaims(
@@ -1139,7 +1142,7 @@ describe("PublicClientApplication", () => {
             });
 
             const accountEntity: AccountEntity =
-                AccountEntity.createFromAccountInfo(mockAccountInfo);
+                createAccountEntityFromAccountInfo(mockAccountInfo);
 
             // @ts-ignore
             await authApp.storage.setAccount(accountEntity);

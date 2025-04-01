@@ -36,6 +36,9 @@ import {
     invokeAsync,
     TimeUtils,
     CommonAuthorizationUrlRequest,
+    generateAccountKey,
+    getAccountInfo,
+    isAccountEntity,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
@@ -159,13 +162,13 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         const parsedAccount = this.validateAndParseJson(serializedAccount);
-        if (!parsedAccount || !AccountEntity.isAccountEntity(parsedAccount)) {
+        if (!parsedAccount || !isAccountEntity(parsedAccount)) {
             this.removeAccountKeyFromMap(accountKey);
             return null;
         }
 
         return CacheManager.toObject<AccountEntity>(
-            new AccountEntity(),
+            {} as AccountEntity,
             parsedAccount
         );
     }
@@ -179,7 +182,7 @@ export class BrowserCacheManager extends CacheManager {
         correlationId: string
     ): Promise<void> {
         this.logger.trace("BrowserCacheManager.setAccount called");
-        const key = account.generateAccountKey();
+        const key = generateAccountKey(account);
         await invokeAsync(
             this.browserStorage.setUserData.bind(this.browserStorage),
             PerformanceEvents.SetUserData,
@@ -199,7 +202,7 @@ export class BrowserCacheManager extends CacheManager {
             this.eventHandler.emitEvent(
                 EventType.ACCOUNT_ADDED,
                 undefined,
-                account.getAccountInfo()
+                getAccountInfo(account)
             );
         }
     }
@@ -293,7 +296,7 @@ export class BrowserCacheManager extends CacheManager {
             this.eventHandler.emitEvent(
                 EventType.ACCOUNT_REMOVED,
                 undefined,
-                account.getAccountInfo()
+                getAccountInfo(account)
             );
         }
     }

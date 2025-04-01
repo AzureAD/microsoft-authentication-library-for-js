@@ -20,6 +20,9 @@ import {
     CacheHelpers,
     buildAccountToCache,
     TimeUtils,
+    getAccountInfo,
+    generateHomeAccountId,
+    createAccountEntityFromAccountInfo,
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { SilentRequest } from "../request/SilentRequest.js";
@@ -181,7 +184,7 @@ export class TokenCache implements ITokenCache {
         this.logger.verbose("TokenCache - loading account");
 
         if (request.account) {
-            const accountEntity = AccountEntity.createFromAccountInfo(
+            const accountEntity = createAccountEntityFromAccountInfo(
                 request.account
             );
             await this.storage.setAccount(accountEntity, correlationId);
@@ -195,7 +198,7 @@ export class TokenCache implements ITokenCache {
             );
         }
 
-        const homeAccountId = AccountEntity.generateHomeAccountId(
+        const homeAccountId = generateHomeAccountId(
             clientInfo,
             authority.authorityType,
             this.logger,
@@ -405,7 +408,7 @@ export class TokenCache implements ITokenCache {
             uniqueId: cacheRecord.account.localAccountId,
             tenantId: cacheRecord.account.realm,
             scopes: responseScopes,
-            account: accountEntity.getAccountInfo(),
+            account: getAccountInfo(accountEntity),
             idToken: cacheRecord.idToken?.secret || "",
             idTokenClaims: idTokenClaims || {},
             accessToken: accessToken,

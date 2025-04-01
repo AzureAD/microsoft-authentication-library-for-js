@@ -21,7 +21,6 @@ import {
     PromptValue,
     InProgressPerformanceEvent,
     getRequestThumbprint,
-    AccountEntity,
     invokeAsync,
     createClientAuthError,
     ClientAuthErrorCodes,
@@ -29,6 +28,7 @@ import {
     buildStaticAuthorityOptions,
     InteractionRequiredAuthErrorCodes,
     PkceCodes,
+    createAccountEntityFromAccountInfo,
 } from "@azure/msal-common/browser";
 import {
     BrowserCacheManager,
@@ -1500,7 +1500,7 @@ export class StandardController implements IController {
         this.logger.verbose("hydrateCache called");
 
         // Account gets saved to browser storage regardless of native or not
-        const accountEntity = AccountEntity.createFromAccountInfo(
+        const accountEntity = createAccountEntityFromAccountInfo(
             result.account,
             result.cloudGraphHostName,
             result.msGraphHost

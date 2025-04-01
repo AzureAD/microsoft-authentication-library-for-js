@@ -5,12 +5,12 @@
 
 import { NodeStorage } from "./NodeStorage.js";
 import {
-    AccountEntity,
     AccountInfo,
     Logger,
     ISerializableTokenCache,
     ICachePlugin,
     TokenCacheContext,
+    generateAccountCacheKey,
 } from "@azure/msal-common/node";
 import {
     InMemoryCache,
@@ -199,9 +199,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
                 cacheContext = new TokenCacheContext(this, true);
                 await this.persistence.beforeCacheAccess(cacheContext);
             }
-            await this.storage.removeAccount(
-                AccountEntity.generateAccountCacheKey(account)
-            );
+            await this.storage.removeAccount(generateAccountCacheKey(account));
         } finally {
             if (this.persistence && cacheContext) {
                 await this.persistence.afterCacheAccess(cacheContext);

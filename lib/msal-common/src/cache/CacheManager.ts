@@ -53,6 +53,11 @@ import { StaticAuthorityOptions } from "../authority/AuthorityOptions.js";
 import { TokenClaims } from "../account/TokenClaims.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import { CacheError, CacheErrorCodes } from "../error/CacheError.js";
+import {
+    generateAccountCacheKey,
+    generateAccountId,
+    getAccountInfo,
+} from "./utils/AccountEntityUtils.js";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -277,7 +282,7 @@ export abstract class CacheManager implements ICacheManager {
     getBaseAccountInfo(accountFilter: AccountFilter): AccountInfo | null {
         const accountEntities = this.getAccountsFilteredBy(accountFilter);
         if (accountEntities.length > 0) {
-            return accountEntities[0].getAccountInfo();
+            return getAccountInfo(accountEntities[0]);
         } else {
             return null;
         }
@@ -362,7 +367,7 @@ export abstract class CacheManager implements ICacheManager {
         targetTenantId?: string,
         tenantProfileFilter?: TenantProfileFilter
     ): AccountInfo[] {
-        const accountInfo = accountEntity.getAccountInfo();
+        const accountInfo = getAccountInfo(accountEntity);
         let searchTenantProfiles: Map<string, TenantProfile> =
             accountInfo.tenantProfiles || new Map<string, TenantProfile>();
         const tokenKeys = this.getTokenKeys();
@@ -989,7 +994,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     async removeAccountContext(account: AccountEntity): Promise<void> {
         const allTokenKeys = this.getTokenKeys();
-        const accountId = account.generateAccountId();
+        const accountId = generateAccountId(account);
         const removedCredentials: Array<Promise<void>> = [];
 
         allTokenKeys.idToken.forEach((key) => {
@@ -1067,8 +1072,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param account
      */
     readAccountFromCache(account: AccountInfo): AccountEntity | null {
-        const accountKey: string =
-            AccountEntity.generateAccountCacheKey(account);
+        const accountKey: string = generateAccountCacheKey(account);
         return this.getAccount(accountKey, this.commonLogger);
     }
 
