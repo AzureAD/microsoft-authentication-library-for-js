@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Refactor AccountEntity into type",
+  "packageName": "@azure/msal-browser",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}

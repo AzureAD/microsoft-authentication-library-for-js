@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Refactor AccountEntity into type",
+  "packageName": "@azure/msal-common",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
