@@ -8,14 +8,8 @@ import {
     UrlString,
     UrlUtils,
 } from "@azure/msal-common/node";
-import {
-    HttpMethod,
-    MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON,
-    MANAGED_IDENTITY_MAX_RETRIES,
-    MANAGED_IDENTITY_RETRY_DELAY,
-    RetryPolicies,
-} from "../utils/Constants.js";
-import { LinearRetryPolicy } from "../retry/LinearRetryPolicy.js";
+import { DefaultManagedIdentityRetryPolicy } from "../retry/DefaultManagedIdentityRetryPolicy.js";
+import { HttpMethod, RetryPolicies } from "../utils/Constants.js";
 
 export class ManagedIdentityRequestParameters {
     private _baseEndpoint: string;
@@ -36,12 +30,8 @@ export class ManagedIdentityRequestParameters {
         this.bodyParameters = {} as Record<string, string>;
         this.queryParameters = {} as Record<string, string>;
 
-        const defaultRetryPolicy: LinearRetryPolicy = new LinearRetryPolicy(
-            MANAGED_IDENTITY_MAX_RETRIES,
-            MANAGED_IDENTITY_RETRY_DELAY,
-            MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON
-        );
-        this.retryPolicy = retryPolicy || defaultRetryPolicy;
+        this.retryPolicy =
+            retryPolicy || new DefaultManagedIdentityRetryPolicy();
     }
 
     public computeUri(): string {

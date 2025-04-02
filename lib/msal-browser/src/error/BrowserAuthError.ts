@@ -15,6 +15,10 @@ const ErrorLink = "For more visit: aka.ms/msaljs/browser-errors";
 export const BrowserAuthErrorMessages = {
     [BrowserAuthErrorCodes.pkceNotCreated]:
         "The PKCE code challenge and verifier could not be generated.",
+    [BrowserAuthErrorCodes.earJwkEmpty]:
+        "No EAR encryption key provided. This is unexpected.",
+    [BrowserAuthErrorCodes.earJweEmpty]:
+        "Server response does not contain ear_jwe property. This is unexpected.",
     [BrowserAuthErrorCodes.cryptoNonExistent]:
         "The crypto object or function is not available.",
     [BrowserAuthErrorCodes.emptyNavigateUri]:
@@ -52,8 +56,6 @@ export const BrowserAuthErrorMessages = {
         "No token request found in cache.",
     [BrowserAuthErrorCodes.unableToParseTokenRequestCacheError]:
         "The cached token request could not be parsed.",
-    [BrowserAuthErrorCodes.noCachedAuthorityError]:
-        "No cached authority found.",
     [BrowserAuthErrorCodes.authRequestNotSetError]:
         "Auth Request not set. Please ensure initiateAuthRequest was called from the InteractionHandler",
     [BrowserAuthErrorCodes.invalidCacheType]: "Invalid cache type",
@@ -96,6 +98,8 @@ export const BrowserAuthErrorMessages = {
         "Failed to build request headers object.",
     [BrowserAuthErrorCodes.failedToParseHeaders]:
         "Failed to parse response headers",
+    [BrowserAuthErrorCodes.failedToDecryptEarResponse]:
+        "Failed to decrypt ear response",
 };
 
 /**
@@ -219,12 +223,6 @@ export const BrowserAuthErrorMessage = {
         code: BrowserAuthErrorCodes.unableToParseTokenRequestCacheError,
         desc: BrowserAuthErrorMessages[
             BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
-        ],
-    },
-    noCachedAuthorityError: {
-        code: BrowserAuthErrorCodes.noCachedAuthorityError,
-        desc: BrowserAuthErrorMessages[
-            BrowserAuthErrorCodes.noCachedAuthorityError
         ],
     },
     authRequestNotSet: {

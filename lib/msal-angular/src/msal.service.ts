@@ -67,6 +67,7 @@ export class MsalService implements IMsalService {
   loginRedirect(request?: RedirectRequest): Observable<void> {
     return from(this.instance.loginRedirect(request));
   }
+  // @deprecated: Use logoutRedirect or logoutPopup
   logout(logoutRequest?: EndSessionRequest): Observable<void> {
     return from(this.instance.logout(logoutRequest));
   }

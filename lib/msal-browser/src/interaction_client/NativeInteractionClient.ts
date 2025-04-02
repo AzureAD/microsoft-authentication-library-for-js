@@ -446,14 +446,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 request,
                 reqTimestamp
             );
-            this.browserStorage.setInteractionInProgress(false);
             const res = await result;
             const serverTelemetryManager =
                 this.initializeServerTelemetryManager(this.apiId);
             serverTelemetryManager.clearNativeBrokerErrorCode();
             return res;
         } catch (e) {
-            this.browserStorage.setInteractionInProgress(false);
             throw e;
         }
     }
@@ -498,7 +496,15 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 nativeAccountId: request.accountId,
             })?.homeAccountId;
 
+        // add exception for double brokering, please note this is temporary and will be fortified in future
         if (
+            request.extraParameters?.child_client_id &&
+            response.account.id !== request.accountId
+        ) {
+            this.logger.info(
+                "handleNativeServerResponse: Double broker flow detected, ignoring accountId mismatch"
+            );
+        } else if (
             homeAccountIdentifier !== cachedhomeAccountId &&
             response.account.id !== request.accountId
         ) {
@@ -524,6 +530,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response.account.id,
             this.logger
         );
+
+        // Ensure expires_in is in number format
+        response.expires_in = Number(response.expires_in);
 
         // generate authenticationResult
         const result = await this.generateAuthenticationResult(
