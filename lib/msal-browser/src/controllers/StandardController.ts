@@ -325,8 +325,8 @@ export class StandardController implements IController {
         window.msal = window.msal || {};
         //@ts-ignore
         if(window.msal.instance) {
-            this.logger.info(
-                "there is already an instance of MSAL in the window."
+            this.logger.warning(
+                "there is already an instance of MSAL.js in the window."
             )
         }
         //@ts-ignore
