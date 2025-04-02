@@ -45,10 +45,6 @@ export class MachineLearning extends BaseManagedIdentitySource {
         this.secret = secret;
     }
 
-    public getSourceName(): ManagedIdentitySourceNames {
-        return ManagedIdentitySourceNames.MACHINE_LEARNING;
-    }
-
     public static getEnvironmentVariables(): Array<string | undefined> {
         const msiEndpoint: string | undefined =
             process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT];

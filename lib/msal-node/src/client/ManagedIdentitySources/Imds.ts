@@ -48,10 +48,6 @@ export class Imds extends BaseManagedIdentitySource {
         this.identityEndpoint = identityEndpoint;
     }
 
-    public getSourceName(): ManagedIdentitySourceNames {
-        return ManagedIdentitySourceNames.IMDS;
-    }
-
     public static tryCreate(
         logger: Logger,
         nodeStorage: NodeStorage,

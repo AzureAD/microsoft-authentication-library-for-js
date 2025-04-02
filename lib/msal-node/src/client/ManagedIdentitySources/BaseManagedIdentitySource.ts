@@ -28,7 +28,6 @@ import {
     HttpMethod,
     ManagedIdentityIdType,
     ManagedIdentityQueryParameters,
-    ManagedIdentitySourceNames,
 } from "../../utils/Constants.js";
 import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
@@ -77,8 +76,6 @@ export abstract class BaseManagedIdentitySource {
         request: string,
         managedIdentityId: ManagedIdentityId
     ): ManagedIdentityRequestParameters;
-
-    abstract getSourceName(): ManagedIdentitySourceNames;
 
     public async getServerTokenResponseAsync(
         response: NetworkResponse<ManagedIdentityTokenResponse>,
@@ -153,13 +150,7 @@ export abstract class BaseManagedIdentitySource {
                 managedIdentityId
             );
 
-        const sourceName: ManagedIdentitySourceNames = this.getSourceName();
-        if (
-            (sourceName === ManagedIdentitySourceNames.APP_SERVICE ||
-                sourceName === ManagedIdentitySourceNames.SERVICE_FABRIC) &&
-            managedIdentityRequest.claims &&
-            managedIdentityRequest.accessTokenSha256Hash
-        ) {
+        if (managedIdentityRequest.accessTokenSha256Hash) {
             this.logger.info(
                 `[Managed Identity] The following claims are present in the request: ${managedIdentityRequest.claims}`
             );
@@ -174,7 +165,7 @@ export abstract class BaseManagedIdentitySource {
                 managedIdentityRequest.clientCapabilities.toString();
 
             this.logger.info(
-                `[Managed Identity] The following claims are present in the request: ${clientCapabilities}`
+                `[Managed Identity] The following client capabilities are present in the request: ${clientCapabilities}`
             );
 
             networkRequest.queryParameters[

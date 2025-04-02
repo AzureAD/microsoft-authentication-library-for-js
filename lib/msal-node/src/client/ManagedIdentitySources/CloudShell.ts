@@ -47,10 +47,6 @@ export class CloudShell extends BaseManagedIdentitySource {
         this.msiEndpoint = msiEndpoint;
     }
 
-    public getSourceName(): ManagedIdentitySourceNames {
-        return ManagedIdentitySourceNames.CLOUD_SHELL;
-    }
-
     public static getEnvironmentVariables(): Array<string | undefined> {
         const msiEndpoint: string | undefined =
             process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT];

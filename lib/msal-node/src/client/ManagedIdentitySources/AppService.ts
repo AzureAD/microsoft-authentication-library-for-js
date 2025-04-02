@@ -49,10 +49,6 @@ export class AppService extends BaseManagedIdentitySource {
         this.identityHeader = identityHeader;
     }
 
-    public getSourceName(): ManagedIdentitySourceNames {
-        return ManagedIdentitySourceNames.APP_SERVICE;
-    }
-
     public static getEnvironmentVariables(): Array<string | undefined> {
         const identityEndpoint: string | undefined =
             process.env[

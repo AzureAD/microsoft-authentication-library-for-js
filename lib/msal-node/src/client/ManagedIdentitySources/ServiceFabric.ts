@@ -49,10 +49,6 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         this.identityHeader = identityHeader;
     }
 
-    public getSourceName(): ManagedIdentitySourceNames {
-        return ManagedIdentitySourceNames.SERVICE_FABRIC;
-    }
-
     public static getEnvironmentVariables(): Array<string | undefined> {
         const identityEndpoint: string | undefined =
             process.env[

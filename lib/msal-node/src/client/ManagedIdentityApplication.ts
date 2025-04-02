@@ -36,6 +36,12 @@ import {
     ManagedIdentitySourceNames,
 } from "../utils/Constants.js";
 
+const SOURCES_THAT_SUPPORT_TOKEN_REVOCATION: Array<ManagedIdentitySourceNames> =
+    [
+        ManagedIdentitySourceNames.APP_SERVICE,
+        ManagedIdentitySourceNames.SERVICE_FABRIC,
+    ];
+
 /**
  * Class to initialize a managed identity and identify the service
  * @public
@@ -166,15 +172,26 @@ export class ManagedIdentityApplication {
         if (cachedAuthenticationResult) {
             /*
              * Check if claims are present in the managed identity request.
-             * If they are, hash the access token and add it to the request.
+             * If so, the cached token will not be used.
              */
             if (managedIdentityRequest.claims) {
-                const accessTokenSha256Hash: string =
-                    await this.cryptoProvider.hashString(
-                        cachedAuthenticationResult.accessToken
-                    );
-                managedIdentityRequest.accessTokenSha256Hash =
-                    accessTokenSha256Hash;
+                const sourceName: ManagedIdentitySourceNames =
+                    this.managedIdentityClient.getManagedIdentitySource();
+
+                /*
+                 * Check if the Managed Identity source supports token revocation.
+                 * If so, hash the cached access token and add it to the request.
+                 */
+                if (
+                    SOURCES_THAT_SUPPORT_TOKEN_REVOCATION.includes(sourceName)
+                ) {
+                    const accessTokenSha256Hash: string =
+                        await this.cryptoProvider.hashString(
+                            cachedAuthenticationResult.accessToken
+                        );
+                    managedIdentityRequest.accessTokenSha256Hash =
+                        accessTokenSha256Hash;
+                }
 
                 return this.managedIdentityClient.sendManagedIdentityTokenRequest(
                     managedIdentityRequest,

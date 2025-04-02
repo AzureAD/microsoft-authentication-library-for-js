@@ -86,10 +86,6 @@ export class AzureArc extends BaseManagedIdentitySource {
         this.identityEndpoint = identityEndpoint;
     }
 
-    public getSourceName(): ManagedIdentitySourceNames {
-        return ManagedIdentitySourceNames.AZURE_ARC;
-    }
-
     public static getEnvironmentVariables(): Array<string | undefined> {
         let identityEndpoint: string | undefined =
             process.env[
