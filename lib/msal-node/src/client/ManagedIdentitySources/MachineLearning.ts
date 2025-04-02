@@ -120,7 +120,9 @@ export class MachineLearning extends BaseManagedIdentitySource {
         ) {
             request.queryParameters[
                 this.getManagedIdentityUserAssignedIdQueryParameterKey(
-                    managedIdentityId.idType
+                    managedIdentityId.idType,
+                    false, // isIMDS
+                    true // uses2017API
                 )
             ] = managedIdentityId.id;
         }

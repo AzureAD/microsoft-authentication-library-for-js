@@ -22,7 +22,6 @@ describe("NativeMessageHandler Tests", () => {
     let postMessageSpy: jest.SpyInstance;
     let mcPort: MessagePort;
     let cryptoInterface: CryptoOps;
-    globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
 
     beforeEach(() => {
         postMessageSpy = jest.spyOn(window, "postMessage");

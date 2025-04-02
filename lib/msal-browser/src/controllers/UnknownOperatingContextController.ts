@@ -186,6 +186,7 @@ export class UnknownOperatingContextController implements IController {
                   Omit<
                       CommonAuthorizationUrlRequest,
                       | "responseMode"
+                      | "earJwk"
                       | "codeChallenge"
                       | "codeChallengeMethod"
                       | "requestedClaimsHash"
@@ -293,6 +294,7 @@ export class UnknownOperatingContextController implements IController {
             Omit<
                 CommonAuthorizationUrlRequest,
                 | "responseMode"
+                | "earJwk"
                 | "codeChallenge"
                 | "codeChallengeMethod"
                 | "requestedClaimsHash"
