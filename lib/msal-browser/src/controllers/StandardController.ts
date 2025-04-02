@@ -444,7 +444,8 @@ export class StandardController implements IController {
             return null;
         }
 
-        const interactionType = this.browserStorage.getInteractionInProgress()?.type;
+        const interactionType =
+            this.browserStorage.getInteractionInProgress()?.type;
         if (interactionType === INTERACTION_TYPE.SIGNOUT) {
             this.logger.verbose(
                 "handleRedirectPromise removing interaction_in_progress flag and returning null after sign-out"
@@ -672,7 +673,10 @@ export class StandardController implements IController {
         const isLoggedIn = this.getAllAccounts().length > 0;
         try {
             BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
-            this.browserStorage.setInteractionInProgress(true, INTERACTION_TYPE.SIGNIN);
+            this.browserStorage.setInteractionInProgress(
+                true,
+                INTERACTION_TYPE.SIGNIN
+            );
 
             if (isLoggedIn) {
                 this.eventHandler.emitEvent(
@@ -783,7 +787,10 @@ export class StandardController implements IController {
         try {
             this.logger.verbose("acquireTokenPopup called", correlationId);
             preflightCheck(this.initialized, atPopupMeasurement);
-            this.browserStorage.setInteractionInProgress(true, INTERACTION_TYPE.SIGNIN);
+            this.browserStorage.setInteractionInProgress(
+                true,
+                INTERACTION_TYPE.SIGNIN
+            );
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -1364,7 +1371,10 @@ export class StandardController implements IController {
     async logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
         const correlationId = this.getRequestCorrelationId(logoutRequest);
         BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
-        this.browserStorage.setInteractionInProgress(true, INTERACTION_TYPE.SIGNOUT);
+        this.browserStorage.setInteractionInProgress(
+            true,
+            INTERACTION_TYPE.SIGNOUT
+        );
 
         const redirectClient = this.createRedirectClient(correlationId);
         return redirectClient.logout(logoutRequest);
@@ -1378,7 +1388,10 @@ export class StandardController implements IController {
         try {
             const correlationId = this.getRequestCorrelationId(logoutRequest);
             BrowserUtils.preflightCheck(this.initialized);
-            this.browserStorage.setInteractionInProgress(true, INTERACTION_TYPE.SIGNOUT);
+            this.browserStorage.setInteractionInProgress(
+                true,
+                INTERACTION_TYPE.SIGNOUT
+            );
 
             const popupClient = this.createPopupClient(correlationId);
             return popupClient.logout(logoutRequest).finally(() => {

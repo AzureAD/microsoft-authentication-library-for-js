@@ -38,7 +38,10 @@ import {
     TokenKeys,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
-import { BrowserAuthErrorCodes, createBrowserAuthError, } from "../error/BrowserAuthError.js";
+import {
+    BrowserAuthErrorCodes,
+    createBrowserAuthError,
+} from "../error/BrowserAuthError.js";
 import {
     BrowserCacheLocation,
     InMemoryCacheKeys,
@@ -1194,13 +1197,19 @@ export class BrowserCacheManager extends CacheManager {
         }
     }
 
-    getInteractionInProgress(): { clientId: string, type: INTERACTION_TYPE } | null {
+    getInteractionInProgress(): {
+        clientId: string;
+        type: INTERACTION_TYPE;
+    } | null {
         const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         const value = this.getTemporaryCache(key, false);
         return value ? JSON.parse(value) : null;
     }
 
-    setInteractionInProgress(inProgress: boolean, type: INTERACTION_TYPE = INTERACTION_TYPE.SIGNIN): void {
+    setInteractionInProgress(
+        inProgress: boolean,
+        type: INTERACTION_TYPE = INTERACTION_TYPE.SIGNIN
+    ): void {
         // Ensure we don't overwrite interaction in progress for a different clientId
         const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         if (inProgress) {
@@ -1210,7 +1219,11 @@ export class BrowserCacheManager extends CacheManager {
                 );
             } else {
                 // No interaction is in progress
-                this.setTemporaryCache(key, JSON.stringify({ clientId: this.clientId, type } ), false);
+                this.setTemporaryCache(
+                    key,
+                    JSON.stringify({ clientId: this.clientId, type }),
+                    false
+                );
             }
         } else if (
             !inProgress &&

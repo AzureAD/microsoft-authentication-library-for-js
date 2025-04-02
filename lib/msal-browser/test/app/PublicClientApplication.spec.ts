@@ -1093,7 +1093,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                JSON.stringify({ clientId: TEST_CONFIG.MSAL_CLIENT_ID, type: INTERACTION_TYPE.SIGNIN })
+                JSON.stringify({
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    type: INTERACTION_TYPE.SIGNIN,
+                })
             );
             jest.spyOn(
                 BrowserCacheManager.prototype,
@@ -1248,7 +1251,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                JSON.stringify({ clientId: TEST_CONFIG.MSAL_CLIENT_ID, type: INTERACTION_TYPE.SIGNIN })
+                JSON.stringify({
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    type: INTERACTION_TYPE.SIGNIN,
+                })
             );
             pca.handleRedirectPromise();
         });
@@ -1289,7 +1295,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                JSON.stringify({ clientId: TEST_CONFIG.MSAL_CLIENT_ID, type: INTERACTION_TYPE.SIGNOUT })
+                JSON.stringify({
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    type: INTERACTION_TYPE.SIGNOUT,
+                })
             );
             const res = await pca.handleRedirectPromise();
             expect(res).toBeNull();
@@ -1309,7 +1318,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                JSON.stringify({ clientId: TEST_CONFIG.MSAL_CLIENT_ID, type: INTERACTION_TYPE.SIGNIN })
+                JSON.stringify({
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    type: INTERACTION_TYPE.SIGNIN,
+                })
             );
             try {
                 await pca.handleRedirectPromise();
