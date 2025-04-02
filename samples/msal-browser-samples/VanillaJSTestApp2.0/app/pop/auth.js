@@ -61,14 +61,14 @@ async function signIn(method) {
 
 function signOut() {
     const logoutRequest = {
-        account: myMSALObj.getAccountByUsername(username)
+        account: myMSALObj.getAccount({username})
     };
 
     myMSALObj.logoutRedirect(logoutRequest);
 }
 
 async function getPopToken() {
-    const currentAcc = myMSALObj.getAccountByUsername(username);
+    const currentAcc = myMSALObj.getAccount({username});
     if (currentAcc) {
         return getTokenPopup(popTokenRequest, currentAcc).then(response => {
             const popToken = response.accessToken;

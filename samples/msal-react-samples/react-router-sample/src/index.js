@@ -18,9 +18,6 @@ msalInstance.initialize().then(() => {
     msalInstance.setActiveAccount(msalInstance.getAllAccounts()[0]);
   }
 
-  // Optional - This will update account state if a user signs in from another tab or window
-  msalInstance.enableAccountStorageEvents();
-
   msalInstance.addEventCallback((event) => {
     if (event.eventType === EventType.LOGIN_SUCCESS && event.payload.account) {
       const account = event.payload.account;

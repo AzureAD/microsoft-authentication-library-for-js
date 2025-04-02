@@ -8,7 +8,7 @@ import {
   IPublicClientApplication,
   LogLevel,
   PublicClientApplication,
-  UrlString,
+  BrowserUtils,
 } from "@azure/msal-browser";
 import { of } from "rxjs";
 import {
@@ -108,13 +108,25 @@ describe("MsalGuard", () => {
     }
   });
 
-  it("returns false if page with MSAL Guard is set as redirectUri", (done) => {
-    spyOn(UrlString, "hashContainsKnownProperties").and.returnValue(true);
-    spyOnProperty(window, "parent", "get").and.returnValue({ ...window });
+  describe("IFrames", () => {
+    // ensures that the hash is reset even if the test fails or times out
+    let originalHash: string;
+    beforeEach(() => {
+      originalHash = window.location.hash;
+      window.location.hash = "#code=123";
+    });
 
-    guard.canActivate(routeMock, routeStateMock).subscribe((result) => {
-      expect(result).toBeFalse();
-      done();
+    afterEach(() => {
+      window.location.hash = originalHash;
+    });
+
+    it("returns false if page with MSAL Guard is set as redirectUri", (done) => {
+      spyOnProperty(window, "parent", "get").and.returnValue({ ...window });
+
+      guard.canActivate(routeMock, routeStateMock).subscribe((result) => {
+        expect(result).toBeFalse();
+        done();
+      });
     });
   });
 

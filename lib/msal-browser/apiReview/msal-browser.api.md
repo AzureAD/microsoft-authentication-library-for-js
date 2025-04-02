@@ -14,15 +14,15 @@ import { AuthenticationResult as AuthenticationResult_2 } from '@azure/msal-comm
 import { AuthenticationScheme } from '@azure/msal-common/browser';
 import { AuthError } from '@azure/msal-common/browser';
 import { AuthErrorCodes } from '@azure/msal-common/browser';
-import { AuthErrorMessage } from '@azure/msal-common/browser';
+import { AuthErrorMessages } from '@azure/msal-common/browser';
 import { AzureCloudInstance } from '@azure/msal-common/browser';
 import { AzureCloudOptions } from '@azure/msal-common/browser';
 import { ClientAuthError } from '@azure/msal-common/browser';
 import { ClientAuthErrorCodes } from '@azure/msal-common/browser';
-import { ClientAuthErrorMessage } from '@azure/msal-common/browser';
+import { ClientAuthErrorMessages } from '@azure/msal-common/browser';
 import { ClientConfigurationError } from '@azure/msal-common/browser';
 import { ClientConfigurationErrorCodes } from '@azure/msal-common/browser';
-import { ClientConfigurationErrorMessage } from '@azure/msal-common/browser';
+import { ClientConfigurationErrorMessages } from '@azure/msal-common/browser';
 import { CommonAuthorizationCodeRequest } from '@azure/msal-common/browser';
 import { CommonAuthorizationUrlRequest } from '@azure/msal-common/browser';
 import { CommonEndSessionRequest } from '@azure/msal-common/browser';
@@ -34,7 +34,6 @@ import { INetworkModule } from '@azure/msal-common/browser';
 import { InProgressPerformanceEvent } from '@azure/msal-common/browser';
 import { InteractionRequiredAuthError } from '@azure/msal-common/browser';
 import { InteractionRequiredAuthErrorCodes } from '@azure/msal-common/browser';
-import { InteractionRequiredAuthErrorMessage } from '@azure/msal-common/browser';
 import { invoke } from '@azure/msal-common/browser';
 import { invokeAsync } from '@azure/msal-common/browser';
 import { IPerformanceClient } from '@azure/msal-common/browser';
@@ -53,8 +52,8 @@ import { PerformanceEvent } from '@azure/msal-common/browser';
 import { PerformanceEvents } from '@azure/msal-common/browser';
 import { PromptValue } from '@azure/msal-common/browser';
 import { ProtocolMode } from '@azure/msal-common/browser';
+import { ResponseMode } from '@azure/msal-common/browser';
 import { ServerError } from '@azure/msal-common/browser';
-import { ServerResponseType } from '@azure/msal-common/browser';
 import { SignedHttpRequestParameters } from '@azure/msal-common/browser';
 import { StringDict } from '@azure/msal-common/browser';
 import { StringUtils } from '@azure/msal-common/browser';
@@ -114,7 +113,7 @@ export { AuthError }
 
 export { AuthErrorCodes }
 
-export { AuthErrorMessage }
+export { AuthErrorMessages }
 
 // Warning: (ae-missing-release-tag) "AuthorizationCodeRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -126,11 +125,6 @@ export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeReque
     msGraphHost?: string;
     cloudInstanceHostName?: string;
 };
-
-// Warning: (ae-missing-release-tag) "AuthorizationUrlRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public @deprecated
-export type AuthorizationUrlRequest = Omit<CommonAuthorizationUrlRequest, "requestedClaimsHash" | "platformBroker">;
 
 // Warning: (ae-missing-release-tag) "authRequestNotSetError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -243,192 +237,6 @@ declare namespace BrowserAuthErrorCodes {
 }
 export { BrowserAuthErrorCodes }
 
-// Warning: (ae-missing-release-tag) "BrowserAuthErrorMessage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public @deprecated
-export const BrowserAuthErrorMessage: {
-    pkceNotGenerated: {
-        code: string;
-        desc: string;
-    };
-    cryptoDoesNotExist: {
-        code: string;
-        desc: string;
-    };
-    emptyNavigateUriError: {
-        code: string;
-        desc: string;
-    };
-    hashEmptyError: {
-        code: string;
-        desc: string;
-    };
-    hashDoesNotContainStateError: {
-        code: string;
-        desc: string;
-    };
-    hashDoesNotContainKnownPropertiesError: {
-        code: string;
-        desc: string;
-    };
-    unableToParseStateError: {
-        code: string;
-        desc: string;
-    };
-    stateInteractionTypeMismatchError: {
-        code: string;
-        desc: string;
-    };
-    interactionInProgress: {
-        code: string;
-        desc: string;
-    };
-    popupWindowError: {
-        code: string;
-        desc: string;
-    };
-    emptyWindowError: {
-        code: string;
-        desc: string;
-    };
-    userCancelledError: {
-        code: string;
-        desc: string;
-    };
-    monitorPopupTimeoutError: {
-        code: string;
-        desc: string;
-    };
-    monitorIframeTimeoutError: {
-        code: string;
-        desc: string;
-    };
-    redirectInIframeError: {
-        code: string;
-        desc: string;
-    };
-    blockTokenRequestsInHiddenIframeError: {
-        code: string;
-        desc: string;
-    };
-    blockAcquireTokenInPopupsError: {
-        code: string;
-        desc: string;
-    };
-    iframeClosedPrematurelyError: {
-        code: string;
-        desc: string;
-    };
-    silentLogoutUnsupportedError: {
-        code: string;
-        desc: string;
-    };
-    noAccountError: {
-        code: string;
-        desc: string;
-    };
-    silentPromptValueError: {
-        code: string;
-        desc: string;
-    };
-    noTokenRequestCacheError: {
-        code: string;
-        desc: string;
-    };
-    unableToParseTokenRequestCacheError: {
-        code: string;
-        desc: string;
-    };
-    authRequestNotSet: {
-        code: string;
-        desc: string;
-    };
-    invalidCacheType: {
-        code: string;
-        desc: string;
-    };
-    notInBrowserEnvironment: {
-        code: string;
-        desc: string;
-    };
-    databaseNotOpen: {
-        code: string;
-        desc: string;
-    };
-    noNetworkConnectivity: {
-        code: string;
-        desc: string;
-    };
-    postRequestFailed: {
-        code: string;
-        desc: string;
-    };
-    getRequestFailed: {
-        code: string;
-        desc: string;
-    };
-    failedToParseNetworkResponse: {
-        code: string;
-        desc: string;
-    };
-    unableToLoadTokenError: {
-        code: string;
-        desc: string;
-    };
-    signingKeyNotFoundInStorage: {
-        code: string;
-        desc: string;
-    };
-    authCodeRequired: {
-        code: string;
-        desc: string;
-    };
-    authCodeOrNativeAccountRequired: {
-        code: string;
-        desc: string;
-    };
-    spaCodeAndNativeAccountPresent: {
-        code: string;
-        desc: string;
-    };
-    databaseUnavailable: {
-        code: string;
-        desc: string;
-    };
-    unableToAcquireTokenFromNativePlatform: {
-        code: string;
-        desc: string;
-    };
-    nativeHandshakeTimeout: {
-        code: string;
-        desc: string;
-    };
-    nativeExtensionNotInstalled: {
-        code: string;
-        desc: string;
-    };
-    nativeConnectionNotEstablished: {
-        code: string;
-        desc: string;
-    };
-    uninitializedPublicClientApplication: {
-        code: string;
-        desc: string;
-    };
-    nativePromptNotSupported: {
-        code: string;
-        desc: string;
-    };
-    invalidBase64StringError: {
-        code: string;
-        desc: string;
-    };
-    invalidPopTokenRequest: {
-        code: string;
-        desc: string;
-    };
-};
-
 // Warning: (ae-missing-release-tag) "BrowserAuthOptions" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -446,7 +254,6 @@ export type BrowserAuthOptions = {
     OIDCOptions?: OIDCOptions;
     azureCloudOptions?: AzureCloudOptions;
     skipAuthorityMetadataCache?: boolean;
-    supportsNestedAppAuth?: boolean;
     onRedirectNavigate?: (url: string) => boolean | void;
     instanceAware?: boolean;
 };
@@ -480,33 +287,6 @@ export type BrowserConfiguration = {
 export class BrowserConfigurationAuthError extends AuthError {
     constructor(errorCode: string, errorMessage?: string);
 }
-
-declare namespace BrowserConfigurationAuthErrorCodes {
-    export {
-        storageNotSupported,
-        stubbedPublicClientApplicationCalled,
-        inMemRedirectUnavailable
-    }
-}
-export { BrowserConfigurationAuthErrorCodes }
-
-// Warning: (ae-missing-release-tag) "BrowserConfigurationAuthErrorMessage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public @deprecated
-export const BrowserConfigurationAuthErrorMessage: {
-    storageNotSupportedError: {
-        code: string;
-        desc: string;
-    };
-    stubPcaInstanceCalled: {
-        code: string;
-        desc: string;
-    };
-    inMemRedirectUnavailable: {
-        code: string;
-        desc: string;
-    };
-};
 
 // Warning: (ae-missing-release-tag) "BrowserPerformanceClient" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -569,7 +349,6 @@ export type BrowserSystemOptions = SystemOptions & {
     windowHashTimeout?: number;
     iframeHashTimeout?: number;
     loadFrameTimeout?: number;
-    navigateFrameWait?: number;
     redirectNavigationTimeout?: number;
     asyncPopups?: boolean;
     allowRedirectInIframe?: boolean;
@@ -632,7 +411,6 @@ export type CacheOptions = {
     cacheLocation?: BrowserCacheLocation | string;
     temporaryCacheLocation?: BrowserCacheLocation | string;
     storeAuthStateInCookie?: boolean;
-    secureCookies?: boolean;
     cacheMigrationEnabled?: boolean;
     claimsBasedCachingEnabled?: boolean;
 };
@@ -654,13 +432,13 @@ export { ClientAuthError }
 
 export { ClientAuthErrorCodes }
 
-export { ClientAuthErrorMessage }
+export { ClientAuthErrorMessages }
 
 export { ClientConfigurationError }
 
 export { ClientConfigurationErrorCodes }
 
-export { ClientConfigurationErrorMessage }
+export { ClientConfigurationErrorMessages }
 
 // Warning: (ae-missing-release-tag) "Configuration" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -910,10 +688,6 @@ export interface IController {
     // (undocumented)
     clearCache(logoutRequest?: ClearCacheRequest): Promise<void>;
     // (undocumented)
-    disableAccountStorageEvents(): void;
-    // (undocumented)
-    enableAccountStorageEvents(): void;
-    // (undocumented)
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
     // (undocumented)
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
@@ -947,8 +721,6 @@ export interface IController {
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
     // (undocumented)
     loginRedirect(request?: RedirectRequest): Promise<void>;
-    // (undocumented)
-    logout(logoutRequest?: EndSessionRequest): Promise<void>;
     // (undocumented)
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
     // (undocumented)
@@ -997,11 +769,6 @@ export type InitializeApplicationRequest = {
     correlationId?: string;
 };
 
-// Warning: (ae-missing-release-tag) "inMemRedirectUnavailable" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const inMemRedirectUnavailable = "in_mem_redirect_unavailable";
-
 export { InProgressPerformanceEvent }
 
 // Warning: (ae-missing-release-tag) "interactionInProgress" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1012,8 +779,6 @@ const interactionInProgress = "interaction_in_progress";
 export { InteractionRequiredAuthError }
 
 export { InteractionRequiredAuthErrorCodes }
-
-export { InteractionRequiredAuthErrorMessage }
 
 // Warning: (ae-missing-release-tag) "InteractionStatus" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "InteractionStatus" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1082,17 +847,7 @@ export interface IPublicClientApplication {
     // (undocumented)
     clearCache(logoutRequest?: ClearCacheRequest): Promise<void>;
     // (undocumented)
-    disableAccountStorageEvents(): void;
-    // (undocumented)
-    enableAccountStorageEvents(): void;
-    // (undocumented)
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
-    // (undocumented)
-    getAccountByHomeId(homeAccountId: string): AccountInfo | null;
-    // (undocumented)
-    getAccountByLocalId(localId: string): AccountInfo | null;
-    // (undocumented)
-    getAccountByUsername(userName: string): AccountInfo | null;
     // (undocumented)
     getActiveAccount(): AccountInfo | null;
     // (undocumented)
@@ -1115,8 +870,6 @@ export interface IPublicClientApplication {
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
     // (undocumented)
     loginRedirect(request?: RedirectRequest): Promise<void>;
-    // (undocumented)
-    logout(logoutRequest?: EndSessionRequest): Promise<void>;
     // (undocumented)
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
     // (undocumented)
@@ -1435,22 +1188,8 @@ export class PublicClientApplication implements IPublicClientApplication {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     static createPublicClientApplication(configuration: Configuration): Promise<IPublicClientApplication>;
-    disableAccountStorageEvents(): void;
-    enableAccountStorageEvents(): void;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    //
-    // @deprecated
-    getAccountByHomeId(homeAccountId: string): AccountInfo | null;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    //
-    // @deprecated
-    getAccountByLocalId(localId: string): AccountInfo | null;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    //
-    // @deprecated
-    getAccountByUsername(userName: string): AccountInfo | null;
     getActiveAccount(): AccountInfo | null;
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
     // @internal
@@ -1471,11 +1210,6 @@ export class PublicClientApplication implements IPublicClientApplication {
     loginPopup(request?: PopupRequest | undefined): Promise<AuthenticationResult>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     loginRedirect(request?: RedirectRequest | undefined): Promise<void>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-missing-deprecation-message) The @deprecated block must include a deprecation message, e.g. describing the recommended alternative
-    //
-    // @deprecated
-    logout(logoutRequest?: EndSessionRequest): Promise<void>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -1526,22 +1260,8 @@ export class PublicClientNext implements IPublicClientApplication {
     protected controller: IController;
     // (undocumented)
     static createPublicClientApplication(configuration: Configuration): Promise<IPublicClientApplication>;
-    disableAccountStorageEvents(): void;
-    enableAccountStorageEvents(): void;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    //
-    // @deprecated
-    getAccountByHomeId(homeAccountId: string): AccountInfo | null;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    //
-    // @deprecated
-    getAccountByLocalId(localId: string): AccountInfo | null;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    //
-    // @deprecated
-    getAccountByUsername(userName: string): AccountInfo | null;
     getActiveAccount(): AccountInfo | null;
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
     // @internal
@@ -1560,11 +1280,6 @@ export class PublicClientNext implements IPublicClientApplication {
     loginPopup(request?: PopupRequest | undefined): Promise<AuthenticationResult>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     loginRedirect(request?: RedirectRequest | undefined): Promise<void>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-missing-deprecation-message) The @deprecated block must include a deprecation message, e.g. describing the recommended alternative
-    //
-    // @deprecated
-    logout(logoutRequest?: EndSessionRequest): Promise<void>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     logoutPopup(logoutRequest?: EndSessionRequest): Promise<void>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -1606,7 +1321,6 @@ function redirectPreflightCheck(initialized: boolean, config: BrowserConfigurati
 export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">> & {
     scopes: Array<string>;
     redirectStartPage?: string;
-    onRedirectNavigate?: (url: string) => boolean | void;
 };
 
 // Warning: (ae-missing-release-tag) "replaceHash" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1614,9 +1328,9 @@ export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "respo
 // @public
 function replaceHash(url: string): void;
 
-export { ServerError }
+export { ResponseMode }
 
-export { ServerResponseType }
+export { ServerError }
 
 // Warning: (ae-missing-release-tag) "SessionStorage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1702,22 +1416,12 @@ export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "resp
 // @public (undocumented)
 const stateInteractionTypeMismatch = "state_interaction_type_mismatch";
 
-// Warning: (ae-missing-release-tag) "storageNotSupported" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const storageNotSupported = "storage_not_supported";
-
 export { StringUtils }
 
 // Warning: (ae-missing-release-tag) "stubbedPublicClientApplication" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
 export const stubbedPublicClientApplication: IPublicClientApplication;
-
-// Warning: (ae-missing-release-tag) "stubbedPublicClientApplicationCalled" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const stubbedPublicClientApplicationCalled = "stubbed_public_client_application_called";
 
 export { StubPerformanceClient }
 
@@ -1788,7 +1492,7 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/cache/LocalStorage.ts:296:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:354:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:385:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/config/Configuration.ts:247:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
+// src/config/Configuration.ts:231:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
 // src/event/EventHandler.ts:113:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/event/EventHandler.ts:139:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"

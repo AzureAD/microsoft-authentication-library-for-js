@@ -52,7 +52,7 @@ import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessag
 import {
     BrowserAuthError,
     createBrowserAuthError,
-    BrowserAuthErrorMessage,
+    BrowserAuthErrorMessages,
 } from "../../src/error/BrowserAuthError.js";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
@@ -61,6 +61,7 @@ import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { BrowserAuthErrorCodes, BrowserUtils } from "../../src/index.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
+import { emptyNavigateUri } from "../../src/error/BrowserAuthErrorCodes.js";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
@@ -551,12 +552,12 @@ describe("PopupClient", () => {
                 })
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
-                        BrowserAuthErrorMessage.nativeConnectionNotEstablished
-                            .code
+                        BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessage.nativeConnectionNotEstablished
-                            .desc
+                        BrowserAuthErrorMessages[
+                            BrowserAuthErrorCodes.nativeConnectionNotEstablished
+                        ]
                     );
                 });
         });
@@ -1807,7 +1808,7 @@ describe("PopupClient", () => {
                 .monitorPopupForHash(popup as Window, window)
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
-                        BrowserAuthErrorMessage.monitorPopupTimeoutError.code
+                        BrowserAuthErrorCodes.monitorPopupTimeout
                     );
                 });
         });
@@ -1834,12 +1835,12 @@ describe("PopupClient", () => {
                 });
         });
 
-        it("returns server code response in query form when serverResponseType in OIDCOptions is query", async () => {
+        it("returns server code response in query form when responseMode in OIDCOptions is query", async () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     protocolMode: ProtocolMode.OIDC,
-                    OIDCOptions: { serverResponseType: "query" },
+                    OIDCOptions: { responseMode: "query" },
                 },
             });
 
@@ -1966,7 +1967,9 @@ describe("PopupClient", () => {
                     popupWindowAttributes: {},
                     popupWindowParent: window,
                 })
-            ).toThrow(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            ).toThrow(
+                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
+            );
             expect(() =>
                 popupClient.initiateAuthRequest("", {
                     popupName: "name",
@@ -1977,7 +1980,7 @@ describe("PopupClient", () => {
 
             //@ts-ignore
             expect(() => popupClient.initiateAuthRequest(null, {})).toThrow(
-                BrowserAuthErrorMessage.emptyNavigateUriError.desc
+                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
             );
             //@ts-ignore
             expect(() => popupClient.initiateAuthRequest(null, {})).toThrow(

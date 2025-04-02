@@ -87,27 +87,22 @@ export {
     // Response
     AuthenticationResult,
     AuthorizeResponse,
-    /**
-     * @deprecated Use AuthorizeResponse instead
-     */
-    AuthorizeResponse as ServerAuthorizationCodeResponse,
     IdTokenClaims,
     // Cache
     AccountInfo,
     ValidCacheType,
     // Error
     AuthError,
-    AuthErrorMessage,
+    AuthErrorMessages,
     AuthErrorCodes,
     ClientAuthError,
     ClientAuthErrorCodes,
-    ClientAuthErrorMessage,
+    ClientAuthErrorMessages,
     ClientConfigurationError,
     ClientConfigurationErrorCodes,
-    ClientConfigurationErrorMessage,
+    ClientConfigurationErrorMessages,
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
-    InteractionRequiredAuthErrorMessage,
     ServerError,
     // Network Interface
     INetworkModule,

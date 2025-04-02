@@ -16,7 +16,7 @@ import {
     PerformanceEvents,
     ProtocolMode,
     invokeAsync,
-    ServerResponseType,
+    ResponseMode,
     UrlUtils,
     InProgressPerformanceEvent,
     CommonAuthorizationUrlRequest,
@@ -146,10 +146,7 @@ export class RedirectClient extends StandardInteractionClient {
             if (this.config.auth.protocolMode === ProtocolMode.EAR) {
                 await this.executeEarFlow(validRequest);
             } else {
-                await this.executeCodeFlow(
-                    validRequest,
-                    request.onRedirectNavigate
-                );
+                await this.executeCodeFlow(validRequest);
             }
         } catch (e) {
             if (e instanceof AuthError) {
@@ -166,8 +163,7 @@ export class RedirectClient extends StandardInteractionClient {
      * @returns
      */
     async executeCodeFlow(
-        request: CommonAuthorizationUrlRequest,
-        onRedirectNavigate?: (url: string) => boolean | void
+        request: CommonAuthorizationUrlRequest
     ): Promise<void> {
         const correlationId = request.correlationId;
         const serverTelemetryManager = this.initializeServerTelemetryManager(
@@ -224,10 +220,7 @@ export class RedirectClient extends StandardInteractionClient {
                 this.performanceClient
             );
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            return await this.initiateAuthRequest(
-                navigateUrl,
-                onRedirectNavigate
-            );
+            return await this.initiateAuthRequest(navigateUrl);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(this.correlationId);
@@ -453,8 +446,7 @@ export class RedirectClient extends StandardInteractionClient {
         let responseString = userProvidedResponse;
         if (!responseString) {
             if (
-                this.config.auth.OIDCOptions.serverResponseType ===
-                ServerResponseType.QUERY
+                this.config.auth.OIDCOptions.responseMode === ResponseMode.QUERY
             ) {
                 responseString = window.location.search;
             } else {
@@ -591,10 +583,7 @@ export class RedirectClient extends StandardInteractionClient {
      * @param urlNavigate
      * @param onRedirectNavigateRequest - onRedirectNavigate callback provided on the request
      */
-    async initiateAuthRequest(
-        requestUrl: string,
-        onRedirectNavigateRequest?: (url: string) => boolean | void
-    ): Promise<void> {
+    async initiateAuthRequest(requestUrl: string): Promise<void> {
         this.logger.verbose("RedirectHandler.initiateAuthRequest called");
         // Navigate if valid URL
         if (requestUrl) {
@@ -607,9 +596,7 @@ export class RedirectClient extends StandardInteractionClient {
                 noHistory: false,
             };
 
-            const onRedirectNavigate =
-                onRedirectNavigateRequest ||
-                this.config.auth.onRedirectNavigate;
+            const onRedirectNavigate = this.config.auth.onRedirectNavigate;
 
             // If onRedirectNavigate is implemented, invoke it and provide requestUrl
             if (typeof onRedirectNavigate === "function") {

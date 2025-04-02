@@ -30,7 +30,7 @@ import {
 } from "@azure/msal-common";
 import {
     createBrowserAuthError,
-    BrowserAuthErrorMessage,
+    BrowserAuthErrorMessages,
     BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError.js";
 import * as SilentHandler from "../../src/interaction_handler/SilentHandler.js";
@@ -604,12 +604,12 @@ describe("SilentIframeClient", () => {
                 })
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
-                        BrowserAuthErrorMessage.nativeConnectionNotEstablished
-                            .code
+                        BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessage.nativeConnectionNotEstablished
-                            .desc
+                        BrowserAuthErrorMessages[
+                            BrowserAuthErrorCodes.nativeConnectionNotEstablished
+                        ]
                     );
                     done();
                 });

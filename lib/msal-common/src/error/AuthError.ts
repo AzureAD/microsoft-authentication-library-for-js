@@ -14,21 +14,6 @@ export const AuthErrorMessages = {
 };
 
 /**
- * AuthErrorMessage class containing string constants used by error codes and messages.
- * @deprecated Use AuthErrorCodes instead
- */
-export const AuthErrorMessage = {
-    unexpectedError: {
-        code: AuthErrorCodes.unexpectedError,
-        desc: AuthErrorMessages[AuthErrorCodes.unexpectedError],
-    },
-    postRequestFailed: {
-        code: AuthErrorCodes.postRequestFailed,
-        desc: AuthErrorMessages[AuthErrorCodes.postRequestFailed],
-    },
-};
-
-/**
  * General error class thrown by the MSAL.js library.
  */
 export class AuthError extends Error {

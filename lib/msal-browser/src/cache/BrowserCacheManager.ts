@@ -947,12 +947,7 @@ export class BrowserCacheManager extends CacheManager {
             this.logger.trace(
                 "BrowserCacheManager.setTemporaryCache: storeAuthStateInCookie set to true, setting item cookie"
             );
-            this.cookieStorage.setItem(
-                key,
-                value,
-                undefined,
-                this.cacheConfig.secureCookies
-            );
+            this.cookieStorage.setItem(key, value, undefined);
         }
     }
 
@@ -1367,7 +1362,6 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
         cacheLocation: BrowserCacheLocation.MemoryStorage,
         temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
         storeAuthStateInCookie: false,
-        secureCookies: false,
         cacheMigrationEnabled: false,
         claimsBasedCachingEnabled: false,
     };

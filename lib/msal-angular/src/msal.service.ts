@@ -67,9 +67,6 @@ export class MsalService implements IMsalService {
   loginRedirect(request?: RedirectRequest): Observable<void> {
     return from(this.instance.loginRedirect(request));
   }
-  logout(logoutRequest?: EndSessionRequest): Observable<void> {
-    return from(this.instance.logout(logoutRequest));
-  }
   logoutRedirect(logoutRequest?: EndSessionRequest): Observable<void> {
     return from(this.instance.logoutRedirect(logoutRequest));
   }

@@ -38,9 +38,7 @@ import {
     TEST_URIS,
 } from "../utils/StringConstants.js";
 import {
-    BrowserAuthError,
     BrowserAuthErrorCodes,
-    BrowserAuthErrorMessage,
     PublicClientApplication,
     SilentRequest,
 } from "../../src/index.js";
@@ -69,7 +67,6 @@ describe("TokenCache tests", () => {
             temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
             cacheLocation: BrowserCacheLocation.SessionStorage,
             storeAuthStateInCookie: false,
-            secureCookies: false,
             cacheMigrationEnabled: false,
             claimsBasedCachingEnabled: false,
         };

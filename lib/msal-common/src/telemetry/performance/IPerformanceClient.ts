@@ -4,7 +4,6 @@
  */
 
 import { PerformanceEvent } from "./PerformanceEvent.js";
-import { IPerformanceMeasurement } from "./IPerformanceMeasurement.js";
 
 export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
 
@@ -17,10 +16,6 @@ export type InProgressPerformanceEvent = {
     add: (fields: { [key: string]: {} | undefined }) => void;
     increment: (fields: { [key: string]: number | undefined }) => void;
     event: PerformanceEvent;
-    /**
-     * @deprecated This attribute will be removed in the next major version
-     */
-    measurement: IPerformanceMeasurement;
 };
 
 export interface IPerformanceClient {
@@ -41,13 +36,6 @@ export interface IPerformanceClient {
     removePerformanceCallback(callbackId: string): boolean;
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
     emitEvents(events: PerformanceEvent[], correlationId: string): void;
-    /**
-     * @deprecated This method will be removed in the next major version
-     */
-    startPerformanceMeasurement(
-        measureName: string,
-        correlationId: string
-    ): IPerformanceMeasurement;
     generateId(): string;
     calculateQueuedTime(preQueueTime: number, currentTime: number): number;
     addQueueMeasurement(

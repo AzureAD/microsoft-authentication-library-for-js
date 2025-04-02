@@ -7,9 +7,8 @@ import {
     Logger,
     IPerformanceClient,
     PerformanceEvents,
-    invokeAsync,
     invoke,
-    ServerResponseType,
+    ResponseMode,
     Authority,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
@@ -32,8 +31,7 @@ export async function initiateCodeRequest(
     requestUrl: string,
     performanceClient: IPerformanceClient,
     logger: Logger,
-    correlationId: string,
-    navigateFrameWait?: number
+    correlationId: string
 ): Promise<HTMLIFrameElement> {
     performanceClient.addQueueMeasurement(
         PerformanceEvents.SilentHandlerInitiateAuthRequest,
@@ -45,15 +43,7 @@ export async function initiateCodeRequest(
         logger.info("Navigate url is empty");
         throw createBrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri);
     }
-    if (navigateFrameWait) {
-        return invokeAsync(
-            loadFrame,
-            PerformanceEvents.SilentHandlerLoadFrame,
-            logger,
-            performanceClient,
-            correlationId
-        )(requestUrl, navigateFrameWait, performanceClient, correlationId);
-    }
+
     return invoke(
         loadFrameSync,
         PerformanceEvents.SilentHandlerLoadFrameSync,
@@ -98,7 +88,7 @@ export async function monitorIframeForHash(
     performanceClient: IPerformanceClient,
     logger: Logger,
     correlationId: string,
-    responseType: ServerResponseType
+    responseType: ResponseMode
 ): Promise<string> {
     performanceClient.addQueueMeasurement(
         PerformanceEvents.SilentHandlerMonitorIframeForHash,
@@ -143,7 +133,7 @@ export async function monitorIframeForHash(
 
             let responseString = "";
             if (contentWindow) {
-                if (responseType === ServerResponseType.QUERY) {
+                if (responseType === ResponseMode.QUERY) {
                     responseString = contentWindow.location.search;
                 } else {
                     responseString = contentWindow.location.hash;
@@ -164,43 +154,6 @@ export async function monitorIframeForHash(
     });
 }
 
-/**
- * @hidden
- * Loads iframe with authorization endpoint URL
- * @ignore
- * @deprecated
- */
-function loadFrame(
-    urlNavigate: string,
-    navigateFrameWait: number,
-    performanceClient: IPerformanceClient,
-    correlationId: string
-): Promise<HTMLIFrameElement> {
-    performanceClient.addQueueMeasurement(
-        PerformanceEvents.SilentHandlerLoadFrame,
-        correlationId
-    );
-
-    /*
-     * This trick overcomes iframe navigation in IE
-     * IE does not load the page consistently in iframe
-     */
-
-    return new Promise((resolve, reject) => {
-        const frameHandle = createHiddenIframe();
-
-        window.setTimeout(() => {
-            if (!frameHandle) {
-                reject("Unable to load iframe");
-                return;
-            }
-
-            frameHandle.src = urlNavigate;
-
-            resolve(frameHandle);
-        }, navigateFrameWait);
-    });
-}
 /**
  * @hidden
  * Loads the iframe synchronously when the navigateTimeFrame is set to `0`
