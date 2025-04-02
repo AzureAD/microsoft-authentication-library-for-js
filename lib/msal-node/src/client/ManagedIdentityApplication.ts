@@ -35,6 +35,7 @@ import {
     DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
     ManagedIdentitySourceNames,
 } from "../utils/Constants.js";
+import { ManagedIdentityId } from "../config/ManagedIdentityId.js";
 
 const SOURCES_THAT_SUPPORT_TOKEN_REVOCATION: Array<ManagedIdentitySourceNames> =
     [
@@ -152,8 +153,7 @@ export class ManagedIdentityApplication {
         };
 
         if (managedIdentityRequest.forceRefresh) {
-            // make a network call to the managed identity source
-            return this.managedIdentityClient.sendManagedIdentityTokenRequest(
+            return this.acquireTokenFromManagedIdentity(
                 managedIdentityRequest,
                 this.config.managedIdentityId,
                 this.fakeAuthority
@@ -169,46 +169,47 @@ export class ManagedIdentityApplication {
                 ManagedIdentityApplication.nodeStorage as NodeStorage
             );
 
-        if (cachedAuthenticationResult) {
+        /*
+         * Check if claims are present in the managed identity request.
+         * If so, the cached token will not be used.
+         */
+        if (managedIdentityRequest.claims) {
+            const sourceName: ManagedIdentitySourceNames =
+                this.managedIdentityClient.getManagedIdentitySource();
+
             /*
-             * Check if claims are present in the managed identity request.
-             * If so, the cached token will not be used.
+             * Check if there is a cached token and if the Managed Identity source supports token revocation.
+             * If so, hash the cached access token and add it to the request.
              */
-            if (managedIdentityRequest.claims) {
-                const sourceName: ManagedIdentitySourceNames =
-                    this.managedIdentityClient.getManagedIdentitySource();
-
-                /*
-                 * Check if the Managed Identity source supports token revocation.
-                 * If so, hash the cached access token and add it to the request.
-                 */
-                if (
-                    SOURCES_THAT_SUPPORT_TOKEN_REVOCATION.includes(sourceName)
-                ) {
-                    const accessTokenSha256Hash: string =
-                        await this.cryptoProvider.hashString(
-                            cachedAuthenticationResult.accessToken
-                        );
-                    managedIdentityRequest.accessTokenSha256Hash =
-                        accessTokenSha256Hash;
-                }
-
-                return this.managedIdentityClient.sendManagedIdentityTokenRequest(
-                    managedIdentityRequest,
-                    this.config.managedIdentityId,
-                    this.fakeAuthority
-                );
+            if (
+                cachedAuthenticationResult &&
+                SOURCES_THAT_SUPPORT_TOKEN_REVOCATION.includes(sourceName)
+            ) {
+                const accessTokenSha256Hash: string =
+                    await this.cryptoProvider.hashString(
+                        cachedAuthenticationResult.accessToken
+                    );
+                managedIdentityRequest.accessTokenSha256Hash =
+                    accessTokenSha256Hash;
             }
 
+            return this.acquireTokenFromManagedIdentity(
+                managedIdentityRequest,
+                this.config.managedIdentityId,
+                this.fakeAuthority
+            );
+        }
+
+        if (cachedAuthenticationResult) {
             // if the token is not expired but must be refreshed; get a new one in the background
             if (lastCacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
                 this.logger.info(
                     "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
                 );
 
-                // make a network call to the managed identity source; refresh the access token in the background
+                // force refresh; will run in the background
                 const refreshAccessToken = true;
-                return this.managedIdentityClient.sendManagedIdentityTokenRequest(
+                await this.acquireTokenFromManagedIdentity(
                     managedIdentityRequest,
                     this.config.managedIdentityId,
                     this.fakeAuthority,
@@ -218,13 +219,37 @@ export class ManagedIdentityApplication {
 
             return cachedAuthenticationResult;
         } else {
-            // make a network call to the managed identity source
-            return this.managedIdentityClient.sendManagedIdentityTokenRequest(
+            return this.acquireTokenFromManagedIdentity(
                 managedIdentityRequest,
                 this.config.managedIdentityId,
                 this.fakeAuthority
             );
         }
+    }
+
+    /**
+     * Acquires a token from a managed identity endpoint.
+     *
+     * @param managedIdentityRequest - The request object containing parameters for the managed identity token request.
+     * @param managedIdentityId - The identifier for the managed identity (e.g., client ID or resource ID).
+     * @param fakeAuthority - A placeholder authority used for the token request.
+     * @param refreshAccessToken - Optional flag indicating whether to force a refresh of the access token.
+     * @returns A promise that resolves to an {@link AuthenticationResult} containing the acquired token and related information.
+     * @throws {@link AuthenticationError} if the token acquisition fails.
+     */
+    private async acquireTokenFromManagedIdentity(
+        managedIdentityRequest: ManagedIdentityRequest,
+        managedIdentityId: ManagedIdentityId,
+        fakeAuthority: Authority,
+        refreshAccessToken?: boolean
+    ): Promise<AuthenticationResult> {
+        // make a network call to the managed identity
+        return this.managedIdentityClient.sendManagedIdentityTokenRequest(
+            managedIdentityRequest,
+            managedIdentityId,
+            fakeAuthority,
+            refreshAccessToken
+        );
     }
 
     /**
