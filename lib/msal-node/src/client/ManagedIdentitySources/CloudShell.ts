@@ -10,11 +10,11 @@ import { NodeStorage } from "../../cache/NodeStorage.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import {
     HttpMethod,
-    METADATA_HEADER_NAME,
     ManagedIdentityEnvironmentVariableNames,
+    ManagedIdentityHeaders,
     ManagedIdentityIdType,
+    ManagedIdentityQueryParameters,
     ManagedIdentitySourceNames,
-    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
 } from "../../utils/Constants.js";
 import {
     ManagedIdentityErrorCodes,
@@ -45,6 +45,10 @@ export class CloudShell extends BaseManagedIdentitySource {
         );
 
         this.msiEndpoint = msiEndpoint;
+    }
+
+    public getSourceName(): ManagedIdentitySourceNames {
+        return ManagedIdentitySourceNames.CLOUD_SHELL;
     }
 
     public static getEnvironmentVariables(): Array<string | undefined> {
@@ -109,9 +113,9 @@ export class CloudShell extends BaseManagedIdentitySource {
                 this.msiEndpoint
             );
 
-        request.headers[METADATA_HEADER_NAME] = "true";
+        request.headers[ManagedIdentityHeaders.METADATA_HEADER_NAME] = "true";
 
-        request.bodyParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+        request.bodyParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
         return request;

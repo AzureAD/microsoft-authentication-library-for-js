@@ -9,13 +9,12 @@ import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRe
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import {
-    API_VERSION_QUERY_PARAMETER_NAME,
     HttpMethod,
-    METADATA_HEADER_NAME,
     ManagedIdentityEnvironmentVariableNames,
+    ManagedIdentityHeaders,
     ManagedIdentityIdType,
+    ManagedIdentityQueryParameters,
     ManagedIdentitySourceNames,
-    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
 } from "../../utils/Constants.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
 import { ImdsRetryPolicy } from "../../retry/ImdsRetryPolicy.js";
@@ -47,6 +46,10 @@ export class Imds extends BaseManagedIdentitySource {
         );
 
         this.identityEndpoint = identityEndpoint;
+    }
+
+    public getSourceName(): ManagedIdentitySourceNames {
+        return ManagedIdentitySourceNames.IMDS;
     }
 
     public static tryCreate(
@@ -112,11 +115,11 @@ export class Imds extends BaseManagedIdentitySource {
                 this.identityEndpoint
             );
 
-        request.headers[METADATA_HEADER_NAME] = "true";
+        request.headers[ManagedIdentityHeaders.METADATA_HEADER_NAME] = "true";
 
-        request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.API_VERSION] =
             IMDS_API_VERSION;
-        request.queryParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
         if (

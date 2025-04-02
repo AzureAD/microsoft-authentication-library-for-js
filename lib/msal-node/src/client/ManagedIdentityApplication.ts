@@ -141,12 +141,11 @@ export class ManagedIdentityApplication {
             ],
             authority: this.fakeAuthority.canonicalAuthority,
             correlationId: this.cryptoProvider.createNewGuid(),
+            claims: managedIdentityRequestParams.claims,
+            clientCapabilities: this.config.clientCapabilities,
         };
 
-        if (
-            managedIdentityRequestParams.claims ||
-            managedIdentityRequest.forceRefresh
-        ) {
+        if (managedIdentityRequest.forceRefresh) {
             // make a network call to the managed identity source
             return this.managedIdentityClient.sendManagedIdentityTokenRequest(
                 managedIdentityRequest,
@@ -165,6 +164,25 @@ export class ManagedIdentityApplication {
             );
 
         if (cachedAuthenticationResult) {
+            /*
+             * Check if claims are present in the managed identity request.
+             * If they are, hash the access token and add it to the request.
+             */
+            if (managedIdentityRequest.claims) {
+                const accessTokenSha256Hash: string =
+                    await this.cryptoProvider.hashString(
+                        cachedAuthenticationResult.accessToken
+                    );
+                managedIdentityRequest.accessTokenSha256Hash =
+                    accessTokenSha256Hash;
+
+                return this.managedIdentityClient.sendManagedIdentityTokenRequest(
+                    managedIdentityRequest,
+                    this.config.managedIdentityId,
+                    this.fakeAuthority
+                );
+            }
+
             // if the token is not expired but must be refreshed; get a new one in the background
             if (lastCacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
                 this.logger.info(
@@ -173,7 +191,7 @@ export class ManagedIdentityApplication {
 
                 // make a network call to the managed identity source; refresh the access token in the background
                 const refreshAccessToken = true;
-                await this.managedIdentityClient.sendManagedIdentityTokenRequest(
+                return this.managedIdentityClient.sendManagedIdentityTokenRequest(
                     managedIdentityRequest,
                     this.config.managedIdentityId,
                     this.fakeAuthority,

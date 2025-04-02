@@ -7,12 +7,11 @@ import { INetworkModule, Logger } from "@azure/msal-common/node";
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
 import {
     HttpMethod,
-    APP_SERVICE_SECRET_HEADER_NAME,
-    API_VERSION_QUERY_PARAMETER_NAME,
-    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentitySourceNames,
     ManagedIdentityIdType,
+    ManagedIdentityQueryParameters,
+    ManagedIdentityHeaders,
 } from "../../utils/Constants.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
@@ -20,7 +19,7 @@ import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
-const APP_SERVICE_MSI_API_VERSION: string = "2019-08-01";
+const APP_SERVICE_MSI_API_VERSION: string = "2025-03-30";
 
 /**
  * Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/AppServiceManagedIdentitySource.cs
@@ -48,6 +47,10 @@ export class AppService extends BaseManagedIdentitySource {
 
         this.identityEndpoint = identityEndpoint;
         this.identityHeader = identityHeader;
+    }
+
+    public getSourceName(): ManagedIdentitySourceNames {
+        return ManagedIdentitySourceNames.APP_SERVICE;
     }
 
     public static getEnvironmentVariables(): Array<string | undefined> {
@@ -114,11 +117,12 @@ export class AppService extends BaseManagedIdentitySource {
                 this.identityEndpoint
             );
 
-        request.headers[APP_SERVICE_SECRET_HEADER_NAME] = this.identityHeader;
+        request.headers[ManagedIdentityHeaders.APP_SERVICE_SECRET_HEADER_NAME] =
+            this.identityHeader;
 
-        request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.API_VERSION] =
             APP_SERVICE_MSI_API_VERSION;
-        request.queryParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
         if (

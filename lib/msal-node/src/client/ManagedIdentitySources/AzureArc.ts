@@ -22,15 +22,13 @@ import {
     createManagedIdentityError,
 } from "../../error/ManagedIdentityError.js";
 import {
-    API_VERSION_QUERY_PARAMETER_NAME,
-    AUTHORIZATION_HEADER_NAME,
     AZURE_ARC_SECRET_FILE_MAX_SIZE_BYTES,
     HttpMethod,
-    METADATA_HEADER_NAME,
     ManagedIdentityEnvironmentVariableNames,
+    ManagedIdentityHeaders,
     ManagedIdentityIdType,
+    ManagedIdentityQueryParameters,
     ManagedIdentitySourceNames,
-    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
 } from "../../utils/Constants.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
 import {
@@ -86,6 +84,10 @@ export class AzureArc extends BaseManagedIdentitySource {
         );
 
         this.identityEndpoint = identityEndpoint;
+    }
+
+    public getSourceName(): ManagedIdentitySourceNames {
+        return ManagedIdentitySourceNames.AZURE_ARC;
     }
 
     public static getEnvironmentVariables(): Array<string | undefined> {
@@ -201,11 +203,11 @@ export class AzureArc extends BaseManagedIdentitySource {
                 this.identityEndpoint.replace("localhost", "127.0.0.1")
             );
 
-        request.headers[METADATA_HEADER_NAME] = "true";
+        request.headers[ManagedIdentityHeaders.METADATA_HEADER_NAME] = "true";
 
-        request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.API_VERSION] =
             ARC_API_VERSION;
-        request.queryParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
         // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
@@ -303,7 +305,9 @@ export class AzureArc extends BaseManagedIdentitySource {
             this.logger.info(
                 `[Managed Identity] Adding authorization header to the request.`
             );
-            networkRequest.headers[AUTHORIZATION_HEADER_NAME] = authHeaderValue;
+            networkRequest.headers[
+                ManagedIdentityHeaders.AUTHORIZATION_HEADER_NAME
+            ] = authHeaderValue;
 
             try {
                 retryResponse =

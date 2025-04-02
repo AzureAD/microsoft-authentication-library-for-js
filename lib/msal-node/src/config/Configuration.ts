@@ -129,6 +129,7 @@ export type ManagedIdentityIdParams = {
 
 /** @public */
 export type ManagedIdentityConfiguration = {
+    clientCapabilities?: Array<string>;
     managedIdentityIdParams?: ManagedIdentityIdParams;
     system?: NodeSystemOptions;
 };
@@ -240,14 +241,16 @@ export function buildAppConfiguration({
 
 /** @internal */
 export type ManagedIdentityNodeConfiguration = {
+    clientCapabilities?: Array<string>;
+    disableInternalRetries: boolean;
     managedIdentityId: ManagedIdentityId;
     system: Required<
         Pick<NodeSystemOptions, "loggerOptions" | "networkClient">
     >;
-    disableInternalRetries: boolean;
 };
 
 export function buildManagedIdentityConfiguration({
+    clientCapabilities,
     managedIdentityIdParams,
     system,
 }: ManagedIdentityConfiguration): ManagedIdentityNodeConfiguration {
@@ -271,6 +274,7 @@ export function buildManagedIdentityConfiguration({
     }
 
     return {
+        clientCapabilities: clientCapabilities || [],
         managedIdentityId: managedIdentityId,
         system: {
             loggerOptions,
