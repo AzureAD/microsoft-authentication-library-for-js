@@ -321,6 +321,16 @@ export class StandardController implements IController {
             );
             return;
         }
+        //@ts-ignore
+        window.msal = window.msal || {};
+        //@ts-ignore
+        if(window.msal.instance) {
+            this.logger.info(
+                "there is already an instance of MSAL in the window."
+            )
+        }
+        //@ts-ignore
+        window.msal.instance = true;
 
         if (!this.isBrowserEnvironment) {
             this.logger.info("in non-browser environment, exiting early.");
