@@ -33,7 +33,10 @@ import {
     TEST_TOKENS,
 } from "../utils/StringConstants.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
-import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError.js";
+import {
+    BrowserAuthErrorMessages,
+    BrowserAuthErrorCodes,
+} from "../../src/error/BrowserAuthError.js";
 import {
     NativeAuthError,
     NativeAuthErrorCodes,
@@ -301,10 +304,12 @@ describe("NativeInteractionClient Tests", () => {
                 })
                 .catch((e) => {
                     expect(e.errorCode).toBe(
-                        BrowserAuthErrorMessage.nativePromptNotSupported.code
+                        BrowserAuthErrorCodes.nativePromptNotSupported
                     );
                     expect(e.errorMessage).toBe(
-                        BrowserAuthErrorMessage.nativePromptNotSupported.desc
+                        BrowserAuthErrorMessages[
+                            BrowserAuthErrorCodes.nativePromptNotSupported
+                        ]
                     );
                     done();
                 });
@@ -318,10 +323,12 @@ describe("NativeInteractionClient Tests", () => {
                 })
                 .catch((e) => {
                     expect(e.errorCode).toBe(
-                        BrowserAuthErrorMessage.nativePromptNotSupported.code
+                        BrowserAuthErrorCodes.nativePromptNotSupported
                     );
                     expect(e.errorMessage).toBe(
-                        BrowserAuthErrorMessage.nativePromptNotSupported.desc
+                        BrowserAuthErrorMessages[
+                            BrowserAuthErrorCodes.nativePromptNotSupported
+                        ]
                     );
                     done();
                 });
@@ -1149,28 +1156,6 @@ describe("NativeInteractionClient Tests", () => {
                 errors: [],
                 failedRequests: [],
             });
-        });
-
-        it("should not include onRedirectNavigate call back function in request", (done) => {
-            jest.spyOn(
-                NativeInteractionClient.prototype,
-                // @ts-ignore
-                "initializeNativeRequest"
-                // @ts-ignore
-            ).mockImplementation((request: PopupRequest | SsoSilentRequest) => {
-                // @ts-ignore
-                expect(request.onRedirectNavigate).toBeUndefined();
-                done();
-            });
-            nativeInteractionClient.acquireTokenRedirect(
-                {
-                    scopes: ["User.Read"],
-                    onRedirectNavigate: (url: string) => {
-                        return true;
-                    },
-                },
-                perfMeasurement
-            );
         });
     });
 

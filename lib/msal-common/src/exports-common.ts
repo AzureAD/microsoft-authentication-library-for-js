@@ -131,12 +131,11 @@ export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger.js";
 export {
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
-    InteractionRequiredAuthErrorMessage,
     createInteractionRequiredAuthError,
 } from "./error/InteractionRequiredAuthError.js";
 export {
     AuthError,
-    AuthErrorMessage,
+    AuthErrorMessages,
     AuthErrorCodes,
     createAuthError,
 } from "./error/AuthError.js";
@@ -145,13 +144,13 @@ export { NetworkError, createNetworkError } from "./error/NetworkError.js";
 export { CacheError, CacheErrorCodes } from "./error/CacheError.js";
 export {
     ClientAuthError,
-    ClientAuthErrorMessage,
+    ClientAuthErrorMessages,
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "./error/ClientAuthError.js";
 export {
     ClientConfigurationError,
-    ClientConfigurationErrorMessage,
+    ClientConfigurationErrorMessages,
     ClientConfigurationErrorCodes,
     createClientConfigurationError,
 } from "./error/ClientConfigurationError.js";
@@ -161,7 +160,6 @@ export {
     PromptValue,
     PersistentCacheKeys,
     OAuthResponseType,
-    ServerResponseType,
     ResponseMode,
     CacheOutcome,
     CredentialType,

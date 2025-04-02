@@ -10,7 +10,7 @@ import {
     Constants,
     AzureCloudInstance,
     ProtocolMode,
-    ServerResponseType,
+    ResponseMode,
     Logger,
 } from "@azure/msal-common";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants.js";
@@ -54,7 +54,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.cache?.cacheLocation).toBe("sessionStorage");
         expect(emptyConfig.cache?.storeAuthStateInCookie).toBeDefined();
         expect(emptyConfig.cache?.storeAuthStateInCookie).toBe(false);
-        expect(emptyConfig.cache?.secureCookies).toBe(false);
         expect(emptyConfig.cache?.claimsBasedCachingEnabled).toBe(false);
         // System config checks
         expect(emptyConfig.system).toBeDefined();
@@ -72,7 +71,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.system?.iframeHashTimeout).toBe(
             DEFAULT_IFRAME_TIMEOUT_MS
         );
-        expect(emptyConfig.system?.navigateFrameWait).toBe(0);
         expect(emptyConfig.system?.tokenRenewalOffsetSeconds).toBe(300);
         expect(emptyConfig.system?.asyncPopups).toBe(false);
         expect(emptyConfig.system?.allowPlatformBroker).toBe(false);
@@ -101,7 +99,6 @@ describe("Configuration.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    navigateFrameWait: 1,
                     loadFrameTimeout: 100,
                 },
             },
@@ -110,7 +107,6 @@ describe("Configuration.ts Class Unit Tests", () => {
 
         expect(config.system?.iframeHashTimeout).toBe(100);
         expect(config.system?.windowHashTimeout).toBe(100);
-        expect(config.system?.navigateFrameWait).toBe(1);
     });
 
     it("sets timeouts with hash timeouts", () => {
@@ -138,7 +134,6 @@ describe("Configuration.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
-                    navigateFrameWait: 1,
                     iframeHashTimeout: 6001,
                     windowHashTimeout: 6002,
                     loadFrameTimeout: 500,
@@ -150,7 +145,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(config.system?.iframeHashTimeout).toBe(6001);
         expect(config.system?.windowHashTimeout).toBe(6002);
         expect(config.system?.loadFrameTimeout).toBe(500);
-        expect(config.system?.navigateFrameWait).toBe(1);
     });
 
     it("Tests logger", () => {
@@ -249,7 +243,6 @@ describe("Configuration.ts Class Unit Tests", () => {
                 cache: {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
                     storeAuthStateInCookie: true,
-                    secureCookies: true,
                     claimsBasedCachingEnabled: true,
                 },
                 system: {
@@ -281,7 +274,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.cache?.cacheLocation).toBe("localStorage");
         expect(newConfig.cache?.storeAuthStateInCookie).not.toBeNull();
         expect(newConfig.cache?.storeAuthStateInCookie).toBe(true);
-        expect(newConfig.cache?.secureCookies).toBe(true);
         expect(newConfig.cache?.claimsBasedCachingEnabled).toBe(true);
         // System config checks
         expect(newConfig.system).not.toBeNull();
@@ -289,7 +281,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.system?.windowHashTimeout).toBe(TEST_POPUP_TIMEOUT_MS);
         expect(newConfig.system?.tokenRenewalOffsetSeconds).not.toBeNull();
         expect(newConfig.system?.tokenRenewalOffsetSeconds).toBe(TEST_OFFSET);
-        expect(newConfig.system?.navigateFrameWait).toBe(0);
         expect(newConfig.system?.loggerOptions).not.toBeNull();
         expect(newConfig.system?.loggerOptions?.loggerCallback).not.toBeNull();
         expect(newConfig.system?.loggerOptions?.piiLoggingEnabled).toBe(true);
@@ -306,7 +297,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                     authority: TEST_CONFIG.validAuthority,
                     protocolMode: ProtocolMode.AAD,
                     OIDCOptions: {
-                        serverResponseType: ServerResponseType.QUERY,
+                        responseMode: ResponseMode.QUERY,
                     },
                 },
             },

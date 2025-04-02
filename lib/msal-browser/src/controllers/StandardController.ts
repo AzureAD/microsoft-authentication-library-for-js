@@ -257,7 +257,6 @@ export class StandardController implements IController {
             cacheLocation: BrowserCacheLocation.MemoryStorage,
             temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
             storeAuthStateInCookie: false,
-            secureCookies: false,
             cacheMigrationEnabled: false,
             claimsBasedCachingEnabled: false,
         };
@@ -372,6 +371,13 @@ export class StandardController implements IController {
                 this.performanceClient,
                 initCorrelationId
             )(this.performanceClient, initCorrelationId);
+        }
+
+        if (
+            this.config.cache.cacheLocation ===
+            BrowserCacheLocation.LocalStorage
+        ) {
+            this.eventHandler.subscribeCrossTab();
         }
 
         this.config.system.asyncPopups &&
@@ -621,37 +627,19 @@ export class StandardController implements IController {
             scenarioId: request.scenarioId,
         });
 
-        // Override on request only if set, as onRedirectNavigate field is deprecated
-        const onRedirectNavigateCb = request.onRedirectNavigate;
-        if (onRedirectNavigateCb) {
-            request.onRedirectNavigate = (url: string) => {
-                const navigate =
-                    typeof onRedirectNavigateCb === "function"
-                        ? onRedirectNavigateCb(url)
-                        : undefined;
-                if (navigate !== false) {
-                    atrMeasurement.end({ success: true });
-                } else {
-                    atrMeasurement.discard();
-                }
-                return navigate;
-            };
-        } else {
-            const configOnRedirectNavigateCb =
-                this.config.auth.onRedirectNavigate;
-            this.config.auth.onRedirectNavigate = (url: string) => {
-                const navigate =
-                    typeof configOnRedirectNavigateCb === "function"
-                        ? configOnRedirectNavigateCb(url)
-                        : undefined;
-                if (navigate !== false) {
-                    atrMeasurement.end({ success: true });
-                } else {
-                    atrMeasurement.discard();
-                }
-                return navigate;
-            };
-        }
+        const configOnRedirectNavigateCb = this.config.auth.onRedirectNavigate;
+        this.config.auth.onRedirectNavigate = (url: string) => {
+            const navigate =
+                typeof configOnRedirectNavigateCb === "function"
+                    ? configOnRedirectNavigateCb(url)
+                    : undefined;
+            if (navigate !== false) {
+                atrMeasurement.end({ success: true });
+            } else {
+                atrMeasurement.discard();
+            }
+            return navigate;
+        };
 
         // If logged in, emit acquire token events
         const isLoggedIn = this.getAllAccounts().length > 0;
@@ -1325,23 +1313,6 @@ export class StandardController implements IController {
     // #region Logout
 
     /**
-     * Deprecated logout function. Use logoutRedirect or logoutPopup instead
-     * @param logoutRequest
-     * @deprecated
-     */
-    async logout(logoutRequest?: EndSessionRequest): Promise<void> {
-        const correlationId = this.getRequestCorrelationId(logoutRequest);
-        this.logger.warning(
-            "logout API is deprecated and will be removed in msal-browser v3.0.0. Use logoutRedirect instead.",
-            correlationId
-        );
-        return this.logoutRedirect({
-            correlationId,
-            ...logoutRequest,
-        });
-    }
-
-    /**
      * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.
      * @param logoutRequest
@@ -1783,42 +1754,6 @@ export class StandardController implements IController {
      */
     removePerformanceCallback(callbackId: string): boolean {
         return this.performanceClient.removePerformanceCallback(callbackId);
-    }
-
-    /**
-     * Adds event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
-     * @deprecated These events will be raised by default and this method will be removed in a future major version.
-     */
-    enableAccountStorageEvents(): void {
-        if (
-            this.config.cache.cacheLocation !==
-            BrowserCacheLocation.LocalStorage
-        ) {
-            this.logger.info(
-                "Account storage events are only available when cacheLocation is set to localStorage"
-            );
-            return;
-        }
-
-        this.eventHandler.subscribeCrossTab();
-    }
-
-    /**
-     * Removes event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
-     * @deprecated These events will be raised by default and this method will be removed in a future major version.
-     */
-    disableAccountStorageEvents(): void {
-        if (
-            this.config.cache.cacheLocation !==
-            BrowserCacheLocation.LocalStorage
-        ) {
-            this.logger.info(
-                "Account storage events are only available when cacheLocation is set to localStorage"
-            );
-            return;
-        }
-
-        this.eventHandler.unsubscribeCrossTab();
     }
 
     /**

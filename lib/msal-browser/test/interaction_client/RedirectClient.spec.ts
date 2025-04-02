@@ -58,7 +58,7 @@ import { base64Encode } from "../../src/encode/Base64Encode.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import {
     createBrowserAuthError,
-    BrowserAuthErrorMessage,
+    BrowserAuthErrorMessages,
     BrowserAuthErrorCodes,
     BrowserAuthError,
 } from "../../src/error/BrowserAuthError.js";
@@ -88,7 +88,6 @@ const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
     storeAuthStateInCookie: false,
-    secureCookies: false,
     cacheMigrationEnabled: false,
     claimsBasedCachingEnabled: false,
 };
@@ -694,12 +693,12 @@ describe("RedirectClient", () => {
                 )
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
-                        BrowserAuthErrorMessage.nativeConnectionNotEstablished
-                            .code
+                        BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessage.nativeConnectionNotEstablished
-                            .desc
+                        BrowserAuthErrorMessages[
+                            BrowserAuthErrorCodes.nativeConnectionNotEstablished
+                        ]
                     );
                     done();
                 });
@@ -1980,28 +1979,60 @@ describe("RedirectClient", () => {
                 done();
             };
 
-            jest.spyOn(
-                RedirectClient.prototype,
-                "initiateAuthRequest"
-            ).mockImplementation(
-                (navigateUrl, onRedirectNavigateCb): Promise<void> => {
-                    expect(onRedirectNavigateCb).toEqual(onRedirectNavigate);
-                    verifyUrl(navigateUrl, ["user.read"]);
-                    onRedirectNavigate(navigateUrl);
-                    return Promise.resolve();
-                }
-            );
-            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
-                challenge: TEST_CONFIG.TEST_CHALLENGE,
-                verifier: TEST_CONFIG.TEST_VERIFIER,
+            let pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    onRedirectNavigate: onRedirectNavigate,
+                },
+                telemetry: {
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
             });
-            const loginRequest: RedirectRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: ["user.read", "openid", "profile"],
-                state: TEST_STATE_VALUES.USER_STATE,
-                onRedirectNavigate,
-            };
-            redirectClient.acquireToken(loginRequest);
+
+            pca.initialize().then(() => {
+                pca = (pca as any).controller;
+                let redirectClient = new RedirectClient(
+                    //@ts-ignore
+                    pca.config,
+                    //@ts-ignore
+                    pca.browserStorage,
+                    //@ts-ignore
+                    pca.browserCrypto,
+                    //@ts-ignore
+                    pca.logger,
+                    //@ts-ignore
+                    pca.eventHandler,
+                    //@ts-ignore
+                    pca.navigationClient,
+                    //@ts-ignore
+                    pca.performanceClient,
+                    //@ts-ignore
+                    pca.nativeInternalStorage
+                );
+
+                let initiateAuthRequestSpy = jest.spyOn(
+                    RedirectClient.prototype,
+                    "initiateAuthRequest"
+                );
+                jest.spyOn(
+                    PkceGenerator,
+                    "generatePkceCodes"
+                ).mockResolvedValue({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER,
+                });
+                const loginRequest: RedirectRequest = {
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: ["user.read", "openid", "profile"],
+                    state: TEST_STATE_VALUES.USER_STATE,
+                };
+                redirectClient.acquireToken(loginRequest).then(() => {
+                    expect(initiateAuthRequestSpy).toHaveBeenCalled();
+                });
+            });
         });
 
         describe("storeInCache tests", () => {
@@ -2036,10 +2067,7 @@ describe("RedirectClient", () => {
                     correlationId: RANDOM_TEST_GUID,
                     authority: TEST_CONFIG.validAuthority,
                 };
-                await redirectClient.acquireToken({
-                    ...request,
-                    onRedirectNavigate: () => false,
-                });
+                await redirectClient.acquireToken(request);
 
                 const tokenResp = await redirectClient.handleRedirectPromise(
                     TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
@@ -2080,10 +2108,7 @@ describe("RedirectClient", () => {
                     correlationId: RANDOM_TEST_GUID,
                     authority: TEST_CONFIG.validAuthority,
                 };
-                await redirectClient.acquireToken({
-                    ...request,
-                    onRedirectNavigate: () => false,
-                });
+                await redirectClient.acquireToken(request);
 
                 const tokenResp = await redirectClient.handleRedirectPromise(
                     TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
@@ -2124,10 +2149,7 @@ describe("RedirectClient", () => {
                     correlationId: RANDOM_TEST_GUID,
                     authority: TEST_CONFIG.validAuthority,
                 };
-                await redirectClient.acquireToken({
-                    ...request,
-                    onRedirectNavigate: () => false,
-                });
+                await redirectClient.acquireToken(request);
 
                 const tokenResp = await redirectClient.handleRedirectPromise(
                     TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
@@ -2846,49 +2868,121 @@ describe("RedirectClient", () => {
         });
 
         it("doesnt navigate if onRedirectNavigate returns false", (done) => {
-            const navigationClient = new NavigationClient();
-            navigationClient.navigateExternal = (
-                urlNavigate: string,
-                options: NavigationOptions
-            ): Promise<boolean> => {
-                done(
-                    "Navigatation should not happen if onRedirectNavigate returns false"
-                );
-                return Promise.reject();
-            };
-
             const onRedirectNavigate = (url: string) => {
                 expect(url).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
                 done();
                 return false;
             };
-            redirectClient.initiateAuthRequest(
-                TEST_URIS.TEST_ALTERNATE_REDIR_URI,
-                onRedirectNavigate
-            );
+
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    onRedirectNavigate: onRedirectNavigate,
+                },
+                telemetry: {
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+
+            pca.initialize().then(() => {
+                pca = (pca as any).controller;
+                // @ts-ignore
+                redirectClient = new RedirectClient(
+                    //@ts-ignore
+                    pca.config,
+                    //@ts-ignore
+                    pca.browserStorage,
+                    //@ts-ignore
+                    pca.browserCrypto,
+                    //@ts-ignore
+                    pca.logger,
+                    //@ts-ignore
+                    pca.eventHandler,
+                    //@ts-ignore
+                    pca.navigationClient,
+                    //@ts-ignore
+                    pca.performanceClient,
+                    //@ts-ignore
+                    pca.nativeInternalStorage
+                );
+                const navigationClient = new NavigationClient();
+                navigationClient.navigateExternal = (
+                    urlNavigate: string,
+                    options: NavigationOptions
+                ): Promise<boolean> => {
+                    done(
+                        "Navigatation should not happen if onRedirectNavigate returns false"
+                    );
+                    return Promise.reject();
+                };
+
+                redirectClient.initiateAuthRequest(
+                    TEST_URIS.TEST_ALTERNATE_REDIR_URI
+                );
+            });
         });
 
         it("navigates if onRedirectNavigate doesnt return false", (done) => {
-            const navigationClient = new NavigationClient();
-            navigationClient.navigateExternal = (
-                requestUrl,
-                options
-            ): Promise<boolean> => {
-                expect(requestUrl).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
-                done();
-                return Promise.resolve(true);
-            };
-
-            //@ts-ignore
-            redirectClient.navigationClient = navigationClient;
-
             const onRedirectNavigate = (url: string) => {
                 expect(url).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             };
-            redirectClient.initiateAuthRequest(
-                TEST_URIS.TEST_ALTERNATE_REDIR_URI,
-                onRedirectNavigate
-            );
+
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    onRedirectNavigate: onRedirectNavigate,
+                },
+                telemetry: {
+                    application: {
+                        appName: TEST_CONFIG.applicationName,
+                        appVersion: TEST_CONFIG.applicationVersion,
+                    },
+                },
+            });
+
+            pca.initialize().then(() => {
+                pca = (pca as any).controller;
+                // @ts-ignore
+                redirectClient = new RedirectClient(
+                    //@ts-ignore
+                    pca.config,
+                    //@ts-ignore
+                    pca.browserStorage,
+                    //@ts-ignore
+                    pca.browserCrypto,
+                    //@ts-ignore
+                    pca.logger,
+                    //@ts-ignore
+                    pca.eventHandler,
+                    //@ts-ignore
+                    pca.navigationClient,
+                    //@ts-ignore
+                    pca.performanceClient,
+                    //@ts-ignore
+                    pca.nativeInternalStorage
+                );
+                const navigationClient = new NavigationClient();
+                navigationClient.navigateExternal = (
+                    requestUrl,
+                    options
+                ): Promise<boolean> => {
+                    expect(requestUrl).toEqual(
+                        TEST_URIS.TEST_ALTERNATE_REDIR_URI
+                    );
+                    done();
+                    return Promise.resolve(true);
+                };
+
+                //@ts-ignore
+                redirectClient.navigationClient = navigationClient;
+
+                redirectClient.initiateAuthRequest(
+                    TEST_URIS.TEST_ALTERNATE_REDIR_URI
+                );
+            });
         });
     });
 });

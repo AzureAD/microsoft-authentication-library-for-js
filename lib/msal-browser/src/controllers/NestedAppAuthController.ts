@@ -654,14 +654,6 @@ export class NestedAppAuthController implements IController {
         throw NestedAppAuthError.createUnsupportedError();
     }
 
-    enableAccountStorageEvents(): void {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-
-    disableAccountStorageEvents(): void {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-
     // #region Account APIs
 
     /**
@@ -770,10 +762,6 @@ export class NestedAppAuthController implements IController {
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     loginRedirect(request?: RedirectRequest | undefined): Promise<void> {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    logout(logoutRequest?: EndSessionRequest | undefined): Promise<void> {
         throw NestedAppAuthError.createUnsupportedError();
     }
     logoutRedirect(

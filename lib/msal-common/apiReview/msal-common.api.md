@@ -603,18 +603,12 @@ declare namespace AuthErrorCodes {
 }
 export { AuthErrorCodes }
 
-// Warning: (ae-missing-release-tag) "AuthErrorMessage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "AuthErrorMessages" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
-// @public @deprecated
-export const AuthErrorMessage: {
-    unexpectedError: {
-        code: string;
-        desc: string;
-    };
-    postRequestFailed: {
-        code: string;
-        desc: string;
-    };
+// @public (undocumented)
+export const AuthErrorMessages: {
+    unexpected_error: string;
+    post_request_failed: string;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "AuthOptions" should be prefixed with an underscore because the declaration is marked as @internal
@@ -1443,182 +1437,54 @@ declare namespace ClientAuthErrorCodes {
 }
 export { ClientAuthErrorCodes }
 
-// Warning: (ae-missing-release-tag) "ClientAuthErrorMessage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "ClientAuthErrorMessages" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
-// @public @deprecated
-export const ClientAuthErrorMessage: {
-    clientInfoDecodingError: {
-        code: string;
-        desc: string;
-    };
-    clientInfoEmptyError: {
-        code: string;
-        desc: string;
-    };
-    tokenParsingError: {
-        code: string;
-        desc: string;
-    };
-    nullOrEmptyToken: {
-        code: string;
-        desc: string;
-    };
-    endpointResolutionError: {
-        code: string;
-        desc: string;
-    };
-    networkError: {
-        code: string;
-        desc: string;
-    };
-    unableToGetOpenidConfigError: {
-        code: string;
-        desc: string;
-    };
-    hashNotDeserialized: {
-        code: string;
-        desc: string;
-    };
-    invalidStateError: {
-        code: string;
-        desc: string;
-    };
-    stateMismatchError: {
-        code: string;
-        desc: string;
-    };
-    stateNotFoundError: {
-        code: string;
-        desc: string;
-    };
-    nonceMismatchError: {
-        code: string;
-        desc: string;
-    };
-    authTimeNotFoundError: {
-        code: string;
-        desc: string;
-    };
-    maxAgeTranspired: {
-        code: string;
-        desc: string;
-    };
-    multipleMatchingTokens: {
-        code: string;
-        desc: string;
-    };
-    multipleMatchingAccounts: {
-        code: string;
-        desc: string;
-    };
-    multipleMatchingAppMetadata: {
-        code: string;
-        desc: string;
-    };
-    tokenRequestCannotBeMade: {
-        code: string;
-        desc: string;
-    };
-    removeEmptyScopeError: {
-        code: string;
-        desc: string;
-    };
-    appendScopeSetError: {
-        code: string;
-        desc: string;
-    };
-    emptyInputScopeSetError: {
-        code: string;
-        desc: string;
-    };
-    DeviceCodePollingCancelled: {
-        code: string;
-        desc: string;
-    };
-    DeviceCodeExpired: {
-        code: string;
-        desc: string;
-    };
-    DeviceCodeUnknownError: {
-        code: string;
-        desc: string;
-    };
-    NoAccountInSilentRequest: {
-        code: string;
-        desc: string;
-    };
-    invalidCacheRecord: {
-        code: string;
-        desc: string;
-    };
-    invalidCacheEnvironment: {
-        code: string;
-        desc: string;
-    };
-    noAccountFound: {
-        code: string;
-        desc: string;
-    };
-    noCryptoObj: {
-        code: string;
-        desc: string;
-    };
-    unexpectedCredentialType: {
-        code: string;
-        desc: string;
-    };
-    invalidAssertion: {
-        code: string;
-        desc: string;
-    };
-    invalidClientCredential: {
-        code: string;
-        desc: string;
-    };
-    tokenRefreshRequired: {
-        code: string;
-        desc: string;
-    };
-    userTimeoutReached: {
-        code: string;
-        desc: string;
-    };
-    tokenClaimsRequired: {
-        code: string;
-        desc: string;
-    };
-    noAuthorizationCodeFromServer: {
-        code: string;
-        desc: string;
-    };
-    bindingKeyNotRemovedError: {
-        code: string;
-        desc: string;
-    };
-    logoutNotSupported: {
-        code: string;
-        desc: string;
-    };
-    keyIdMissing: {
-        code: string;
-        desc: string;
-    };
-    noNetworkConnectivity: {
-        code: string;
-        desc: string;
-    };
-    userCanceledError: {
-        code: string;
-        desc: string;
-    };
-    missingTenantIdError: {
-        code: string;
-        desc: string;
-    };
-    nestedAppAuthBridgeDisabled: {
-        code: string;
-        desc: string;
-    };
+// @public
+export const ClientAuthErrorMessages: {
+    client_info_decoding_error: string;
+    client_info_empty_error: string;
+    token_parsing_error: string;
+    null_or_empty_token: string;
+    endpoints_resolution_error: string;
+    network_error: string;
+    openid_config_error: string;
+    hash_not_deserialized: string;
+    invalid_state: string;
+    state_mismatch: string;
+    state_not_found: string;
+    nonce_mismatch: string;
+    auth_time_not_found: string;
+    max_age_transpired: string;
+    multiple_matching_tokens: string;
+    multiple_matching_accounts: string;
+    multiple_matching_appMetadata: string;
+    request_cannot_be_made: string;
+    cannot_remove_empty_scope: string;
+    cannot_append_scopeset: string;
+    empty_input_scopeset: string;
+    device_code_polling_cancelled: string;
+    device_code_expired: string;
+    device_code_unknown_error: string;
+    no_account_in_silent_request: string;
+    invalid_cache_record: string;
+    invalid_cache_environment: string;
+    no_account_found: string;
+    no_crypto_object: string;
+    unexpected_credential_type: string;
+    invalid_assertion: string;
+    invalid_client_credential: string;
+    token_refresh_required: string;
+    user_timeout_reached: string;
+    token_claims_cnf_required_for_signedjwt: string;
+    authorization_code_missing_from_server_response: string;
+    binding_key_not_removed: string;
+    end_session_endpoint_not_supported: string;
+    key_id_missing: string;
+    no_network_connectivity: string;
+    user_canceled: string;
+    missing_tenant_id_error: string;
+    method_not_implemented: string;
+    nested_app_auth_bridge_disabled: string;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "ClientConfiguration" should be prefixed with an underscore because the declaration is marked as @internal
@@ -1675,98 +1541,32 @@ declare namespace ClientConfigurationErrorCodes {
 }
 export { ClientConfigurationErrorCodes }
 
-// Warning: (ae-missing-release-tag) "ClientConfigurationErrorMessage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "ClientConfigurationErrorMessages" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
-// @public @deprecated
-export const ClientConfigurationErrorMessage: {
-    redirectUriNotSet: {
-        code: string;
-        desc: string;
-    };
-    claimsRequestParsingError: {
-        code: string;
-        desc: string;
-    };
-    authorityUriInsecure: {
-        code: string;
-        desc: string;
-    };
-    urlParseError: {
-        code: string;
-        desc: string;
-    };
-    urlEmptyError: {
-        code: string;
-        desc: string;
-    };
-    emptyScopesError: {
-        code: string;
-        desc: string;
-    };
-    invalidPrompt: {
-        code: string;
-        desc: string;
-    };
-    invalidClaimsRequest: {
-        code: string;
-        desc: string;
-    };
-    tokenRequestEmptyError: {
-        code: string;
-        desc: string;
-    };
-    logoutRequestEmptyError: {
-        code: string;
-        desc: string;
-    };
-    invalidCodeChallengeMethod: {
-        code: string;
-        desc: string;
-    };
-    invalidCodeChallengeParams: {
-        code: string;
-        desc: string;
-    };
-    invalidCloudDiscoveryMetadata: {
-        code: string;
-        desc: string;
-    };
-    invalidAuthorityMetadata: {
-        code: string;
-        desc: string;
-    };
-    untrustedAuthority: {
-        code: string;
-        desc: string;
-    };
-    missingSshJwk: {
-        code: string;
-        desc: string;
-    };
-    missingSshKid: {
-        code: string;
-        desc: string;
-    };
-    missingNonceAuthenticationHeader: {
-        code: string;
-        desc: string;
-    };
-    invalidAuthenticationHeader: {
-        code: string;
-        desc: string;
-    };
-    cannotSetOIDCOptions: {
-        code: string;
-        desc: string;
-    };
-    cannotAllowPlatformBroker: {
-        code: string;
-        desc: string;
-    };
-    authorityMismatch: {
-        code: string;
-        desc: string;
-    };
+// @public (undocumented)
+export const ClientConfigurationErrorMessages: {
+    redirect_uri_empty: string;
+    claims_request_parsing_error: string;
+    authority_uri_insecure: string;
+    url_parse_error: string;
+    empty_url_error: string;
+    empty_input_scopes_error: string;
+    invalid_prompt_value: string;
+    invalid_claims: string;
+    token_request_empty: string;
+    logout_request_empty: string;
+    invalid_code_challenge_method: string;
+    pkce_params_missing: string;
+    invalid_cloud_discovery_metadata: string;
+    invalid_authority_metadata: string;
+    untrusted_authority: string;
+    missing_ssh_jwk: string;
+    missing_ssh_kid: string;
+    missing_nonce_authentication_header: string;
+    invalid_authentication_header: string;
+    cannot_set_OIDCOptions: string;
+    cannot_allow_platform_broker: string;
+    authority_mismatch: string;
 };
 
 // Warning: (ae-missing-release-tag) "ClientInfo" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -2554,7 +2354,6 @@ export type InProgressPerformanceEvent = {
         [key: string]: number | undefined;
     }) => void;
     event: PerformanceEvent;
-    measurement: IPerformanceMeasurement;
 };
 
 // Warning: (ae-missing-release-tag) "INSTANCE_AWARE" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -2595,24 +2394,6 @@ declare namespace InteractionRequiredAuthErrorCodes {
     }
 }
 export { InteractionRequiredAuthErrorCodes }
-
-// Warning: (ae-missing-release-tag) "InteractionRequiredAuthErrorMessage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public @deprecated
-export const InteractionRequiredAuthErrorMessage: {
-    noTokensFoundError: {
-        code: string;
-        desc: string;
-    };
-    native_account_unavailable: {
-        code: string;
-        desc: string;
-    };
-    bad_token: {
-        code: string;
-        desc: string;
-    };
-};
 
 // Warning: (ae-missing-release-tag) "IntFields" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -2726,8 +2507,6 @@ export interface IPerformanceClient {
     setPreQueueTime(eventName: string, correlationId?: string): void;
     // (undocumented)
     startMeasurement(measureName: string, correlationId?: string): InProgressPerformanceEvent;
-    // @deprecated (undocumented)
-    startPerformanceMeasurement(measureName: string, correlationId: string): IPerformanceMeasurement;
 }
 
 // Warning: (ae-missing-release-tag) "IPerformanceMeasurement" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -3148,7 +2927,7 @@ export const OIDC_DEFAULT_SCOPES: string[];
 //
 // @public
 export type OIDCOptions = {
-    serverResponseType?: ServerResponseType;
+    responseMode?: ResponseMode;
     defaultScopes?: Array<string>;
 };
 
@@ -3330,16 +3109,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
     // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
     // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
     startMeasurement(measureName: string, correlationId?: string): InProgressPerformanceEvent;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-    // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-    //
-    // @deprecated
-    startPerformanceMeasurement(measureName: string, // eslint-disable-line @typescript-eslint/no-unused-vars
-    correlationId: string): IPerformanceMeasurement;
 }
 
 // Warning: (tsdoc-undefined-tag) The TSDoc tag "@export" is not defined in this configuration
@@ -3958,18 +3727,6 @@ export class ServerError extends AuthError {
     readonly status?: number;
 }
 
-// Warning: (ae-missing-release-tag) "ServerResponseType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-// Warning: (ae-missing-release-tag) "ServerResponseType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public @deprecated
-export const ServerResponseType: {
-    readonly QUERY: "query";
-    readonly FRAGMENT: "fragment";
-};
-
-// @public (undocumented)
-export type ServerResponseType = (typeof ServerResponseType)[keyof typeof ServerResponseType];
-
 // Warning: (ae-missing-release-tag) "ServerTelemetryEntity" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -4174,8 +3931,6 @@ export class StubPerformanceClient implements IPerformanceClient {
     setPreQueueTime(): void;
     // (undocumented)
     startMeasurement(measureName: string, correlationId?: string | undefined): InProgressPerformanceEvent;
-    // (undocumented)
-    startPerformanceMeasurement(): IPerformanceMeasurement;
 }
 
 // Warning: (ae-missing-release-tag) "SubMeasurement" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -4432,8 +4187,6 @@ export class UrlString {
     // (undocumented)
     static getDomainFromUrl(url: string): string;
     getUrlComponents(): IUri;
-    // @deprecated
-    static hashContainsKnownProperties(response: string): boolean;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static removeHashFromUrl(url: string): string;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -4616,12 +4369,12 @@ const X_MS_LIB_CAPABILITY = "x-ms-lib-capability";
 // src/response/ResponseHandler.ts:333:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/response/ResponseHandler.ts:334:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/response/ResponseHandler.ts:335:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/telemetry/performance/PerformanceClient.ts:916:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/telemetry/performance/PerformanceClient.ts:916:15 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-// src/telemetry/performance/PerformanceClient.ts:928:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/telemetry/performance/PerformanceClient.ts:928:27 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-// src/telemetry/performance/PerformanceClient.ts:929:24 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/telemetry/performance/PerformanceClient.ts:929:17 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/telemetry/performance/PerformanceClient.ts:897:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/telemetry/performance/PerformanceClient.ts:897:15 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
+// src/telemetry/performance/PerformanceClient.ts:909:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/telemetry/performance/PerformanceClient.ts:909:27 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
+// src/telemetry/performance/PerformanceClient.ts:910:24 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/telemetry/performance/PerformanceClient.ts:910:17 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
 // src/telemetry/performance/PerformanceEvent.ts:589:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
 // src/telemetry/performance/PerformanceEvent.ts:589:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
 // src/telemetry/performance/PerformanceEvent.ts:589:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration

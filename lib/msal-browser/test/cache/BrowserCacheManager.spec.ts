@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError.js";
+import { BrowserAuthError, BrowserAuthErrorCodes } from "../../src/index.js";
 import {
     TEST_CONFIG,
     TEST_TOKENS,
@@ -62,7 +62,6 @@ describe("BrowserCacheManager tests", () => {
             temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
             cacheLocation: BrowserCacheLocation.SessionStorage,
             storeAuthStateInCookie: false,
-            secureCookies: false,
             cacheMigrationEnabled: false,
             claimsBasedCachingEnabled: false,
         };
@@ -2766,8 +2765,10 @@ describe("BrowserCacheManager tests", () => {
                 new EventHandler()
             );
 
-            expect(() => browserStorage.getCachedRequest()).toThrowError(
-                BrowserAuthErrorMessage.noTokenRequestCacheError.desc
+            expect(() => browserStorage.getCachedRequest()).toThrow(
+                new BrowserAuthError(
+                    BrowserAuthErrorCodes.noTokenRequestCacheError
+                )
             );
         });
 
@@ -2801,8 +2802,10 @@ describe("BrowserCacheManager tests", () => {
                 stringifiedRequest.substring(0, stringifiedRequest.length / 2),
                 true
             );
-            expect(() => browserStorage.getCachedRequest()).toThrowError(
-                BrowserAuthErrorMessage.unableToParseTokenRequestCacheError.desc
+            expect(() => browserStorage.getCachedRequest()).toThrow(
+                new BrowserAuthError(
+                    BrowserAuthErrorCodes.unableToParseTokenRequestCacheError
+                )
             );
         });
 

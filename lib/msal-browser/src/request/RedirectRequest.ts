@@ -31,7 +31,6 @@ import { CommonAuthorizationUrlRequest } from "@azure/msal-common/browser";
  * - claims                     - In cases where Azure AD tenant admin has enabled conditional access policies, and the policy has not been met, exceptions will contain claims that need to be consented to.
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  * - redirectStartPage          - The page that should be returned to after loginRedirect or acquireTokenRedirect. This should only be used if this is different from the redirectUri and will default to the page that initiates the request. When the navigateToLoginRequestUrl config option is set to false this parameter will be ignored.
- * - onRedirectNavigate         - Callback that will be passed the url that MSAL will navigate to. Returning false in the callback will stop navigation.
  */
 export type RedirectRequest = Partial<
     Omit<
@@ -47,10 +46,4 @@ export type RedirectRequest = Partial<
 > & {
     scopes: Array<string>;
     redirectStartPage?: string;
-    /**
-     * @deprecated
-     * onRedirectNavigate is deprecated and will be removed in the next major version.
-     * Set onRedirectNavigate in Configuration instead.
-     */
-    onRedirectNavigate?: (url: string) => boolean | void;
 };
