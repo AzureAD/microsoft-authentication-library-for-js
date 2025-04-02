@@ -743,7 +743,7 @@ export class RedirectClient extends StandardInteractionClient {
                     if (!this.browserStorage.getInteractionInProgress()) {
                         this.browserStorage.setInteractionInProgress(
                             true,
-                            INTERACTION_TYPE.SIGNIN
+                            INTERACTION_TYPE.SIGNOUT
                         );
                     }
                     await this.navigationClient.navigateExternal(
@@ -763,7 +763,7 @@ export class RedirectClient extends StandardInteractionClient {
                 if (!this.browserStorage.getInteractionInProgress()) {
                     this.browserStorage.setInteractionInProgress(
                         true,
-                        INTERACTION_TYPE.SIGNIN
+                        INTERACTION_TYPE.SIGNOUT
                     );
                 }
                 await this.navigationClient.navigateExternal(
