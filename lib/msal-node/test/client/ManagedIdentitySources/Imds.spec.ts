@@ -34,6 +34,7 @@ import {
 } from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
     DEFAULT_MANAGED_IDENTITY_ID,
+    ManagedIdentityQueryParameters,
     ManagedIdentitySourceNames,
 } from "../../../src/utils/Constants.js";
 import {
@@ -673,13 +674,17 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             );
         });
 
-        test("ignores a cached token when claims are provided", async () => {
+        test("ignores a cached token when claims are provided and the Managed Identity does not support token revocation, and ensures the token revocation query parameter token_sha256_to_refresh was not included in the network request to the Managed Identity", async () => {
+            const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            );
+
             let networkManagedIdentityResult: AuthenticationResult =
                 await systemAssignedManagedIdentityApplication.acquireToken({
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
             expect(networkManagedIdentityResult.fromCache).toBe(false);
-
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
@@ -702,6 +707,14 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
+
+            expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(2);
+            const url: URLSearchParams = new URLSearchParams(
+                sendGetRequestAsyncSpy.mock.lastCall[0]
+            );
+            expect(
+                url.has(ManagedIdentityQueryParameters.SHA256_TOKEN_TO_REFRESH)
+            ).toBe(false);
         });
 
         test("ignores a cached token when forceRefresh is set to true", async () => {
@@ -710,7 +723,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
             expect(networkManagedIdentityResult.fromCache).toBe(false);
-
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
@@ -730,7 +742,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
             expect(networkManagedIdentityResult.fromCache).toBe(false);
-
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
@@ -742,7 +753,6 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
             expect(networkManagedIdentityResult.fromCache).toBe(false);
-
             expect(networkManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
