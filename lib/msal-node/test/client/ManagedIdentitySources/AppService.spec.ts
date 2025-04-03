@@ -5,6 +5,7 @@
 
 import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication.js";
 import {
+    CAE_CONSTANTS,
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     MANAGED_IDENTITY_APP_SERVICE_NETWORK_REQUEST_400_ERROR,
@@ -33,13 +34,17 @@ import {
     ManagedIdentitySourceNames,
 } from "../../../src/utils/Constants.js";
 import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/client/ManagedIdentitySources/BaseManagedIdentitySource.js";
+import { CryptoProvider } from "../../../src/index.js";
 
 describe("Acquires a token successfully via an App Service Managed Identity", () => {
+    let cryptoProvider: CryptoProvider;
     beforeAll(() => {
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT] =
             "fake_IDENTITY_ENDPOINT";
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER] =
             "fake_IDENTITY_HEADER";
+
+        cryptoProvider = new CryptoProvider();
     });
 
     afterAll(() => {
@@ -179,21 +184,17 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
     });
 
     describe("Miscellaneous", () => {
-        let managedIdentityApplication: ManagedIdentityApplication;
-        beforeEach(() => {
-            managedIdentityApplication = new ManagedIdentityApplication(
-                systemAssignedConfig
-            );
-            expect(managedIdentityApplication.getManagedIdentitySource()).toBe(
-                ManagedIdentitySourceNames.APP_SERVICE
-            );
-        });
-
-        test("ignores a cached token when claims are provided, and the Managed Identity does support token revocation, and ensures the token revocation query parameter token_sha256_to_refresh was included in the network request to the Managed Identity", async () => {
+        test("ignores a cached token when claims are provided and the Managed Identity does support token revocation, and ensures the token revocation query parameter token_sha256_to_refresh was included in the network request to the Managed Identity", async () => {
             const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
                 networkClient,
                 <any>"sendGetRequestAsync"
             );
+
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication({
+                    ...systemAssignedConfig,
+                    clientCapabilities: CAE_CONSTANTS.CLIENT_CAPABILITIES,
+                });
 
             let networkManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken({
@@ -204,6 +205,15 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
 
+            expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(1);
+            const firstNetworkRequestUrlParams: URLSearchParams =
+                new URLSearchParams(sendGetRequestAsyncSpy.mock.lastCall[0]);
+            expect(
+                firstNetworkRequestUrlParams.get(
+                    ManagedIdentityQueryParameters.XMS_CC
+                )
+            ).toEqual(CAE_CONSTANTS.CLIENT_CAPABILITIES.toString());
+
             const cachedManagedIdentityResult: AuthenticationResult =
                 await managedIdentityApplication.acquireToken({
                     resource: MANAGED_IDENTITY_RESOURCE,
@@ -212,6 +222,7 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
             expect(cachedManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
+            expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(1);
 
             networkManagedIdentityResult =
                 await managedIdentityApplication.acquireToken({
@@ -224,12 +235,17 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
             );
 
             expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(2);
-            const url: URLSearchParams = new URLSearchParams(
-                sendGetRequestAsyncSpy.mock.lastCall[0]
-            );
+            const secondNetworkRequestUrlParams: URLSearchParams =
+                new URLSearchParams(sendGetRequestAsyncSpy.mock.lastCall[0]);
             expect(
-                url.has(ManagedIdentityQueryParameters.SHA256_TOKEN_TO_REFRESH)
-            ).toBe(true);
+                secondNetworkRequestUrlParams.get(
+                    ManagedIdentityQueryParameters.SHA256_TOKEN_TO_REFRESH
+                )
+            ).toEqual(
+                await cryptoProvider.hashString(
+                    DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                )
+            );
         });
     });
 

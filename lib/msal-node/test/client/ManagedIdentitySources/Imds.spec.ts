@@ -6,6 +6,7 @@
 import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication.js";
 import { ManagedIdentityConfiguration } from "../../../src/config/Configuration.js";
 import {
+    CAE_CONSTANTS,
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_IN_MS,
@@ -680,8 +681,14 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 <any>"sendGetRequestAsync"
             );
 
+            const managedIdentityApplication: ManagedIdentityApplication =
+                new ManagedIdentityApplication({
+                    ...systemAssignedConfig,
+                    clientCapabilities: CAE_CONSTANTS.CLIENT_CAPABILITIES,
+                });
+
             let networkManagedIdentityResult: AuthenticationResult =
-                await systemAssignedManagedIdentityApplication.acquireToken({
+                await managedIdentityApplication.acquireToken({
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
             expect(networkManagedIdentityResult.fromCache).toBe(false);
@@ -689,17 +696,27 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
 
+            expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(1);
+            const firstNetworkRequestUrlParams: URLSearchParams =
+                new URLSearchParams(sendGetRequestAsyncSpy.mock.lastCall[0]);
+            expect(
+                firstNetworkRequestUrlParams.get(
+                    ManagedIdentityQueryParameters.XMS_CC
+                )
+            ).toEqual(CAE_CONSTANTS.CLIENT_CAPABILITIES.toString());
+
             const cachedManagedIdentityResult: AuthenticationResult =
-                await systemAssignedManagedIdentityApplication.acquireToken({
+                await managedIdentityApplication.acquireToken({
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
             expect(cachedManagedIdentityResult.fromCache).toBe(true);
             expect(cachedManagedIdentityResult.accessToken).toEqual(
                 DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
             );
+            expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(1);
 
             networkManagedIdentityResult =
-                await systemAssignedManagedIdentityApplication.acquireToken({
+                await managedIdentityApplication.acquireToken({
                     claims: TEST_CONFIG.CLAIMS,
                     resource: MANAGED_IDENTITY_RESOURCE,
                 });
@@ -709,11 +726,12 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             );
 
             expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(2);
-            const url: URLSearchParams = new URLSearchParams(
-                sendGetRequestAsyncSpy.mock.lastCall[0]
-            );
+            const secondNetworkRequestUrlParams: URLSearchParams =
+                new URLSearchParams(sendGetRequestAsyncSpy.mock.lastCall[0]);
             expect(
-                url.has(ManagedIdentityQueryParameters.SHA256_TOKEN_TO_REFRESH)
+                secondNetworkRequestUrlParams.has(
+                    ManagedIdentityQueryParameters.SHA256_TOKEN_TO_REFRESH
+                )
             ).toBe(false);
         });
 
