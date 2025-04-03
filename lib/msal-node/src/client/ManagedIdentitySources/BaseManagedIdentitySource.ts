@@ -150,14 +150,14 @@ export abstract class BaseManagedIdentitySource {
                 managedIdentityId
             );
 
-        if (managedIdentityRequest.accessTokenSha256Hash) {
+        if (managedIdentityRequest.revokedTokenSha256Hash) {
             this.logger.info(
                 `[Managed Identity] The following claims are present in the request: ${managedIdentityRequest.claims}`
             );
 
             networkRequest.queryParameters[
                 ManagedIdentityQueryParameters.SHA256_TOKEN_TO_REFRESH
-            ] = managedIdentityRequest.accessTokenSha256Hash;
+            ] = managedIdentityRequest.revokedTokenSha256Hash;
         }
 
         if (managedIdentityRequest.clientCapabilities?.length) {

@@ -185,12 +185,12 @@ export class ManagedIdentityApplication {
                 cachedAuthenticationResult &&
                 SOURCES_THAT_SUPPORT_TOKEN_REVOCATION.includes(sourceName)
             ) {
-                const accessTokenSha256Hash: string =
+                const revokedTokenSha256Hash: string =
                     await this.cryptoProvider.hashString(
                         cachedAuthenticationResult.accessToken
                     );
-                managedIdentityRequest.accessTokenSha256Hash =
-                    accessTokenSha256Hash;
+                managedIdentityRequest.revokedTokenSha256Hash =
+                    revokedTokenSha256Hash;
             }
 
             return this.acquireTokenFromManagedIdentity(
