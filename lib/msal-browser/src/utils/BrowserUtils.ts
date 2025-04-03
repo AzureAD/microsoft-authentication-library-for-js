@@ -3,7 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { UrlString, invoke, invokeAsync, UrlUtils } from "@azure/msal-common/browser";
+import {
+    UrlString,
+    invoke,
+    invokeAsync,
+    UrlUtils,
+} from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
