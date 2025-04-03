@@ -4,7 +4,7 @@
  */
 
 import { UrlString, invoke, invokeAsync } from "@azure/msal-common/browser";
-import { UrlUtils } from "@azure/msal-common";
+import { UrlUtils } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
