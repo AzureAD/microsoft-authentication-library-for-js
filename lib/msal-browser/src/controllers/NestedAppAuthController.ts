@@ -437,7 +437,7 @@ export class NestedAppAuthController implements IController {
             return result;
         }
 
-        this.logger.error(
+        this.logger.warning(
             "Cached tokens are not found for the account, proceeding with silent token request."
         );
 
