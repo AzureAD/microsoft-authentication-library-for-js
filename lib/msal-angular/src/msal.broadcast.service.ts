@@ -71,4 +71,11 @@ export class MsalBroadcastService {
       }
     });
   }
+
+  /**
+   * Resets inProgress state to None
+   */
+  resetInProgressEvent(): void {
+    this._inProgress.next(InteractionStatus.None);
+  }
 }
