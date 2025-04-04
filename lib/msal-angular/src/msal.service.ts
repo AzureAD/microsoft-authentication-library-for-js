@@ -62,10 +62,6 @@ export class MsalService implements IMsalService {
         .then(() =>
           this.instance.handleRedirectPromise(hash || this.redirectHash)
         )
-        .catch((error: AuthError) => {
-          this.logger.error("Error while executing handleRedirectPromise");
-          throw error; // Rethrow the error to ensure the return type matches
-        })
         .finally(() => {
           // update inProgress state to none
           this.injector.get(MsalBroadcastService).resetInProgressEvent();
