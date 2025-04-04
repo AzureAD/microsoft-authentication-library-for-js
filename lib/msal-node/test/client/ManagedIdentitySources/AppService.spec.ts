@@ -6,6 +6,7 @@
 import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication.js";
 import {
     CAE_CONSTANTS,
+    DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT_ACCESS_TOKEN_SHA256_HASH,
     DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
     MANAGED_IDENTITY_APP_SERVICE_NETWORK_REQUEST_400_ERROR,
@@ -34,17 +35,13 @@ import {
     ManagedIdentitySourceNames,
 } from "../../../src/utils/Constants.js";
 import { ManagedIdentityUserAssignedIdQueryParameterNames } from "../../../src/client/ManagedIdentitySources/BaseManagedIdentitySource.js";
-import { CryptoProvider } from "../../../src/index.js";
 
 describe("Acquires a token successfully via an App Service Managed Identity", () => {
-    let cryptoProvider: CryptoProvider;
     beforeAll(() => {
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT] =
             "fake_IDENTITY_ENDPOINT";
         process.env[ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER] =
             "fake_IDENTITY_HEADER";
-
-        cryptoProvider = new CryptoProvider();
     });
 
     afterAll(() => {
@@ -133,8 +130,6 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
                     ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID_NON_IMDS
                 )
             ).toEqual(MANAGED_IDENTITY_RESOURCE_ID);
-
-            jest.restoreAllMocks();
         });
     });
 
@@ -242,9 +237,7 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
                     ManagedIdentityQueryParameters.SHA256_TOKEN_TO_REFRESH
                 )
             ).toEqual(
-                await cryptoProvider.hashString(
-                    DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
-                )
+                DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT_ACCESS_TOKEN_SHA256_HASH
             );
         });
     });
