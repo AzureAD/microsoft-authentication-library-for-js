@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1743535205601,
+  "lastUpdate": 1743801312262,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -14804,6 +14804,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.77%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fabf962dcb69611b4516342107bc7bcc364c4e68",
+          "message": "New resetInProgressEvent method to reset event to None after handleRedirectPromise completes (#7682)\n\nThis PR fixes a bug in msal-angular where inProgress event does not get\nreset to None after handleRedirectPromise() completes.",
+          "timestamp": "2025-04-04T14:08:56-07:00",
+          "tree_id": "88bc31e53e5aa7f01e124cd80bf71af9913887db",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/fabf962dcb69611b4516342107bc7bcc364c4e68"
+        },
+        "date": 1743801310795,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 252894,
+            "range": "±0.81%",
+            "unit": "ops/sec",
+            "extra": "212 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 244984,
+            "range": "±0.80%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
           }
         ]
       }
