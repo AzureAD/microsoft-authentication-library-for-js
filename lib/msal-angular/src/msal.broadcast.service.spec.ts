@@ -444,10 +444,9 @@ describe("MsalBroadcastService", () => {
     );
   });
 
-  it("automatically sets inProgress to None when handleRedirectPromise returns without emitting HANDLE_REDIRECT_END", (done) => {
+  it("automatically sets inProgress to None when handleRedirectPromise returns without emitting an event", (done) => {
     const expectedInProgress = [
       InteractionStatus.Startup,
-      InteractionStatus.HandleRedirect,
       InteractionStatus.None,
     ];
     let index = 0;
@@ -456,9 +455,7 @@ describe("MsalBroadcastService", () => {
       expect(result).toEqual(expectedInProgress[index]);
       if (index === expectedInProgress.length - 1) {
         done();
-      } else if (
-        expectedInProgress[index] === InteractionStatus.HandleRedirect
-      ) {
+      } else if (expectedInProgress[index] === InteractionStatus.Startup) {
         index++;
         broadcastService.resetInProgressEvent();
       } else {
@@ -467,7 +464,7 @@ describe("MsalBroadcastService", () => {
     });
 
     eventHandler.emitEvent(
-      EventType.HANDLE_REDIRECT_START,
+      EventType.INITIALIZE_START,
       InteractionType.Redirect
     );
   });

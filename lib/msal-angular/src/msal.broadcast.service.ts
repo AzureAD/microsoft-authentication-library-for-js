@@ -76,6 +76,8 @@ export class MsalBroadcastService {
    * Resets inProgress state to None
    */
   resetInProgressEvent(): void {
-    this._inProgress.next(InteractionStatus.None);
+    if (this._inProgress.value === InteractionStatus.Startup) {
+      this._inProgress.next(InteractionStatus.None);
+    }
   }
 }
