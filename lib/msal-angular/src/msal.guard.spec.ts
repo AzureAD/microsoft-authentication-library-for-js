@@ -68,6 +68,7 @@ function initializeMsal(providers: any[] = []) {
       RouterTestingModule.withRoutes([]),
     ],
     providers: [MsalGuard, MsalService, MsalBroadcastService, ...providers],
+    teardown: { destroyAfterEach: false },
   });
 
   authService = TestBed.inject(MsalService);

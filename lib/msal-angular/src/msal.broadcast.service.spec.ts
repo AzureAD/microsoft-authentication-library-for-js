@@ -40,6 +40,7 @@ function initializeMsal(providers: any[] = []) {
       }),
     ],
     providers: [MsalBroadcastService, ...providers],
+    teardown: { destroyAfterEach: false },
   });
   broadcastService = TestBed.inject(MsalBroadcastService);
 }

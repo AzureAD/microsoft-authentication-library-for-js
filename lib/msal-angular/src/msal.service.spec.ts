@@ -30,6 +30,7 @@ function initializeMsal() {
       }),
     ],
     providers: [MsalService, MsalBroadcastService],
+    teardown: { destroyAfterEach: false },
   });
 
   authService = TestBed.inject(MsalService);
@@ -198,7 +199,7 @@ describe("MsalService", () => {
 
       authService.ssoSilent(request).subscribe({
         error: (error: AuthError) => {
-          expect(error.message).toBe(sampleError.message);
+          expect(error.errorMessage).toBe(sampleError.errorMessage);
           expect(
             PublicClientApplication.prototype.ssoSilent
           ).toHaveBeenCalledWith(request);
@@ -259,7 +260,7 @@ describe("MsalService", () => {
 
       authService.acquireTokenSilent(request).subscribe({
         error: (error: AuthError) => {
-          expect(error.message).toBe(sampleError.message);
+          expect(error.errorMessage).toBe(sampleError.errorMessage);
           expect(
             PublicClientApplication.prototype.acquireTokenSilent
           ).toHaveBeenCalledWith(request);
@@ -339,7 +340,7 @@ describe("MsalService", () => {
 
       authService.acquireTokenPopup(request).subscribe({
         error: (error: AuthError) => {
-          expect(error.message).toBe(sampleError.message);
+          expect(error.errorMessage).toBe(sampleError.errorMessage);
           expect(
             PublicClientApplication.prototype.acquireTokenPopup
           ).toHaveBeenCalledWith(request);

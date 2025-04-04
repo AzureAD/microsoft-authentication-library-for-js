@@ -16,6 +16,7 @@ import {
   SsoSilentRequest,
   Logger,
   WrapperSKU,
+  AuthError,
 } from "@azure/msal-browser";
 import { Observable, from } from "rxjs";
 import { IMsalService } from "./IMsalService";
@@ -61,11 +62,8 @@ export class MsalService implements IMsalService {
         .then(() =>
           this.instance.handleRedirectPromise(hash || this.redirectHash)
         )
-        .catch((error) => {
-          this.logger.error(
-            "Error while executing handleRedirectPromise",
-            error
-          );
+        .catch((error: AuthError) => {
+          this.logger.error("Error while executing handleRedirectPromise");
           throw error; // Rethrow the error to ensure the return type matches
         })
         .finally(() => {
