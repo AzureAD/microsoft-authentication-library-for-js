@@ -112,18 +112,6 @@ describe("MsalService", () => {
     });
   });
 
-  describe("logout", () => {
-    it("calls logout on msalService", async () => {
-      spyOn(PublicClientApplication.prototype, "logout").and.returnValue(
-        new Promise((resolve) => {
-          resolve();
-        })
-      );
-      await authService.logout();
-      expect(PublicClientApplication.prototype.logout).toHaveBeenCalled();
-    });
-  });
-
   describe("logoutPopup", () => {
     it("calls logoutPopup on msalService", async () => {
       spyOn(PublicClientApplication.prototype, "logoutPopup").and.returnValue(

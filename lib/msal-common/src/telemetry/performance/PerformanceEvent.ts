@@ -214,19 +214,21 @@ export const PerformanceEvents = {
         "standardInteractionClientGetClientConfiguration",
     StandardInteractionClientInitializeAuthorizationRequest:
         "standardInteractionClientInitializeAuthorizationRequest",
-    StandardInteractionClientInitializeAuthorizationCodeRequest:
-        "standardInteractionClientInitializeAuthorizationCodeRequest",
 
     /**
      * getAuthCodeUrl API (msal-browser and msal-node).
      */
     GetAuthCodeUrl: "getAuthCodeUrl",
+    GetStandardParams: "getStandardParams",
 
     /**
      * Functions from InteractionHandler (msal-browser)
      */
     HandleCodeResponseFromServer: "handleCodeResponseFromServer",
     HandleCodeResponse: "handleCodeResponse",
+    HandleResponseEar: "handleResponseEar",
+    HandleResponsePlatformBroker: "handleResponsePlatformBroker",
+    HandleResponseCode: "handleResponseCode",
     UpdateTokenEndpointAuthority: "updateTokenEndpointAuthority",
 
     /**
@@ -235,7 +237,6 @@ export const PerformanceEvents = {
     AuthClientAcquireToken: "authClientAcquireToken",
     AuthClientExecuteTokenRequest: "authClientExecuteTokenRequest",
     AuthClientCreateTokenRequestBody: "authClientCreateTokenRequestBody",
-    AuthClientCreateQueryString: "authClientCreateQueryString",
 
     /**
      * Generate functions in PopTokenGenerator (msal-common)
@@ -317,6 +318,8 @@ export const PerformanceEvents = {
     UrlEncodeArr: "urlEncodeArr",
     Encrypt: "encrypt",
     Decrypt: "decrypt",
+    GenerateEarKey: "generateEarKey",
+    DecryptEarResponse: "decryptEarResponse",
 } as const;
 export type PerformanceEvents =
     (typeof PerformanceEvents)[keyof typeof PerformanceEvents];
@@ -433,10 +436,6 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             "StdIntClientInitAuthReq",
         ],
-        [
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest,
-            "StdIntClientInitAuthCodeReq",
-        ],
 
         [PerformanceEvents.GetAuthCodeUrl, "GetAuthCodeUrl"],
 
@@ -445,6 +444,12 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
             "HandleCodeResFromServer",
         ],
         [PerformanceEvents.HandleCodeResponse, "HandleCodeResp"],
+        [PerformanceEvents.HandleResponseEar, "HandleRespEar"],
+        [PerformanceEvents.HandleResponseCode, "HandleRespCode"],
+        [
+            PerformanceEvents.HandleResponsePlatformBroker,
+            "HandleRespPlatBroker",
+        ],
         [PerformanceEvents.UpdateTokenEndpointAuthority, "UpdTEndpointAuth"],
 
         [PerformanceEvents.AuthClientAcquireToken, "AuthClientAT"],
@@ -452,10 +457,6 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         [
             PerformanceEvents.AuthClientCreateTokenRequestBody,
             "AuthClientCreateTReqBody",
-        ],
-        [
-            PerformanceEvents.AuthClientCreateQueryString,
-            "AuthClientCreateQueryStr",
         ],
         [PerformanceEvents.PopTokenGenerateCnf, "PopTGenCnf"],
         [PerformanceEvents.PopTokenGenerateKid, "PopTGenKid"],
@@ -552,6 +553,8 @@ export const PerformanceEventAbbreviations: ReadonlyMap<string, string> =
         [PerformanceEvents.UrlEncodeArr, "urlEncArr"],
         [PerformanceEvents.Encrypt, "encrypt"],
         [PerformanceEvents.Decrypt, "decrypt"],
+        [PerformanceEvents.GenerateEarKey, "genEarKey"],
+        [PerformanceEvents.DecryptEarResponse, "decryptEarResp"],
     ]);
 
 /**

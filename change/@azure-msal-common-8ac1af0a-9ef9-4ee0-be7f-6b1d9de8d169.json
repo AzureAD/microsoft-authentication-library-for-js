@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "refactor RequestParameterBuilder",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -519,7 +519,11 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                    `${
+                        AADServerParamKeys.X_MS_LIB_CAPABILITY
+                    }=${encodeURIComponent(
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
@@ -781,7 +785,11 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                    `${
+                        AADServerParamKeys.X_MS_LIB_CAPABILITY
+                    }=${encodeURIComponent(
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
@@ -899,7 +907,11 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                    `${
+                        AADServerParamKeys.X_MS_LIB_CAPABILITY
+                    }=${encodeURIComponent(
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
@@ -968,7 +980,6 @@ describe("RefreshTokenClient unit tests", () => {
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),
                 emitEvents: jest.fn(),
-                startPerformanceMeasurement: jest.fn(),
                 generateId: jest.fn(),
                 calculateQueuedTime: jest.fn(),
                 addQueueMeasurement: jest.fn(),
@@ -1013,7 +1024,6 @@ describe("RefreshTokenClient unit tests", () => {
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),
                 emitEvents: jest.fn(),
-                startPerformanceMeasurement: jest.fn(),
                 generateId: jest.fn(),
                 calculateQueuedTime: jest.fn(),
                 addQueueMeasurement: jest.fn(),

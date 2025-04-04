@@ -65,10 +65,6 @@ export type NodeAuthOptions = {
  */
 export type CacheOptions = {
     cachePlugin?: ICachePlugin;
-    /**
-     * @deprecated claims-based-caching functionality will be removed in the next version of MSALJS
-     */
-    claimsBasedCachingEnabled?: boolean;
 };
 
 /**
@@ -156,10 +152,6 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     skipAuthorityMetadataCache: false,
 };
 
-const DEFAULT_CACHE_OPTIONS: CacheOptions = {
-    claimsBasedCachingEnabled: false,
-};
-
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     loggerCallback: (): void => {
         // allow users to not set logger call back
@@ -232,7 +224,7 @@ export function buildAppConfiguration({
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         broker: { ...broker },
-        cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
+        cache: { ...cache },
         system: { ...systemOptions, ...system },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },
     };
