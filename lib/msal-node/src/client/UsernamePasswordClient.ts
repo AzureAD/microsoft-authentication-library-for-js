@@ -13,6 +13,7 @@ import {
     CommonUsernamePasswordRequest,
     GrantType,
     NetworkResponse,
+    OAuthResponseType,
     RequestParameterBuilder,
     RequestThumbprint,
     ResponseHandler,
@@ -130,7 +131,10 @@ export class UsernamePasswordClient extends BaseClient {
 
         RequestParameterBuilder.addScopes(parameters, request.scopes);
 
-        RequestParameterBuilder.addResponseTypeForTokenAndIdToken(parameters);
+        RequestParameterBuilder.addResponseType(
+            parameters,
+            OAuthResponseType.IDTOKEN_TOKEN
+        );
 
         RequestParameterBuilder.addGrantType(
             parameters,

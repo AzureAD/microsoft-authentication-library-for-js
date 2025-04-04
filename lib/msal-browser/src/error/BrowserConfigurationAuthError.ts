@@ -17,32 +17,6 @@ export const BrowserConfigurationAuthErrorMessages = {
 };
 
 /**
- * BrowserAuthErrorMessage class containing string constants used by error codes and messages.
- * @deprecated Use BrowserAuthErrorCodes instead
- */
-export const BrowserConfigurationAuthErrorMessage = {
-    storageNotSupportedError: {
-        code: BrowserConfigurationAuthErrorCodes.storageNotSupported,
-        desc: BrowserConfigurationAuthErrorMessages[
-            BrowserConfigurationAuthErrorCodes.storageNotSupported
-        ],
-    },
-    stubPcaInstanceCalled: {
-        code: BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
-        desc: BrowserConfigurationAuthErrorMessages[
-            BrowserConfigurationAuthErrorCodes
-                .stubbedPublicClientApplicationCalled
-        ],
-    },
-    inMemRedirectUnavailable: {
-        code: BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable,
-        desc: BrowserConfigurationAuthErrorMessages[
-            BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable
-        ],
-    },
-};
-
-/**
  * Browser library error class thrown by the MSAL.js library for SPAs
  */
 export class BrowserConfigurationAuthError extends AuthError {

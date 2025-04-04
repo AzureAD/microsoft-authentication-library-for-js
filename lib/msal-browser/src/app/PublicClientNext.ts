@@ -213,63 +213,12 @@ export class PublicClientNext implements IPublicClientApplication {
     }
 
     /**
-     * Adds event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
-     */
-    enableAccountStorageEvents(): void {
-        this.controller.enableAccountStorageEvents();
-    }
-
-    /**
-     * Removes event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
-     */
-    disableAccountStorageEvents(): void {
-        this.controller.disableAccountStorageEvents();
-    }
-
-    /**
      * Returns the first account found in the cache that matches the account filter passed in.
      * @param accountFilter
      * @returns The first account found in the cache matching the provided filter or null if no account could be found.
      */
     getAccount(accountFilter: AccountFilter): AccountInfo | null {
         return this.controller.getAccount(accountFilter);
-    }
-
-    /**
-     * Returns the signed in account matching homeAccountId.
-     * (the account object is created at the time of successful login)
-     * or null when no matching account is found
-     * @param homeAccountId
-     * @returns The account object stored in MSAL
-     * @deprecated - Use getAccount instead
-     */
-    getAccountByHomeId(homeAccountId: string): AccountInfo | null {
-        return this.controller.getAccountByHomeId(homeAccountId);
-    }
-
-    /**
-     * Returns the signed in account matching localAccountId.
-     * (the account object is created at the time of successful login)
-     * or null when no matching account is found
-     * @param localAccountId
-     * @returns The account object stored in MSAL
-     * @deprecated - Use getAccount instead
-     */
-    getAccountByLocalId(localId: string): AccountInfo | null {
-        return this.controller.getAccountByLocalId(localId);
-    }
-
-    /**
-     * Returns the signed in account matching username.
-     * (the account object is created at the time of successful login)
-     * or null when no matching account is found.
-     * This API is provided for convenience but getAccountById should be used for best reliability
-     * @param userName
-     * @returns The account object stored in MSAL
-     * @deprecated - Use getAccount instead
-     */
-    getAccountByUsername(userName: string): AccountInfo | null {
-        return this.controller.getAccountByUsername(userName);
     }
 
     /**
@@ -318,15 +267,6 @@ export class PublicClientNext implements IPublicClientApplication {
      */
     loginRedirect(request?: RedirectRequest | undefined): Promise<void> {
         return this.controller.loginRedirect(request);
-    }
-
-    /**
-     * Deprecated logout function. Use logoutRedirect or logoutPopup instead
-     * @param logoutRequest
-     * @deprecated
-     */
-    logout(logoutRequest?: EndSessionRequest): Promise<void> {
-        return this.controller.logout(logoutRequest);
     }
 
     /**

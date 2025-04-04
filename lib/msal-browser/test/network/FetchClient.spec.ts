@@ -6,7 +6,7 @@ import {
     NetworkRequestOptions,
 } from "@azure/msal-common";
 import {
-    BrowserAuthErrorMessage,
+    BrowserAuthErrorCodes,
     BrowserAuthError,
 } from "../../src/error/BrowserAuthError";
 
@@ -142,7 +142,7 @@ describe("FetchClient.ts Unit Tests", () => {
                 .catch((e) => {
                     expect(e).toBeInstanceOf(BrowserAuthError);
                     expect(e.errorCode).toBe(
-                        BrowserAuthErrorMessage.postRequestFailed.code
+                        BrowserAuthErrorCodes.postRequestFailed
                     );
                     done();
                 });
@@ -163,7 +163,7 @@ describe("FetchClient.ts Unit Tests", () => {
             fetchClient.sendGetRequestAsync<any>(targetUri).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e.errorCode).toBe(
-                    BrowserAuthErrorMessage.getRequestFailed.code
+                    BrowserAuthErrorCodes.getRequestFailed
                 );
                 done();
             });
@@ -197,8 +197,7 @@ describe("FetchClient.ts Unit Tests", () => {
                     expect(e).toBeInstanceOf(NetworkError);
                     expect(e.error).toBeInstanceOf(BrowserAuthError);
                     expect(e.errorCode).toBe(
-                        BrowserAuthErrorMessage.failedToParseNetworkResponse
-                            .code
+                        BrowserAuthErrorCodes.failedToParseResponse
                     );
                     done();
                 });
@@ -237,7 +236,7 @@ describe("FetchClient.ts Unit Tests", () => {
                 .catch((e) => {
                     expect(e).toBeInstanceOf(BrowserAuthError);
                     expect(e.errorCode).toBe(
-                        BrowserAuthErrorMessage.noNetworkConnectivity.code
+                        BrowserAuthErrorCodes.noNetworkConnectivity
                     );
                     done();
                 });

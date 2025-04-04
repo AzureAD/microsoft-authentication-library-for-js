@@ -11,7 +11,7 @@ import {
     Constants,
     ProtocolMode,
     OIDCOptions,
-    ServerResponseType,
+    ResponseMode,
     LogLevel,
     StubbedNetworkModule,
     AzureCloudInstance,
@@ -95,12 +95,6 @@ export type BrowserAuthOptions = {
      */
     skipAuthorityMetadataCache?: boolean;
     /**
-     * App supports nested app auth or not; defaults to
-     *
-     * @deprecated This flag is deprecated and will be removed in the next major version. createNestablePublicClientApplication should be used instead.
-     */
-    supportsNestedAppAuth?: boolean;
-    /**
      * Callback that will be passed the url that MSAL will navigate to in redirect flows. Returning false in the callback will stop navigation.
      */
     onRedirectNavigate?: (url: string) => boolean | void;
@@ -136,11 +130,6 @@ export type CacheOptions = {
      */
     storeAuthStateInCookie?: boolean;
     /**
-     * If set, MSAL sets the "Secure" flag on cookies so they can only be sent over HTTPS. By default this flag is set to true.
-     * @deprecated This option will be removed in a future major version and all cookies set will include the Secure attribute.
-     */
-    secureCookies?: boolean;
-    /**
      * If set, MSAL will attempt to migrate cache entries from older versions on initialization. By default this flag is set to true if cacheLocation is localStorage, otherwise false.
      */
     cacheMigrationEnabled?: boolean;
@@ -175,11 +164,6 @@ export type BrowserSystemOptions = SystemOptions & {
      * Sets the timeout for waiting for a response hash in an iframe or popup
      */
     loadFrameTimeout?: number;
-    /**
-     * Maximum time the library should wait for a frame to load
-     * @deprecated This was previously needed for older browsers which are no longer supported by MSAL.js. This option will be removed in the next major version
-     */
-    navigateFrameWait?: number;
     /**
      * Time to wait for redirection to occur before resolving promise
      */
@@ -282,7 +266,7 @@ export function buildConfiguration(
         clientCapabilities: [],
         protocolMode: ProtocolMode.AAD,
         OIDCOptions: {
-            serverResponseType: ServerResponseType.FRAGMENT,
+            responseMode: ResponseMode.FRAGMENT,
             defaultScopes: [
                 Constants.OPENID_SCOPE,
                 Constants.PROFILE_SCOPE,
@@ -294,7 +278,6 @@ export function buildConfiguration(
             tenant: Constants.EMPTY_STRING,
         },
         skipAuthorityMetadataCache: false,
-        supportsNestedAppAuth: false,
         instanceAware: false,
     };
 
@@ -303,7 +286,6 @@ export function buildConfiguration(
         cacheLocation: BrowserCacheLocation.SessionStorage,
         temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
         storeAuthStateInCookie: false,
-        secureCookies: false,
         // Default cache migration to true if cache location is localStorage since entries are preserved across tabs/windows. Migration has little to no benefit in sessionStorage and memoryStorage
         cacheMigrationEnabled:
             userInputCache &&
@@ -337,7 +319,6 @@ export function buildConfiguration(
             userInputSystem?.loadFrameTimeout || DEFAULT_POPUP_TIMEOUT_MS,
         iframeHashTimeout:
             userInputSystem?.loadFrameTimeout || DEFAULT_IFRAME_TIMEOUT_MS,
-        navigateFrameWait: 0,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         asyncPopups: false,
         allowRedirectInIframe: false,
@@ -377,10 +358,10 @@ export function buildConfiguration(
         );
     }
 
-    // Throw an error if user has set allowPlatformBroker to true without being in AAD protocol mode
+    // Throw an error if user has set allowPlatformBroker to true with OIDC protocol mode
     if (
         userInputAuth?.protocolMode &&
-        userInputAuth.protocolMode !== ProtocolMode.AAD &&
+        userInputAuth.protocolMode === ProtocolMode.OIDC &&
         providedSystemOptions?.allowPlatformBroker
     ) {
         throw createClientConfigurationError(

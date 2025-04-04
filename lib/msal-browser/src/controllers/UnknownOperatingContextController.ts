@@ -186,6 +186,7 @@ export class UnknownOperatingContextController implements IController {
                   Omit<
                       CommonAuthorizationUrlRequest,
                       | "responseMode"
+                      | "earJwk"
                       | "codeChallenge"
                       | "codeChallengeMethod"
                       | "requestedClaimsHash"
@@ -234,14 +235,6 @@ export class UnknownOperatingContextController implements IController {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();
         return true;
-    }
-    enableAccountStorageEvents(): void {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
-    }
-    disableAccountStorageEvents(): void {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
     }
 
     handleRedirectPromise(
@@ -293,6 +286,7 @@ export class UnknownOperatingContextController implements IController {
             Omit<
                 CommonAuthorizationUrlRequest,
                 | "responseMode"
+                | "earJwk"
                 | "codeChallenge"
                 | "codeChallengeMethod"
                 | "requestedClaimsHash"

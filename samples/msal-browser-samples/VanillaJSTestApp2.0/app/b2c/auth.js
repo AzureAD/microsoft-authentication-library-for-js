@@ -43,7 +43,7 @@ async function signIn(method) {
 }
 
 function signOut() {
-    const currentAcc = myMSALObj.getAccountByHomeId(accountId);
+    const currentAcc = myMSALObj.getAccount({accountId})
     myMSALObj.logout(currentAcc);
 }
 
@@ -61,7 +61,7 @@ function getAccessTokenRedirect() {
 
 function getAccessTokenSilent() {
     request = tokenRequest
-    request.account = myMSALObj.getAccountByHomeId(accountId);
+    request.account = myMSALObj.getAccount({accountId});
     myMSALObj.acquireTokenSilent(request).then(handleResponse).catch(error => {
         console.log(error);
     })
