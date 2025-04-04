@@ -443,4 +443,32 @@ describe("MsalBroadcastService", () => {
       InteractionType.Redirect
     );
   });
+
+  it("automatically sets inProgress to None when handleRedirectPromise returns without emitting HANDLE_REDIRECT_END", (done) => {
+    const expectedInProgress = [
+      InteractionStatus.Startup,
+      InteractionStatus.HandleRedirect,
+      InteractionStatus.None,
+    ];
+    let index = 0;
+
+    subscription = broadcastService.inProgress$.subscribe((result) => {
+      expect(result).toEqual(expectedInProgress[index]);
+      if (index === expectedInProgress.length - 1) {
+        done();
+      } else if (
+        expectedInProgress[index] === InteractionStatus.HandleRedirect
+      ) {
+        index++;
+        broadcastService.resetInProgressEvent();
+      } else {
+        index++;
+      }
+    });
+
+    eventHandler.emitEvent(
+      EventType.HANDLE_REDIRECT_START,
+      InteractionType.Redirect
+    );
+  });
 });
