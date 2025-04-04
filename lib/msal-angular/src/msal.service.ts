@@ -16,7 +16,6 @@ import {
   SsoSilentRequest,
   Logger,
   WrapperSKU,
-  AuthError,
 } from "@azure/msal-browser";
 import { Observable, from } from "rxjs";
 import { IMsalService } from "./IMsalService";
