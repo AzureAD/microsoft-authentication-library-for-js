@@ -51,13 +51,14 @@ import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessag
 import {
     BrowserAuthError,
     createBrowserAuthError,
-    BrowserAuthErrorMessage,
+    BrowserAuthErrorMessages,
+    BrowserAuthErrorCodes
 } from "../../src/error/BrowserAuthError.js";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
-import { BrowserAuthErrorCodes, BrowserUtils } from "../../src/index.js";
+import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
 
@@ -550,12 +551,12 @@ describe("PopupClient", () => {
                 })
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
-                        BrowserAuthErrorMessage.nativeConnectionNotEstablished
-                            .code
+                        BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessage.nativeConnectionNotEstablished
-                            .desc
+                        BrowserAuthErrorMessages[
+                            BrowserAuthErrorCodes.nativeConnectionNotEstablished
+                        ]
                     );
                 });
         });
@@ -1806,7 +1807,7 @@ describe("PopupClient", () => {
                 .monitorPopupForHash(popup as Window, window)
                 .catch((e) => {
                     expect(e.errorCode).toEqual(
-                        BrowserAuthErrorMessage.monitorPopupTimeoutError.code
+                        BrowserAuthErrorCodes.monitorPopupTimeout
                     );
                 });
         });
@@ -1965,7 +1966,9 @@ describe("PopupClient", () => {
                     popupWindowAttributes: {},
                     popupWindowParent: window,
                 })
-            ).toThrow(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            ).toThrow(
+                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
+            );
             expect(() =>
                 popupClient.initiateAuthRequest("", {
                     popupName: "name",
@@ -1976,7 +1979,7 @@ describe("PopupClient", () => {
 
             //@ts-ignore
             expect(() => popupClient.initiateAuthRequest(null, {})).toThrow(
-                BrowserAuthErrorMessage.emptyNavigateUriError.desc
+                new BrowserAuthError(BrowserAuthErrorCodes.emptyNavigateUri)
             );
             //@ts-ignore
             expect(() => popupClient.initiateAuthRequest(null, {})).toThrow(
