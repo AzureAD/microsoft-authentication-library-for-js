@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Create a new package named msal-custom-auth. This package will be used for the exteral IDs about sign-in, sign-up, password-reset and retrieve accounts and tokens from cache.",
+  "packageName": "@azure/msal-custom-auth",
+  "email": "shen.jian@live.com",
+  "dependentChangeType": "none"
+}
