@@ -18,6 +18,7 @@ import {
     AuthenticationResult,
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
+    EncodingTypes,
 } from "@azure/msal-common/node";
 import {
     ManagedIdentityConfiguration,
@@ -36,6 +37,7 @@ import {
     ManagedIdentitySourceNames,
 } from "../utils/Constants.js";
 import { ManagedIdentityId } from "../config/ManagedIdentityId.js";
+import { HashUtils } from "../crypto/HashUtils.js";
 
 const SOURCES_THAT_SUPPORT_TOKEN_REVOCATION: Array<ManagedIdentitySourceNames> =
     [
@@ -62,6 +64,8 @@ export class ManagedIdentityApplication {
     private fakeClientCredentialClient: ClientCredentialClient;
 
     private managedIdentityClient: ManagedIdentityClient;
+
+    private hashUtils: HashUtils;
 
     constructor(configuration?: ManagedIdentityConfiguration) {
         // undefined config means the managed identity is system-assigned
@@ -121,6 +125,8 @@ export class ManagedIdentityApplication {
             this.cryptoProvider,
             this.config.disableInternalRetries
         );
+
+        this.hashUtils = new HashUtils();
     }
 
     /**
@@ -185,10 +191,9 @@ export class ManagedIdentityApplication {
                 cachedAuthenticationResult &&
                 SOURCES_THAT_SUPPORT_TOKEN_REVOCATION.includes(sourceName)
             ) {
-                const revokedTokenSha256Hash: string =
-                    await this.cryptoProvider.hashString(
-                        cachedAuthenticationResult.accessToken
-                    );
+                const revokedTokenSha256Hash: string = this.hashUtils
+                    .sha256(cachedAuthenticationResult.accessToken)
+                    .toString(EncodingTypes.HEX);
                 managedIdentityRequest.revokedTokenSha256Hash =
                     revokedTokenSha256Hash;
             }
@@ -234,8 +239,7 @@ export class ManagedIdentityApplication {
      * @param managedIdentityId - The identifier for the managed identity (e.g., client ID or resource ID).
      * @param fakeAuthority - A placeholder authority used for the token request.
      * @param refreshAccessToken - Optional flag indicating whether to force a refresh of the access token.
-     * @returns A promise that resolves to an {@link AuthenticationResult} containing the acquired token and related information.
-     * @throws {@link AuthenticationError} if the token acquisition fails.
+     * @returns A promise that resolves to an AuthenticationResult containing the acquired token and related information.
      */
     private async acquireTokenFromManagedIdentity(
         managedIdentityRequest: ManagedIdentityRequest,
