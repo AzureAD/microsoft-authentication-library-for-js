@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "added resetInProgressEvent function to reset event after handleRedirectPromise is called #7682",
+  "packageName": "@azure/msal-angular",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}
