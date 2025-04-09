@@ -30,7 +30,6 @@ import { NodeAuthError } from "../error/NodeAuthError.js";
  * - clientAssertion        - A ClientAssertion object containing an assertion string or a callback function that returns an assertion string that the application uses when requesting a token, as well as the assertion's type (urn:ietf:params:oauth:client-assertion-type:jwt-bearer). Only used in confidential client applications.
  * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 or SHA-256 thumbprint of the certificate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
  * - protocolMode           - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
- * - skipAuthorityMetadataCache - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
  * @public
  */
 export type NodeAuthOptions = {
@@ -54,7 +53,6 @@ export type NodeAuthOptions = {
     clientCapabilities?: Array<string>;
     protocolMode?: ProtocolMode;
     azureCloudOptions?: AzureCloudOptions;
-    skipAuthorityMetadataCache?: boolean;
 };
 
 /**
@@ -149,7 +147,6 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
         azureCloudInstance: AzureCloudInstance.None,
         tenant: Constants.EMPTY_STRING,
     },
-    skipAuthorityMetadataCache: false,
 };
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {

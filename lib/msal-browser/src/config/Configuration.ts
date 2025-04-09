@@ -91,10 +91,6 @@ export type BrowserAuthOptions = {
      */
     azureCloudOptions?: AzureCloudOptions;
     /**
-     * Flag of whether to use the local metadata cache
-     */
-    skipAuthorityMetadataCache?: boolean;
-    /**
      * Callback that will be passed the url that MSAL will navigate to in redirect flows. Returning false in the callback will stop navigation.
      */
     onRedirectNavigate?: (url: string) => boolean | void;
@@ -277,7 +273,6 @@ export function buildConfiguration(
             azureCloudInstance: AzureCloudInstance.None,
             tenant: Constants.EMPTY_STRING,
         },
-        skipAuthorityMetadataCache: false,
         instanceAware: false,
     };
 

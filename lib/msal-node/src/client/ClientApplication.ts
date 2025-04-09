@@ -644,8 +644,6 @@ export abstract class ClientApplication {
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
             authorityMetadata: this.config.auth.authorityMetadata,
             azureRegionConfiguration,
-            skipAuthorityMetadataCache:
-                this.config.auth.skipAuthorityMetadataCache,
         };
 
         return AuthorityFactory.createDiscoveredInstance(
