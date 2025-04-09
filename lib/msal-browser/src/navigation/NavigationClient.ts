@@ -31,6 +31,24 @@ export class NavigationClient implements INavigationClient {
         return NavigationClient.defaultNavigateWindow(url, options);
     }
 
+    private static isSafeUrl(url: string): boolean {
+        try {
+            const parsed = new URL(url, window.location.origin);
+            return ["http:", "https:"].includes(parsed.protocol);
+        } catch {
+            return false;
+        }
+    }
+
+    private static escapeForLogging(url: string): string {
+        return url
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
     /**
      * Default navigation implementation invoked by the internal and external functions
      * @param url
@@ -40,10 +58,13 @@ export class NavigationClient implements INavigationClient {
         url: string,
         options: NavigationOptions
     ): Promise<boolean> {
-        if (options.noHistory) {
-            window.location.replace(url);
-        } else {
-            window.location.assign(url);
+        const validatedUrl = this.escapeForLogging(url);
+        if (this.isSafeUrl(validatedUrl)) {
+            if (options.noHistory) {
+                window.location.replace(validatedUrl);
+            } else {
+                window.location.assign(validatedUrl);
+            }
         }
 
         return new Promise((resolve) => {
