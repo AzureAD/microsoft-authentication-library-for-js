@@ -44,6 +44,7 @@ describe("MsalCustomNaviationClient", () => {
         MsalService,
         MsalGuard,
       ],
+      teardown: { destroyAfterEach: false },
     });
     authService = TestBed.inject(MsalService);
     navigationClient = TestBed.inject(MsalCustomNavigationClient);

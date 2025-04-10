@@ -4,7 +4,6 @@
  */
 
 import {
-    Constants,
     ResponseMode,
     CLIENT_INFO,
     AuthenticationScheme,
@@ -13,6 +12,7 @@ import {
     OIDC_DEFAULT_SCOPES,
     ThrottlingConstants,
     HeaderNames,
+    OAuthResponseType,
 } from "../utils/Constants.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import { ScopeSet } from "./ScopeSet.js";
@@ -53,27 +53,15 @@ export function instrumentBrokerParams(
 }
 
 /**
- * add response_type = code
+ * Add the given response_type
+ * @param parameters
+ * @param responseType
  */
-export function addResponseTypeCode(parameters: Map<string, string>): void {
-    parameters.set(
-        AADServerParamKeys.RESPONSE_TYPE,
-        encodeURIComponent(Constants.CODE_RESPONSE_TYPE)
-    );
-}
-
-/**
- * add response_type = token id_token
- */
-export function addResponseTypeForTokenAndIdToken(
-    parameters: Map<string, string>
+export function addResponseType(
+    parameters: Map<string, string>,
+    responseType: OAuthResponseType
 ): void {
-    parameters.set(
-        AADServerParamKeys.RESPONSE_TYPE,
-        encodeURIComponent(
-            `${Constants.TOKEN_RESPONSE_TYPE} ${Constants.ID_TOKEN_RESPONSE_TYPE}`
-        )
-    );
+    parameters.set(AADServerParamKeys.RESPONSE_TYPE, responseType);
 }
 
 /**
@@ -86,7 +74,7 @@ export function addResponseMode(
 ): void {
     parameters.set(
         AADServerParamKeys.RESPONSE_MODE,
-        encodeURIComponent(responseMode ? responseMode : ResponseMode.QUERY)
+        responseMode ? responseMode : ResponseMode.QUERY
     );
 }
 
@@ -94,7 +82,7 @@ export function addResponseMode(
  * Add flag to indicate STS should attempt to use WAM if available
  */
 export function addNativeBroker(parameters: Map<string, string>): void {
-    parameters.set(AADServerParamKeys.NATIVE_BROKER, encodeURIComponent("1"));
+    parameters.set(AADServerParamKeys.NATIVE_BROKER, "1");
 }
 
 /**
@@ -120,10 +108,7 @@ export function addScopes(
         ? [...(scopes || []), ...defaultScopes]
         : scopes || [];
     const scopeSet = new ScopeSet(requestScopes);
-    parameters.set(
-        AADServerParamKeys.SCOPE,
-        encodeURIComponent(scopeSet.printScopes())
-    );
+    parameters.set(AADServerParamKeys.SCOPE, scopeSet.printScopes());
 }
 
 /**
@@ -134,7 +119,7 @@ export function addClientId(
     parameters: Map<string, string>,
     clientId: string
 ): void {
-    parameters.set(AADServerParamKeys.CLIENT_ID, encodeURIComponent(clientId));
+    parameters.set(AADServerParamKeys.CLIENT_ID, clientId);
 }
 
 /**
@@ -145,10 +130,7 @@ export function addRedirectUri(
     parameters: Map<string, string>,
     redirectUri: string
 ): void {
-    parameters.set(
-        AADServerParamKeys.REDIRECT_URI,
-        encodeURIComponent(redirectUri)
-    );
+    parameters.set(AADServerParamKeys.REDIRECT_URI, redirectUri);
 }
 
 /**
@@ -159,10 +141,7 @@ export function addPostLogoutRedirectUri(
     parameters: Map<string, string>,
     redirectUri: string
 ): void {
-    parameters.set(
-        AADServerParamKeys.POST_LOGOUT_URI,
-        encodeURIComponent(redirectUri)
-    );
+    parameters.set(AADServerParamKeys.POST_LOGOUT_URI, redirectUri);
 }
 
 /**
@@ -173,10 +152,7 @@ export function addIdTokenHint(
     parameters: Map<string, string>,
     idTokenHint: string
 ): void {
-    parameters.set(
-        AADServerParamKeys.ID_TOKEN_HINT,
-        encodeURIComponent(idTokenHint)
-    );
+    parameters.set(AADServerParamKeys.ID_TOKEN_HINT, idTokenHint);
 }
 
 /**
@@ -187,10 +163,7 @@ export function addDomainHint(
     parameters: Map<string, string>,
     domainHint: string
 ): void {
-    parameters.set(
-        AADServerParamKeys.DOMAIN_HINT,
-        encodeURIComponent(domainHint)
-    );
+    parameters.set(AADServerParamKeys.DOMAIN_HINT, domainHint);
 }
 
 /**
@@ -201,10 +174,7 @@ export function addLoginHint(
     parameters: Map<string, string>,
     loginHint: string
 ): void {
-    parameters.set(
-        AADServerParamKeys.LOGIN_HINT,
-        encodeURIComponent(loginHint)
-    );
+    parameters.set(AADServerParamKeys.LOGIN_HINT, loginHint);
 }
 
 /**
@@ -215,10 +185,7 @@ export function addCcsUpn(
     parameters: Map<string, string>,
     loginHint: string
 ): void {
-    parameters.set(
-        HeaderNames.CCS_HEADER,
-        encodeURIComponent(`UPN:${loginHint}`)
-    );
+    parameters.set(HeaderNames.CCS_HEADER, `UPN:${loginHint}`);
 }
 
 /**
@@ -231,7 +198,7 @@ export function addCcsOid(
 ): void {
     parameters.set(
         HeaderNames.CCS_HEADER,
-        encodeURIComponent(`Oid:${clientInfo.uid}@${clientInfo.utid}`)
+        `Oid:${clientInfo.uid}@${clientInfo.utid}`
     );
 }
 
@@ -240,7 +207,7 @@ export function addCcsOid(
  * @param sid
  */
 export function addSid(parameters: Map<string, string>, sid: string): void {
-    parameters.set(AADServerParamKeys.SID, encodeURIComponent(sid));
+    parameters.set(AADServerParamKeys.SID, sid);
 }
 
 /**
@@ -263,7 +230,7 @@ export function addClaims(
             ClientConfigurationErrorCodes.invalidClaims
         );
     }
-    parameters.set(AADServerParamKeys.CLAIMS, encodeURIComponent(mergedClaims));
+    parameters.set(AADServerParamKeys.CLAIMS, mergedClaims);
 }
 
 /**
@@ -274,10 +241,7 @@ export function addCorrelationId(
     parameters: Map<string, string>,
     correlationId: string
 ): void {
-    parameters.set(
-        AADServerParamKeys.CLIENT_REQUEST_ID,
-        encodeURIComponent(correlationId)
-    );
+    parameters.set(AADServerParamKeys.CLIENT_REQUEST_ID, correlationId);
 }
 
 /**
@@ -324,7 +288,7 @@ export function addPrompt(
     parameters: Map<string, string>,
     prompt: string
 ): void {
-    parameters.set(`${AADServerParamKeys.PROMPT}`, encodeURIComponent(prompt));
+    parameters.set(AADServerParamKeys.PROMPT, prompt);
 }
 
 /**
@@ -333,7 +297,7 @@ export function addPrompt(
  */
 export function addState(parameters: Map<string, string>, state: string): void {
     if (state) {
-        parameters.set(AADServerParamKeys.STATE, encodeURIComponent(state));
+        parameters.set(AADServerParamKeys.STATE, state);
     }
 }
 
@@ -342,7 +306,7 @@ export function addState(parameters: Map<string, string>, state: string): void {
  * @param nonce
  */
 export function addNonce(parameters: Map<string, string>, nonce: string): void {
-    parameters.set(AADServerParamKeys.NONCE, encodeURIComponent(nonce));
+    parameters.set(AADServerParamKeys.NONCE, nonce);
 }
 
 /**
@@ -357,13 +321,10 @@ export function addCodeChallengeParams(
     codeChallengeMethod?: string
 ): void {
     if (codeChallenge && codeChallengeMethod) {
-        parameters.set(
-            AADServerParamKeys.CODE_CHALLENGE,
-            encodeURIComponent(codeChallenge)
-        );
+        parameters.set(AADServerParamKeys.CODE_CHALLENGE, codeChallenge);
         parameters.set(
             AADServerParamKeys.CODE_CHALLENGE_METHOD,
-            encodeURIComponent(codeChallengeMethod)
+            codeChallengeMethod
         );
     } else {
         throw createClientConfigurationError(
@@ -380,7 +341,7 @@ export function addAuthorizationCode(
     parameters: Map<string, string>,
     code: string
 ): void {
-    parameters.set(AADServerParamKeys.CODE, encodeURIComponent(code));
+    parameters.set(AADServerParamKeys.CODE, code);
 }
 
 /**
@@ -391,7 +352,7 @@ export function addDeviceCode(
     parameters: Map<string, string>,
     code: string
 ): void {
-    parameters.set(AADServerParamKeys.DEVICE_CODE, encodeURIComponent(code));
+    parameters.set(AADServerParamKeys.DEVICE_CODE, code);
 }
 
 /**
@@ -402,10 +363,7 @@ export function addRefreshToken(
     parameters: Map<string, string>,
     refreshToken: string
 ): void {
-    parameters.set(
-        AADServerParamKeys.REFRESH_TOKEN,
-        encodeURIComponent(refreshToken)
-    );
+    parameters.set(AADServerParamKeys.REFRESH_TOKEN, refreshToken);
 }
 
 /**
@@ -416,10 +374,7 @@ export function addCodeVerifier(
     parameters: Map<string, string>,
     codeVerifier: string
 ): void {
-    parameters.set(
-        AADServerParamKeys.CODE_VERIFIER,
-        encodeURIComponent(codeVerifier)
-    );
+    parameters.set(AADServerParamKeys.CODE_VERIFIER, codeVerifier);
 }
 
 /**
@@ -430,10 +385,7 @@ export function addClientSecret(
     parameters: Map<string, string>,
     clientSecret: string
 ): void {
-    parameters.set(
-        AADServerParamKeys.CLIENT_SECRET,
-        encodeURIComponent(clientSecret)
-    );
+    parameters.set(AADServerParamKeys.CLIENT_SECRET, clientSecret);
 }
 
 /**
@@ -445,10 +397,7 @@ export function addClientAssertion(
     clientAssertion: string
 ): void {
     if (clientAssertion) {
-        parameters.set(
-            AADServerParamKeys.CLIENT_ASSERTION,
-            encodeURIComponent(clientAssertion)
-        );
+        parameters.set(AADServerParamKeys.CLIENT_ASSERTION, clientAssertion);
     }
 }
 
@@ -463,7 +412,7 @@ export function addClientAssertionType(
     if (clientAssertionType) {
         parameters.set(
             AADServerParamKeys.CLIENT_ASSERTION_TYPE,
-            encodeURIComponent(clientAssertionType)
+            clientAssertionType
         );
     }
 }
@@ -476,10 +425,7 @@ export function addOboAssertion(
     parameters: Map<string, string>,
     oboAssertion: string
 ): void {
-    parameters.set(
-        AADServerParamKeys.OBO_ASSERTION,
-        encodeURIComponent(oboAssertion)
-    );
+    parameters.set(AADServerParamKeys.OBO_ASSERTION, oboAssertion);
 }
 
 /**
@@ -490,10 +436,7 @@ export function addRequestTokenUse(
     parameters: Map<string, string>,
     tokenUse: string
 ): void {
-    parameters.set(
-        AADServerParamKeys.REQUESTED_TOKEN_USE,
-        encodeURIComponent(tokenUse)
-    );
+    parameters.set(AADServerParamKeys.REQUESTED_TOKEN_USE, tokenUse);
 }
 
 /**
@@ -504,10 +447,7 @@ export function addGrantType(
     parameters: Map<string, string>,
     grantType: string
 ): void {
-    parameters.set(
-        AADServerParamKeys.GRANT_TYPE,
-        encodeURIComponent(grantType)
-    );
+    parameters.set(AADServerParamKeys.GRANT_TYPE, grantType);
 }
 
 /**
@@ -582,10 +522,7 @@ export function addUsername(
     parameters: Map<string, string>,
     username: string
 ): void {
-    parameters.set(
-        PasswordGrantConstants.username,
-        encodeURIComponent(username)
-    );
+    parameters.set(PasswordGrantConstants.username, username);
 }
 
 /**
@@ -596,10 +533,7 @@ export function addPassword(
     parameters: Map<string, string>,
     password: string
 ): void {
-    parameters.set(
-        PasswordGrantConstants.password,
-        encodeURIComponent(password)
-    );
+    parameters.set(PasswordGrantConstants.password, password);
 }
 
 /**
@@ -612,10 +546,7 @@ export function addPopToken(
 ): void {
     if (cnfString) {
         parameters.set(AADServerParamKeys.TOKEN_TYPE, AuthenticationScheme.POP);
-        parameters.set(
-            AADServerParamKeys.REQ_CNF,
-            encodeURIComponent(cnfString)
-        );
+        parameters.set(AADServerParamKeys.REQ_CNF, cnfString);
     }
 }
 
@@ -628,10 +559,7 @@ export function addSshJwk(
 ): void {
     if (sshJwkString) {
         parameters.set(AADServerParamKeys.TOKEN_TYPE, AuthenticationScheme.SSH);
-        parameters.set(
-            AADServerParamKeys.REQ_CNF,
-            encodeURIComponent(sshJwkString)
-        );
+        parameters.set(AADServerParamKeys.REQ_CNF, sshJwkString);
     }
 }
 
@@ -670,10 +598,7 @@ export function addLogoutHint(
     parameters: Map<string, string>,
     logoutHint: string
 ): void {
-    parameters.set(
-        AADServerParamKeys.LOGOUT_HINT,
-        encodeURIComponent(logoutHint)
-    );
+    parameters.set(AADServerParamKeys.LOGOUT_HINT, logoutHint);
 }
 
 export function addBrokerParameters(
@@ -682,15 +607,28 @@ export function addBrokerParameters(
     brokerRedirectUri: string
 ): void {
     if (!parameters.has(AADServerParamKeys.BROKER_CLIENT_ID)) {
-        parameters.set(
-            AADServerParamKeys.BROKER_CLIENT_ID,
-            encodeURIComponent(brokerClientId)
-        );
+        parameters.set(AADServerParamKeys.BROKER_CLIENT_ID, brokerClientId);
     }
     if (!parameters.has(AADServerParamKeys.BROKER_REDIRECT_URI)) {
         parameters.set(
             AADServerParamKeys.BROKER_REDIRECT_URI,
-            encodeURIComponent(brokerRedirectUri)
+            brokerRedirectUri
         );
     }
+}
+
+/**
+ * Add EAR (Encrypted Authorize Response) request parameters
+ * @param parameters
+ * @param jwk
+ */
+export function addEARParameters(
+    parameters: Map<string, string>,
+    jwk: string
+): void {
+    parameters.set(AADServerParamKeys.EAR_JWK, encodeURIComponent(jwk));
+
+    // ear_jwe_crypto will always have value: {"alg":"dir","enc":"A256GCM"} so we can hardcode this
+    const jweCryptoB64Encoded = "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0";
+    parameters.set(AADServerParamKeys.EAR_JWE_CRYPTO, jweCryptoB64Encoded);
 }

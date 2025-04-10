@@ -47,6 +47,7 @@ export function getDeserializedResponse(
         // Check for known response properties
         if (
             deserializedHash.code ||
+            deserializedHash.ear_jwe ||
             deserializedHash.error ||
             deserializedHash.error_description ||
             deserializedHash.state
@@ -67,7 +68,7 @@ export function mapToQueryString(parameters: Map<string, string>): string {
     const queryParameterArray: Array<string> = new Array<string>();
 
     parameters.forEach((value, key) => {
-        queryParameterArray.push(`${key}=${value}`);
+        queryParameterArray.push(`${key}=${encodeURIComponent(value)}`);
     });
 
     return queryParameterArray.join("&");

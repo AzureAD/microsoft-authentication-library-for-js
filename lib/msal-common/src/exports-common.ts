@@ -160,6 +160,7 @@ export {
     OIDC_DEFAULT_SCOPES,
     PromptValue,
     PersistentCacheKeys,
+    OAuthResponseType,
     ServerResponseType,
     ResponseMode,
     CacheOutcome,

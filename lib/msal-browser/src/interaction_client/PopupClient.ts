@@ -4,14 +4,11 @@
  */
 
 import {
-    CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,
-    ThrottlingUtils,
     CommonEndSessionRequest,
     UrlString,
     AuthError,
     OIDC_DEFAULT_SCOPES,
-    ProtocolUtils,
     PerformanceEvents,
     IPerformanceClient,
     Logger,
@@ -21,6 +18,7 @@ import {
     invokeAsync,
     invoke,
     PkceCodes,
+    CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import { EventType } from "../event/EventType.js";
@@ -33,7 +31,6 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
 import { NavigationOptions } from "../navigation/NavigationOptions.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { PopupRequest } from "../request/PopupRequest.js";
-import { NativeInteractionClient } from "./NativeInteractionClient.js";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import {
     createBrowserAuthError,
@@ -43,15 +40,15 @@ import { INavigationClient } from "../navigation/INavigationClient.js";
 import { EventHandler } from "../event/EventHandler.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
-import { InteractionHandler } from "../interaction_handler/InteractionHandler.js";
 import { PopupWindowAttributes } from "../request/PopupWindowAttributes.js";
 import { EventError } from "../event/EventMessage.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
-import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
+import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { PlatformDOMHandler } from "../broker/nativeBroker/PlatformDOMHandler.js";
 import { PlatformAuthProvider } from "../broker/nativeBroker/PlatformAuthProvider.js";
+import { generateEarKey } from "../crypto/BrowserCrypto.js";
 
 export type PopupParams = {
     popup?: Window | null;
@@ -92,6 +89,7 @@ export class PopupClient extends StandardInteractionClient {
         // Properly sets this reference for the unload event.
         this.unloadWindow = this.unloadWindow.bind(this);
         this.nativeStorage = nativeStorageImpl;
+        this.eventHandler = eventHandler;
     }
 
     /**
@@ -211,9 +209,6 @@ export class PopupClient extends StandardInteractionClient {
         pkceCodes?: PkceCodes
     ): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenPopupAsync called");
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.acquireTokenPopup
-        );
 
         const validRequest = await invokeAsync(
             this.initializeAuthorizationRequest.bind(this),
@@ -223,17 +218,6 @@ export class PopupClient extends StandardInteractionClient {
             this.correlationId
         )(request, InteractionType.Popup);
 
-        const pkce =
-            pkceCodes ||
-            (await invokeAsync(
-                generatePkceCodes,
-                PerformanceEvents.GeneratePkceCodes,
-                this.logger,
-                this.performanceClient,
-                this.correlationId
-            )(this.performanceClient, this.logger, this.correlationId));
-        validRequest.codeChallenge = pkce.challenge;
-
         /*
          * Skip pre-connect for async popups to reduce time between user interaction and popup window creation to avoid
          * popup from being blocked by browsers with shorter popup timers
@@ -242,6 +226,53 @@ export class PopupClient extends StandardInteractionClient {
             BrowserUtils.preconnect(validRequest.authority);
         }
 
+        const isPlatformBroker = PlatformAuthProvider.isBrokerAvailable(
+            this.config,
+            this.logger,
+            this.platformAuthProvider,
+            request.authenticationScheme
+        );
+        validRequest.platformBroker = isPlatformBroker;
+
+        if (this.config.auth.protocolMode === ProtocolMode.EAR) {
+            return this.executeEarFlow(validRequest, popupParams);
+        } else {
+            return this.executeCodeFlow(validRequest, popupParams, pkceCodes);
+        }
+    }
+
+    /**
+     * Executes auth code + PKCE flow
+     * @param request
+     * @param popupParams
+     * @param pkceCodes
+     * @returns
+     */
+    async executeCodeFlow(
+        request: CommonAuthorizationUrlRequest,
+        popupParams: PopupParams,
+        pkceCodes?: PkceCodes
+    ): Promise<AuthenticationResult> {
+        const correlationId = request.correlationId;
+        const serverTelemetryManager = this.initializeServerTelemetryManager(
+            ApiId.acquireTokenPopup
+        );
+
+        const pkce =
+            pkceCodes ||
+            (await invokeAsync(
+                generatePkceCodes,
+                PerformanceEvents.GeneratePkceCodes,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(this.performanceClient, this.logger, correlationId));
+
+        const popupRequest = {
+            ...request,
+            codeChallenge: pkce.challenge,
+        };
+
         try {
             // Initialize the client
             const authClient: AuthorizationCodeClient = await invokeAsync(
@@ -249,45 +280,26 @@ export class PopupClient extends StandardInteractionClient {
                 PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
                 this.logger,
                 this.performanceClient,
-                this.correlationId
+                correlationId
             )({
                 serverTelemetryManager,
-                requestAuthority: validRequest.authority,
-                requestAzureCloudOptions: validRequest.azureCloudOptions,
-                requestExtraQueryParameters: validRequest.extraQueryParameters,
-                account: validRequest.account,
+                requestAuthority: popupRequest.authority,
+                requestAzureCloudOptions: popupRequest.azureCloudOptions,
+                requestExtraQueryParameters: popupRequest.extraQueryParameters,
+                account: popupRequest.account,
             });
-
-            const isPlatformBroker = PlatformAuthProvider.isBrokerAvailable(
-                this.config,
-                this.logger,
-                this.platformAuthProvider,
-                request.authenticationScheme
-            );
-            // Start measurement for server calls with native brokering enabled
-            let fetchNativeAccountIdMeasurement;
-            if (isPlatformBroker) {
-                fetchNativeAccountIdMeasurement =
-                    this.performanceClient.startMeasurement(
-                        PerformanceEvents.FetchAccountIdWithNativeBroker,
-                        request.correlationId
-                    );
-            }
 
             // Create acquire token url.
             const navigateUrl = await invokeAsync(
-                getAuthCodeRequestUrl,
+                Authorize.getAuthCodeRequestUrl,
                 PerformanceEvents.GetAuthCodeUrl,
                 this.logger,
                 this.performanceClient,
-                validRequest.correlationId
+                correlationId
             )(
                 this.config,
                 authClient.authority,
-                {
-                    ...validRequest,
-                    platformBroker: isPlatformBroker,
-                },
+                popupRequest,
                 this.logger,
                 this.performanceClient
             );
@@ -321,76 +333,28 @@ export class PopupClient extends StandardInteractionClient {
                 this.config.auth.OIDCOptions.serverResponseType,
                 this.logger
             );
-            // Remove throttle if it exists
-            ThrottlingUtils.removeThrottle(
-                this.browserStorage,
-                this.config.auth.clientId,
-                validRequest
-            );
 
-            if (serverParams.accountId) {
-                this.logger.verbose(
-                    "Account id found in hash, calling WAM for token"
-                );
-                // end measurement for server call with native brokering enabled
-                if (fetchNativeAccountIdMeasurement) {
-                    fetchNativeAccountIdMeasurement.end({
-                        success: true,
-                        isNativeBroker: true,
-                    });
-                }
-
-                if (!this.platformAuthType || !this.platformAuthProvider) {
-                    throw createBrowserAuthError(
-                        BrowserAuthErrorCodes.nativeConnectionNotEstablished
-                    );
-                }
-                const nativeInteractionClient = new NativeInteractionClient(
-                    this.config,
-                    this.browserStorage,
-                    this.browserCrypto,
-                    this.logger,
-                    this.eventHandler,
-                    this.navigationClient,
-                    ApiId.acquireTokenPopup,
-                    this.performanceClient,
-                    this.platformAuthProvider,
-                    this.platformAuthType,
-                    serverParams.accountId,
-                    this.nativeStorage,
-                    validRequest.correlationId
-                );
-                const { userRequestState } = ProtocolUtils.parseRequestState(
-                    this.browserCrypto,
-                    validRequest.state
-                );
-                return await nativeInteractionClient.acquireToken({
-                    ...validRequest,
-                    state: userRequestState,
-                    prompt: undefined, // Server should handle the prompt, ideally native broker can do this part silently
-                });
-            }
-
-            const authCodeRequest: CommonAuthorizationCodeRequest = {
-                ...validRequest,
-                code: serverParams.code || "",
-                codeVerifier: pkce.verifier,
-            };
-            // Create popup interaction handler.
-            const interactionHandler = new InteractionHandler(
+            return await invokeAsync(
+                Authorize.handleResponseCode,
+                PerformanceEvents.HandleResponseCode,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                request,
+                serverParams,
+                pkce.verifier,
+                ApiId.acquireTokenPopup,
+                this.config,
                 authClient,
                 this.browserStorage,
-                authCodeRequest,
+                this.nativeStorage,
+                this.eventHandler,
                 this.logger,
-                this.performanceClient
+                this.performanceClient,
+                this.platformAuthProvider,
+                this.platformAuthType
             );
-            // Handle response from hash string.
-            const result = await interactionHandler.handleCodeResponse(
-                serverParams,
-                validRequest
-            );
-
-            return result;
         } catch (e) {
             // Close the synchronous popup if an error is thrown before the window unload event is registered
             popupParams.popup?.close();
@@ -401,6 +365,96 @@ export class PopupClient extends StandardInteractionClient {
             }
             throw e;
         }
+    }
+
+    /**
+     * Executes EAR flow
+     * @param request
+     */
+    async executeEarFlow(
+        request: CommonAuthorizationUrlRequest,
+        popupParams: PopupParams
+    ): Promise<AuthenticationResult> {
+        const correlationId = request.correlationId;
+        // Get the frame handle for the silent request
+        const discoveredAuthority = await invokeAsync(
+            this.getDiscoveredAuthority.bind(this),
+            PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )({
+            requestAuthority: request.authority,
+            requestAzureCloudOptions: request.azureCloudOptions,
+            requestExtraQueryParameters: request.extraQueryParameters,
+            account: request.account,
+        });
+
+        const earJwk = await invokeAsync(
+            generateEarKey,
+            PerformanceEvents.GenerateEarKey,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )();
+        const popupRequest = {
+            ...request,
+            earJwk: earJwk,
+        };
+        const popupWindow =
+            popupParams.popup || this.openPopup("about:blank", popupParams);
+
+        const form = await Authorize.getEARForm(
+            popupWindow.document,
+            this.config,
+            discoveredAuthority,
+            popupRequest,
+            this.logger,
+            this.performanceClient
+        );
+        form.submit();
+
+        // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
+        const responseString = await invokeAsync(
+            this.monitorPopupForHash.bind(this),
+            PerformanceEvents.SilentHandlerMonitorIframeForHash,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(popupWindow, popupParams.popupWindowParent);
+
+        const serverParams = invoke(
+            ResponseHandler.deserializeResponse,
+            PerformanceEvents.DeserializeResponse,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(
+            responseString,
+            this.config.auth.OIDCOptions.serverResponseType,
+            this.logger
+        );
+
+        return invokeAsync(
+            Authorize.handleResponseEAR,
+            PerformanceEvents.HandleResponseEar,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(
+            popupRequest,
+            serverParams,
+            ApiId.acquireTokenPopup,
+            this.config,
+            discoveredAuthority,
+            this.browserStorage,
+            this.nativeStorage,
+            this.eventHandler,
+            this.logger,
+            this.performanceClient,
+            this.platformAuthProvider,
+            this.platformAuthType
+        );
     }
 
     /**
@@ -544,7 +598,6 @@ export class PopupClient extends StandardInteractionClient {
                 (e as AuthError).setCorrelationId(this.correlationId);
                 serverTelemetryManager.cacheFailedRequest(e);
             }
-            this.browserStorage.setInteractionInProgress(false);
             this.eventHandler.emitEvent(
                 EventType.LOGOUT_FAILURE,
                 InteractionType.Popup,
@@ -701,7 +754,6 @@ export class PopupClient extends StandardInteractionClient {
             this.logger.error(
                 "error opening popup " + (e as AuthError).message
             );
-            this.browserStorage.setInteractionInProgress(false);
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.popupWindowError
             );
@@ -792,9 +844,6 @@ export class PopupClient extends StandardInteractionClient {
      * Event callback to unload main window.
      */
     unloadWindow(e: Event): void {
-        this.browserStorage.cleanRequestByInteractionType(
-            InteractionType.Popup
-        );
         if (this.currentWindow) {
             this.currentWindow.close();
         }
@@ -815,9 +864,6 @@ export class PopupClient extends StandardInteractionClient {
             "beforeunload",
             this.unloadWindow
         );
-
-        // Interaction is completed - remove interaction status.
-        this.browserStorage.setInteractionInProgress(false);
     }
 
     /**

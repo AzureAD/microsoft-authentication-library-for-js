@@ -32,6 +32,7 @@ import {
     ClientAuthError,
     ClientAuthErrorCodes,
 } from "../../src/error/ClientAuthError.js";
+import * as RequestParameterBuilder from "../../src/request/RequestParameterBuilder.js";
 
 describe("Authorize Protocol Tests", () => {
     let authOptions: AuthOptions;
@@ -59,6 +60,8 @@ describe("Authorize Protocol Tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 responseMode: ResponseMode.QUERY,
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
                 codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
@@ -228,6 +231,8 @@ describe("Authorize Protocol Tests", () => {
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
                 ],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 loginHint: TEST_CONFIG.LOGIN_HINT,
                 prompt: PromptValue.LOGIN,
                 correlationId: RANDOM_TEST_GUID,
@@ -308,6 +313,8 @@ describe("Authorize Protocol Tests", () => {
                     ...testAccount,
                     idTokenClaims: testTokenClaims,
                 },
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 prompt: PromptValue.NONE,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
@@ -381,6 +388,8 @@ describe("Authorize Protocol Tests", () => {
                     ...testAccount,
                     idTokenClaims: testTokenClaims,
                 },
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 prompt: PromptValue.NONE,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
@@ -476,6 +485,8 @@ describe("Authorize Protocol Tests", () => {
                     ...testAccount,
                     idTokenClaims: testTokenClaims,
                 },
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
@@ -573,6 +584,8 @@ describe("Authorize Protocol Tests", () => {
                     ...testAccount,
                     idTokenClaims: testTokenClaims,
                 },
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
@@ -626,6 +639,8 @@ describe("Authorize Protocol Tests", () => {
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
                 ],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 loginHint: TEST_CONFIG.LOGIN_HINT,
                 prompt: PromptValue.NONE,
                 sid: TEST_CONFIG.SID,
@@ -680,6 +695,8 @@ describe("Authorize Protocol Tests", () => {
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
                 ],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 loginHint: TEST_CONFIG.LOGIN_HINT,
                 prompt: PromptValue.LOGIN,
                 sid: TEST_CONFIG.SID,
@@ -721,6 +738,8 @@ describe("Authorize Protocol Tests", () => {
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
                 ],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 prompt: PromptValue.LOGIN,
                 sid: TEST_CONFIG.SID,
                 correlationId: RANDOM_TEST_GUID,
@@ -767,6 +786,8 @@ describe("Authorize Protocol Tests", () => {
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
                 ],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 loginHint: TEST_CONFIG.LOGIN_HINT,
                 account: TEST_ACCOUNT_INFO,
                 correlationId: RANDOM_TEST_GUID,
@@ -836,6 +857,8 @@ describe("Authorize Protocol Tests", () => {
                     ...testAccount,
                     idTokenClaims: testTokenClaims,
                 },
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 loginHint: TEST_CONFIG.LOGIN_HINT,
                 prompt: PromptValue.NONE,
                 correlationId: RANDOM_TEST_GUID,
@@ -917,6 +940,8 @@ describe("Authorize Protocol Tests", () => {
                     ...testAccount,
                     idTokenClaims: testTokenClaims,
                 },
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 loginHint: TEST_CONFIG.LOGIN_HINT,
                 prompt: PromptValue.LOGIN,
                 correlationId: RANDOM_TEST_GUID,
@@ -996,6 +1021,8 @@ describe("Authorize Protocol Tests", () => {
                     ...testAccount,
                     idTokenClaims: testTokenClaims,
                 },
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 loginHint: TEST_CONFIG.LOGIN_HINT,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
@@ -1029,6 +1056,8 @@ describe("Authorize Protocol Tests", () => {
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
                 ],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 account: TEST_ACCOUNT_INFO,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
@@ -1062,6 +1091,8 @@ describe("Authorize Protocol Tests", () => {
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
                 ],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 account: TEST_ACCOUNT_INFO,
                 prompt: "select_account",
                 correlationId: RANDOM_TEST_GUID,
@@ -1092,6 +1123,8 @@ describe("Authorize Protocol Tests", () => {
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
                 ],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 loginHint: "testaccount@microsoft.com",
                 prompt: "select_account",
                 correlationId: RANDOM_TEST_GUID,
@@ -1122,6 +1155,8 @@ describe("Authorize Protocol Tests", () => {
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
                 ],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 sid: "testsid",
                 prompt: "select_account",
                 correlationId: RANDOM_TEST_GUID,
@@ -1151,6 +1186,8 @@ describe("Authorize Protocol Tests", () => {
             const loginRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: [testScope1, testScope2],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
                 codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
                 correlationId: RANDOM_TEST_GUID,
@@ -1183,6 +1220,8 @@ describe("Authorize Protocol Tests", () => {
         it("pick up default client_id", async () => {
             const request: CommonAuthorizationUrlRequest = {
                 scopes: ["User.Read"],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
@@ -1206,6 +1245,8 @@ describe("Authorize Protocol Tests", () => {
         it("pick up extra query client_id param", async () => {
             const request: CommonAuthorizationUrlRequest = {
                 scopes: ["User.Read"],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
@@ -1231,6 +1272,8 @@ describe("Authorize Protocol Tests", () => {
 
             const request: CommonAuthorizationUrlRequest = {
                 scopes: ["User.Read"],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
@@ -1254,6 +1297,8 @@ describe("Authorize Protocol Tests", () => {
 
             const request: CommonAuthorizationUrlRequest = {
                 scopes: ["User.Read"],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
@@ -1276,6 +1321,8 @@ describe("Authorize Protocol Tests", () => {
 
             const request: CommonAuthorizationUrlRequest = {
                 scopes: ["User.Read"],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
@@ -1291,6 +1338,10 @@ describe("Authorize Protocol Tests", () => {
                     request,
                     new Logger({})
                 );
+            RequestParameterBuilder.addExtraQueryParameters(
+                params,
+                request.extraQueryParameters!
+            );
             const queryString = UrlUtils.mapToQueryString(params);
 
             expect(queryString).toContain(`instance_aware=true`);
@@ -1301,6 +1352,8 @@ describe("Authorize Protocol Tests", () => {
 
             const request: CommonAuthorizationUrlRequest = {
                 scopes: ["User.Read"],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
@@ -1317,6 +1370,10 @@ describe("Authorize Protocol Tests", () => {
                     request,
                     new Logger({})
                 );
+            RequestParameterBuilder.addExtraQueryParameters(
+                params,
+                request.extraQueryParameters!
+            );
             const queryString = UrlUtils.mapToQueryString(params);
 
             expect(queryString).toContain(`instance_aware=false`);
@@ -1325,6 +1382,8 @@ describe("Authorize Protocol Tests", () => {
         it("pick up broker params", async () => {
             const request: CommonAuthorizationUrlRequest = {
                 scopes: ["User.Read"],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
@@ -1351,6 +1410,8 @@ describe("Authorize Protocol Tests", () => {
         it("broker params take precedence over extra query params", async () => {
             const request: CommonAuthorizationUrlRequest = {
                 scopes: ["User.Read"],
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
@@ -1369,6 +1430,10 @@ describe("Authorize Protocol Tests", () => {
                     request,
                     new Logger({})
                 );
+            RequestParameterBuilder.addExtraQueryParameters(
+                params,
+                request.extraQueryParameters!
+            );
             const queryString = UrlUtils.mapToQueryString(params);
             expect(queryString).toContain(`client_id=child_client_id_1`);
             expect(queryString).toContain(
