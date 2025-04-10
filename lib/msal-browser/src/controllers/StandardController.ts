@@ -45,11 +45,8 @@ import {
     DEFAULT_REQUEST,
     BrowserConstants,
     iFrameRenewalPolicies,
-<<<<<<< HEAD
     NativeConstants,
-=======
     INTERACTION_TYPE,
->>>>>>> d2948772f6632744fbb7aac270f6a5a29f57f338
 } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
@@ -534,63 +531,21 @@ export class StandardController implements IController {
         }
 
         const loggedInAccounts = this.getAllAccounts();
-<<<<<<< HEAD
-        const request: NativeExtensionTokenRequest | null =
-            this.browserStorage.getCachedNativeRequest();
-        const useNative = request && this.platformAuthProvider && !hash;
-        const correlationId = useNative
-            ? request?.correlationId
-            : this.browserStorage.getTemporaryCache(
-                  TemporaryCacheKeys.CORRELATION_ID,
-                  true
-              ) || "";
-        const rootMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.AcquireTokenRedirect,
-            correlationId
-        );
-=======
-        const platformBrokerRequest: NativeTokenRequest | null =
+        const platformBrokerRequest: NativeExtensionTokenRequest | null =
             this.browserStorage.getCachedNativeRequest();
         const useNative =
-            platformBrokerRequest &&
-            NativeMessageHandler.isPlatformBrokerAvailable(
-                this.config,
-                this.logger,
-                this.nativeExtensionProvider
-            ) &&
-            this.nativeExtensionProvider &&
-            !hash;
+            platformBrokerRequest && this.platformAuthProvider && !hash;
+
         let rootMeasurement: InProgressPerformanceEvent;
->>>>>>> d2948772f6632744fbb7aac270f6a5a29f57f338
+
         this.eventHandler.emitEvent(
             EventType.HANDLE_REDIRECT_START,
             InteractionType.Redirect
         );
 
         let redirectResponse: Promise<AuthenticationResult | null>;
-<<<<<<< HEAD
-        if (useNative && this.platformAuthProvider) {
-            this.logger.trace(
-                "handleRedirectPromise - acquiring token from native platform"
-            );
-            const nativeClient = new NativeInteractionClient(
-                this.config,
-                this.browserStorage,
-                this.browserCrypto,
-                this.logger,
-                this.eventHandler,
-                this.navigationClient,
-                ApiId.handleRedirectPromise,
-                this.performanceClient,
-                this.platformAuthProvider,
-                this.platformAuthType,
-                request.accountId,
-                this.nativeInternalStorage,
-                request.correlationId
-            );
-=======
         try {
-            if (useNative && this.nativeExtensionProvider) {
+            if (useNative && this.platformAuthProvider) {
                 rootMeasurement = this.performanceClient.startMeasurement(
                     PerformanceEvents.AcquireTokenRedirect,
                     platformBrokerRequest?.correlationId || ""
@@ -607,12 +562,12 @@ export class StandardController implements IController {
                     this.navigationClient,
                     ApiId.handleRedirectPromise,
                     this.performanceClient,
-                    this.nativeExtensionProvider,
+                    this.platformAuthProvider,
+                    this.platformAuthType,
                     platformBrokerRequest.accountId,
                     this.nativeInternalStorage,
                     platformBrokerRequest.correlationId
                 );
->>>>>>> d2948772f6632744fbb7aac270f6a5a29f57f338
 
                 redirectResponse = invokeAsync(
                     nativeClient.handleRedirectPromise.bind(nativeClient),
