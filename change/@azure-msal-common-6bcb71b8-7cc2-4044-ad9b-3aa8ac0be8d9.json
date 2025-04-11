@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add config option to not encode extra params",
+  "packageName": "@azure/msal-common",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
