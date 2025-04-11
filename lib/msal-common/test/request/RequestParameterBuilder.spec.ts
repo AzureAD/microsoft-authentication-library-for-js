@@ -445,7 +445,7 @@ describe("RequestParameterBuilder unit tests", () => {
         });
 
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
-        
+
         expect(
             requestQueryString.includes(
                 `extra_params=${encodeURIComponent("param1,param2")}`
