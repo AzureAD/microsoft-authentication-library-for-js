@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Inject, Injectable } from "@angular/core";
+import { Inject, Injectable, Injector } from "@angular/core";
 import { Location } from "@angular/common";
 import {
   IPublicClientApplication,
@@ -21,6 +21,7 @@ import { Observable, from } from "rxjs";
 import { IMsalService } from "./IMsalService";
 import { name, version } from "./packageMetadata";
 import { MSAL_INSTANCE } from "./constants";
+import { MsalBroadcastService } from "./msal.broadcast.service";
 
 @Injectable()
 export class MsalService implements IMsalService {
@@ -29,7 +30,8 @@ export class MsalService implements IMsalService {
 
   constructor(
     @Inject(MSAL_INSTANCE) public instance: IPublicClientApplication,
-    private location: Location
+    private location: Location,
+    private injector: Injector
   ) {
     const hash = this.location.path(true).split("#").pop();
     if (hash) {
@@ -59,6 +61,10 @@ export class MsalService implements IMsalService {
         .then(() =>
           this.instance.handleRedirectPromise(hash || this.redirectHash)
         )
+        .finally(() => {
+          // update inProgress state to none
+          this.injector.get(MsalBroadcastService).resetInProgressEvent();
+        })
     );
   }
   loginPopup(request?: PopupRequest): Observable<AuthenticationResult> {
