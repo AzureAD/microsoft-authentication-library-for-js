@@ -56,6 +56,7 @@ import {
     BrowserAuthError,
     createBrowserAuthError,
     BrowserAuthErrorMessages,
+    BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError.js";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
@@ -65,7 +66,6 @@ import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
 import { PopupRequest } from "../../src/request/PopupRequest.js";
-import { emptyNavigateUri } from "../../src/error/BrowserAuthErrorCodes.js";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
