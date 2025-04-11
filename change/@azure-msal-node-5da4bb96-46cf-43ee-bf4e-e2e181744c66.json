@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Machine Learning Managed Identity now correctly uses MSI's 2017 API instead of the 2019 API #7631",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}

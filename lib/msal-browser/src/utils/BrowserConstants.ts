@@ -74,6 +74,13 @@ export const HTTP_REQUEST_TYPE = {
 export type HTTP_REQUEST_TYPE =
     (typeof HTTP_REQUEST_TYPE)[keyof typeof HTTP_REQUEST_TYPE];
 
+export const INTERACTION_TYPE = {
+    SIGNIN: "signin",
+    SIGNOUT: "signout",
+} as const;
+export type INTERACTION_TYPE =
+    (typeof INTERACTION_TYPE)[keyof typeof INTERACTION_TYPE];
+
 /**
  * Temporary cache keys for MSAL, deleted after any request.
  */

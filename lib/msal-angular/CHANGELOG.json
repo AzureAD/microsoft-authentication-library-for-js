@@ -2,6 +2,39 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Tue, 08 Apr 2025 16:56:05 GMT",
+      "version": "4.0.9",
+      "tag": "@azure/msal-angular_v4.0.9",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "fabf962dcb69611b4516342107bc7bcc364c4e68",
+            "comment": "added resetInProgressEvent function to reset event after handleRedirectPromise is called #7682"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "fabf962dcb69611b4516342107bc7bcc364c4e68",
+            "comment": "Deprecate logout() in Angular"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v4.10.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 25 Mar 2025 22:29:34 GMT",
       "version": "4.0.8",
       "tag": "@azure/msal-angular_v4.0.8",

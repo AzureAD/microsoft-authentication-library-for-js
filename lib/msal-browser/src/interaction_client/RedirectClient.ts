@@ -24,6 +24,7 @@ import {
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import {
     ApiId,
+    INTERACTION_TYPE,
     InteractionType,
     TemporaryCacheKeys,
 } from "../utils/BrowserConstants.js";
@@ -727,7 +728,10 @@ export class RedirectClient extends StandardInteractionClient {
                     );
                     // Ensure interaction is in progress
                     if (!this.browserStorage.getInteractionInProgress()) {
-                        this.browserStorage.setInteractionInProgress(true);
+                        this.browserStorage.setInteractionInProgress(
+                            true,
+                            INTERACTION_TYPE.SIGNOUT
+                        );
                     }
                     await this.navigationClient.navigateExternal(
                         logoutUri,
@@ -744,7 +748,10 @@ export class RedirectClient extends StandardInteractionClient {
             } else {
                 // Ensure interaction is in progress
                 if (!this.browserStorage.getInteractionInProgress()) {
-                    this.browserStorage.setInteractionInProgress(true);
+                    this.browserStorage.setInteractionInProgress(
+                        true,
+                        INTERACTION_TYPE.SIGNOUT
+                    );
                 }
                 await this.navigationClient.navigateExternal(
                     logoutUri,
