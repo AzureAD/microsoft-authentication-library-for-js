@@ -55,6 +55,7 @@ export type NodeAuthOptions = {
     protocolMode?: ProtocolMode;
     azureCloudOptions?: AzureCloudOptions;
     skipAuthorityMetadataCache?: boolean;
+    encodeExtraQueryParams?: boolean;
 };
 
 /**
@@ -154,6 +155,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
         tenant: Constants.EMPTY_STRING,
     },
     skipAuthorityMetadataCache: false,
+    encodeExtraQueryParams: true,
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {

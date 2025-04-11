@@ -26,6 +26,7 @@ import {
     isInteractionRequiredError,
 } from "../error/InteractionRequiredAuthError.js";
 import { ServerError } from "../error/ServerError.js";
+import { StringDict } from "../utils/MsalTypes.js";
 
 /**
  * Returns map of parameters that are applicable to all calls to /authorize whether using PKCE or EAR
@@ -264,10 +265,15 @@ export function getStandardAuthorizeRequestParameters(
  */
 export function getAuthorizeUrl(
     authority: Authority,
-    requestParameters: Map<string, string>
+    requestParameters: Map<string, string>,
+    encodeParams?: boolean,
+    extraQueryParameters?: StringDict | undefined
 ): string {
-    const queryString = mapToQueryString(requestParameters);
-
+    const queryString = mapToQueryString(
+        requestParameters,
+        encodeParams,
+        extraQueryParameters
+    );
     return UrlString.appendQueryString(
         authority.authorizationEndpoint,
         queryString

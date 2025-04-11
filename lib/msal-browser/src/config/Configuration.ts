@@ -108,6 +108,10 @@ export type BrowserAuthOptions = {
      * Flag of whether the STS will send back additional parameters to specify where the tokens should be retrieved from.
      */
     instanceAware?: boolean;
+    /**
+     * Flag of whether to encode query parameters
+     */
+    encodeExtraQueryParams?: boolean;
 };
 
 /** @internal */
@@ -296,6 +300,7 @@ export function buildConfiguration(
         skipAuthorityMetadataCache: false,
         supportsNestedAppAuth: false,
         instanceAware: false,
+        encodeExtraQueryParams: true,
     };
 
     // Default cache options for browser
