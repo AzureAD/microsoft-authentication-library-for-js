@@ -66,6 +66,8 @@ const msalConfig = {
         clientId: "your_client_id",
         authority: "https://login.live.com",
         knownAuthorities: ["login.live.com"],
+    },
+    system: {
         protocolMode: "OIDC",
     },
 };

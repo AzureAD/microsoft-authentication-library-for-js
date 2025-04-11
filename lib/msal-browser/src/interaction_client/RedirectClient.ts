@@ -144,7 +144,7 @@ export class RedirectClient extends StandardInteractionClient {
         window.addEventListener("pageshow", handleBackButton);
 
         try {
-            if (this.config.auth.protocolMode === ProtocolMode.EAR) {
+            if (this.config.system.protocolMode === ProtocolMode.EAR) {
                 await this.executeEarFlow(validRequest);
             } else {
                 await this.executeCodeFlow(validRequest);

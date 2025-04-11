@@ -639,7 +639,7 @@ export abstract class ClientApplication {
         );
 
         const authorityOptions: AuthorityOptions = {
-            protocolMode: this.config.auth.protocolMode,
+            protocolMode: this.config.system.protocolMode,
             knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
             authorityMetadata: this.config.auth.authorityMetadata,

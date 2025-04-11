@@ -29,7 +29,6 @@ import { NodeAuthError } from "../error/NodeAuthError.js";
  * - clientSecret           - Secret string that the application uses when requesting a token. Only used in confidential client applications. Can be created in the Azure app registration portal.
  * - clientAssertion        - A ClientAssertion object containing an assertion string or a callback function that returns an assertion string that the application uses when requesting a token, as well as the assertion's type (urn:ietf:params:oauth:client-assertion-type:jwt-bearer). Only used in confidential client applications.
  * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 or SHA-256 thumbprint of the certificate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
- * - protocolMode           - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  * @public
  */
 export type NodeAuthOptions = {
@@ -51,7 +50,6 @@ export type NodeAuthOptions = {
     cloudDiscoveryMetadata?: string;
     authorityMetadata?: string;
     clientCapabilities?: Array<string>;
-    protocolMode?: ProtocolMode;
     azureCloudOptions?: AzureCloudOptions;
 };
 
@@ -81,6 +79,7 @@ export type BrokerOptions = {
  *
  * - logger                       - Used to initialize the Logger object; TODO: Expand on logger details or link to the documentation on logger
  * - networkClient                - Http client used for all http get and post calls. Defaults to using MSAL's default http client.
+ * - protocolMode           - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  * @public
  */
 export type NodeSystemOptions = {
@@ -89,6 +88,7 @@ export type NodeSystemOptions = {
     proxyUrl?: string;
     customAgentOptions?: http.AgentOptions | https.AgentOptions;
     disableInternalRetries?: boolean;
+    protocolMode?: ProtocolMode;
 };
 
 /** @public */
@@ -142,7 +142,6 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     cloudDiscoveryMetadata: Constants.EMPTY_STRING,
     authorityMetadata: Constants.EMPTY_STRING,
     clientCapabilities: [],
-    protocolMode: ProtocolMode.AAD,
     azureCloudOptions: {
         azureCloudInstance: AzureCloudInstance.None,
         tenant: Constants.EMPTY_STRING,
@@ -163,6 +162,7 @@ const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     proxyUrl: Constants.EMPTY_STRING,
     customAgentOptions: {} as http.AgentOptions | https.AgentOptions,
     disableInternalRetries: false,
+    protocolMode: ProtocolMode.AAD,
 };
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {

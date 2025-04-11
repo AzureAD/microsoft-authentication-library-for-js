@@ -844,6 +844,8 @@ describe("PopupClient", () => {
                 pca = new PublicClientApplication({
                     auth: {
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                    system: {
                         protocolMode: ProtocolMode.EAR,
                     },
                 });
@@ -1909,9 +1911,11 @@ describe("PopupClient", () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    protocolMode: ProtocolMode.OIDC,
                     OIDCOptions: { responseMode: "query" },
                 },
+                system: {
+                    protocolMode: ProtocolMode.OIDC,
+                }
             });
 
             await pca.initialize();

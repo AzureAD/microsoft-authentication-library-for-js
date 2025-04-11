@@ -73,7 +73,7 @@ async function getStandardParameters(
         os: "",
         cpu: "",
     });
-    if (config.auth.protocolMode !== ProtocolMode.OIDC) {
+    if (config.system.protocolMode !== ProtocolMode.OIDC) {
         RequestParameterBuilder.addApplicationTelemetry(
             parameters,
             config.telemetry.application

@@ -1256,8 +1256,10 @@ describe("SilentIframeClient", () => {
                 pca = new PublicClientApplication({
                     auth: {
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                        protocolMode: ProtocolMode.EAR,
                     },
+                    system: {
+                        protocolMode: ProtocolMode.EAR,
+                    }
                 });
                 await pca.initialize();
 
