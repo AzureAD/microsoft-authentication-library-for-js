@@ -131,6 +131,7 @@ function initializeMsal() {
       provideHttpClientTesting(),
       provideRouter([]),
     ],
+    teardown: { destroyAfterEach: false },
   });
 
   interceptor = TestBed.inject(MsalInterceptor);

@@ -2,6 +2,47 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 08 Apr 2025 16:56:06 GMT",
+      "version": "3.5.0",
+      "tag": "@azure/msal-node_v3.5.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "fabf962dcb69611b4516342107bc7bcc364c4e68",
+            "comment": "Machine Learning Managed Identity now correctly uses MSI's 2017 API instead of the 2019 API #7631"
+          }
+        ],
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "fabf962dcb69611b4516342107bc7bcc364c4e68",
+            "comment": "Implemented a Retry Policy for the IMDS Managed Identity Source #7614"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v15.5.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 25 Mar 2025 22:29:34 GMT",
       "version": "3.4.1",
       "tag": "@azure/msal-node_v3.4.1",

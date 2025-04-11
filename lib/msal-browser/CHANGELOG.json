@@ -2,6 +2,59 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 08 Apr 2025 16:56:05 GMT",
+      "version": "4.10.0",
+      "tag": "@azure/msal-browser_v4.10.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "fabf962dcb69611b4516342107bc7bcc364c4e68",
+            "comment": "Fix a bug in handleRedirectPromise when invoked after logoutRedirect #7680"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v15.5.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "fabf962dcb69611b4516342107bc7bcc364c4e68",
+            "comment": "Export additional function internally for use in tests"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "fabf962dcb69611b4516342107bc7bcc364c4e68",
+            "comment": "update cache miss to warning from error"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 26 Mar 2025 17:56:52 GMT",
       "version": "4.9.1",
       "tag": "@azure/msal-browser_v4.9.1",
