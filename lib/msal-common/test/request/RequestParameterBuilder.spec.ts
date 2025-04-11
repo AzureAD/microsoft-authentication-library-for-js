@@ -308,10 +308,6 @@ describe("RequestParameterBuilder unit tests", () => {
                 extra_params: "param1,param2",
             }
         );
-        console.log(requestQueryString);
-        console.log(
-            `${AADServerParamKeys.REDIRECT_URI}=${TEST_URIS.TEST_REDIRECT_URI_LOCALHOST}`
-        );
         expect(
             requestQueryString.includes(
                 `${AADServerParamKeys.RESPONSE_TYPE}=${OAuthResponseType.CODE}`
@@ -440,6 +436,21 @@ describe("RequestParameterBuilder unit tests", () => {
         expect(requestQueryString.includes(`extra_params=param1,param2`)).toBe(
             true
         );
+    });
+
+    it("Encodes extra params by default", () => {
+        const parameters = new Map<string, string>();
+        RequestParameterBuilder.addExtraQueryParameters(parameters, {
+            extra_params: "param1,param2",
+        });
+
+        const requestQueryString = UrlUtils.mapToQueryString(parameters);
+        
+        expect(
+            requestQueryString.includes(
+                `extra_params=${encodeURIComponent("param1,param2")}`
+            )
+        ).toBe(true);
     });
 
     it("Adds token type and req_cnf correctly for proof-of-possession tokens", () => {
