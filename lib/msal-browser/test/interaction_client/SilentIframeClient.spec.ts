@@ -1259,7 +1259,7 @@ describe("SilentIframeClient", () => {
                     },
                     system: {
                         protocolMode: ProtocolMode.EAR,
-                    }
+                    },
                 });
                 await pca.initialize();
 

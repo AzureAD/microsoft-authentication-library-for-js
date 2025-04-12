@@ -612,8 +612,7 @@ export class Authority {
             "Did not find endpoint metadata in the config... Attempting to get endpoint metadata from the hardcoded values."
         );
 
-        const hardcodedMetadata =
-            this.getEndpointMetadataFromHardcodedValues();
+        const hardcodedMetadata = this.getEndpointMetadataFromHardcodedValues();
         if (hardcodedMetadata) {
             CacheHelpers.updateAuthorityEndpointMetadata(
                 metadataEntity,
@@ -889,10 +888,9 @@ export class Authority {
             "Did not find cloud discovery metadata in the config... Attempting to get cloud discovery metadata from the hardcoded values."
         );
 
-        const hardcodedMetadata =
-            getCloudDiscoveryMetadataFromHardcodedValues(
-                this.hostnameAndPort
-            );
+        const hardcodedMetadata = getCloudDiscoveryMetadataFromHardcodedValues(
+            this.hostnameAndPort
+        );
         if (hardcodedMetadata) {
             this.logger.verbose(
                 "Found cloud discovery metadata from hardcoded values."

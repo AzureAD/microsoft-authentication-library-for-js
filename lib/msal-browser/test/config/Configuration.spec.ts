@@ -301,7 +301,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                 },
                 system: {
                     protocolMode: ProtocolMode.AAD,
-                }
+                },
             },
             true
         );

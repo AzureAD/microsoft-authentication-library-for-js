@@ -1610,7 +1610,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 );
                 // Force hardcoded metadata to return null
                 getEndpointMetadataFromHarcodedValuesSpy.mockReturnValue(null);
-                
+
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientAuthError);
                     expect(e.errorCode).toBe(
@@ -2326,10 +2326,11 @@ describe("Authority.ts Class Unit Tests", () => {
             });
 
             it("throws untrustedAuthority error if host is not part of knownAuthorities, cloudDiscoveryMetadata and instance discovery network call fails", (done) => {
-                const getCloudDiscoveryMetadataFromHarcodedValuesSpy: jest.SpyInstance = jest.spyOn(
-                    authorityMetadata,
-                    "getCloudDiscoveryMetadataFromHardcodedValues"
-                );
+                const getCloudDiscoveryMetadataFromHarcodedValuesSpy: jest.SpyInstance =
+                    jest.spyOn(
+                        authorityMetadata,
+                        "getCloudDiscoveryMetadataFromHardcodedValues"
+                    );
 
                 getCloudDiscoveryMetadataFromHarcodedValuesSpy.mockReturnValue(
                     null
@@ -2371,10 +2372,11 @@ describe("Authority.ts Class Unit Tests", () => {
             });
 
             it("throws untrustedAuthority error if host is not part of knownAuthorities, cloudDiscoveryMetadata and instance discovery network call doesn't return metadata, and the error returned from AAD is 'invalid_instance'", (done) => {
-                const getCloudDiscoveryMetadataFromHarcodedValuesSpy: jest.SpyInstance = jest.spyOn(
-                    authorityMetadata,
-                    "getCloudDiscoveryMetadataFromHardcodedValues"
-                );
+                const getCloudDiscoveryMetadataFromHarcodedValuesSpy: jest.SpyInstance =
+                    jest.spyOn(
+                        authorityMetadata,
+                        "getCloudDiscoveryMetadataFromHardcodedValues"
+                    );
 
                 getCloudDiscoveryMetadataFromHarcodedValuesSpy.mockReturnValue(
                     null

@@ -308,7 +308,7 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
             },
             system: {
                 protocolMode: ProtocolMode.OIDC,
-            }
+            },
         });
 
         //Implementation of PCA was moved to controller.

@@ -1916,7 +1916,7 @@ describe("PopupClient", () => {
                 },
                 system: {
                     protocolMode: ProtocolMode.OIDC,
-                }
+                },
             });
 
             await pca.initialize();

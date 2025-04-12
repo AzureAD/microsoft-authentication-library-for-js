@@ -3005,7 +3005,7 @@ describe("RedirectClient", () => {
                 },
                 system: {
                     protocolMode: ProtocolMode.EAR,
-                }
+                },
             });
             await pca.initialize();
 
