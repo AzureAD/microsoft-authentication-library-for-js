@@ -257,7 +257,6 @@ export class StandardController implements IController {
         const nativeCacheOptions: Required<CacheOptions> = {
             cacheLocation: BrowserCacheLocation.MemoryStorage,
             temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
-            cacheMigrationEnabled: false,
             claimsBasedCachingEnabled: false,
         };
         this.nativeInternalStorage = new BrowserCacheManager(

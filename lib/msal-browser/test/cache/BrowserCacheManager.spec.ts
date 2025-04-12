@@ -61,7 +61,6 @@ describe("BrowserCacheManager tests", () => {
         cacheConfig = {
             temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
             cacheLocation: BrowserCacheLocation.SessionStorage,
-            cacheMigrationEnabled: false,
             claimsBasedCachingEnabled: false,
         };
         logger = new Logger({

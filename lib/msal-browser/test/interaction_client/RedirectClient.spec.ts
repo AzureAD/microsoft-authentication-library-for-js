@@ -91,7 +91,6 @@ import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformance
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
-    cacheMigrationEnabled: false,
     claimsBasedCachingEnabled: false,
 };
 

@@ -1341,7 +1341,6 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
     const cacheOptions: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.MemoryStorage,
         temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
-        cacheMigrationEnabled: false,
         claimsBasedCachingEnabled: false,
     };
     return new BrowserCacheManager(

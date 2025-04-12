@@ -119,7 +119,6 @@ import { INTERACTION_TYPE } from "../../src/utils/BrowserConstants.js";
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
     cacheLocation: BrowserCacheLocation.SessionStorage,
-    cacheMigrationEnabled: false,
     claimsBasedCachingEnabled: false,
 };
 
@@ -7279,7 +7278,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
                     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
-                    cacheMigrationEnabled: false,
                     claimsBasedCachingEnabled: false,
                 },
                 new CryptoOps(new Logger({})),
