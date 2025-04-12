@@ -444,9 +444,7 @@ export type NodeAuthOptions = {
     cloudDiscoveryMetadata?: string;
     authorityMetadata?: string;
     clientCapabilities?: Array<string>;
-    protocolMode?: ProtocolMode;
     azureCloudOptions?: AzureCloudOptions;
-    skipAuthorityMetadataCache?: boolean;
 };
 
 // @public
@@ -456,6 +454,7 @@ export type NodeSystemOptions = {
     proxyUrl?: string;
     customAgentOptions?: http.AgentOptions | https.AgentOptions;
     disableInternalRetries?: boolean;
+    protocolMode?: ProtocolMode;
 };
 
 // @public (undocumented)
