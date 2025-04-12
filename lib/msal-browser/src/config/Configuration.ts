@@ -122,6 +122,8 @@ export type CacheOptions = {
      */
     cacheLocation?: BrowserCacheLocation | string;
     /**
+     * @deprecated
+     * temporaryCacheLocation is deprecated and will be removed in a future release.
      * Used to specify the temporaryCacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
      */
     temporaryCacheLocation?: BrowserCacheLocation | string;
