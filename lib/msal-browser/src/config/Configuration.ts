@@ -128,6 +128,8 @@ export type CacheOptions = {
      */
     temporaryCacheLocation?: BrowserCacheLocation | string;
     /**
+     * @deprecated
+     * claimsBasedCachingEnabled is deprecated and will be removed in a future release.
      * Flag that determines whether access tokens are stored based on requested claims
      */
     claimsBasedCachingEnabled?: boolean;

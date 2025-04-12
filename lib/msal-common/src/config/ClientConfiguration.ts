@@ -126,6 +126,10 @@ export type LoggerOptions = {
  * - claimsBasedCachingEnabled   - Sets whether tokens should be cached based on the claims hash. Default is false.
  */
 export type CacheOptions = {
+    /**
+     * @deprecated
+     * claimsBasedCachingEnabled is deprecated and will be removed in a future release.
+     */
     claimsBasedCachingEnabled?: boolean;
 };
 
