@@ -172,9 +172,7 @@ export function redirectPreflightCheck(
     preflightCheck(initialized);
     blockRedirectInIframe(config.system.allowRedirectInIframe);
     // Block redirects if memory storage is enabled
-    if (
-        config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage
-    ) {
+    if (config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage) {
         throw createBrowserConfigurationAuthError(
             BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable
         );
