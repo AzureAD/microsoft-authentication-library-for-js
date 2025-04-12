@@ -68,8 +68,6 @@ import { EventHandler } from "../event/EventHandler.js";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
- * Cookies are only used if storeAuthStateInCookie is true, and are only used for
- * parameters such as state and nonce, generally.
  */
 export class BrowserCacheManager extends CacheManager {
     // Cache configuration, either set by user or default values.
@@ -885,21 +883,10 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Gets cache item with given key.
-     * Will retrieve from cookies if storeAuthStateInCookie is set to true.
      * @param key
      */
     getTemporaryCache(cacheKey: string, generateKey?: boolean): string | null {
         const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
-        if (this.cacheConfig.storeAuthStateInCookie) {
-            const itemCookie = this.cookieStorage.getItem(key);
-            if (itemCookie) {
-                this.logger.trace(
-                    "BrowserCacheManager.getTemporaryCache: storeAuthStateInCookies set to true, retrieving from cookies"
-                );
-                return itemCookie;
-            }
-        }
-
         const value = this.temporaryCacheStorage.getItem(key);
         if (!value) {
             // If temp cache item not found in session/memory, check local storage for items set by old versions
@@ -928,8 +915,6 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Sets the cache item with the key and value given.
-     * Stores in cookie if storeAuthStateInCookie is set to true.
-     * This can cause cookie overflow if used incorrectly.
      * @param key
      * @param value
      */
@@ -939,14 +924,7 @@ export class BrowserCacheManager extends CacheManager {
         generateKey?: boolean
     ): void {
         const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
-
         this.temporaryCacheStorage.setItem(key, value);
-        if (this.cacheConfig.storeAuthStateInCookie) {
-            this.logger.trace(
-                "BrowserCacheManager.setTemporaryCache: storeAuthStateInCookie set to true, setting item cookie"
-            );
-            this.cookieStorage.setItem(key, value, undefined);
-        }
     }
 
     /**
@@ -959,17 +937,10 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Removes the temporary cache item with the given key.
-     * Will also clear the cookie item if storeAuthStateInCookie is set to true.
      * @param key
      */
     removeTemporaryItem(key: string): void {
         this.temporaryCacheStorage.removeItem(key);
-        if (this.cacheConfig.storeAuthStateInCookie) {
-            this.logger.trace(
-                "BrowserCacheManager.removeItem: storeAuthStateInCookie is true, clearing item cookie"
-            );
-            this.cookieStorage.removeItem(key);
-        }
     }
 
     /**
@@ -1370,7 +1341,6 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
     const cacheOptions: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.MemoryStorage,
         temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
-        storeAuthStateInCookie: false,
         cacheMigrationEnabled: false,
         claimsBasedCachingEnabled: false,
     };

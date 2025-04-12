@@ -13,7 +13,7 @@ export const BrowserConfigurationAuthErrorMessages = {
     [BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled]:
         "Stub instance of Public Client Application was called. If using msal-react, please ensure context is not used without a provider. For more visit: aka.ms/msaljs/browser-errors",
     [BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable]:
-        "Redirect cannot be supported. In-memory storage was selected and storeAuthStateInCookie=false, which would cause the library to be unable to handle the incoming hash. If you would like to use the redirect API, please use session/localStorage or set storeAuthStateInCookie=true.",
+        "Redirect cannot be supported. In-memory storage was selected, which would cause the library to be unable to handle the incoming hash. If you would like to use the redirect API, please use session/localStorage.",
 };
 
 /**

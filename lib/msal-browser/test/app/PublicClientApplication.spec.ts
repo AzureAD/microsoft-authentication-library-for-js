@@ -119,7 +119,6 @@ import { INTERACTION_TYPE } from "../../src/utils/BrowserConstants.js";
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
     cacheLocation: BrowserCacheLocation.SessionStorage,
-    storeAuthStateInCookie: false,
     cacheMigrationEnabled: false,
     claimsBasedCachingEnabled: false,
 };
@@ -1933,14 +1932,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }
         });
 
-        it("throws error if cacheLocation is Memory Storage and storeAuthStateInCookie is false", async () => {
+        it("throws error if cacheLocation is Memory Storage", async () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 cache: {
                     cacheLocation: BrowserCacheLocation.MemoryStorage,
-                    storeAuthStateInCookie: false,
                 },
                 system: {
                     allowPlatformBroker: false,
@@ -7281,7 +7279,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
                     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
-                    storeAuthStateInCookie: false,
                     cacheMigrationEnabled: false,
                     claimsBasedCachingEnabled: false,
                 },

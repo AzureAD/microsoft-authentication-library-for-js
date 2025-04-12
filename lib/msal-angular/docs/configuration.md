@@ -58,7 +58,6 @@ import { PublicClientApplication, InteractionType, BrowserCacheLocation } from "
         },
         cache: {
           cacheLocation: BrowserCacheLocation.LocalStorage,
-          storeAuthStateInCookie: true, // set to true for IE 11
         },
         system: {
           loggerOptions: {
@@ -261,7 +260,6 @@ fetch("/assets/configuration.json")
     },
     "cache": {
       "cacheLocation": "localStorage",
-      "storeAuthStateInCookie": true
     }
   },
   "guard": {
@@ -471,7 +469,6 @@ export class AppModule {}
     },
     "cache": {
       "cacheLocation": "localStorage",
-      "storeAuthStateInCookie": true
     }
   },
   "guard": {

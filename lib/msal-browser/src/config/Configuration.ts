@@ -128,10 +128,6 @@ export type CacheOptions = {
      */
     temporaryCacheLocation?: BrowserCacheLocation | string;
     /**
-     * If set, MSAL stores the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
-     */
-    storeAuthStateInCookie?: boolean;
-    /**
      * If set, MSAL will attempt to migrate cache entries from older versions on initialization. By default this flag is set to true if cacheLocation is localStorage, otherwise false.
      */
     cacheMigrationEnabled?: boolean;
@@ -287,7 +283,6 @@ export function buildConfiguration(
     const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
         temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
-        storeAuthStateInCookie: false,
         // Default cache migration to true if cache location is localStorage since entries are preserved across tabs/windows. Migration has little to no benefit in sessionStorage and memoryStorage
         cacheMigrationEnabled:
             userInputCache &&
