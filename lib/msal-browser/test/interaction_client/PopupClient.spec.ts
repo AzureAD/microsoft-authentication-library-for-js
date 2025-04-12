@@ -56,6 +56,7 @@ import {
     BrowserAuthError,
     createBrowserAuthError,
     BrowserAuthErrorMessages,
+    BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError.js";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
