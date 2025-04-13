@@ -59,6 +59,8 @@ export const BrowserAuthErrorMessages = {
     [BrowserAuthErrorCodes.invalidCacheType]: "Invalid cache type",
     [BrowserAuthErrorCodes.nonBrowserEnvironment]:
         "Login and token requests are not supported in non-browser environments.",
+    [BrowserAuthErrorCodes.nonExtensionEnvironment]:
+    "Login and token requests are not supported in non-extension environments.",
     [BrowserAuthErrorCodes.databaseNotOpen]: "Database is not open!",
     [BrowserAuthErrorCodes.noNetworkConnectivity]:
         "No network connectivity. Check your internet connection.",

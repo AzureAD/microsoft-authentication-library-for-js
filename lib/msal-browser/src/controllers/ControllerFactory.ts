@@ -10,6 +10,8 @@ import { Configuration } from "../config/Configuration.js";
 import { StandardController } from "./StandardController.js";
 import { NestedAppAuthController } from "./NestedAppAuthController.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
+import { BrowserExtensionOperatingContext } from "../operatingcontext/BrowserExtensionOperatingContext.js";
+import { BrowserExtensionController } from "./BrowserExtensionController.js";
 
 export async function createV3Controller(
     config: Configuration,
@@ -26,17 +28,20 @@ export async function createController(
 ): Promise<IController | null> {
     const standard = new StandardOperatingContext(config);
     const nestedApp = new NestedAppOperatingContext(config);
+    const extensionApp = new BrowserExtensionOperatingContext(config);
 
-    const operatingContexts = [standard.initialize(), nestedApp.initialize()];
+    const operatingContexts = [standard.initialize(), nestedApp.initialize(), extensionApp.initialize()];
 
     await Promise.all(operatingContexts);
 
     if (nestedApp.isAvailable() && config.auth.supportsNestedAppAuth) {
         return NestedAppAuthController.createController(nestedApp);
+    } else if (extensionApp.isAvailable()) {
+        return BrowserExtensionController.createController(extensionApp);
     } else if (standard.isAvailable()) {
         return StandardController.createController(standard);
     } else {
-        // Since neither of the actual operating contexts are available keep the UnknownOperatingContextController
+        // Since none of the actual operating contexts are available keep the UnknownOperatingContextController
         return null;
     }
 }

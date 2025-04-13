@@ -129,6 +129,14 @@ export function blockNonBrowserEnvironment(): void {
     }
 }
 
+export function blockNonExtensionEnvironment(): void {
+    if (typeof chrome === "undefined") {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.nonExtensionEnvironment
+        );
+    }
+}
+
 /**
  * Throws error if initialize hasn't been called
  * @param initialized
@@ -151,6 +159,22 @@ export function preflightCheck(initialized: boolean): void {
 
     // Block auth requests inside a hidden iframe
     blockReloadInHiddenIframes();
+
+    // Block redirectUri opened in a popup from calling MSAL APIs
+    blockAcquireTokenInPopups();
+
+    // Block token acquisition before initialize has been called
+    blockAPICallsBeforeInitialize(initialized);
+}
+
+// TODO: Dedupe with above
+/**
+ * Helper to validate app environment before making an auth request
+ * @param initialized
+ */
+export function preflightCheckExtension(initialized: boolean): void {
+    // Block request if not in browser environment
+    blockNonExtensionEnvironment();
 
     // Block redirectUri opened in a popup from calling MSAL APIs
     blockAcquireTokenInPopups();

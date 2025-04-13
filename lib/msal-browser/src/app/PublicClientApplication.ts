@@ -35,6 +35,8 @@ import { NestedAppAuthController } from "../controllers/NestedAppAuthController.
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { EventType } from "../event/EventType.js";
+import { BrowserExtensionOperatingContext } from "../operatingcontext/BrowserExtensionOperatingContext.js";
+import { BrowserExtensionController } from "../controllers/BrowserExtensionController.js";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -463,6 +465,33 @@ export async function createNestablePublicClientApplication(
         );
         await nestablePCA.initialize();
         return nestablePCA;
+    }
+
+    return createStandardPublicClientApplication(configuration);
+}
+
+/**
+ * creates BrowserExtensionController and passes it to the PublicClientApplication,
+ * falls back to StandardController if BrowserExtensionController is not available
+ *
+ * @param configuration
+ * @returns IPublicClientApplication
+ *
+ */
+export async function createBrowserExtensionPublicClientApplication(
+    configuration: Configuration
+): Promise<IPublicClientApplication> {
+    const browserExtension = new BrowserExtensionOperatingContext(configuration);
+    await browserExtension.initialize();
+
+    if (browserExtension.isAvailable()) {
+        const controller = new BrowserExtensionController(browserExtension);
+        const browserExtensionPCA = new PublicClientApplication(
+            configuration,
+            controller
+        );
+        await browserExtensionPCA.initialize();
+        return browserExtensionPCA;
     }
 
     return createStandardPublicClientApplication(configuration);

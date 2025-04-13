@@ -63,7 +63,7 @@ export class LocalStorage implements IWindowStorage<string> {
         logger: Logger,
         performanceClient: IPerformanceClient
     ) {
-        if (!window.localStorage) {
+        if (!window?.localStorage) {
             throw createBrowserConfigurationAuthError(
                 BrowserConfigurationAuthErrorCodes.storageNotSupported
             );

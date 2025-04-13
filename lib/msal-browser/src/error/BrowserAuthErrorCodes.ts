@@ -32,6 +32,7 @@ export const noCachedAuthorityError = "no_cached_authority_error";
 export const authRequestNotSetError = "auth_request_not_set_error";
 export const invalidCacheType = "invalid_cache_type";
 export const nonBrowserEnvironment = "non_browser_environment";
+export const nonExtensionEnvironment = "non_extension_environment";
 export const databaseNotOpen = "database_not_open";
 export const noNetworkConnectivity = "no_network_connectivity";
 export const postRequestFailed = "post_request_failed";

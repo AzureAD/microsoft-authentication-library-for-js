@@ -14,6 +14,7 @@ export { BrowserUtils };
 export {
     PublicClientApplication,
     createNestablePublicClientApplication,
+    createBrowserExtensionPublicClientApplication,
     createStandardPublicClientApplication,
 } from "./app/PublicClientApplication.js";
 export { PublicClientNext } from "./app/PublicClientNext.js";

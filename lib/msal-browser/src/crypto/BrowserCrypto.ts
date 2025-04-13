@@ -105,7 +105,16 @@ export async function sha256Digest(
  * @param dataBuffer
  */
 export function getRandomValues(dataBuffer: Uint8Array): Uint8Array {
-    return window.crypto.getRandomValues(dataBuffer);
+    if (typeof window !== "undefined") {
+        return window.crypto.getRandomValues(dataBuffer);
+    } else if (chrome && crypto) {
+        // Chrome extension environment
+        return crypto.getRandomValues(dataBuffer);
+    }
+    throw createBrowserAuthError(
+        BrowserAuthErrorCodes.cryptoNonExistent,
+        SUBTLE_SUBERROR
+    );
 }
 
 /**
@@ -113,8 +122,17 @@ export function getRandomValues(dataBuffer: Uint8Array): Uint8Array {
  * @returns {number}
  */
 function getRandomUint32(): number {
-    window.crypto.getRandomValues(UINT32_ARR);
-    return UINT32_ARR[0];
+    if(typeof window !== "undefined") {
+        // Browser environment
+        window.crypto.getRandomValues(UINT32_ARR);
+        return UINT32_ARR[0];
+    } else if (chrome && crypto) {
+        // Chrome extension environment
+        return crypto.getRandomValues(UINT32_ARR)[0];
+    } else {
+        return 0;
+    }
+
 }
 
 /**

@@ -79,8 +79,8 @@ export class BrowserExtensionClient extends StandardInteractionClient {
         pkceCodes?: PkceCodes
     ): Promise<AuthenticationResult> {
         try {
-            const chromeIdentity = (window.chrome || (window as any)['browser']).identity;
-            if (chromeIdentity) {
+            const chromeIdentity = chrome.identity;
+            if (typeof chromeIdentity !== "undefined") {
                 this.logger.verbose("chrome.identity API is available, acquiring token using Manifest V3 Webflow");
                 return this.acquireTokenExtensionAsync(
                     request,
@@ -249,8 +249,7 @@ export class BrowserExtensionClient extends StandardInteractionClient {
                     prompt: undefined, // Server should handle the prompt, ideally native broker can do this part silently
                 });
             }
-            console.log(serverParams);
-            debugger;
+            
             // Handle response from hash string.
             const result = await interactionHandler.handleCodeResponse(
                 serverParams,
