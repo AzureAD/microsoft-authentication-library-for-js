@@ -301,7 +301,7 @@ export function buildConfiguration(
         skipAuthorityMetadataCache: false,
         supportsNestedAppAuth: false,
         instanceAware: false,
-        encodeExtraQueryParams: true,
+        encodeExtraQueryParams: false,
     };
 
     // Default cache options for browser
