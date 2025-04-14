@@ -9,6 +9,7 @@ import * as CacheHelpers from "./cache/utils/CacheHelpers.js";
 import * as TimeUtils from "./utils/TimeUtils.js";
 import * as UrlUtils from "./utils/UrlUtils.js";
 import * as AADServerParamKeys from "./constants/AADServerParamKeys.js";
+import * as AccountEntityUtils from "./cache/utils/AccountEntityUtils.js";
 
 export { AuthToken };
 export { AuthorityFactory };
@@ -16,6 +17,7 @@ export { CacheHelpers };
 export { TimeUtils };
 export { UrlUtils };
 export { AADServerParamKeys };
+export { AccountEntityUtils };
 
 export { AuthorizationCodeClient } from "./client/AuthorizationCodeClient.js";
 export { RefreshTokenClient } from "./client/RefreshTokenClient.js";
@@ -80,18 +82,6 @@ export { CacheRecord } from "./cache/entities/CacheRecord.js";
 export { CredentialEntity } from "./cache/entities/CredentialEntity.js";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity.js";
 export { AccountEntity } from "./cache/entities/AccountEntity.js";
-export {
-    generateAccountId,
-    generateAccountKey,
-    getAccountInfo,
-    isSingleTenant,
-    generateAccountCacheKey,
-    createAccountEntity,
-    createAccountEntityFromAccountInfo,
-    generateHomeAccountId,
-    isAccountEntity,
-    accountInfoIsEqual,
-} from "./cache/utils/AccountEntityUtils.js";
 export { IdTokenEntity } from "./cache/entities/IdTokenEntity.js";
 export { AccessTokenEntity } from "./cache/entities/AccessTokenEntity.js";
 export { RefreshTokenEntity } from "./cache/entities/RefreshTokenEntity.js";

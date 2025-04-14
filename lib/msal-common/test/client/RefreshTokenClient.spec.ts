@@ -62,7 +62,7 @@ import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { generateCredentialKey } from "../../src/cache/utils/CacheHelpers.js";
 import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
-import { getAccountInfo } from "../../src/cache/utils/AccountEntityUtils.js";
+import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 
 const testAccountEntity: AccountEntity = {
     homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
@@ -327,7 +327,7 @@ describe("RefreshTokenClient unit tests", () => {
         let config: ClientConfiguration;
         let client: RefreshTokenClient;
 
-        const testAccount: AccountInfo = getAccountInfo(
+        const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
         );
         testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
@@ -1067,7 +1067,7 @@ describe("RefreshTokenClient unit tests", () => {
         let config: ClientConfiguration;
         let client: RefreshTokenClient;
 
-        const testAccount: AccountInfo = getAccountInfo(
+        const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
         );
         testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
@@ -1330,7 +1330,7 @@ describe("RefreshTokenClient unit tests", () => {
             const testScope2 = "scope2";
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: [testScope2],
-                account: getAccountInfo(testAccountEntity),
+                account: AccountEntityUtils.getAccountInfo(testAccountEntity),
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
@@ -1371,7 +1371,7 @@ describe("RefreshTokenClient unit tests", () => {
             const testScope2 = "scope2";
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: [testScope2],
-                account: getAccountInfo(testAccountEntity),
+                account: AccountEntityUtils.getAccountInfo(testAccountEntity),
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
@@ -1426,7 +1426,7 @@ describe("RefreshTokenClient unit tests", () => {
                 resEvents = events;
             });
             const client = new RefreshTokenClient(config, mockPerfClient);
-            const testAccount: AccountInfo = getAccountInfo(
+            const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
             );
             testAccount.idTokenClaims = ID_TOKEN_CLAIMS;

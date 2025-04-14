@@ -28,7 +28,7 @@ import {
     buildStaticAuthorityOptions,
     InteractionRequiredAuthErrorCodes,
     PkceCodes,
-    createAccountEntityFromAccountInfo,
+    AccountEntityUtils,
 } from "@azure/msal-common/browser";
 import {
     BrowserCacheManager,
@@ -1499,11 +1499,12 @@ export class StandardController implements IController {
         this.logger.verbose("hydrateCache called");
 
         // Account gets saved to browser storage regardless of native or not
-        const accountEntity = createAccountEntityFromAccountInfo(
-            result.account,
-            result.cloudGraphHostName,
-            result.msGraphHost
-        );
+        const accountEntity =
+            AccountEntityUtils.createAccountEntityFromAccountInfo(
+                result.account,
+                result.cloudGraphHostName,
+                result.msGraphHost
+            );
         await this.browserStorage.setAccount(
             accountEntity,
             result.correlationId

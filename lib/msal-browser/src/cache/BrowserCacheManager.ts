@@ -6,6 +6,7 @@
 import {
     AccessTokenEntity,
     AccountEntity,
+    AccountEntityUtils,
     AccountInfo,
     ActiveAccountFilters,
     AppMetadataEntity,
@@ -36,9 +37,6 @@ import {
     ThrottlingEntity,
     TimeUtils,
     TokenKeys,
-    generateAccountKey,
-    getAccountInfo,
-    isAccountEntity,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
@@ -163,7 +161,10 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         const parsedAccount = this.validateAndParseJson(serializedAccount);
-        if (!parsedAccount || !isAccountEntity(parsedAccount)) {
+        if (
+            !parsedAccount ||
+            !AccountEntityUtils.isAccountEntity(parsedAccount)
+        ) {
             this.removeAccountKeyFromMap(accountKey);
             return null;
         }
@@ -183,7 +184,7 @@ export class BrowserCacheManager extends CacheManager {
         correlationId: string
     ): Promise<void> {
         this.logger.trace("BrowserCacheManager.setAccount called");
-        const key = generateAccountKey(account);
+        const key = AccountEntityUtils.generateAccountKey(account);
         await invokeAsync(
             this.browserStorage.setUserData.bind(this.browserStorage),
             PerformanceEvents.SetUserData,
@@ -203,7 +204,7 @@ export class BrowserCacheManager extends CacheManager {
             this.eventHandler.emitEvent(
                 EventType.ACCOUNT_ADDED,
                 undefined,
-                getAccountInfo(account)
+                AccountEntityUtils.getAccountInfo(account)
             );
         }
     }
@@ -297,7 +298,7 @@ export class BrowserCacheManager extends CacheManager {
             this.eventHandler.emitEvent(
                 EventType.ACCOUNT_REMOVED,
                 undefined,
-                getAccountInfo(account)
+                AccountEntityUtils.getAccountInfo(account)
             );
         }
     }

@@ -40,9 +40,7 @@ import {
     RefreshTokenEntity,
     CacheManager,
     CommonSilentFlowRequest,
-    getAccountInfo,
-    createAccountEntity,
-    createAccountEntityFromAccountInfo,
+    AccountEntityUtils,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -247,7 +245,7 @@ describe("PublicClientApplication", () => {
         const testAccountEntity: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         const testAccount: AccountInfo = {
-            ...getAccountInfo(testAccountEntity),
+            ...AccountEntityUtils.getAccountInfo(testAccountEntity),
             idTokenClaims: ID_TOKEN_CLAIMS,
             idToken: TEST_TOKENS.IDTOKEN_V2,
         };
@@ -1040,32 +1038,33 @@ describe("PublicClientApplication", () => {
             });
 
             const cryptoProvider = new CryptoProvider();
-            const accountEntity: AccountEntity = createAccountEntity(
-                {
-                    homeAccountId: mockAccountInfo.homeAccountId,
-                    idTokenClaims: AuthToken.extractTokenClaims(
-                        mockAuthenticationResult.idToken,
-                        cryptoProvider.base64Decode
-                    ),
-                },
-                await AuthorityFactory.createDiscoveredInstance(
-                    TEST_CONFIG.validAuthority,
-                    new HttpClient(),
-                    new MockStorageClass(
-                        TEST_CONFIG.MSAL_CLIENT_ID,
-                        cryptoProvider,
-                        new Logger({})
-                    ),
+            const accountEntity: AccountEntity =
+                AccountEntityUtils.createAccountEntity(
                     {
-                        protocolMode: ProtocolMode.AAD,
-                        knownAuthorities: [],
-                        cloudDiscoveryMetadata: "",
-                        authorityMetadata: "",
+                        homeAccountId: mockAccountInfo.homeAccountId,
+                        idTokenClaims: AuthToken.extractTokenClaims(
+                            mockAuthenticationResult.idToken,
+                            cryptoProvider.base64Decode
+                        ),
                     },
-                    new Logger({}),
-                    TEST_CONFIG.CORRELATION_ID
-                )
-            );
+                    await AuthorityFactory.createDiscoveredInstance(
+                        TEST_CONFIG.validAuthority,
+                        new HttpClient(),
+                        new MockStorageClass(
+                            TEST_CONFIG.MSAL_CLIENT_ID,
+                            cryptoProvider,
+                            new Logger({})
+                        ),
+                        {
+                            protocolMode: ProtocolMode.AAD,
+                            knownAuthorities: [],
+                            cloudDiscoveryMetadata: "",
+                            authorityMetadata: "",
+                        },
+                        new Logger({}),
+                        TEST_CONFIG.CORRELATION_ID
+                    )
+                );
 
             // @ts-ignore
             await authApp.storage.setAccount(accountEntity);
@@ -1142,7 +1141,9 @@ describe("PublicClientApplication", () => {
             });
 
             const accountEntity: AccountEntity =
-                createAccountEntityFromAccountInfo(mockAccountInfo);
+                AccountEntityUtils.createAccountEntityFromAccountInfo(
+                    mockAccountInfo
+                );
 
             // @ts-ignore
             await authApp.storage.setAccount(accountEntity);

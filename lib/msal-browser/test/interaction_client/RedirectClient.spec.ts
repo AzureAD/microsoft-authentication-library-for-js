@@ -50,7 +50,7 @@ import {
     InProgressPerformanceEvent,
     StubPerformanceClient,
     ProtocolMode,
-    getAccountInfo,
+    AccessTokenEntity,
 } from "@azure/msal-common";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
@@ -411,7 +411,7 @@ describe("RedirectClient", () => {
                 },
             };
 
-            const testAccount: AccountInfo = getAccountInfo(
+            const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
             );
 
@@ -561,7 +561,7 @@ describe("RedirectClient", () => {
                 },
             };
 
-            const testAccount: AccountInfo = getAccountInfo(
+            const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, undefined, {
                     nativeAccountId: "test-nativeAccountId",
                 })
@@ -805,7 +805,7 @@ describe("RedirectClient", () => {
                 },
             };
 
-            const testAccount: AccountInfo = getAccountInfo(
+            const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
             );
 
@@ -946,7 +946,7 @@ describe("RedirectClient", () => {
                     },
                 };
 
-            const testAccount: AccountInfo = getAccountInfo(
+            const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
             );
 
@@ -1102,7 +1102,7 @@ describe("RedirectClient", () => {
                 },
             };
 
-            const testAccount: AccountInfo = getAccountInfo(
+            const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
             );
 
@@ -2796,7 +2796,7 @@ describe("RedirectClient", () => {
             const testAccountEntity =
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
             const testAccountInfo: AccountInfo = {
-                ...getAccountInfo(testAccountEntity),
+                ...AccountEntityUtils.getAccountInfo(testAccountEntity),
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 idToken: TEST_TOKENS.IDTOKEN_V2,
             };

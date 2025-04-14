@@ -19,7 +19,7 @@ import {
     BaseAuthRequest,
     AccountFilter,
     AuthError,
-    createAccountEntityFromAccountInfo,
+    AccountEntityUtils,
 } from "@azure/msal-common/browser";
 import { ITokenCache } from "../cache/ITokenCache.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -860,11 +860,12 @@ export class NestedAppAuthController implements IController {
     ): Promise<void> {
         this.logger.verbose("hydrateCache called");
 
-        const accountEntity = createAccountEntityFromAccountInfo(
-            result.account,
-            result.cloudGraphHostName,
-            result.msGraphHost
-        );
+        const accountEntity =
+            AccountEntityUtils.createAccountEntityFromAccountInfo(
+                result.account,
+                result.cloudGraphHostName,
+                result.msGraphHost
+            );
         await this.browserStorage.setAccount(
             accountEntity,
             result.correlationId

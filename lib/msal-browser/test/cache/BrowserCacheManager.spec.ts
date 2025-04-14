@@ -36,9 +36,7 @@ import {
     StubPerformanceClient,
     CommonAuthorizationUrlRequest,
     ResponseMode,
-    generateAccountKey,
-    createAccountEntity,
-    isAccountEntity,
+    AccountEntityUtils,
 } from "@azure/msal-common";
 import {
     BrowserCacheLocation,
@@ -302,7 +300,7 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getAccount returns AccountEntity", async () => {
-                    const testAccount = createAccountEntity(
+                    const testAccount = AccountEntityUtils.createAccountEntity(
                         {
                             homeAccountId: "homeAccountId",
                             idTokenClaims: AuthToken.extractTokenClaims(
@@ -328,27 +326,31 @@ describe("BrowserCacheManager tests", () => {
 
                     expect(
                         browserSessionStorage.getAccount(
-                            generateAccountKey(testAccount)
+                            AccountEntityUtils.generateAccountKey(testAccount)
                         )
                     ).toEqual(testAccount);
                     expect(
-                        isAccountEntity(
+                        AccountEntityUtils.isAccountEntity(
                             //@ts-ignore
                             browserSessionStorage.getAccount(
-                                generateAccountKey(testAccount)
+                                AccountEntityUtils.generateAccountKey(
+                                    testAccount
+                                )
                             )
                         )
                     ).toBe(true);
                     expect(
                         browserLocalStorage.getAccount(
-                            generateAccountKey(testAccount)
+                            AccountEntityUtils.generateAccountKey(testAccount)
                         )
                     ).toEqual(testAccount);
                     expect(
-                        isAccountEntity(
+                        AccountEntityUtils.isAccountEntity(
                             //@ts-ignore
                             browserLocalStorage.getAccount(
-                                generateAccountKey(testAccount)
+                                AccountEntityUtils.generateAccountKey(
+                                    testAccount
+                                )
                             )
                         )
                     ).toBe(true);
@@ -1622,7 +1624,7 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getAccount returns AccountEntity", async () => {
-                    const testAccount = createAccountEntity(
+                    const testAccount = AccountEntityUtils.createAccountEntity(
                         {
                             homeAccountId: "homeAccountId",
                             idTokenClaims: AuthToken.extractTokenClaims(
@@ -1648,27 +1650,31 @@ describe("BrowserCacheManager tests", () => {
 
                     expect(
                         browserSessionStorage.getAccount(
-                            generateAccountKey(testAccount)
+                            AccountEntityUtils.generateAccountKey(testAccount)
                         )
                     ).toEqual(testAccount);
                     expect(
-                        isAccountEntity(
+                        AccountEntityUtils.isAccountEntity(
                             //@ts-ignore
                             browserSessionStorage.getAccount(
-                                generateAccountKey(testAccount)
+                                AccountEntityUtils.generateAccountKey(
+                                    testAccount
+                                )
                             )
                         )
                     ).toBe(true);
                     expect(
                         browserLocalStorage.getAccount(
-                            generateAccountKey(testAccount)
+                            AccountEntityUtils.generateAccountKey(testAccount)
                         )
                     ).toEqual(testAccount);
                     expect(
-                        isAccountEntity(
+                        AccountEntityUtils.isAccountEntity(
                             //@ts-ignore
                             browserLocalStorage.getAccount(
-                                generateAccountKey(testAccount)
+                                AccountEntityUtils.generateAccountKey(
+                                    testAccount
+                                )
                             )
                         )
                     ).toBe(true);

@@ -16,9 +16,7 @@ import {
     TokenClaims,
     CacheHelpers,
     StubPerformanceClient,
-    generateAccountCacheKey,
-    getAccountInfo,
-    generateHomeAccountId,
+    AccountEntityUtils,
 } from "@azure/msal-common/browser";
 import { TokenCache, LoadTokenOptions } from "../../src/cache/TokenCache.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
@@ -127,7 +125,7 @@ describe("TokenCache tests", () => {
                 testIdToken,
                 base64Decode
             );
-            testHomeAccountId = generateHomeAccountId(
+            testHomeAccountId = AccountEntityUtils.generateHomeAccountId(
                 testClientInfo,
                 AuthorityType.Default,
                 logger,
@@ -252,12 +250,13 @@ describe("TokenCache tests", () => {
                 clientInfo: testClientInfo,
             };
 
-            const testAccountInfo = getAccountInfo(
+            const testAccountInfo = AccountEntityUtils.getAccountInfo(
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, undefined, {
                     environment: testEnvironment,
                 })
             );
-            const testAccountKey = generateAccountCacheKey(testAccountInfo);
+            const testAccountKey =
+                AccountEntityUtils.generateAccountCacheKey(testAccountInfo);
             const result = await tokenCache.loadExternalTokens(
                 request,
                 response,
@@ -509,7 +508,7 @@ describe("TokenCache tests", () => {
                 options
             );
 
-            testHomeAccountId = generateHomeAccountId(
+            testHomeAccountId = AccountEntityUtils.generateHomeAccountId(
                 "",
                 AuthorityType.Default,
                 logger,

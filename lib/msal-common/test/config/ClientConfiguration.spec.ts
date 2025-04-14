@@ -16,7 +16,7 @@ import { MockCache } from "../cache/entities/cacheConstants.js";
 import { Constants } from "../../src/utils/Constants.js";
 import * as ClientAuthErrorCodes from "../../src/error/ClientAuthErrorCodes.js";
 import { createClientAuthError } from "../../src/error/ClientAuthError.js";
-import { generateAccountKey } from "../../src/cache/utils/AccountEntityUtils.js";
+import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 
 describe("ClientConfiguration.ts Class Unit Tests", () => {
     it("buildConfiguration assigns default functions", async () => {
@@ -239,12 +239,12 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.storageInterface.getAccount).not.toBeNull();
         expect(
             newConfig.storageInterface.getAccount(
-                generateAccountKey(MockCache.acc)
+                AccountEntityUtils.generateAccountKey(MockCache.acc)
             )
         ).toBe(MockCache.acc);
         expect(newConfig.storageInterface.getKeys).not.toBeNull();
         expect(newConfig.storageInterface.getKeys()).toEqual([
-            generateAccountKey(MockCache.acc),
+            AccountEntityUtils.generateAccountKey(MockCache.acc),
             "ACCOUNT_KEYS",
         ]);
         expect(newConfig.storageInterface.removeItem).not.toBeNull();

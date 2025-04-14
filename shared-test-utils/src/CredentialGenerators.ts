@@ -6,7 +6,7 @@ import {
     TenantProfile,
     TokenClaims,
     buildTenantProfile,
-    createAccountEntityFromAccountInfo,
+    AccountEntityUtils,
 } from "@azure/msal-common";
 
 export function buildAccountFromIdTokenClaims(
@@ -52,7 +52,7 @@ export function buildAccountFromIdTokenClaims(
             )
         );
     });
-    return createAccountEntityFromAccountInfo({ ...accountInfo, ...options });
+    return AccountEntityUtils.createAccountEntityFromAccountInfo({ ...accountInfo, ...options });
 }
 
 export function buildIdToken(

@@ -10,7 +10,7 @@ import {
     AccountEntity,
     AppMetadataEntity,
     CacheHelpers,
-    generateAccountKey,
+    AccountEntityUtils,
 } from "@azure/msal-common";
 
 // mock tokens
@@ -139,7 +139,7 @@ export const MockCache = {
         mockCache.createMockRTWithFamilyId()
     ),
     acc: mockCache.createMockAcc(),
-    accKey: generateAccountKey(mockCache.createMockAcc()),
+    accKey: AccountEntityUtils.generateAccountKey(mockCache.createMockAcc()),
     amdt: mockCache.createMockAmdt(),
     amdtKey: CacheHelpers.generateAppMetadataKey(mockCache.createMockAmdt()),
 };

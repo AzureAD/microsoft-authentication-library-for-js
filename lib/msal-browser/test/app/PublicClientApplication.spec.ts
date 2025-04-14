@@ -52,8 +52,7 @@ import {
     ServerTelemetryEntity,
     TokenClaims,
     StubPerformanceClient,
-    getAccountInfo,
-    generateAccountCacheKey,
+    AccountEntityUtils,
 } from "@azure/msal-common/browser";
 import {
     ApiId,
@@ -6427,7 +6426,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testAccount: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
 
-        const testAccountInfo: AccountInfo = getAccountInfo(testAccount);
+        const testAccountInfo: AccountInfo =
+            AccountEntityUtils.getAccountInfo(testAccount);
         const matchAccount: AccountInfo = {
             ...testAccountInfo,
             idTokenClaims: ID_TOKEN_CLAIMS,
@@ -6480,7 +6480,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         // Account 1
         const testAccount1: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const testAccountInfo1: AccountInfo = getAccountInfo(testAccount1);
+        const testAccountInfo1: AccountInfo =
+            AccountEntityUtils.getAccountInfo(testAccount1);
         testAccountInfo1.idTokenClaims = ID_TOKEN_CLAIMS;
         testAccountInfo1.idToken = TEST_TOKENS.IDTOKEN_V2;
 
@@ -6497,7 +6498,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         const testAccount2: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
-        const testAccountInfo2: AccountInfo = getAccountInfo(testAccount2);
+        const testAccountInfo2: AccountInfo =
+            AccountEntityUtils.getAccountInfo(testAccount2);
         testAccountInfo2.idTokenClaims = ID_TOKEN_ALT_CLAIMS;
         testAccountInfo2.idToken = TEST_TOKENS.IDTOKEN_V2_ALT;
 
@@ -6636,7 +6638,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testAccount1: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
         const testAccountInfo1: AccountInfo = {
-            ...getAccountInfo(testAccount1),
+            ...AccountEntityUtils.getAccountInfo(testAccount1),
             idTokenClaims: ID_TOKEN_CLAIMS,
             idToken: TEST_TOKENS.IDTOKEN_V2,
         };
@@ -6652,7 +6654,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         const testAccount2: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS);
         const testAccountInfo2: AccountInfo = {
-            ...getAccountInfo(testAccount2),
+            ...AccountEntityUtils.getAccountInfo(testAccount2),
             idTokenClaims: ID_TOKEN_ALT_CLAIMS,
             idToken: TEST_TOKENS.IDTOKEN_V2_ALT,
         };
@@ -6738,7 +6740,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(activeAccount).not.toEqual(testAccountInfo1);
                     expect(activeAccount).toEqual(testAccountInfo2);
 
-                    const cacheKey2 = generateAccountCacheKey(testAccountInfo2);
+                    const cacheKey2 =
+                        AccountEntityUtils.generateAccountCacheKey(
+                            testAccountInfo2
+                        );
                     const idTokenKey2 =
                         CacheHelpers.generateCredentialKey(idToken2);
                     window.sessionStorage.removeItem(cacheKey2);
@@ -6906,7 +6911,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("hydrateCache tests", () => {
         const testAccount: AccountInfo = {
-            ...getAccountInfo(buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)),
+            ...AccountEntityUtils.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            ),
             idTokenClaims: ID_TOKEN_CLAIMS,
             idToken: TEST_TOKENS.IDTOKEN_V2,
         };
@@ -7263,7 +7270,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         let secondBrowserStorageInstance: BrowserCacheManager;
         const accountEntity: AccountEntity =
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const accountInfo: AccountInfo = getAccountInfo(accountEntity);
+        const accountInfo: AccountInfo =
+            AccountEntityUtils.getAccountInfo(accountEntity);
         let callbackId: string | null;
 
         beforeEach(async () => {
@@ -7350,7 +7358,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .setAccount(accountEntity, TEST_CONFIG.CORRELATION_ID)
                 .then(() => {
                     // Ensure account is present in the cache before removing it
-                    const cacheKey = generateAccountCacheKey(accountInfo);
+                    const cacheKey =
+                        AccountEntityUtils.generateAccountCacheKey(accountInfo);
                     secondBrowserStorageInstance.removeAccount(cacheKey);
                 });
         });

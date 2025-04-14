@@ -12,7 +12,7 @@ import {
     CacheManager,
     ClientConfiguration,
     CommonOnBehalfOfRequest,
-    createAccountEntity,
+    AccountEntityUtils,
     CredentialType,
     IdTokenEntity,
     ScopeSet,
@@ -344,13 +344,14 @@ describe("OnBehalfOf unit tests", () => {
                 TEST_TOKENS.IDTOKEN_V2,
                 EncodingUtils.base64Decode
             );
-            const expectedAccountEntity: AccountEntity = createAccountEntity(
-                {
-                    homeAccountId: "123-test-uid.456-test-uid",
-                    idTokenClaims: idTokenClaims,
-                },
-                config.authOptions.authority
-            );
+            const expectedAccountEntity: AccountEntity =
+                AccountEntityUtils.createAccountEntity(
+                    {
+                        homeAccountId: "123-test-uid.456-test-uid",
+                        idTokenClaims: idTokenClaims,
+                    },
+                    config.authOptions.authority
+                );
 
             const mockIdTokenCached = jest
                 .spyOn(

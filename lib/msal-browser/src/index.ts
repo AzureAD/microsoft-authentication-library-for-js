@@ -105,7 +105,7 @@ export {
     // Account
     AccountInfo,
     AccountEntity,
-    accountInfoIsEqual,
+    AccountEntityUtils,
     IdTokenClaims,
     // Error
     AuthError,

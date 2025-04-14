@@ -15,7 +15,7 @@ import {
     createInteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
     ClientAssertion,
-    getAccountInfo,
+    AccountEntityUtils,
 } from "@azure/msal-common";
 import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
@@ -237,7 +237,7 @@ describe("ConfidentialClientApplication", () => {
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
 
         const testAccount: AccountInfo = {
-            ...getAccountInfo(testAccountEntity),
+            ...AccountEntityUtils.getAccountInfo(testAccountEntity),
             idTokenClaims: ID_TOKEN_CLAIMS,
             idToken: TEST_TOKENS.IDTOKEN_V2,
         };

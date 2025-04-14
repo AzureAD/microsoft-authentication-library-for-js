@@ -46,13 +46,13 @@ import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemet
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 import { Logger } from "../../src/logger/Logger.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
-import { getAccountInfo } from "../../src/cache/utils/AccountEntityUtils.js";
+import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 
 const testAccountEntity: AccountEntity =
     buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
 
 const testAccount: AccountInfo = {
-    ...getAccountInfo(testAccountEntity),
+    ...AccountEntityUtils.getAccountInfo(testAccountEntity),
     idTokenClaims: ID_TOKEN_CLAIMS,
     idToken: TEST_TOKENS.IDTOKEN_V2,
 };

@@ -13,8 +13,7 @@ import {
     IdTokenEntity,
     RefreshTokenEntity,
     CacheHelpers,
-    isAccountEntity,
-    generateAccountKey,
+    AccountEntityUtils,
 } from "@azure/msal-common";
 import {
     JsonCache,
@@ -102,7 +101,7 @@ describe("Storage tests for msal-node: ", () => {
 
         const cache = nodeStorage.getCache();
         const account: AccountEntity = cache[ACCOUNT_KEY] as AccountEntity;
-        expect(isAccountEntity(account)).toBe(true);
+        expect(AccountEntityUtils.isAccountEntity(account)).toBe(true);
         expect(account.clientInfo).toBe(
             "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
         );
@@ -138,7 +137,7 @@ describe("Storage tests for msal-node: ", () => {
         const fetchedAccount = nodeStorage.getItem(accountKey);
 
         //@ts-ignore
-        expect(isAccountEntity(fetchedAccount)).toBe(true);
+        expect(AccountEntityUtils.isAccountEntity(fetchedAccount)).toBe(true);
         expect(account).toEqual(fetchedAccount);
     });
 
@@ -155,7 +154,7 @@ describe("Storage tests for msal-node: ", () => {
         const invalidAccount = nodeStorage.getAccount(invalidAccountKey);
 
         //@ts-ignore
-        expect(isAccountEntity(fetchedAccount)).toBe(true);
+        expect(AccountEntityUtils.isAccountEntity(fetchedAccount)).toBe(true);
         expect(fetchedAccount).toEqual(inMemoryCache.accounts[ACCOUNT_KEY]);
         expect(invalidAccount).toBeNull();
 
@@ -181,10 +180,14 @@ describe("Storage tests for msal-node: ", () => {
             {} as AccountEntity,
             mockAccountData
         );
-        expect(isAccountEntity(mockAccountEntity)).toBe(true);
+        expect(AccountEntityUtils.isAccountEntity(mockAccountEntity)).toBe(
+            true
+        );
         await nodeStorage.setAccount(mockAccountEntity);
         expect(
-            nodeStorage.getAccount(generateAccountKey(mockAccountEntity))
+            nodeStorage.getAccount(
+                AccountEntityUtils.generateAccountKey(mockAccountEntity)
+            )
         ).toEqual(mockAccountEntity);
     });
 
@@ -346,9 +349,11 @@ describe("Storage tests for msal-node: ", () => {
         nodeStorage.setInMemoryCache(inMemoryCache);
 
         const newInMemoryCache = nodeStorage.getInMemoryCache();
-        expect(isAccountEntity(newInMemoryCache.accounts[ACCOUNT_KEY])).toBe(
-            true
-        );
+        expect(
+            AccountEntityUtils.isAccountEntity(
+                newInMemoryCache.accounts[ACCOUNT_KEY]
+            )
+        ).toBe(true);
 
         nodeStorage.removeItem(ACCOUNT_KEY);
         expect(newInMemoryCache.accounts[ACCOUNT_KEY]).toBeUndefined;

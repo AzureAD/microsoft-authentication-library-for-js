@@ -5,9 +5,9 @@
 ```ts
 
 import { AccountEntity } from '@azure/msal-common/browser';
+import { AccountEntityUtils } from '@azure/msal-common/browser';
 import { AccountFilter } from '@azure/msal-common/browser';
 import { AccountInfo } from '@azure/msal-common/browser';
-import { accountInfoIsEqual } from '@azure/msal-common/browser';
 import { ApplicationTelemetry } from '@azure/msal-common/browser';
 import { AuthenticationHeaderParser } from '@azure/msal-common/browser';
 import { AuthenticationResult as AuthenticationResult_2 } from '@azure/msal-common/browser';
@@ -65,9 +65,9 @@ import { UrlString } from '@azure/msal-common/browser';
 
 export { AccountEntity }
 
-export { AccountInfo }
+export { AccountEntityUtils }
 
-export { accountInfoIsEqual }
+export { AccountInfo }
 
 // Warning: (ae-missing-release-tag) "ApiId" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "ApiId" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)

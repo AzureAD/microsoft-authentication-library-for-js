@@ -38,10 +38,7 @@ import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetad
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity.js";
 import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity.js";
 import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity.js";
-import {
-    getAccountInfo,
-    generateAccountKey,
-} from "../../src/cache/utils/AccountEntityUtils.js";
+import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 import {
     CacheHelpers,
     CommonSilentFlowRequest,
@@ -99,7 +96,7 @@ describe("CacheManager.ts test cases", () => {
                 authorityType: "MSSTS",
             };
 
-            const accountKey = generateAccountKey(ac);
+            const accountKey = AccountEntityUtils.generateAccountKey(ac);
             const cacheRecord: CacheRecord = {};
             cacheRecord.account = ac;
             await mockCache.cacheManager.saveCacheRecord(
@@ -329,10 +326,10 @@ describe("CacheManager.ts test cases", () => {
     });
 
     describe("getAllAccounts", () => {
-        const account1 = getAccountInfo(
+        const account1 = AccountEntityUtils.getAccountInfo(
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
         );
-        const account2 = getAccountInfo(
+        const account2 = AccountEntityUtils.getAccountInfo(
             buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS)
         );
         it("getAllAccounts returns an empty array if there are no accounts in the cache", () => {
@@ -596,7 +593,7 @@ describe("CacheManager.ts test cases", () => {
     });
 
     describe("getAccountInfoFilteredBy", () => {
-        const multiTenantAccount = getAccountInfo(
+        const multiTenantAccount = AccountEntityUtils.getAccountInfo(
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, [
                 GUEST_ID_TOKEN_CLAIMS,
             ])
@@ -669,7 +666,7 @@ describe("CacheManager.ts test cases", () => {
 
     describe("getBaseAccountInfo", () => {
         it("returns base account regardless of tenantId", () => {
-            const multiTenantAccount = getAccountInfo(
+            const multiTenantAccount = AccountEntityUtils.getAccountInfo(
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, [
                     GUEST_ID_TOKEN_CLAIMS,
                 ])
@@ -701,7 +698,7 @@ describe("CacheManager.ts test cases", () => {
             authorityType: "MSSTS",
         };
 
-        const accountKey = generateAccountKey(ac);
+        const accountKey = AccountEntityUtils.generateAccountKey(ac);
         const cacheRecord: CacheRecord = {};
         cacheRecord.account = ac;
         await mockCache.cacheManager.saveCacheRecord(
@@ -1582,7 +1579,8 @@ describe("CacheManager.ts test cases", () => {
 
     it("removeAccount", async () => {
         const accountToRemove = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const accountToRemoveKey = generateAccountKey(accountToRemove);
+        const accountToRemoveKey =
+            AccountEntityUtils.generateAccountKey(accountToRemove);
         expect(
             mockCache.cacheManager.getAccount(accountToRemoveKey)
         ).not.toBeNull();
@@ -2169,7 +2167,7 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("readAccountFromCache", () => {
-        const matchAccountInfo = getAccountInfo(
+        const matchAccountInfo = AccountEntityUtils.getAccountInfo(
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
         );
         const account = mockCache.cacheManager.readAccountFromCache(
@@ -2200,7 +2198,7 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("getIdToken", () => {
-        const baseAccountInfo = getAccountInfo(
+        const baseAccountInfo = AccountEntityUtils.getAccountInfo(
             buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS)
         );
         // Get home ID token by default
