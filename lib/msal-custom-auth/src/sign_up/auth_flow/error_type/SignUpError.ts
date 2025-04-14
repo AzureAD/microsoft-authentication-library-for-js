@@ -58,7 +58,7 @@ export class SignUpError extends AuthFlowErrorBase {
      * Checks if the challenge type is redirect (authentication method is not supported by by Microsoft Entra)
      * @returns {boolean} True if the challenge type is redirect, false otherwise.
      */
-    isRedirect(): boolean {
+    isRedirectionRequired(): boolean {
         return this.isRedirectError();
     }
 }
@@ -76,7 +76,7 @@ export class SignUpSubmitPasswordError extends AuthFlowErrorBase {
      * Checks if the challenge type is redirect (authentication method is not supported by by Microsoft Entra)
      * @returns {boolean} True if the challenge type is redirect, false otherwise.
      */
-    isRedirect(): boolean {
+    isRedirectionRequired(): boolean {
         return this.isRedirectError();
     }
 }
@@ -94,7 +94,7 @@ export class SignUpSubmitCodeError extends AuthFlowErrorBase {
      * Checks if the challenge type is redirect (authentication method is not supported by by Microsoft Entra)
      * @returns {boolean} True if the challenge type is redirect, false otherwise.
      */
-    isRedirect(): boolean {
+    isRedirectionRequired(): boolean {
         return this.isRedirectError();
     }
 }
@@ -120,7 +120,7 @@ export class SignUpSubmitAttributesError extends AuthFlowErrorBase {
      * Checks if the challenge type is redirect (authentication method is not supported by by Microsoft Entra)
      * @returns {boolean} True if the challenge type is redirect, false otherwise.
      */
-    isRedirect(): boolean {
+    isRedirectionRequired(): boolean {
         return this.isRedirectError();
     }
 }
@@ -130,7 +130,7 @@ export class SignUpResendCodeError extends AuthFlowErrorBase {
      * Checks if the challenge type is redirect (authentication method is not supported by by Microsoft Entra)
      * @returns {boolean} True if the challenge type is redirect, false otherwise.
      */
-    isRedirect(): boolean {
+    isRedirectionRequired(): boolean {
         return this.isRedirectError();
     }
 }

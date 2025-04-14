@@ -36,7 +36,7 @@ export class ResetPasswordError extends AuthFlowErrorBase {
      * Checks if the challenge type is redirect (authentication method is not supported by by Microsoft Entra)
      * @returns {boolean} True if the challenge type is redirect, false otherwise.
      */
-    isRedirect(): boolean {
+    isRedirectionRequired(): boolean {
         return this.isRedirectError();
     }
 }
@@ -76,7 +76,7 @@ export class ResetPasswordSubmitCodeError extends AuthFlowErrorBase {
      * Checks if the challenge type is redirect (authentication method is not supported by by Microsoft Entra)
      * @returns {boolean} True if the challenge type is redirect, false otherwise.
      */
-    isRedirect(): boolean {
+    isRedirectionRequired(): boolean {
         return this.isRedirectError();
     }
 }
@@ -86,7 +86,7 @@ export class ResetPasswordResendCodeError extends AuthFlowErrorBase {
      * Checks if the challenge type is redirect (authentication method is not supported by by Microsoft Entra)
      * @returns {boolean} True if the challenge type is redirect, false otherwise.
      */
-    isRedirect(): boolean {
+    isRedirectionRequired(): boolean {
         return this.isRedirectError();
     }
 }

@@ -49,7 +49,7 @@ describe("ResetPasswordError", () => {
     it("should correctly identify redirect error", () => {
         const error = new RedirectError("Redirecting...");
         const resetPasswordError = new ResetPasswordError(error);
-        expect(resetPasswordError.isRedirect()).toBe(true);
+        expect(resetPasswordError.isRedirectionRequired()).toBe(true);
     });
 });
 
@@ -101,7 +101,7 @@ describe("ResetPasswordSubmitCodeError", () => {
     it("should correctly identify redirect error", () => {
         const error = new RedirectError("Redirecting...");
         const resetPasswordError = new ResetPasswordSubmitCodeError(error);
-        expect(resetPasswordError.isRedirect()).toBe(true);
+        expect(resetPasswordError.isRedirectionRequired()).toBe(true);
     });
 });
 
@@ -109,6 +109,6 @@ describe("ResetPasswordResendCodeError", () => {
     it("should correctly identify redirect error", () => {
         const error = new RedirectError("Redirecting...");
         const resetPasswordError = new ResetPasswordResendCodeError(error);
-        expect(resetPasswordError.isRedirect()).toBe(true);
+        expect(resetPasswordError.isRedirectionRequired()).toBe(true);
     });
 });

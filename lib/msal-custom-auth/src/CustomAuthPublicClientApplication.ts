@@ -20,6 +20,7 @@ import {
     MissingConfiguration,
 } from "./core/error/InvalidConfigurationError.js";
 import { StringUtils } from "./core/utils/StringUtils.js";
+import { ChallengeType } from "./CustomAuthConstants.js";
 
 export class CustomAuthPublicClientApplication
     extends PublicClientApplication
@@ -125,6 +126,10 @@ export class CustomAuthPublicClientApplication
                 InvalidAuthority,
                 `The authority URL '${config.auth?.authority}' is not a CIAM authority.`,
             );
+        }
+
+        if (!config.customAuth.challengeTypes || !config.customAuth.challengeTypes.includes(ChallengeType.REDIRECT)) {
+            config.customAuth.challengeTypes?.push(ChallengeType.REDIRECT);
         }
     }
 }
