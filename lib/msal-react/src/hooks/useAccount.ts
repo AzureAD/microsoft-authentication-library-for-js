@@ -49,7 +49,13 @@ export function useAccount(
     useEffect(() => {
         setAccount((currentAccount: AccountInfo | null) => {
             const nextAccount = getAccount(instance, accountIdentifiers);
-            if (!AccountEntityUtils.accountInfoIsEqual(currentAccount, nextAccount, true)) {
+            if (
+                !AccountEntityUtils.accountInfoIsEqual(
+                    currentAccount,
+                    nextAccount,
+                    true
+                )
+            ) {
                 logger.info("useAccount - Updating account");
                 return nextAccount;
             }

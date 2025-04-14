@@ -51,6 +51,7 @@ import {
     StubPerformanceClient,
     ProtocolMode,
     AccessTokenEntity,
+    AccountEntityUtils,
 } from "@azure/msal-common";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {

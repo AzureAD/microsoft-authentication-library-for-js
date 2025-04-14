@@ -114,46 +114,79 @@ export type AccessTokenEntity = CredentialEntity & {
 export type AccountCache = Record<string, AccountEntity>;
 
 // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
-// Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
+// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
 // Warning: (tsdoc-html-tag-missing-greater-than) The HTML tag has invalid syntax: Expecting an attribute or ">" or "/>"
+// Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
 // Warning: (tsdoc-malformed-html-name) Invalid HTML element: An HTML name must be an ASCII letter followed by zero or more letters, digits, or hyphens
 // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
-// Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
 // Warning: (ae-internal-missing-underscore) The name "AccountEntity" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
-export type AccountEntity = {
-    homeAccountId: string;
-    environment: string;
-    realm: string;
-    localAccountId: string;
-    username: string;
+export class AccountEntity {
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    static accountInfoIsEqual(accountA: AccountInfo | null, accountB: AccountInfo | null, compareClaims?: boolean): boolean;
+    // (undocumented)
     authorityType: string;
+    // (undocumented)
     clientInfo?: string;
-    name?: string;
-    lastModificationTime?: string;
-    lastModificationApp?: string;
+    // (undocumented)
     cloudGraphHostName?: string;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    static createAccount(accountDetails: {
+        homeAccountId: string;
+        idTokenClaims?: TokenClaims;
+        clientInfo?: string;
+        cloudGraphHostName?: string;
+        msGraphHost?: string;
+        environment?: string;
+        nativeAccountId?: string;
+        tenantProfiles?: Array<TenantProfile>;
+    }, authority: Authority, base64Decode?: (input: string) => string): AccountEntity;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    static createFromAccountInfo(accountInfo: AccountInfo, cloudGraphHostName?: string, msGraphHost?: string): AccountEntity;
+    // (undocumented)
+    environment: string;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    static generateAccountCacheKey(accountInterface: AccountInfo): string;
+    // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
+    // Warning: (tsdoc-malformed-html-name) Invalid HTML element: An HTML name must be an ASCII letter followed by zero or more letters, digits, or hyphens
+    generateAccountId(): string;
+    // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
+    // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
+    // Warning: (tsdoc-html-tag-missing-greater-than) The HTML tag has invalid syntax: Expecting an attribute or ">" or "/>"
+    // Warning: (tsdoc-malformed-html-name) Invalid HTML element: An HTML name must be an ASCII letter followed by zero or more letters, digits, or hyphens
+    generateAccountKey(): string;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    static generateHomeAccountId(serverClientInfo: string, authType: AuthorityType, logger: Logger, cryptoObj: ICrypto, idTokenClaims?: TokenClaims): string;
+    getAccountInfo(): AccountInfo;
+    // (undocumented)
+    homeAccountId: string;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    static isAccountEntity(entity: object): boolean;
+    isSingleTenant(): boolean;
+    // (undocumented)
+    lastModificationApp?: string;
+    // (undocumented)
+    lastModificationTime?: string;
+    // (undocumented)
+    localAccountId: string;
+    // (undocumented)
     msGraphHost?: string;
+    // (undocumented)
+    name?: string;
+    // (undocumented)
     nativeAccountId?: string;
+    // (undocumented)
+    realm: string;
+    // (undocumented)
     tenantProfiles?: Array<TenantProfile>;
-};
-
-declare namespace AccountEntityUtils {
-    export {
-        generateAccountId,
-        generateAccountKey,
-        getAccountInfo,
-        isSingleTenant,
-        generateAccountCacheKey,
-        createAccountEntity,
-        createAccountEntityFromAccountInfo,
-        generateHomeAccountId,
-        isAccountEntity,
-        accountInfoIsEqual
-    }
+    // (undocumented)
+    username: string;
 }
-export { AccountEntityUtils }
 
 // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
 // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
@@ -187,13 +220,6 @@ export type AccountInfo = {
     authorityType?: string;
     tenantProfiles?: Map<string, TenantProfile>;
 };
-
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-missing-release-tag) "accountInfoIsEqual" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-function accountInfoIsEqual(accountA: AccountInfo | null, accountB: AccountInfo | null, compareClaims?: boolean): boolean;
 
 // Warning: (ae-missing-release-tag) "ActiveAccountFilters" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -577,12 +603,18 @@ declare namespace AuthErrorCodes {
 }
 export { AuthErrorCodes }
 
-// Warning: (ae-missing-release-tag) "AuthErrorMessages" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "AuthErrorMessage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
-// @public (undocumented)
-export const AuthErrorMessages: {
-    unexpected_error: string;
-    post_request_failed: string;
+// @public @deprecated
+export const AuthErrorMessage: {
+    unexpectedError: {
+        code: string;
+        desc: string;
+    };
+    postRequestFailed: {
+        code: string;
+        desc: string;
+    };
 };
 
 // Warning: (ae-internal-missing-underscore) The name "AuthOptions" should be prefixed with an underscore because the declaration is marked as @internal
@@ -596,6 +628,7 @@ export type AuthOptions = {
     azureCloudOptions?: AzureCloudOptions;
     skipAuthorityMetadataCache?: boolean;
     instanceAware?: boolean;
+    encodeExtraQueryParams?: boolean;
 };
 
 // Warning: (ae-internal-missing-underscore) The name "Authority" should be prefixed with an underscore because the declaration is marked as @internal
@@ -1411,54 +1444,182 @@ declare namespace ClientAuthErrorCodes {
 }
 export { ClientAuthErrorCodes }
 
-// Warning: (ae-missing-release-tag) "ClientAuthErrorMessages" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "ClientAuthErrorMessage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
-// @public
-export const ClientAuthErrorMessages: {
-    client_info_decoding_error: string;
-    client_info_empty_error: string;
-    token_parsing_error: string;
-    null_or_empty_token: string;
-    endpoints_resolution_error: string;
-    network_error: string;
-    openid_config_error: string;
-    hash_not_deserialized: string;
-    invalid_state: string;
-    state_mismatch: string;
-    state_not_found: string;
-    nonce_mismatch: string;
-    auth_time_not_found: string;
-    max_age_transpired: string;
-    multiple_matching_tokens: string;
-    multiple_matching_accounts: string;
-    multiple_matching_appMetadata: string;
-    request_cannot_be_made: string;
-    cannot_remove_empty_scope: string;
-    cannot_append_scopeset: string;
-    empty_input_scopeset: string;
-    device_code_polling_cancelled: string;
-    device_code_expired: string;
-    device_code_unknown_error: string;
-    no_account_in_silent_request: string;
-    invalid_cache_record: string;
-    invalid_cache_environment: string;
-    no_account_found: string;
-    no_crypto_object: string;
-    unexpected_credential_type: string;
-    invalid_assertion: string;
-    invalid_client_credential: string;
-    token_refresh_required: string;
-    user_timeout_reached: string;
-    token_claims_cnf_required_for_signedjwt: string;
-    authorization_code_missing_from_server_response: string;
-    binding_key_not_removed: string;
-    end_session_endpoint_not_supported: string;
-    key_id_missing: string;
-    no_network_connectivity: string;
-    user_canceled: string;
-    missing_tenant_id_error: string;
-    method_not_implemented: string;
-    nested_app_auth_bridge_disabled: string;
+// @public @deprecated
+export const ClientAuthErrorMessage: {
+    clientInfoDecodingError: {
+        code: string;
+        desc: string;
+    };
+    clientInfoEmptyError: {
+        code: string;
+        desc: string;
+    };
+    tokenParsingError: {
+        code: string;
+        desc: string;
+    };
+    nullOrEmptyToken: {
+        code: string;
+        desc: string;
+    };
+    endpointResolutionError: {
+        code: string;
+        desc: string;
+    };
+    networkError: {
+        code: string;
+        desc: string;
+    };
+    unableToGetOpenidConfigError: {
+        code: string;
+        desc: string;
+    };
+    hashNotDeserialized: {
+        code: string;
+        desc: string;
+    };
+    invalidStateError: {
+        code: string;
+        desc: string;
+    };
+    stateMismatchError: {
+        code: string;
+        desc: string;
+    };
+    stateNotFoundError: {
+        code: string;
+        desc: string;
+    };
+    nonceMismatchError: {
+        code: string;
+        desc: string;
+    };
+    authTimeNotFoundError: {
+        code: string;
+        desc: string;
+    };
+    maxAgeTranspired: {
+        code: string;
+        desc: string;
+    };
+    multipleMatchingTokens: {
+        code: string;
+        desc: string;
+    };
+    multipleMatchingAccounts: {
+        code: string;
+        desc: string;
+    };
+    multipleMatchingAppMetadata: {
+        code: string;
+        desc: string;
+    };
+    tokenRequestCannotBeMade: {
+        code: string;
+        desc: string;
+    };
+    removeEmptyScopeError: {
+        code: string;
+        desc: string;
+    };
+    appendScopeSetError: {
+        code: string;
+        desc: string;
+    };
+    emptyInputScopeSetError: {
+        code: string;
+        desc: string;
+    };
+    DeviceCodePollingCancelled: {
+        code: string;
+        desc: string;
+    };
+    DeviceCodeExpired: {
+        code: string;
+        desc: string;
+    };
+    DeviceCodeUnknownError: {
+        code: string;
+        desc: string;
+    };
+    NoAccountInSilentRequest: {
+        code: string;
+        desc: string;
+    };
+    invalidCacheRecord: {
+        code: string;
+        desc: string;
+    };
+    invalidCacheEnvironment: {
+        code: string;
+        desc: string;
+    };
+    noAccountFound: {
+        code: string;
+        desc: string;
+    };
+    noCryptoObj: {
+        code: string;
+        desc: string;
+    };
+    unexpectedCredentialType: {
+        code: string;
+        desc: string;
+    };
+    invalidAssertion: {
+        code: string;
+        desc: string;
+    };
+    invalidClientCredential: {
+        code: string;
+        desc: string;
+    };
+    tokenRefreshRequired: {
+        code: string;
+        desc: string;
+    };
+    userTimeoutReached: {
+        code: string;
+        desc: string;
+    };
+    tokenClaimsRequired: {
+        code: string;
+        desc: string;
+    };
+    noAuthorizationCodeFromServer: {
+        code: string;
+        desc: string;
+    };
+    bindingKeyNotRemovedError: {
+        code: string;
+        desc: string;
+    };
+    logoutNotSupported: {
+        code: string;
+        desc: string;
+    };
+    keyIdMissing: {
+        code: string;
+        desc: string;
+    };
+    noNetworkConnectivity: {
+        code: string;
+        desc: string;
+    };
+    userCanceledError: {
+        code: string;
+        desc: string;
+    };
+    missingTenantIdError: {
+        code: string;
+        desc: string;
+    };
+    nestedAppAuthBridgeDisabled: {
+        code: string;
+        desc: string;
+    };
 };
 
 // Warning: (ae-internal-missing-underscore) The name "ClientConfiguration" should be prefixed with an underscore because the declaration is marked as @internal
@@ -1515,32 +1676,98 @@ declare namespace ClientConfigurationErrorCodes {
 }
 export { ClientConfigurationErrorCodes }
 
-// Warning: (ae-missing-release-tag) "ClientConfigurationErrorMessages" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "ClientConfigurationErrorMessage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
-// @public (undocumented)
-export const ClientConfigurationErrorMessages: {
-    redirect_uri_empty: string;
-    claims_request_parsing_error: string;
-    authority_uri_insecure: string;
-    url_parse_error: string;
-    empty_url_error: string;
-    empty_input_scopes_error: string;
-    invalid_prompt_value: string;
-    invalid_claims: string;
-    token_request_empty: string;
-    logout_request_empty: string;
-    invalid_code_challenge_method: string;
-    pkce_params_missing: string;
-    invalid_cloud_discovery_metadata: string;
-    invalid_authority_metadata: string;
-    untrusted_authority: string;
-    missing_ssh_jwk: string;
-    missing_ssh_kid: string;
-    missing_nonce_authentication_header: string;
-    invalid_authentication_header: string;
-    cannot_set_OIDCOptions: string;
-    cannot_allow_platform_broker: string;
-    authority_mismatch: string;
+// @public @deprecated
+export const ClientConfigurationErrorMessage: {
+    redirectUriNotSet: {
+        code: string;
+        desc: string;
+    };
+    claimsRequestParsingError: {
+        code: string;
+        desc: string;
+    };
+    authorityUriInsecure: {
+        code: string;
+        desc: string;
+    };
+    urlParseError: {
+        code: string;
+        desc: string;
+    };
+    urlEmptyError: {
+        code: string;
+        desc: string;
+    };
+    emptyScopesError: {
+        code: string;
+        desc: string;
+    };
+    invalidPrompt: {
+        code: string;
+        desc: string;
+    };
+    invalidClaimsRequest: {
+        code: string;
+        desc: string;
+    };
+    tokenRequestEmptyError: {
+        code: string;
+        desc: string;
+    };
+    logoutRequestEmptyError: {
+        code: string;
+        desc: string;
+    };
+    invalidCodeChallengeMethod: {
+        code: string;
+        desc: string;
+    };
+    invalidCodeChallengeParams: {
+        code: string;
+        desc: string;
+    };
+    invalidCloudDiscoveryMetadata: {
+        code: string;
+        desc: string;
+    };
+    invalidAuthorityMetadata: {
+        code: string;
+        desc: string;
+    };
+    untrustedAuthority: {
+        code: string;
+        desc: string;
+    };
+    missingSshJwk: {
+        code: string;
+        desc: string;
+    };
+    missingSshKid: {
+        code: string;
+        desc: string;
+    };
+    missingNonceAuthenticationHeader: {
+        code: string;
+        desc: string;
+    };
+    invalidAuthenticationHeader: {
+        code: string;
+        desc: string;
+    };
+    cannotSetOIDCOptions: {
+        code: string;
+        desc: string;
+    };
+    cannotAllowPlatformBroker: {
+        code: string;
+        desc: string;
+    };
+    authorityMismatch: {
+        code: string;
+        desc: string;
+    };
 };
 
 // Warning: (ae-missing-release-tag) "ClientInfo" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1750,35 +1977,6 @@ export const Constants: {
 //
 // @public
 function createAccessTokenEntity(homeAccountId: string, environment: string, accessToken: string, clientId: string, tenantId: string, scopes: string, expiresOn: number, extExpiresOn: number, base64Decode: (input: string) => string, refreshOn?: number, tokenType?: AuthenticationScheme, userAssertionHash?: string, keyId?: string, requestedClaims?: string, requestedClaimsHash?: string): AccessTokenEntity;
-
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-incompatible-release-tags) The symbol "createAccountEntity" is marked as @public, but its signature references "Authority" which is marked as @internal
-// Warning: (ae-incompatible-release-tags) The symbol "createAccountEntity" is marked as @public, but its signature references "AccountEntity" which is marked as @internal
-// Warning: (ae-incompatible-release-tags) The symbol "createAccountEntity" is marked as @public, but its signature references "Authority" which is marked as @internal
-// Warning: (ae-incompatible-release-tags) The symbol "createAccountEntity" is marked as @public, but its signature references "AccountEntity" which is marked as @internal
-// Warning: (ae-missing-release-tag) "createAccountEntity" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-function createAccountEntity(accountDetails: {
-    homeAccountId: string;
-    idTokenClaims?: TokenClaims;
-    clientInfo?: string;
-    cloudGraphHostName?: string;
-    msGraphHost?: string;
-    environment?: string;
-    nativeAccountId?: string;
-    tenantProfiles?: Array<TenantProfile>;
-}, authority: Authority, base64Decode?: (input: string) => string): AccountEntity;
-
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-incompatible-release-tags) The symbol "createAccountEntityFromAccountInfo" is marked as @public, but its signature references "AccountEntity" which is marked as @internal
-// Warning: (ae-incompatible-release-tags) The symbol "createAccountEntityFromAccountInfo" is marked as @public, but its signature references "AccountEntity" which is marked as @internal
-// Warning: (ae-missing-release-tag) "createAccountEntityFromAccountInfo" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-function createAccountEntityFromAccountInfo(accountInfo: AccountInfo, cloudGraphHostName?: string, msGraphHost?: string): AccountEntity;
 
 // Warning: (ae-missing-release-tag) "createAuthError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -2075,32 +2273,6 @@ const FOCI = "foci";
 // @public (undocumented)
 export function formatAuthorityUri(authorityUri: string): string;
 
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-missing-release-tag) "generateAccountCacheKey" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-function generateAccountCacheKey(accountInterface: AccountInfo): string;
-
-// Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
-// Warning: (tsdoc-malformed-html-name) Invalid HTML element: An HTML name must be an ASCII letter followed by zero or more letters, digits, or hyphens
-// Warning: (ae-incompatible-release-tags) The symbol "generateAccountId" is marked as @public, but its signature references "AccountEntity" which is marked as @internal
-// Warning: (ae-incompatible-release-tags) The symbol "generateAccountId" is marked as @public, but its signature references "AccountEntity" which is marked as @internal
-// Warning: (ae-missing-release-tag) "generateAccountId" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-function generateAccountId(accountEntity: AccountEntity): string;
-
-// Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
-// Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
-// Warning: (tsdoc-html-tag-missing-greater-than) The HTML tag has invalid syntax: Expecting an attribute or ">" or "/>"
-// Warning: (tsdoc-malformed-html-name) Invalid HTML element: An HTML name must be an ASCII letter followed by zero or more letters, digits, or hyphens
-// Warning: (ae-incompatible-release-tags) The symbol "generateAccountKey" is marked as @public, but its signature references "AccountEntity" which is marked as @internal
-// Warning: (ae-incompatible-release-tags) The symbol "generateAccountKey" is marked as @public, but its signature references "AccountEntity" which is marked as @internal
-// Warning: (ae-missing-release-tag) "generateAccountKey" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-function generateAccountKey(accountEntity: AccountEntity): string;
-
 // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
 // Warning: (tsdoc-malformed-html-name) Invalid HTML element: An HTML name must be an ASCII letter followed by zero or more letters, digits, or hyphens
 // Warning: (ae-missing-release-tag) "generateAppMetadataKey" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -2129,20 +2301,6 @@ function generateCredentialKey(credentialEntity: CredentialEntity): string;
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-missing-release-tag) "generateHomeAccountId" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-function generateHomeAccountId(serverClientInfo: string, authType: AuthorityType, logger: Logger, cryptoObj: ICrypto, idTokenClaims?: TokenClaims): string;
-
-// Warning: (ae-incompatible-release-tags) The symbol "getAccountInfo" is marked as @public, but its signature references "AccountEntity" which is marked as @internal
-// Warning: (ae-incompatible-release-tags) The symbol "getAccountInfo" is marked as @public, but its signature references "AccountEntity" which is marked as @internal
-// Warning: (ae-missing-release-tag) "getAccountInfo" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-function getAccountInfo(accountEntity: AccountEntity): AccountInfo;
-
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (ae-missing-release-tag) "getAuthorizationCodePayload" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -2155,7 +2313,7 @@ function getAuthorizationCodePayload(serverParams: AuthorizeResponse, cachedStat
 // Warning: (ae-missing-release-tag) "getAuthorizeUrl" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-function getAuthorizeUrl(authority: Authority, requestParameters: Map<string, string>): string;
+function getAuthorizeUrl(authority: Authority, requestParameters: Map<string, string>, encodeParams?: boolean, extraQueryParameters?: StringDict | undefined): string;
 
 // Warning: (ae-missing-release-tag) "getClientAssertion" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -2398,6 +2556,7 @@ export type InProgressPerformanceEvent = {
         [key: string]: number | undefined;
     }) => void;
     event: PerformanceEvent;
+    measurement: IPerformanceMeasurement;
 };
 
 // Warning: (ae-missing-release-tag) "INSTANCE_AWARE" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -2438,6 +2597,24 @@ declare namespace InteractionRequiredAuthErrorCodes {
     }
 }
 export { InteractionRequiredAuthErrorCodes }
+
+// Warning: (ae-missing-release-tag) "InteractionRequiredAuthErrorMessage" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public @deprecated
+export const InteractionRequiredAuthErrorMessage: {
+    noTokensFoundError: {
+        code: string;
+        desc: string;
+    };
+    native_account_unavailable: {
+        code: string;
+        desc: string;
+    };
+    bad_token: {
+        code: string;
+        desc: string;
+    };
+};
 
 // Warning: (ae-missing-release-tag) "IntFields" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -2551,6 +2728,8 @@ export interface IPerformanceClient {
     setPreQueueTime(eventName: string, correlationId?: string): void;
     // (undocumented)
     startMeasurement(measureName: string, correlationId?: string): InProgressPerformanceEvent;
+    // @deprecated (undocumented)
+    startPerformanceMeasurement(measureName: string, correlationId: string): IPerformanceMeasurement;
 }
 
 // Warning: (ae-missing-release-tag) "IPerformanceMeasurement" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -2570,12 +2749,6 @@ export interface IPerformanceMeasurement {
 //
 // @public
 function isAccessTokenEntity(entity: object): boolean;
-
-// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// Warning: (ae-missing-release-tag) "isAccountEntity" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-function isAccountEntity(entity: object): boolean;
 
 // Warning: (ae-missing-release-tag) "isAppMetadataEntity" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -2630,13 +2803,6 @@ function isRefreshTokenEntity(entity: object): boolean;
 //
 // @public
 function isServerTelemetryEntity(key: string, entity?: object): boolean;
-
-// Warning: (ae-incompatible-release-tags) The symbol "isSingleTenant" is marked as @public, but its signature references "AccountEntity" which is marked as @internal
-// Warning: (ae-incompatible-release-tags) The symbol "isSingleTenant" is marked as @public, but its signature references "AccountEntity" which is marked as @internal
-// Warning: (ae-missing-release-tag) "isSingleTenant" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-function isSingleTenant(accountEntity: AccountEntity): boolean;
 
 // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
 // Warning: (tsdoc-html-tag-missing-greater-than) The HTML tag has invalid syntax: Expecting an attribute or ">" or "/>"
@@ -2784,7 +2950,7 @@ const logoutRequestEmpty = "logout_request_empty";
 // Warning: (ae-missing-release-tag) "mapToQueryString" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-function mapToQueryString(parameters: Map<string, string>): string;
+function mapToQueryString(parameters: Map<string, string>, encodeExtraParams?: boolean, extraQueryParameters?: StringDict): string;
 
 // Warning: (ae-missing-release-tag) "maxAgeTranspired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -2984,7 +3150,7 @@ export const OIDC_DEFAULT_SCOPES: string[];
 //
 // @public
 export type OIDCOptions = {
-    responseMode?: ResponseMode;
+    serverResponseType?: ServerResponseType;
     defaultScopes?: Array<string>;
 };
 
@@ -3024,6 +3190,7 @@ export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
 //
 // @public (undocumented)
 export abstract class PerformanceClient implements IPerformanceClient {
+    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-undefined-tag) The TSDoc tag "@constructor" is not defined in this configuration
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
@@ -3038,7 +3205,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     constructor(clientId: string, authority: string, logger: Logger, libraryName: string, libraryVersion: string, applicationTelemetry: ApplicationTelemetry, intFields?: Set<string>, abbreviations?: Map<string, string>);
@@ -3049,10 +3215,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
     addFields(fields: {
         [key: string]: {} | undefined;
     }, correlationId: string): void;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
     // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
@@ -3085,16 +3251,16 @@ export abstract class PerformanceClient implements IPerformanceClient {
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     discardMeasurements(correlationId: string): void;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-with-invalid-optional-name) The @param should not include a JSDoc-style optional name; it must not be enclosed in '[ ]' brackets.
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
+    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     emitEvents(events: PerformanceEvent[], correlationId: string): void;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
     endMeasurement(event: PerformanceEvent, error?: unknown): PerformanceEvent | null;
     // Warning: (tsdoc-undefined-tag) The TSDoc tag "@protected" is not defined in this configuration
@@ -3113,8 +3279,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
     abstract generateId(): string;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
     // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
     getPreQueueTime(eventName: string, correlationId: string): number | void;
@@ -3147,25 +3313,35 @@ export abstract class PerformanceClient implements IPerformanceClient {
     // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
     // Warning: (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
     protected queueMeasurements: Map<string, Array<QueueMeasurement>>;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
     // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
     removePerformanceCallback(callbackId: string): boolean;
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-undefined-tag) The TSDoc tag "@abstract" is not defined in this configuration
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     abstract setPreQueueTime(eventName: PerformanceEvents, correlationId?: string): void;
+    // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+    // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-with-invalid-optional-name) The @param should not include a JSDoc-style optional name; it must not be enclosed in '[ ]' brackets.
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-    // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
     startMeasurement(measureName: string, correlationId?: string): InProgressPerformanceEvent;
+    // Warning: (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+    //
+    // @deprecated
+    startPerformanceMeasurement(measureName: string, // eslint-disable-line @typescript-eslint/no-unused-vars
+    correlationId: string): IPerformanceMeasurement;
 }
 
 // Warning: (tsdoc-undefined-tag) The TSDoc tag "@export" is not defined in this configuration
@@ -3663,10 +3839,10 @@ const RESPONSE_TYPE = "response_type";
 export class ResponseHandler {
     constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null, performanceClient?: IPerformanceClient);
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-undefined-tag) The TSDoc tag "@AuthenticationResult" is not defined in this configuration
     // Warning: (tsdoc-undefined-tag) The TSDoc tag "@CacheRecord" is not defined in this configuration
     // Warning: (tsdoc-undefined-tag) The TSDoc tag "@IdToken" is not defined in this configuration
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static generateAuthenticationResult(cryptoObj: ICrypto, authority: Authority, cacheRecord: CacheRecord, fromTokenCache: boolean, request: BaseAuthRequest, idTokenClaims?: TokenClaims, requestState?: RequestStateObject, serverTokenResponse?: ServerAuthorizationTokenResponse, requestId?: string): Promise<AuthenticationResult>;
@@ -3783,6 +3959,18 @@ export class ServerError extends AuthError {
     readonly errorNo?: string;
     readonly status?: number;
 }
+
+// Warning: (ae-missing-release-tag) "ServerResponseType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "ServerResponseType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public @deprecated
+export const ServerResponseType: {
+    readonly QUERY: "query";
+    readonly FRAGMENT: "fragment";
+};
+
+// @public (undocumented)
+export type ServerResponseType = (typeof ServerResponseType)[keyof typeof ServerResponseType];
 
 // Warning: (ae-missing-release-tag) "ServerTelemetryEntity" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -3988,6 +4176,8 @@ export class StubPerformanceClient implements IPerformanceClient {
     setPreQueueTime(): void;
     // (undocumented)
     startMeasurement(measureName: string, correlationId?: string | undefined): InProgressPerformanceEvent;
+    // (undocumented)
+    startPerformanceMeasurement(): IPerformanceMeasurement;
 }
 
 // Warning: (ae-missing-release-tag) "SubMeasurement" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -4244,6 +4434,8 @@ export class UrlString {
     // (undocumented)
     static getDomainFromUrl(url: string): string;
     getUrlComponents(): IUri;
+    // @deprecated
+    static hashContainsKnownProperties(response: string): boolean;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     static removeHashFromUrl(url: string): string;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -4371,9 +4563,9 @@ const X_MS_LIB_CAPABILITY = "x-ms-lib-capability";
 // src/authority/Authority.ts:818:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/authority/Authority.ts:1009:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/authority/AuthorityOptions.ts:26:5 - (ae-forgotten-export) The symbol "CloudInstanceDiscoveryResponse" needs to be exported by the entry point index.d.ts
+// src/cache/CacheManager.ts:289:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/CacheManager.ts:290:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:291:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/cache/CacheManager.ts:573:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/CacheManager.ts:572:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/CacheManager.ts:1559:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/CacheManager.ts:1560:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/CacheManager.ts:1574:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -4423,15 +4615,15 @@ const X_MS_LIB_CAPABILITY = "x-ms-lib-capability";
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
 // src/index.ts:8:4 - (tsdoc-undefined-tag) The TSDoc tag "@module" is not defined in this configuration
 // src/request/AuthenticationHeaderParser.ts:74:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/response/ResponseHandler.ts:331:5 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/response/ResponseHandler.ts:334:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/response/ResponseHandler.ts:335:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/response/ResponseHandler.ts:336:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/telemetry/performance/PerformanceClient.ts:897:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/telemetry/performance/PerformanceClient.ts:897:15 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-// src/telemetry/performance/PerformanceClient.ts:909:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/telemetry/performance/PerformanceClient.ts:909:27 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-// src/telemetry/performance/PerformanceClient.ts:910:24 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
-// src/telemetry/performance/PerformanceClient.ts:910:17 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/telemetry/performance/PerformanceClient.ts:914:5 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/telemetry/performance/PerformanceClient.ts:914:5 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
+// src/telemetry/performance/PerformanceClient.ts:926:5 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
+// src/telemetry/performance/PerformanceClient.ts:926:5 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
+// src/telemetry/performance/PerformanceClient.ts:926:5 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/telemetry/performance/PerformanceClient.ts:926:5 - (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
 // src/telemetry/performance/PerformanceEvent.ts:589:21 - (tsdoc-escape-right-brace) The "}" character should be escaped using a backslash to avoid confusion with a TSDoc inline tag
 // src/telemetry/performance/PerformanceEvent.ts:589:14 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
 // src/telemetry/performance/PerformanceEvent.ts:589:8 - (tsdoc-undefined-tag) The TSDoc tag "@type" is not defined in this configuration
