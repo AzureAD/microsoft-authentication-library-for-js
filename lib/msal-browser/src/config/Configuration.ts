@@ -110,6 +110,7 @@ export type BrowserAuthOptions = {
     instanceAware?: boolean;
     /**
      * Flag of whether to encode query parameters
+     * @deprecated This flag is deprecated and will be removed in the next major version where all extra query params will be encoded by default.
      */
     encodeExtraQueryParams?: boolean;
 };
