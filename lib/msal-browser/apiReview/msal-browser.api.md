@@ -446,6 +446,7 @@ export type BrowserAuthOptions = {
     supportsNestedAppAuth?: boolean;
     onRedirectNavigate?: (url: string) => boolean | void;
     instanceAware?: boolean;
+    // @deprecated
     encodeExtraQueryParams?: boolean;
 };
 
