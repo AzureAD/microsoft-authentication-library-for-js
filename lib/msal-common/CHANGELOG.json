@@ -2,6 +2,39 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 08 Apr 2025 16:56:06 GMT",
+      "version": "15.5.0",
+      "tag": "@azure/msal-common_v15.5.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "fabf962dcb69611b4516342107bc7bcc364c4e68",
+            "comment": "Implemented a Retry Policy for the IMDS Managed Identity Source #7614"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 25 Mar 2025 22:29:34 GMT",
       "version": "15.4.0",
       "tag": "@azure/msal-common_v15.4.0",

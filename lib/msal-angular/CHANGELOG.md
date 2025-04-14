@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-angular
 
-<!-- This log was last generated on Tue, 25 Mar 2025 22:29:34 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 08 Apr 2025 16:56:05 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.0.9
+
+Tue, 08 Apr 2025 16:56:05 GMT
+
+### Patches
+
+- added resetInProgressEvent function to reset event after handleRedirectPromise is called #7682 (lalimasharda@microsoft.com)
+- Deprecate logout() in Angular (shylasummers@microsoft.com)
+- Bump @azure/msal-browser to v4.10.0
+- Bump eslint-config-msal to v0.0.0
 
 ## 4.0.8
 

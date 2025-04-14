@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Export additional function internally for use in tests",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

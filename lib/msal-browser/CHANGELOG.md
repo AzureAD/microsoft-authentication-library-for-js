@@ -1,8 +1,25 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 26 Mar 2025 17:56:52 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 08 Apr 2025 16:56:05 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.10.0
+
+Tue, 08 Apr 2025 16:56:05 GMT
+
+### Minor changes
+
+- Fix a bug in handleRedirectPromise when invoked after logoutRedirect #7680 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.5.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Export additional function internally for use in tests (thomas.norling@microsoft.com)
+- update cache miss to warning from error (sameera.gajjarapu@microsoft.com)
 
 ## 4.9.1
 
