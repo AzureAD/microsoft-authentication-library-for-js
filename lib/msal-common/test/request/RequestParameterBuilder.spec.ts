@@ -230,7 +230,7 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
     });
 
-    it("Doesn't encode extra params if encodeParams is false and extra params are passed in", () => {
+    it("Doesn't encode extra params by default", () => {
         const parameters = new Map<string, string>();
         RequestParameterBuilder.addResponseType(
             parameters,
@@ -438,13 +438,15 @@ describe("RequestParameterBuilder unit tests", () => {
         );
     });
 
-    it("Encodes extra params by default", () => {
+    it("Encodes extra params if encodeParams is true and extra params are passed in", () => {
         const parameters = new Map<string, string>();
         RequestParameterBuilder.addExtraQueryParameters(parameters, {
             extra_params: "param1,param2",
         });
 
-        const requestQueryString = UrlUtils.mapToQueryString(parameters);
+        const requestQueryString = UrlUtils.mapToQueryString(parameters, true, {
+            extra_params: "param1,param2",
+        });
 
         expect(
             requestQueryString.includes(
