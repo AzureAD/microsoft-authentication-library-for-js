@@ -98,7 +98,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         this.logger.verbose("Calling initiate endpoint for sign in.", parameters.correlationId);
 
         const initReq: SignInInitiateRequest = {
-            challenge_type: parameters.challengeType.join(" "),
+            challenge_type: this.getChallengeTypes(parameters.challengeType),
             username: parameters.username,
             correlationId: parameters.correlationId,
             telemetryManager: telemetryManager,
@@ -130,7 +130,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         const telemetryManager = this.initializeServerTelemetryManager(apiId);
 
         const challengeReq: SignInChallengeRequest = {
-            challenge_type: parameters.challengeType.join(" "),
+            challenge_type: this.getChallengeTypes(parameters.challengeType),
             continuation_token: parameters.continuationToken ?? "",
             correlationId: parameters.correlationId,
             telemetryManager: telemetryManager,

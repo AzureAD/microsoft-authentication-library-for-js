@@ -115,7 +115,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
 
         const challengeRequest: ResetPasswordChallengeRequest = {
             continuation_token: parameters.continuationToken,
-            challenge_type: parameters.challengeType.join(" "),
+            challenge_type: this.getChallengeTypes(parameters.challengeType),
             correlationId: parameters.correlationId,
             telemetryManager: telemetryManager,
         };

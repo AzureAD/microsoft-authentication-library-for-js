@@ -55,6 +55,9 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
 
     protected getChallengeTypes(configuredChallengeTypes: string[] | undefined): string {
         if (!!configuredChallengeTypes && configuredChallengeTypes.length > 0) {
+            if (!configuredChallengeTypes.includes(ChallengeType.REDIRECT)) {
+                configuredChallengeTypes.push(ChallengeType.REDIRECT);
+            }
             return configuredChallengeTypes.join(" ");
         }
 

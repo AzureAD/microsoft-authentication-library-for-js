@@ -127,9 +127,5 @@ export class CustomAuthPublicClientApplication
                 `The authority URL '${config.auth?.authority}' is not a CIAM authority.`,
             );
         }
-
-        if (!config.customAuth.challengeTypes || !config.customAuth.challengeTypes.includes(ChallengeType.REDIRECT)) {
-            config.customAuth.challengeTypes?.push(ChallengeType.REDIRECT);
-        }
     }
 }
