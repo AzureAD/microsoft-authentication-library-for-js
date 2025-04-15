@@ -20,8 +20,8 @@ import {
     AuthenticationScheme,
     RefreshTokenClient,
     CommonSilentFlowRequest,
-    AccountEntity,
     CredentialType,
+    AccountEntity,
 } from "@azure/msal-common";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import {
@@ -218,7 +218,7 @@ describe("SilentRefreshClient", () => {
                     realm: testIdTokenClaims.tid || "",
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 };
-                const accountEntity = new AccountEntity();
+                const accountEntity = {} as AccountEntity;
                 jest.spyOn(
                     BrowserCacheManager.prototype,
                     "getAccount"

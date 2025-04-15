@@ -105,6 +105,7 @@ export {
     // Account
     AccountInfo,
     AccountEntity,
+    AccountEntityUtils,
     IdTokenClaims,
     // Error
     AuthError,

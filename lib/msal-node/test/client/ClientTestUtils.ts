@@ -32,6 +32,7 @@ import {
     ClientAssertionConfig,
     PasswordGrantConstants,
     OAuthResponseType,
+    AccountEntityUtils,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -56,7 +57,7 @@ export class MockStorageClass extends CacheManager {
     // Accounts
     getAccount(key: string): AccountEntity | null {
         const account: AccountEntity = this.store[key] as AccountEntity;
-        if (AccountEntity.isAccountEntity(account)) {
+        if (AccountEntityUtils.isAccountEntity(account)) {
             return account;
         }
         return null;
@@ -67,7 +68,7 @@ export class MockStorageClass extends CacheManager {
     }
 
     async setAccount(value: AccountEntity): Promise<void> {
-        const key = value.generateAccountKey();
+        const key = AccountEntityUtils.generateAccountKey(value);
         this.store[key] = value;
 
         const currentAccounts = this.getAccountKeys();

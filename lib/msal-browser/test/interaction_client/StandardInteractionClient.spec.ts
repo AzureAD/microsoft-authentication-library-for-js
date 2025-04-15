@@ -13,6 +13,7 @@ import {
     AccountEntity,
     AccountInfo,
     CommonAuthorizationUrlRequest,
+    AccountEntityUtils,
 } from "@azure/msal-common";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
 import { StandardInteractionClient } from "../../src/interaction_client/StandardInteractionClient.js";
@@ -65,7 +66,8 @@ describe("StandardInteractionClient", () => {
         undefined,
         { environment: "login.microsoftonline.com" }
     );
-    const testAccount: AccountInfo = testAccountEntity.getAccountInfo();
+    const testAccount: AccountInfo =
+        AccountEntityUtils.getAccountInfo(testAccountEntity);
 
     beforeEach(() => {
         pca = new PublicClientApplication({
