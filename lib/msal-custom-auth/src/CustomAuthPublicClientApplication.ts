@@ -20,7 +20,6 @@ import {
     MissingConfiguration,
 } from "./core/error/InvalidConfigurationError.js";
 import { StringUtils } from "./core/utils/StringUtils.js";
-import { ChallengeType } from "./CustomAuthConstants.js";
 
 export class CustomAuthPublicClientApplication
     extends PublicClientApplication
