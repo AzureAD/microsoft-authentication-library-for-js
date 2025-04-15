@@ -29,6 +29,7 @@ import { NodeAuthError } from "../error/NodeAuthError.js";
  * - clientSecret           - Secret string that the application uses when requesting a token. Only used in confidential client applications. Can be created in the Azure app registration portal.
  * - clientAssertion        - A ClientAssertion object containing an assertion string or a callback function that returns an assertion string that the application uses when requesting a token, as well as the assertion's type (urn:ietf:params:oauth:client-assertion-type:jwt-bearer). Only used in confidential client applications.
  * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 or SHA-256 thumbprint of the certificate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
+ * - encodeExtraQueryParams - A flag to choose whether to encode extra query parameters in the request URL. Defaults to false.
  * @public
  */
 export type NodeAuthOptions = {
@@ -51,6 +52,10 @@ export type NodeAuthOptions = {
     authorityMetadata?: string;
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
+    /**
+     * @deprecated This flag is deprecated and will be removed in the next major version where all extra query params will be encoded by default.
+     */
+    encodeExtraQueryParams?: boolean;
 };
 
 /**
@@ -146,6 +151,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
         azureCloudInstance: AzureCloudInstance.None,
         tenant: Constants.EMPTY_STRING,
     },
+    encodeExtraQueryParams: false,
 };
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {

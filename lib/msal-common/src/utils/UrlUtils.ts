@@ -8,6 +8,7 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError.js";
+import { StringDict } from "./MsalTypes.js";
 
 /**
  * Parses hash string from given string. Returns empty string if no hash symbol is found.
@@ -64,11 +65,23 @@ export function getDeserializedResponse(
 /**
  * Utility to create a URL from the params map
  */
-export function mapToQueryString(parameters: Map<string, string>): string {
+export function mapToQueryString(
+    parameters: Map<string, string>,
+    encodeExtraParams: boolean = true,
+    extraQueryParameters?: StringDict
+): string {
     const queryParameterArray: Array<string> = new Array<string>();
 
     parameters.forEach((value, key) => {
-        queryParameterArray.push(`${key}=${encodeURIComponent(value)}`);
+        if (
+            !encodeExtraParams &&
+            extraQueryParameters &&
+            key in extraQueryParameters
+        ) {
+            queryParameterArray.push(`${key}=${value}`);
+        } else {
+            queryParameterArray.push(`${key}=${encodeURIComponent(value)}`);
+        }
     });
 
     return queryParameterArray.join("&");

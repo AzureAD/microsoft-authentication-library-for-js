@@ -445,6 +445,8 @@ export type NodeAuthOptions = {
     authorityMetadata?: string;
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
+    skipAuthorityMetadataCache?: boolean;
+    encodeExtraQueryParams?: boolean;
 };
 
 // @public
