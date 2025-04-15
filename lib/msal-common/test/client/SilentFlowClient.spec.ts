@@ -46,12 +46,13 @@ import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemet
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 import { Logger } from "../../src/logger/Logger.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
+import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 
 const testAccountEntity: AccountEntity =
     buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
 
 const testAccount: AccountInfo = {
-    ...testAccountEntity.getAccountInfo(),
+    ...AccountEntityUtils.getAccountInfo(testAccountEntity),
     idTokenClaims: ID_TOKEN_CLAIMS,
     idToken: TEST_TOKENS.IDTOKEN_V2,
 };
@@ -541,14 +542,16 @@ describe("SilentFlowClient unit tests", () => {
 
         it("Throws error if it does not find token in cache", async () => {
             const testScope2 = "scope2";
-            const testAccountEntity: AccountEntity = new AccountEntity();
-            testAccountEntity.homeAccountId =
-                TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID;
-            testAccountEntity.localAccountId = "testId";
-            testAccountEntity.environment = "login.windows.net";
-            testAccountEntity.realm = "testTenantId";
-            testAccountEntity.username = "username@contoso.com";
-            testAccountEntity.authorityType = "MSSTS";
+            const testAccountEntity: AccountEntity = {
+                homeAccountId:
+                    TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
+                localAccountId: ID_TOKEN_CLAIMS.oid,
+                environment: "login.windows.net",
+                realm: "testTenantId",
+                username: "username@contoso.com",
+                authorityType: "MSSTS",
+            };
+
             jest.spyOn(
                 MockStorageClass.prototype,
                 "getAccount"

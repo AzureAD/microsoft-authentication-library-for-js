@@ -20,6 +20,7 @@ import {
     IPerformanceClient,
     InProgressPerformanceEvent,
     PerformanceEvents,
+    AccountEntityUtils,
 } from "@azure/msal-common";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
 import { ApiId } from "../../src/utils/BrowserConstants.js";
@@ -89,7 +90,7 @@ const testAccountEntity: AccountEntity = buildAccountFromIdTokenClaims(
 );
 
 const TEST_ACCOUNT_INFO: AccountInfo = {
-    ...testAccountEntity.getAccountInfo(),
+    ...AccountEntityUtils.getAccountInfo(testAccountEntity),
     idTokenClaims: ID_TOKEN_CLAIMS,
     idToken: TEST_TOKENS.IDTOKEN_V2,
 };

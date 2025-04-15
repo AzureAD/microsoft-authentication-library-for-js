@@ -37,6 +37,7 @@ import {
     buildAccountToCache,
     InProgressPerformanceEvent,
     ServerTelemetryManager,
+    AccountEntityUtils,
 } from "@azure/msal-common/browser";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -565,7 +566,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         idTokenClaims: TokenClaims
     ): string {
         // Save account in browser storage
-        const homeAccountIdentifier = AccountEntity.generateHomeAccountId(
+        const homeAccountIdentifier = AccountEntityUtils.generateHomeAccountId(
             response.client_info || Constants.EMPTY_STRING,
             AuthorityType.Default,
             this.logger,
@@ -683,7 +684,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             Constants.EMPTY_STRING;
 
         const accountInfo: AccountInfo | null = updateAccountTenantProfileData(
-            accountEntity.getAccountInfo(),
+            AccountEntityUtils.getAccountInfo(accountEntity),
             undefined, // tenantProfile optional
             idTokenClaims,
             response.id_token

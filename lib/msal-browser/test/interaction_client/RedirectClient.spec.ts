@@ -50,6 +50,8 @@ import {
     InProgressPerformanceEvent,
     StubPerformanceClient,
     ProtocolMode,
+    AccessTokenEntity,
+    AccountEntityUtils,
 } from "@azure/msal-common";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
@@ -408,8 +410,9 @@ describe("RedirectClient", () => {
                 },
             };
 
-            const testAccount: AccountInfo =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+            const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            );
 
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -557,11 +560,11 @@ describe("RedirectClient", () => {
                 },
             };
 
-            const testAccount: AccountInfo = buildAccountFromIdTokenClaims(
-                ID_TOKEN_CLAIMS,
-                undefined,
-                { nativeAccountId: "test-nativeAccountId" }
-            ).getAccountInfo();
+            const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, undefined, {
+                    nativeAccountId: "test-nativeAccountId",
+                })
+            );
 
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -801,8 +804,9 @@ describe("RedirectClient", () => {
                 },
             };
 
-            const testAccount: AccountInfo =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+            const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            );
 
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -941,8 +945,9 @@ describe("RedirectClient", () => {
                     },
                 };
 
-            const testAccount: AccountInfo =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+            const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            );
 
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -1096,8 +1101,9 @@ describe("RedirectClient", () => {
                 },
             };
 
-            const testAccount: AccountInfo =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+            const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            );
 
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -2418,16 +2424,16 @@ describe("RedirectClient", () => {
                 idTokenClaims: testIdTokenClaims,
             };
 
-            const testAccount: AccountEntity = new AccountEntity();
-            testAccount.homeAccountId = testAccountInfo.homeAccountId;
-            testAccount.localAccountId = testAccountInfo.localAccountId;
-            testAccount.environment = testAccountInfo.environment;
-            testAccount.realm = testAccountInfo.tenantId;
-            testAccount.username = testAccountInfo.username;
-            testAccount.name = testAccountInfo.name;
-            testAccount.authorityType = "MSSTS";
-            testAccount.clientInfo =
-                TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            const testAccount: AccountEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                localAccountId: testAccountInfo.localAccountId,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                username: testAccountInfo.username,
+                name: testAccountInfo.name,
+                authorityType: "MSSTS",
+                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+            };
 
             jest.spyOn(
                 NavigationClient.prototype,
@@ -2475,16 +2481,16 @@ describe("RedirectClient", () => {
                 idTokenClaims: testIdTokenClaims,
             };
 
-            const testAccount: AccountEntity = new AccountEntity();
-            testAccount.homeAccountId = testAccountInfo.homeAccountId;
-            testAccount.localAccountId = testAccountInfo.localAccountId;
-            testAccount.environment = testAccountInfo.environment;
-            testAccount.realm = testAccountInfo.tenantId;
-            testAccount.username = testAccountInfo.username;
-            testAccount.name = testAccountInfo.name;
-            testAccount.authorityType = "MSSTS";
-            testAccount.clientInfo =
-                TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            const testAccount: AccountEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                localAccountId: testAccountInfo.localAccountId,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                username: testAccountInfo.username,
+                name: testAccountInfo.name,
+                authorityType: "MSSTS",
+                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+            };
 
             jest.spyOn(
                 NavigationClient.prototype,
@@ -2564,16 +2570,16 @@ describe("RedirectClient", () => {
                 username: "AbeLi@microsoft.com",
             };
 
-            const testAccount: AccountEntity = new AccountEntity();
-            testAccount.homeAccountId = testAccountInfo.homeAccountId;
-            testAccount.localAccountId = testAccountInfo.localAccountId;
-            testAccount.environment = testAccountInfo.environment;
-            testAccount.realm = testAccountInfo.tenantId;
-            testAccount.username = testAccountInfo.username;
-            testAccount.name = testAccountInfo.name;
-            testAccount.authorityType = "MSSTS";
-            testAccount.clientInfo =
-                TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            const testAccount: AccountEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                localAccountId: testAccountInfo.localAccountId,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                username: testAccountInfo.username,
+                name: testAccountInfo.name,
+                authorityType: "MSSTS",
+                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+            };
 
             const logoutUriSpy = jest
                 .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
@@ -2678,16 +2684,16 @@ describe("RedirectClient", () => {
                 username: "AbeLi@microsoft.com",
             };
 
-            const testAccount: AccountEntity = new AccountEntity();
-            testAccount.homeAccountId = testAccountInfo.homeAccountId;
-            testAccount.localAccountId = testAccountInfo.localAccountId;
-            testAccount.environment = testAccountInfo.environment;
-            testAccount.realm = testAccountInfo.tenantId;
-            testAccount.username = testAccountInfo.username;
-            testAccount.name = testAccountInfo.name;
-            testAccount.authorityType = "MSSTS";
-            testAccount.clientInfo =
-                TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            const testAccount: AccountEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                localAccountId: testAccountInfo.localAccountId,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                username: testAccountInfo.username,
+                name: testAccountInfo.name,
+                authorityType: "MSSTS",
+                clientInfo: TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED,
+            };
 
             const logoutUriSpy = jest
                 .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
@@ -2789,7 +2795,7 @@ describe("RedirectClient", () => {
             const testAccountEntity =
                 buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
             const testAccountInfo: AccountInfo = {
-                ...testAccountEntity.getAccountInfo(),
+                ...AccountEntityUtils.getAccountInfo(testAccountEntity),
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 idToken: TEST_TOKENS.IDTOKEN_V2,
             };

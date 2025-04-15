@@ -6,6 +6,7 @@
 import {
     AccessTokenEntity,
     AccountEntity,
+    AccountEntityUtils,
     AccountInfo,
     ActiveAccountFilters,
     AppMetadataEntity,
@@ -158,13 +159,16 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         const parsedAccount = this.validateAndParseJson(serializedAccount);
-        if (!parsedAccount || !AccountEntity.isAccountEntity(parsedAccount)) {
+        if (
+            !parsedAccount ||
+            !AccountEntityUtils.isAccountEntity(parsedAccount)
+        ) {
             this.removeAccountKeyFromMap(accountKey);
             return null;
         }
 
         return CacheManager.toObject<AccountEntity>(
-            new AccountEntity(),
+            {} as AccountEntity,
             parsedAccount
         );
     }
@@ -178,7 +182,7 @@ export class BrowserCacheManager extends CacheManager {
         correlationId: string
     ): Promise<void> {
         this.logger.trace("BrowserCacheManager.setAccount called");
-        const key = account.generateAccountKey();
+        const key = AccountEntityUtils.generateAccountKey(account);
         await invokeAsync(
             this.browserStorage.setUserData.bind(this.browserStorage),
             PerformanceEvents.SetUserData,
@@ -198,7 +202,7 @@ export class BrowserCacheManager extends CacheManager {
             this.eventHandler.emitEvent(
                 EventType.ACCOUNT_ADDED,
                 undefined,
-                account.getAccountInfo()
+                AccountEntityUtils.getAccountInfo(account)
             );
         }
     }
@@ -292,7 +296,7 @@ export class BrowserCacheManager extends CacheManager {
             this.eventHandler.emitEvent(
                 EventType.ACCOUNT_REMOVED,
                 undefined,
-                account.getAccountInfo()
+                AccountEntityUtils.getAccountInfo(account)
             );
         }
     }

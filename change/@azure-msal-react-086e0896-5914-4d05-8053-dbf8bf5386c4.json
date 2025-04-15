@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Refactor AccountEntity into type #7674",
+  "packageName": "@azure/msal-react",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
