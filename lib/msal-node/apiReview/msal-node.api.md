@@ -447,6 +447,7 @@ export type NodeAuthOptions = {
     protocolMode?: ProtocolMode;
     azureCloudOptions?: AzureCloudOptions;
     skipAuthorityMetadataCache?: boolean;
+    encodeExtraQueryParams?: boolean;
 };
 
 // @public

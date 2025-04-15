@@ -158,7 +158,12 @@ export async function getAuthCodeRequestUrl(
         request.extraQueryParameters || {}
     );
 
-    return AuthorizeProtocol.getAuthorizeUrl(authority, parameters);
+    return AuthorizeProtocol.getAuthorizeUrl(
+        authority,
+        parameters,
+        config.auth.encodeExtraQueryParams,
+        request.extraQueryParameters
+    );
 }
 
 /**
@@ -195,7 +200,12 @@ export async function getEARForm(
         queryParams,
         request.extraQueryParameters || {}
     );
-    const url = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
+    const url = AuthorizeProtocol.getAuthorizeUrl(
+        authority,
+        queryParams,
+        config.auth.encodeExtraQueryParams,
+        request.extraQueryParameters
+    );
 
     return createForm(frame, url, parameters);
 }
