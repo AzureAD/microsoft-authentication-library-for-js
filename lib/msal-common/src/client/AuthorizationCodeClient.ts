@@ -507,6 +507,10 @@ export class AuthorizationCodeClient extends BaseClient {
             RequestParameterBuilder.addInstanceAware(parameters);
         }
 
-        return UrlUtils.mapToQueryString(parameters);
+        return UrlUtils.mapToQueryString(
+            parameters,
+            this.config.authOptions.encodeExtraQueryParams,
+            request.extraQueryParameters
+        );
     }
 }

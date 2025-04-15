@@ -83,6 +83,7 @@ export type CommonClientConfiguration = {
  * - skipAuthorityMetadataCache  - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
  * - instanceAware               - A flag of whether the STS will send back additional parameters to specify where the tokens should be retrieved from.
  * - redirectUri                 - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.
+ * - encodeExtraQueryParams      - A flag to choose whether to encode the extra query parameters or not. Defaults to false.
  * @internal
  */
 export type AuthOptions = {
@@ -93,6 +94,10 @@ export type AuthOptions = {
     azureCloudOptions?: AzureCloudOptions;
     skipAuthorityMetadataCache?: boolean;
     instanceAware?: boolean;
+    /**
+     * @deprecated This flag is deprecated and will be removed in the next major version where all extra query params will be encoded by default.
+     */
+    encodeExtraQueryParams?: boolean;
 };
 
 /**
@@ -276,6 +281,7 @@ function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
         azureCloudOptions: DEFAULT_AZURE_CLOUD_OPTIONS,
         skipAuthorityMetadataCache: false,
         instanceAware: false,
+        encodeExtraQueryParams: false,
         ...authOptions,
     };
 }
