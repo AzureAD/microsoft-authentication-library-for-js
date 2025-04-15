@@ -12,6 +12,7 @@ import {
     CacheManager,
     ClientConfiguration,
     CommonOnBehalfOfRequest,
+    AccountEntityUtils,
     CredentialType,
     IdTokenEntity,
     ScopeSet,
@@ -344,7 +345,7 @@ describe("OnBehalfOf unit tests", () => {
                 EncodingUtils.base64Decode
             );
             const expectedAccountEntity: AccountEntity =
-                AccountEntity.createAccount(
+                AccountEntityUtils.createAccountEntity(
                     {
                         homeAccountId: "123-test-uid.456-test-uid",
                         idTokenClaims: idTokenClaims,

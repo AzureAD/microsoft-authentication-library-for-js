@@ -32,6 +32,7 @@ import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemet
 import { Constants } from "../../src/utils/Constants.js";
 import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
 import { TokenKeys } from "../../src/cache/utils/CacheTypes.js";
+import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
@@ -42,14 +43,14 @@ export class MockStorageClass extends CacheManager {
     // Accounts
     getAccount(key: string): AccountEntity | null {
         const account: AccountEntity = this.store[key] as AccountEntity;
-        if (AccountEntity.isAccountEntity(account)) {
+        if (AccountEntityUtils.isAccountEntity(account)) {
             return account;
         }
         return null;
     }
 
     async setAccount(value: AccountEntity): Promise<void> {
-        const key = value.generateAccountKey();
+        const key = AccountEntityUtils.generateAccountKey(value);
         this.store[key] = value;
 
         const currentAccounts = this.getAccountKeys();

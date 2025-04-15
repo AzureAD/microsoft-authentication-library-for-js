@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import {
     AccountInfo,
     IPublicClientApplication,
-    AccountEntity,
+    AccountEntityUtils,
 } from "@azure/msal-browser";
 import { useMsal } from "./useMsal.js";
 import { AccountIdentifiers } from "../types/AccountIdentifiers.js";
@@ -50,7 +50,7 @@ export function useAccount(
         setAccount((currentAccount: AccountInfo | null) => {
             const nextAccount = getAccount(instance, accountIdentifiers);
             if (
-                !AccountEntity.accountInfoIsEqual(
+                !AccountEntityUtils.accountInfoIsEqual(
                     currentAccount,
                     nextAccount,
                     true

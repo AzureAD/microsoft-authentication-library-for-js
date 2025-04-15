@@ -9,6 +9,7 @@ import * as CacheHelpers from "./cache/utils/CacheHelpers.js";
 import * as TimeUtils from "./utils/TimeUtils.js";
 import * as UrlUtils from "./utils/UrlUtils.js";
 import * as AADServerParamKeys from "./constants/AADServerParamKeys.js";
+import * as AccountEntityUtils from "./cache/utils/AccountEntityUtils.js";
 
 export { AuthToken };
 export { AuthorityFactory };
@@ -16,6 +17,7 @@ export { CacheHelpers };
 export { TimeUtils };
 export { UrlUtils };
 export { AADServerParamKeys };
+export { AccountEntityUtils };
 
 export { AuthorizationCodeClient } from "./client/AuthorizationCodeClient.js";
 export { RefreshTokenClient } from "./client/RefreshTokenClient.js";

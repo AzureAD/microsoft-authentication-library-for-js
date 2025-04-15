@@ -6,6 +6,7 @@
 import {
     AccountEntity,
     ICachePlugin,
+    AccountEntityUtils,
     TokenCacheContext,
 } from "@azure/msal-common/node";
 import { TokenCache } from "../TokenCache.js";
@@ -49,7 +50,7 @@ export class DistributedCachePlugin implements ICachePlugin {
                 cacheContext.tokenCache as TokenCache
             ).getKVStore();
             const accountEntities = Object.values(kvStore).filter((value) =>
-                AccountEntity.isAccountEntity(value as object)
+                AccountEntityUtils.isAccountEntity(value as object)
             );
 
             let partitionKey: string;

@@ -28,7 +28,6 @@ import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
 import { ProtocolMode } from "../../src/authority/ProtocolMode.js";
 import { Logger, LogLevel } from "../../src/logger/Logger.js";
 import * as AuthToken from "../../src/account/AuthToken.js";
-import { AccountEntity } from "../../src/cache/entities/AccountEntity.js";
 import { BaseAuthRequest } from "../../src/request/BaseAuthRequest.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { AuthError } from "../../src/error/AuthError.js";
@@ -46,6 +45,7 @@ import {
 import { CacheManager } from "../../src/cache/CacheManager.js";
 import { cacheQuotaExceededErrorCode } from "../../src/error/CacheErrorCodes.js";
 import { TestTimeUtils } from "msal-test-utils";
+import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 
 const networkInterface: INetworkModule = {
     sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
@@ -198,7 +198,7 @@ describe("ResponseHandler.ts", () => {
             .mockImplementation((encodedIdToken, crypto) => {
                 return ID_TOKEN_CLAIMS as TokenClaims;
             });
-        jest.spyOn(AccountEntity.prototype, "getAccountInfo").mockReturnValue({
+        jest.spyOn(AccountEntityUtils, "getAccountInfo").mockReturnValue({
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
             localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
             environment: "login.windows.net",

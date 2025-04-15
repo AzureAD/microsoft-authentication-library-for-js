@@ -10,13 +10,13 @@ import {
     AccessTokenEntity,
     ScopeSet,
     ExternalTokenResponse,
-    AccountEntity,
     AuthToken,
     AuthorityType,
     RefreshTokenEntity,
     TokenClaims,
     CacheHelpers,
     StubPerformanceClient,
+    AccountEntityUtils,
 } from "@azure/msal-common/browser";
 import { TokenCache, LoadTokenOptions } from "../../src/cache/TokenCache.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
@@ -125,7 +125,7 @@ describe("TokenCache tests", () => {
                 testIdToken,
                 base64Decode
             );
-            testHomeAccountId = AccountEntity.generateHomeAccountId(
+            testHomeAccountId = AccountEntityUtils.generateHomeAccountId(
                 testClientInfo,
                 AuthorityType.Default,
                 logger,
@@ -250,13 +250,13 @@ describe("TokenCache tests", () => {
                 clientInfo: testClientInfo,
             };
 
-            const testAccountInfo = buildAccountFromIdTokenClaims(
-                ID_TOKEN_CLAIMS,
-                undefined,
-                { environment: testEnvironment }
-            ).getAccountInfo();
+            const testAccountInfo = AccountEntityUtils.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, undefined, {
+                    environment: testEnvironment,
+                })
+            );
             const testAccountKey =
-                AccountEntity.generateAccountCacheKey(testAccountInfo);
+                AccountEntityUtils.generateAccountCacheKey(testAccountInfo);
             const result = await tokenCache.loadExternalTokens(
                 request,
                 response,
@@ -508,7 +508,7 @@ describe("TokenCache tests", () => {
                 options
             );
 
-            testHomeAccountId = AccountEntity.generateHomeAccountId(
+            testHomeAccountId = AccountEntityUtils.generateHomeAccountId(
                 "",
                 AuthorityType.Default,
                 logger,

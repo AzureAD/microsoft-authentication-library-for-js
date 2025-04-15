@@ -38,6 +38,7 @@ import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetad
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity.js";
 import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity.js";
 import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity.js";
+import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 import {
     CacheHelpers,
     CommonSilentFlowRequest,
@@ -86,15 +87,16 @@ describe("CacheManager.ts test cases", () => {
 
     describe("saveCacheRecord tests", () => {
         it("save account", async () => {
-            const ac = new AccountEntity();
-            ac.homeAccountId = "someUid.someUtid";
-            ac.environment = "login.microsoftonline.com";
-            ac.realm = "microsoft";
-            ac.localAccountId = "object1234";
-            ac.username = "Jane Goodman";
-            ac.authorityType = "MSSTS";
+            const ac: AccountEntity = {
+                homeAccountId: "someUid.someUtid",
+                environment: "login.microsoftonline.com",
+                realm: "microsoft",
+                localAccountId: "object1234",
+                username: "Jane Goodman",
+                authorityType: "MSSTS",
+            };
 
-            const accountKey = ac.generateAccountKey();
+            const accountKey = AccountEntityUtils.generateAccountKey(ac);
             const cacheRecord: CacheRecord = {};
             cacheRecord.account = ac;
             await mockCache.cacheManager.saveCacheRecord(
@@ -324,10 +326,12 @@ describe("CacheManager.ts test cases", () => {
     });
 
     describe("getAllAccounts", () => {
-        const account1 =
-            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
-        const account2 =
-            buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS).getAccountInfo();
+        const account1 = AccountEntityUtils.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+        );
+        const account2 = AccountEntityUtils.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS)
+        );
         it("getAllAccounts returns an empty array if there are no accounts in the cache", () => {
             mockCache.clearCache();
             expect(mockCache.cacheManager.getAllAccounts()).toHaveLength(0);
@@ -589,10 +593,11 @@ describe("CacheManager.ts test cases", () => {
     });
 
     describe("getAccountInfoFilteredBy", () => {
-        const multiTenantAccount = buildAccountFromIdTokenClaims(
-            ID_TOKEN_CLAIMS,
-            [GUEST_ID_TOKEN_CLAIMS]
-        ).getAccountInfo();
+        const multiTenantAccount = AccountEntityUtils.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, [
+                GUEST_ID_TOKEN_CLAIMS,
+            ])
+        );
         it("returns null if no accounts match filter", () => {
             expect(
                 mockCache.cacheManager.getAccountInfoFilteredBy({
@@ -661,10 +666,11 @@ describe("CacheManager.ts test cases", () => {
 
     describe("getBaseAccountInfo", () => {
         it("returns base account regardless of tenantId", () => {
-            const multiTenantAccount = buildAccountFromIdTokenClaims(
-                ID_TOKEN_CLAIMS,
-                [GUEST_ID_TOKEN_CLAIMS]
-            ).getAccountInfo();
+            const multiTenantAccount = AccountEntityUtils.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS, [
+                    GUEST_ID_TOKEN_CLAIMS,
+                ])
+            );
             const resultAccount = mockCache.cacheManager.getBaseAccountInfo({
                 homeAccountId: multiTenantAccount.homeAccountId,
                 tenantId: GUEST_ID_TOKEN_CLAIMS.tid,
@@ -683,15 +689,16 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("getAccount (gets one AccountEntity object)", async () => {
-        const ac = new AccountEntity();
-        ac.homeAccountId = "someUid.someUtid";
-        ac.environment = "login.microsoftonline.com";
-        ac.realm = "microsoft";
-        ac.localAccountId = "object1234";
-        ac.username = "Jane Goodman";
-        ac.authorityType = "MSSTS";
+        const ac: AccountEntity = {
+            homeAccountId: "someUid.someUtid",
+            environment: "login.microsoftonline.com",
+            realm: "microsoft",
+            localAccountId: "object1234",
+            username: "Jane Goodman",
+            authorityType: "MSSTS",
+        };
 
-        const accountKey = ac.generateAccountKey();
+        const accountKey = AccountEntityUtils.generateAccountKey(ac);
         const cacheRecord: CacheRecord = {};
         cacheRecord.account = ac;
         await mockCache.cacheManager.saveCacheRecord(
@@ -1572,7 +1579,8 @@ describe("CacheManager.ts test cases", () => {
 
     it("removeAccount", async () => {
         const accountToRemove = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const accountToRemoveKey = accountToRemove.generateAccountKey();
+        const accountToRemoveKey =
+            AccountEntityUtils.generateAccountKey(accountToRemove);
         expect(
             mockCache.cacheManager.getAccount(accountToRemoveKey)
         ).not.toBeNull();
@@ -1738,7 +1746,7 @@ describe("CacheManager.ts test cases", () => {
                 clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
             };
             const mockedAccount: AccountEntity = CacheManager.toObject(
-                new AccountEntity(),
+                {} as AccountEntity,
                 accountData
             );
 
@@ -1862,7 +1870,7 @@ describe("CacheManager.ts test cases", () => {
             clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
         };
         const mockedAccount: AccountEntity = CacheManager.toObject(
-            new AccountEntity(),
+            {} as AccountEntity,
             accountData
         );
 
@@ -1927,7 +1935,7 @@ describe("CacheManager.ts test cases", () => {
             clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
         };
         const mockedAccount: AccountEntity = CacheManager.toObject(
-            new AccountEntity(),
+            {} as AccountEntity,
             accountData
         );
 
@@ -2019,7 +2027,7 @@ describe("CacheManager.ts test cases", () => {
             clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
         };
         const mockedAccount: AccountEntity = CacheManager.toObject(
-            new AccountEntity(),
+            {} as AccountEntity,
             accountData
         );
 
@@ -2119,7 +2127,7 @@ describe("CacheManager.ts test cases", () => {
             clientInfo: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
         };
         const mockedAccount: AccountEntity = CacheManager.toObject(
-            new AccountEntity(),
+            {} as AccountEntity,
             accountData
         );
 
@@ -2159,8 +2167,9 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("readAccountFromCache", () => {
-        const matchAccountInfo =
-            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+        const matchAccountInfo = AccountEntityUtils.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+        );
         const account = mockCache.cacheManager.readAccountFromCache(
             matchAccountInfo
         ) as AccountEntity;
@@ -2189,8 +2198,9 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("getIdToken", () => {
-        const baseAccountInfo =
-            buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS).getAccountInfo();
+        const baseAccountInfo = AccountEntityUtils.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_ALT_CLAIMS)
+        );
         // Get home ID token by default
         const idToken = mockCache.cacheManager.getIdToken(
             baseAccountInfo
