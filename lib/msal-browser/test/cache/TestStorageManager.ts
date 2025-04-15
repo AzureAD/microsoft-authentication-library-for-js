@@ -16,6 +16,7 @@ import {
     ValidCredentialType,
     TokenKeys,
     CacheHelpers,
+    AccountEntityUtils,
 } from "@azure/msal-common";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
@@ -43,7 +44,7 @@ export class TestStorageManager extends CacheManager {
     }
 
     async setAccount(value: AccountEntity): Promise<void> {
-        const key = value.generateAccountKey();
+        const key = AccountEntityUtils.generateAccountKey(value);
         this.store[key] = value;
 
         const currentAccounts = this.getAccountKeys();
