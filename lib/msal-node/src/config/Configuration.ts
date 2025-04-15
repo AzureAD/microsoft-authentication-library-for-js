@@ -31,7 +31,6 @@ import { NodeAuthError } from "../error/NodeAuthError.js";
  * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 or SHA-256 thumbprint of the certificate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
  * - protocolMode           - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  * - skipAuthorityMetadataCache - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
- * - encodeExtraQueryParams - A flag to choose whether to encode extra query parameters in the request URL. Defaults to false.
  * @public
  */
 export type NodeAuthOptions = {
@@ -56,10 +55,6 @@ export type NodeAuthOptions = {
     protocolMode?: ProtocolMode;
     azureCloudOptions?: AzureCloudOptions;
     skipAuthorityMetadataCache?: boolean;
-    /**
-     * @deprecated This flag is deprecated and will be removed in the next major version where all extra query params will be encoded by default.
-     */
-    encodeExtraQueryParams?: boolean;
 };
 
 /**
@@ -155,7 +150,6 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
         tenant: Constants.EMPTY_STRING,
     },
     skipAuthorityMetadataCache: false,
-    encodeExtraQueryParams: false,
 };
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {

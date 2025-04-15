@@ -65,10 +65,5 @@ export function getAuthCodeRequestUrl(
         request.extraQueryParameters || {}
     );
 
-    return AuthorizeProtocol.getAuthorizeUrl(
-        authority,
-        parameters,
-        config.auth.encodeExtraQueryParams,
-        request.extraQueryParameters
-    );
+    return AuthorizeProtocol.getAuthorizeUrl(authority, parameters);
 }
