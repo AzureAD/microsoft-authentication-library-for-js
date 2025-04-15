@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Remove encodeExtraQueryParams from config",
+  "packageName": "@azure/msal-common",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
