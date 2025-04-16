@@ -250,10 +250,8 @@ export type BrowserAuthOptions = {
     postLogoutRedirectUri?: string | null;
     navigateToLoginRequestUrl?: boolean;
     clientCapabilities?: Array<string>;
-    protocolMode?: ProtocolMode;
     OIDCOptions?: OIDCOptions;
     azureCloudOptions?: AzureCloudOptions;
-    skipAuthorityMetadataCache?: boolean;
     onRedirectNavigate?: (url: string) => boolean | void;
     instanceAware?: boolean;
 };
@@ -355,6 +353,7 @@ export type BrowserSystemOptions = SystemOptions & {
     allowPlatformBroker?: boolean;
     nativeBrokerHandshakeTimeout?: number;
     pollIntervalMilliseconds?: number;
+    protocolMode?: ProtocolMode;
 };
 
 // Warning: (ae-missing-release-tag) "BrowserTelemetryOptions" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1492,7 +1491,7 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/cache/LocalStorage.ts:296:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:354:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:385:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/config/Configuration.ts:231:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
+// src/config/Configuration.ts:227:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
 // src/event/EventHandler.ts:113:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/event/EventHandler.ts:139:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"

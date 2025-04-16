@@ -392,12 +392,12 @@ export class ClientTestUtils {
                 cloudDiscoveryMetadata: "",
                 authorityMetadata: "",
                 clientCapabilities,
-                protocolMode: ProtocolMode.AAD,
             },
             // broker, cache
             system: {
                 loggerOptions,
                 networkClient: mockHttpClient,
+                protocolMode: ProtocolMode.AAD,
             },
             telemetry: {
                 application: {

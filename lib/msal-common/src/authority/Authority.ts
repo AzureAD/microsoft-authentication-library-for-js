@@ -612,29 +612,21 @@ export class Authority {
             "Did not find endpoint metadata in the config... Attempting to get endpoint metadata from the hardcoded values."
         );
 
-        // skipAuthorityMetadataCache is used to bypass hardcoded authority metadata and force a network metadata cache lookup and network metadata request if no cached response is available.
-        if (this.authorityOptions.skipAuthorityMetadataCache) {
-            this.logger.verbose(
-                "Skipping hardcoded metadata cache since skipAuthorityMetadataCache is set to true. Attempting to get endpoint metadata from the network metadata cache."
+        const hardcodedMetadata = this.getEndpointMetadataFromHardcodedValues();
+        if (hardcodedMetadata) {
+            CacheHelpers.updateAuthorityEndpointMetadata(
+                metadataEntity,
+                hardcodedMetadata,
+                false
             );
+            return {
+                source: AuthorityMetadataSource.HARDCODED_VALUES,
+                metadata: hardcodedMetadata,
+            };
         } else {
-            const hardcodedMetadata =
-                this.getEndpointMetadataFromHardcodedValues();
-            if (hardcodedMetadata) {
-                CacheHelpers.updateAuthorityEndpointMetadata(
-                    metadataEntity,
-                    hardcodedMetadata,
-                    false
-                );
-                return {
-                    source: AuthorityMetadataSource.HARDCODED_VALUES,
-                    metadata: hardcodedMetadata,
-                };
-            } else {
-                this.logger.verbose(
-                    "Did not find endpoint metadata in hardcoded values... Attempting to get endpoint metadata from the network metadata cache."
-                );
-            }
+            this.logger.verbose(
+                "Did not find endpoint metadata in hardcoded values... Attempting to get endpoint metadata from the network metadata cache."
+            );
         }
 
         // Check cached metadata entity expiration status
@@ -896,31 +888,24 @@ export class Authority {
             "Did not find cloud discovery metadata in the config... Attempting to get cloud discovery metadata from the hardcoded values."
         );
 
-        if (this.options.skipAuthorityMetadataCache) {
+        const hardcodedMetadata = getCloudDiscoveryMetadataFromHardcodedValues(
+            this.hostnameAndPort
+        );
+        if (hardcodedMetadata) {
             this.logger.verbose(
-                "Skipping hardcoded cloud discovery metadata cache since skipAuthorityMetadataCache is set to true. Attempting to get cloud discovery metadata from the network metadata cache."
+                "Found cloud discovery metadata from hardcoded values."
             );
-        } else {
-            const hardcodedMetadata =
-                getCloudDiscoveryMetadataFromHardcodedValues(
-                    this.hostnameAndPort
-                );
-            if (hardcodedMetadata) {
-                this.logger.verbose(
-                    "Found cloud discovery metadata from hardcoded values."
-                );
-                CacheHelpers.updateCloudDiscoveryMetadata(
-                    metadataEntity,
-                    hardcodedMetadata,
-                    false
-                );
-                return AuthorityMetadataSource.HARDCODED_VALUES;
-            }
-
-            this.logger.verbose(
-                "Did not find cloud discovery metadata in hardcoded values... Attempting to get cloud discovery metadata from the network metadata cache."
+            CacheHelpers.updateCloudDiscoveryMetadata(
+                metadataEntity,
+                hardcodedMetadata,
+                false
             );
+            return AuthorityMetadataSource.HARDCODED_VALUES;
         }
+
+        this.logger.verbose(
+            "Did not find cloud discovery metadata in hardcoded values... Attempting to get cloud discovery metadata from the network metadata cache."
+        );
 
         const metadataEntityExpired =
             CacheHelpers.isAuthorityMetadataExpired(metadataEntity);

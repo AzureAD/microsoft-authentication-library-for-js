@@ -1340,7 +1340,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    protocolMode: ProtocolMode.OIDC,
                     OIDCOptions: {
                         responseMode: ResponseMode.QUERY,
                     },
@@ -1353,6 +1352,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
                 system: {
                     allowPlatformBroker: false,
+                    protocolMode: ProtocolMode.OIDC,
                 },
             });
 

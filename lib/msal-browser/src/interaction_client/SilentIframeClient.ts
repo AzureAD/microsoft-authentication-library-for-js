@@ -131,7 +131,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             );
         BrowserUtils.preconnect(silentRequest.authority);
 
-        if (this.config.auth.protocolMode === ProtocolMode.EAR) {
+        if (this.config.system.protocolMode === ProtocolMode.EAR) {
             return this.executeEarFlow(silentRequest);
         } else {
             return this.executeCodeFlow(silentRequest);

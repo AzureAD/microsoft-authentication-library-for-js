@@ -295,10 +295,12 @@ describe("Configuration.ts Class Unit Tests", () => {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     authority: TEST_CONFIG.validAuthority,
-                    protocolMode: ProtocolMode.AAD,
                     OIDCOptions: {
                         responseMode: ResponseMode.QUERY,
                     },
+                },
+                system: {
+                    protocolMode: ProtocolMode.AAD,
                 },
             },
             true
