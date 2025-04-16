@@ -36,7 +36,7 @@ export class ResetPasswordError extends AuthFlowErrorBase {
      * Check if client app supports the challenge type configured in Entra.
      * @returns {boolean} True if client app doesn't support the challenge type configured in Entra, "loginPopup" function is required to continue the operation.
      */
-    isFallbackRequired(): boolean {
+    isRedirectRequired(): boolean {
         return this.isRedirectError();
     }
 }
@@ -76,7 +76,7 @@ export class ResetPasswordSubmitCodeError extends AuthFlowErrorBase {
      * Check if client app supports the challenge type configured in Entra.
      * @returns {boolean} True if client app doesn't support the challenge type configured in Entra, "loginPopup" function is required to continue the operation.
      */
-    isFallbackRequired(): boolean {
+    isRedirectRequired(): boolean {
         return this.isRedirectError();
     }
 }
@@ -86,7 +86,7 @@ export class ResetPasswordResendCodeError extends AuthFlowErrorBase {
      * Check if client app supports the challenge type configured in Entra.
      * @returns {boolean} True if client app doesn't support the challenge type configured in Entra, "loginPopup" function is required to continue the operation.
      */
-    isFallbackRequired(): boolean {
+    isRedirectRequired(): boolean {
         return this.isRedirectError();
     }
 }

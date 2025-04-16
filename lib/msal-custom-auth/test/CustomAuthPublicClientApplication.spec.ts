@@ -47,6 +47,19 @@ describe("CustomAuthPublicClientApplication", () => {
             );
         });
 
+        it("should throw an error if challenge type is invalid", async () => {
+            const invalidConfig = {
+                auth: { authority: customAuthConfig.auth.authority },
+                customAuth: {
+                    challengeTypes: ["invalid-challenge-type"],
+                },
+            };
+
+            await expect(CustomAuthPublicClientApplication.create(invalidConfig as any)).rejects.toThrow(
+                InvalidConfigurationError,
+            );
+        });
+
         it("should create an instance if the config is valid", async () => {
             const app = await CustomAuthPublicClientApplication.create(customAuthConfig);
 

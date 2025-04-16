@@ -15,3 +15,4 @@ export class InvalidConfigurationError extends CustomAuthError {
 export const MissingConfiguration = "missing_configuration";
 export const InvalidAuthority = "invalid_authority";
 export const InvalidAuthApiProxyDomain = "invalid_auth_api_proxy_domain";
+export const InvalidChallengeType = "invalid_challenge_type";

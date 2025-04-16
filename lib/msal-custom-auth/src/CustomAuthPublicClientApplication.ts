@@ -16,10 +16,12 @@ import { CustomAuthOperatingContext } from "./operating_context/CustomAuthOperat
 import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import {
     InvalidAuthority,
+    InvalidChallengeType,
     InvalidConfigurationError,
     MissingConfiguration,
 } from "./core/error/InvalidConfigurationError.js";
 import { StringUtils } from "./core/utils/StringUtils.js";
+import { ChallengeType } from "./CustomAuthConstants.js";
 
 export class CustomAuthPublicClientApplication
     extends PublicClientApplication
@@ -111,6 +113,19 @@ export class CustomAuthPublicClientApplication
             throw new InvalidConfigurationError(MissingConfiguration, "The configuration is missing.");
         }
 
+        try {
+            CustomAuthPublicClientApplication.ensureValidAuthorityURL(config);
+            CustomAuthPublicClientApplication.validateChallengeTypes(config);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
+     * Validates the authority URL is a vaild CIAM authority.
+     * @param config - The configuration object for the PublicClientApplication.
+     */
+    private static ensureValidAuthorityURL(config: CustomAuthConfiguration) {
         if (!config.auth?.authority) {
             throw new InvalidConfigurationError(
                 InvalidAuthority,
@@ -124,6 +139,35 @@ export class CustomAuthPublicClientApplication
             throw new InvalidConfigurationError(
                 InvalidAuthority,
                 `The authority URL '${config.auth?.authority}' is not a CIAM authority.`,
+            );
+        }
+    }
+
+    /**
+     * Validates the challenge types in the configuration are valid.
+     * @param config - The configuration object for the PublicClientApplication.
+     */
+    private static validateChallengeTypes(config: CustomAuthConfiguration) {
+        const challengeTypes = config.customAuth.challengeTypes;
+        let invalidChallengeType = false;
+
+        if (!!challengeTypes && challengeTypes.length > 0) {
+            challengeTypes.forEach((challengeType) => {
+                const lowerCaseChallengeType = challengeType.toLowerCase();
+                if (
+                    lowerCaseChallengeType !== ChallengeType.PASSWORD &&
+                    lowerCaseChallengeType !== ChallengeType.OOB &&
+                    lowerCaseChallengeType !== ChallengeType.REDIRECT
+                ) {
+                    invalidChallengeType = true;
+                }
+            });
+        }
+
+        if (invalidChallengeType) {
+            throw new InvalidConfigurationError(
+                InvalidChallengeType,
+                `One or more challenge types in the configuration are not valid. Supported challenge types are ${Object.values(ChallengeType)}`,
             );
         }
     }

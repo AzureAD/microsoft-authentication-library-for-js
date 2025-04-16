@@ -80,7 +80,7 @@ describe("SignUpError", () => {
     it("should correctly identify redirect error", () => {
         const error = new RedirectError("Redirecting...");
         const signUpError = new SignUpError(error);
-        expect(signUpError.isFallbackRequired()).toBe(true);
+        expect(signUpError.isRedirectRequired()).toBe(true);
     });
 });
 
@@ -110,7 +110,7 @@ describe("SignUpSubmitPasswordError", () => {
     it("should correctly identify redirect error", () => {
         const error = new RedirectError("Redirecting...");
         const signUpError = new SignUpSubmitPasswordError(error);
-        expect(signUpError.isFallbackRequired()).toBe(true);
+        expect(signUpError.isRedirectRequired()).toBe(true);
     });
 });
 
@@ -134,7 +134,7 @@ describe("SignUpSubmitCodeError", () => {
     it("should correctly identify redirect error", () => {
         const error = new RedirectError("Redirecting...");
         const signUpError = new SignUpSubmitCodeError(error);
-        expect(signUpError.isFallbackRequired()).toBe(true);
+        expect(signUpError.isRedirectRequired()).toBe(true);
     });
 });
 
@@ -160,7 +160,7 @@ describe("SignUpSubmitAttributesError", () => {
     it("should correctly identify redirect error", () => {
         const error = new RedirectError("Redirecting...");
         const signUpError = new SignUpSubmitAttributesError(error);
-        expect(signUpError.isFallbackRequired()).toBe(true);
+        expect(signUpError.isRedirectRequired()).toBe(true);
     });
 });
 
@@ -168,6 +168,6 @@ describe("SignUpResendCodeError", () => {
     it("should correctly identify redirect error", () => {
         const error = new RedirectError("Redirecting...");
         const signUpError = new SignUpResendCodeError(error);
-        expect(signUpError.isFallbackRequired()).toBe(true);
+        expect(signUpError.isRedirectRequired()).toBe(true);
     });
 });

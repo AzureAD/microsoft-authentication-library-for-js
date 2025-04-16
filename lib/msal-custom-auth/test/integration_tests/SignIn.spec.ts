@@ -282,7 +282,7 @@ describe("Sign in", () => {
         expect(signInResult).toBeInstanceOf(SignInResult);
         expect(signInResult.error).toBeDefined();
         expect(signInResult.isFailed()).toBe(true);
-        expect(signInResult.error?.isFallbackRequired()).toBe(true);
+        expect(signInResult.error?.isRedirectRequired()).toBe(true);
     });
 
     it("should sign in failed with error if the given user is not found", async () => {

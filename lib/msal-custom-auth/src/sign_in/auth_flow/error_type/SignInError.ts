@@ -43,7 +43,7 @@ export class SignInError extends AuthFlowErrorBase {
      * Check if client app supports the challenge type configured in Entra.
      * @returns {boolean} True if "loginPopup" function is required to continue sthe operation.
      */
-    isFallbackRequired(): boolean {
+    isRedirectRequired(): boolean {
         return this.isRedirectError();
     }
 }
@@ -73,7 +73,7 @@ export class SignInResendCodeError extends AuthFlowErrorBase {
      * Check if client app supports the challenge type configured in Entra.
      * @returns {boolean} True if "loginPopup" function is required to continue sthe operation.
      */
-    isFallbackRequired(): boolean {
+    isRedirectRequired(): boolean {
         return this.isRedirectError();
     }
 }
