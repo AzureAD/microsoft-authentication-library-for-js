@@ -102,11 +102,6 @@ export type BrowserAuthOptions = {
      * Flag of whether the STS will send back additional parameters to specify where the tokens should be retrieved from.
      */
     instanceAware?: boolean;
-    /**
-     * Flag of whether to encode query parameters
-     * @deprecated This flag is deprecated and will be removed in the next major version where all extra query params will be encoded by default.
-     */
-    encodeExtraQueryParams?: boolean;
 };
 
 /** @internal */
@@ -280,7 +275,6 @@ export function buildConfiguration(
         },
         skipAuthorityMetadataCache: false,
         instanceAware: false,
-        encodeExtraQueryParams: false,
     };
 
     // Default cache options for browser
