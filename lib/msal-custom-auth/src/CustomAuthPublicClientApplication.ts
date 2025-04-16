@@ -114,7 +114,7 @@ export class CustomAuthPublicClientApplication
         }
 
         try {
-            CustomAuthPublicClientApplication.ensureValidAuthorityURL(config);
+            CustomAuthPublicClientApplication.validateAuthorityURL(config);
             CustomAuthPublicClientApplication.validateChallengeTypes(config);
         } catch (error) {
             throw error;
@@ -125,7 +125,7 @@ export class CustomAuthPublicClientApplication
      * Validates the authority URL is a vaild CIAM authority.
      * @param config - The configuration object for the PublicClientApplication.
      */
-    private static ensureValidAuthorityURL(config: CustomAuthConfiguration) {
+    private static validateAuthorityURL(config: CustomAuthConfiguration) {
         if (!config.auth?.authority) {
             throw new InvalidConfigurationError(
                 InvalidAuthority,
@@ -160,10 +160,10 @@ export class CustomAuthPublicClientApplication
                     lowerCaseChallengeType !== ChallengeType.REDIRECT
                 ) {
                     invalidChallengeType = true;
+                    return;
                 }
             });
         }
-
         if (invalidChallengeType) {
             throw new InvalidConfigurationError(
                 InvalidChallengeType,
