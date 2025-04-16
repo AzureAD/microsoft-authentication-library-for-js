@@ -33,10 +33,10 @@ export class ResetPasswordError extends AuthFlowErrorBase {
     }
 
     /**
-     * Checks if the challenge type is redirect (authentication method is not supported by by Microsoft Entra)
-     * @returns {boolean} True if the challenge type is redirect, false otherwise.
+     * Check if client app supports the challenge type configured in Entra.
+     * @returns {boolean} True if client app doesn't support the challenge type configured in Entra, "loginPopup" function is required to continue the operation.
      */
-    isRedirectionRequired(): boolean {
+    isFallbackRequired(): boolean {
         return this.isRedirectError();
     }
 }
@@ -73,20 +73,20 @@ export class ResetPasswordSubmitCodeError extends AuthFlowErrorBase {
     }
 
     /**
-     * Checks if the challenge type is redirect (authentication method is not supported by by Microsoft Entra)
-     * @returns {boolean} True if the challenge type is redirect, false otherwise.
+     * Check if client app supports the challenge type configured in Entra.
+     * @returns {boolean} True if client app doesn't support the challenge type configured in Entra, "loginPopup" function is required to continue the operation.
      */
-    isRedirectionRequired(): boolean {
+    isFallbackRequired(): boolean {
         return this.isRedirectError();
     }
 }
 
 export class ResetPasswordResendCodeError extends AuthFlowErrorBase {
     /**
-     * Checks if the challenge type is redirect (authentication method is not supported by by Microsoft Entra)
-     * @returns {boolean} True if the challenge type is redirect, false otherwise.
+     * Check if client app supports the challenge type configured in Entra.
+     * @returns {boolean} True if client app doesn't support the challenge type configured in Entra, "loginPopup" function is required to continue the operation.
      */
-    isRedirectionRequired(): boolean {
+    isFallbackRequired(): boolean {
         return this.isRedirectError();
     }
 }

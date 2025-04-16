@@ -616,7 +616,7 @@ describe("Sign up", () => {
         expect(startResult).toBeInstanceOf(SignUpResult);
         expect(startResult.error).toBeDefined();
         expect(startResult.isFailed()).toBe(true);
-        expect(startResult.error?.isRedirectionRequired()).toBe(true);
+        expect(startResult.error?.isFallbackRequired()).toBe(true);
     });
 
     it("should sign up failed if the given user is not found", async () => {

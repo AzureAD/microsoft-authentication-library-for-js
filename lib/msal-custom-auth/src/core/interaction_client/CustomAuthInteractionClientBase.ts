@@ -61,7 +61,7 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
             return configuredChallengeTypes.join(" ");
         }
 
-        return `${ChallengeType.PASSWORD} ${ChallengeType.OOB} ${ChallengeType.REDIRECT}`;
+        return `${ChallengeType.REDIRECT}`;
     }
 
     protected getScopes(scopes: string[] | undefined): string[] {

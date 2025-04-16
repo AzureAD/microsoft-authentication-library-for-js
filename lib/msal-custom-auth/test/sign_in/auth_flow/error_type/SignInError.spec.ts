@@ -54,7 +54,7 @@ describe("SignInError", () => {
     it("should return true for isRedirect when error is an instance of RedirectError", () => {
         const redirectError = new RedirectError(mockErrorData as any);
         const signInError = new SignInError(redirectError as any);
-        expect(signInError.isRedirectionRequired()).toBe(true);
+        expect(signInError.isFallbackRequired()).toBe(true);
     });
 
     it("should return false for all methods when error data does not match any condition", () => {
@@ -65,7 +65,7 @@ describe("SignInError", () => {
         expect(signInError.isInvalidUsername()).toBe(false);
         expect(signInError.isPasswordIncorrect()).toBe(false);
         expect(signInError.isUnsupportedChallengeType()).toBe(false);
-        expect(signInError.isRedirectionRequired()).toBe(false);
+        expect(signInError.isFallbackRequired()).toBe(false);
     });
 });
 

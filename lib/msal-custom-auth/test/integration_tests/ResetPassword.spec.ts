@@ -227,7 +227,7 @@ describe("Reset password", () => {
         expect(startResult).toBeInstanceOf(ResetPasswordStartResult);
         expect(startResult.error).toBeDefined();
         expect(startResult.isFailed()).toBe(true);
-        expect(startResult.error?.isRedirectionRequired()).toBe(true);
+        expect(startResult.error?.isFallbackRequired()).toBe(true);
     });
 
     it("should reset password failed if the given user is not found", async () => {
