@@ -230,7 +230,7 @@ export class PopupClient extends StandardInteractionClient {
         );
         validRequest.platformBroker = isPlatformBroker;
 
-        if (this.config.auth.protocolMode === ProtocolMode.EAR) {
+        if (this.config.system.protocolMode === ProtocolMode.EAR) {
             return this.executeEarFlow(validRequest, popupParams);
         } else {
             return this.executeCodeFlow(validRequest, popupParams, pkceCodes);

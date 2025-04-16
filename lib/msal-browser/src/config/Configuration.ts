@@ -79,10 +79,6 @@ export type BrowserAuthOptions = {
      */
     clientCapabilities?: Array<string>;
     /**
-     * Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
-     */
-    protocolMode?: ProtocolMode;
-    /**
      * Enum that configures options for the OIDC protocol mode.
      */
     OIDCOptions?: OIDCOptions;
@@ -90,10 +86,6 @@ export type BrowserAuthOptions = {
      * Enum that represents the Azure Cloud to use.
      */
     azureCloudOptions?: AzureCloudOptions;
-    /**
-     * Flag of whether to use the local metadata cache
-     */
-    skipAuthorityMetadataCache?: boolean;
     /**
      * Callback that will be passed the url that MSAL will navigate to in redirect flows. Returning false in the callback will stop navigation.
      */
@@ -184,6 +176,10 @@ export type BrowserSystemOptions = SystemOptions & {
      * Sets the interval length in milliseconds for polling the location attribute in popup windows (default is 30ms)
      */
     pollIntervalMilliseconds?: number;
+    /**
+     * Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
+     */
+    protocolMode?: ProtocolMode;
 };
 
 /**
@@ -260,7 +256,6 @@ export function buildConfiguration(
         postLogoutRedirectUri: Constants.EMPTY_STRING,
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
-        protocolMode: ProtocolMode.AAD,
         OIDCOptions: {
             responseMode: ResponseMode.FRAGMENT,
             defaultScopes: [
@@ -273,7 +268,6 @@ export function buildConfiguration(
             azureCloudInstance: AzureCloudInstance.None,
             tenant: Constants.EMPTY_STRING,
         },
-        skipAuthorityMetadataCache: false,
         instanceAware: false,
     };
 
@@ -316,6 +310,7 @@ export function buildConfiguration(
             userInputSystem?.nativeBrokerHandshakeTimeout ||
             DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
         pollIntervalMilliseconds: BrowserConstants.DEFAULT_POLL_INTERVAL_MS,
+        protocolMode: ProtocolMode.AAD,
     };
 
     const providedSystemOptions: Required<BrowserSystemOptions> = {
@@ -334,7 +329,7 @@ export function buildConfiguration(
 
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
     if (
-        userInputAuth?.protocolMode !== ProtocolMode.OIDC &&
+        userInputSystem?.protocolMode !== ProtocolMode.OIDC &&
         userInputAuth?.OIDCOptions
     ) {
         const logger = new Logger(providedSystemOptions.loggerOptions);
@@ -349,8 +344,8 @@ export function buildConfiguration(
 
     // Throw an error if user has set allowPlatformBroker to true with OIDC protocol mode
     if (
-        userInputAuth?.protocolMode &&
-        userInputAuth.protocolMode === ProtocolMode.OIDC &&
+        userInputSystem?.protocolMode &&
+        userInputSystem.protocolMode === ProtocolMode.OIDC &&
         providedSystemOptions?.allowPlatformBroker
     ) {
         throw createClientConfigurationError(

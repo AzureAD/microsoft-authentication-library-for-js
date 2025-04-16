@@ -306,8 +306,10 @@ describe("StandardInteractionClient OIDCOptions Tests", () => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                protocolMode: ProtocolMode.OIDC,
                 OIDCOptions: { responseMode: ResponseMode.QUERY },
+            },
+            system: {
+                protocolMode: ProtocolMode.OIDC,
             },
         });
 

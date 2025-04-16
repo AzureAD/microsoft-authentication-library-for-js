@@ -250,10 +250,8 @@ export type BrowserAuthOptions = {
     postLogoutRedirectUri?: string | null;
     navigateToLoginRequestUrl?: boolean;
     clientCapabilities?: Array<string>;
-    protocolMode?: ProtocolMode;
     OIDCOptions?: OIDCOptions;
     azureCloudOptions?: AzureCloudOptions;
-    skipAuthorityMetadataCache?: boolean;
     onRedirectNavigate?: (url: string) => boolean | void;
     instanceAware?: boolean;
 };
@@ -355,6 +353,7 @@ export type BrowserSystemOptions = SystemOptions & {
     allowPlatformBroker?: boolean;
     nativeBrokerHandshakeTimeout?: number;
     pollIntervalMilliseconds?: number;
+    protocolMode?: ProtocolMode;
 };
 
 // Warning: (ae-missing-release-tag) "BrowserTelemetryOptions" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)

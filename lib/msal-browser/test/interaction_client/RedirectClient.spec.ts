@@ -3006,6 +3006,8 @@ describe("RedirectClient", () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
                     protocolMode: ProtocolMode.EAR,
                 },
             });

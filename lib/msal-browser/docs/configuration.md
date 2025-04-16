@@ -19,7 +19,6 @@ const msalConfig = {
         postLogoutRedirectUri: "enter_postlogout_uri_here",
         navigateToLoginRequestUrl: true,
         clientCapabilities: ["CP1"],
-        protocolMode: "AAD"
     },
     cache: {
         cacheLocation: "sessionStorage",
@@ -57,6 +56,7 @@ const msalConfig = {
         iframeHashTimeout: 6000,
         loadFrameTimeout: 0,
         asyncPopups: false,
+        protocolMode: "AAD"
     },
     telemetry: {
         application: {
@@ -83,10 +83,8 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `redirectUri`                | URI where the authorization code response is sent back to. Whatever location is specified here must have the MSAL library available to handle the response.                                                                                                             | String in absolute or relative URI format                                                                                                    | Login request page (`window.location.href` of page which made auth request) |
 | `postLogoutRedirectUri`      | URI that is redirected to after a logout() call is made.                                                                                                                                                                                                                | String in absolute or relative URI format. Pass `null` to disable post logout redirect.                                                      | Login request page (`window.location.href` of page which made auth request) |
 | `navigateToLoginRequestUrl`  | If `true`, will navigate back to the original request location before processing the authorization code response. If the `redirectUri` is the same as the original request location, this flag should be set to false.                                                  | boolean                                                                                                                                      | `true`                                                                      |
-| `clientCapabilities`         | Array of capabilities to be added to all network requests as part of the `xms_cc` claims request (see: [Client capability in MSAL](../../msal-common/docs/client-capability.md))                                                                                        | Array of strings                                                                                                                             | []                                                                          |
-| `protocolMode`               | Enum representing the protocol mode to use. If `"AAD"`, will function on the OIDC-compliant AAD v2 endpoints; if `"OIDC"`, will function on other OIDC-compliant endpoints.                                                                                             | string                                                                                                                                       | `"AAD"`                                                                     |
+| `clientCapabilities`         | Array of capabilities to be added to all network requests as part of the `xms_cc` claims request (see: [Client capability in MSAL](../../msal-common/docs/client-capability.md))                                                                                        | Array of strings                                                                                                                             | []                                                                          |                                                                                          | string                                                                                                                                       | `"AAD"`                                                                     |
 | `azureCloudOptions`          | A defined set of azure cloud options for developers to default to their specific cloud authorities, for specific clouds supported please refer to the [AzureCloudInstance](https://aka.ms/msaljs/azure_cloud_instance)                                                  | [AzureCloudOptions](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#azurecloudoptions) | [AzureCloudInstance.None](msaljs/azure_cloud_instance)                      |
-| `skipAuthorityMetadataCache` | A flag to choose whether to use the local metadata cache during authority initialization. Metadata cache would be used if no authority metadata is provided and before a network call for metadata has been made (see [Authority](../../msal-common/docs/authority.md)) | boolean                                                                                                                                      | `false`                                                                     |
 | `onRedirectNavigate`         | A callback that will be passed the url that MSAL will navigate to in redirect flows. Returning false in the callback will stop navigation.
 | `instanceAware`              | A flag of whether the STS will send back additional parameters to specify where the tokens should be retrieved from. | boolean | `false` |
 
@@ -113,6 +111,7 @@ See [Caching in MSAL](./caching.md) for more.
 | `allowRedirectInIframe`    | By default, MSAL will not allow redirect operations to be initiated when the application is inside an iframe. Set this flag to `true` to remove this check.                                                                                                                                                   | boolean                              | `false`                                          |
 | `cryptoOptions`            | Config object for crypto operations in the browser.                                                                                                                                                                                                                                                           | See [below](#crypto-config-options.) | See [below](#crypto-config-options.)             |
 | `pollIntervalMilliseconds` | Interval of time in milliseconds between polls of popup URL hash during authenticaiton.                                                                                                                                                                                                                       | integer (milliseconds)               | `30`                                             |
+| `protocolMode`               | Enum representing the protocol mode to use. If `"AAD"`, will function on the OIDC-compliant AAD v2 endpoints; if `"OIDC"`, will function on other OIDC-compliant endpoints.   
 
 #### Logger Config Options
 
