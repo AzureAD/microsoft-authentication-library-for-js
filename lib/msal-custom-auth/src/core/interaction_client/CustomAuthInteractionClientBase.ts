@@ -54,14 +54,11 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
     }
 
     protected getChallengeTypes(configuredChallengeTypes: string[] | undefined): string {
-        if (!!configuredChallengeTypes && configuredChallengeTypes.length > 0) {
-            if (!configuredChallengeTypes.includes(ChallengeType.REDIRECT)) {
-                configuredChallengeTypes.push(ChallengeType.REDIRECT);
-            }
-            return configuredChallengeTypes.join(" ");
+        const challengeType = configuredChallengeTypes ?? [];
+        if (!challengeType.some((type) => type.toLowerCase() === ChallengeType.REDIRECT)) {
+            challengeType.push(ChallengeType.REDIRECT);
         }
-
-        return `${ChallengeType.REDIRECT}`;
+        return challengeType.join(" ");
     }
 
     protected getScopes(scopes: string[] | undefined): string[] {

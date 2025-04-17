@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PublicClientApplication } from "@azure/msal-browser";
+import { PublicClientApplication } from "@azure/msal-browser";
 import { GetAccountResult } from "./get_account/auth_flow/result/GetAccountResult.js";
 import { SignInResult } from "./sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
@@ -20,7 +20,6 @@ import {
     InvalidConfigurationError,
     MissingConfiguration,
 } from "./core/error/InvalidConfigurationError.js";
-import { StringUtils } from "./core/utils/StringUtils.js";
 import { ChallengeType } from "./CustomAuthConstants.js";
 
 export class CustomAuthPublicClientApplication
@@ -113,19 +112,6 @@ export class CustomAuthPublicClientApplication
             throw new InvalidConfigurationError(MissingConfiguration, "The configuration is missing.");
         }
 
-        try {
-            CustomAuthPublicClientApplication.validateAuthorityURL(config);
-            CustomAuthPublicClientApplication.validateChallengeTypes(config);
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    /**
-     * Validates the authority URL is a vaild CIAM authority.
-     * @param config - The configuration object for the PublicClientApplication.
-     */
-    private static validateAuthorityURL(config: CustomAuthConfiguration) {
         if (!config.auth?.authority) {
             throw new InvalidConfigurationError(
                 InvalidAuthority,
@@ -133,21 +119,6 @@ export class CustomAuthPublicClientApplication
             );
         }
 
-        const trimmedAuthority = StringUtils.trimSlashes(config.auth.authority);
-
-        if (!trimmedAuthority.endsWith(Constants.CIAM_AUTH_URL)) {
-            throw new InvalidConfigurationError(
-                InvalidAuthority,
-                `The authority URL '${config.auth?.authority}' is not a CIAM authority.`,
-            );
-        }
-    }
-
-    /**
-     * Validates the challenge types in the configuration are valid.
-     * @param config - The configuration object for the PublicClientApplication.
-     */
-    private static validateChallengeTypes(config: CustomAuthConfiguration) {
         const challengeTypes = config.customAuth.challengeTypes;
 
         if (!!challengeTypes && challengeTypes.length > 0) {
