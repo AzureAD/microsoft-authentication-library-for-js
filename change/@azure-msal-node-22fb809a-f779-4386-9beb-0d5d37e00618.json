@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "minor comment updates",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "none"
+}
