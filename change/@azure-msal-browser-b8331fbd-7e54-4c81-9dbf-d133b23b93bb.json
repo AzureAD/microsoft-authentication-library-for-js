@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "update cache miss to warning from error",
-  "packageName": "@azure/msal-browser",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch"
-}
