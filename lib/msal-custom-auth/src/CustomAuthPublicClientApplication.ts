@@ -149,7 +149,6 @@ export class CustomAuthPublicClientApplication
      */
     private static validateChallengeTypes(config: CustomAuthConfiguration) {
         const challengeTypes = config.customAuth.challengeTypes;
-        let invalidChallengeType = false;
 
         if (!!challengeTypes && challengeTypes.length > 0) {
             challengeTypes.forEach((challengeType) => {
@@ -159,16 +158,12 @@ export class CustomAuthPublicClientApplication
                     lowerCaseChallengeType !== ChallengeType.OOB &&
                     lowerCaseChallengeType !== ChallengeType.REDIRECT
                 ) {
-                    invalidChallengeType = true;
-                    return;
+                    throw new InvalidConfigurationError(
+                        InvalidChallengeType,
+                        `Challenge type ${challengeType} in the configuration are not valid. Supported challenge types are ${Object.values(ChallengeType)}`,
+                    );
                 }
             });
-        }
-        if (invalidChallengeType) {
-            throw new InvalidConfigurationError(
-                InvalidChallengeType,
-                `One or more challenge types in the configuration are not valid. Supported challenge types are ${Object.values(ChallengeType)}`,
-            );
         }
     }
 }

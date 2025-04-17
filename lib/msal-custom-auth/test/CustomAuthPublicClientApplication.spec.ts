@@ -51,7 +51,7 @@ describe("CustomAuthPublicClientApplication", () => {
             const invalidConfig = {
                 auth: { authority: customAuthConfig.auth.authority },
                 customAuth: {
-                    challengeTypes: ["invalid-challenge-type"],
+                    challengeTypes: ["invalid-challenge-type", "oob"],
                 },
             };
 
