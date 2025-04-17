@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "minor comment updates",
+  "comment": "Minor comment updates for retry policy tests #7704",
   "packageName": "@azure/msal-node",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "none"
