@@ -316,10 +316,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const timeAfterNetworkRequest = new Date();
 
-                /**
-                 * ensure that each retry followed the exponential backoff strategy
-                 * 2 x exponential backoff (1 second -> 2 seconds)
-                 */
+                // exponential backoff (1 second -> 2 seconds)
                 expect(
                     timeAfterNetworkRequest.valueOf() -
                         timeBeforeNetworkRequest.valueOf()
@@ -378,10 +375,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const timeAfterNetworkRequest = new Date();
 
-                /**
-                 * ensure that each retry followed the exponential backoff strategy
-                 * 7 x linear backoff (10 seconds)
-                 */
+                // linear backoff (10 seconds * 4 retries)
                 expect(
                     timeAfterNetworkRequest.valueOf() -
                         timeBeforeNetworkRequest.valueOf()
@@ -415,7 +409,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
                     .spyOn(networkClient, <any>"sendGetRequestAsync")
-                    // permanently override the networkClient's sendGetRequestAsync method to return a 504
+                    // permanently override the networkClient's sendGetRequestAsync method to return a 410
                     .mockReturnValue(
                         managedIdentityNetworkErrorClient410.sendGetRequestAsync()
                     );
@@ -433,10 +427,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const timeAfterNetworkRequest = new Date();
 
-                /**
-                 * ensure that each retry followed the exponential backoff strategy
-                 * 7 x linear backoff (10 seconds)
-                 */
+                // linear backoff (10 seconds * 7 retries)
                 expect(
                     timeAfterNetworkRequest.valueOf() -
                         timeBeforeNetworkRequest.valueOf()
@@ -490,10 +481,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const timeAfterNetworkRequest = new Date();
 
-                /**
-                 * ensure that each retry followed the exponential backoff strategy
-                 * 3 x exponential backoff (1 second -> 2 seconds -> 4 seconds)
-                 */
+                // exponential backoff (1 second -> 2 seconds -> 4 seconds)
                 expect(
                     timeAfterNetworkRequest.valueOf() -
                         timeBeforeNetworkRequest.valueOf()
