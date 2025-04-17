@@ -40,10 +40,10 @@ export class SignInError extends AuthFlowErrorBase {
     }
 
     /**
-     * Checks if challenge type is redirect (authentication method is not supported by by Microsoft Entra)
-     * @returns {boolean} True if the error is due to the challenge type being redirect, false otherwise.
+     * Check if client app supports the challenge type configured in Entra.
+     * @returns {boolean} True if "loginPopup" function is required to continue sthe operation.
      */
-    isRedirect(): boolean {
+    isRedirectRequired(): boolean {
         return this.isRedirectError();
     }
 }
@@ -70,10 +70,10 @@ export class SignInSubmitCodeError extends AuthFlowErrorBase {
 
 export class SignInResendCodeError extends AuthFlowErrorBase {
     /**
-     * Checks if challenge type is redirect (authentication method is not supported by by Microsoft Entra)
-     * @returns {boolean} True if the error is due to the challenge type being redirect, false otherwise.
+     * Check if client app supports the challenge type configured in Entra.
+     * @returns {boolean} True if "loginPopup" function is required to continue sthe operation.
      */
-    isRedirect(): boolean {
+    isRedirectRequired(): boolean {
         return this.isRedirectError();
     }
 }

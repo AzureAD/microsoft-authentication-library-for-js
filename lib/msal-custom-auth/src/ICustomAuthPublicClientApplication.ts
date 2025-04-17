@@ -8,8 +8,9 @@ import { SignInResult } from "./sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
 import { AccountRetrievalInputs, ResetPasswordInputs, SignInInputs, SignUpInputs } from "./CustomAuthActionInputs.js";
 import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
+import { IPublicClientApplication } from "@azure/msal-browser";
 
-export interface ICustomAuthPublicClientApplication {
+export interface ICustomAuthPublicClientApplication extends IPublicClientApplication {
     /**
      * Gets the current account from the cache.
      * @param {AccountRetrievalInputs} accountRetrievalInputs - Inputs for getting the current cached account

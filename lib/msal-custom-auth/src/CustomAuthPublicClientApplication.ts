@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PublicClientApplication } from "@azure/msal-browser";
+import { PublicClientApplication } from "@azure/msal-browser";
 import { GetAccountResult } from "./get_account/auth_flow/result/GetAccountResult.js";
 import { SignInResult } from "./sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
@@ -16,10 +16,11 @@ import { CustomAuthOperatingContext } from "./operating_context/CustomAuthOperat
 import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import {
     InvalidAuthority,
+    InvalidChallengeType,
     InvalidConfigurationError,
     MissingConfiguration,
 } from "./core/error/InvalidConfigurationError.js";
-import { StringUtils } from "./core/utils/StringUtils.js";
+import { ChallengeType } from "./CustomAuthConstants.js";
 
 export class CustomAuthPublicClientApplication
     extends PublicClientApplication
@@ -118,13 +119,22 @@ export class CustomAuthPublicClientApplication
             );
         }
 
-        const trimmedAuthority = StringUtils.trimSlashes(config.auth.authority);
+        const challengeTypes = config.customAuth.challengeTypes;
 
-        if (!trimmedAuthority.endsWith(Constants.CIAM_AUTH_URL)) {
-            throw new InvalidConfigurationError(
-                InvalidAuthority,
-                `The authority URL '${config.auth?.authority}' is not a CIAM authority.`,
-            );
+        if (!!challengeTypes && challengeTypes.length > 0) {
+            challengeTypes.forEach((challengeType) => {
+                const lowerCaseChallengeType = challengeType.toLowerCase();
+                if (
+                    lowerCaseChallengeType !== ChallengeType.PASSWORD &&
+                    lowerCaseChallengeType !== ChallengeType.OOB &&
+                    lowerCaseChallengeType !== ChallengeType.REDIRECT
+                ) {
+                    throw new InvalidConfigurationError(
+                        InvalidChallengeType,
+                        `Challenge type ${challengeType} in the configuration are not valid. Supported challenge types are ${Object.values(ChallengeType)}`,
+                    );
+                }
+            });
         }
     }
 }

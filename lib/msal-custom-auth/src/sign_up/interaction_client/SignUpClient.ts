@@ -208,7 +208,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
         const challengeRequest: SignUpChallengeRequest = {
             continuation_token: parameters.continuationToken ?? "",
-            challenge_type: parameters.challengeType.join(" "),
+            challenge_type: this.getChallengeTypes(parameters.challengeType),
             telemetryManager,
             correlationId: parameters.correlationId,
         };
@@ -327,7 +327,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             // Call the challenge endpoint to ensure the password challenge type is supported.
             const challengeRequest: SignUpChallengeRequest = {
                 continuation_token: continuationToken,
-                challenge_type: requestParams.challengeType.join(" "),
+                challenge_type: this.getChallengeTypes(requestParams.challengeType),
                 telemetryManager,
                 correlationId,
             };

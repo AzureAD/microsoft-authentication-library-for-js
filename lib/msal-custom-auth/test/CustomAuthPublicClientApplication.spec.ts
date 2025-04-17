@@ -36,10 +36,12 @@ describe("CustomAuthPublicClientApplication", () => {
             );
         });
 
-        it("should throw an error if the authority is not a CIAM authority", async () => {
+        it("should throw an error if challenge type is invalid", async () => {
             const invalidConfig = {
-                auth: { authority: "https://invalid.example.com" },
-                customAuth: {},
+                auth: { authority: customAuthConfig.auth.authority },
+                customAuth: {
+                    challengeTypes: ["invalid-challenge-type", "oob"],
+                },
             };
 
             await expect(CustomAuthPublicClientApplication.create(invalidConfig as any)).rejects.toThrow(

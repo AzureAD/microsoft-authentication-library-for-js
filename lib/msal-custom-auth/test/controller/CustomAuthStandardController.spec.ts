@@ -209,7 +209,7 @@ describe("CustomAuthStandardController", () => {
             expect(result).toBeInstanceOf(SignInResult);
             expect(result.error).toBeDefined();
             expect(result.error?.errorData).toBeDefined();
-            expect(result.error?.isRedirect()).toEqual(true);
+            expect(result.error?.isRedirectRequired()).toEqual(true);
             expect(result.isFailed()).toBe(true);
         });
     });
@@ -289,7 +289,7 @@ describe("CustomAuthStandardController", () => {
             expect(result).toBeInstanceOf(SignUpResult);
             expect(result.error).toBeDefined();
             expect(result.error?.errorData).toBeDefined();
-            expect(result.error?.isRedirect()).toEqual(true);
+            expect(result.error?.isRedirectRequired()).toEqual(true);
             expect(result.isFailed()).toBe(true);
         });
 
@@ -309,7 +309,7 @@ describe("CustomAuthStandardController", () => {
             expect(result).toBeInstanceOf(SignUpResult);
             expect(result.error).toBeDefined();
             expect(result.error?.errorData).toBeDefined();
-            expect(result.error?.isRedirect()).toEqual(true);
+            expect(result.error?.isRedirectRequired()).toEqual(true);
             expect(result.isFailed()).toBe(true);
         });
 
@@ -393,7 +393,7 @@ describe("CustomAuthStandardController", () => {
             expect(result).toBeInstanceOf(ResetPasswordStartResult);
             expect(result.error).toBeDefined();
             expect(result.error?.errorData).toBeDefined();
-            expect(result.error?.isRedirect()).toEqual(true);
+            expect(result.error?.isRedirectRequired()).toEqual(true);
             expect(result.isFailed()).toBe(true);
         });
 
