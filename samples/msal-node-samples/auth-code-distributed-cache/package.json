@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@azure/msal-node": "^1.15.0",
-    "axios": "^1.7.4",
+    "axios": "^1.8.2",
     "connect-redis": "^7.0.0",
     "express": "^4.20.0",
     "express-session": "^1.17.3",
