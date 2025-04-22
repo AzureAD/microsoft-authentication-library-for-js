@@ -6,7 +6,6 @@
 import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication.js";
 import {
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
-    LINEAR_POLICY_MAX_RETRIES_IN_MS,
     MANAGED_IDENTITY_SERVICE_FABRIC_NETWORK_REQUEST_400_ERROR,
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR_MESSAGE,
     ONE_HUNDRED_TIMES_FASTER,
@@ -186,8 +185,11 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
         });
 
         test("returns a 500 error response from the network request, just the first time, with a retry-after header of 3 seconds", async () => {
+            // make it one hundred times faster so the test completes quickly
+            const RETRY_AFTER_SECONDS: number = 3 * ONE_HUNDRED_TIMES_FASTER;
+
             const headers: Record<string, string> = {
-                "Retry-After": ".03", // 3 seconds, but make it one hundred times faster so the test completes quickly
+                "Retry-After": RETRY_AFTER_SECONDS.toString(),
             };
             const managedIdentityNetworkErrorClient =
                 new ManagedIdentityNetworkErrorClient(undefined, headers);
@@ -214,9 +216,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
             expect(
                 timeAfterNetworkRequest.valueOf() -
                     timeBeforeNetworkRequest.valueOf()
-            ).toBeGreaterThanOrEqual(
-                LINEAR_POLICY_MAX_RETRIES_IN_MS * ONE_HUNDRED_TIMES_FASTER
-            );
+            ).toBeGreaterThanOrEqual(RETRY_AFTER_SECONDS * 1000); // convert to milliseconds
 
             expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
             expect(networkManagedIdentityResult.accessToken).toEqual(
@@ -225,10 +225,14 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
         });
 
         test("returns a 500 error response from the network request, just the first time, with a retry-after header of 3 seconds (extrapolated from an http-date)", async () => {
+            // this test can not be made one hundred times faster because it is based on a date
+            // an extra second has been added to account for the below date operation
+            const RETRY_AFTER_SECONDS: number = 4;
+
             var retryAfterHttpDate = new Date();
             retryAfterHttpDate.setSeconds(
-                retryAfterHttpDate.getSeconds() + 4 // 4 seconds. An extra second has been added to account for this date operation
-            ); // this test can not be made one hundred times faster because it is based on a date
+                retryAfterHttpDate.getSeconds() + RETRY_AFTER_SECONDS
+            );
             const headers: Record<string, string> = {
                 "Retry-After": retryAfterHttpDate.toString(),
             };
@@ -257,7 +261,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
             expect(
                 timeAfterNetworkRequest.valueOf() -
                     timeBeforeNetworkRequest.valueOf()
-            ).toBeGreaterThanOrEqual(LINEAR_POLICY_MAX_RETRIES_IN_MS);
+            ).toBeGreaterThanOrEqual(RETRY_AFTER_SECONDS * 1000); // convert to milliseconds
 
             expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
             expect(networkManagedIdentityResult.accessToken).toEqual(

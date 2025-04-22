@@ -569,7 +569,6 @@ export const CORS_SIMPLE_REQUEST_HEADERS = [
 
 export const ONE_HUNDRED_TIMES_FASTER: number = 0.01;
 
-export const LINEAR_POLICY_MAX_RETRIES_IN_MS = 3000;
 export const IMDS_EXPONENTIAL_STRATEGY_TWO_RETRIES_IN_MS = 3000; // 1 second -> 2 seconds
 export const IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_IN_MS = 7000; // 1 second -> 2 seconds -> 4 seconds
 
