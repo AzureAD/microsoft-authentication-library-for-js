@@ -31,7 +31,7 @@ import { PublicClientApplication, InteractionType, BrowserCacheLocation } from "
             },
             cache: {
                 cacheLocation : BrowserCacheLocation.LocalStorage,
-                storeAuthStateInCookie: true, // set to true for IE 11
+                storeAuthStateInCookie: true, // Deprecated, will be removed in future version
             },
             system: {
                 loggerOptions: {
@@ -115,7 +115,7 @@ import { PublicClientApplication, InteractionType, BrowserCacheLocation } from "
             },
             cache: {
                 cacheLocation : BrowserCacheLocation.LocalStorage,
-                storeAuthStateInCookie: true, // set to true for IE 11
+                storeAuthStateInCookie: true, // Deprecated, will be removed in future version
             },
             system: {
                 loggerOptions: {
