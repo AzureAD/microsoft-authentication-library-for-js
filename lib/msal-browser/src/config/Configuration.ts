@@ -134,23 +134,27 @@ export type CacheOptions = {
     cacheLocation?: BrowserCacheLocation | string;
     /**
      * Used to specify the temporaryCacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
+     * @deprecated This option is deprecated and will be removed in the next major version.
      */
     temporaryCacheLocation?: BrowserCacheLocation | string;
     /**
      * If set, MSAL stores the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
+     * @deprecated This option is deprecated and will be removed in the next major version.
      */
     storeAuthStateInCookie?: boolean;
     /**
      * If set, MSAL sets the "Secure" flag on cookies so they can only be sent over HTTPS. By default this flag is set to true.
-     * @deprecated This option will be removed in a future major version and all cookies set will include the Secure attribute.
+     * @deprecated This option will be removed in the next major version and all cookies set will include the Secure attribute.
      */
     secureCookies?: boolean;
     /**
      * If set, MSAL will attempt to migrate cache entries from older versions on initialization. By default this flag is set to true if cacheLocation is localStorage, otherwise false.
+     * @deprecated This option is deprecated and will be removed in the next major version.
      */
     cacheMigrationEnabled?: boolean;
     /**
      * Flag that determines whether access tokens are stored based on requested claims
+     * @deprecated This option is deprecated and will be removed in the next major version.
      */
     claimsBasedCachingEnabled?: boolean;
 };
