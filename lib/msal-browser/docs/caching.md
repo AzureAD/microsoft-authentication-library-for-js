@@ -72,7 +72,7 @@ To faciliate efficient token acquisition while maintaining a good UX, MSAL cache
 
 ## Warning :warning:
 
-**NOTE: `temporaryCacheLocation` is deprecated as of MSAL v5 and will be removed in a future release.**
+**NOTE: `temporaryCacheLocation` is deprecated will be removed in the next major version.**
 
 Overriding `temporaryCacheLocation` should be done with caution. Specifically when choosing `localStorage`. Interaction in more than one tab/window will not be supported and you may receive `interaction_in_progress` errors unexpectedly. This is an escape hatch, not a fully supported feature.
 

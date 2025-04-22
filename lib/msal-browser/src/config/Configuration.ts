@@ -117,12 +117,14 @@ export type CacheOptions = {
      * @deprecated
      * temporaryCacheLocation is deprecated and will be removed in a future release.
      * Used to specify the temporaryCacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
+     * @deprecated This option is deprecated and will be removed in the next major version.
      */
     temporaryCacheLocation?: BrowserCacheLocation | string;
     /**
      * @deprecated
      * claimsBasedCachingEnabled is deprecated and will be removed in a future release.
      * Flag that determines whether access tokens are stored based on requested claims
+     * @deprecated This option is deprecated and will be removed in the next major version.
      */
     claimsBasedCachingEnabled?: boolean;
 };

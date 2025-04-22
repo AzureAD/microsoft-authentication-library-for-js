@@ -125,8 +125,7 @@ export type LoggerOptions = {
  */
 export type CacheOptions = {
     /**
-     * @deprecated
-     * claimsBasedCachingEnabled is deprecated and will be removed in a future release.
+     * @deprecated claimsBasedCachingEnabled is deprecated and will be removed in the next major version.
      */
     claimsBasedCachingEnabled?: boolean;
 };
