@@ -1,5 +1,5 @@
 {
-  "type": "none",
+  "type": "patch",
   "comment": "Deprecate cache options #7707",
   "packageName": "@azure/msal-common",
   "email": "joarroyo@microsoft.com",
