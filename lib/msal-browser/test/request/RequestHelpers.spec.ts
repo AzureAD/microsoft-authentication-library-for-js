@@ -9,7 +9,7 @@ import {
     ClientConfigurationError,
     ClientConfigurationErrorCodes,
     Logger,
-    StubPerformanceClient
+    StubPerformanceClient,
 } from "@azure/msal-common";
 // import {
 //     initializeBaseRequest,
@@ -42,7 +42,9 @@ describe("RequestHelpers tests", () => {
 
     describe("initializeBaseRequest", () => {
         it("should initialize a base request with default values", async () => {
-            const request: Partial<BaseAuthRequest> & { correlationId: string } = {
+            const request: Partial<BaseAuthRequest> & {
+                correlationId: string;
+            } = {
                 correlationId: "test-correlation-id",
                 scopes: ["User.Read"],
             };
@@ -56,25 +58,40 @@ describe("RequestHelpers tests", () => {
 
             expect(result.correlationId).toBe("test-correlation-id");
             expect(result.scopes).toEqual(["User.Read"]);
-            expect(result.authority).toBe("https://login.microsoftonline.com/common");
-            expect(result.authenticationScheme).toBe(AuthenticationScheme.BEARER);
+            expect(result.authority).toBe(
+                "https://login.microsoftonline.com/common"
+            );
+            expect(result.authenticationScheme).toBe(
+                AuthenticationScheme.BEARER
+            );
         });
 
         it("should throw an error if SSH authentication scheme is used without sshJwk", async () => {
-            const request: Partial<BaseAuthRequest> & { correlationId: string } = {
+            const request: Partial<BaseAuthRequest> & {
+                correlationId: string;
+            } = {
                 correlationId: "test-correlation-id",
                 authenticationScheme: AuthenticationScheme.SSH,
             };
 
             await expect(
-                RequestHelpers.initializeBaseRequest(request, mockConfig, mockPerformanceClient, mockLogger)
+                RequestHelpers.initializeBaseRequest(
+                    request,
+                    mockConfig,
+                    mockPerformanceClient,
+                    mockLogger
+                )
             ).rejects.toThrowError(
-                new ClientConfigurationError(ClientConfigurationErrorCodes.missingSshJwk)
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.missingSshJwk
+                )
             );
         });
 
         it("should set requestedClaimsHash if claims are provided", async () => {
-            const request: Partial<BaseAuthRequest> & { correlationId: string } = {
+            const request: Partial<BaseAuthRequest> & {
+                correlationId: string;
+            } = {
                 correlationId: "test-correlation-id",
                 claims: '{"access_token":{"xms_cc":{"values":["cp1"]}}}',
             };
@@ -90,9 +107,11 @@ describe("RequestHelpers tests", () => {
         });
 
         it("should not set requestedClaimsHash if claims are empty stringified object", async () => {
-            const request: Partial<BaseAuthRequest> & { correlationId: string } = {
+            const request: Partial<BaseAuthRequest> & {
+                correlationId: string;
+            } = {
                 correlationId: "test-correlation-id",
-                claims: '{}',
+                claims: "{}",
             };
 
             const result = await RequestHelpers.initializeBaseRequest(

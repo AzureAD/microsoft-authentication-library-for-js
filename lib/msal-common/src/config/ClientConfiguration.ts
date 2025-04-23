@@ -121,9 +121,7 @@ export type LoggerOptions = {
 /**
  *  Use this to configure credential cache preferences in the ClientConfiguration object
  */
-export type CacheOptions = {
-
-};
+export type CacheOptions = {};
 
 /**
  * Library-specific options
@@ -238,7 +236,7 @@ export function buildClientConfiguration({
         authOptions: buildAuthOptions(userAuthOptions),
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
         loggerOptions: loggerOptions,
-        cacheOptions: undefined,
+        cacheOptions: userCacheOptions || undefined,
         storageInterface:
             storageImplementation ||
             new DefaultStorageClass(
