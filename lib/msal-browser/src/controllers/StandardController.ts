@@ -321,16 +321,26 @@ export class StandardController implements IController {
             );
             return;
         }
-        //@ts-ignore
+        const appId = request?.appId || this.config.auth.clientId;
+        // @ts-ignore
         window.msal = window.msal || {};
-        //@ts-ignore
-        if(window.msal.instance) {
+        // @ts-ignore
+        window.msal.appIds = window.msal.appIds || [];
+        // @ts-ignore
+        if(this.checkForSameClientId(appId, window.msal.appIds)) {
             this.logger.warning(
-                "there is already an instance of MSAL.js in the window."
+                "There is already an instance of MSAL.js in the window with the same client id."
             )
+        } else {
+            // @ts-ignore
+            if(this.checkForMultipleInstances(appId, window.msal.appIds)) {
+                this.logger.warning(
+                    "There is already an instance of MSAL.js in the window."
+                )
+            }
         }
-        //@ts-ignore
-        window.msal.instance = true;
+        // @ts-ignore
+        window.msal.appIds.push(appId);
 
         if (!this.isBrowserEnvironment) {
             this.logger.info("in non-browser environment, exiting early.");
@@ -2395,6 +2405,37 @@ export class StandardController implements IController {
             correlationId
         );
         return res;
+    }
+
+    private checkForSameClientId(id: string, appIdArray: string[]): boolean {
+        const isConcatenated = id.includes(".");
+    
+        if(isConcatenated) {
+            const [clientId] = id.split(".");
+            /**
+             * Check for pairwise broker applications. 
+             * If the appId matches an existing application, that means it's a broker application of an existing PWB app and it shouldn't be double-counted. 
+             * If the clientId matches an existing application but there is a different channelId, then it's a different application using the same clientId.
+             */ 
+            return appIdArray.some(item => {
+                return item !== id && item.startsWith(clientId);
+            });
+        } else {
+            // Check for non-pairwise broker applications
+            return appIdArray.includes(id);
+        }
+    }
+
+    private checkForMultipleInstances (id: string, appIdArray: string[]): boolean {
+        if (id.includes(".")) {
+            /**
+             * Check for pairwise broker applications. 
+             * If the appId matches an existing application, that means it's a broker application of an existing PWB app and it shouldn't be double-counted. 
+             */
+            return appIdArray.some(item => item !== id);
+        } else {
+            return appIdArray.length > 0;
+        }
     }
 }
 
