@@ -26,7 +26,7 @@ const msalInstance = new PublicClientApplication({
 });
 
 describe("MsalCustomNaviationClient", () => {
-  beforeAll(() => {
+  beforeEach(() => {
     TestBed.resetTestingModule();
 
     TestBed.configureTestingModule({
