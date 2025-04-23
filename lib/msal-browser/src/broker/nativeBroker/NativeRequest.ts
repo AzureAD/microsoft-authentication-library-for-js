@@ -61,7 +61,7 @@ export type PlatformDOMTokenRequest = {
     scope: string;
     redirectUri: string;
     correlationId: string;
-    isSecurityTokenService: string;
+    isSecurityTokenService: boolean;
     state?: string;
     /*
      * Known optional parameters will go into extraQueryParameters.

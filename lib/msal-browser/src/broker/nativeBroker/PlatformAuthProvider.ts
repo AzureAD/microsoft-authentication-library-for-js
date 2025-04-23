@@ -110,10 +110,10 @@ export class PlatformAuthProvider {
         platformAuthProvider?: NativeMessageHandler | PlatformDOMHandler,
         authenticationScheme?: AuthenticationScheme
     ): boolean {
-        logger.trace("isPlatformBrokerAvailable called");
+        logger.trace("isBrokerAvailable called");
         if (!config.system.allowPlatformBroker) {
             logger.trace(
-                "isPlatformBrokerAvailable: allowPlatformBroker is not enabled, returning false"
+                "isBrokerAvailable: allowPlatformBroker is not enabled, returning false"
             );
             // Developer disabled WAM
             return false;
@@ -121,7 +121,7 @@ export class PlatformAuthProvider {
 
         if (!platformAuthProvider) {
             logger.trace(
-                "isPlatformBrokerAvailable: Platform extension provider is not initialized, returning false"
+                "isBrokerAvailable: Platform extension provider is not initialized, returning false"
             );
             // Extension is not available
             return false;
@@ -132,12 +132,12 @@ export class PlatformAuthProvider {
                 case AuthenticationScheme.BEARER:
                 case AuthenticationScheme.POP:
                     logger.trace(
-                        "isPlatformBrokerAvailable: authenticationScheme is supported, returning true"
+                        "isBrokerAvailable: authenticationScheme is supported, returning true"
                     );
                     return true;
                 default:
                     logger.trace(
-                        "isPlatformBrokerAvailable: authenticationScheme is not supported, returning false"
+                        "isBrokerAvailable: authenticationScheme is not supported, returning false"
                     );
                     return false;
             }

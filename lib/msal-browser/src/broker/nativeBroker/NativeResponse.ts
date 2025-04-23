@@ -62,7 +62,7 @@ export type PlatformDOMResponse = {
     state?: string;
     accessToken?: string;
     expiresIn: number;
-    account: Account;
+    account: NativeAccountInfo;
     clientInfo?: string;
     idToken?: string;
     scopes?: string;
@@ -78,11 +78,5 @@ export type ErrorResult = {
     errorCode: string;
     protocolError?: string;
     status: string;
-    properties?: Record<string, string>;
-};
-
-export type Account = {
-    id: string;
-    userName: string;
-    properties?: Record<string, string>;
+    properties?: object;
 };

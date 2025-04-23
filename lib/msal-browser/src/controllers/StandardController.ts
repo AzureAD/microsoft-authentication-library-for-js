@@ -448,6 +448,7 @@ export class StandardController implements IController {
                 return new PlatformDOMHandler(
                     this.logger,
                     this.performanceClient,
+                    this.browserCrypto,
                     NativeConstants.MICROSOFT_ENTRA_BROKERID,
                     correlationId
                 );
@@ -1639,12 +1640,7 @@ export class StandardController implements IController {
         cacheLookupPolicy?: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenNative called");
-        if (!this.platformAuthType) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.nativeConnectionNotEstablished
-            );
-        }
-        if (!this.platformAuthProvider) {
+        if (!this.platformAuthType || !this.platformAuthProvider) {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.nativeConnectionNotEstablished
             );

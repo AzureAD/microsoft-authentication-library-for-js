@@ -3,7 +3,16 @@
  * Licensed under the MIT License.
  */
 
-import { Logger } from "@azure/msal-common";
+import {
+    /*
+     * AccountEntity,
+     * AuthorityType,
+     * AuthToken,
+     */
+    Constants,
+    ICrypto,
+    Logger,
+} from "@azure/msal-common";
 import { AuthenticationResult } from "../../response/AuthenticationResult.js";
 import { PlatformDOMTokenRequest } from "./NativeRequest.js";
 import { IPerformanceClient } from "../../../../msal-common/lib/types/exports-browser-only.js";
@@ -11,6 +20,12 @@ import { createNewGuid } from "../../crypto/BrowserCrypto.js";
 import { NativeConstants } from "../../utils/BrowserConstants.js";
 import { ClearCacheRequest } from "../../request/ClearCacheRequest.js";
 import { EndSessionRequest } from "../../request/EndSessionRequest.js";
+import { PlatformDOMResponse } from "./NativeResponse.js";
+/*
+ * import { base64Decode } from "../../encode/Base64Decode.js";
+ * import { request } from "http";
+ */
+import { AccountInfo } from "../../../../msal-common/lib/types/exports-common.js";
 
 export class PlatformDOMHandler {
     protected logger: Logger;
@@ -18,10 +33,12 @@ export class PlatformDOMHandler {
     protected correlationId: string;
     protected extensionId: string;
     protected extensionVersion: string;
+    protected browserCrypto: ICrypto;
 
     constructor(
         logger: Logger,
         performanceClient: IPerformanceClient,
+        browserCrypto: ICrypto,
         extensionId?: string,
         correlationId?: string
     ) {
@@ -30,7 +47,8 @@ export class PlatformDOMHandler {
         this.extensionId =
             extensionId || NativeConstants.MICROSOFT_ENTRA_BROKERID;
         this.correlationId = correlationId || createNewGuid();
-        this.extensionVersion = "1.0.0";
+        this.extensionVersion = Constants.EMPTY_STRING;
+        this.browserCrypto = browserCrypto;
     }
 
     /**
@@ -64,11 +82,59 @@ export class PlatformDOMHandler {
                 "PlatformDOMHandler: acquireToken response",
                 response
             );
-            return response as AuthenticationResult;
+            return this.handleNativeResponse(response);
         } catch (e) {
             this.logger.error("PlatformDOMHandler: acquireToken error");
             throw e;
         }
+    }
+
+    handleNativeResponse(response: PlatformDOMResponse): AuthenticationResult {
+        this.logger.trace("PlatformDOMHandler: handleNativeResponse called");
+        // eslint-disable-next-line no-console
+        console.log(response);
+        // generate identifiers
+
+        /*
+         * if (response.isSuccess) {
+         *     const idTokenClaims = AuthToken.extractTokenClaims(
+         *         response.idToken ?? Constants.EMPTY_STRING,
+         *         base64Decode
+         *     );
+         *     // Save account in browser storage
+         *     const homeAccountIdentifier = AccountEntity.generateHomeAccountId(
+         *         response.clientInfo || Constants.EMPTY_STRING,
+         *         AuthorityType.Default,
+         *         this.logger,
+         *         this.browserCrypto,
+         *         idTokenClaims
+         *     );
+         */
+
+        /*
+         *     const cachedhomeAccountId =
+         *         this.browserStorage.getAccountInfoFilteredBy({
+         *             nativeAccountId: request.accountId,
+         *         })?.homeAccountId;
+         * }
+         */
+
+        const authenticationResult: AuthenticationResult = {
+            authority: "",
+            uniqueId: "",
+            tenantId: "",
+            scopes: [],
+            idToken: "",
+            idTokenClaims: {},
+            accessToken: "",
+            fromCache: false,
+            expiresOn: null,
+            correlationId: this.correlationId,
+            tokenType: "",
+            account: {} as AccountInfo,
+        };
+
+        return authenticationResult;
     }
 
     logout(

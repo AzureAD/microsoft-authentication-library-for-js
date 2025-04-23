@@ -276,15 +276,24 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.platformAuthType === PLATFORM_DOM_PROVIDER &&
             this.platformAuthProvider instanceof PlatformDOMHandler
         ) {
-            const nativeRequest = await this.initializeNativeDOMRequest(
-                request
-            );
-            const response = await (
-                this.platformAuthProvider as PlatformDOMHandler
-            ).sendMessage(nativeRequest);
-            return response;
+            try {
+                const nativeRequest = await this.initializeNativeDOMRequest(
+                    request
+                );
+                const response = await (
+                    this.platformAuthProvider as PlatformDOMHandler
+                ).sendMessage(nativeRequest);
+                return response;
+            } catch (e) {
+                if (e instanceof NativeAuthError) {
+                    serverTelemetryManager.setNativeBrokerErrorCode(
+                        e.errorCode
+                    );
+                }
+                throw e;
+            }
         } else {
-            throw "Platform broker unavailable";
+            throw "Platform broker unavailable or unrecognized";
         }
     }
 
@@ -1092,7 +1101,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             clientId: this.config.auth.clientId || "",
             correlationId: correlationId || this.correlationId,
             extraParameters: validExtraParametersDict,
-            isSecurityTokenService: "true",
+            isSecurityTokenService: true,
             redirectUri: this.getRedirectUri(redirectUri),
             scope: scopeSet.printScopes(),
             state: state,
