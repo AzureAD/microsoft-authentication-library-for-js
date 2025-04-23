@@ -34,7 +34,8 @@ export class MsalBroadcastService {
       this.msalBroadcastConfig.eventsToReplay > 0
     ) {
       this.msalInstance
-        .getLogger().clone(name, version)
+        .getLogger()
+        .clone(name, version)
         .verbose(
           `BroadcastService - eventsToReplay set on BroadcastConfig, replaying the last ${this.msalBroadcastConfig.eventsToReplay} events`
         );
@@ -62,7 +63,8 @@ export class MsalBroadcastService {
       );
       if (status !== null) {
         this.msalInstance
-        .getLogger().clone(name, version)
+          .getLogger()
+          .clone(name, version)
           .verbose(
             `BroadcastService - ${message.eventType} results in setting inProgress from ${this._inProgress.value} to ${status}`
           );
