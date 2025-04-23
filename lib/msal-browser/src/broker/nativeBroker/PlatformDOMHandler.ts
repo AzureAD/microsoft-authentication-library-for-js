@@ -4,15 +4,16 @@
  */
 
 import {
-    /*
-     * AccountEntity,
-     * AuthorityType,
-     * AuthToken,
-     */
+    AccountEntity,
+    AuthorityType,
+    AuthToken,
     Constants,
     ICrypto,
     Logger,
-} from "@azure/msal-common";
+    AccountInfo,
+    createAuthError,
+    AuthErrorCodes,
+} from "@azure/msal-common/browser";
 import { AuthenticationResult } from "../../response/AuthenticationResult.js";
 import { PlatformDOMTokenRequest } from "./NativeRequest.js";
 import { IPerformanceClient } from "../../../../msal-common/lib/types/exports-browser-only.js";
@@ -20,12 +21,9 @@ import { createNewGuid } from "../../crypto/BrowserCrypto.js";
 import { NativeConstants } from "../../utils/BrowserConstants.js";
 import { ClearCacheRequest } from "../../request/ClearCacheRequest.js";
 import { EndSessionRequest } from "../../request/EndSessionRequest.js";
-import { PlatformDOMResponse } from "./NativeResponse.js";
-/*
- * import { base64Decode } from "../../encode/Base64Decode.js";
- * import { request } from "http";
- */
-import { AccountInfo } from "../../../../msal-common/lib/types/exports-common.js";
+import { PlatformDOMTokenResponse } from "./NativeResponse.js";
+import { base64Decode } from "../../encode/Base64Decode.js";
+import { BrowserCacheManager } from "../../cache/BrowserCacheManager.js";
 
 export class PlatformDOMHandler {
     protected logger: Logger;
@@ -34,11 +32,13 @@ export class PlatformDOMHandler {
     protected extensionId: string;
     protected extensionVersion: string;
     protected browserCrypto: ICrypto;
+    protected browserStorage: BrowserCacheManager;
 
     constructor(
         logger: Logger,
         performanceClient: IPerformanceClient,
         browserCrypto: ICrypto,
+        browserStorage: BrowserCacheManager,
         extensionId?: string,
         correlationId?: string
     ) {
@@ -49,6 +49,7 @@ export class PlatformDOMHandler {
         this.correlationId = correlationId || createNewGuid();
         this.extensionVersion = Constants.EMPTY_STRING;
         this.browserCrypto = browserCrypto;
+        this.browserStorage = browserStorage;
     }
 
     /**
@@ -82,42 +83,42 @@ export class PlatformDOMHandler {
                 "PlatformDOMHandler: acquireToken response",
                 response
             );
-            return this.handleNativeResponse(response);
+            this.validateNativeResponse(response);
+            return this.handleNativeResponse(request, response);
         } catch (e) {
             this.logger.error("PlatformDOMHandler: acquireToken error");
             throw e;
         }
     }
 
-    handleNativeResponse(response: PlatformDOMResponse): AuthenticationResult {
+    handleNativeResponse(
+        request: PlatformDOMTokenRequest,
+        response: PlatformDOMTokenResponse
+    ): AuthenticationResult {
         this.logger.trace("PlatformDOMHandler: handleNativeResponse called");
         // eslint-disable-next-line no-console
         console.log(response);
         // generate identifiers
 
-        /*
-         * if (response.isSuccess) {
-         *     const idTokenClaims = AuthToken.extractTokenClaims(
-         *         response.idToken ?? Constants.EMPTY_STRING,
-         *         base64Decode
-         *     );
-         *     // Save account in browser storage
-         *     const homeAccountIdentifier = AccountEntity.generateHomeAccountId(
-         *         response.clientInfo || Constants.EMPTY_STRING,
-         *         AuthorityType.Default,
-         *         this.logger,
-         *         this.browserCrypto,
-         *         idTokenClaims
-         *     );
-         */
+        if (response.isSuccess) {
+            const idTokenClaims = AuthToken.extractTokenClaims(
+                response.idToken ?? Constants.EMPTY_STRING,
+                base64Decode
+            );
+            // Save account in browser storage
+            const homeAccountIdentifier = AccountEntity.generateHomeAccountId(
+                response.clientInfo || Constants.EMPTY_STRING,
+                AuthorityType.Default,
+                this.logger,
+                this.browserCrypto,
+                idTokenClaims
+            );
 
-        /*
-         *     const cachedhomeAccountId =
-         *         this.browserStorage.getAccountInfoFilteredBy({
-         *             nativeAccountId: request.accountId,
-         *         })?.homeAccountId;
-         * }
-         */
+            const cachedhomeAccountId =
+                this.browserStorage.getAccountInfoFilteredBy({
+                    nativeAccountId: request.accountId,
+                })?.homeAccountId;
+        }
 
         const authenticationResult: AuthenticationResult = {
             authority: "",
@@ -143,5 +144,23 @@ export class PlatformDOMHandler {
     ): Promise<void> {
         this.logger.trace("PlatformDOMHandler: logout called");
         throw new Error("Method not implemented.");
+    }
+
+    private validateNativeResponse(response: object): PlatformDOMTokenResponse {
+        if (
+            response.hasOwnProperty("access_token") &&
+            response.hasOwnProperty("id_token") &&
+            response.hasOwnProperty("client_info") &&
+            response.hasOwnProperty("account") &&
+            response.hasOwnProperty("scope") &&
+            response.hasOwnProperty("expires_in")
+        ) {
+            return response as PlatformDOMTokenResponse;
+        } else {
+            throw createAuthError(
+                AuthErrorCodes.unexpectedError,
+                "Response missing expected properties."
+            );
+        }
     }
 }

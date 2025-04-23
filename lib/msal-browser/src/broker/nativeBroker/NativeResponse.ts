@@ -57,7 +57,7 @@ export type MATS = {
     http_event_count?: number;
 };
 
-export type PlatformDOMResponse = {
+export type PlatformDOMTokenResponse = {
     isSuccess: boolean;
     state?: string;
     accessToken?: string;

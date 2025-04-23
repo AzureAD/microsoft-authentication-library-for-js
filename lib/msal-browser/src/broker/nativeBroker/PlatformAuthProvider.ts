@@ -9,7 +9,7 @@ import {
     LogLevel,
     Logger,
     AuthenticationScheme,
-} from "@azure/msal-common";
+} from "@azure/msal-common/browser";
 import { name, version } from "../../packageMetadata.js";
 import {
     BrowserConfiguration,
@@ -96,6 +96,9 @@ export async function isPlatformBrokerAvailable(
     }
 }
 
+/**
+ * PlatformAuthProvider is a utility class that provides methods to check if the platform broker is available
+ */
 export class PlatformAuthProvider {
     /**
      * Returns boolean indicating whether or not the request should attempt to use native broker
