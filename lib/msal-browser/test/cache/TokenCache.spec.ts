@@ -62,9 +62,7 @@ describe("TokenCache tests", () => {
             true
         );
         cacheConfig = {
-            temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
             cacheLocation: BrowserCacheLocation.SessionStorage,
-            claimsBasedCachingEnabled: false,
         };
         logger = new Logger({
             loggerCallback: (

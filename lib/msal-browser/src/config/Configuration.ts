@@ -113,20 +113,6 @@ export type CacheOptions = {
      * Used to specify the cacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
      */
     cacheLocation?: BrowserCacheLocation | string;
-    /**
-     * @deprecated
-     * temporaryCacheLocation is deprecated and will be removed in a future release.
-     * Used to specify the temporaryCacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
-     * @deprecated This option is deprecated and will be removed in the next major version.
-     */
-    temporaryCacheLocation?: BrowserCacheLocation | string;
-    /**
-     * @deprecated
-     * claimsBasedCachingEnabled is deprecated and will be removed in a future release.
-     * Flag that determines whether access tokens are stored based on requested claims
-     * @deprecated This option is deprecated and will be removed in the next major version.
-     */
-    claimsBasedCachingEnabled?: boolean;
 };
 
 export type BrowserSystemOptions = SystemOptions & {
@@ -276,8 +262,6 @@ export function buildConfiguration(
     // Default cache options for browser
     const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
-        temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
-        claimsBasedCachingEnabled: false,
     };
 
     // Default logger options for browser

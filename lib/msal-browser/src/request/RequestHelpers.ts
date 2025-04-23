@@ -71,9 +71,8 @@ export async function initializeBaseRequest(
         );
     }
 
-    // Set requested claims hash if claims-based caching is enabled and claims were requested
+    // Set requested claims hash if claims were requested
     if (
-        config.cache.claimsBasedCachingEnabled &&
         request.claims &&
         // Checks for empty stringified object "{}" which doesn't qualify as requested claims
         !StringUtils.isEmptyObj(request.claims)

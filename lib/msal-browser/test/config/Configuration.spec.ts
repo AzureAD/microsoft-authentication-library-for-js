@@ -52,7 +52,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.cache).toBeDefined();
         expect(emptyConfig.cache?.cacheLocation).toBeDefined();
         expect(emptyConfig.cache?.cacheLocation).toBe("sessionStorage");
-        expect(emptyConfig.cache?.claimsBasedCachingEnabled).toBe(false);
         // System config checks
         expect(emptyConfig.system).toBeDefined();
         expect(emptyConfig.system?.loggerOptions).toBeDefined();
@@ -240,7 +239,6 @@ describe("Configuration.ts Class Unit Tests", () => {
                 },
                 cache: {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
-                    claimsBasedCachingEnabled: true,
                 },
                 system: {
                     windowHashTimeout: TEST_POPUP_TIMEOUT_MS,
@@ -269,7 +267,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.cache).not.toBeNull();
         expect(newConfig.cache?.cacheLocation).not.toBeNull();
         expect(newConfig.cache?.cacheLocation).toBe("localStorage");
-        expect(newConfig.cache?.claimsBasedCachingEnabled).toBe(true);
         // System config checks
         expect(newConfig.system).not.toBeNull();
         expect(newConfig.system?.windowHashTimeout).not.toBeNull();

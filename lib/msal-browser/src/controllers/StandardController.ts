@@ -256,8 +256,6 @@ export class StandardController implements IController {
         // initialize in memory storage for native flows
         const nativeCacheOptions: Required<CacheOptions> = {
             cacheLocation: BrowserCacheLocation.MemoryStorage,
-            temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
-            claimsBasedCachingEnabled: false,
         };
         this.nativeInternalStorage = new BrowserCacheManager(
             this.config.auth.clientId,
@@ -356,21 +354,15 @@ export class StandardController implements IController {
             }
         }
 
-        if (!this.config.cache.claimsBasedCachingEnabled) {
-            this.logger.verbose(
-                "Claims-based caching is disabled. Clearing the previous cache with claims"
-            );
-
-            await invokeAsync(
-                this.browserStorage.clearTokensAndKeysWithClaims.bind(
-                    this.browserStorage
-                ),
-                PerformanceEvents.ClearTokensAndKeysWithClaims,
-                this.logger,
-                this.performanceClient,
-                initCorrelationId
-            )(this.performanceClient, initCorrelationId);
-        }
+        await invokeAsync(
+            this.browserStorage.clearTokensAndKeysWithClaims.bind(
+                this.browserStorage
+            ),
+            PerformanceEvents.ClearTokensAndKeysWithClaims,
+            this.logger,
+            this.performanceClient,
+            initCorrelationId
+        )(this.performanceClient, initCorrelationId);
 
         if (
             this.config.cache.cacheLocation ===

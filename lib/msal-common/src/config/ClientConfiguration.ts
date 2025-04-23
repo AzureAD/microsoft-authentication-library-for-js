@@ -59,7 +59,7 @@ export type CommonClientConfiguration = {
     authOptions: Required<AuthOptions>;
     systemOptions: Required<SystemOptions>;
     loggerOptions: Required<LoggerOptions>;
-    cacheOptions: Required<CacheOptions>;
+    cacheOptions: CacheOptions | undefined;
     storageInterface: CacheManager;
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
@@ -120,14 +120,9 @@ export type LoggerOptions = {
 
 /**
  *  Use this to configure credential cache preferences in the ClientConfiguration object
- *
- * - claimsBasedCachingEnabled   - Sets whether tokens should be cached based on the claims hash. Default is false.
  */
 export type CacheOptions = {
-    /**
-     * @deprecated claimsBasedCachingEnabled is deprecated and will be removed in the next major version.
-     */
-    claimsBasedCachingEnabled?: boolean;
+
 };
 
 /**
@@ -177,10 +172,6 @@ const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,
     correlationId: Constants.EMPTY_STRING,
-};
-
-const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
-    claimsBasedCachingEnabled: false,
 };
 
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
@@ -247,7 +238,7 @@ export function buildClientConfiguration({
         authOptions: buildAuthOptions(userAuthOptions),
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
         loggerOptions: loggerOptions,
-        cacheOptions: { ...DEFAULT_CACHE_OPTIONS, ...userCacheOptions },
+        cacheOptions: undefined,
         storageInterface:
             storageImplementation ||
             new DefaultStorageClass(

@@ -109,7 +109,7 @@ export class BrowserCacheManager extends CacheManager {
         );
         this.temporaryCacheStorage = getStorageImplementation(
             clientId,
-            cacheConfig.temporaryCacheLocation,
+            BrowserCacheLocation.SessionStorage,
             logger,
             performanceClient
         );
@@ -1344,8 +1344,6 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
 ): BrowserCacheManager => {
     const cacheOptions: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.MemoryStorage,
-        temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
-        claimsBasedCachingEnabled: false,
     };
     return new BrowserCacheManager(
         clientId,
