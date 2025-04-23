@@ -4,36 +4,35 @@
  */
 
 import { AuthFlowErrorBase } from "../../../core/auth_flow/AuthFlowErrorBase.js";
-import { CustomAuthApiErrorCode } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 
 export class SignInError extends AuthFlowErrorBase {
     /**
-     * Checks if the error is due to the user not being found.
-     * @returns true if the error is due to the user not being found, false otherwise.
+     * Checks if the error is due to the user not found.
+     * @returns {boolean} True if the error is due to the user not found, false otherwise.
      */
     isUserNotFound(): boolean {
-        return this.errorData.error === CustomAuthApiErrorCode.USER_NOT_FOUND;
+        return this.isUserNotFoundError();
     }
 
     /**
      * Checks if the error is due to the username being invalid.
-     * @returns true if the error is due to the username being invalid, false otherwise.
+     * @returns {boolean} True if the error is due to the username being invalid, false otherwise.
      */
     isInvalidUsername(): boolean {
         return this.isUserInvalidError();
     }
 
     /**
-     * Checks if the error is due to the provided password being incorrect.
-     * @returns true if the error is due to the provided password being incorrect, false otherwise.
+     * Checks if the error is due to the password being incorrect.
+     * @returns {boolean} True if the error is due to the password being incorrect, false otherwise.
      */
-    isPasswordIncorrect(): boolean {
+    isIncorrectPassword(): boolean {
         return this.isPasswordIncorrectError();
     }
 
     /**
-     * Checks if the error is due to the provided challenge type is not supported.
-     * @returns {boolean} True if the error is due to the provided challenge type is not supported, false otherwise.
+     * Checks if the error is due to the provided challenge type not being supported.
+     * @returns {boolean} True if the error is due to the provided challenge type not being supported, false otherwise.
      */
     isUnsupportedChallengeType(): boolean {
         return this.isUnsupportedChallengeTypeError();
@@ -41,7 +40,7 @@ export class SignInError extends AuthFlowErrorBase {
 
     /**
      * Check if client app supports the challenge type configured in Entra.
-     * @returns {boolean} True if "loginPopup" function is required to continue sthe operation.
+     * @returns {boolean} True if "loginPopup" function is required to continue the operation.
      */
     isRedirectRequired(): boolean {
         return this.isRedirectError();
@@ -50,28 +49,44 @@ export class SignInError extends AuthFlowErrorBase {
 
 export class SignInSubmitPasswordError extends AuthFlowErrorBase {
     /**
-     * Checks if the password submitted during sign-in is incorrect.
-     * @returns {boolean} True if the error is due to the password being invalid, false otherwise.
+     * Checks if the error is due to the password being incorrect.
+     * @returns {boolean} True if the error is due to the password being incorrect, false otherwise.
      */
-    isInvalidPassword(): boolean {
+    isIncorrectPassword(): boolean {
         return this.isPasswordIncorrectError();
+    }
+
+    /**
+     * Check if client app supports the challenge type configured in Entra.
+     * @returns {boolean} True if "loginPopup" function is required to continue the operation.
+     */
+    isRedirectRequired(): boolean {
+        return this.isRedirectError();
     }
 }
 
 export class SignInSubmitCodeError extends AuthFlowErrorBase {
     /**
-     * Checks if the code submitted during sign-in is invalid.
-     * @returns {boolean} True if the error is due to the code being invalid, false otherwise.
+     * Checks if the provided code is invalid.
+     * @returns {boolean} True if the provided code is invalid, false otherwise.
      */
     isInvalidCode(): boolean {
         return this.isInvalidCodeError();
+    }
+
+    /**
+     * Check if client app supports the challenge type configured in Entra.
+     * @returns {boolean} True if "loginPopup" function is required to continue the operation.
+     */
+    isRedirectRequired(): boolean {
+        return this.isRedirectError();
     }
 }
 
 export class SignInResendCodeError extends AuthFlowErrorBase {
     /**
      * Check if client app supports the challenge type configured in Entra.
-     * @returns {boolean} True if "loginPopup" function is required to continue sthe operation.
+     * @returns {boolean} True if "loginPopup" function is required to continue the operation.
      */
     isRedirectRequired(): boolean {
         return this.isRedirectError();

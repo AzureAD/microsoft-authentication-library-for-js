@@ -20,24 +20,24 @@ export abstract class SignInState<
     constructor(stateParameters: TParameters) {
         super(stateParameters);
 
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "username",
-            stateParameters.username,
-            stateParameters.correlationId,
-        );
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "continuationToken",
-            stateParameters.continuationToken,
-            stateParameters.correlationId,
-        );
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "config",
             stateParameters.config,
             stateParameters.correlationId,
         );
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
+            "username",
+            stateParameters.username,
+            stateParameters.correlationId,
+        );
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "signInClient",
             stateParameters.signInClient,
+            stateParameters.correlationId,
+        );
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
+            "continuationToken",
+            stateParameters.continuationToken,
             stateParameters.correlationId,
         );
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(

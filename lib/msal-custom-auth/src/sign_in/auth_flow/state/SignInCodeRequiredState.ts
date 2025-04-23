@@ -3,21 +3,20 @@
  * Licensed under the MIT License.
  */
 
-import { CustomAuthAccountData } from "../../../get_account/auth_flow/CustomAuthAccountData.js";
-import { SignInResendCodeParams, SignInSubmitCodeParams } from "../../interaction_client/parameter/SignInParams.js";
-import { SignInResendCodeResult } from "../result/SignInResendCodeResult.js";
-import { SignInSubmitCodeResult } from "../result/SignInSubmitCodeResult.js";
-import { SignInCodeRequiredStateParameters } from "./SignInStateParameters.js";
+import { UnexpectedError } from "../../../core/error/UnexpectedError.js";
 import { SignInState } from "./SignInState.js";
+import { SignInCodeRequiredStateParameters } from "./SignInStateParameters.js";
+import { SignInSubmitCodeResult } from "../result/SignInSubmitCodeResult.js";
 import { SignInCompletedState } from "./SignInCompletedState.js";
+import { SignInResendCodeResult } from "../result/SignInResendCodeResult.js";
+import { SignInCompletedResult, SignInCodeRequiredResult } from "../../interaction_client/result/SignInActionResult.js";
 
 /*
  * Sign-in code required state.
  */
 export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredStateParameters> {
     /**
-     * Once user configures email one-time passcode as a authentication method in Microsoft Entra, a one-time passcode will be sent to the user’s email.
-     * Submit this one-time passcode to continue sign-in flow.
+     * Submit one-time passcode to continue sign-in flow.
      * @param {string} code - The code to submit.
      * @returns {Promise<SignInSubmitCodeResult>} The result of the operation.
      */
@@ -25,34 +24,42 @@ export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredState
         try {
             this.ensureCodeIsValid(code, this.stateParameters.codeLength);
 
-            const submitCodeParams: SignInSubmitCodeParams = {
+            this.stateParameters.logger.verbose("Submitting code for sign-in.", this.stateParameters.correlationId);
+
+            const result = await this.stateParameters.signInClient.submitCode({
                 clientId: this.stateParameters.config.auth.clientId,
                 correlationId: this.stateParameters.correlationId,
                 challengeType: this.stateParameters.config.customAuth.challengeTypes ?? [],
-                scopes: this.stateParameters.scopes ?? [],
                 continuationToken: this.stateParameters.continuationToken ?? "",
                 code: code,
                 username: this.stateParameters.username,
-            };
-
-            this.stateParameters.logger.verbose("Submitting code for sign-in.", this.stateParameters.correlationId);
-
-            const completedResult = await this.stateParameters.signInClient.submitCode(submitCodeParams);
+            });
 
             this.stateParameters.logger.verbose("Code submitted for sign-in.", this.stateParameters.correlationId);
 
-            const accountInfo = new CustomAuthAccountData(
-                completedResult.authenticationResult.account,
-                this.stateParameters.config,
-                this.stateParameters.cacheClient,
-                this.stateParameters.logger,
-                this.stateParameters.correlationId,
-            );
+            if (result instanceof SignInCompletedResult) {
+                // Sign-in completed
+                this.stateParameters.logger.verbose("Sign-in completed.", this.stateParameters.correlationId);
 
-            return new SignInSubmitCodeResult(new SignInCompletedState(), accountInfo);
+                return new SignInSubmitCodeResult(
+                    new SignInCompletedState({
+                        correlationId: result.correlationId,
+                        continuationToken: result.continuationToken,
+                        logger: this.stateParameters.logger,
+                        config: this.stateParameters.config,
+                        signInClient: this.stateParameters.signInClient,
+                        cacheClient: this.stateParameters.cacheClient,
+                        username: this.stateParameters.username,
+                    }),
+                );
+            }
+
+            return SignInSubmitCodeResult.createWithError(
+                new UnexpectedError("Unknown sign-in result type.", this.stateParameters.correlationId),
+            );
         } catch (error) {
             this.stateParameters.logger.errorPii(
-                `Failed to submit code for sign-in. Error: ${error}.`,
+                `Failed to submit code for sign in. Error: ${error}.`,
                 this.stateParameters.correlationId,
             );
 
@@ -61,22 +68,20 @@ export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredState
     }
 
     /**
-     * Resends the another one-time passcode for sign-in flow if the previous one hasn't been verified.
+     * Resends another one-time passcode for sign-in flow if the previous one hasn't been verified.
      * @returns {Promise<SignInResendCodeResult>} The result of the operation.
      */
     async resendCode(): Promise<SignInResendCodeResult> {
         try {
-            const submitCodeParams: SignInResendCodeParams = {
-                clientId: this.stateParameters.config.auth.clientId,
-                correlationId: this.stateParameters.correlationId,
-                challengeType: this.stateParameters.config.customAuth.challengeTypes ?? [],
-                continuationToken: this.stateParameters.continuationToken ?? "",
-                username: this.stateParameters.username,
-            };
-
             this.stateParameters.logger.verbose("Resending code for sign-in.", this.stateParameters.correlationId);
 
-            const result = await this.stateParameters.signInClient.resendCode(submitCodeParams);
+            const result = await this.stateParameters.signInClient.resendCode({
+                clientId: this.stateParameters.config.auth.clientId,
+                challengeType: this.stateParameters.config.customAuth.challengeTypes ?? [],
+                username: this.stateParameters.username,
+                correlationId: this.stateParameters.correlationId,
+                continuationToken: this.stateParameters.continuationToken ?? "",
+            });
 
             this.stateParameters.logger.verbose("Code resent for sign-in.", this.stateParameters.correlationId);
 
@@ -90,10 +95,15 @@ export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredState
                     cacheClient: this.stateParameters.cacheClient,
                     username: this.stateParameters.username,
                     codeLength: result.codeLength,
-                    scopes: this.stateParameters.scopes,
+                    codeResendInterval: result.interval,
                 }),
             );
         } catch (error) {
+            this.stateParameters.logger.errorPii(
+                `Failed to resend code for sign in. Error: ${error}.`,
+                this.stateParameters.correlationId,
+            );
+
             return SignInResendCodeResult.createWithError(error);
         }
     }
@@ -107,10 +117,10 @@ export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredState
     }
 
     /**
-     * Gets the scopes to request.
-     * @returns {string[] | undefined} The scopes to request.
+     * Gets the interval in seconds for the code to be resent.
+     * @returns {number} The interval in seconds for the code to be resent.
      */
-    getScopes(): string[] | undefined {
-        return this.stateParameters.scopes;
+    getCodeResendInterval(): number {
+        return this.stateParameters.codeResendInterval;
     }
 }

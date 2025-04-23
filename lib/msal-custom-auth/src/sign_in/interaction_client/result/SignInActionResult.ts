@@ -3,32 +3,38 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult } from "@azure/msal-browser";
+import { UserAttribute } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 
-export class SignInCompletedResult {
-    constructor(
-        public correlationId: string,
-        public authenticationResult: AuthenticationResult,
-    ) {}
-}
-
-class SignInContinuationTokenResult {
+class SignInResultBase {
     constructor(
         public correlationId: string,
         public continuationToken: string,
     ) {}
 }
 
-export class SignInPasswordRequiredResult extends SignInContinuationTokenResult {}
+export class SignInCompletedResult extends SignInResultBase {}
 
-export class SignInCodeSendResult extends SignInContinuationTokenResult {
+export class SignInPasswordRequiredResult extends SignInResultBase {}
+
+export class SignInCodeRequiredResult extends SignInResultBase {
     constructor(
         correlationId: string,
         continuationToken: string,
         public challengeChannel: string,
         public challengeTargetLabel: string,
         public codeLength: number,
+        public interval: number,
         public bindingMethod: string,
+    ) {
+        super(correlationId, continuationToken);
+    }
+}
+
+export class SignInAttributesRequiredResult extends SignInResultBase {
+    constructor(
+        correlationId: string,
+        continuationToken: string,
+        public requiredAttributes: Array<UserAttribute>,
     ) {
         super(correlationId, continuationToken);
     }

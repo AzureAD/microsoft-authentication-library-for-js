@@ -287,3 +287,4 @@ junit.xml
 
 # ApiExtractor
 temp/
+samples/msal-custom-auth-samples/react-sample-nextjs/.next/

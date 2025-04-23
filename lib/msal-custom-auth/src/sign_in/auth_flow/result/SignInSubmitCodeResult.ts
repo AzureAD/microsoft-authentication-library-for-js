@@ -3,17 +3,29 @@
  * Licensed under the MIT License.
  */
 
+import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { SignInSubmitCodeError } from "../error_type/SignInError.js";
 import { SignInCompletedState } from "../state/SignInCompletedState.js";
 import { SignInFailedState } from "../state/SignInFailedState.js";
-import { SignInSubmitCredentialResult } from "./SignInSubmitCredentialResult.js";
 
 /*
- * Result of a sign-in submit code operation.
+ * Result of a sign-in operation that requires a code.
  */
-export class SignInSubmitCodeResult extends SignInSubmitCredentialResult<SignInSubmitCodeError> {
+export class SignInSubmitCodeResult extends AuthFlowResultBase<
+    SignInSubmitCodeResultState,
+    SignInSubmitCodeError,
+    void
+> {
     /**
-     * Creates a new instance of SignInSubmitCodeResult with error data.
+     * Creates a new instance of SignInSubmitCodeResult.
+     * @param state The state of the result.
+     */
+    constructor(state: SignInSubmitCodeResultState) {
+        super(state);
+    }
+
+    /**
+     * Creates a new instance of SignInSubmitCodeResult with an error.
      * @param error The error that occurred.
      * @returns {SignInSubmitCodeResult} A new instance of SignInSubmitCodeResult with the error set.
      */
@@ -38,3 +50,11 @@ export class SignInSubmitCodeResult extends SignInSubmitCredentialResult<SignInS
         return this.state instanceof SignInCompletedState;
     }
 }
+
+/**
+ * The possible states for the SignInSubmitCodeResult.
+ * This includes:
+ * - SignInCompletedState: The sign-in process has completed successfully.
+ * - SignInFailedState: The sign-in process has failed.
+ */
+export type SignInSubmitCodeResultState = SignInCompletedState | SignInFailedState;

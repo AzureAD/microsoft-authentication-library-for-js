@@ -6,6 +6,6 @@
 import { AuthFlowStateBase } from "../../../core/auth_flow/AuthFlowState.js";
 
 /**
- * Represents the state of a sign-in operation that has been failed.
+ * Represents the state of a sign-in operation that has failed.
  */
 export class SignInFailedState extends AuthFlowStateBase {}

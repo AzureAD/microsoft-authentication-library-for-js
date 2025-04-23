@@ -8,6 +8,9 @@ import { SignInResendCodeError } from "../error_type/SignInError.js";
 import { SignInCodeRequiredState } from "../state/SignInCodeRequiredState.js";
 import { SignInFailedState } from "../state/SignInFailedState.js";
 
+/*
+ * Result of resending code in a sign-in operation.
+ */
 export class SignInResendCodeResult extends AuthFlowResultBase<
     SignInResendCodeResultState,
     SignInResendCodeError,
@@ -44,11 +47,7 @@ export class SignInResendCodeResult extends AuthFlowResultBase<
      * Checks if the result is in a code required state.
      */
     isCodeRequired(): this is SignInResendCodeResult & { state: SignInCodeRequiredState } {
-        /*
-         * The instanceof operator couldn't be used here to check the state type since the circular dependency issue.
-         * So we are using the constructor name to check the state type.
-         */
-        return this.state.constructor?.name === "SignInCodeRequiredState";
+        return this.state instanceof SignInCodeRequiredState;
     }
 }
 

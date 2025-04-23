@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowActionRequiredStateParameters } from "../../../core/auth_flow/AuthFlowState.js";
-import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { SignInClient } from "../../interaction_client/SignInClient.js";
-import { SignInScenario } from "../SignInScenario.js";
+import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
+import { AuthFlowActionRequiredStateParameters } from "../../../core/auth_flow/AuthFlowState.js";
+import { UserAttribute } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 
 export interface SignInStateParameters extends AuthFlowActionRequiredStateParameters {
     username: string;
@@ -14,15 +14,13 @@ export interface SignInStateParameters extends AuthFlowActionRequiredStateParame
     cacheClient: CustomAuthSilentCacheClient;
 }
 
-export interface SignInPasswordRequiredStateParameters extends SignInStateParameters {
-    scopes?: string[];
-}
+export type SignInPasswordRequiredStateParameters = SignInStateParameters;
 
 export interface SignInCodeRequiredStateParameters extends SignInStateParameters {
     codeLength: number;
-    scopes?: string[];
+    codeResendInterval: number;
 }
 
-export interface SignInContinuationStateParameters extends SignInStateParameters {
-    signInScenario: SignInScenario;
+export interface SignInAttributesRequiredStateParameters extends SignInStateParameters {
+    requiredAttributes: Array<UserAttribute>;
 }
