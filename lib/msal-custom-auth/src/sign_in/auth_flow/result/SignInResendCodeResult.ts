@@ -3,58 +3,87 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
-import { SignInResendCodeError } from "../error_type/SignInError.js";
-import { SignInCodeRequiredState } from "../state/SignInCodeRequiredState.js";
-import { SignInFailedState } from "../state/SignInFailedState.js";
-
-/*
- * Result of resending code in a sign-in operation.
- */
-export class SignInResendCodeResult extends AuthFlowResultBase<
-    SignInResendCodeResultState,
-    SignInResendCodeError,
-    void
-> {
-    /**
-     * Creates a new instance of SignInResendCodeResult.
-     * @param state The state of the result.
-     */
-    constructor(state: SignInResendCodeResultState) {
-        super(state);
-    }
-
-    /**
-     * Creates a new instance of SignInResendCodeResult with an error.
-     * @param error The error that occurred.
-     * @returns {SignInResendCodeResult} A new instance of SignInResendCodeResult with the error set.
-     */
-    static createWithError(error: unknown): SignInResendCodeResult {
-        const result = new SignInResendCodeResult(new SignInFailedState());
-        result.error = new SignInResendCodeError(SignInResendCodeResult.createErrorData(error));
-
-        return result;
-    }
-
-    /**
-     * Checks if the result is in a failed state.
-     */
-    isFailed(): this is SignInResendCodeResult & { state: SignInFailedState } {
-        return this.state instanceof SignInFailedState;
-    }
-
-    /**
-     * Checks if the result is in a code required state.
-     */
-    isCodeRequired(): this is SignInResendCodeResult & { state: SignInCodeRequiredState } {
-        return this.state instanceof SignInCodeRequiredState;
-    }
-}
+import { SignInErrorType } from "../error_type/SignInError.js";
 
 /**
- * The possible states for the SignInResendCodeResult.
- * This includes:
- * - SignInCodeRequiredState: The sign-in process requires a code.
- * - SignInFailedState: The sign-in process has failed.
+ * Result of requesting a new verification code during sign-in
  */
-export type SignInResendCodeResultState = SignInCodeRequiredState | SignInFailedState;
+export class SignInResendCodeResult {
+    /**
+     * Whether the operation was successful
+     */
+    readonly success: boolean;
+    
+    /**
+     * Length of the verification code that was sent
+     */
+    readonly codeLength?: number;
+    
+    /**
+     * Error type when operation fails
+     */
+    readonly errorType?: SignInErrorType;
+    
+    /**
+     * Error message providing details about the failure
+     */
+    readonly errorMessage?: string;
+    
+    /**
+     * Correlation ID for request tracing
+     */
+    readonly correlationId?: string;
+
+    /**
+     * Creates an instance of SignInResendCodeResult
+     * @param success - Whether the operation was successful
+     * @param codeLength - Length of the verification code when successful
+     * @param errorType - Error type when operation fails
+     * @param errorMessage - Error message when operation fails
+     * @param correlationId - Correlation ID for request tracing
+     */
+    constructor(
+        success: boolean,
+        codeLength?: number,
+        errorType?: SignInErrorType,
+        errorMessage?: string,
+        correlationId?: string
+    ) {
+        this.success = success;
+        this.codeLength = codeLength;
+        this.errorType = errorType;
+        this.errorMessage = errorMessage;
+        this.correlationId = correlationId;
+    }
+
+    /**
+     * Creates a successful result
+     * @param codeLength - Length of the verification code
+     * @param correlationId - Correlation ID for request tracing
+     * @returns A new successful SignInResendCodeResult instance
+     */
+    static createSuccessResult(codeLength: number, correlationId?: string): SignInResendCodeResult {
+        return new SignInResendCodeResult(true, codeLength, undefined, undefined, correlationId);
+    }
+
+    /**
+     * Creates a result with error information
+     * @param errorType - Type of error that occurred
+     * @param errorMessage - Error message
+     * @param correlationId - Correlation ID for request tracing
+     * @returns A new SignInResendCodeResult instance with error information
+     */
+    static createWithError(
+        errorType: SignInErrorType,
+        errorMessage: string,
+        correlationId?: string
+    ): SignInResendCodeResult {
+        return new SignInResendCodeResult(
+            false,
+            undefined,
+            errorType,
+            errorMessage,
+            correlationId
+        );
+    }
+}

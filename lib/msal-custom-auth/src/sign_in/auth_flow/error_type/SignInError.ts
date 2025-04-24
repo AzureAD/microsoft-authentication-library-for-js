@@ -3,92 +3,42 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowErrorBase } from "../../../core/auth_flow/AuthFlowErrorBase.js";
-
-export class SignInError extends AuthFlowErrorBase {
+/**
+ * Enum for sign-in error types
+ */
+export enum SignInErrorType {
     /**
-     * Checks if the error is due to the user not found.
-     * @returns {boolean} True if the error is due to the user not found, false otherwise.
+     * User provided invalid credentials
      */
-    isUserNotFound(): boolean {
-        return this.isUserNotFoundError();
-    }
+    INVALID_CREDENTIALS = "invalid_credentials",
 
     /**
-     * Checks if the error is due to the username being invalid.
-     * @returns {boolean} True if the error is due to the username being invalid, false otherwise.
+     * User account is locked
      */
-    isInvalidUsername(): boolean {
-        return this.isUserInvalidError();
-    }
+    ACCOUNT_LOCKED = "account_locked",
 
     /**
-     * Checks if the error is due to the password being incorrect.
-     * @returns {boolean} True if the error is due to the password being incorrect, false otherwise.
+     * User account is disabled
      */
-    isIncorrectPassword(): boolean {
-        return this.isPasswordIncorrectError();
-    }
+    ACCOUNT_DISABLED = "account_disabled",
 
     /**
-     * Checks if the error is due to the provided challenge type not being supported.
-     * @returns {boolean} True if the error is due to the provided challenge type not being supported, false otherwise.
+     * User account requires MFA verification
      */
-    isUnsupportedChallengeType(): boolean {
-        return this.isUnsupportedChallengeTypeError();
-    }
+    MFA_REQUIRED = "mfa_required",
 
     /**
-     * Check if client app supports the challenge type configured in Entra.
-     * @returns {boolean} True if "loginPopup" function is required to continue the operation.
+     * Network error occurred during sign-in
      */
-    isRedirectRequired(): boolean {
-        return this.isRedirectError();
-    }
-}
-
-export class SignInSubmitPasswordError extends AuthFlowErrorBase {
-    /**
-     * Checks if the error is due to the password being incorrect.
-     * @returns {boolean} True if the error is due to the password being incorrect, false otherwise.
-     */
-    isIncorrectPassword(): boolean {
-        return this.isPasswordIncorrectError();
-    }
+    NETWORK_ERROR = "network_error",
 
     /**
-     * Check if client app supports the challenge type configured in Entra.
-     * @returns {boolean} True if "loginPopup" function is required to continue the operation.
+     * Password reset is required
      */
-    isRedirectRequired(): boolean {
-        return this.isRedirectError();
-    }
-}
-
-export class SignInSubmitCodeError extends AuthFlowErrorBase {
-    /**
-     * Checks if the provided code is invalid.
-     * @returns {boolean} True if the provided code is invalid, false otherwise.
-     */
-    isInvalidCode(): boolean {
-        return this.isInvalidCodeError();
-    }
+    PASSWORD_RESET_REQUIRED = "password_reset_required",
 
     /**
-     * Check if client app supports the challenge type configured in Entra.
-     * @returns {boolean} True if "loginPopup" function is required to continue the operation.
+     * Unknown error occurred during sign-in
      */
-    isRedirectRequired(): boolean {
-        return this.isRedirectError();
-    }
-}
-
-export class SignInResendCodeError extends AuthFlowErrorBase {
-    /**
-     * Check if client app supports the challenge type configured in Entra.
-     * @returns {boolean} True if "loginPopup" function is required to continue the operation.
-     */
-    isRedirectRequired(): boolean {
-        return this.isRedirectError();
-    }
+    UNKNOWN_ERROR = "unknown_error"
 }

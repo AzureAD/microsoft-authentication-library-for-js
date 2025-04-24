@@ -3,84 +3,88 @@
  * Licensed under the MIT License.
  */
 
-import { UnexpectedError } from "../../../core/error/UnexpectedError.js";
-import { SignInState } from "./SignInState.js";
-import { SignInPasswordRequiredStateParameters } from "./SignInStateParameters.js";
-import { SignInCompletedState } from "./SignInCompletedState.js";
-import { SignInCodeRequiredState } from "./SignInCodeRequiredState.js";
+import { SignInStateParameters } from "./SignInStateParameters.js";
 import { SignInSubmitPasswordResult } from "../result/SignInSubmitPasswordResult.js";
-import { SignInCompletedResult, SignInCodeRequiredResult } from "../../interaction_client/result/SignInActionResult.js";
+import { SignInErrorType } from "../error_type/SignInError.js";
 
-/*
- * Sign-in password required state.
+/**
+ * State representing that a password is required to complete sign-in
  */
-export class SignInPasswordRequiredState extends SignInState<SignInPasswordRequiredStateParameters> {
+export class SignInPasswordRequiredState {
     /**
-     * Submits a password for sign-in.
-     * @param {string} password - The password to submit.
-     * @returns {Promise<SignInSubmitPasswordResult>} The result of the operation.
+     * Correlation ID for request tracing
+     */
+    readonly correlationId: string;
+    
+    /**
+     * Continuation token for multi-step auth flow
+     */
+    readonly continuationToken: string;
+    
+    /**
+     * Username for sign-in
+     */
+    readonly username: string;
+    
+    /**
+     * Scopes requested for the authentication token
+     */
+    readonly scopes: string[];
+    
+    private readonly signInClient;
+    private readonly logger;
+    private readonly config;
+    private readonly cacheClient;
+
+    /**
+     * Creates an instance of SignInPasswordRequiredState
+     * @param params - Parameters for the state
+     */
+    constructor(params: SignInStateParameters) {
+        this.correlationId = params.correlationId;
+        this.continuationToken = params.continuationToken;
+        this.username = params.username;
+        this.scopes = params.scopes || [];
+        this.signInClient = params.signInClient;
+        this.logger = params.logger;
+        this.config = params.config;
+        this.cacheClient = params.cacheClient;
+    }
+
+    /**
+     * Submits the password to continue the sign-in process
+     * @param password - User's password for authentication
+     * @returns Promise resolving to the result of submitting the password
      */
     async submitPassword(password: string): Promise<SignInSubmitPasswordResult> {
         try {
-            this.ensurePasswordIsNotEmpty(password);
+            this.logger.verbose("Submitting password for sign-in", this.correlationId);
 
-            this.stateParameters.logger.verbose("Submitting password for sign-in.", this.stateParameters.correlationId);
-
-            const result = await this.stateParameters.signInClient.submitPassword({
-                clientId: this.stateParameters.config.auth.clientId,
-                correlationId: this.stateParameters.correlationId,
-                challengeType: this.stateParameters.config.customAuth.challengeTypes ?? [],
-                continuationToken: this.stateParameters.continuationToken ?? "",
-                password: password,
-                username: this.stateParameters.username,
-            });
-
-            this.stateParameters.logger.verbose("Password submitted for sign-in.", this.stateParameters.correlationId);
-
-            if (result instanceof SignInCodeRequiredResult) {
-                // Code required
-                this.stateParameters.logger.verbose("Code required for sign-in.", this.stateParameters.correlationId);
-
-                return new SignInSubmitPasswordResult(
-                    new SignInCodeRequiredState({
-                        correlationId: result.correlationId,
-                        continuationToken: result.continuationToken,
-                        logger: this.stateParameters.logger,
-                        config: this.stateParameters.config,
-                        signInClient: this.stateParameters.signInClient,
-                        cacheClient: this.stateParameters.cacheClient,
-                        username: this.stateParameters.username,
-                        codeLength: result.codeLength,
-                        codeResendInterval: result.interval,
-                    }),
-                );
-            } else if (result instanceof SignInCompletedResult) {
-                // Sign-in completed
-                this.stateParameters.logger.verbose("Sign-in completed.", this.stateParameters.correlationId);
-
-                return new SignInSubmitPasswordResult(
-                    new SignInCompletedState({
-                        correlationId: result.correlationId,
-                        continuationToken: result.continuationToken,
-                        logger: this.stateParameters.logger,
-                        config: this.stateParameters.config,
-                        signInClient: this.stateParameters.signInClient,
-                        cacheClient: this.stateParameters.cacheClient,
-                        username: this.stateParameters.username,
-                    }),
+            if (!password) {
+                this.logger.error("Password cannot be empty", this.correlationId);
+                return SignInSubmitPasswordResult.createWithError(
+                    SignInErrorType.INVALID_CREDENTIALS,
+                    "Password cannot be empty",
+                    this.correlationId
                 );
             }
 
-            return SignInSubmitPasswordResult.createWithError(
-                new UnexpectedError("Unknown sign-in result type.", this.stateParameters.correlationId),
-            );
+            return await this.signInClient.submitPassword({
+                clientId: this.config.auth.clientId,
+                correlationId: this.correlationId,
+                challengeType: this.config.customAuth.challengeTypes || [],
+                scopes: this.scopes,
+                continuationToken: this.continuationToken,
+                password: password,
+                username: this.username
+            });
         } catch (error) {
-            this.stateParameters.logger.errorPii(
-                `Failed to submit password for sign in. Error: ${error}.`,
-                this.stateParameters.correlationId,
+            this.logger.error("Error submitting password for sign-in", error, this.correlationId);
+            return SignInSubmitPasswordResult.createWithError(
+                SignInErrorType.UNKNOWN_ERROR,
+                error instanceof Error ? error.message : "Unknown error occurred during sign-in",
+                this.correlationId
             );
-
-            return SignInSubmitPasswordResult.createWithError(error);
         }
     }
 }

@@ -3,50 +3,57 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowStateBase } from "../../../core/auth_flow/AuthFlowState.js";
+import { AuthenticationResult } from "@azure/msal-browser";
 import { SignInStateParameters } from "./SignInStateParameters.js";
 
 /**
- * Represents the state of a sign-in operation that has been completed successfully.
+ * State representing that sign-in has been successfully completed
  */
-export class SignInCompletedState extends AuthFlowStateBase {
-    protected readonly stateParameters: SignInStateParameters;
+export class SignInCompletedState {
+    /**
+     * Correlation ID for request tracing
+     */
+    readonly correlationId: string;
+    
+    /**
+     * Username for the signed-in user
+     */
+    readonly username: string;
+    
+    /**
+     * Authentication result containing tokens and account information
+     */
+    readonly authenticationResult: AuthenticationResult;
+    
+    private readonly logger;
+    private readonly cacheClient;
 
     /**
-     * Creates a new instance of SignInCompletedState.
-     * @param stateParameters The parameters for the completed sign-in state.
+     * Creates an instance of SignInCompletedState
+     * @param params - Parameters for the state
+     * @param authenticationResult - Authentication result from successful sign-in
      */
-    constructor(stateParameters: SignInStateParameters) {
-        super();
-        this.stateParameters = stateParameters;
-
-        // Validate required parameters
-        if (!stateParameters.signInClient) {
-            throw new Error("signInClient is required for SignInCompletedState");
+    constructor(params: SignInStateParameters, authenticationResult: AuthenticationResult) {
+        this.correlationId = params.correlationId;
+        this.username = params.username;
+        this.authenticationResult = authenticationResult;
+        this.logger = params.logger;
+        this.cacheClient = params.cacheClient;
+        
+        // Store the authentication result in cache
+        this.storeAuthResult();
+    }
+    
+    /**
+     * Stores the authentication result in the cache
+     */
+    private storeAuthResult(): void {
+        try {
+            this.logger.verbose("Storing authentication result in cache", this.correlationId);
+            this.cacheClient.storeAuthenticationResult(this.authenticationResult);
+        } catch (error) {
+            this.logger.error("Failed to store authentication result in cache", error, this.correlationId);
+            // Do not throw, as the sign-in was still successful
         }
-    }
-
-    /**
-     * Gets the username associated with the completed sign-in.
-     * @returns {string} The username.
-     */
-    getUsername(): string {
-        return this.stateParameters.username;
-    }
-
-    /**
-     * Gets the continuation token associated with the completed sign-in.
-     * @returns {string} The continuation token.
-     */
-    getContinuationToken(): string {
-        return this.stateParameters.continuationToken ?? "";
-    }
-
-    /**
-     * Gets the client that can be used to perform further sign-in operations.
-     * @returns {SignInClient} The sign-in client.
-     */
-    getSignInClient(): any {
-        return this.stateParameters.signInClient;
     }
 }

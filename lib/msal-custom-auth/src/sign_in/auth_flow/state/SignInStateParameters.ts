@@ -3,24 +3,52 @@
  * Licensed under the MIT License.
  */
 
+import { CustomAuthBrowserConfiguration } from "../../../configuration/CustomAuthConfiguration.js";
+import { CacheClient } from "../../../core/cache/CacheClient.js";
+import { Logger } from "../../../core/utils/Logger.js";
 import { SignInClient } from "../../interaction_client/SignInClient.js";
-import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
-import { AuthFlowActionRequiredStateParameters } from "../../../core/auth_flow/AuthFlowState.js";
-import { UserAttribute } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 
-export interface SignInStateParameters extends AuthFlowActionRequiredStateParameters {
+/**
+ * Common parameters required to initialize sign-in state objects
+ */
+export interface SignInStateParameters {
+    /**
+     * Correlation ID for request tracing
+     */
+    correlationId: string;
+    
+    /**
+     * Continuation token for multi-step auth flow
+     */
+    continuationToken: string;
+    
+    /**
+     * Username for sign-in
+     */
     username: string;
+    
+    /**
+     * Scopes requested for the authentication token
+     */
+    scopes?: string[];
+    
+    /**
+     * Client for sign-in API interactions
+     */
     signInClient: SignInClient;
-    cacheClient: CustomAuthSilentCacheClient;
-}
-
-export type SignInPasswordRequiredStateParameters = SignInStateParameters;
-
-export interface SignInCodeRequiredStateParameters extends SignInStateParameters {
-    codeLength: number;
-    codeResendInterval: number;
-}
-
-export interface SignInAttributesRequiredStateParameters extends SignInStateParameters {
-    requiredAttributes: Array<UserAttribute>;
+    
+    /**
+     * Logger for instrumentation
+     */
+    logger: Logger;
+    
+    /**
+     * Application configuration
+     */
+    config: CustomAuthBrowserConfiguration;
+    
+    /**
+     * Cache client for token storage
+     */
+    cacheClient: CacheClient;
 }

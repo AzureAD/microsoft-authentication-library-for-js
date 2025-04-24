@@ -3,292 +3,200 @@
  * Licensed under the MIT License.
  */
 
-import { ServerTelemetryManager } from "@azure/msal-browser";
-import { CustomAuthApiError } from "../../core/error/CustomAuthApiError.js";
-import { CustomAuthApiErrorCode } from "../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
-import { UnexpectedError } from "../../core/error/UnexpectedError.js";
-import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
-import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
-import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
-import {
-    ChallengeType,
-    DefaultCustomAuthApiCodeLength,
-    DefaultCustomAuthApiCodeResendIntervalInSec,
-} from "../../CustomAuthConstants.js";
-import {
-    SignInParamsBase,
-    SignInStartParams,
-    SignInSubmitCodeParams,
-    SignInSubmitPasswordParams,
-    SignInResendCodeParams,
-} from "./parameter/SignInParams.js";
-import {
-    SignInAttributesRequiredResult,
-    SignInCodeRequiredResult,
-    SignInCompletedResult,
-    SignInPasswordRequiredResult,
-} from "./result/SignInActionResult.js";
+import { AuthenticationResult } from "@azure/msal-browser";
+import { ICustomAuthApiClient } from "../../../core/network_client/custom_auth_api/ICustomAuthApiClient.js";
+import { 
+    SignInSubmitPasswordResult, 
+    SignInSubmitCodeResult, 
+    SignInResendCodeResult 
+} from "../auth_flow/result/index.js";
+import { SignInErrorType } from "../auth_flow/error_type/index.js";
 
-export class SignInClient extends CustomAuthInteractionClientBase {
+/**
+ * Interface for sign-in password parameters
+ */
+export interface SignInPasswordParameters {
+    clientId: string;
+    correlationId: string;
+    challengeType: string[];
+    continuationToken: string;
+    password: string;
+    username: string;
+    scopes?: string[];
+}
+
+/**
+ * Interface for sign-in code parameters
+ */
+export interface SignInCodeParameters {
+    clientId: string;
+    correlationId: string;
+    challengeType: string[];
+    continuationToken: string;
+    code: string;
+    username: string;
+    scopes?: string[];
+}
+
+/**
+ * Interface for sign-in code resend parameters
+ */
+export interface SignInResendCodeParameters {
+    clientId: string;
+    correlationId: string;
+    challengeType: string[];
+    continuationToken: string;
+    username: string;
+}
+
+/**
+ * Client for interacting with custom authentication API during sign-in
+ */
+export class SignInClient {
+    private apiClient: ICustomAuthApiClient;
+
     /**
-     * Starts the sign in flow.
-     * @param parameters The parameters for the sign in start action.
-     * @returns The result of the sign in start action.
+     * Creates an instance of SignInClient
+     * @param apiClient - Client to make API requests
      */
-    async start(parameters: SignInStartParams): Promise<SignInPasswordRequiredResult | SignInCodeRequiredResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters, parameters.correlationId);
-
-        const apiId = !parameters.password
-            ? PublicApiId.SIGN_IN_WITH_CODE_START
-            : PublicApiId.SIGN_IN_WITH_PASSWORD_START;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
-
-        const startRequest = {
-            username: parameters.username,
-            password: parameters.password,
-            challenge_type: this.getChallengeTypes(parameters.challengeType),
-            telemetryManager,
-            correlationId: parameters.correlationId,
-        };
-
-        this.logger.verbose("Initiating sign in.", parameters.correlationId);
-
-        const startResponse = await this.customAuthApiClient.signInApi.initiate(startRequest);
-
-        this.logger.verbose("Sign in initiated.", parameters.correlationId);
-
-        const challengeRequest = {
-            continuation_token: startResponse.continuation_token ?? "",
-            challenge_type: this.getChallengeTypes(parameters.challengeType),
-            telemetryManager,
-            correlationId: startResponse.correlation_id,
-        };
-
-        return this.performChallengeRequest(challengeRequest);
+    constructor(apiClient: ICustomAuthApiClient) {
+        this.apiClient = apiClient;
     }
 
     /**
-     * Submits the code for the sign in flow.
-     * @param parameters The parameters for the sign in submit code action.
-     * @returns The result of the sign in submit code action.
+     * Submit password for sign-in
+     * @param params - Parameters for password submission
+     * @returns Promise resolving to the result of submitting the password
      */
-    async submitCode(
-        parameters: SignInSubmitCodeParams,
-    ): Promise<SignInCompletedResult | SignInPasswordRequiredResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters, parameters.correlationId);
-
-        const apiId = PublicApiId.SIGN_IN_SUBMIT_CODE;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
-
-        const requestSubmitCode = {
-            continuation_token: parameters.continuationToken,
-            oob: parameters.code,
-            scope: "openid profile", // Default scopes required for sign-in
-            telemetryManager,
-            correlationId: parameters.correlationId,
-        };
-
-        const result = await this.performContinueRequest(
-            "SignInClient.submitCode",
-            parameters,
-            telemetryManager,
-            () => this.customAuthApiClient.signInApi.requestTokensWithOob(requestSubmitCode),
-            parameters.correlationId,
-        );
-
-        if (result instanceof SignInCodeRequiredResult) {
-            throw new CustomAuthApiError(
-                CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
-                "The challenge type 'oob' is invalid after submitting code for sign in.",
-                parameters.correlationId,
-            );
-        }
-
-        return result;
-    }
-
-    /**
-     * Submits the password for the sign in flow.
-     * @param parameters The parameters for the sign in submit password action.
-     * @returns The result of the sign in submit password action.
-     */
-    async submitPassword(
-        parameters: SignInSubmitPasswordParams,
-    ): Promise<SignInCompletedResult | SignInCodeRequiredResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters, parameters.correlationId);
-
-        const apiId = PublicApiId.SIGN_IN_SUBMIT_PASSWORD;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
-
-        const requestSubmitPassword = {
-            continuation_token: parameters.continuationToken,
-            password: parameters.password,
-            scope: "openid profile", // Default scopes required for sign-in
-            telemetryManager,
-            correlationId: parameters.correlationId,
-        };
-
-        const result = await this.performContinueRequest(
-            "SignInClient.submitPassword",
-            parameters,
-            telemetryManager,
-            () => this.customAuthApiClient.signInApi.requestTokensWithPassword(requestSubmitPassword),
-            parameters.correlationId,
-        );
-
-        return result;
-    }
-
-    /**
-     * Resends the code for the sign in flow.
-     * @param parameters The parameters for the sign in resend code action.
-     * @returns The result of the sign in resend code action.
-     */
-    async resendCode(parameters: SignInResendCodeParams): Promise<SignInCodeRequiredResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("parameters", parameters, parameters.correlationId);
-
-        const apiId = PublicApiId.SIGN_IN_RESEND_CODE;
-        const telemetryManager = this.initializeServerTelemetryManager(apiId);
-
-        const challengeRequest = {
-            continuation_token: parameters.continuationToken ?? "",
-            challenge_type: this.getChallengeTypes(parameters.challengeType),
-            telemetryManager,
-            correlationId: parameters.correlationId,
-        };
-
-        const result = await this.performChallengeRequest(challengeRequest);
-
-        if (result instanceof SignInPasswordRequiredResult) {
-            throw new CustomAuthApiError(
-                CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
-                "The challenge type 'password' is invalid after resending code for sign in.",
-                parameters.correlationId,
-            );
-        }
-
-        return result;
-    }
-
-    private async performChallengeRequest(
-        request: any,
-    ): Promise<SignInPasswordRequiredResult | SignInCodeRequiredResult> {
-        this.logger.verbose("Calling challenge endpoint for sign in.", request.correlationId);
-
-        const challengeResponse = await this.customAuthApiClient.signInApi.requestChallenge(request);
-
-        this.logger.verbose("Challenge endpoint called for sign in.", request.correlationId);
-
-        if (challengeResponse.challenge_type === ChallengeType.OOB) {
-            // Code is required
-            this.logger.verbose("Challenge type is oob for sign in.", request.correlationId);
-
-            return new SignInCodeRequiredResult(
-                challengeResponse.correlation_id,
-                challengeResponse.continuation_token ?? "",
-                challengeResponse.challenge_channel ?? "",
-                challengeResponse.challenge_target_label ?? "",
-                challengeResponse.code_length ?? DefaultCustomAuthApiCodeLength,
-                challengeResponse.code_length ?? DefaultCustomAuthApiCodeLength,
-                challengeResponse.binding_method ?? "",
-            );
-        }
-
-        if (challengeResponse.challenge_type === ChallengeType.PASSWORD) {
-            // Password is required
-            this.logger.verbose("Challenge type is password for sign in.", request.correlationId);
-
-            return new SignInPasswordRequiredResult(
-                challengeResponse.correlation_id,
-                challengeResponse.continuation_token ?? "",
-            );
-        }
-
-        this.logger.error(
-            `Unsupported challenge type '${challengeResponse.challenge_type}' for sign in.`,
-            request.correlationId,
-        );
-
-        throw new CustomAuthApiError(
-            CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
-            `Unsupported challenge type '${challengeResponse.challenge_type}'.`,
-            request.correlationId,
-        );
-    }
-
-    private async performContinueRequest(
-        callerName: string,
-        requestParams: SignInParamsBase,
-        telemetryManager: ServerTelemetryManager,
-        responseGetter: () => Promise<any>,
-        requestCorrelationId: string,
-    ): Promise<SignInCompletedResult | SignInPasswordRequiredResult | SignInCodeRequiredResult> {
-        this.logger.verbose(`${callerName} is calling continue endpoint for sign in.`, requestCorrelationId);
-
+    async submitPassword(params: SignInPasswordParameters): Promise<SignInSubmitPasswordResult> {
         try {
-            const response = await responseGetter();
+            const response = await this.apiClient.submitPassword(
+                params.clientId,
+                params.username,
+                params.password,
+                params.continuationToken,
+                params.challengeType,
+                params.scopes,
+                params.correlationId
+            );
 
-            this.logger.verbose(`Continue endpoint called by ${callerName} for sign in.`, requestCorrelationId);
-
-            return new SignInCompletedResult(requestCorrelationId, response.continuation_token ?? "");
+            if (response.success) {
+                if (response.authenticationResult) {
+                    // Authentication completed successfully with password
+                    return SignInSubmitPasswordResult.createSuccessAuthResult(
+                        response.authenticationResult,
+                        params.correlationId
+                    );
+                } else if (response.continuationToken && response.codeLength) {
+                    // Additional verification required (code)
+                    return SignInSubmitPasswordResult.createSuccessCodeRequired(
+                        response.continuationToken,
+                        response.codeLength,
+                        params.correlationId
+                    );
+                } else {
+                    // Unexpected API response
+                    return SignInSubmitPasswordResult.createWithError(
+                        SignInErrorType.UNEXPECTED_RESPONSE,
+                        "Unexpected API response format",
+                        params.correlationId
+                    );
+                }
+            } else {
+                // API reported error
+                return SignInSubmitPasswordResult.createWithError(
+                    response.errorType || SignInErrorType.INVALID_CREDENTIALS,
+                    response.errorMessage || "Failed to authenticate with password",
+                    params.correlationId
+                );
+            }
         } catch (error) {
-            if (error instanceof CustomAuthApiError) {
-                return this.handleContinueResponseError(
-                    error,
-                    error.correlationId ?? requestCorrelationId,
-                    requestParams,
-                    telemetryManager,
+            // Network or unexpected error
+            return SignInSubmitPasswordResult.createWithError(
+                SignInErrorType.NETWORK_ERROR,
+                error instanceof Error ? error.message : "Network error during sign-in",
+                params.correlationId
+            );
+        }
+    }
+
+    /**
+     * Submit verification code for sign-in
+     * @param params - Parameters for code submission
+     * @returns Promise resolving to the result of submitting the code
+     */
+    async submitCode(params: SignInCodeParameters): Promise<SignInSubmitCodeResult> {
+        try {
+            const response = await this.apiClient.submitVerificationCode(
+                params.clientId,
+                params.username,
+                params.code,
+                params.continuationToken,
+                params.challengeType,
+                params.scopes,
+                params.correlationId
+            );
+
+            if (response.success && response.authenticationResult) {
+                // Authentication completed successfully with code
+                return SignInSubmitCodeResult.createSuccessResult(
+                    response.authenticationResult,
+                    params.correlationId
                 );
             } else {
-                this.logger.errorPii(
-                    `${callerName} failed to call continue endpoint for sign in. Error: ${error}`,
-                    requestCorrelationId,
+                // API reported error or unexpected response
+                return SignInSubmitCodeResult.createWithError(
+                    response.errorType || SignInErrorType.INVALID_CODE,
+                    response.errorMessage || "Failed to authenticate with verification code",
+                    params.correlationId
                 );
-
-                throw new UnexpectedError(error, requestCorrelationId);
             }
-        }
-    }
-
-    private async handleContinueResponseError(
-        responseError: CustomAuthApiError,
-        correlationId: string,
-        requestParams: SignInParamsBase,
-        telemetryManager: ServerTelemetryManager,
-    ): Promise<SignInPasswordRequiredResult | SignInCodeRequiredResult> {
-        if (
-            responseError.error === CustomAuthApiErrorCode.CREDENTIAL_REQUIRED &&
-            !!responseError.errorCodes &&
-            responseError.errorCodes.includes(55103)
-        ) {
-            // Credential is required
-            this.logger.verbose("The credential is required in the sign in flow.", correlationId);
-
-            const continuationToken = this.readContinuationTokenFromResponeError(responseError);
-
-            // Call the challenge endpoint to ensure the password challenge type is supported.
-            const challengeRequest = {
-                continuation_token: continuationToken,
-                challenge_type: this.getChallengeTypes(requestParams.challengeType),
-                telemetryManager,
-                correlationId,
-            };
-
-            return this.performChallengeRequest(challengeRequest);
-        }
-
-        throw responseError;
-    }
-
-    private readContinuationTokenFromResponeError(responseError: CustomAuthApiError): string {
-        if (!responseError.continuationToken) {
-            throw new CustomAuthApiError(
-                CustomAuthApiErrorCode.CONTINUATION_TOKEN_MISSING,
-                "Continuation token is missing in the response body",
-                responseError.correlationId,
+        } catch (error) {
+            // Network or unexpected error
+            return SignInSubmitCodeResult.createWithError(
+                SignInErrorType.NETWORK_ERROR,
+                error instanceof Error ? error.message : "Network error during code verification",
+                params.correlationId
             );
         }
+    }
 
-        return responseError.continuationToken;
+    /**
+     * Request a new verification code for sign-in
+     * @param params - Parameters for code resend request
+     * @returns Promise resolving to the result of requesting a new code
+     */
+    async resendCode(params: SignInResendCodeParameters): Promise<SignInResendCodeResult> {
+        try {
+            const response = await this.apiClient.resendVerificationCode(
+                params.clientId,
+                params.username,
+                params.continuationToken,
+                params.challengeType,
+                params.correlationId
+            );
+
+            if (response.success && response.codeLength) {
+                // New code sent successfully
+                return SignInResendCodeResult.createSuccessResult(
+                    response.codeLength,
+                    params.correlationId
+                );
+            } else {
+                // API reported error or unexpected response
+                return SignInResendCodeResult.createWithError(
+                    response.errorType || SignInErrorType.RESEND_FAILED,
+                    response.errorMessage || "Failed to resend verification code",
+                    params.correlationId
+                );
+            }
+        } catch (error) {
+            // Network or unexpected error
+            return SignInResendCodeResult.createWithError(
+                SignInErrorType.NETWORK_ERROR,
+                error instanceof Error ? error.message : "Network error during code resend",
+                params.correlationId
+            );
+        }
     }
 }

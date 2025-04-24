@@ -3,29 +3,87 @@
  * Licensed under the MIT License.
  */
 
-export interface SignInParamsBase {
+/**
+ * Base parameters for sign-in operations
+ */
+export interface SignInBaseParams {
+    /**
+     * Client ID of the application
+     */
     clientId: string;
-    challengeType: Array<string>;
-    username: string;
+    
+    /**
+     * Correlation ID for request tracing
+     */
     correlationId: string;
+    
+    /**
+     * Types of challenges supported for authentication
+     */
+    challengeType: string[];
+    
+    /**
+     * Username for authentication
+     */
+    username: string;
 }
 
-export interface SignInStartParams extends SignInParamsBase {
+/**
+ * Parameters for starting the sign-in flow
+ */
+export interface SignInStartParams extends SignInBaseParams {
+    /**
+     * Optional password for authentication if available
+     */
     password?: string;
 }
 
-export interface SignInResendCodeParams extends SignInParamsBase {
+/**
+ * Parameters for submitting a password during sign-in
+ */
+export interface SignInSubmitPasswordParams extends SignInBaseParams {
+    /**
+     * Continuation token from previous operation
+     */
     continuationToken: string;
-}
-
-export interface SignInContinueParams extends SignInParamsBase {
-    continuationToken: string;
-}
-
-export interface SignInSubmitCodeParams extends SignInContinueParams {
-    code: string;
-}
-
-export interface SignInSubmitPasswordParams extends SignInContinueParams {
+    
+    /**
+     * Password for authentication
+     */
     password: string;
+    
+    /**
+     * Scopes to request for the auth token
+     */
+    scopes: string[];
+}
+
+/**
+ * Parameters for submitting a verification code during sign-in
+ */
+export interface SignInSubmitCodeParams extends SignInBaseParams {
+    /**
+     * Continuation token from previous operation
+     */
+    continuationToken: string;
+    
+    /**
+     * Verification code received by user
+     */
+    code: string;
+    
+    /**
+     * Scopes to request for the auth token
+     */
+    scopes: string[];
+}
+
+/**
+ * Parameters for requesting a new verification code during sign-in
+ */
+export interface SignInResendCodeParams extends SignInBaseParams {
+    /**
+     * Continuation token from previous operation
+     */
+    continuationToken: string;
 }

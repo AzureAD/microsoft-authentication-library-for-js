@@ -3,67 +3,87 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
-import { SignInSubmitPasswordError } from "../error_type/SignInError.js";
-import { SignInCodeRequiredState } from "../state/SignInCodeRequiredState.js";
-import { SignInCompletedState } from "../state/SignInCompletedState.js";
-import { SignInFailedState } from "../state/SignInFailedState.js";
-
-/*
- * Result of a sign-in operation that requires a password.
- */
-export class SignInSubmitPasswordResult extends AuthFlowResultBase<
-    SignInSubmitPasswordResultState,
-    SignInSubmitPasswordError,
-    void
-> {
-    /**
-     * Creates a new instance of SignInSubmitPasswordResult.
-     * @param state The state of the result.
-     */
-    constructor(state: SignInSubmitPasswordResultState) {
-        super(state);
-    }
-
-    /**
-     * Creates a new instance of SignInSubmitPasswordResult with an error.
-     * @param error The error that occurred.
-     * @returns {SignInSubmitPasswordResult} A new instance of SignInSubmitPasswordResult with the error set.
-     */
-    static createWithError(error: unknown): SignInSubmitPasswordResult {
-        const result = new SignInSubmitPasswordResult(new SignInFailedState());
-        result.error = new SignInSubmitPasswordError(SignInSubmitPasswordResult.createErrorData(error));
-
-        return result;
-    }
-
-    /**
-     * Checks if the result is in a failed state.
-     */
-    isFailed(): this is SignInSubmitPasswordResult & { state: SignInFailedState } {
-        return this.state instanceof SignInFailedState;
-    }
-
-    /**
-     * Checks if the result is in a code required state.
-     */
-    isCodeRequired(): this is SignInSubmitPasswordResult & { state: SignInCodeRequiredState } {
-        return this.state instanceof SignInCodeRequiredState;
-    }
-
-    /**
-     * Checks if the result is in a completed state.
-     */
-    isCompleted(): this is SignInSubmitPasswordResult & { state: SignInCompletedState } {
-        return this.state instanceof SignInCompletedState;
-    }
-}
+import { AuthenticationResult } from "@azure/msal-browser";
+import { SignInErrorType } from "../error_type/SignInError.js";
 
 /**
- * The possible states for the SignInSubmitPasswordResult.
- * This includes:
- * - SignInCodeRequiredState: The sign-in process requires a code.
- * - SignInCompletedState: The sign-in process has completed successfully.
- * - SignInFailedState: The sign-in process has failed.
+ * Result of submitting a password during sign-in
  */
-export type SignInSubmitPasswordResultState = SignInCodeRequiredState | SignInCompletedState | SignInFailedState;
+export class SignInSubmitPasswordResult {
+    /**
+     * Whether the operation was successful
+     */
+    readonly success: boolean;
+    
+    /**
+     * Authentication result when sign-in is successful
+     */
+    readonly authenticationResult?: AuthenticationResult;
+    
+    /**
+     * Error type when sign-in fails
+     */
+    readonly errorType?: SignInErrorType;
+    
+    /**
+     * Error message providing details about the failure
+     */
+    readonly errorMessage?: string;
+    
+    /**
+     * Correlation ID for request tracing
+     */
+    readonly correlationId?: string;
+
+    /**
+     * Creates an instance of SignInSubmitPasswordResult
+     * @param success - Whether the operation was successful
+     * @param authenticationResult - Authentication result when successful
+     * @param errorType - Error type when operation fails
+     * @param errorMessage - Error message when operation fails
+     * @param correlationId - Correlation ID for request tracing
+     */
+    constructor(
+        success: boolean,
+        authenticationResult?: AuthenticationResult,
+        errorType?: SignInErrorType,
+        errorMessage?: string,
+        correlationId?: string
+    ) {
+        this.success = success;
+        this.authenticationResult = authenticationResult;
+        this.errorType = errorType;
+        this.errorMessage = errorMessage;
+        this.correlationId = correlationId;
+    }
+
+    /**
+     * Creates a successful result
+     * @param authenticationResult - Authentication result
+     * @returns A new successful SignInSubmitPasswordResult instance
+     */
+    static createSuccessResult(authenticationResult: AuthenticationResult): SignInSubmitPasswordResult {
+        return new SignInSubmitPasswordResult(true, authenticationResult);
+    }
+
+    /**
+     * Creates a result with error information
+     * @param errorType - Type of error that occurred
+     * @param errorMessage - Error message
+     * @param correlationId - Correlation ID for request tracing
+     * @returns A new SignInSubmitPasswordResult instance with error information
+     */
+    static createWithError(
+        errorType: SignInErrorType,
+        errorMessage: string,
+        correlationId?: string
+    ): SignInSubmitPasswordResult {
+        return new SignInSubmitPasswordResult(
+            false,
+            undefined,
+            errorType,
+            errorMessage,
+            correlationId
+        );
+    }
+}

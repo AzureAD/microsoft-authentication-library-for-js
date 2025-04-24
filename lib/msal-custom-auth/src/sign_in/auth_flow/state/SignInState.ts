@@ -3,47 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
-import { AuthFlowActionRequiredStateBase } from "../../../core/auth_flow/AuthFlowState.js";
-import { SignInStateParameters } from "./SignInStateParameters.js";
+import { SignInCodeRequiredState } from "./SignInCodeRequiredState.js";
+import { SignInCompletedState } from "./SignInCompletedState.js";
+import { SignInFailedState } from "./SignInFailedState.js";
+import { SignInPasswordRequiredState } from "./SignInPasswordRequiredState.js";
 
-/*
- * Base state handler for sign-in flow.
+/**
+ * Union type representing all possible states of the sign-in flow
  */
-export abstract class SignInState<
-    TParameters extends SignInStateParameters,
-> extends AuthFlowActionRequiredStateBase<TParameters> {
-    /*
-     * Creates a new SignInState.
-     * @param stateParameters - The state parameters for sign-in.
-     */
-    constructor(stateParameters: TParameters) {
-        super(stateParameters);
-
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "config",
-            stateParameters.config,
-            stateParameters.correlationId,
-        );
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "username",
-            stateParameters.username,
-            stateParameters.correlationId,
-        );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "signInClient",
-            stateParameters.signInClient,
-            stateParameters.correlationId,
-        );
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "continuationToken",
-            stateParameters.continuationToken,
-            stateParameters.correlationId,
-        );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "cacheClient",
-            stateParameters.cacheClient,
-            stateParameters.correlationId,
-        );
-    }
-}
+export type SignInState = SignInPasswordRequiredState | SignInCodeRequiredState | SignInCompletedState | SignInFailedState;
