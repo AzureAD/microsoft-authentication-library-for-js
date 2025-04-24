@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "formatting: separate imports in msal-angular/constants.ts",
+  "packageName": "@azure/msal-angular",
+  "email": "bradkovach@gmail.com",
+  "dependentChangeType": "patch"
+}
