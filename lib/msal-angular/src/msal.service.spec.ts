@@ -40,7 +40,7 @@ function initializeMsal() {
 }
 
 describe("MsalService", () => {
-  beforeAll(initializeMsal);
+  beforeEach(initializeMsal);
 
   describe("loginPopup", () => {
     it("success", (done) => {

@@ -3,7 +3,27 @@
  * Licensed under the MIT License.
  */
 
-import { TenantProfile } from "../../account/AccountInfo.js";
+import { CacheAccountType, Separators } from "../../utils/Constants.js";
+import type { Authority } from "../../authority/Authority.js";
+import { ICrypto } from "../../crypto/ICrypto.js";
+import { ClientInfo, buildClientInfo } from "../../account/ClientInfo.js";
+import {
+    AccountInfo,
+    TenantProfile,
+    buildTenantProfile,
+} from "../../account/AccountInfo.js";
+import {
+    createClientAuthError,
+    ClientAuthErrorCodes,
+} from "../../error/ClientAuthError.js";
+import { AuthorityType } from "../../authority/AuthorityType.js";
+import { Logger } from "../../logger/Logger.js";
+import {
+    TokenClaims,
+    getTenantIdFromIdTokenClaims,
+} from "../../account/TokenClaims.js";
+import { ProtocolMode } from "../../authority/ProtocolMode.js";
+
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).
  *
