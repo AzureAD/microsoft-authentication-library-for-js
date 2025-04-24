@@ -15,6 +15,7 @@ import {
     createInteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
     ClientAssertion,
+    AccountEntityUtils,
 } from "@azure/msal-common";
 import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
@@ -236,7 +237,7 @@ describe("ConfidentialClientApplication", () => {
             buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
 
         const testAccount: AccountInfo = {
-            ...testAccountEntity.getAccountInfo(),
+            ...AccountEntityUtils.getAccountInfo(testAccountEntity),
             idTokenClaims: ID_TOKEN_CLAIMS,
             idToken: TEST_TOKENS.IDTOKEN_V2,
         };
@@ -360,7 +361,7 @@ describe("ConfidentialClientApplication", () => {
             };
 
             let acquireTokenByClientCredentialSpy: jest.SpyInstance;
-            let buildOauthClientConfigurationSpy: jest.SpyInstance;
+            let createAuthoritySpy: jest.SpyInstance;
             let sendPostRequestAsyncSpy: jest.SpyInstance;
             let client: ConfidentialClientApplication;
             let request: ClientCredentialRequest;
@@ -370,9 +371,9 @@ describe("ConfidentialClientApplication", () => {
                     <any>"acquireTokenByClientCredential"
                 );
 
-                buildOauthClientConfigurationSpy = jest.spyOn(
+                createAuthoritySpy = jest.spyOn(
                     ConfidentialClientApplication.prototype,
-                    <any>"buildOauthClientConfiguration"
+                    <any>"createAuthority"
                 );
 
                 sendPostRequestAsyncSpy = jest.spyOn(
@@ -404,10 +405,9 @@ describe("ConfidentialClientApplication", () => {
                 expect(acquireTokenByClientCredentialSpy).toHaveBeenCalledTimes(
                     1
                 );
-                expect(
-                    buildOauthClientConfigurationSpy.mock.lastCall[4]
-                        .azureRegion
-                ).toEqual(process.env[MSAL_FORCE_REGION]);
+                expect(createAuthoritySpy.mock.lastCall[2].azureRegion).toEqual(
+                    process.env[MSAL_FORCE_REGION]
+                );
 
                 checkRegion(
                     sendPostRequestAsyncSpy.mock.lastCall[0],
@@ -427,10 +427,9 @@ describe("ConfidentialClientApplication", () => {
                 expect(acquireTokenByClientCredentialSpy).toHaveBeenCalledTimes(
                     1
                 );
-                expect(
-                    buildOauthClientConfigurationSpy.mock.lastCall[4]
-                        .azureRegion
-                ).toEqual(region);
+                expect(createAuthoritySpy.mock.lastCall[2].azureRegion).toEqual(
+                    region
+                );
 
                 checkRegion(sendPostRequestAsyncSpy.mock.lastCall[0], region);
             });
@@ -446,8 +445,7 @@ describe("ConfidentialClientApplication", () => {
                     1
                 );
                 expect(
-                    buildOauthClientConfigurationSpy.mock.lastCall[4]
-                        .azureRegion
+                    createAuthoritySpy.mock.lastCall[2].azureRegion
                 ).toBeUndefined();
 
                 const endpoint: string =

@@ -20,16 +20,17 @@ import {
     CacheHelpers,
     buildAccountToCache,
     TimeUtils,
+    AccountEntityUtils,
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
-import { SilentRequest } from "../request/SilentRequest.js";
+import type { SilentRequest } from "../request/SilentRequest.js";
 import { BrowserCacheManager } from "./BrowserCacheManager.js";
-import { ITokenCache } from "./ITokenCache.js";
+import type { ITokenCache } from "./ITokenCache.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
-import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import type { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
 
@@ -95,12 +96,10 @@ export class TokenCache implements ITokenCache {
             : undefined;
 
         const authorityOptions: AuthorityOptions = {
-            protocolMode: this.config.auth.protocolMode,
+            protocolMode: this.config.system.protocolMode,
             knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
             authorityMetadata: this.config.auth.authorityMetadata,
-            skipAuthorityMetadataCache:
-                this.config.auth.skipAuthorityMetadataCache,
         };
         const authority = request.authority
             ? new Authority(
@@ -181,9 +180,10 @@ export class TokenCache implements ITokenCache {
         this.logger.verbose("TokenCache - loading account");
 
         if (request.account) {
-            const accountEntity = AccountEntity.createFromAccountInfo(
-                request.account
-            );
+            const accountEntity =
+                AccountEntityUtils.createAccountEntityFromAccountInfo(
+                    request.account
+                );
             await this.storage.setAccount(accountEntity, correlationId);
             return accountEntity;
         } else if (!authority || (!clientInfo && !idTokenClaims)) {
@@ -195,7 +195,7 @@ export class TokenCache implements ITokenCache {
             );
         }
 
-        const homeAccountId = AccountEntity.generateHomeAccountId(
+        const homeAccountId = AccountEntityUtils.generateHomeAccountId(
             clientInfo,
             authority.authorityType,
             this.logger,
@@ -405,7 +405,7 @@ export class TokenCache implements ITokenCache {
             uniqueId: cacheRecord.account.localAccountId,
             tenantId: cacheRecord.account.realm,
             scopes: responseScopes,
-            account: accountEntity.getAccountInfo(),
+            account: AccountEntityUtils.getAccountInfo(accountEntity),
             idToken: cacheRecord.idToken?.secret || "",
             idTokenClaims: idTokenClaims || {},
             accessToken: accessToken,

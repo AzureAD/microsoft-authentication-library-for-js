@@ -1,6 +1,6 @@
 {
-  "type": "minor",
-  "comment": "refactor RequestParameterBuilder",
+  "type": "patch",
+  "comment": "Fix circular type imports",
   "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

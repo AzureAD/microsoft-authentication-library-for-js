@@ -29,8 +29,6 @@ import { NodeAuthError } from "../error/NodeAuthError.js";
  * - clientSecret           - Secret string that the application uses when requesting a token. Only used in confidential client applications. Can be created in the Azure app registration portal.
  * - clientAssertion        - A ClientAssertion object containing an assertion string or a callback function that returns an assertion string that the application uses when requesting a token, as well as the assertion's type (urn:ietf:params:oauth:client-assertion-type:jwt-bearer). Only used in confidential client applications.
  * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 or SHA-256 thumbprint of the certificate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
- * - protocolMode           - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
- * - skipAuthorityMetadataCache - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
  * @public
  */
 export type NodeAuthOptions = {
@@ -52,9 +50,7 @@ export type NodeAuthOptions = {
     cloudDiscoveryMetadata?: string;
     authorityMetadata?: string;
     clientCapabilities?: Array<string>;
-    protocolMode?: ProtocolMode;
     azureCloudOptions?: AzureCloudOptions;
-    skipAuthorityMetadataCache?: boolean;
 };
 
 /**
@@ -65,10 +61,6 @@ export type NodeAuthOptions = {
  */
 export type CacheOptions = {
     cachePlugin?: ICachePlugin;
-    /**
-     * @deprecated claims-based-caching functionality will be removed in the next version of MSALJS
-     */
-    claimsBasedCachingEnabled?: boolean;
 };
 
 /**
@@ -87,6 +79,7 @@ export type BrokerOptions = {
  *
  * - logger                       - Used to initialize the Logger object; TODO: Expand on logger details or link to the documentation on logger
  * - networkClient                - Http client used for all http get and post calls. Defaults to using MSAL's default http client.
+ * - protocolMode           - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  * @public
  */
 export type NodeSystemOptions = {
@@ -95,6 +88,7 @@ export type NodeSystemOptions = {
     proxyUrl?: string;
     customAgentOptions?: http.AgentOptions | https.AgentOptions;
     disableInternalRetries?: boolean;
+    protocolMode?: ProtocolMode;
 };
 
 /** @public */
@@ -148,16 +142,10 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     cloudDiscoveryMetadata: Constants.EMPTY_STRING,
     authorityMetadata: Constants.EMPTY_STRING,
     clientCapabilities: [],
-    protocolMode: ProtocolMode.AAD,
     azureCloudOptions: {
         azureCloudInstance: AzureCloudInstance.None,
         tenant: Constants.EMPTY_STRING,
     },
-    skipAuthorityMetadataCache: false,
-};
-
-const DEFAULT_CACHE_OPTIONS: CacheOptions = {
-    claimsBasedCachingEnabled: false,
 };
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
@@ -174,6 +162,7 @@ const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     proxyUrl: Constants.EMPTY_STRING,
     customAgentOptions: {} as http.AgentOptions | https.AgentOptions,
     disableInternalRetries: false,
+    protocolMode: ProtocolMode.AAD,
 };
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
@@ -232,7 +221,7 @@ export function buildAppConfiguration({
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         broker: { ...broker },
-        cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
+        cache: { ...cache },
         system: { ...systemOptions, ...system },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },
     };

@@ -31,6 +31,8 @@ import {
     ClientAssertionCallback,
     ClientAssertionConfig,
     PasswordGrantConstants,
+    OAuthResponseType,
+    AccountEntityUtils,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -55,7 +57,7 @@ export class MockStorageClass extends CacheManager {
     // Accounts
     getAccount(key: string): AccountEntity | null {
         const account: AccountEntity = this.store[key] as AccountEntity;
-        if (AccountEntity.isAccountEntity(account)) {
+        if (AccountEntityUtils.isAccountEntity(account)) {
             return account;
         }
         return null;
@@ -66,7 +68,7 @@ export class MockStorageClass extends CacheManager {
     }
 
     async setAccount(value: AccountEntity): Promise<void> {
-        const key = value.generateAccountKey();
+        const key = AccountEntityUtils.generateAccountKey(value);
         this.store[key] = value;
 
         const currentAccounts = this.getAccountKeys();
@@ -390,12 +392,12 @@ export class ClientTestUtils {
                 cloudDiscoveryMetadata: "",
                 authorityMetadata: "",
                 clientCapabilities,
-                protocolMode: ProtocolMode.AAD,
             },
             // broker, cache
             system: {
                 loggerOptions,
                 networkClient: mockHttpClient,
+                protocolMode: ProtocolMode.AAD,
             },
             telemetry: {
                 application: {
@@ -526,7 +528,9 @@ export const checkMockedNetworkRequest = (
     if (checks.msLibraryCapability !== undefined) {
         expect(
             returnVal.includes(
-                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${encodeURIComponent(
+                    ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                )}`
             )
         ).toBe(checks.msLibraryCapability);
     }
@@ -574,7 +578,9 @@ export const checkMockedNetworkRequest = (
     if (checks.responseType !== undefined) {
         expect(
             returnVal.includes(
-                `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.TOKEN_RESPONSE_TYPE}%20${Constants.ID_TOKEN_RESPONSE_TYPE}`
+                `${AADServerParamKeys.RESPONSE_TYPE}=${encodeURIComponent(
+                    OAuthResponseType.IDTOKEN_TOKEN
+                )}`
             )
         ).toBe(checks.responseType);
     }

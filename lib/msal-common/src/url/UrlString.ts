@@ -10,7 +10,6 @@ import {
 import { StringUtils } from "../utils/StringUtils.js";
 import { IUri } from "./IUri.js";
 import { AADAuthorityConstants, Constants } from "../utils/Constants.js";
-import * as UrlUtils from "../utils/UrlUtils.js";
 
 /**
  * Url object class which can perform various transformations on url strings.
@@ -214,13 +213,5 @@ export class UrlString {
                 "/" +
                 urlObject.PathSegments.join("/")
         );
-    }
-
-    /**
-     * Check if the hash of the URL string contains known properties
-     * @deprecated This API will be removed in a future version
-     */
-    static hashContainsKnownProperties(response: string): boolean {
-        return !!UrlUtils.getDeserializedResponse(response);
     }
 }

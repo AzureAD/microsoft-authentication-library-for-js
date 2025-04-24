@@ -18,7 +18,7 @@ import {
     B2C_OPENID_CONFIG_RESPONSE,
 } from "../test_kit/StringConstants";
 import {
-    ClientConfigurationErrorMessage,
+    ClientConfigurationErrorMessages,
     ClientConfigurationError,
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
@@ -153,8 +153,10 @@ describe("Authority.ts Class Unit Tests", () => {
                         logger,
                         TEST_CONFIG.CORRELATION_ID
                     )
-            ).toThrowError(
-                ClientConfigurationErrorMessage.authorityUriInsecure.desc
+            ).toThrow(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.authorityUriInsecure
+                )
             );
             expect(
                 () =>
@@ -166,7 +168,11 @@ describe("Authority.ts Class Unit Tests", () => {
                         logger,
                         TEST_CONFIG.CORRELATION_ID
                     )
-            ).toThrowError(ClientConfigurationErrorMessage.urlParseError.desc);
+            ).toThrow(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.urlParseError
+                )
+            );
             expect(
                 () =>
                     new Authority(
@@ -177,7 +183,11 @@ describe("Authority.ts Class Unit Tests", () => {
                         logger,
                         TEST_CONFIG.CORRELATION_ID
                     )
-            ).toThrowError(ClientConfigurationErrorMessage.urlEmptyError.desc);
+            ).toThrow(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.urlEmptyError
+                )
+            );
         });
     });
 
@@ -222,17 +232,23 @@ describe("Authority.ts Class Unit Tests", () => {
                 () =>
                     (authority.canonicalAuthority =
                         "http://login.microsoftonline.com/common")
-            ).toThrowError(
-                ClientConfigurationErrorMessage.authorityUriInsecure.desc
+            ).toThrow(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.authorityUriInsecure
+                )
             );
             expect(
                 () =>
                     (authority.canonicalAuthority =
                         "https://login.microsoftonline.com/")
-            ).not.toThrowError();
+            ).not.toThrow();
             expect(
                 () => (authority.canonicalAuthority = "This is not a URI")
-            ).toThrowError(ClientConfigurationErrorMessage.urlParseError.desc);
+            ).toThrow(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.urlParseError
+                )
+            );
 
             authority.canonicalAuthority = `${TEST_URIS.ALTERNATE_INSTANCE}/${RANDOM_TEST_GUID}`;
             expect(authority.canonicalAuthority.endsWith("/")).toBe(true);
@@ -1083,8 +1099,10 @@ describe("Authority.ts Class Unit Tests", () => {
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toBe(
-                        ClientConfigurationErrorMessage.invalidAuthorityMetadata
-                            .desc
+                        ClientConfigurationErrorMessages[
+                            ClientConfigurationErrorCodes
+                                .invalidAuthorityMetadata
+                        ]
                     );
                     done();
                 });
@@ -1125,7 +1143,6 @@ describe("Authority.ts Class Unit Tests", () => {
                     knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: "",
-                    skipAuthorityMetadataCache: false,
                 };
 
                 networkInterface.sendGetRequestAsync = (
@@ -1190,7 +1207,6 @@ describe("Authority.ts Class Unit Tests", () => {
                     knownAuthorities: [],
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: "",
-                    skipAuthorityMetadataCache: false,
                 };
 
                 const tenantId = "fake-tenant-id";
@@ -1249,7 +1265,6 @@ describe("Authority.ts Class Unit Tests", () => {
                     knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: "",
-                    skipAuthorityMetadataCache: false,
                     azureRegionConfiguration: {
                         azureRegion: "westus2",
                         environmentRegion: undefined,
@@ -1400,91 +1415,6 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(
                     getEndpointMetadataFromHarcodedValuesSpy
                 ).toHaveBeenCalled();
-                expect(
-                    getEndpointMetadataFromNetworkSpy
-                ).not.toHaveBeenCalled();
-            });
-
-            it("Gets endpoints from cache skipping hardcoded metadata if skipAuthorityMetadataCache is set to true", async () => {
-                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
-                mockStorage.setAuthorityMetadata(
-                    key,
-                    authorityMetadataCacheValue
-                );
-
-                authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
-                    networkInterface,
-                    mockStorage,
-                    { ...authorityOptions, skipAuthorityMetadataCache: true },
-                    logger,
-                    TEST_CONFIG.CORRELATION_ID
-                );
-
-                // Force hardcoded metadata to return null
-                getEndpointMetadataFromHarcodedValuesSpy.mockReturnValue(null);
-                await authority.resolveEndpointsAsync();
-
-                expect(authority.discoveryComplete()).toBe(true);
-                expect(authority.authorizationEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                );
-                expect(authority.tokenEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                );
-                expect(authority.deviceCodeEndpoint).toBe(
-                    authority.tokenEndpoint.replace("/token", "/devicecode")
-                );
-                expect(authority.endSessionEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                );
-                expect(authority.selfSignedJwtAudience).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                );
-
-                // Test that the metadata is cached
-                const cachedAuthorityMetadata =
-                    mockStorage.getAuthorityMetadata(key);
-                if (!cachedAuthorityMetadata) {
-                    throw Error("Cached AuthorityMetadata should not be null!");
-                } else {
-                    expect(cachedAuthorityMetadata.authorization_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body
-                            .authorization_endpoint
-                    );
-                    expect(cachedAuthorityMetadata.token_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint
-                    );
-                    expect(cachedAuthorityMetadata.end_session_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint
-                    );
-                    expect(cachedAuthorityMetadata.issuer).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer
-                    );
-                    expect(cachedAuthorityMetadata.jwks_uri).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri
-                    );
-                    expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(
-                        true
-                    );
-                }
-
-                expect(getEndpointMetadataFromConfigSpy).toHaveBeenCalled();
-                expect(
-                    getEndpointMetadataFromHarcodedValuesSpy
-                ).not.toHaveBeenCalled();
                 expect(
                     getEndpointMetadataFromNetworkSpy
                 ).not.toHaveBeenCalled();
@@ -1674,10 +1604,13 @@ describe("Authority.ts Class Unit Tests", () => {
                     Constants.DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
-                    { ...authorityOptions, skipAuthorityMetadataCache: true },
+                    authorityOptions,
                     logger,
                     TEST_CONFIG.CORRELATION_ID
                 );
+                // Force hardcoded metadata to return null
+                getEndpointMetadataFromHarcodedValuesSpy.mockReturnValue(null);
+
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientAuthError);
                     expect(e.errorCode).toBe(
@@ -2003,100 +1936,6 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(
                         getCloudDiscoveryMetadataFromHarcodedValuesSpy
                     ).toHaveBeenCalled();
-                    expect(
-                        getCloudDiscoveryMetadataFromNetworkSpy
-                    ).not.toHaveBeenCalled();
-                });
-
-                it("Sets instance metadata from cache skipping hardcoded values if skipAuthorityMetadataCache is set to true", async () => {
-                    const authorityOptions: AuthorityOptions = {
-                        protocolMode: ProtocolMode.AAD,
-                        knownAuthorities: [],
-                        cloudDiscoveryMetadata: "",
-                        authorityMetadata: "",
-                    };
-
-                    const tenantDiscoveryResponseBody =
-                        DEFAULT_TENANT_DISCOVERY_RESPONSE.body;
-
-                    const expectedCloudDiscoveryMetadata =
-                        tenantDiscoveryResponseBody.metadata[0];
-
-                    const configAliases =
-                        expectedCloudDiscoveryMetadata.aliases;
-
-                    const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-sts.windows.net`;
-                    mockStorage.setAuthorityMetadata(
-                        key,
-                        authorityMetadataCacheValue
-                    );
-                    jest.spyOn(
-                        Authority.prototype,
-                        <any>"updateEndpointMetadata"
-                    ).mockResolvedValue("cache");
-                    authority = new Authority(
-                        Constants.DEFAULT_AUTHORITY,
-                        networkInterface,
-                        mockStorage,
-                        {
-                            ...authorityOptions,
-                            skipAuthorityMetadataCache: true,
-                        },
-                        logger,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-
-                    getCloudDiscoveryMetadataFromHarcodedValuesSpy.mockReturnValue(
-                        null
-                    );
-
-                    await authority.resolveEndpointsAsync();
-                    expect(authority.isAlias(configAliases[0])).toBe(true);
-                    expect(authority.isAlias(configAliases[1])).toBe(true);
-                    expect(authority.isAlias(configAliases[2])).toBe(true);
-                    expect(authority.getPreferredCache()).toBe(
-                        expectedCloudDiscoveryMetadata.preferred_cache
-                    );
-                    expect(
-                        authority.canonicalAuthority.includes(
-                            expectedCloudDiscoveryMetadata.preferred_network
-                        )
-                    ).toBe(true);
-
-                    // Test that the metadata is cached
-                    const cachedAuthorityMetadata =
-                        mockStorage.getAuthorityMetadata(key);
-                    if (!cachedAuthorityMetadata) {
-                        throw Error(
-                            "Cached AuthorityMetadata should not be null!"
-                        );
-                    } else {
-                        expect(cachedAuthorityMetadata.aliases).toContain(
-                            configAliases[0]
-                        );
-                        expect(cachedAuthorityMetadata.aliases).toContain(
-                            configAliases[1]
-                        );
-                        expect(cachedAuthorityMetadata.aliases).toContain(
-                            configAliases[2]
-                        );
-                        expect(cachedAuthorityMetadata.preferred_cache).toBe(
-                            expectedCloudDiscoveryMetadata.preferred_cache
-                        );
-                        expect(cachedAuthorityMetadata.preferred_network).toBe(
-                            expectedCloudDiscoveryMetadata.preferred_network
-                        );
-                        expect(cachedAuthorityMetadata.aliasesFromNetwork).toBe(
-                            true
-                        );
-                    }
-
-                    expect(
-                        getCloudDiscoveryMetadataFromConfigSpy
-                    ).toHaveBeenCalled();
-                    expect(
-                        getCloudDiscoveryMetadataFromHarcodedValuesSpy
-                    ).not.toHaveBeenCalled();
                     expect(
                         getCloudDiscoveryMetadataFromNetworkSpy
                     ).not.toHaveBeenCalled();
@@ -2477,20 +2316,31 @@ describe("Authority.ts Class Unit Tests", () => {
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toBe(
-                        ClientConfigurationErrorMessage
-                            .invalidCloudDiscoveryMetadata.desc
+                        ClientConfigurationErrorMessages[
+                            ClientConfigurationErrorCodes
+                                .invalidCloudDiscoveryMetadata
+                        ]
                     );
                     done();
                 });
             });
 
             it("throws untrustedAuthority error if host is not part of knownAuthorities, cloudDiscoveryMetadata and instance discovery network call fails", (done) => {
+                const getCloudDiscoveryMetadataFromHarcodedValuesSpy: jest.SpyInstance =
+                    jest.spyOn(
+                        authorityMetadata,
+                        "getCloudDiscoveryMetadataFromHardcodedValues"
+                    );
+
+                getCloudDiscoveryMetadataFromHarcodedValuesSpy.mockReturnValue(
+                    null
+                );
+
                 const authorityOptions: AuthorityOptions = {
                     protocolMode: ProtocolMode.AAD,
                     knownAuthorities: [],
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: "",
-                    skipAuthorityMetadataCache: true,
                 };
                 networkInterface.sendGetRequestAsync = (
                     url: string,
@@ -2510,22 +2360,33 @@ describe("Authority.ts Class Unit Tests", () => {
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toBe(
-                        ClientConfigurationErrorMessage.untrustedAuthority.desc
+                        ClientConfigurationErrorMessages[
+                            ClientConfigurationErrorCodes.untrustedAuthority
+                        ]
                     );
                     expect(e.errorCode).toBe(
-                        ClientConfigurationErrorMessage.untrustedAuthority.code
+                        ClientConfigurationErrorCodes.untrustedAuthority
                     );
                     done();
                 });
             });
 
             it("throws untrustedAuthority error if host is not part of knownAuthorities, cloudDiscoveryMetadata and instance discovery network call doesn't return metadata, and the error returned from AAD is 'invalid_instance'", (done) => {
+                const getCloudDiscoveryMetadataFromHarcodedValuesSpy: jest.SpyInstance =
+                    jest.spyOn(
+                        authorityMetadata,
+                        "getCloudDiscoveryMetadataFromHardcodedValues"
+                    );
+
+                getCloudDiscoveryMetadataFromHarcodedValuesSpy.mockReturnValue(
+                    null
+                );
+
                 const authorityOptions: AuthorityOptions = {
                     protocolMode: ProtocolMode.AAD,
                     knownAuthorities: [],
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: "",
-                    skipAuthorityMetadataCache: true,
                 };
                 networkInterface.sendGetRequestAsync = (
                     url: string,
@@ -2550,10 +2411,12 @@ describe("Authority.ts Class Unit Tests", () => {
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toEqual(
-                        ClientConfigurationErrorMessage.untrustedAuthority.desc
+                        ClientConfigurationErrorMessages[
+                            ClientConfigurationErrorCodes.untrustedAuthority
+                        ]
                     );
                     expect(e.errorCode).toEqual(
-                        ClientConfigurationErrorMessage.untrustedAuthority.code
+                        ClientConfigurationErrorCodes.untrustedAuthority
                     );
                     done();
                 });

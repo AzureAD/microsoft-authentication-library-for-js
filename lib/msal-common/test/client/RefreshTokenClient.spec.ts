@@ -62,14 +62,16 @@ import * as TimeUtils from "../../src/utils/TimeUtils.js";
 import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { generateCredentialKey } from "../../src/cache/utils/CacheHelpers.js";
 import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
+import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 
-const testAccountEntity: AccountEntity = new AccountEntity();
-testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
-testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
-testAccountEntity.environment = "login.windows.net";
-testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
-testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
-testAccountEntity.authorityType = "MSSTS";
+const testAccountEntity: AccountEntity = {
+    homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+    localAccountId: ID_TOKEN_CLAIMS.oid,
+    environment: "login.windows.net",
+    realm: ID_TOKEN_CLAIMS.tid,
+    username: ID_TOKEN_CLAIMS.preferred_username,
+    authorityType: "MSSTS",
+};
 
 const testAppMetadata: AppMetadataEntity = {
     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -325,8 +327,9 @@ describe("RefreshTokenClient unit tests", () => {
         let config: ClientConfiguration;
         let client: RefreshTokenClient;
 
-        const testAccount: AccountInfo =
-            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+        const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+        );
         testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
         testAccount.idToken = TEST_TOKENS.IDTOKEN_V2;
 
@@ -519,7 +522,11 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                    `${
+                        AADServerParamKeys.X_MS_LIB_CAPABILITY
+                    }=${encodeURIComponent(
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
@@ -781,7 +788,11 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                    `${
+                        AADServerParamKeys.X_MS_LIB_CAPABILITY
+                    }=${encodeURIComponent(
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
@@ -899,7 +910,11 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                    `${
+                        AADServerParamKeys.X_MS_LIB_CAPABILITY
+                    }=${encodeURIComponent(
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
@@ -968,7 +983,6 @@ describe("RefreshTokenClient unit tests", () => {
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),
                 emitEvents: jest.fn(),
-                startPerformanceMeasurement: jest.fn(),
                 generateId: jest.fn(),
                 calculateQueuedTime: jest.fn(),
                 addQueueMeasurement: jest.fn(),
@@ -1013,7 +1027,6 @@ describe("RefreshTokenClient unit tests", () => {
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),
                 emitEvents: jest.fn(),
-                startPerformanceMeasurement: jest.fn(),
                 generateId: jest.fn(),
                 calculateQueuedTime: jest.fn(),
                 addQueueMeasurement: jest.fn(),
@@ -1054,8 +1067,9 @@ describe("RefreshTokenClient unit tests", () => {
         let config: ClientConfiguration;
         let client: RefreshTokenClient;
 
-        const testAccount: AccountInfo =
-            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+        const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+        );
         testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
         testAccount.idToken = TEST_TOKENS.IDTOKEN_V2;
 
@@ -1278,14 +1292,15 @@ describe("RefreshTokenClient unit tests", () => {
                 username: "testname@contoso.com",
             };
             const testScope2 = "scope2";
-            const testAccountEntity: AccountEntity = new AccountEntity();
-            testAccountEntity.homeAccountId =
-                TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID;
-            testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
-            testAccountEntity.environment = "login.windows.net";
-            testAccountEntity.realm = "testTenantId";
-            testAccountEntity.username = "username@contoso.com";
-            testAccountEntity.authorityType = "MSSTS";
+            const testAccountEntity: AccountEntity = {
+                homeAccountId:
+                    TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
+                localAccountId: ID_TOKEN_CLAIMS.oid,
+                environment: "login.windows.net",
+                realm: "testTenantId",
+                username: "username@contoso.com",
+                authorityType: "MSSTS",
+            };
             jest.spyOn(
                 MockStorageClass.prototype,
                 "getAccount"
@@ -1315,7 +1330,7 @@ describe("RefreshTokenClient unit tests", () => {
             const testScope2 = "scope2";
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: [testScope2],
-                account: testAccountEntity.getAccountInfo(),
+                account: AccountEntityUtils.getAccountInfo(testAccountEntity),
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
@@ -1356,7 +1371,7 @@ describe("RefreshTokenClient unit tests", () => {
             const testScope2 = "scope2";
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: [testScope2],
-                account: testAccountEntity.getAccountInfo(),
+                account: AccountEntityUtils.getAccountInfo(testAccountEntity),
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
@@ -1411,8 +1426,9 @@ describe("RefreshTokenClient unit tests", () => {
                 resEvents = events;
             });
             const client = new RefreshTokenClient(config, mockPerfClient);
-            const testAccount: AccountInfo =
-                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS).getAccountInfo();
+            const testAccount: AccountInfo = AccountEntityUtils.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            );
             testAccount.idTokenClaims = ID_TOKEN_CLAIMS;
             jest.spyOn(
                 RefreshTokenClient.prototype,

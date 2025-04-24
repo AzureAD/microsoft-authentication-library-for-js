@@ -9,6 +9,7 @@ import * as CacheHelpers from "./cache/utils/CacheHelpers.js";
 import * as TimeUtils from "./utils/TimeUtils.js";
 import * as UrlUtils from "./utils/UrlUtils.js";
 import * as AADServerParamKeys from "./constants/AADServerParamKeys.js";
+import * as AccountEntityUtils from "./cache/utils/AccountEntityUtils.js";
 
 export { AuthToken };
 export { AuthorityFactory };
@@ -16,6 +17,7 @@ export { CacheHelpers };
 export { TimeUtils };
 export { UrlUtils };
 export { AADServerParamKeys };
+export { AccountEntityUtils };
 
 export { AuthorizationCodeClient } from "./client/AuthorizationCodeClient.js";
 export { RefreshTokenClient } from "./client/RefreshTokenClient.js";
@@ -105,6 +107,8 @@ export {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     SignedHttpRequestParameters,
 } from "./crypto/ICrypto.js";
+
+export * as AuthorizeProtocol from "./protocol/Authorize.js";
 export { BaseAuthRequest } from "./request/BaseAuthRequest.js";
 export { CommonAuthorizationUrlRequest } from "./request/CommonAuthorizationUrlRequest.js";
 export { CommonAuthorizationCodeRequest } from "./request/CommonAuthorizationCodeRequest.js";
@@ -117,7 +121,7 @@ export { AzureRegion } from "./authority/AzureRegion.js";
 export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration.js";
 export { AuthenticationResult } from "./response/AuthenticationResult.js";
 export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload.js";
-export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse.js";
+export { AuthorizeResponse } from "./response/AuthorizeResponse.js";
 export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse.js";
 export {
     ResponseHandler,
@@ -129,12 +133,11 @@ export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger.js";
 export {
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
-    InteractionRequiredAuthErrorMessage,
     createInteractionRequiredAuthError,
 } from "./error/InteractionRequiredAuthError.js";
 export {
     AuthError,
-    AuthErrorMessage,
+    AuthErrorMessages,
     AuthErrorCodes,
     createAuthError,
 } from "./error/AuthError.js";
@@ -143,13 +146,13 @@ export { NetworkError, createNetworkError } from "./error/NetworkError.js";
 export { CacheError, CacheErrorCodes } from "./error/CacheError.js";
 export {
     ClientAuthError,
-    ClientAuthErrorMessage,
+    ClientAuthErrorMessages,
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "./error/ClientAuthError.js";
 export {
     ClientConfigurationError,
-    ClientConfigurationErrorMessage,
+    ClientConfigurationErrorMessages,
     ClientConfigurationErrorCodes,
     createClientConfigurationError,
 } from "./error/ClientConfigurationError.js";
@@ -158,7 +161,7 @@ export {
     OIDC_DEFAULT_SCOPES,
     PromptValue,
     PersistentCacheKeys,
-    ServerResponseType,
+    OAuthResponseType,
     ResponseMode,
     CacheOutcome,
     CredentialType,

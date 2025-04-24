@@ -8,7 +8,7 @@ import { ICrypto } from "../../src/crypto/ICrypto.js";
 import { Constants } from "../../src/utils/Constants.js";
 import {
     ClientAuthError,
-    ClientAuthErrorMessage,
+    ClientAuthErrorCodes,
 } from "../../src/error/ClientAuthError.js";
 
 describe("ProtocolUtils.ts Class Unit Tests", () => {
@@ -98,30 +98,18 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
         expect(() =>
             // @ts-ignore
             ProtocolUtils.setRequestState(null, userState)
-        ).toThrowError(ClientAuthError);
-        expect(() =>
-            // @ts-ignore
-            ProtocolUtils.setRequestState(null, userState)
-        ).toThrowError(ClientAuthErrorMessage.noCryptoObj.desc);
+        ).toThrow(new ClientAuthError(ClientAuthErrorCodes.noCryptoObject));
     });
 
     it("parseRequestState() throws error if given state is null or empty", () => {
         expect(() =>
             ProtocolUtils.parseRequestState(cryptoInterface, "")
-        ).toThrowError(ClientAuthError);
-        expect(() =>
-            ProtocolUtils.parseRequestState(cryptoInterface, "")
-        ).toThrowError(ClientAuthErrorMessage.invalidStateError.desc);
+        ).toThrow(ClientAuthErrorCodes.invalidState);
 
         expect(() =>
             // @ts-ignore
             ProtocolUtils.parseRequestState(cryptoInterface, null)
-        ).toThrowError(ClientAuthError);
-
-        expect(() =>
-            // @ts-ignore
-            ProtocolUtils.parseRequestState(cryptoInterface, null)
-        ).toThrowError(ClientAuthErrorMessage.invalidStateError.desc);
+        ).toThrow(ClientAuthErrorCodes.invalidState);
     });
 
     it("parseRequestState() returns empty userRequestState if no resource delimiter found in state string", () => {

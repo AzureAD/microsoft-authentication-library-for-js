@@ -32,6 +32,7 @@ import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemet
 import { Constants } from "../../src/utils/Constants.js";
 import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
 import { TokenKeys } from "../../src/cache/utils/CacheTypes.js";
+import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
@@ -42,14 +43,14 @@ export class MockStorageClass extends CacheManager {
     // Accounts
     getAccount(key: string): AccountEntity | null {
         const account: AccountEntity = this.store[key] as AccountEntity;
-        if (AccountEntity.isAccountEntity(account)) {
+        if (AccountEntityUtils.isAccountEntity(account)) {
             return account;
         }
         return null;
     }
 
     async setAccount(value: AccountEntity): Promise<void> {
-        const key = value.generateAccountKey();
+        const key = AccountEntityUtils.generateAccountKey(value);
         this.store[key] = value;
 
         const currentAccounts = this.getAccountKeys();
@@ -253,34 +254,10 @@ export class ClientTestUtils {
             },
         };
 
-        const authorityOptions: AuthorityOptions = {
-            protocolMode: protocolMode,
-            knownAuthorities: [TEST_CONFIG.validAuthority],
-            cloudDiscoveryMetadata: "",
-            authorityMetadata: "",
-        };
-
-        const loggerOptions = {
-            loggerCallback: (): void => {},
-            piiLoggingEnabled: true,
-            logLevel: LogLevel.Verbose,
-        };
-        const logger = new Logger(loggerOptions);
-
-        const authority = new Authority(
-            TEST_CONFIG.validAuthority,
-            mockHttpClient,
-            mockStorage,
-            authorityOptions,
-            logger,
-            TEST_CONFIG.CORRELATION_ID
+        const authority = await getDiscoveredAuthority(
+            protocolMode,
+            mockStorage
         );
-
-        await authority.resolveEndpointsAsync().catch((error) => {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
-            );
-        });
 
         let serverTelemetryManager = null;
 
@@ -329,4 +306,56 @@ export class ClientTestUtils {
             serverTelemetryManager: serverTelemetryManager,
         };
     }
+}
+
+export async function getDiscoveredAuthority(
+    protocolMode: ProtocolMode = ProtocolMode.AAD,
+    mockStorage: MockStorageClass = new MockStorageClass(
+        TEST_CONFIG.MSAL_CLIENT_ID,
+        mockCrypto,
+        new Logger({}),
+        {
+            canonicalAuthority: TEST_CONFIG.validAuthority,
+        }
+    )
+): Promise<Authority> {
+    const mockHttpClient = {
+        sendGetRequestAsync<T>(): T {
+            return {} as T;
+        },
+        sendPostRequestAsync<T>(): T {
+            return {} as T;
+        },
+    };
+
+    const authorityOptions: AuthorityOptions = {
+        protocolMode: protocolMode,
+        knownAuthorities: [TEST_CONFIG.validAuthority],
+        cloudDiscoveryMetadata: "",
+        authorityMetadata: "",
+    };
+
+    const loggerOptions = {
+        loggerCallback: (): void => {},
+        piiLoggingEnabled: true,
+        logLevel: LogLevel.Verbose,
+    };
+    const logger = new Logger(loggerOptions);
+
+    const authority = new Authority(
+        TEST_CONFIG.validAuthority,
+        mockHttpClient,
+        mockStorage,
+        authorityOptions,
+        logger,
+        TEST_CONFIG.CORRELATION_ID
+    );
+
+    await authority.resolveEndpointsAsync().catch((error) => {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.endpointResolutionError
+        );
+    });
+
+    return authority;
 }

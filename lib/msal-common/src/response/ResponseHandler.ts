@@ -9,7 +9,6 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError.js";
-import { ServerAuthorizationCodeResponse } from "./ServerAuthorizationCodeResponse.js";
 import { Logger } from "../logger/Logger.js";
 import { ServerError } from "../error/ServerError.js";
 import { ScopeSet } from "../request/ScopeSet.js";
@@ -53,19 +52,7 @@ import {
 } from "../account/AccountInfo.js";
 import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
-
-function parseServerErrorNo(
-    serverResponse: ServerAuthorizationCodeResponse
-): string | undefined {
-    const errorCodePrefix = "code=";
-    const errorCodePrefixIndex =
-        serverResponse.error_uri?.lastIndexOf(errorCodePrefix);
-    return errorCodePrefixIndex && errorCodePrefixIndex >= 0
-        ? serverResponse.error_uri?.substring(
-              errorCodePrefixIndex + errorCodePrefix.length
-          )
-        : undefined;
-}
+import * as AccountEntityUtils from "../cache/utils/AccountEntityUtils.js";
 
 /**
  * Class that handles response parsing.
@@ -97,90 +84,6 @@ export class ResponseHandler {
         this.serializableCache = serializableCache;
         this.persistencePlugin = persistencePlugin;
         this.performanceClient = performanceClient;
-    }
-
-    /**
-     * Function which validates server authorization code response.
-     * @param serverResponseHash
-     * @param requestState
-     * @param cryptoObj
-     */
-    validateServerAuthorizationCodeResponse(
-        serverResponse: ServerAuthorizationCodeResponse,
-        requestState: string
-    ): void {
-        if (!serverResponse.state || !requestState) {
-            throw serverResponse.state
-                ? createClientAuthError(
-                      ClientAuthErrorCodes.stateNotFound,
-                      "Cached State"
-                  )
-                : createClientAuthError(
-                      ClientAuthErrorCodes.stateNotFound,
-                      "Server State"
-                  );
-        }
-
-        let decodedServerResponseState: string;
-        let decodedRequestState: string;
-
-        try {
-            decodedServerResponseState = decodeURIComponent(
-                serverResponse.state
-            );
-        } catch (e) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.invalidState,
-                serverResponse.state
-            );
-        }
-
-        try {
-            decodedRequestState = decodeURIComponent(requestState);
-        } catch (e) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.invalidState,
-                serverResponse.state
-            );
-        }
-
-        if (decodedServerResponseState !== decodedRequestState) {
-            throw createClientAuthError(ClientAuthErrorCodes.stateMismatch);
-        }
-
-        // Check for error
-        if (
-            serverResponse.error ||
-            serverResponse.error_description ||
-            serverResponse.suberror
-        ) {
-            const serverErrorNo = parseServerErrorNo(serverResponse);
-            if (
-                isInteractionRequiredError(
-                    serverResponse.error,
-                    serverResponse.error_description,
-                    serverResponse.suberror
-                )
-            ) {
-                throw new InteractionRequiredAuthError(
-                    serverResponse.error || "",
-                    serverResponse.error_description,
-                    serverResponse.suberror,
-                    serverResponse.timestamp || "",
-                    serverResponse.trace_id || "",
-                    serverResponse.correlation_id || "",
-                    serverResponse.claims || "",
-                    serverErrorNo
-                );
-            }
-
-            throw new ServerError(
-                serverResponse.error || "",
-                serverResponse.error_description,
-                serverResponse.suberror,
-                serverErrorNo
-            );
-        }
     }
 
     /**
@@ -323,7 +226,7 @@ export class ResponseHandler {
         }
 
         // generate homeAccountId
-        this.homeAccountIdentifier = AccountEntity.generateHomeAccountId(
+        this.homeAccountIdentifier = AccountEntityUtils.generateHomeAccountId(
             serverTokenResponse.client_info || Constants.EMPTY_STRING,
             authority.authorityType,
             this.logger,
@@ -376,7 +279,9 @@ export class ResponseHandler {
                 !forceCacheRefreshTokenResponse &&
                 cacheRecord.account
             ) {
-                const key = cacheRecord.account.generateAccountKey();
+                const key = AccountEntityUtils.generateAccountKey(
+                    cacheRecord.account
+                );
                 const account = this.cacheStorage.getAccount(key);
                 if (!account) {
                     this.logger.warning(
@@ -664,7 +569,7 @@ export class ResponseHandler {
 
         const accountInfo: AccountInfo | null = cacheRecord.account
             ? updateAccountTenantProfileData(
-                  cacheRecord.account.getAccountInfo(),
+                  AccountEntityUtils.getAccountInfo(cacheRecord.account),
                   undefined, // tenantProfile optional
                   idTokenClaims,
                   cacheRecord.idToken?.secret
@@ -731,7 +636,7 @@ export function buildAccountToCache(
 
     const baseAccount =
         cachedAccount ||
-        AccountEntity.createAccount(
+        AccountEntityUtils.createAccountEntity(
             {
                 homeAccountId,
                 idTokenClaims,

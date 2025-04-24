@@ -3,7 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { UrlString, invoke, invokeAsync } from "@azure/msal-common/browser";
+import {
+    UrlString,
+    invoke,
+    invokeAsync,
+    UrlUtils,
+} from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -14,7 +19,7 @@ import {
     BrowserConfigurationAuthErrorCodes,
     createBrowserConfigurationAuthError,
 } from "../error/BrowserConfigurationAuthError.js";
-import { BrowserConfiguration } from "../config/Configuration.js";
+import type { BrowserConfiguration } from "../config/Configuration.js";
 
 /**
  * Clears hash from window url.
@@ -86,7 +91,7 @@ export function getHomepage(): string {
  * attempting another auth request inside an iframe.
  */
 export function blockReloadInHiddenIframes(): void {
-    const isResponseHash = UrlString.hashContainsKnownProperties(
+    const isResponseHash = UrlUtils.getDeserializedResponse(
         window.location.hash
     );
     // return an error if called from the hidden iframe created by the msal js silent calls

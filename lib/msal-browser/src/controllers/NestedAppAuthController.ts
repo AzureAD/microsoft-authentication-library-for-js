@@ -15,11 +15,11 @@ import {
     PerformanceEvents,
     TimeUtils,
     buildStaticAuthorityOptions,
-    AccountEntity,
     OIDC_DEFAULT_SCOPES,
     BaseAuthRequest,
     AccountFilter,
     AuthError,
+    AccountEntityUtils,
 } from "@azure/msal-common/browser";
 import { ITokenCache } from "../cache/ITokenCache.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -437,7 +437,7 @@ export class NestedAppAuthController implements IController {
             return result;
         }
 
-        this.logger.error(
+        this.logger.warning(
             "Cached tokens are not found for the account, proceeding with silent token request."
         );
 
@@ -599,6 +599,7 @@ export class NestedAppAuthController implements IController {
                       CommonAuthorizationUrlRequest,
                       | "requestedClaimsHash"
                       | "responseMode"
+                      | "earJwk"
                       | "codeChallenge"
                       | "codeChallengeMethod"
                       | "platformBroker"
@@ -650,14 +651,6 @@ export class NestedAppAuthController implements IController {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     removePerformanceCallback(callbackId: string): boolean {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-
-    enableAccountStorageEvents(): void {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-
-    disableAccountStorageEvents(): void {
         throw NestedAppAuthError.createUnsupportedError();
     }
 
@@ -771,10 +764,6 @@ export class NestedAppAuthController implements IController {
     loginRedirect(request?: RedirectRequest | undefined): Promise<void> {
         throw NestedAppAuthError.createUnsupportedError();
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    logout(logoutRequest?: EndSessionRequest | undefined): Promise<void> {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
     logoutRedirect(
         logoutRequest?: EndSessionRequest | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<void> {
@@ -792,6 +781,7 @@ export class NestedAppAuthController implements IController {
                 CommonAuthorizationUrlRequest,
                 | "requestedClaimsHash"
                 | "responseMode"
+                | "earJwk"
                 | "codeChallenge"
                 | "codeChallengeMethod"
                 | "platformBroker"
@@ -870,11 +860,12 @@ export class NestedAppAuthController implements IController {
     ): Promise<void> {
         this.logger.verbose("hydrateCache called");
 
-        const accountEntity = AccountEntity.createFromAccountInfo(
-            result.account,
-            result.cloudGraphHostName,
-            result.msGraphHost
-        );
+        const accountEntity =
+            AccountEntityUtils.createAccountEntityFromAccountInfo(
+                result.account,
+                result.cloudGraphHostName,
+                result.msGraphHost
+            );
         await this.browserStorage.setAccount(
             accountEntity,
             result.correlationId

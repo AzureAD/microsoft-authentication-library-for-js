@@ -5,6 +5,7 @@ import {
     GrantType,
     AuthenticationScheme,
     HeaderNames,
+    OAuthResponseType,
 } from "../../src/utils/Constants.js";
 import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
 import {
@@ -20,8 +21,7 @@ import * as RequestParameterBuilder from "../../src/request/RequestParameterBuil
 import * as UrlUtils from "../../src/utils/UrlUtils.js";
 import {
     ClientConfigurationErrorCodes,
-    ClientConfigurationErrorMessage,
-    createClientConfigurationError,
+    ClientConfigurationError,
 } from "../../src/error/ClientConfigurationError.js";
 import { ClientAssertion, ClientAssertionCallback } from "../../src/index.js";
 import { getClientAssertion } from "../../src/utils/ClientAssertionUtils.js";
@@ -35,7 +35,10 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("Build query string from RequestParameterBuilder object", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addResponseTypeCode(parameters);
+        RequestParameterBuilder.addResponseType(
+            parameters,
+            OAuthResponseType.CODE
+        );
         RequestParameterBuilder.addResponseMode(
             parameters,
             ResponseMode.FORM_POST
@@ -101,7 +104,7 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`
+                `${AADServerParamKeys.RESPONSE_TYPE}=${OAuthResponseType.CODE}`
             )
         ).toBe(true);
         expect(
@@ -226,6 +229,21 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
     });
 
+    it("Encodes extra params", () => {
+        const parameters = new Map<string, string>();
+        RequestParameterBuilder.addExtraQueryParameters(parameters, {
+            extra_params: "param1,param2",
+        });
+
+        const requestQueryString = UrlUtils.mapToQueryString(parameters);
+
+        expect(
+            requestQueryString.includes(
+                `extra_params=${encodeURIComponent("param1,param2")}`
+            )
+        ).toBe(true);
+    });
+
     it("Adds token type and req_cnf correctly for proof-of-possession tokens", () => {
         const parameters = new Map<string, string>();
         RequestParameterBuilder.addPopToken(
@@ -342,8 +360,8 @@ describe("RequestParameterBuilder unit tests", () => {
                 TEST_CONFIG.TEST_CHALLENGE,
                 ""
             )
-        ).toThrowError(
-            createClientConfigurationError(
+        ).toThrow(
+            new ClientConfigurationError(
                 ClientConfigurationErrorCodes.pkceParamsMissing
             )
         );
@@ -357,8 +375,8 @@ describe("RequestParameterBuilder unit tests", () => {
                 "",
                 AADServerParamKeys.CODE_CHALLENGE_METHOD
             )
-        ).toThrowError(
-            createClientConfigurationError(
+        ).toThrow(
+            new ClientConfigurationError(
                 ClientConfigurationErrorCodes.pkceParamsMissing
             )
         );
@@ -366,11 +384,16 @@ describe("RequestParameterBuilder unit tests", () => {
 
     it("addResponseTypeForIdToken does add response_type correctly", () => {
         const parameters = new Map<string, string>();
-        RequestParameterBuilder.addResponseTypeForTokenAndIdToken(parameters);
+        RequestParameterBuilder.addResponseType(
+            parameters,
+            OAuthResponseType.IDTOKEN_TOKEN
+        );
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.RESPONSE_TYPE}=${Constants.TOKEN_RESPONSE_TYPE}%20${Constants.ID_TOKEN_RESPONSE_TYPE}`
+                `${AADServerParamKeys.RESPONSE_TYPE}=${encodeURIComponent(
+                    OAuthResponseType.IDTOKEN_TOKEN
+                )}`
             )
         ).toBe(true);
     });
@@ -384,7 +407,11 @@ describe("RequestParameterBuilder unit tests", () => {
         const parameters = new Map<string, string>();
         expect(() =>
             RequestParameterBuilder.addClaims(parameters, claims, [])
-        ).toThrow(ClientConfigurationErrorMessage.invalidClaimsRequest.desc);
+        ).toThrow(
+            new ClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidClaims
+            )
+        );
     });
 
     it("adds clientAssertion (string) and assertionType if they are provided by the developer", async () => {
@@ -621,8 +648,10 @@ describe("RequestParameterBuilder unit tests", () => {
                     testClaims,
                     []
                 )
-            ).toThrowError(
-                ClientConfigurationErrorMessage.invalidClaimsRequest.desc
+            ).toThrow(
+                new ClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidClaims
+                )
             );
         });
     });

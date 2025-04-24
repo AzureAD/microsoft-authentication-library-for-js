@@ -74,25 +74,23 @@ export const HTTP_REQUEST_TYPE = {
 export type HTTP_REQUEST_TYPE =
     (typeof HTTP_REQUEST_TYPE)[keyof typeof HTTP_REQUEST_TYPE];
 
+export const INTERACTION_TYPE = {
+    SIGNIN: "signin",
+    SIGNOUT: "signout",
+} as const;
+export type INTERACTION_TYPE =
+    (typeof INTERACTION_TYPE)[keyof typeof INTERACTION_TYPE];
+
 /**
  * Temporary cache keys for MSAL, deleted after any request.
  */
 export const TemporaryCacheKeys = {
-    AUTHORITY: "authority",
-    ACQUIRE_TOKEN_ACCOUNT: "acquireToken.account",
-    SESSION_STATE: "session.state",
-    REQUEST_STATE: "request.state",
-    NONCE_IDTOKEN: "nonce.id_token",
     ORIGIN_URI: "request.origin",
-    RENEW_STATUS: "token.renew.status",
     URL_HASH: "urlHash",
     REQUEST_PARAMS: "request.params",
-    SCOPES: "scopes",
+    VERIFIER: "code.verifier",
     INTERACTION_STATUS_KEY: "interaction.status",
-    CCS_CREDENTIAL: "ccs.credential",
-    CORRELATION_ID: "request.correlationId",
     NATIVE_REQUEST: "request.native",
-    REDIRECT_CONTEXT: "request.redirect.context",
 } as const;
 export type TemporaryCacheKeys =
     (typeof TemporaryCacheKeys)[keyof typeof TemporaryCacheKeys];

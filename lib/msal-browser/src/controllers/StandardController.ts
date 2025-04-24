@@ -21,7 +21,6 @@ import {
     PromptValue,
     InProgressPerformanceEvent,
     getRequestThumbprint,
-    AccountEntity,
     invokeAsync,
     createClientAuthError,
     ClientAuthErrorCodes,
@@ -29,6 +28,7 @@ import {
     buildStaticAuthorityOptions,
     InteractionRequiredAuthErrorCodes,
     PkceCodes,
+    AccountEntityUtils,
 } from "@azure/msal-common/browser";
 import {
     BrowserCacheManager,
@@ -41,11 +41,11 @@ import {
     ApiId,
     BrowserCacheLocation,
     WrapperSKU,
-    TemporaryCacheKeys,
     CacheLookupPolicy,
     DEFAULT_REQUEST,
     BrowserConstants,
     iFrameRenewalPolicies,
+    INTERACTION_TYPE,
 } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
@@ -258,7 +258,6 @@ export class StandardController implements IController {
             cacheLocation: BrowserCacheLocation.MemoryStorage,
             temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
             storeAuthStateInCookie: false,
-            secureCookies: false,
             cacheMigrationEnabled: false,
             claimsBasedCachingEnabled: false,
         };
@@ -375,6 +374,13 @@ export class StandardController implements IController {
             )(this.performanceClient, initCorrelationId);
         }
 
+        if (
+            this.config.cache.cacheLocation ===
+            BrowserCacheLocation.LocalStorage
+        ) {
+            this.eventHandler.subscribeCrossTab();
+        }
+
         this.config.system.asyncPopups &&
             (await this.preGeneratePkceCodes(initCorrelationId));
         this.initialized = true;
@@ -437,11 +443,28 @@ export class StandardController implements IController {
     private async handleRedirectPromiseInternal(
         hash?: string
     ): Promise<AuthenticationResult | null> {
+        if (!this.browserStorage.isInteractionInProgress(true)) {
+            this.logger.info(
+                "handleRedirectPromise called but there is no interaction in progress, returning null."
+            );
+            return null;
+        }
+
+        const interactionType =
+            this.browserStorage.getInteractionInProgress()?.type;
+        if (interactionType === INTERACTION_TYPE.SIGNOUT) {
+            this.logger.verbose(
+                "handleRedirectPromise removing interaction_in_progress flag and returning null after sign-out"
+            );
+            this.browserStorage.setInteractionInProgress(false);
+            return Promise.resolve(null);
+        }
+
         const loggedInAccounts = this.getAllAccounts();
-        const request: NativeTokenRequest | null =
+        const platformBrokerRequest: NativeTokenRequest | null =
             this.browserStorage.getCachedNativeRequest();
         const useNative =
-            request &&
+            platformBrokerRequest &&
             NativeMessageHandler.isPlatformBrokerAvailable(
                 this.config,
                 this.logger,
@@ -449,67 +472,75 @@ export class StandardController implements IController {
             ) &&
             this.nativeExtensionProvider &&
             !hash;
-        const correlationId = useNative
-            ? request?.correlationId
-            : this.browserStorage.getTemporaryCache(
-                  TemporaryCacheKeys.CORRELATION_ID,
-                  true
-              ) || "";
-        const rootMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.AcquireTokenRedirect,
-            correlationId
-        );
+        let rootMeasurement: InProgressPerformanceEvent;
         this.eventHandler.emitEvent(
             EventType.HANDLE_REDIRECT_START,
             InteractionType.Redirect
         );
 
         let redirectResponse: Promise<AuthenticationResult | null>;
-        if (useNative && this.nativeExtensionProvider) {
-            this.logger.trace(
-                "handleRedirectPromise - acquiring token from native platform"
-            );
-            const nativeClient = new NativeInteractionClient(
-                this.config,
-                this.browserStorage,
-                this.browserCrypto,
-                this.logger,
-                this.eventHandler,
-                this.navigationClient,
-                ApiId.handleRedirectPromise,
-                this.performanceClient,
-                this.nativeExtensionProvider,
-                request.accountId,
-                this.nativeInternalStorage,
-                request.correlationId
-            );
+        try {
+            if (useNative && this.nativeExtensionProvider) {
+                rootMeasurement = this.performanceClient.startMeasurement(
+                    PerformanceEvents.AcquireTokenRedirect,
+                    platformBrokerRequest?.correlationId || ""
+                );
+                this.logger.trace(
+                    "handleRedirectPromise - acquiring token from native platform"
+                );
+                const nativeClient = new NativeInteractionClient(
+                    this.config,
+                    this.browserStorage,
+                    this.browserCrypto,
+                    this.logger,
+                    this.eventHandler,
+                    this.navigationClient,
+                    ApiId.handleRedirectPromise,
+                    this.performanceClient,
+                    this.nativeExtensionProvider,
+                    platformBrokerRequest.accountId,
+                    this.nativeInternalStorage,
+                    platformBrokerRequest.correlationId
+                );
 
-            redirectResponse = invokeAsync(
-                nativeClient.handleRedirectPromise.bind(nativeClient),
-                PerformanceEvents.HandleNativeRedirectPromiseMeasurement,
-                this.logger,
-                this.performanceClient,
-                rootMeasurement.event.correlationId
-            )(this.performanceClient, rootMeasurement.event.correlationId);
-        } else {
-            this.logger.trace(
-                "handleRedirectPromise - acquiring token from web flow"
-            );
-            const redirectClient = this.createRedirectClient(correlationId);
-            redirectResponse = invokeAsync(
-                redirectClient.handleRedirectPromise.bind(redirectClient),
-                PerformanceEvents.HandleRedirectPromiseMeasurement,
-                this.logger,
-                this.performanceClient,
-                rootMeasurement.event.correlationId
-            )(hash, rootMeasurement);
+                redirectResponse = invokeAsync(
+                    nativeClient.handleRedirectPromise.bind(nativeClient),
+                    PerformanceEvents.HandleNativeRedirectPromiseMeasurement,
+                    this.logger,
+                    this.performanceClient,
+                    rootMeasurement.event.correlationId
+                )(this.performanceClient, rootMeasurement.event.correlationId);
+            } else {
+                const [standardRequest, codeVerifier] =
+                    this.browserStorage.getCachedRequest();
+                const correlationId = standardRequest.correlationId;
+                // Reset rootMeasurement now that we have correlationId
+                rootMeasurement = this.performanceClient.startMeasurement(
+                    PerformanceEvents.AcquireTokenRedirect,
+                    correlationId
+                );
+                this.logger.trace(
+                    "handleRedirectPromise - acquiring token from web flow"
+                );
+                const redirectClient = this.createRedirectClient(correlationId);
+                redirectResponse = invokeAsync(
+                    redirectClient.handleRedirectPromise.bind(redirectClient),
+                    PerformanceEvents.HandleRedirectPromiseMeasurement,
+                    this.logger,
+                    this.performanceClient,
+                    rootMeasurement.event.correlationId
+                )(hash, standardRequest, codeVerifier, rootMeasurement);
+            }
+        } catch (e) {
+            this.browserStorage.resetRequestCache();
+            throw e;
         }
 
         return redirectResponse
             .then((result: AuthenticationResult | null) => {
                 if (result) {
+                    this.browserStorage.resetRequestCache();
                     // Emit login event if number of accounts change
-
                     const isLoggingIn =
                         loggedInAccounts.length < this.getAllAccounts().length;
                     if (isLoggingIn) {
@@ -555,6 +586,7 @@ export class StandardController implements IController {
                 return result;
             })
             .catch((e) => {
+                this.browserStorage.resetRequestCache();
                 const eventError = e as EventError;
                 // Emit login event if there is an account
                 if (loggedInAccounts.length > 0) {
@@ -611,43 +643,28 @@ export class StandardController implements IController {
             scenarioId: request.scenarioId,
         });
 
-        // Override on request only if set, as onRedirectNavigate field is deprecated
-        const onRedirectNavigateCb = request.onRedirectNavigate;
-        if (onRedirectNavigateCb) {
-            request.onRedirectNavigate = (url: string) => {
-                const navigate =
-                    typeof onRedirectNavigateCb === "function"
-                        ? onRedirectNavigateCb(url)
-                        : undefined;
-                if (navigate !== false) {
-                    atrMeasurement.end({ success: true });
-                } else {
-                    atrMeasurement.discard();
-                }
-                return navigate;
-            };
-        } else {
-            const configOnRedirectNavigateCb =
-                this.config.auth.onRedirectNavigate;
-            this.config.auth.onRedirectNavigate = (url: string) => {
-                const navigate =
-                    typeof configOnRedirectNavigateCb === "function"
-                        ? configOnRedirectNavigateCb(url)
-                        : undefined;
-                if (navigate !== false) {
-                    atrMeasurement.end({ success: true });
-                } else {
-                    atrMeasurement.discard();
-                }
-                return navigate;
-            };
-        }
+        const configOnRedirectNavigateCb = this.config.auth.onRedirectNavigate;
+        this.config.auth.onRedirectNavigate = (url: string) => {
+            const navigate =
+                typeof configOnRedirectNavigateCb === "function"
+                    ? configOnRedirectNavigateCb(url)
+                    : undefined;
+            if (navigate !== false) {
+                atrMeasurement.end({ success: true });
+            } else {
+                atrMeasurement.discard();
+            }
+            return navigate;
+        };
 
         // If logged in, emit acquire token events
         const isLoggedIn = this.getAllAccounts().length > 0;
         try {
             BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
-            this.browserStorage.setInteractionInProgress(true);
+            this.browserStorage.setInteractionInProgress(
+                true,
+                INTERACTION_TYPE.SIGNIN
+            );
 
             if (isLoggedIn) {
                 this.eventHandler.emitEvent(
@@ -702,7 +719,6 @@ export class StandardController implements IController {
                                 this.createRedirectClient(correlationId);
                             return redirectClient.acquireToken(request);
                         }
-                        this.browserStorage.setInteractionInProgress(false);
                         throw e;
                     });
             } else {
@@ -712,6 +728,7 @@ export class StandardController implements IController {
 
             return await result;
         } catch (e) {
+            this.browserStorage.resetRequestCache();
             atrMeasurement.end({ success: false }, e);
             if (isLoggedIn) {
                 this.eventHandler.emitEvent(
@@ -758,7 +775,10 @@ export class StandardController implements IController {
         try {
             this.logger.verbose("acquireTokenPopup called", correlationId);
             preflightCheck(this.initialized, atPopupMeasurement);
-            this.browserStorage.setInteractionInProgress(true);
+            this.browserStorage.setInteractionInProgress(
+                true,
+                INTERACTION_TYPE.SIGNIN
+            );
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -792,7 +812,6 @@ export class StandardController implements IController {
                 ApiId.acquireTokenPopup
             )
                 .then((response) => {
-                    this.browserStorage.setInteractionInProgress(false);
                     atPopupMeasurement.end({
                         success: true,
                         isNativeBroker: true,
@@ -817,7 +836,6 @@ export class StandardController implements IController {
                             this.createPopupClient(correlationId);
                         return popupClient.acquireToken(request, pkce);
                     }
-                    this.browserStorage.setInteractionInProgress(false);
                     throw e;
                 });
         } else {
@@ -881,11 +899,12 @@ export class StandardController implements IController {
                 // Since this function is syncronous we need to reject
                 return Promise.reject(e);
             })
-            .finally(
-                () =>
-                    this.config.system.asyncPopups &&
-                    this.preGeneratePkceCodes(correlationId)
-            );
+            .finally(async () => {
+                this.browserStorage.setInteractionInProgress(false);
+                if (this.config.system.asyncPopups) {
+                    await this.preGeneratePkceCodes(correlationId);
+                }
+            });
     }
 
     private trackPageVisibilityWithMeasurement(): void {
@@ -1316,23 +1335,6 @@ export class StandardController implements IController {
     // #region Logout
 
     /**
-     * Deprecated logout function. Use logoutRedirect or logoutPopup instead
-     * @param logoutRequest
-     * @deprecated
-     */
-    async logout(logoutRequest?: EndSessionRequest): Promise<void> {
-        const correlationId = this.getRequestCorrelationId(logoutRequest);
-        this.logger.warning(
-            "logout API is deprecated and will be removed in msal-browser v3.0.0. Use logoutRedirect instead.",
-            correlationId
-        );
-        return this.logoutRedirect({
-            correlationId,
-            ...logoutRequest,
-        });
-    }
-
-    /**
      * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.
      * @param logoutRequest
@@ -1340,7 +1342,10 @@ export class StandardController implements IController {
     async logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
         const correlationId = this.getRequestCorrelationId(logoutRequest);
         BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
-        this.browserStorage.setInteractionInProgress(true);
+        this.browserStorage.setInteractionInProgress(
+            true,
+            INTERACTION_TYPE.SIGNOUT
+        );
 
         const redirectClient = this.createRedirectClient(correlationId);
         return redirectClient.logout(logoutRequest);
@@ -1354,10 +1359,15 @@ export class StandardController implements IController {
         try {
             const correlationId = this.getRequestCorrelationId(logoutRequest);
             BrowserUtils.preflightCheck(this.initialized);
-            this.browserStorage.setInteractionInProgress(true);
+            this.browserStorage.setInteractionInProgress(
+                true,
+                INTERACTION_TYPE.SIGNOUT
+            );
 
             const popupClient = this.createPopupClient(correlationId);
-            return popupClient.logout(logoutRequest);
+            return popupClient.logout(logoutRequest).finally(() => {
+                this.browserStorage.setInteractionInProgress(false);
+            });
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -1489,11 +1499,12 @@ export class StandardController implements IController {
         this.logger.verbose("hydrateCache called");
 
         // Account gets saved to browser storage regardless of native or not
-        const accountEntity = AccountEntity.createFromAccountInfo(
-            result.account,
-            result.cloudGraphHostName,
-            result.msGraphHost
-        );
+        const accountEntity =
+            AccountEntityUtils.createAccountEntityFromAccountInfo(
+                result.account,
+                result.cloudGraphHostName,
+                result.msGraphHost
+            );
         await this.browserStorage.setAccount(
             accountEntity,
             result.correlationId
@@ -1772,42 +1783,6 @@ export class StandardController implements IController {
      */
     removePerformanceCallback(callbackId: string): boolean {
         return this.performanceClient.removePerformanceCallback(callbackId);
-    }
-
-    /**
-     * Adds event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
-     * @deprecated These events will be raised by default and this method will be removed in a future major version.
-     */
-    enableAccountStorageEvents(): void {
-        if (
-            this.config.cache.cacheLocation !==
-            BrowserCacheLocation.LocalStorage
-        ) {
-            this.logger.info(
-                "Account storage events are only available when cacheLocation is set to localStorage"
-            );
-            return;
-        }
-
-        this.eventHandler.subscribeCrossTab();
-    }
-
-    /**
-     * Removes event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
-     * @deprecated These events will be raised by default and this method will be removed in a future major version.
-     */
-    disableAccountStorageEvents(): void {
-        if (
-            this.config.cache.cacheLocation !==
-            BrowserCacheLocation.LocalStorage
-        ) {
-            this.logger.info(
-                "Account storage events are only available when cacheLocation is set to localStorage"
-            );
-            return;
-        }
-
-        this.eventHandler.unsubscribeCrossTab();
     }
 
     /**

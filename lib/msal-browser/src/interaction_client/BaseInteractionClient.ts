@@ -8,7 +8,6 @@ import {
     INetworkModule,
     Logger,
     AccountInfo,
-    AccountEntity,
     UrlString,
     ServerTelemetryManager,
     ServerTelemetryRequest,
@@ -22,6 +21,7 @@ import {
     AzureCloudOptions,
     invokeAsync,
     StringDict,
+    AccountEntityUtils,
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
@@ -91,7 +91,7 @@ export abstract class BaseInteractionClient {
     ): Promise<void> {
         if (account) {
             if (
-                AccountEntity.accountInfoIsEqual(
+                AccountEntityUtils.accountInfoIsEqual(
                     account,
                     this.browserStorage.getActiveAccount(),
                     false
@@ -103,7 +103,7 @@ export abstract class BaseInteractionClient {
             // Clear given account.
             try {
                 await this.browserStorage.removeAccount(
-                    AccountEntity.generateAccountCacheKey(account)
+                    AccountEntityUtils.generateAccountCacheKey(account)
                 );
                 this.logger.verbose(
                     "Cleared cache items belonging to the account provided in the logout request."
@@ -200,13 +200,11 @@ export abstract class BaseInteractionClient {
             this.correlationId
         );
         const authorityOptions: AuthorityOptions = {
-            protocolMode: this.config.auth.protocolMode,
+            protocolMode: this.config.system.protocolMode,
             OIDCOptions: this.config.auth.OIDCOptions,
             knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
             authorityMetadata: this.config.auth.authorityMetadata,
-            skipAuthorityMetadataCache:
-                this.config.auth.skipAuthorityMetadataCache,
         };
 
         // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority

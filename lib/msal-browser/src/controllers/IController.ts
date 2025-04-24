@@ -60,10 +60,6 @@ export interface IController {
 
     removePerformanceCallback(callbackId: string): boolean;
 
-    enableAccountStorageEvents(): void;
-
-    disableAccountStorageEvents(): void;
-
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
 
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
@@ -79,8 +75,6 @@ export interface IController {
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
 
     loginRedirect(request?: RedirectRequest): Promise<void>;
-
-    logout(logoutRequest?: EndSessionRequest): Promise<void>;
 
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
 

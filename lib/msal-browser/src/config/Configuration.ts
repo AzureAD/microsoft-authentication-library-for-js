@@ -11,7 +11,7 @@ import {
     Constants,
     ProtocolMode,
     OIDCOptions,
-    ServerResponseType,
+    ResponseMode,
     LogLevel,
     StubbedNetworkModule,
     AzureCloudInstance,
@@ -79,10 +79,6 @@ export type BrowserAuthOptions = {
      */
     clientCapabilities?: Array<string>;
     /**
-     * Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
-     */
-    protocolMode?: ProtocolMode;
-    /**
      * Enum that configures options for the OIDC protocol mode.
      */
     OIDCOptions?: OIDCOptions;
@@ -90,16 +86,6 @@ export type BrowserAuthOptions = {
      * Enum that represents the Azure Cloud to use.
      */
     azureCloudOptions?: AzureCloudOptions;
-    /**
-     * Flag of whether to use the local metadata cache
-     */
-    skipAuthorityMetadataCache?: boolean;
-    /**
-     * App supports nested app auth or not; defaults to
-     *
-     * @deprecated This flag is deprecated and will be removed in the next major version. createNestablePublicClientApplication should be used instead.
-     */
-    supportsNestedAppAuth?: boolean;
     /**
      * Callback that will be passed the url that MSAL will navigate to in redirect flows. Returning false in the callback will stop navigation.
      */
@@ -129,23 +115,27 @@ export type CacheOptions = {
     cacheLocation?: BrowserCacheLocation | string;
     /**
      * Used to specify the temporaryCacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
+     * @deprecated This option is deprecated and will be removed in the next major version.
      */
     temporaryCacheLocation?: BrowserCacheLocation | string;
     /**
      * If set, MSAL stores the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
+     * @deprecated This option is deprecated and will be removed in the next major version.
      */
     storeAuthStateInCookie?: boolean;
     /**
      * If set, MSAL sets the "Secure" flag on cookies so they can only be sent over HTTPS. By default this flag is set to true.
-     * @deprecated This option will be removed in a future major version and all cookies set will include the Secure attribute.
+     * @deprecated This option will be removed in the next major version and all cookies set will include the Secure attribute.
      */
     secureCookies?: boolean;
     /**
      * If set, MSAL will attempt to migrate cache entries from older versions on initialization. By default this flag is set to true if cacheLocation is localStorage, otherwise false.
+     * @deprecated This option is deprecated and will be removed in the next major version.
      */
     cacheMigrationEnabled?: boolean;
     /**
      * Flag that determines whether access tokens are stored based on requested claims
+     * @deprecated This option is deprecated and will be removed in the next major version.
      */
     claimsBasedCachingEnabled?: boolean;
 };
@@ -176,11 +166,6 @@ export type BrowserSystemOptions = SystemOptions & {
      */
     loadFrameTimeout?: number;
     /**
-     * Maximum time the library should wait for a frame to load
-     * @deprecated This was previously needed for older browsers which are no longer supported by MSAL.js. This option will be removed in the next major version
-     */
-    navigateFrameWait?: number;
-    /**
      * Time to wait for redirection to occur before resolving promise
      */
     redirectNavigationTimeout?: number;
@@ -204,6 +189,10 @@ export type BrowserSystemOptions = SystemOptions & {
      * Sets the interval length in milliseconds for polling the location attribute in popup windows (default is 30ms)
      */
     pollIntervalMilliseconds?: number;
+    /**
+     * Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
+     */
+    protocolMode?: ProtocolMode;
 };
 
 /**
@@ -280,9 +269,8 @@ export function buildConfiguration(
         postLogoutRedirectUri: Constants.EMPTY_STRING,
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
-        protocolMode: ProtocolMode.AAD,
         OIDCOptions: {
-            serverResponseType: ServerResponseType.FRAGMENT,
+            responseMode: ResponseMode.FRAGMENT,
             defaultScopes: [
                 Constants.OPENID_SCOPE,
                 Constants.PROFILE_SCOPE,
@@ -293,8 +281,6 @@ export function buildConfiguration(
             azureCloudInstance: AzureCloudInstance.None,
             tenant: Constants.EMPTY_STRING,
         },
-        skipAuthorityMetadataCache: false,
-        supportsNestedAppAuth: false,
         instanceAware: false,
     };
 
@@ -303,7 +289,6 @@ export function buildConfiguration(
         cacheLocation: BrowserCacheLocation.SessionStorage,
         temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
         storeAuthStateInCookie: false,
-        secureCookies: false,
         // Default cache migration to true if cache location is localStorage since entries are preserved across tabs/windows. Migration has little to no benefit in sessionStorage and memoryStorage
         cacheMigrationEnabled:
             userInputCache &&
@@ -337,7 +322,6 @@ export function buildConfiguration(
             userInputSystem?.loadFrameTimeout || DEFAULT_POPUP_TIMEOUT_MS,
         iframeHashTimeout:
             userInputSystem?.loadFrameTimeout || DEFAULT_IFRAME_TIMEOUT_MS,
-        navigateFrameWait: 0,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         asyncPopups: false,
         allowRedirectInIframe: false,
@@ -346,6 +330,7 @@ export function buildConfiguration(
             userInputSystem?.nativeBrokerHandshakeTimeout ||
             DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
         pollIntervalMilliseconds: BrowserConstants.DEFAULT_POLL_INTERVAL_MS,
+        protocolMode: ProtocolMode.AAD,
     };
 
     const providedSystemOptions: Required<BrowserSystemOptions> = {
@@ -364,7 +349,7 @@ export function buildConfiguration(
 
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
     if (
-        userInputAuth?.protocolMode !== ProtocolMode.OIDC &&
+        userInputSystem?.protocolMode !== ProtocolMode.OIDC &&
         userInputAuth?.OIDCOptions
     ) {
         const logger = new Logger(providedSystemOptions.loggerOptions);
@@ -377,10 +362,10 @@ export function buildConfiguration(
         );
     }
 
-    // Throw an error if user has set allowPlatformBroker to true without being in AAD protocol mode
+    // Throw an error if user has set allowPlatformBroker to true with OIDC protocol mode
     if (
-        userInputAuth?.protocolMode &&
-        userInputAuth.protocolMode !== ProtocolMode.AAD &&
+        userInputSystem?.protocolMode &&
+        userInputSystem.protocolMode === ProtocolMode.OIDC &&
         providedSystemOptions?.allowPlatformBroker
     ) {
         throw createClientConfigurationError(
