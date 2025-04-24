@@ -109,6 +109,7 @@
     "@types/node": "^20.3.1",
     "eslint-config-msal": "file:../../shared-configs/eslint-config-msal",
     "jest": "^29.5.0",
+    "jest-junit": "^16.0.0",
     "lodash": "^4.17.21",
     "msal-test-utils": "file:../../shared-test-utils",
     "prettier": "2.8.7",
