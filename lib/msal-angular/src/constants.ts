@@ -4,6 +4,7 @@
  */
 
 import { InjectionToken } from "@angular/core";
+
 import { type IPublicClientApplication } from "@azure/msal-browser";
 import { type MsalBroadcastConfiguration } from "./msal.broadcast.config";
 import { type MsalGuardConfiguration } from "./msal.guard.config";
