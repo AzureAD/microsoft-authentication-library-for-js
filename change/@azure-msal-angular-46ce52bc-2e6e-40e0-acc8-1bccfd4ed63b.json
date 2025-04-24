@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Adjust InjectionToken<T> usage so that properly-typed tokens can be used with new `inject(TOKEN)` syntax.",
-  "packageName": "@azure/msal-angular",
-  "email": "bradkovach@gmail.com",
-  "dependentChangeType": "major"
-}
