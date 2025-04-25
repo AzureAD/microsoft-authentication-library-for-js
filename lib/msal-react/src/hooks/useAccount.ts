@@ -44,13 +44,12 @@ export function useAccount(
     const { instance, inProgress, logger } = useMsal();
 
     const [account, setAccount] = useState<AccountInfo | null>(() => {
-        if(inProgress === InteractionStatus.Startup) {
+        if (inProgress === InteractionStatus.Startup) {
             return null;
         } else {
             return getAccount(instance, accountIdentifiers);
         }
-    }
-    );
+    });
 
     useEffect(() => {
         if (inProgress !== InteractionStatus.Startup) {
@@ -66,7 +65,7 @@ export function useAccount(
                     logger.info("useAccount - Updating account");
                     return nextAccount;
                 }
-    
+
                 return currentAccount;
             });
         }
