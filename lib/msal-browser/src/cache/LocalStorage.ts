@@ -156,7 +156,7 @@ export class LocalStorage implements IWindowStorage<string> {
 
         // Register listener for cache updates in other tabs
         this.broadcast.addEventListener("message", this.updateCache.bind(this));
-        
+
         this.initialized = true;
     }
 
