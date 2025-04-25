@@ -6613,16 +6613,23 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 cache: {
-                    cacheLocation: "localStorage"
+                    cacheLocation: "localStorage",
                 },
             });
 
-            window.localStorage.setItem("msal.account.keys", JSON.stringify([testAccount1.generateAccountKey()]));
+            window.localStorage.setItem(
+                "msal.account.keys",
+                JSON.stringify([testAccount1.generateAccountKey()])
+            );
 
             try {
                 pca.getAllAccounts();
             } catch (e) {
-                expect(e).toEqual(createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication));
+                expect(e).toEqual(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
+                );
                 done();
             }
         });
@@ -6668,16 +6675,23 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 cache: {
-                    cacheLocation: "localStorage"
+                    cacheLocation: "localStorage",
                 },
             });
 
-            window.localStorage.setItem("msal.account.keys", JSON.stringify([testAccount1.generateAccountKey()]));
+            window.localStorage.setItem(
+                "msal.account.keys",
+                JSON.stringify([testAccount1.generateAccountKey()])
+            );
 
             try {
                 pca.getAccountByUsername(testAccount1.username);
             } catch (e) {
-                expect(e).toEqual(createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication));
+                expect(e).toEqual(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
+                );
                 done();
             }
         });
@@ -6707,16 +6721,23 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 cache: {
-                    cacheLocation: "localStorage"
+                    cacheLocation: "localStorage",
                 },
             });
 
-            window.localStorage.setItem("msal.account.keys", JSON.stringify([testAccount1.generateAccountKey()]));
+            window.localStorage.setItem(
+                "msal.account.keys",
+                JSON.stringify([testAccount1.generateAccountKey()])
+            );
 
             try {
                 pca.getAccountByHomeId(testAccount1.homeAccountId);
             } catch (e) {
-                expect(e).toEqual(createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication));
+                expect(e).toEqual(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
+                );
                 done();
             }
         });
@@ -6744,16 +6765,23 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 cache: {
-                    cacheLocation: "localStorage"
+                    cacheLocation: "localStorage",
                 },
             });
 
-            window.localStorage.setItem("msal.account.keys", JSON.stringify([testAccount1.generateAccountKey()]));
+            window.localStorage.setItem(
+                "msal.account.keys",
+                JSON.stringify([testAccount1.generateAccountKey()])
+            );
 
             try {
                 pca.getAccountByLocalId(testAccount1.localAccountId);
             } catch (e) {
-                expect(e).toEqual(createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication));
+                expect(e).toEqual(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
+                );
                 done();
             }
         });
@@ -6770,16 +6798,23 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     },
                     cache: {
-                        cacheLocation: "localStorage"
+                        cacheLocation: "localStorage",
                     },
                 });
-    
-                window.localStorage.setItem("msal.account.keys", JSON.stringify([testAccount1.generateAccountKey()]));
-    
+
+                window.localStorage.setItem(
+                    "msal.account.keys",
+                    JSON.stringify([testAccount1.generateAccountKey()])
+                );
+
                 try {
-                    pca.getAccount({username: testAccount1.username});
+                    pca.getAccount({ username: testAccount1.username });
                 } catch (e) {
-                    expect(e).toEqual(createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication));
+                    expect(e).toEqual(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                        )
+                    );
                     done();
                 }
             });
@@ -6920,17 +6955,30 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     },
                     cache: {
-                        cacheLocation: "localStorage"
+                        cacheLocation: "localStorage",
                     },
                 });
-    
-                window.localStorage.setItem(`msal.${TEST_CONFIG.MSAL_CLIENT_ID}.active-account-filters`, JSON.stringify({homeAccountId: testAccount1.homeAccountId, localAccountId: testAccount1.localAccountId}));
-                window.localStorage.setItem("msal.account.keys", JSON.stringify([testAccount1.generateAccountKey()]));
-    
+
+                window.localStorage.setItem(
+                    `msal.${TEST_CONFIG.MSAL_CLIENT_ID}.active-account-filters`,
+                    JSON.stringify({
+                        homeAccountId: testAccount1.homeAccountId,
+                        localAccountId: testAccount1.localAccountId,
+                    })
+                );
+                window.localStorage.setItem(
+                    "msal.account.keys",
+                    JSON.stringify([testAccount1.generateAccountKey()])
+                );
+
                 try {
                     pca.getActiveAccount();
                 } catch (e) {
-                    expect(e).toEqual(createBrowserAuthError(BrowserAuthErrorCodes.uninitializedPublicClientApplication));
+                    expect(e).toEqual(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                        )
+                    );
                     done();
                 }
             });
