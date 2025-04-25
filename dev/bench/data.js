@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1745585782553,
+  "lastUpdate": 1745614683093,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -14956,6 +14956,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.80%",
             "unit": "ops/sec",
             "extra": "224 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e83ce9dd973b0b5faacff24dcb4c5a2baab6acee",
+          "message": "Bump next from 14.2.25 to 14.2.26 (#7681)\n\nBumps [next](https://github.com/vercel/next.js) from 14.2.25 to 14.2.26.\n<details>\n<summary>Release notes</summary>\n<p><em>Sourced from <a\nhref=\"https://github.com/vercel/next.js/releases\">next's\nreleases</a>.</em></p>\n<blockquote>\n<h2>v14.2.26</h2>\n<blockquote>\n<p>[!NOTE]<br />\nThis release is backporting bug fixes. It does <strong>not</strong>\ninclude all pending features/changes on canary.</p>\n</blockquote>\n<h3>Core Changes</h3>\n<ul>\n<li>Match subrequest handling for edge and node (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/77476\">#77476</a>)</li>\n</ul>\n</blockquote>\n</details>\n<details>\n<summary>Commits</summary>\n<ul>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/10a042cdca294fd1c6852b320954bc6ccc6064e7\"><code>10a042c</code></a>\nv14.2.26</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/8a511d6a22d38132c79b8f70ee29713d42225802\"><code>8a511d6</code></a>\nMatch subrequest handling for edge and node (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/77476\">#77476</a>)</li>\n<li>See full diff in <a\nhref=\"https://github.com/vercel/next.js/compare/v14.2.25...v14.2.26\">compare\nview</a></li>\n</ul>\n</details>\n<br />\n\n\n[![Dependabot compatibility\nscore](https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=next&package-manager=npm_and_yarn&previous-version=14.2.25&new-version=14.2.26)](https://docs.github.com/en/github/managing-security-vulnerabilities/about-dependabot-security-updates#about-compatibility-scores)\n\nDependabot will resolve any conflicts with this PR as long as you don't\nalter it yourself. You can also trigger a rebase manually by commenting\n`@dependabot rebase`.\n\n[//]: # (dependabot-automerge-start)\n[//]: # (dependabot-automerge-end)\n\n---\n\n<details>\n<summary>Dependabot commands and options</summary>\n<br />\n\nYou can trigger Dependabot actions by commenting on this PR:\n- `@dependabot rebase` will rebase this PR\n- `@dependabot recreate` will recreate this PR, overwriting any edits\nthat have been made to it\n- `@dependabot merge` will merge this PR after your CI passes on it\n- `@dependabot squash and merge` will squash and merge this PR after\nyour CI passes on it\n- `@dependabot cancel merge` will cancel a previously requested merge\nand block automerging\n- `@dependabot reopen` will reopen this PR if it is closed\n- `@dependabot close` will close this PR and stop Dependabot recreating\nit. You can achieve the same result by closing it manually\n- `@dependabot show <dependency name> ignore conditions` will show all\nof the ignore conditions of the specified dependency\n- `@dependabot ignore this major version` will close this PR and stop\nDependabot creating any more for this major version (unless you reopen\nthe PR or upgrade to it yourself)\n- `@dependabot ignore this minor version` will close this PR and stop\nDependabot creating any more for this minor version (unless you reopen\nthe PR or upgrade to it yourself)\n- `@dependabot ignore this dependency` will close this PR and stop\nDependabot creating any more for this dependency (unless you reopen the\nPR or upgrade to it yourself)\nYou can disable automated security fix PRs for this repo from the\n[Security Alerts\npage](https://github.com/AzureAD/microsoft-authentication-library-for-js/network/alerts).\n\n</details>\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2025-04-25T13:51:40-07:00",
+          "tree_id": "fd8edc6eb7b86079994bcb640eaf87455b99ac67",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e83ce9dd973b0b5faacff24dcb4c5a2baab6acee"
+        },
+        "date": 1745614680916,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 251105,
+            "range": "±0.92%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 252974,
+            "range": "±0.92%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
