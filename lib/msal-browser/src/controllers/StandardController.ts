@@ -87,6 +87,7 @@ import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { initializeSilentRequest } from "../request/RequestHelpers.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
+import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 
 function getAccountType(
     account?: AccountInfo
@@ -321,26 +322,6 @@ export class StandardController implements IController {
             );
             return;
         }
-        const appId = request?.appId || this.config.auth.clientId;
-        // @ts-ignore
-        window.msal = window.msal || {};
-        // @ts-ignore
-        window.msal.appIds = window.msal.appIds || [];
-        // @ts-ignore
-        if(this.checkForSameClientId(appId, window.msal.appIds)) {
-            this.logger.warning(
-                "There is already an instance of MSAL.js in the window with the same client id."
-            )
-        } else {
-            // @ts-ignore
-            if(this.checkForMultipleInstances(appId, window.msal.appIds)) {
-                this.logger.warning(
-                    "There is already an instance of MSAL.js in the window."
-                )
-            }
-        }
-        // @ts-ignore
-        window.msal.appIds.push(appId);
 
         if (!this.isBrowserEnvironment) {
             this.logger.info("in non-browser environment, exiting early.");
@@ -357,6 +338,9 @@ export class StandardController implements IController {
             initCorrelationId
         );
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
+
+        this.logger.warning("logging multiple instances")
+        await this.logMultipleInstances(initMeasurement, request);
 
         await invokeAsync(
             this.browserStorage.initialize.bind(this.browserStorage),
@@ -2407,13 +2391,39 @@ export class StandardController implements IController {
         return res;
     }
 
+    private async logMultipleInstances(performanceEvent: InProgressPerformanceEvent, request?: InitializeApplicationRequest): void {
+        const appId = request?.appId || this.config.auth.clientId;
+        // @ts-ignore
+        window.msal = window.msal || {};
+        // @ts-ignore
+        window.msal.appIds = window.msal.appIds || [];
+
+        // @ts-ignore
+        if(this.checkForSameClientId(appId, window.msal.appIds)) {
+            this.logger.warning(
+                "There is already an instance of MSAL.js in the window with the same client id."
+            )
+        // @ts-ignore
+        } else if(this.checkForMultipleInstances(appId, window.msal.appIds)) {
+            this.logger.warning(
+                "There is already an instance of MSAL.js in the window."
+            )
+        } 
+
+        // @ts-ignore
+        if(!window.msal.appIds.includes(appId)) { // Avoid duplicates (i.e. broker applications)
+            // @ts-ignore
+            window.msal.appIds.push(appId);
+        }
+
+        await collectInstanceStats(appId, performanceEvent);
+    }
+
     private checkForSameClientId(id: string, appIdArray: string[]): boolean {
-        const isConcatenated = id.includes(".");
-    
-        if(isConcatenated) {
+        if(id.includes(".")) {
             const [clientId] = id.split(".");
             /**
-             * Check for pairwise broker applications. 
+             * Check for 1P applications. 
              * If the appId matches an existing application, that means it's a broker application of an existing PWB app and it shouldn't be double-counted. 
              * If the clientId matches an existing application but there is a different channelId, then it's a different application using the same clientId.
              */ 
@@ -2421,7 +2431,7 @@ export class StandardController implements IController {
                 return item !== id && item.startsWith(clientId);
             });
         } else {
-            // Check for non-pairwise broker applications
+            // Check for 3P applications
             return appIdArray.includes(id);
         }
     }
@@ -2429,11 +2439,12 @@ export class StandardController implements IController {
     private checkForMultipleInstances (id: string, appIdArray: string[]): boolean {
         if (id.includes(".")) {
             /**
-             * Check for pairwise broker applications. 
+             * Check for 1P applications.
              * If the appId matches an existing application, that means it's a broker application of an existing PWB app and it shouldn't be double-counted. 
              */
             return appIdArray.some(item => item !== id);
         } else {
+            // Check for 3P applications
             return appIdArray.length > 0;
         }
     }
