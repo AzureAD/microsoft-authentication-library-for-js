@@ -28,6 +28,7 @@ export abstract class BaseOperatingContext {
     protected config: BrowserConfiguration;
     protected available: boolean;
     protected browserEnvironment: boolean;
+    protected workerEnvironment: boolean;
 
     protected static loggerCallback(level: LogLevel, message: string): void {
         switch (level) {
@@ -61,6 +62,7 @@ export abstract class BaseOperatingContext {
          * This is to support server-side rendering environments.
          */
         this.browserEnvironment = typeof window !== "undefined";
+        this.workerEnvironment = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
         this.config = buildConfiguration(config, this.browserEnvironment);
 
         let sessionStorage: Storage | undefined;
@@ -135,5 +137,9 @@ export abstract class BaseOperatingContext {
 
     isBrowserEnvironment(): boolean {
         return this.browserEnvironment;
+    }
+
+    isWorkerEnvironment(): boolean {
+        return this.workerEnvironment;
     }
 }

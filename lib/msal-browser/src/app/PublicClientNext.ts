@@ -93,6 +93,7 @@ export class PublicClientNext implements IPublicClientApplication {
         controller?: IController
     ) {
         this.configuration = configuration;
+        debugger;
         if (controller) {
             this.controller = controller;
         } else {

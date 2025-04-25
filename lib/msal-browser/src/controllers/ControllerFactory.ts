@@ -10,6 +10,8 @@ import { Configuration } from "../config/Configuration.js";
 import { StandardController } from "./StandardController.js";
 import { NestedAppAuthController } from "./NestedAppAuthController.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
+import { WorkerOperatingContext } from "../operatingcontext/WorkerOperatingContext.js";
+import { WorkerController } from "./WorkerController.js";
 
 export async function createV3Controller(
     config: Configuration,
@@ -24,19 +26,30 @@ export async function createV3Controller(
 export async function createController(
     config: Configuration
 ): Promise<IController | null> {
-    const standard = new StandardOperatingContext(config);
-    const nestedApp = new NestedAppOperatingContext(config);
+    if (typeof window !== "undefined") {
+        const standard = new StandardOperatingContext(config);
+        const nestedApp = new NestedAppOperatingContext(config);
 
-    const operatingContexts = [standard.initialize(), nestedApp.initialize()];
+        const operatingContexts = [standard.initialize(), nestedApp.initialize()];
 
-    await Promise.all(operatingContexts);
+        await Promise.all(operatingContexts);
 
-    if (nestedApp.isAvailable() && config.auth.supportsNestedAppAuth) {
-        return NestedAppAuthController.createController(nestedApp);
-    } else if (standard.isAvailable()) {
-        return StandardController.createController(standard);
+        if (nestedApp.isAvailable() && config.auth.supportsNestedAppAuth) {
+            return NestedAppAuthController.createController(nestedApp);
+        } else if (standard.isAvailable()) {
+            return StandardController.createController(standard);
+        } else {
+            // Since neither of the actual operating contexts are available keep the UnknownOperatingContextController
+            return null;
+        }
+    }
+
+    if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope) {
+        const workerOperatingContext = new WorkerOperatingContext(config);
+        await workerOperatingContext.initialize();
+        return WorkerController.createController(workerOperatingContext);
     } else {
-        // Since neither of the actual operating contexts are available keep the UnknownOperatingContextController
         return null;
     }
+    
 }
