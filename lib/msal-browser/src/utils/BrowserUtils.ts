@@ -14,7 +14,7 @@ import {
     BrowserConfigurationAuthErrorCodes,
     createBrowserConfigurationAuthError,
 } from "../error/BrowserConfigurationAuthError.js";
-import { BrowserConfiguration } from "../config/Configuration.js";
+import type { BrowserConfiguration } from "../config/Configuration.js";
 
 /**
  * Clears hash from window url.
