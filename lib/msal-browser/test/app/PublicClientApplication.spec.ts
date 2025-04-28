@@ -6553,10 +6553,64 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(accounts).toEqual([]);
         });
 
+        it("getAllAccounts throws if called before initialize", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                cache: {
+                    cacheLocation: "localStorage",
+                },
+            });
+
+            window.localStorage.setItem(
+                "msal.account.keys",
+                JSON.stringify([AccountEntityUtils.generateAccountKey(testAccount1)])
+            );
+
+            try {
+                pca.getAllAccounts();
+            } catch (e) {
+                expect(e).toEqual(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
+                );
+                done();
+            }
+        });
+
         describe("getAccount", () => {
             it("getAccount returns null if empty filter is passed in", () => {
                 const account = pca.getAccount({});
                 expect(account).toBe(null);
+            });
+
+            it("getAccount throws if called before initialize", (done) => {
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                    cache: {
+                        cacheLocation: "localStorage",
+                    },
+                });
+
+                window.localStorage.setItem(
+                    "msal.account.keys",
+                    JSON.stringify([AccountEntityUtils.generateAccountKey(testAccount1)])
+                );
+
+                try {
+                    pca.getAccount({ username: testAccount1.username });
+                } catch (e) {
+                    expect(e).toEqual(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                        )
+                    );
+                    done();
+                }
             });
 
             describe("loginHint filter", () => {
@@ -6687,6 +6741,40 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             it("active account is initialized as null", () => {
                 // Public client should initialze with active account set to null.
                 expect(pca.getActiveAccount()).toBe(null);
+            });
+
+            it("getActiveAccount throws if called before initialize", (done) => {
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                    cache: {
+                        cacheLocation: "localStorage",
+                    },
+                });
+
+                window.localStorage.setItem(
+                    `msal.${TEST_CONFIG.MSAL_CLIENT_ID}.active-account-filters`,
+                    JSON.stringify({
+                        homeAccountId: testAccount1.homeAccountId,
+                        localAccountId: testAccount1.localAccountId,
+                    })
+                );
+                window.localStorage.setItem(
+                    "msal.account.keys",
+                    JSON.stringify([AccountEntityUtils.generateAccountKey(testAccount1)])
+                );
+
+                try {
+                    pca.getActiveAccount();
+                } catch (e) {
+                    expect(e).toEqual(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                        )
+                    );
+                    done();
+                }
             });
 
             it("setActiveAccount() sets the active account local id value correctly", () => {
