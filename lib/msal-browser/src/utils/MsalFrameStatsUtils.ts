@@ -5,7 +5,10 @@
 
 import { InProgressPerformanceEvent } from "../../../msal-common/lib/types/exports-browser-only.js";
 
-export function collectInstanceStats(currentAppId: string, performanceEvent: InProgressPerformanceEvent): void {
+export function collectInstanceStats(
+    currentAppId: string,
+    performanceEvent: InProgressPerformanceEvent
+): void {
     const frameInstances: string[] =
         // @ts-ignore
         window.msal?.appIds || [];
@@ -22,10 +25,16 @@ export function collectInstanceStats(currentAppId: string, performanceEvent: InP
         if (i.startsWith(currentClientId)) sameClientIdCount++;
     }
 
-    sessionStorage.setItem(`sameClientIdCount.${currentClientId}`, JSON.stringify(sameClientIdCount));
-    sessionStorage.setItem(`msalInstanceCount`, JSON.stringify(msalInstanceCount));
+    sessionStorage.setItem(
+        `sameClientIdCount.${currentClientId}`,
+        JSON.stringify(sameClientIdCount)
+    );
+    sessionStorage.setItem(
+        `msalInstanceCount`,
+        JSON.stringify(msalInstanceCount)
+    );
     performanceEvent.add({
         msalInstanceCount: msalInstanceCount,
-        sameClientIdCount: sameClientIdCount
+        sameClientIdCount: sameClientIdCount,
     });
 }

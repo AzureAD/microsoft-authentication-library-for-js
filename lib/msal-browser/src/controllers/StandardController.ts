@@ -2390,7 +2390,10 @@ export class StandardController implements IController {
         return res;
     }
 
-    private logMultipleInstances(performanceEvent: InProgressPerformanceEvent, request?: InitializeApplicationRequest): void {
+    private logMultipleInstances(
+        performanceEvent: InProgressPerformanceEvent,
+        request?: InitializeApplicationRequest
+    ): void {
         const appId = request?.appId || this.config.auth.clientId;
         // @ts-ignore
         window.msal = window.msal || {};
@@ -2398,19 +2401,19 @@ export class StandardController implements IController {
         window.msal.appIds = window.msal.appIds || [];
 
         // @ts-ignore
-        if(this.checkForSameClientId(appId, window.msal.appIds)) {
+        if (this.checkForSameClientId(appId, window.msal.appIds)) {
             this.logger.warning(
                 "There is already an instance of MSAL.js in the window with the same client id."
-            )
-        // @ts-ignore
-        } else if(this.checkForMultipleInstances(appId, window.msal.appIds)) {
+            );
+            // @ts-ignore
+        } else if (this.checkForMultipleInstances(appId, window.msal.appIds)) {
             this.logger.warning(
                 "There is already an instance of MSAL.js in the window."
-            )
-        } 
+            );
+        }
 
         // @ts-ignore
-        if(!window.msal.appIds.includes(appId)) { // Avoid duplicates (i.e. broker applications)
+        if (!window.msal.appIds.includes(appId)) {
             // @ts-ignore
             window.msal.appIds.push(appId);
         }
@@ -2419,14 +2422,14 @@ export class StandardController implements IController {
     }
 
     private checkForSameClientId(id: string, appIdArray: string[]): boolean {
-        if(id.includes(".")) {
+        if (id.includes(".")) {
             const [clientId] = id.split(".");
             /**
-             * Check for 1P applications. 
-             * If the appId matches an existing application, that means it's a broker application of an existing PWB app and it shouldn't be double-counted. 
+             * Check for 1P applications.
+             * If the appId matches an existing application, that means it's a broker application of an existing PWB app and it shouldn't be double-counted.
              * If the clientId matches an existing application but there is a different channelId, then it's a different application using the same clientId.
-             */ 
-            return appIdArray.some(item => {
+             */
+            return appIdArray.some((item) => {
                 return item !== id && item.startsWith(clientId);
             });
         } else {
@@ -2435,13 +2438,16 @@ export class StandardController implements IController {
         }
     }
 
-    private checkForMultipleInstances (id: string, appIdArray: string[]): boolean {
+    private checkForMultipleInstances(
+        id: string,
+        appIdArray: string[]
+    ): boolean {
         if (id.includes(".")) {
             /**
              * Check for 1P applications.
-             * If the appId matches an existing application, that means it's a broker application of an existing PWB app and it shouldn't be double-counted. 
+             * If the appId matches an existing application, that means it's a broker application of an existing PWB app and it shouldn't be double-counted.
              */
-            return appIdArray.some(item => item !== id);
+            return appIdArray.some((item) => item !== id);
         } else {
             // Check for 3P applications
             return appIdArray.length > 0;
