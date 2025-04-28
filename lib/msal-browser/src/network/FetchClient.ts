@@ -39,10 +39,13 @@ export class FetchClient implements INetworkModule {
                 headers: reqHeaders,
             });
         } catch (e) {
-            throw createBrowserAuthError(
-                window.navigator.onLine
-                    ? BrowserAuthErrorCodes.getRequestFailed
-                    : BrowserAuthErrorCodes.noNetworkConnectivity
+            throw createNetworkError(
+                createBrowserAuthError(
+                    window.navigator.onLine
+                        ? BrowserAuthErrorCodes.getRequestFailed
+                        : BrowserAuthErrorCodes.noNetworkConnectivity,
+                    `error: ${e}`
+                )
             );
         }
 
@@ -57,7 +60,8 @@ export class FetchClient implements INetworkModule {
         } catch (e) {
             throw createNetworkError(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.failedToParseResponse
+                    BrowserAuthErrorCodes.failedToParseResponse,
+                    `error: ${e}`
                 ),
                 responseStatus,
                 responseHeaders
@@ -88,10 +92,13 @@ export class FetchClient implements INetworkModule {
                 body: reqBody,
             });
         } catch (e) {
-            throw createBrowserAuthError(
-                window.navigator.onLine
-                    ? BrowserAuthErrorCodes.postRequestFailed
-                    : BrowserAuthErrorCodes.noNetworkConnectivity
+            throw createNetworkError(
+                createBrowserAuthError(
+                    window.navigator.onLine
+                        ? BrowserAuthErrorCodes.postRequestFailed
+                        : BrowserAuthErrorCodes.noNetworkConnectivity,
+                    `error: ${e}`
+                )
             );
         }
 
@@ -106,7 +113,8 @@ export class FetchClient implements INetworkModule {
         } catch (e) {
             throw createNetworkError(
                 createBrowserAuthError(
-                    BrowserAuthErrorCodes.failedToParseResponse
+                    BrowserAuthErrorCodes.failedToParseResponse,
+                    `error: ${e}`
                 ),
                 responseStatus,
                 responseHeaders
@@ -131,8 +139,11 @@ function getFetchHeaders(options?: NetworkRequestOptions): Headers {
         });
         return headers;
     } catch (e) {
-        throw createBrowserAuthError(
-            BrowserAuthErrorCodes.failedToBuildHeaders
+        throw createNetworkError(
+            createBrowserAuthError(
+                BrowserAuthErrorCodes.failedToBuildHeaders,
+                `error: ${e}`
+            )
         );
     }
 }
