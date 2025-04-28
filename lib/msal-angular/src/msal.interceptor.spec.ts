@@ -124,6 +124,7 @@ function initializeMsal() {
       },
       Location,
     ],
+    teardown: { destroyAfterEach: false },
   });
 
   interceptor = TestBed.inject(MsalInterceptor);

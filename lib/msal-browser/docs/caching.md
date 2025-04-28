@@ -71,6 +71,9 @@ To faciliate efficient token acquisition while maintaining a good UX, MSAL cache
 > :bulb: The authorization code is only stored in memory and will be discarded after redeeming it for tokens.
 
 ## Warning :warning:
+
+**NOTE: `temporaryCacheLocation` is deprecated will be removed in the next major version.**
+
 Overriding `temporaryCacheLocation` should be done with caution. Specifically when choosing `localStorage`. Interaction in more than one tab/window will not be supported and you may receive `interaction_in_progress` errors unexpectedly. This is an escape hatch, not a fully supported feature.
 
 When using MSAL.js with the default configuration in a scenario where the user is redirected after successful authentication in a new window or tab, the OAuth 2.0 Authorization Code with PKCE flow will be interrupted. In this case, the original window or tab where the authentication state (code verifier and challenge) are stored, will be lost, and the authentication flow will fail.

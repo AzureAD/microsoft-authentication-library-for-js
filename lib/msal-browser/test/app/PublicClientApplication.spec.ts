@@ -115,6 +115,7 @@ import {
     buildIdToken,
     TestTimeUtils,
 } from "msal-test-utils";
+import { INTERACTION_TYPE } from "../../src/utils/BrowserConstants.js";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -1092,7 +1093,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                TEST_CONFIG.MSAL_CLIENT_ID
+                JSON.stringify({
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    type: INTERACTION_TYPE.SIGNIN,
+                })
             );
             jest.spyOn(
                 BrowserCacheManager.prototype,
@@ -1247,7 +1251,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             window.sessionStorage.setItem(
                 `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                TEST_CONFIG.MSAL_CLIENT_ID
+                JSON.stringify({
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    type: INTERACTION_TYPE.SIGNIN,
+                })
             );
             pca.handleRedirectPromise();
         });
@@ -1276,6 +1283,57 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             await pca.handleRedirectPromise();
             expect(emitSpy).toHaveBeenCalledTimes(0);
+        });
+
+        it("removes interaction_in_progress and returns null after sign-out", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+            await pca.initialize();
+
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                JSON.stringify({
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    type: INTERACTION_TYPE.SIGNOUT,
+                })
+            );
+            const res = await pca.handleRedirectPromise();
+            expect(res).toBeNull();
+            expect(
+                // @ts-ignore
+                pca.controller.browserStorage.getInteractionInProgress()
+            ).toBeFalsy();
+        });
+
+        it("removes interaction_in_progress and throws after sign-in when there are no tokens in cache", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+            await pca.initialize();
+
+            window.sessionStorage.setItem(
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                JSON.stringify({
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    type: INTERACTION_TYPE.SIGNIN,
+                })
+            );
+            try {
+                await pca.handleRedirectPromise();
+                throw "Unexpected code path";
+            } catch (e) {
+                // @ts-ignore
+                expect(e.errorCode).toEqual("no_token_request_cache_error");
+            }
+            expect(
+                // @ts-ignore
+                pca.controller.browserStorage.getInteractionInProgress()
+            ).toBeFalsy();
         });
     });
     describe("OIDC Protocol Mode tests", () => {

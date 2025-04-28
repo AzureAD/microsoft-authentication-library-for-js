@@ -1,7 +1,7 @@
 {
   "type": "patch",
-  "comment": "Deprecate logout() in Angular",
+  "comment": "Fix circular dependency",
   "packageName": "@azure/msal-angular",
-  "email": "shylasummers@microsoft.com",
+  "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
 }

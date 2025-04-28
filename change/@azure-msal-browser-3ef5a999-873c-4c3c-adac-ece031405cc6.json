@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Export additional function internally for use in tests",
+  "comment": "Fix circular type imports",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
