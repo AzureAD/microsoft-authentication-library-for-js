@@ -39,8 +39,8 @@ export function createNetworkError(
     error: AuthError,
     httpStatus?: number,
     responseHeaders?: Record<string, string>,
-    errorMessage?: string
+    additionalErrorInfo?: string
 ): NetworkError {
-    error.errorMessage = `errorMessage:${error.errorMessage}, additional info: ${errorMessage}`;
+    error.errorMessage = `errorMessage:${error.errorMessage}, additional info: ${additionalErrorInfo}`;
     return new NetworkError(error, httpStatus, responseHeaders);
 }
