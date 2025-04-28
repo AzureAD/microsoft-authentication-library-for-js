@@ -339,8 +339,7 @@ export class StandardController implements IController {
         );
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
 
-        this.logger.warning("logging multiple instances")
-        await this.logMultipleInstances(initMeasurement, request);
+        this.logMultipleInstances(initMeasurement, request);
 
         await invokeAsync(
             this.browserStorage.initialize.bind(this.browserStorage),
@@ -2391,7 +2390,7 @@ export class StandardController implements IController {
         return res;
     }
 
-    private async logMultipleInstances(performanceEvent: InProgressPerformanceEvent, request?: InitializeApplicationRequest): void {
+    private logMultipleInstances(performanceEvent: InProgressPerformanceEvent, request?: InitializeApplicationRequest): void {
         const appId = request?.appId || this.config.auth.clientId;
         // @ts-ignore
         window.msal = window.msal || {};
@@ -2416,7 +2415,7 @@ export class StandardController implements IController {
             window.msal.appIds.push(appId);
         }
 
-        await collectInstanceStats(appId, performanceEvent);
+        collectInstanceStats(appId, performanceEvent);
     }
 
     private checkForSameClientId(id: string, appIdArray: string[]): boolean {
