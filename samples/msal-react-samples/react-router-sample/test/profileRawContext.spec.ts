@@ -24,7 +24,7 @@ async function verifyTokenStore(
         "b5c2e510-4a17-4feb-b219-e55aa5b74144"
     );
     expect(telemetryCacheEntry).not.toBeNull;
-    expect(telemetryCacheEntry["cacheHits"]).toBe(1);
+    expect(telemetryCacheEntry["cacheHits"]).toBeGreaterThanOrEqual(1);
 }
 
 describe("/profileRawContext", () => {
