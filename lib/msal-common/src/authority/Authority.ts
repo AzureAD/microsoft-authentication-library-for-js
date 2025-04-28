@@ -51,7 +51,7 @@ import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata.js";
 import { RegionDiscovery } from "./RegionDiscovery.js";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata.js";
 import { ImdsOptions } from "./ImdsOptions.js";
-import { AzureCloudOptions } from "../config/ClientConfiguration.js";
+import type { AzureCloudOptions } from "../config/ClientConfiguration.js";
 import { Logger } from "../logger/Logger.js";
 import { AuthError } from "../error/AuthError.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";

@@ -11,7 +11,7 @@ import {
     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
 } from "../utils/Constants.js";
 import { version } from "../packageMetadata.js";
-import { Authority } from "../authority/Authority.js";
+import type { Authority } from "../authority/Authority.js";
 import { AzureCloudInstance } from "../authority/AuthorityOptions.js";
 import { CacheManager, DefaultStorageClass } from "../cache/CacheManager.js";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
@@ -131,6 +131,9 @@ export type LoggerOptions = {
  * - claimsBasedCachingEnabled   - Sets whether tokens should be cached based on the claims hash. Default is false.
  */
 export type CacheOptions = {
+    /**
+     * @deprecated claimsBasedCachingEnabled is deprecated and will be removed in the next major version.
+     */
     claimsBasedCachingEnabled?: boolean;
 };
 
