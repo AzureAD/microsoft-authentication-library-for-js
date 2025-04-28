@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fix throw when attempting to getAccount before initialization",
+  "comment": "Fix throw when attempting to getAccount before initialization #7720",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
