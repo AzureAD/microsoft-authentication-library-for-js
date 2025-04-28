@@ -141,7 +141,7 @@ describe("FetchClient.ts Unit Tests", () => {
                     expect(e.errorCode).toContain(
                         BrowserAuthErrorMessage.postRequestFailed.code
                     );
-                    expect(e.subError).toContain(`error:`);
+                    expect(e.errorMessage).toContain(`error:`);
                     done();
                 });
         });
@@ -163,7 +163,7 @@ describe("FetchClient.ts Unit Tests", () => {
                 expect(e.errorCode).toBe(
                     BrowserAuthErrorMessage.getRequestFailed.code
                 );
-                expect(e.subError).toContain(`error:`);
+                expect(e.errorMessage).toContain(`error:`);
                 done();
             });
         });
@@ -198,7 +198,7 @@ describe("FetchClient.ts Unit Tests", () => {
                         BrowserAuthErrorMessage.failedToParseNetworkResponse
                             .code
                     );
-                    expect(e.subError).toContain(`error:`);
+                    expect(e.errorMessage).toContain(`error:`);
                     done();
                 });
         });
@@ -238,7 +238,7 @@ describe("FetchClient.ts Unit Tests", () => {
                     expect(e.errorCode).toBe(
                         BrowserAuthErrorMessage.noNetworkConnectivity.code
                     );
-                    expect(e.subError).toContain(`error:`);
+                    expect(e.errorMessage).toContain(`error:`);
                     done();
                 });
         });
