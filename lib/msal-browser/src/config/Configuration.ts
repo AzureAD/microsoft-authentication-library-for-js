@@ -289,6 +289,7 @@ export function buildConfiguration(
         cacheLocation: BrowserCacheLocation.SessionStorage,
         temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
         storeAuthStateInCookie: false,
+        secureCookies:false,
         // Default cache migration to true if cache location is localStorage since entries are preserved across tabs/windows. Migration has little to no benefit in sessionStorage and memoryStorage
         cacheMigrationEnabled:
             userInputCache &&
