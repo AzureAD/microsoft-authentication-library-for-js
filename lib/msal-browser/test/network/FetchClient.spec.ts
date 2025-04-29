@@ -140,10 +140,11 @@ describe("FetchClient.ts Unit Tests", () => {
             fetchClient
                 .sendPostRequestAsync<any>(targetUri, requestOptions)
                 .catch((e) => {
-                    expect(e).toBeInstanceOf(BrowserAuthError);
+                    expect(e).toBeInstanceOf(NetworkError);
                     expect(e.errorCode).toBe(
                         BrowserAuthErrorCodes.postRequestFailed
                     );
+                    expect(e.errorMessage).toContain(`additionalErrorInfo:`);
                     done();
                 });
         });
@@ -161,10 +162,11 @@ describe("FetchClient.ts Unit Tests", () => {
                 );
 
             fetchClient.sendGetRequestAsync<any>(targetUri).catch((e) => {
-                expect(e).toBeInstanceOf(BrowserAuthError);
+                expect(e).toBeInstanceOf(NetworkError);
                 expect(e.errorCode).toBe(
                     BrowserAuthErrorCodes.getRequestFailed
                 );
+                expect(e.errorMessage).toContain(`additionalErrorInfo:`);
                 done();
             });
         });
@@ -199,6 +201,7 @@ describe("FetchClient.ts Unit Tests", () => {
                     expect(e.errorCode).toBe(
                         BrowserAuthErrorCodes.failedToParseResponse
                     );
+                    expect(e.errorMessage).toContain(`additionalErrorInfo:`);
                     done();
                 });
         });
@@ -234,10 +237,11 @@ describe("FetchClient.ts Unit Tests", () => {
             fetchClient
                 .sendPostRequestAsync<any>(targetUri, requestOptions)
                 .catch((e) => {
-                    expect(e).toBeInstanceOf(BrowserAuthError);
+                    expect(e).toBeInstanceOf(NetworkError);
                     expect(e.errorCode).toBe(
                         BrowserAuthErrorCodes.noNetworkConnectivity
                     );
+                    expect(e.errorMessage).toContain(`additionalErrorInfo:`);
                     done();
                 });
         });
