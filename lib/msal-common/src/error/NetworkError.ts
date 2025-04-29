@@ -41,6 +41,6 @@ export function createNetworkError(
     responseHeaders?: Record<string, string>,
     additionalError?: Error
 ): NetworkError {
-    error.errorMessage = `${error.errorMessage},additionalErrorInfo: error.name:${additionalError?.name}, error.message:${additionalError?.message}`;
+    error.errorMessage = `${error.errorMessage}, additionalErrorInfo: error.name:${additionalError?.name}, error.message:${additionalError?.message}`;
     return new NetworkError(error, httpStatus, responseHeaders);
 }
