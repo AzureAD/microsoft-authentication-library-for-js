@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1745872879785,
+  "lastUpdate": 1745955899691,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15032,6 +15032,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.78%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sameera.gajjarapu@microsoft.com",
+            "name": "Sameera Gajjarapu",
+            "username": "sameerag"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2b6112d62495ac4e3245d8a0d9be6b541ffb206c",
+          "message": "Surface get/post errors (#7721)\n\nIf the GET/POST calls fail, say in case of CORS header missing cases, we\ndo not post the exact error seen in the JS to the application. This PR\nupdates the same and also changes the error type to NetworkError.",
+          "timestamp": "2025-04-29T15:38:38-04:00",
+          "tree_id": "de3f605f727a2fe91c9e0df695620ac36781418d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/2b6112d62495ac4e3245d8a0d9be6b541ffb206c"
+        },
+        "date": 1745955897598,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 244566,
+            "range": "±0.70%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 242575,
+            "range": "±0.83%",
+            "unit": "ops/sec",
+            "extra": "213 samples"
           }
         ]
       }
