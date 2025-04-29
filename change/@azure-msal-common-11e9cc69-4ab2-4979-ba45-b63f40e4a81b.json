@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add optional parameter to NetworkError for error specifics #7721",
+  "packageName": "@azure/msal-common",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}

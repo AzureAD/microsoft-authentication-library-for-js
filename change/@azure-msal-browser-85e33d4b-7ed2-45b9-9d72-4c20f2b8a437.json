@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Add error messaging and change type for get/post failures #7721",
+    "packageName": "@azure/msal-browser",
+    "email": "sameera.gajjarapu@microsoft.com",
+    "dependentChangeType": "patch"
+}
