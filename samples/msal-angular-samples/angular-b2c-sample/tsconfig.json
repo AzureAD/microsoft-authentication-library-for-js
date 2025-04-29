@@ -28,7 +28,13 @@
       ],
       "@azure/msal-angular": [
         "../../../node_modules/@azure/msal-angular/dist"
-      ]
+      ],
+      "rxjs": [
+        "node_modules/rxjs"
+      ],
+      "rxjs/*": [
+        "node_modules/rxjs/*"
+      ],
     },
     "useDefineForClassFields": false,
     "types": [

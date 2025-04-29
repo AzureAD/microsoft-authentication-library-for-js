@@ -18,7 +18,13 @@
     "paths": {
       "msal-angular": [
         "dist/msal-angular"
-      ]
+      ],
+      "rxjs": [
+        "node_modules/rxjs"
+      ],
+      "rxjs/*": [
+        "node_modules/rxjs/*"
+      ],
     },
     "useDefineForClassFields": false
   }
