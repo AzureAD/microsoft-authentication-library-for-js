@@ -11,9 +11,9 @@ import {
   InteractionStatus,
 } from "@azure/msal-browser";
 import { BehaviorSubject, Observable, ReplaySubject, Subject } from "rxjs";
-import { MsalService } from "./msal.service";
 import { MsalBroadcastConfiguration } from "./msal.broadcast.config";
 import { MSAL_BROADCAST_CONFIG, MSAL_INSTANCE } from "./constants";
+import { name, version } from "./packageMetadata";
 
 @Injectable()
 export class MsalBroadcastService {
@@ -24,7 +24,6 @@ export class MsalBroadcastService {
 
   constructor(
     @Inject(MSAL_INSTANCE) private msalInstance: IPublicClientApplication,
-    private authService: MsalService,
     @Optional()
     @Inject(MSAL_BROADCAST_CONFIG)
     private msalBroadcastConfig?: MsalBroadcastConfiguration
@@ -34,8 +33,9 @@ export class MsalBroadcastService {
       this.msalBroadcastConfig &&
       this.msalBroadcastConfig.eventsToReplay > 0
     ) {
-      this.authService
+      this.msalInstance
         .getLogger()
+        .clone(name, version)
         .verbose(
           `BroadcastService - eventsToReplay set on BroadcastConfig, replaying the last ${this.msalBroadcastConfig.eventsToReplay} events`
         );
@@ -62,8 +62,9 @@ export class MsalBroadcastService {
         this._inProgress.value
       );
       if (status !== null) {
-        this.authService
+        this.msalInstance
           .getLogger()
+          .clone(name, version)
           .verbose(
             `BroadcastService - ${message.eventType} results in setting inProgress from ${this._inProgress.value} to ${status}`
           );
