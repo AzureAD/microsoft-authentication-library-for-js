@@ -3434,7 +3434,7 @@ export type PerformanceEvent = {
     prompt?: string;
     usePreGeneratedPkce?: boolean;
     msalInstanceCount?: number;
-    sameClientIdCount?: number;
+    sameClientIdInstanceCount?: number;
 };
 
 // Warning: (tsdoc-undefined-tag) The TSDoc tag "@export" is not defined in this configuration
