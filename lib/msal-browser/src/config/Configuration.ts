@@ -124,11 +124,6 @@ export type CacheOptions = {
      */
     storeAuthStateInCookie?: boolean;
     /**
-     * If set, MSAL sets the "Secure" flag on cookies so they can only be sent over HTTPS. By default this flag is set to true.
-     * @deprecated This option will be removed in the next major version and all cookies set will include the Secure attribute.
-     */
-    secureCookies?: boolean;
-    /**
      * If set, MSAL will attempt to migrate cache entries from older versions on initialization. By default this flag is set to true if cacheLocation is localStorage, otherwise false.
      * @deprecated This option is deprecated and will be removed in the next major version.
      */
