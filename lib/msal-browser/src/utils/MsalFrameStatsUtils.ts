@@ -15,17 +15,17 @@ export function collectInstanceStats(
 
     const msalInstanceCount = frameInstances.length;
 
-    let sameClientIdCount = 0;
+    let sameClientIdInstanceCount = 0;
     /**
      * 1P applications have an app id of the form <clientId>.<channelId>
      * 3P applications have their client id as their app id
      */
     const currentClientId = currentAppId.split(".")[0];
     for (const i of frameInstances) {
-        if (i.startsWith(currentClientId)) sameClientIdCount++;
+        if (i.startsWith(currentClientId)) sameClientIdInstanceCount++;
     }
     performanceEvent.add({
         msalInstanceCount: msalInstanceCount,
-        sameClientIdCount: sameClientIdCount,
+        sameClientIdInstanceCount: sameClientIdInstanceCount,
     });
 }

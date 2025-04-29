@@ -2413,7 +2413,7 @@ export class StandardController implements IController {
         }
 
         // @ts-ignore
-        if (!window.msal.appIds.includes(appId)) {
+        if (!(window.msal.appIds.includes(appId) && appId.includes("."))) {
             // @ts-ignore
             window.msal.appIds.push(appId);
         }
@@ -2426,6 +2426,7 @@ export class StandardController implements IController {
             const [clientId] = id.split(".");
             /**
              * Check for 1P applications.
+             * appId = clientId.channelId
              * If the appId matches an existing application, that means it's a broker application of an existing PWB app and it shouldn't be double-counted.
              * If the clientId matches an existing application but there is a different channelId, then it's a different application using the same clientId.
              */
@@ -2433,7 +2434,7 @@ export class StandardController implements IController {
                 return item !== id && item.startsWith(clientId);
             });
         } else {
-            // Check for 3P applications
+            // 3P applications will not have a channel id
             return appIdArray.includes(id);
         }
     }
@@ -2445,11 +2446,12 @@ export class StandardController implements IController {
         if (id.includes(".")) {
             /**
              * Check for 1P applications.
+             * appId = clientId.channelId
              * If the appId matches an existing application, that means it's a broker application of an existing PWB app and it shouldn't be double-counted.
              */
             return appIdArray.some((item) => item !== id);
         } else {
-            // Check for 3P applications
+            // 3P applications will not have a channel id
             return appIdArray.length > 0;
         }
     }
