@@ -4,26 +4,26 @@
  */
 
 import {
-    AccountEntity,
-    AuthorityType,
-    AuthToken,
     Constants,
     ICrypto,
     Logger,
-    AccountInfo,
     createAuthError,
     AuthErrorCodes,
+    IPerformanceClient,
 } from "@azure/msal-common/browser";
-import { AuthenticationResult } from "../../response/AuthenticationResult.js";
-import { PlatformDOMTokenRequest } from "./NativeRequest.js";
-import { IPerformanceClient } from "../../../../msal-common/lib/types/exports-browser-only.js";
+import {
+    PlatformDOMTokenRequest,
+    PlatformDOMLogoutRequest,
+} from "./NativeRequest.js";
 import { createNewGuid } from "../../crypto/BrowserCrypto.js";
 import { NativeConstants } from "../../utils/BrowserConstants.js";
-import { ClearCacheRequest } from "../../request/ClearCacheRequest.js";
 import { EndSessionRequest } from "../../request/EndSessionRequest.js";
-import { PlatformDOMTokenResponse } from "./NativeResponse.js";
-import { base64Decode } from "../../encode/Base64Decode.js";
+import {
+    PlatformDOMTokenResponse,
+    SignOutErrorResult,
+} from "./NativeResponse.js";
 import { BrowserCacheManager } from "../../cache/BrowserCacheManager.js";
+import { createNativeAuthError } from "../../error/NativeAuthError.js";
 
 export class PlatformDOMHandler {
     protected logger: Logger;
@@ -66,7 +66,7 @@ export class PlatformDOMHandler {
 
     async sendMessage(
         request: PlatformDOMTokenRequest
-    ): Promise<AuthenticationResult> {
+    ): Promise<PlatformDOMTokenResponse> {
         this.logger.trace("PlatformDOMHandler: acquireToken called");
 
         try {
@@ -78,89 +78,88 @@ export class PlatformDOMHandler {
             this.logger.trace(
                 "PlatformDOMHandler: acquireToken response received"
             );
-            // NEED TO REMOVE THIS LATER
             this.logger.trace(
                 "PlatformDOMHandler: acquireToken response",
                 response
             );
-            this.validateNativeResponse(response);
-            return this.handleNativeResponse(request, response);
+            return this.validateNativeResponse(response);
         } catch (e) {
-            this.logger.error("PlatformDOMHandler: acquireToken error");
+            this.logger.error(
+                "PlatformDOMHandler: acquireToken platform error"
+            );
             throw e;
         }
     }
 
-    handleNativeResponse(
-        request: PlatformDOMTokenRequest,
-        response: PlatformDOMTokenResponse
-    ): AuthenticationResult {
-        this.logger.trace("PlatformDOMHandler: handleNativeResponse called");
-        // eslint-disable-next-line no-console
-        console.log(response);
-        // generate identifiers
-
-        if (response.isSuccess) {
-            const idTokenClaims = AuthToken.extractTokenClaims(
-                response.idToken ?? Constants.EMPTY_STRING,
-                base64Decode
-            );
-            // Save account in browser storage
-            const homeAccountIdentifier = AccountEntity.generateHomeAccountId(
-                response.clientInfo || Constants.EMPTY_STRING,
-                AuthorityType.Default,
-                this.logger,
-                this.browserCrypto,
-                idTokenClaims
-            );
-
-            const cachedhomeAccountId =
-                this.browserStorage.getAccountInfoFilteredBy({
-                    nativeAccountId: request.accountId,
-                })?.homeAccountId;
-        }
-
-        const authenticationResult: AuthenticationResult = {
-            authority: "",
-            uniqueId: "",
-            tenantId: "",
-            scopes: [],
-            idToken: "",
-            idTokenClaims: {},
-            accessToken: "",
-            fromCache: false,
-            expiresOn: null,
-            correlationId: this.correlationId,
-            tokenType: "",
-            account: {} as AccountInfo,
-        };
-
-        return authenticationResult;
-    }
-
-    logout(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        request: EndSessionRequest | ClearCacheRequest | undefined
-    ): Promise<void> {
+    async logout(request: EndSessionRequest | undefined): Promise<void> {
         this.logger.trace("PlatformDOMHandler: logout called");
-        throw new Error("Method not implemented.");
+        const logoutRequest: PlatformDOMLogoutRequest = {
+            brokerId: this.extensionId,
+            accountId:
+                request?.account?.nativeAccountId || Constants.EMPTY_STRING,
+            extraParameters: request?.extraQueryParameters || {},
+        };
+        try {
+            const logoutResponse =
+                // @ts-ignore
+                await window.navigator.platformAuthentication.executeSignOut(
+                    logoutRequest
+                );
+            return this.handleLogoutResponse(logoutResponse);
+        } catch (e) {
+            this.logger.error("PlatformDOMHandler: platform logout failed");
+            throw e;
+        }
     }
 
     private validateNativeResponse(response: object): PlatformDOMTokenResponse {
         if (
+            response.hasOwnProperty("isSuccess") &&
             response.hasOwnProperty("access_token") &&
             response.hasOwnProperty("id_token") &&
             response.hasOwnProperty("client_info") &&
             response.hasOwnProperty("account") &&
-            response.hasOwnProperty("scope") &&
+            response.hasOwnProperty("scopes") &&
             response.hasOwnProperty("expires_in")
         ) {
             return response as PlatformDOMTokenResponse;
-        } else {
-            throw createAuthError(
-                AuthErrorCodes.unexpectedError,
-                "Response missing expected properties."
+        } else if (
+            response.hasOwnProperty("isSuccess") &&
+            response.hasOwnProperty("error")
+        ) {
+            const errorResponse = response as PlatformDOMTokenResponse;
+            if (errorResponse.isSuccess === false) {
+                this.logger.trace(
+                    "PlatformDOMHandler: platform broker returned error response"
+                );
+                throw createNativeAuthError(
+                    errorResponse.error.code,
+                    errorResponse.error.description,
+                    {
+                        error: parseInt(errorResponse.error.errorCode),
+                        protocol_error: errorResponse.error.protocolError,
+                        status: errorResponse.error.status,
+                        properties: errorResponse.error.properties,
+                    }
+                );
+            }
+        }
+        throw createAuthError(
+            AuthErrorCodes.unexpectedError,
+            "Response missing expected properties."
+        );
+    }
+
+    private handleLogoutResponse(logoutResponse: object): void {
+        if (logoutResponse.hasOwnProperty("error")) {
+            this.logger.trace("PlatformDOMHandler: logout unsuccessful");
+            const logoutErrorResponse = logoutResponse as SignOutErrorResult;
+            throw createNativeAuthError(
+                logoutErrorResponse.error.code,
+                logoutErrorResponse.error.status
             );
+        } else {
+            this.logger.trace("PlatformDOMHandler: logout successful");
         }
     }
 }

@@ -3,8 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo } from "@azure/msal-common";
-
 /**
  * Account properties returned by Native Platform e.g. WAM
  */
@@ -61,13 +59,13 @@ export type PlatformDOMTokenResponse = {
     isSuccess: boolean;
     state?: string;
     accessToken?: string;
-    expiresIn: number;
-    account: NativeAccountInfo;
+    expiresIn?: number;
+    account?: NativeAccountInfo;
     clientInfo?: string;
     idToken?: string;
     scopes?: string;
     proofOfPossessionPayload?: string;
-    extendedLifetimeToken: boolean;
+    extendedLifetimeToken?: boolean;
     error: ErrorResult;
     properties?: Record<string, string>;
 };
@@ -79,4 +77,8 @@ export type ErrorResult = {
     protocolError?: string;
     status: string;
     properties?: object;
+};
+
+export type SignOutErrorResult = {
+    error: ErrorResult;
 };

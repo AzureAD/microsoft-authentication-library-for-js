@@ -12,7 +12,6 @@ import {
     AuthError,
     createAuthError,
     AuthErrorCodes,
-    AuthenticationScheme,
     InProgressPerformanceEvent,
     PerformanceEvents,
     IPerformanceClient,
@@ -26,7 +25,6 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../../error/BrowserAuthError.js";
-import { BrowserConfiguration } from "../../config/Configuration.js";
 import { createNewGuid } from "../../crypto/BrowserCrypto.js";
 
 type ResponseResolvers<T> = {

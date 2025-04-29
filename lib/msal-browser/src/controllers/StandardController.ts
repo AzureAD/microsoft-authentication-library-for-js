@@ -94,6 +94,7 @@ import {
     PLATFORM_EXTENSION_PROVIDER,
     PlatformAuthProvider,
 } from "../broker/nativeBroker/PlatformAuthProvider.js";
+import { FeatureSupportConfiguration } from "../config/FeatureFlags.js";
 
 function getAccountType(
     account?: AccountInfo
@@ -144,6 +145,9 @@ export class StandardController implements IController {
 
     // Input configuration by developer/user
     protected readonly config: BrowserConfiguration;
+
+    // Feature support configuration
+    protected readonly featureSupportConfig: FeatureSupportConfiguration;
 
     // Token cache implementation
     private tokenCache: TokenCache;
@@ -220,6 +224,7 @@ export class StandardController implements IController {
             this.operatingContext.isBrowserEnvironment();
         // Set the configuration.
         this.config = operatingContext.getConfig();
+        this.featureSupportConfig = operatingContext.getFeatureSupportConfig();
         this.initialized = false;
 
         // Initialize logger
@@ -428,8 +433,16 @@ export class StandardController implements IController {
     ): Promise<PlatformDOMHandler | undefined> {
         this.logger.trace("checkDOMPlatformSupport called", correlationId);
 
+        if (!this.featureSupportConfig.enablePlatformBrokerDOMSupport) {
+            this.logger.trace(
+                "Platform DOM support is disabled, returning false.",
+                correlationId
+            );
+            return;
+        }
+
         if (!this.isBrowserEnvironment) {
-            this.logger.info("in non-browser environment, returning false.");
+            this.logger.trace("in non-browser environment, returning false.");
             return;
         }
 
@@ -449,6 +462,7 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     this.browserCrypto,
+                    this.browserStorage,
                     NativeConstants.MICROSOFT_ENTRA_BROKERID,
                     correlationId
                 );

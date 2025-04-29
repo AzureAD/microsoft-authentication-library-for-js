@@ -59,7 +59,11 @@ import {
     NativeExtensionTokenRequest,
     PlatformDOMTokenRequest,
 } from "../broker/nativeBroker/NativeRequest.js";
-import { MATS, NativeResponse } from "../broker/nativeBroker/NativeResponse.js";
+import {
+    MATS,
+    NativeResponse,
+    PlatformDOMTokenResponse,
+} from "../broker/nativeBroker/NativeResponse.js";
 import {
     NativeAuthError,
     NativeAuthErrorCodes,
@@ -139,6 +143,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.platformAuthProvider.getExtensionId() ===
             NativeConstants.PREFERRED_EXTENSION_ID
                 ? "chrome"
+                : this.platformAuthProvider.getExtensionId() ===
+                  NativeConstants.MICROSOFT_ENTRA_BROKERID
+                ? NativeConstants.MICROSOFT_ENTRA_BROKERID
                 : this.platformAuthProvider.getExtensionId()?.length
                 ? "unknown"
                 : undefined;
@@ -147,12 +154,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             libraryName: BrowserConstants.MSAL_SKU,
             libraryVersion: version,
             extensionName: extensionName,
-            extensionVersion:
-                this.platformAuthType === PLATFORM_EXTENSION_PROVIDER
-                    ? (
-                          this.platformAuthProvider as NativeMessageHandler
-                      ).getExtensionVersion()
-                    : undefined,
+            extensionVersion: this.platformAuthProvider.getExtensionVersion(),
         });
     }
 
@@ -161,7 +163,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param request {NativeExtensionTokenRequest}
      * @private
      */
-    private addRequestSKUs(request: NativeExtensionTokenRequest) {
+    private addRequestSKUs(
+        request: NativeExtensionTokenRequest | PlatformDOMTokenRequest
+    ): void {
         request.extraParameters = {
             ...request.extraParameters,
             [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
@@ -236,8 +240,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     request: nativeTokenRequest,
                 };
 
-                const response: object =
-                    await this.platformAuthProvider.sendMessage(messageBody);
+                const response: object = await (
+                    this.platformAuthProvider as NativeMessageHandler
+                ).sendMessage(messageBody);
                 const validatedResponse: NativeResponse =
                     this.validateNativeResponse(response);
 
@@ -283,7 +288,11 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 const response = await (
                     this.platformAuthProvider as PlatformDOMHandler
                 ).sendMessage(nativeRequest);
-                return response;
+                return await this.handleNativeDOMResponse(
+                    nativeRequest,
+                    response,
+                    reqTimestamp
+                );
             } catch (e) {
                 if (e instanceof NativeAuthError) {
                     serverTelemetryManager.setNativeBrokerErrorCode(
@@ -608,6 +617,98 @@ export class NativeInteractionClient extends BaseInteractionClient {
         return result;
     }
 
+    protected async handleNativeDOMResponse(
+        request: PlatformDOMTokenRequest,
+        response: PlatformDOMTokenResponse,
+        reqTimestamp: number
+    ): Promise<AuthenticationResult> {
+        this.logger.trace("PlatformDOMHandler: handleNativeDOMResponse called");
+        // eslint-disable-next-line no-console
+        console.log(response);
+        // generate identifiers
+
+        const idTokenClaims = AuthToken.extractTokenClaims(
+            response.idToken ?? Constants.EMPTY_STRING,
+            base64Decode
+        );
+        // Save account in browser storage
+        const homeAccountIdentifier = AccountEntity.generateHomeAccountId(
+            response.clientInfo || Constants.EMPTY_STRING,
+            AuthorityType.Default,
+            this.logger,
+            this.browserCrypto,
+            idTokenClaims
+        );
+
+        const cachedhomeAccountId =
+            this.browserStorage.getAccountInfoFilteredBy({
+                nativeAccountId: request.accountId,
+            })?.homeAccountId;
+
+        // add exception for double brokering, please note this is temporary and will be fortified in future
+        if (
+            request.extraParameters?.child_client_id &&
+            response.account?.id !== request.accountId
+        ) {
+            this.logger.info(
+                "handleNativeServerResponse: Double broker flow detected, ignoring accountId mismatch"
+            );
+        } else if (
+            homeAccountIdentifier !== cachedhomeAccountId &&
+            response.account?.id !== request.accountId
+        ) {
+            // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
+            throw createNativeAuthError(NativeAuthErrorCodes.userSwitch);
+        }
+
+        // Get the preferred_cache domain for the given authority
+        const authority = await this.getDiscoveredAuthority({
+            requestAuthority: request.authority,
+        });
+
+        const baseAccount = buildAccountToCache(
+            this.browserStorage,
+            authority,
+            homeAccountIdentifier,
+            base64Decode,
+            idTokenClaims,
+            response.clientInfo,
+            undefined, // environment
+            idTokenClaims.tid,
+            undefined, // auth code payload
+            response.account?.id,
+            this.logger
+        );
+
+        // Ensure expires_in is in number format
+        response.expiresIn = Number(response.expiresIn);
+
+        // generate authenticationResult
+        const authenticationResult =
+            await this.generateAuthenticationResultFromDOMResponse(
+                response,
+                request,
+                idTokenClaims,
+                baseAccount,
+                authority.canonicalAuthority,
+                reqTimestamp
+            );
+
+        // cache accounts and tokens in the appropriate storage
+        await this.cacheAccount(baseAccount);
+        await this.cacheNativeTokens(
+            response,
+            request,
+            homeAccountIdentifier,
+            idTokenClaims,
+            response.accessToken || "",
+            authenticationResult.tenantId,
+            reqTimestamp
+        );
+
+        return authenticationResult;
+    }
+
     /**
      * creates an homeAccountIdentifier for the account
      * @param response
@@ -636,13 +737,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param request
      * @returns
      */
-    generateScopes(
-        response: NativeResponse,
-        request: NativeExtensionTokenRequest
-    ): ScopeSet {
-        return response.scope
-            ? ScopeSet.fromString(response.scope)
-            : ScopeSet.fromString(request.scope);
+    generateScopes(requestScopes: string, responseScopes?: string): ScopeSet {
+        return responseScopes
+            ? ScopeSet.fromString(responseScopes)
+            : ScopeSet.fromString(requestScopes);
     }
 
     /**
@@ -718,12 +816,15 @@ export class NativeInteractionClient extends BaseInteractionClient {
         reqTimestamp: number
     ): Promise<AuthenticationResult> {
         // Add Native Broker fields to Telemetry
-        const mats = this.addTelemetryFromNativeResponse(response);
+        const mats = this.addTelemetryFromNativeResponse(
+            response.properties.MATS
+        );
 
         // If scopes not returned in server response, use request scopes
-        const responseScopes = response.scope
-            ? ScopeSet.fromString(response.scope)
-            : ScopeSet.fromString(request.scope);
+        const responseScopes = this.generateScopes(
+            request.scope,
+            response.scope
+        );
 
         const accountProperties = response.account.properties || {};
         const uid =
@@ -785,6 +886,91 @@ export class NativeInteractionClient extends BaseInteractionClient {
     }
 
     /**
+     * Generates authentication result from DOM response
+     * @param response
+     * @param request
+     * @param idTokenObj
+     * @param accountEntity
+     * @param authority
+     * @param reqTimestamp
+     * @returns
+     */
+    protected async generateAuthenticationResultFromDOMResponse(
+        response: PlatformDOMTokenResponse,
+        request: PlatformDOMTokenRequest,
+        idTokenClaims: TokenClaims,
+        accountEntity: AccountEntity,
+        authority: string,
+        reqTimestamp: number
+    ): Promise<AuthenticationResult> {
+        // Add Native Broker fields to Telemetry
+        const mats = this.addTelemetryFromNativeResponse(
+            response.properties?.MATS
+        );
+
+        // If scopes not returned in server response, use request scopes
+        const responseScopes = this.generateScopes(
+            request.scope,
+            response.scopes
+        );
+
+        const accountProperties = response.account?.properties || {};
+        const uid =
+            accountProperties["UID"] ||
+            idTokenClaims.oid ||
+            idTokenClaims.sub ||
+            Constants.EMPTY_STRING;
+        const tid =
+            accountProperties["TenantId"] ||
+            idTokenClaims.tid ||
+            Constants.EMPTY_STRING;
+
+        const accountInfo: AccountInfo | null = updateAccountTenantProfileData(
+            accountEntity.getAccountInfo(),
+            undefined, // tenantProfile optional
+            idTokenClaims,
+            response.idToken
+        );
+
+        /**
+         * In pairwise broker flows, this check prevents the broker's native account id
+         * from being returned over the embedded app's account id.
+         */
+        if (accountInfo.nativeAccountId !== response.account?.id) {
+            accountInfo.nativeAccountId = response.account?.id;
+        }
+
+        // Generate PoP token as needed
+        const responseAccessToken = response.accessToken;
+        const tokenType =
+            request.extraParameters?.tokenType === AuthenticationScheme.POP
+                ? AuthenticationScheme.POP
+                : AuthenticationScheme.BEARER;
+
+        const result: AuthenticationResult = {
+            authority: authority,
+            uniqueId: uid,
+            tenantId: tid,
+            scopes: responseScopes.asArray(),
+            account: accountInfo,
+            idToken: response.idToken || "",
+            idTokenClaims: idTokenClaims,
+            accessToken: responseAccessToken || "",
+            fromCache: mats ? this.isResponseFromCache(mats) : false,
+            // Request timestamp and response expiresIn are in seconds, converting to Date for AuthenticationResult
+            expiresOn: TimeUtils.toDateFromSeconds(
+                reqTimestamp + (response.expiresIn || 0)
+            ),
+            tokenType: tokenType,
+            correlationId: this.correlationId,
+            state: response.state,
+            fromNativeBroker: true,
+        };
+
+        return result;
+    }
+
+    /**
      * cache the account entity in browser storage
      * @param accountEntity
      */
@@ -811,8 +997,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param reqTimestamp
      */
     cacheNativeTokens(
-        response: NativeResponse,
-        request: NativeExtensionTokenRequest,
+        response: NativeResponse | PlatformDOMTokenResponse,
+        request: NativeExtensionTokenRequest | PlatformDOMTokenRequest,
         homeAccountIdentifier: string,
         idTokenClaims: TokenClaims,
         responseAccessToken: string,
@@ -823,20 +1009,29 @@ export class NativeInteractionClient extends BaseInteractionClient {
             CacheHelpers.createIdTokenEntity(
                 homeAccountIdentifier,
                 request.authority,
-                response.id_token || "",
+                (response as NativeResponse).id_token ||
+                    (response as PlatformDOMTokenResponse).idToken ||
+                    "",
                 request.clientId,
                 idTokenClaims.tid || ""
             );
 
         // cache accessToken in inmemory storage
-        const expiresIn: number =
-            request.tokenType === AuthenticationScheme.POP
-                ? Constants.SHR_NONCE_VALIDITY
-                : (typeof response.expires_in === "string"
-                      ? parseInt(response.expires_in, 10)
-                      : response.expires_in) || 0;
+        const expiresIn: number = this.getExpiresInValue(
+            (request as NativeExtensionTokenRequest).tokenType ||
+                (request as PlatformDOMTokenRequest).extraParameters
+                    ?.tokenType ||
+                "",
+            (response as NativeResponse).expires_in ||
+                (response as PlatformDOMTokenResponse).expiresIn
+        );
+
         const tokenExpirationSeconds = reqTimestamp + expiresIn;
-        const responseScopes = this.generateScopes(response, request);
+        const responseScopes = this.generateScopes(
+            request.scope,
+            (response as NativeResponse).scope ||
+                (response as PlatformDOMTokenResponse).scopes
+        );
 
         const cachedAccessToken: AccessTokenEntity | null =
             CacheHelpers.createAccessTokenEntity(
@@ -850,9 +1045,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 0,
                 base64Decode,
                 undefined,
-                request.tokenType as AuthenticationScheme,
+                ((request as NativeExtensionTokenRequest)
+                    .tokenType as AuthenticationScheme) ||
+                    ((request as PlatformDOMTokenRequest).extraParameters
+                        ?.tokenType as AuthenticationScheme),
                 undefined,
-                request.keyId
+                (request as NativeExtensionTokenRequest).keyId ||
+                    (request as PlatformDOMTokenRequest).extraParameters?.keyId
             );
 
         const nativeCacheRecord = {
@@ -867,10 +1066,21 @@ export class NativeInteractionClient extends BaseInteractionClient {
         );
     }
 
+    getExpiresInValue(
+        tokenType: string,
+        expiresIn: string | number | undefined
+    ): number {
+        return tokenType === AuthenticationScheme.POP
+            ? Constants.SHR_NONCE_VALIDITY
+            : (typeof expiresIn === "string"
+                  ? parseInt(expiresIn, 10)
+                  : expiresIn) || 0;
+    }
+
     protected addTelemetryFromNativeResponse(
-        response: NativeResponse
+        matsResponse?: string
     ): MATS | null {
-        const mats = this.getMATSFromResponse(response);
+        const mats = this.getMATSFromResponse(matsResponse);
 
         if (!mats) {
             return null;
@@ -928,10 +1138,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param response
      * @returns
      */
-    private getMATSFromResponse(response: NativeResponse): MATS | null {
-        if (response.properties.MATS) {
+    private getMATSFromResponse(matsResponse: string | undefined): MATS | null {
+        if (matsResponse) {
             try {
-                return JSON.parse(response.properties.MATS);
+                return JSON.parse(matsResponse);
             } catch (e) {
                 this.logger.error(
                     "NativeInteractionClient - Error parsing MATS telemetry, returning null instead"
@@ -1063,6 +1273,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             state,
             extraQueryParameters,
             tokenQueryParameters,
+            storeInCache,
             ...remainingProperties
         } = request;
 
@@ -1071,18 +1282,18 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const scopeSet = new ScopeSet(scopes || []);
         scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
 
-        const tokenType = request.authenticationScheme?.toString() ?? "";
-
         const validExtraParameters = {
             ...remainingProperties,
             ...extraQueryParameters,
             ...tokenQueryParameters,
-            prompt: this.getPrompt(request.prompt) ?? "",
-            tokenType: tokenType,
+            prompt: this.getPrompt(request.prompt),
+            tokenType: request.authenticationScheme,
             windowTitleSubstring: document.title,
+            telemetry: NativeConstants.MATS_TELEMETRY,
+            keyId: request.popKid,
         };
 
-        // Convert validExtraParameters to StringDict
+        // Filter and convert validExtraParameters to StringDict
         const validExtraParametersDict: StringDict = Object.entries(
             validExtraParameters
         ).reduce((acc, [key, value]) => {
@@ -1105,17 +1316,56 @@ export class NativeInteractionClient extends BaseInteractionClient {
             redirectUri: this.getRedirectUri(redirectUri),
             scope: scopeSet.printScopes(),
             state: state,
+            storeInCache: storeInCache,
         };
 
+        nativeRequest.extraParameters = nativeRequest.extraParameters || {};
         this.handleExtraBrokerParams(nativeRequest);
 
         // Check for PoP token requests: signPopToken should only be set to true if popKid is not set
-        if (nativeRequest.extraParameters?.signPopToken && !!request.popKid) {
+        if (nativeRequest.extraParameters.signPopToken && !!request.popKid) {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.invalidPopTokenRequest
             );
         }
 
+        if (request.authenticationScheme === AuthenticationScheme.POP) {
+            // add POP request type
+            const shrParameters: SignedHttpRequestParameters = {
+                resourceRequestUri: request.resourceRequestUri,
+                resourceRequestMethod: request.resourceRequestMethod,
+                shrClaims: request.shrClaims,
+                shrNonce: request.shrNonce,
+            };
+
+            const popTokenGenerator = new PopTokenGenerator(this.browserCrypto);
+
+            // generate reqCnf if not provided in the request
+            let reqCnfData;
+            if (!nativeRequest.extraParameters?.keyId) {
+                const generatedReqCnfData = await invokeAsync(
+                    popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                    PerformanceEvents.PopTokenGenerateCnf,
+                    this.logger,
+                    this.performanceClient,
+                    request.correlationId
+                )(shrParameters, this.logger);
+                reqCnfData = generatedReqCnfData.reqCnfString;
+                nativeRequest.extraParameters.keyId = generatedReqCnfData.kid;
+                nativeRequest.extraParameters.signPopToken = "true";
+            } else {
+                reqCnfData = this.browserCrypto.base64UrlEncode(
+                    JSON.stringify({
+                        kid: nativeRequest.extraParameters?.keyId,
+                    })
+                );
+                nativeRequest.extraParameters.signPopToken = "false";
+            }
+
+            // SPAs require whole string to be passed to broker
+            nativeRequest.extraParameters.reqCnf = reqCnfData;
+        }
+        this.addRequestSKUs(nativeRequest);
         return nativeRequest;
     }
 

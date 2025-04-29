@@ -104,7 +104,7 @@ export class PlatformAuthProvider {
      * Returns boolean indicating whether or not the request should attempt to use native broker
      * @param logger
      * @param config
-     * @param nativeExtensionProvider
+     * @param platformAuthProvider
      * @param authenticationScheme
      */
     static isBrokerAvailable(

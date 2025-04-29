@@ -67,8 +67,15 @@ export type PlatformDOMTokenRequest = {
      * Known optional parameters will go into extraQueryParameters.
      * List of known parameters is:
      * "prompt", "nonce", "claims", "loginHint", "instanceAware", "windowTitleSubstring", "extendedExpiryToken", "storeInCache",
-     * PoP related paramters: "reqCnf", "keyId", "tokenType", "shrClaims", "shrNonce", "resourceRequestMethod", "resourceRequestUri", "signPopToken"
+     * ProofOfPossessionParams: "reqCnf", "keyId", "tokenType", "shrClaims", "shrNonce", "resourceRequestMethod", "resourceRequestUri", "signPopToken"
      */
     extraParameters?: StringDict;
     embeddedClientId?: string;
+    storeInCache?: StoreInCache; // Object of booleans indicating whether to store tokens in the cache or not (default is true)
+};
+
+export type PlatformDOMLogoutRequest = {
+    brokerId: string;
+    accountId: string;
+    extraParameters?: StringDict;
 };
