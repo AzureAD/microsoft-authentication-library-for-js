@@ -7730,9 +7730,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("Multi-instance tests", () => {
         afterEach(() => {
             // @ts-ignore
-            window.msal.appIds = []
+            window.msal.appIds = [];
             // @ts-ignore
-            window.msal = {}
+            window.msal = {};
         });
         it("Logs warning if there are two applications with the same client id in the same frame", async () => {
             const msalConfig: Configuration = {
