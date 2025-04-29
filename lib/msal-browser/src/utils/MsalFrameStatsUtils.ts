@@ -24,15 +24,6 @@ export function collectInstanceStats(
     for (const i of frameInstances) {
         if (i.startsWith(currentClientId)) sameClientIdCount++;
     }
-
-    sessionStorage.setItem(
-        `sameClientIdCount.${currentClientId}`,
-        JSON.stringify(sameClientIdCount)
-    );
-    sessionStorage.setItem(
-        `msalInstanceCount`,
-        JSON.stringify(msalInstanceCount)
-    );
     performanceEvent.add({
         msalInstanceCount: msalInstanceCount,
         sameClientIdCount: sameClientIdCount,
