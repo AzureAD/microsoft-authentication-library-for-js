@@ -720,7 +720,7 @@ describe("BrowserCacheManager tests", () => {
                     ).toBe(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
                 });
 
-                it("clearTokensWithClaimsInCache clears all access tokens with claims in tokenKeys", async () => {
+                it("clearTokensAndKeysWithClaims clears all access tokens with claims in tokenKeys", async () => {
                     const testAT1 = CacheHelpers.createAccessTokenEntity(
                         "homeAccountId1",
                         "environment",

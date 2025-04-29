@@ -577,6 +577,29 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             expect(preGenerateSpy).toHaveBeenCalledTimes(1);
         });
+
+        it("clears previous cache with claims", async () => {
+            const preGenerateSpy = jest.spyOn(
+                BrowserCacheManager.prototype,
+                // @ts-ignore
+                "clearTokensAndKeysWithClaims"
+            );
+
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: false,
+                },
+            });
+            await pca.initialize();
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
+            expect(preGenerateSpy).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe("handleRedirectPromise", () => {
