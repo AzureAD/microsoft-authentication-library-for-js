@@ -258,7 +258,6 @@ export class StandardController implements IController {
             cacheLocation: BrowserCacheLocation.MemoryStorage,
             temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
             storeAuthStateInCookie: false,
-            secureCookies: false,
             cacheMigrationEnabled: false,
             claimsBasedCachingEnabled: false,
         };
