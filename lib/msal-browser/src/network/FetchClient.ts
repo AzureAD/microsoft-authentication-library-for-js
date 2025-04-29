@@ -47,7 +47,7 @@ export class FetchClient implements INetworkModule {
                 ),
                 undefined,
                 undefined,
-                `error: ${e}`
+                e as Error
             );
         }
 
@@ -66,7 +66,7 @@ export class FetchClient implements INetworkModule {
                 ),
                 responseStatus,
                 responseHeaders,
-                `error: ${e}`
+                e as Error
             );
         }
     }
@@ -102,7 +102,7 @@ export class FetchClient implements INetworkModule {
                 ),
                 undefined,
                 undefined,
-                `error: ${e}`
+                e as Error
             );
         }
 
@@ -121,7 +121,7 @@ export class FetchClient implements INetworkModule {
                 ),
                 responseStatus,
                 responseHeaders,
-                `error: ${e}`
+                e as Error
             );
         }
     }
@@ -147,7 +147,7 @@ function getFetchHeaders(options?: NetworkRequestOptions): Headers {
             createBrowserAuthError(BrowserAuthErrorCodes.failedToBuildHeaders),
             undefined,
             undefined,
-            `error: ${e}`
+            e as Error
         );
     }
 }
