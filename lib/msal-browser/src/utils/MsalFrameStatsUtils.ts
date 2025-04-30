@@ -18,7 +18,7 @@ export function collectInstanceStats(
     let sameClientIdInstanceCount = 0;
 
     for (const i of frameInstances) {
-        if (i == currentClientId) sameClientIdInstanceCount++;
+        if (i === currentClientId) sameClientIdInstanceCount++;
     }
     performanceEvent.add({
         msalInstanceCount: msalInstanceCount,
