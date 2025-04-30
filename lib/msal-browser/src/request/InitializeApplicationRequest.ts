@@ -7,9 +7,9 @@
  * InitializeApplicationRequest: Request object passed by user to initialize application
  *
  * - correlationId              - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
- * - appId                      - Unique identifier for the application for multi-instance detection. Is either the clientId or clientId.channelId (if channelId is available)
+ * - isBroker                   - Boolean flag indicating whether the application is acting as a broker.
  */
 export type InitializeApplicationRequest = {
     correlationId?: string;
-    appId?: string;
+    isBroker?: boolean;
 };

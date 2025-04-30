@@ -339,7 +339,9 @@ export class StandardController implements IController {
         );
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
 
-        this.logMultipleInstances(initMeasurement, request);
+        if (!request?.isBroker) {
+            this.logMultipleInstances(initMeasurement);
+        }
 
         await invokeAsync(
             this.browserStorage.initialize.bind(this.browserStorage),
@@ -2391,69 +2393,38 @@ export class StandardController implements IController {
     }
 
     private logMultipleInstances(
-        performanceEvent: InProgressPerformanceEvent,
-        request?: InitializeApplicationRequest
+        performanceEvent: InProgressPerformanceEvent
     ): void {
-        const appId = request?.appId || this.config.auth.clientId;
+        const clientId = this.config.auth.clientId;
+
         // @ts-ignore
         window.msal = window.msal || {};
         // @ts-ignore
-        window.msal.appIds = window.msal.appIds || [];
+        window.msal.clientIds = window.msal.clientIds || [];
 
         // @ts-ignore
-        if (this.checkForSameClientId(appId, window.msal.appIds)) {
-            this.logger.warning(
-                "There is already an instance of MSAL.js in the window with the same client id."
-            );
-            // @ts-ignore
-        } else if (this.checkForMultipleInstances(appId, window.msal.appIds)) {
+        const clientIds: string[] = window.msal.clientIds;
+
+        for (const currentId of clientIds) {
+            if (currentId === clientId) {
+                this.logger.warning(
+                    "There is already an instance of MSAL.js in the window with the same client id."
+                );
+                // @ts-ignore
+                window.msal.clientIds.push(clientId);
+                collectInstanceStats(clientId, performanceEvent);
+                return;
+            }
+        }
+
+        if (clientIds.length > 0) {
             this.logger.warning(
                 "There is already an instance of MSAL.js in the window."
             );
         }
-
         // @ts-ignore
-        if (!(window.msal.appIds.includes(appId) && appId.includes("."))) {
-            // @ts-ignore
-            window.msal.appIds.push(appId);
-        }
-
-        collectInstanceStats(appId, performanceEvent);
-    }
-
-    private checkForSameClientId(id: string, appIdArray: string[]): boolean {
-        if (id.includes(".")) {
-            const [clientId] = id.split(".");
-            /**
-             * Check for 1P applications.
-             * appId = clientId.channelId
-             * If the appId matches an existing application, that means it's a broker application of an existing PWB app and it shouldn't be double-counted.
-             * If the clientId matches an existing application but there is a different channelId, then it's a different application using the same clientId.
-             */
-            return appIdArray.some((item) => {
-                return item !== id && item.startsWith(clientId);
-            });
-        } else {
-            // 3P applications will not have a channel id
-            return appIdArray.includes(id);
-        }
-    }
-
-    private checkForMultipleInstances(
-        id: string,
-        appIdArray: string[]
-    ): boolean {
-        if (id.includes(".")) {
-            /**
-             * Check for 1P applications.
-             * appId = clientId.channelId
-             * If the appId matches an existing application, that means it's a broker application of an existing PWB app and it shouldn't be double-counted.
-             */
-            return appIdArray.some((item) => item !== id);
-        } else {
-            // 3P applications will not have a channel id
-            return appIdArray.length > 0;
-        }
+        window.msal.clientIds.push(clientId);
+        collectInstanceStats(clientId, performanceEvent);
     }
 }
 
