@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix circular type imports",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
