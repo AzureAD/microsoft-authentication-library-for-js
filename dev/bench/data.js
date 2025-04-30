@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1745955899691,
+  "lastUpdate": 1746049011708,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15070,6 +15070,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.83%",
             "unit": "ops/sec",
             "extra": "213 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "101b31ba17d5c1e5df2e20871efab115a0f4331f",
+          "message": "Add jest-junit reporter (#7719)\n\nAdds jest-junit to jest reporters. This will allow us to report test\nresults on the ADO pipelines and identify flaky tests",
+          "timestamp": "2025-04-30T14:30:12-07:00",
+          "tree_id": "20bf9441af13ed516e67e691d0bf9bff18133b1e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/101b31ba17d5c1e5df2e20871efab115a0f4331f"
+        },
+        "date": 1746049010299,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 249944,
+            "range": "±0.75%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 245562,
+            "range": "±0.89%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
