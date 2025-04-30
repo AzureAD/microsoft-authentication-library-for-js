@@ -75,6 +75,7 @@
     "@types/node": "^20.3.1",
     "eslint-config-msal": "file:../../shared-configs/eslint-config-msal",
     "jest": "^29.5.0",
+    "jest-junit": "^16.0.0",
     "msal-test-utils": "file:../../shared-test-utils",
     "node-addon-api": "^6.1.0",
     "rollup": "^4.22.4",
