@@ -3255,6 +3255,8 @@ export type PerformanceEvent = {
     domainHintFromRequest?: boolean;
     prompt?: string;
     usePreGeneratedPkce?: boolean;
+    msalInstanceCount?: number;
+    sameClientIdInstanceCount?: number;
 };
 
 // Warning: (tsdoc-undefined-tag) The TSDoc tag "@export" is not defined in this configuration
