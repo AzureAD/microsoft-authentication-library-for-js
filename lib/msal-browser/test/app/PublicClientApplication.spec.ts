@@ -608,7 +608,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "initialize"
             );
             await pca.initialize();
-            expect(initializeControllerSpy).toHaveBeenCalledWith(undefined, false);
+            expect(initializeControllerSpy).toHaveBeenCalledWith(
+                undefined,
+                false
+            );
         });
     });
 
