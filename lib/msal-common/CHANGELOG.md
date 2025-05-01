@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 15 Apr 2025 23:34:14 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 29 Apr 2025 20:25:47 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 15.5.2
+
+Tue, 29 Apr 2025 20:25:47 GMT
+
+### Patches
+
+- Add optional parameter to NetworkError for error specifics #7721 (sameera.gajjarapu@microsoft.com)
+- Fix circular type imports (thomas.norling@microsoft.com)
+- Deprecate cache options #7707 (joarroyo@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 15.5.1
 

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix race between cache initialization and state initialization",
-  "packageName": "@azure/msal-react",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
