@@ -15,7 +15,7 @@ export type NativeAccountInfo = {
 /**
  * Token response returned by Native Platform
  */
-export type NativeResponse = {
+export type PlatformBrokerResponse = {
     access_token: string;
     account: NativeAccountInfo;
     client_info: string;
@@ -58,12 +58,12 @@ export type MATS = {
 export type PlatformDOMTokenResponse = {
     isSuccess: boolean;
     state?: string;
-    accessToken?: string;
-    expiresIn?: number;
-    account?: NativeAccountInfo;
-    clientInfo?: string;
-    idToken?: string;
-    scopes?: string;
+    accessToken: string;
+    expiresIn: number;
+    account: NativeAccountInfo;
+    clientInfo: string;
+    idToken: string;
+    scopes: string;
     proofOfPossessionPayload?: string;
     extendedLifetimeToken?: boolean;
     error: ErrorResult;
@@ -77,8 +77,4 @@ export type ErrorResult = {
     protocolError?: string;
     status: string;
     properties?: object;
-};
-
-export type SignOutErrorResult = {
-    error: ErrorResult;
 };

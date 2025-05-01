@@ -97,7 +97,7 @@ import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCod
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient.js";
-import { NativeExtensionTokenRequest } from "../../src/broker/nativeBroker/NativeRequest.js";
+import { PlatformBrokerRequest } from "../../src/broker/nativeBroker/NativeRequest.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
 import { StandardController } from "../../src/controllers/StandardController.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
@@ -771,7 +771,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "isInteractionInProgress"
             ).mockReturnValue(true);
 
-            const nativeRequest: NativeExtensionTokenRequest = {
+            const nativeRequest: PlatformBrokerRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
@@ -890,7 +890,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     "getCachedRequest"
                 ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
 
-                const nativeRequest: NativeExtensionTokenRequest = {
+                const nativeRequest: PlatformBrokerRequest = {
                     authority: TEST_CONFIG.validAuthority,
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),

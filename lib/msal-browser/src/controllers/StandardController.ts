@@ -78,7 +78,7 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
-import { NativeExtensionTokenRequest } from "../broker/nativeBroker/NativeRequest.js";
+import { PlatformBrokerRequest } from "../broker/nativeBroker/NativeRequest.js";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext.js";
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext.js";
 import { IController } from "./IController.js";
@@ -90,9 +90,9 @@ import { InitializeApplicationRequest } from "../request/InitializeApplicationRe
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { PlatformDOMHandler } from "../broker/nativeBroker/PlatformDOMHandler.js";
 import {
+    isBrokerAvailable,
     PLATFORM_DOM_PROVIDER,
     PLATFORM_EXTENSION_PROVIDER,
-    PlatformAuthProvider,
 } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { FeatureSupportConfiguration } from "../config/FeatureFlags.js";
 
@@ -429,7 +429,8 @@ export class StandardController implements IController {
     }
 
     protected async checkDOMPlatformSupport(
-        correlationId?: string
+        correlationId?: string,
+        brokerId?: string
     ): Promise<PlatformDOMHandler | undefined> {
         this.logger.trace("checkDOMPlatformSupport called", correlationId);
 
@@ -451,7 +452,7 @@ export class StandardController implements IController {
             const supportedContracts =
                 // @ts-ignore
                 await window.navigator.platformAuthentication.getSupportedContracts(
-                    NativeConstants.MICROSOFT_ENTRA_BROKERID
+                    brokerId || NativeConstants.MICROSOFT_ENTRA_BROKERID
                 );
             if (supportedContracts.includes("get-token-and-sign-out")) {
                 this.logger.trace(
@@ -461,9 +462,7 @@ export class StandardController implements IController {
                 return new PlatformDOMHandler(
                     this.logger,
                     this.performanceClient,
-                    this.browserCrypto,
-                    this.browserStorage,
-                    NativeConstants.MICROSOFT_ENTRA_BROKERID,
+                    brokerId || NativeConstants.MICROSOFT_ENTRA_BROKERID,
                     correlationId
                 );
             }
@@ -546,7 +545,7 @@ export class StandardController implements IController {
         }
 
         const loggedInAccounts = this.getAllAccounts();
-        const platformBrokerRequest: NativeExtensionTokenRequest | null =
+        const platformBrokerRequest: PlatformBrokerRequest | null =
             this.browserStorage.getCachedNativeRequest();
         const useNative =
             platformBrokerRequest && this.platformAuthProvider && !hash;
@@ -1696,7 +1695,7 @@ export class StandardController implements IController {
         }
 
         if (
-            !PlatformAuthProvider.isBrokerAvailable(
+            !isBrokerAvailable(
                 this.config,
                 this.logger,
                 this.platformAuthProvider,
@@ -2385,7 +2384,7 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         // if the cache policy is set to access_token only, we should not be hitting the native layer yet
         if (
-            PlatformAuthProvider.isBrokerAvailable(
+            isBrokerAvailable(
                 this.config,
                 this.logger,
                 this.platformAuthProvider,

@@ -30,8 +30,6 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
     invokeAsync,
-    createAuthError,
-    AuthErrorCodes,
     updateAccountTenantProfileData,
     CacheHelpers,
     buildAccountToCache,
@@ -47,7 +45,6 @@ import { SilentRequest } from "../request/SilentRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import {
-    NativeExtensionMethod,
     ApiId,
     TemporaryCacheKeys,
     NativeConstants,
@@ -55,14 +52,12 @@ import {
     CacheLookupPolicy,
 } from "../utils/BrowserConstants.js";
 import {
-    NativeExtensionRequestBody,
-    NativeExtensionTokenRequest,
+    PlatformBrokerRequest,
     PlatformDOMTokenRequest,
 } from "../broker/nativeBroker/NativeRequest.js";
 import {
     MATS,
-    NativeResponse,
-    PlatformDOMTokenResponse,
+    PlatformBrokerResponse,
 } from "../broker/nativeBroker/NativeResponse.js";
 import {
     NativeAuthError,
@@ -82,11 +77,6 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import { version } from "../packageMetadata.js";
 import { PlatformDOMHandler } from "../broker/nativeBroker/PlatformDOMHandler.js";
-import {
-    PLATFORM_DOM_PROVIDER,
-    PLATFORM_EXTENSION_PROVIDER,
-} from "../broker/nativeBroker/PlatformAuthProvider.js";
-import { StringDict } from "../../../msal-common/lib/types/exports-common.js";
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -160,11 +150,11 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
     /**
      * Adds SKUs to request extra query parameters
-     * @param request {NativeExtensionTokenRequest}
+     * @param request {PlatformBrokerRequest}
      * @private
      */
     private addRequestSKUs(
-        request: NativeExtensionTokenRequest | PlatformDOMTokenRequest
+        request: PlatformBrokerRequest | PlatformDOMTokenRequest
     ): void {
         request.extraParameters = {
             ...request.extraParameters,
@@ -197,112 +187,66 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.apiId
         );
 
-        if (
-            this.platformAuthType === PLATFORM_EXTENSION_PROVIDER &&
-            this.platformAuthProvider instanceof NativeMessageHandler
-        ) {
-            try {
-                // initialize native request
-                const nativeRequest = await this.initializeNativeRequest(
-                    request
-                );
+        try {
+            // initialize native request
+            const nativeRequest = await this.initializeNativeRequest(request);
 
-                // check if the tokens can be retrieved from internal cache
-                try {
-                    const result = await this.acquireTokensFromCache(
-                        this.accountId,
-                        nativeRequest
+            // check if the tokens can be retrieved from internal cache
+            try {
+                const result = await this.acquireTokensFromCache(
+                    this.accountId,
+                    nativeRequest
+                );
+                nativeATMeasurement.end({
+                    success: true,
+                    isNativeBroker: false, // Should be true only when the result is coming directly from the broker
+                    fromCache: true,
+                });
+                return result;
+            } catch (e) {
+                if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
+                    this.logger.info(
+                        "MSAL internal Cache does not contain tokens, return error as per cache policy"
                     );
+                    throw e;
+                }
+                // continue with a native call for any and all errors
+                this.logger.info(
+                    "MSAL internal Cache does not contain tokens, proceed to make a native call"
+                );
+            }
+
+            const validatedResponse: PlatformBrokerResponse =
+                await this.platformAuthProvider.sendMessage(nativeRequest);
+
+            return await this.handleNativeResponse(
+                validatedResponse,
+                nativeRequest,
+                reqTimestamp
+            )
+                .then((result: AuthenticationResult) => {
                     nativeATMeasurement.end({
                         success: true,
-                        isNativeBroker: false, // Should be true only when the result is coming directly from the broker
-                        fromCache: true,
+                        isNativeBroker: true,
+                        requestId: result.requestId,
                     });
+                    serverTelemetryManager.clearNativeBrokerErrorCode();
                     return result;
-                } catch (e) {
-                    if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
-                        this.logger.info(
-                            "MSAL internal Cache does not contain tokens, return error as per cache policy"
-                        );
-                        throw e;
-                    }
-                    // continue with a native call for any and all errors
-                    this.logger.info(
-                        "MSAL internal Cache does not contain tokens, proceed to make a native call"
-                    );
-                }
-
-                const { ...nativeTokenRequest } = nativeRequest;
-
-                // fall back to native calls
-                const messageBody: NativeExtensionRequestBody = {
-                    method: NativeExtensionMethod.GetToken,
-                    request: nativeTokenRequest,
-                };
-
-                const response: object = await (
-                    this.platformAuthProvider as NativeMessageHandler
-                ).sendMessage(messageBody);
-                const validatedResponse: NativeResponse =
-                    this.validateNativeResponse(response);
-
-                return await this.handleNativeResponse(
-                    validatedResponse,
-                    nativeRequest,
-                    reqTimestamp
-                )
-                    .then((result: AuthenticationResult) => {
-                        nativeATMeasurement.end({
-                            success: true,
-                            isNativeBroker: true,
-                            requestId: result.requestId,
-                        });
-                        serverTelemetryManager.clearNativeBrokerErrorCode();
-                        return result;
-                    })
-                    .catch((error: AuthError) => {
-                        nativeATMeasurement.end({
-                            success: false,
-                            errorCode: error.errorCode,
-                            subErrorCode: error.subError,
-                            isNativeBroker: true,
-                        });
-                        throw error;
+                })
+                .catch((error: AuthError) => {
+                    nativeATMeasurement.end({
+                        success: false,
+                        errorCode: error.errorCode,
+                        subErrorCode: error.subError,
+                        isNativeBroker: true,
                     });
-            } catch (e) {
-                if (e instanceof NativeAuthError) {
-                    serverTelemetryManager.setNativeBrokerErrorCode(
-                        e.errorCode
-                    );
-                }
-                throw e;
+                    throw error;
+                });
+        } catch (e) {
+            if (e instanceof NativeAuthError) {
+                serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
             }
-        } else if (
-            this.platformAuthType === PLATFORM_DOM_PROVIDER &&
-            this.platformAuthProvider instanceof PlatformDOMHandler
-        ) {
-            try {
-                const nativeRequest = await this.initializeNativeDOMRequest(
-                    request
-                );
-                const response = await (
-                    this.platformAuthProvider as PlatformDOMHandler
-                ).sendMessage(nativeRequest);
-                return await this.handleNativeDOMResponse(
-                    nativeRequest,
-                    response,
-                    reqTimestamp
-                );
-            } catch (e) {
-                if (e instanceof NativeAuthError) {
-                    serverTelemetryManager.setNativeBrokerErrorCode(
-                        e.errorCode
-                    );
-                }
-                throw e;
-            }
-        } else {
-            throw "Platform broker unavailable or unrecognized";
+            throw e;
         }
     }
 
@@ -313,7 +257,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @returns CommonSilentFlowRequest
      */
     private createSilentCacheRequest(
-        request: NativeExtensionTokenRequest,
+        request: PlatformBrokerRequest,
         cachedAccount: AccountInfo
     ): CommonSilentFlowRequest {
         return {
@@ -333,7 +277,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     protected async acquireTokensFromCache(
         nativeAccountId: string,
-        request: NativeExtensionTokenRequest
+        request: PlatformBrokerRequest
     ): Promise<AuthenticationResult> {
         if (!nativeAccountId) {
             this.logger.warning(
@@ -395,16 +339,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
             remainingParameters
         );
 
-        const messageBody: NativeExtensionRequestBody = {
-            method: NativeExtensionMethod.GetToken,
-            request: nativeRequest,
-        };
-
         try {
-            const response: object = await (
-                this.platformAuthProvider as NativeMessageHandler
-            ).sendMessage(messageBody);
-            this.validateNativeResponse(response);
+            await this.platformAuthProvider.sendMessage(nativeRequest);
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
             if (e instanceof NativeAuthError) {
@@ -484,31 +420,24 @@ export class NativeInteractionClient extends BaseInteractionClient {
             )
         );
 
-        const messageBody: NativeExtensionRequestBody = {
-            method: NativeExtensionMethod.GetToken,
-            request: request,
-        };
-
         const reqTimestamp = TimeUtils.nowSeconds();
 
         try {
             this.logger.verbose(
                 "NativeInteractionClient - handleRedirectPromise sending message to native broker."
             );
-            const response: object = await (
-                this.platformAuthProvider as NativeMessageHandler
-            ).sendMessage(messageBody);
-            this.validateNativeResponse(response);
-            const result = this.handleNativeResponse(
-                response as NativeResponse,
+            const response: PlatformBrokerResponse =
+                await this.platformAuthProvider.sendMessage(request);
+            const authResult = await this.handleNativeResponse(
+                response,
                 request,
                 reqTimestamp
             );
-            const res = await result;
+
             const serverTelemetryManager =
                 this.initializeServerTelemetryManager(this.apiId);
             serverTelemetryManager.clearNativeBrokerErrorCode();
-            return res;
+            return authResult;
         } catch (e) {
             throw e;
         }
@@ -530,8 +459,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param reqTimestamp
      */
     protected async handleNativeResponse(
-        response: NativeResponse,
-        request: NativeExtensionTokenRequest,
+        response: PlatformBrokerResponse,
+        request: PlatformBrokerRequest,
         reqTimestamp: number
     ): Promise<AuthenticationResult> {
         this.logger.trace(
@@ -617,98 +546,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
         return result;
     }
 
-    protected async handleNativeDOMResponse(
-        request: PlatformDOMTokenRequest,
-        response: PlatformDOMTokenResponse,
-        reqTimestamp: number
-    ): Promise<AuthenticationResult> {
-        this.logger.trace("PlatformDOMHandler: handleNativeDOMResponse called");
-        // eslint-disable-next-line no-console
-        console.log(response);
-        // generate identifiers
-
-        const idTokenClaims = AuthToken.extractTokenClaims(
-            response.idToken ?? Constants.EMPTY_STRING,
-            base64Decode
-        );
-        // Save account in browser storage
-        const homeAccountIdentifier = AccountEntity.generateHomeAccountId(
-            response.clientInfo || Constants.EMPTY_STRING,
-            AuthorityType.Default,
-            this.logger,
-            this.browserCrypto,
-            idTokenClaims
-        );
-
-        const cachedhomeAccountId =
-            this.browserStorage.getAccountInfoFilteredBy({
-                nativeAccountId: request.accountId,
-            })?.homeAccountId;
-
-        // add exception for double brokering, please note this is temporary and will be fortified in future
-        if (
-            request.extraParameters?.child_client_id &&
-            response.account?.id !== request.accountId
-        ) {
-            this.logger.info(
-                "handleNativeServerResponse: Double broker flow detected, ignoring accountId mismatch"
-            );
-        } else if (
-            homeAccountIdentifier !== cachedhomeAccountId &&
-            response.account?.id !== request.accountId
-        ) {
-            // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
-            throw createNativeAuthError(NativeAuthErrorCodes.userSwitch);
-        }
-
-        // Get the preferred_cache domain for the given authority
-        const authority = await this.getDiscoveredAuthority({
-            requestAuthority: request.authority,
-        });
-
-        const baseAccount = buildAccountToCache(
-            this.browserStorage,
-            authority,
-            homeAccountIdentifier,
-            base64Decode,
-            idTokenClaims,
-            response.clientInfo,
-            undefined, // environment
-            idTokenClaims.tid,
-            undefined, // auth code payload
-            response.account?.id,
-            this.logger
-        );
-
-        // Ensure expires_in is in number format
-        response.expiresIn = Number(response.expiresIn);
-
-        // generate authenticationResult
-        const authenticationResult =
-            await this.generateAuthenticationResultFromDOMResponse(
-                response,
-                request,
-                idTokenClaims,
-                baseAccount,
-                authority.canonicalAuthority,
-                reqTimestamp
-            );
-
-        // cache accounts and tokens in the appropriate storage
-        await this.cacheAccount(baseAccount);
-        await this.cacheNativeTokens(
-            response,
-            request,
-            homeAccountIdentifier,
-            idTokenClaims,
-            response.accessToken || "",
-            authenticationResult.tenantId,
-            reqTimestamp
-        );
-
-        return authenticationResult;
-    }
-
     /**
      * creates an homeAccountIdentifier for the account
      * @param response
@@ -716,7 +553,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @returns
      */
     protected createHomeAccountIdentifier(
-        response: NativeResponse,
+        response: PlatformBrokerResponse,
         idTokenClaims: TokenClaims
     ): string {
         // Save account in browser storage
@@ -749,8 +586,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param response
      */
     async generatePopAccessToken(
-        response: NativeResponse,
-        request: NativeExtensionTokenRequest
+        response: PlatformBrokerResponse,
+        request: PlatformBrokerRequest
     ): Promise<string> {
         if (
             request.tokenType === AuthenticationScheme.POP &&
@@ -808,8 +645,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @returns
      */
     protected async generateAuthenticationResult(
-        response: NativeResponse,
-        request: NativeExtensionTokenRequest,
+        response: PlatformBrokerResponse,
+        request: PlatformBrokerRequest,
         idTokenClaims: TokenClaims,
         accountEntity: AccountEntity,
         authority: string,
@@ -886,91 +723,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * Generates authentication result from DOM response
-     * @param response
-     * @param request
-     * @param idTokenObj
-     * @param accountEntity
-     * @param authority
-     * @param reqTimestamp
-     * @returns
-     */
-    protected async generateAuthenticationResultFromDOMResponse(
-        response: PlatformDOMTokenResponse,
-        request: PlatformDOMTokenRequest,
-        idTokenClaims: TokenClaims,
-        accountEntity: AccountEntity,
-        authority: string,
-        reqTimestamp: number
-    ): Promise<AuthenticationResult> {
-        // Add Native Broker fields to Telemetry
-        const mats = this.addTelemetryFromNativeResponse(
-            response.properties?.MATS
-        );
-
-        // If scopes not returned in server response, use request scopes
-        const responseScopes = this.generateScopes(
-            request.scope,
-            response.scopes
-        );
-
-        const accountProperties = response.account?.properties || {};
-        const uid =
-            accountProperties["UID"] ||
-            idTokenClaims.oid ||
-            idTokenClaims.sub ||
-            Constants.EMPTY_STRING;
-        const tid =
-            accountProperties["TenantId"] ||
-            idTokenClaims.tid ||
-            Constants.EMPTY_STRING;
-
-        const accountInfo: AccountInfo | null = updateAccountTenantProfileData(
-            accountEntity.getAccountInfo(),
-            undefined, // tenantProfile optional
-            idTokenClaims,
-            response.idToken
-        );
-
-        /**
-         * In pairwise broker flows, this check prevents the broker's native account id
-         * from being returned over the embedded app's account id.
-         */
-        if (accountInfo.nativeAccountId !== response.account?.id) {
-            accountInfo.nativeAccountId = response.account?.id;
-        }
-
-        // Generate PoP token as needed
-        const responseAccessToken = response.accessToken;
-        const tokenType =
-            request.extraParameters?.tokenType === AuthenticationScheme.POP
-                ? AuthenticationScheme.POP
-                : AuthenticationScheme.BEARER;
-
-        const result: AuthenticationResult = {
-            authority: authority,
-            uniqueId: uid,
-            tenantId: tid,
-            scopes: responseScopes.asArray(),
-            account: accountInfo,
-            idToken: response.idToken || "",
-            idTokenClaims: idTokenClaims,
-            accessToken: responseAccessToken || "",
-            fromCache: mats ? this.isResponseFromCache(mats) : false,
-            // Request timestamp and response expiresIn are in seconds, converting to Date for AuthenticationResult
-            expiresOn: TimeUtils.toDateFromSeconds(
-                reqTimestamp + (response.expiresIn || 0)
-            ),
-            tokenType: tokenType,
-            correlationId: this.correlationId,
-            state: response.state,
-            fromNativeBroker: true,
-        };
-
-        return result;
-    }
-
-    /**
      * cache the account entity in browser storage
      * @param accountEntity
      */
@@ -997,8 +749,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param reqTimestamp
      */
     cacheNativeTokens(
-        response: NativeResponse | PlatformDOMTokenResponse,
-        request: NativeExtensionTokenRequest | PlatformDOMTokenRequest,
+        response: PlatformBrokerResponse,
+        request: PlatformBrokerRequest,
         homeAccountIdentifier: string,
         idTokenClaims: TokenClaims,
         responseAccessToken: string,
@@ -1009,28 +761,22 @@ export class NativeInteractionClient extends BaseInteractionClient {
             CacheHelpers.createIdTokenEntity(
                 homeAccountIdentifier,
                 request.authority,
-                (response as NativeResponse).id_token ||
-                    (response as PlatformDOMTokenResponse).idToken ||
-                    "",
+                response.id_token || "",
                 request.clientId,
                 idTokenClaims.tid || ""
             );
 
         // cache accessToken in inmemory storage
-        const expiresIn: number = this.getExpiresInValue(
-            (request as NativeExtensionTokenRequest).tokenType ||
-                (request as PlatformDOMTokenRequest).extraParameters
-                    ?.tokenType ||
-                "",
-            (response as NativeResponse).expires_in ||
-                (response as PlatformDOMTokenResponse).expiresIn
-        );
-
+        const expiresIn: number =
+            request.tokenType === AuthenticationScheme.POP
+                ? Constants.SHR_NONCE_VALIDITY
+                : (typeof response.expires_in === "string"
+                      ? parseInt(response.expires_in, 10)
+                      : response.expires_in) || 0;
         const tokenExpirationSeconds = reqTimestamp + expiresIn;
         const responseScopes = this.generateScopes(
-            request.scope,
-            (response as NativeResponse).scope ||
-                (response as PlatformDOMTokenResponse).scopes
+            response.scope,
+            request.scope
         );
 
         const cachedAccessToken: AccessTokenEntity | null =
@@ -1045,13 +791,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 0,
                 base64Decode,
                 undefined,
-                ((request as NativeExtensionTokenRequest)
-                    .tokenType as AuthenticationScheme) ||
-                    ((request as PlatformDOMTokenRequest).extraParameters
-                        ?.tokenType as AuthenticationScheme),
+                request.tokenType as AuthenticationScheme,
                 undefined,
-                (request as NativeExtensionTokenRequest).keyId ||
-                    (request as PlatformDOMTokenRequest).extraParameters?.keyId
+                request.keyId
             );
 
         const nativeCacheRecord = {
@@ -1112,28 +854,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * Validates native platform response before processing
-     * @param response
-     */
-    private validateNativeResponse(response: object): NativeResponse {
-        if (
-            response.hasOwnProperty("access_token") &&
-            response.hasOwnProperty("id_token") &&
-            response.hasOwnProperty("client_info") &&
-            response.hasOwnProperty("account") &&
-            response.hasOwnProperty("scope") &&
-            response.hasOwnProperty("expires_in")
-        ) {
-            return response as NativeResponse;
-        } else {
-            throw createAuthError(
-                AuthErrorCodes.unexpectedError,
-                "Response missing expected properties."
-            );
-        }
-    }
-
-    /**
      * Gets MATS telemetry from native response
      * @param response
      * @returns
@@ -1174,7 +894,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     protected async initializeNativeRequest(
         request: PopupRequest | SsoSilentRequest
-    ): Promise<NativeExtensionTokenRequest> {
+    ): Promise<PlatformBrokerRequest> {
         this.logger.trace(
             "NativeInteractionClient - initializeNativeRequest called"
         );
@@ -1186,7 +906,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const scopeSet = new ScopeSet(scopes || []);
         scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
 
-        const validatedRequest: NativeExtensionTokenRequest = {
+        const validatedRequest: PlatformBrokerRequest = {
             ...remainingProperties,
             accountId: this.accountId,
             clientId: this.config.auth.clientId,
@@ -1257,118 +977,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
         return validatedRequest;
     }
 
-    protected async initializeNativeDOMRequest(
-        request: PopupRequest | SilentRequest | SsoSilentRequest
-    ): Promise<PlatformDOMTokenRequest> {
-        this.logger.trace(
-            "NativeInteractionClient: initializeNativeDOMRequest called"
-        );
-
-        const canonicalAuthority = await this.getCanonicalAuthority(request);
-
-        const {
-            correlationId,
-            redirectUri,
-            scopes,
-            state,
-            extraQueryParameters,
-            tokenQueryParameters,
-            storeInCache,
-            ...remainingProperties
-        } = request;
-
-        delete remainingProperties.authority;
-
-        const scopeSet = new ScopeSet(scopes || []);
-        scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
-
-        const validExtraParameters = {
-            ...remainingProperties,
-            ...extraQueryParameters,
-            ...tokenQueryParameters,
-            prompt: this.getPrompt(request.prompt),
-            tokenType: request.authenticationScheme,
-            windowTitleSubstring: document.title,
-            telemetry: NativeConstants.MATS_TELEMETRY,
-            keyId: request.popKid,
-        };
-
-        // Filter and convert validExtraParameters to StringDict
-        const validExtraParametersDict: StringDict = Object.entries(
-            validExtraParameters
-        ).reduce((acc, [key, value]) => {
-            if (typeof value === "string") {
-                acc[key] = value;
-            }
-            return acc;
-        }, {} as StringDict);
-
-        const nativeRequest: PlatformDOMTokenRequest = {
-            accountId: this.accountId,
-            brokerId: (
-                this.platformAuthProvider as PlatformDOMHandler
-            ).getExtensionId(),
-            authority: canonicalAuthority.urlString,
-            clientId: this.config.auth.clientId || "",
-            correlationId: correlationId || this.correlationId,
-            extraParameters: validExtraParametersDict,
-            isSecurityTokenService: true,
-            redirectUri: this.getRedirectUri(redirectUri),
-            scope: scopeSet.printScopes(),
-            state: state,
-            storeInCache: storeInCache,
-        };
-
-        nativeRequest.extraParameters = nativeRequest.extraParameters || {};
-        this.handleExtraBrokerParams(nativeRequest);
-
-        // Check for PoP token requests: signPopToken should only be set to true if popKid is not set
-        if (nativeRequest.extraParameters.signPopToken && !!request.popKid) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.invalidPopTokenRequest
-            );
-        }
-
-        if (request.authenticationScheme === AuthenticationScheme.POP) {
-            // add POP request type
-            const shrParameters: SignedHttpRequestParameters = {
-                resourceRequestUri: request.resourceRequestUri,
-                resourceRequestMethod: request.resourceRequestMethod,
-                shrClaims: request.shrClaims,
-                shrNonce: request.shrNonce,
-            };
-
-            const popTokenGenerator = new PopTokenGenerator(this.browserCrypto);
-
-            // generate reqCnf if not provided in the request
-            let reqCnfData;
-            if (!nativeRequest.extraParameters?.keyId) {
-                const generatedReqCnfData = await invokeAsync(
-                    popTokenGenerator.generateCnf.bind(popTokenGenerator),
-                    PerformanceEvents.PopTokenGenerateCnf,
-                    this.logger,
-                    this.performanceClient,
-                    request.correlationId
-                )(shrParameters, this.logger);
-                reqCnfData = generatedReqCnfData.reqCnfString;
-                nativeRequest.extraParameters.keyId = generatedReqCnfData.kid;
-                nativeRequest.extraParameters.signPopToken = "true";
-            } else {
-                reqCnfData = this.browserCrypto.base64UrlEncode(
-                    JSON.stringify({
-                        kid: nativeRequest.extraParameters?.keyId,
-                    })
-                );
-                nativeRequest.extraParameters.signPopToken = "false";
-            }
-
-            // SPAs require whole string to be passed to broker
-            nativeRequest.extraParameters.reqCnf = reqCnfData;
-        }
-        this.addRequestSKUs(nativeRequest);
-        return nativeRequest;
-    }
-
     private async getCanonicalAuthority(
         request: PopupRequest | SsoSilentRequest
     ): Promise<UrlString> {
@@ -1431,11 +1039,11 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
     /**
      * Handles extra broker request parameters
-     * @param request {NativeExtensionTokenRequest}
+     * @param request {PlatformBrokerRequest}
      * @private
      */
     private handleExtraBrokerParams(
-        request: NativeExtensionTokenRequest | PlatformDOMTokenRequest
+        request: PlatformBrokerRequest | PlatformDOMTokenRequest
     ): void {
         const hasExtraBrokerParams =
             request.extraParameters &&

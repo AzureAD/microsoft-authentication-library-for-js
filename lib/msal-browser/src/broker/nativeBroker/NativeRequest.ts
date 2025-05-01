@@ -9,7 +9,7 @@ import { StoreInCache, StringDict } from "@azure/msal-common/browser";
 /**
  * Token request which native broker will use to acquire tokens
  */
-export type NativeExtensionTokenRequest = {
+export type PlatformBrokerRequest = {
     accountId: string; // WAM specific account id used for identification of WAM account. This can be any broker-id eventually
     clientId: string;
     authority: string;
@@ -40,7 +40,7 @@ export type NativeExtensionTokenRequest = {
  */
 export type NativeExtensionRequestBody = {
     method: NativeExtensionMethod;
-    request?: NativeExtensionTokenRequest;
+    request?: PlatformBrokerRequest;
 };
 
 /**
@@ -72,10 +72,4 @@ export type PlatformDOMTokenRequest = {
     extraParameters?: StringDict;
     embeddedClientId?: string;
     storeInCache?: StoreInCache; // Object of booleans indicating whether to store tokens in the cache or not (default is true)
-};
-
-export type PlatformDOMLogoutRequest = {
-    brokerId: string;
-    accountId: string;
-    extraParameters?: StringDict;
 };

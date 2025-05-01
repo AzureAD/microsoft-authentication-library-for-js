@@ -6,7 +6,6 @@
 import {
     LoggerOptions,
     IPerformanceClient,
-    LogLevel,
     Logger,
     AuthenticationScheme,
 } from "@azure/msal-common/browser";
@@ -23,23 +22,17 @@ import { PlatformDOMHandler } from "./PlatformDOMHandler.js";
 export const PLATFORM_EXTENSION_PROVIDER = "NativeMessageHandler";
 export const PLATFORM_DOM_PROVIDER = "PlatformDOMHandler";
 
+/**
+ * Checks if the platform broker is available in the current environment.
+ * @param loggerOptions
+ * @param perfClient
+ * @returns
+ */
 export async function isPlatformBrokerAvailable(
     loggerOptions?: LoggerOptions,
     perfClient?: IPerformanceClient
 ): Promise<boolean> {
-    const defaultLoggerOptions: LoggerOptions = {
-        loggerCallback: (): void => {
-            // Empty logger callback
-        },
-        piiLoggingEnabled: false,
-        logLevel: LogLevel.Trace,
-    };
-
-    const logger = new Logger(
-        loggerOptions || defaultLoggerOptions,
-        name,
-        version
-    );
+    const logger = new Logger(loggerOptions || {}, name, version);
 
     logger.trace("isPlatformBrokerAvailable called");
 
@@ -97,55 +90,50 @@ export async function isPlatformBrokerAvailable(
 }
 
 /**
- * PlatformAuthProvider is a utility class that provides methods to check if the platform broker is available
+ * Returns boolean indicating whether or not the request should attempt to use native broker
+ * @param logger
+ * @param config
+ * @param platformAuthProvider
+ * @param authenticationScheme
  */
-export class PlatformAuthProvider {
-    /**
-     * Returns boolean indicating whether or not the request should attempt to use native broker
-     * @param logger
-     * @param config
-     * @param platformAuthProvider
-     * @param authenticationScheme
-     */
-    static isBrokerAvailable(
-        config: BrowserConfiguration,
-        logger: Logger,
-        platformAuthProvider?: NativeMessageHandler | PlatformDOMHandler,
-        authenticationScheme?: AuthenticationScheme
-    ): boolean {
-        logger.trace("isBrokerAvailable called");
-        if (!config.system.allowPlatformBroker) {
-            logger.trace(
-                "isBrokerAvailable: allowPlatformBroker is not enabled, returning false"
-            );
-            // Developer disabled WAM
-            return false;
-        }
-
-        if (!platformAuthProvider) {
-            logger.trace(
-                "isBrokerAvailable: Platform extension provider is not initialized, returning false"
-            );
-            // Extension is not available
-            return false;
-        }
-
-        if (authenticationScheme) {
-            switch (authenticationScheme) {
-                case AuthenticationScheme.BEARER:
-                case AuthenticationScheme.POP:
-                    logger.trace(
-                        "isBrokerAvailable: authenticationScheme is supported, returning true"
-                    );
-                    return true;
-                default:
-                    logger.trace(
-                        "isBrokerAvailable: authenticationScheme is not supported, returning false"
-                    );
-                    return false;
-            }
-        }
-
-        return true;
+export function isBrokerAvailable(
+    config: BrowserConfiguration,
+    logger: Logger,
+    platformAuthProvider?: NativeMessageHandler | PlatformDOMHandler,
+    authenticationScheme?: AuthenticationScheme
+): boolean {
+    logger.trace("isBrokerAvailable called");
+    if (!config.system.allowPlatformBroker) {
+        logger.trace(
+            "isBrokerAvailable: allowPlatformBroker is not enabled, returning false"
+        );
+        // Developer disabled WAM
+        return false;
     }
+
+    if (!platformAuthProvider) {
+        logger.trace(
+            "isBrokerAvailable: Platform auth provider is not initialized, returning false"
+        );
+        // Extension is not available
+        return false;
+    }
+
+    if (authenticationScheme) {
+        switch (authenticationScheme) {
+            case AuthenticationScheme.BEARER:
+            case AuthenticationScheme.POP:
+                logger.trace(
+                    "isBrokerAvailable: authenticationScheme is supported, returning true"
+                );
+                return true;
+            default:
+                logger.trace(
+                    "isBrokerAvailable: authenticationScheme is not supported, returning false"
+                );
+                return false;
+        }
+    }
+
+    return true;
 }

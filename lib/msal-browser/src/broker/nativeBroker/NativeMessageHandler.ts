@@ -19,6 +19,7 @@ import {
 import {
     NativeExtensionRequest,
     NativeExtensionRequestBody,
+    PlatformBrokerRequest,
 } from "./NativeRequest.js";
 import { createNativeAuthError } from "../../error/NativeAuthError.js";
 import {
@@ -26,6 +27,7 @@ import {
     BrowserAuthErrorCodes,
 } from "../../error/BrowserAuthError.js";
 import { createNewGuid } from "../../crypto/BrowserCrypto.js";
+import { PlatformBrokerResponse } from "./NativeResponse.js";
 
 type ResponseResolvers<T> = {
     resolve: (value: T | PromiseLike<T>) => void;
@@ -68,15 +70,26 @@ export class NativeMessageHandler {
 
     /**
      * Sends a given message to the extension and resolves with the extension response
-     * @param body
+     * @param request
      */
-    async sendMessage(body: NativeExtensionRequestBody): Promise<object> {
+    async sendMessage(
+        request: PlatformBrokerRequest
+    ): Promise<PlatformBrokerResponse> {
         this.logger.trace("NativeMessageHandler - sendMessage called.");
+
+        const { ...nativeTokenRequest } = request;
+
+        // fall back to native calls
+        const messageBody: NativeExtensionRequestBody = {
+            method: NativeExtensionMethod.GetToken,
+            request: nativeTokenRequest,
+        };
+
         const req: NativeExtensionRequest = {
             channel: NativeConstants.CHANNEL_ID,
             extensionId: this.extensionId,
             responseId: createNewGuid(),
-            body: body,
+            body: messageBody,
         };
 
         this.logger.trace(
@@ -89,9 +102,14 @@ export class NativeMessageHandler {
         );
         this.messageChannel.port1.postMessage(req);
 
-        return new Promise((resolve, reject) => {
+        const response: object = await new Promise((resolve, reject) => {
             this.resolvers.set(req.responseId, { resolve, reject });
         });
+
+        const validatedResponse: PlatformBrokerResponse =
+            this.validateNativeResponse(response);
+
+        return validatedResponse;
     }
 
     /**
@@ -344,6 +362,28 @@ export class NativeMessageHandler {
             } else if (handshakeResolver) {
                 handshakeResolver.reject(err as AuthError);
             }
+        }
+    }
+
+    /**
+     * Validates native platform response before processing
+     * @param response
+     */
+    private validateNativeResponse(response: object): PlatformBrokerResponse {
+        if (
+            response.hasOwnProperty("access_token") &&
+            response.hasOwnProperty("id_token") &&
+            response.hasOwnProperty("client_info") &&
+            response.hasOwnProperty("account") &&
+            response.hasOwnProperty("scope") &&
+            response.hasOwnProperty("expires_in")
+        ) {
+            return response as PlatformBrokerResponse;
+        } else {
+            throw createAuthError(
+                AuthErrorCodes.unexpectedError,
+                "Response missing expected properties."
+            );
         }
     }
 

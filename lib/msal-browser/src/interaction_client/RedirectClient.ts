@@ -48,7 +48,7 @@ import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { PlatformDOMHandler } from "../broker/nativeBroker/PlatformDOMHandler.js";
-import { PlatformAuthProvider } from "../broker/nativeBroker/PlatformAuthProvider.js";
+import { isBrokerAvailable } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
@@ -111,7 +111,7 @@ export class RedirectClient extends StandardInteractionClient {
             this.correlationId
         )(request, InteractionType.Redirect);
 
-        validRequest.platformBroker = PlatformAuthProvider.isBrokerAvailable(
+        validRequest.platformBroker = isBrokerAvailable(
             this.config,
             this.logger,
             this.platformAuthProvider,
