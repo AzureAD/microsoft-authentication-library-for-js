@@ -608,9 +608,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "initialize"
             );
             await pca.initialize();
-            expect(initializeControllerSpy).toHaveBeenCalledWith({
-                isBroker: false,
-            });
+            expect(initializeControllerSpy).toHaveBeenCalledWith(undefined, false);
         });
     });
 
@@ -7794,7 +7792,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
         });
 
-        it("Logs warning if there are two applications with different client ids in the same frame", async () => {
+        it("Logs verbose if there are two applications with different client ids in the same frame", async () => {
             const msalConfig: Configuration = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -7819,7 +7817,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .mockImplementation();
             await pca2.initialize();
             expect(loggerCallbackStub).toHaveBeenCalledWith(
-                LogLevel.Warning,
+                LogLevel.Verbose,
                 expect.stringContaining(
                     "There is already an instance of MSAL.js in the window."
                 ),

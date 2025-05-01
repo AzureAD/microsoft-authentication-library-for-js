@@ -938,6 +938,8 @@ export interface IController {
     // (undocumented)
     initialize(request?: InitializeApplicationRequest): Promise<void>;
     // (undocumented)
+    initialize(request?: InitializeApplicationRequest, isBroker?: boolean): Promise<void>;
+    // (undocumented)
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
     // @internal (undocumented)
     isBrowserEnv(): boolean;
@@ -993,7 +995,6 @@ export { INetworkModule }
 // @public
 export type InitializeApplicationRequest = {
     correlationId?: string;
-    isBroker?: boolean;
 };
 
 // Warning: (ae-missing-release-tag) "inMemRedirectUnavailable" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)

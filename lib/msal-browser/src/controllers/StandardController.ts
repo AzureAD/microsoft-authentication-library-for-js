@@ -314,7 +314,10 @@ export class StandardController implements IController {
      * Initializer function to perform async startup tasks such as connecting to WAM extension
      * @param request {?InitializeApplicationRequest} correlation id
      */
-    async initialize(request?: InitializeApplicationRequest): Promise<void> {
+    async initialize(
+        request?: InitializeApplicationRequest,
+        isBroker?: boolean
+    ): Promise<void> {
         this.logger.trace("initialize called");
         if (this.initialized) {
             this.logger.info(
@@ -339,8 +342,11 @@ export class StandardController implements IController {
         );
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
 
-        if (!request?.isBroker) {
-            this.logMultipleInstances(initMeasurement);
+        // Broker applications are initialized twice, so we avoid double-counting it
+        if (!isBroker) {
+            try {
+                this.logMultipleInstances(initMeasurement);
+            } catch {}
         }
 
         await invokeAsync(
@@ -2397,6 +2403,7 @@ export class StandardController implements IController {
     ): void {
         const clientId = this.config.auth.clientId;
 
+        if (!window) return;
         // @ts-ignore
         window.msal = window.msal || {};
         // @ts-ignore
@@ -2405,26 +2412,14 @@ export class StandardController implements IController {
         // @ts-ignore
         const clientIds: string[] = window.msal.clientIds;
 
-        for (const currentId of clientIds) {
-            if (currentId === clientId) {
-                this.logger.warning(
-                    "There is already an instance of MSAL.js in the window with the same client id."
-                );
-                // @ts-ignore
-                window.msal.clientIds.push(clientId);
-                collectInstanceStats(clientId, performanceEvent);
-                return;
-            }
-        }
-
         if (clientIds.length > 0) {
-            this.logger.warning(
+            this.logger.verbose(
                 "There is already an instance of MSAL.js in the window."
             );
         }
         // @ts-ignore
         window.msal.clientIds.push(clientId);
-        collectInstanceStats(clientId, performanceEvent);
+        collectInstanceStats(clientId, performanceEvent, this.logger);
     }
 }
 

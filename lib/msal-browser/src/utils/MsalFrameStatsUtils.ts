@@ -3,11 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { InProgressPerformanceEvent } from "@azure/msal-common/browser";
+import { InProgressPerformanceEvent, Logger } from "@azure/msal-common/browser";
 
 export function collectInstanceStats(
     currentClientId: string,
-    performanceEvent: InProgressPerformanceEvent
+    performanceEvent: InProgressPerformanceEvent,
+    logger: Logger
 ): void {
     const frameInstances: string[] =
         // @ts-ignore
@@ -15,10 +16,14 @@ export function collectInstanceStats(
 
     const msalInstanceCount = frameInstances.length;
 
-    let sameClientIdInstanceCount = 0;
+    const sameClientIdInstanceCount = frameInstances.filter(
+        (i) => i === currentClientId
+    ).length;
 
-    for (const i of frameInstances) {
-        if (i === currentClientId) sameClientIdInstanceCount++;
+    if (sameClientIdInstanceCount > 1) {
+        logger.warning(
+            "There is already an instance of MSAL.js in the window with the same client id."
+        );
     }
     performanceEvent.add({
         msalInstanceCount: msalInstanceCount,

@@ -93,10 +93,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param request {?InitializeApplicationRequest}
      */
     async initialize(request?: InitializeApplicationRequest): Promise<void> {
-        return this.controller.initialize({
-            ...request,
-            isBroker: this.isBroker,
-        });
+        return this.controller.initialize(request, this.isBroker);
     }
 
     /**

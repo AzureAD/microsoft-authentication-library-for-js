@@ -31,6 +31,11 @@ export interface IController {
     // TODO: Make request mandatory in the next major version?
     initialize(request?: InitializeApplicationRequest): Promise<void>;
 
+    initialize(
+        request?: InitializeApplicationRequest,
+        isBroker?: boolean
+    ): Promise<void>;
+
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
 
     acquireTokenRedirect(request: RedirectRequest): Promise<void>;
