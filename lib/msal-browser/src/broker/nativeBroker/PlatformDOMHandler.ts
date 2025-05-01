@@ -21,13 +21,15 @@ import {
     PlatformDOMTokenResponse,
 } from "./NativeResponse.js";
 import { createNativeAuthError } from "../../error/NativeAuthError.js";
+import { IPlatformBrokerHandler } from "./IPlatformBrokerHandler.js";
 
-export class PlatformDOMHandler {
+export class PlatformDOMHandler implements IPlatformBrokerHandler {
     protected logger: Logger;
     protected performanceClient: IPerformanceClient;
     protected correlationId: string;
     protected brokerId: string;
     protected extensionVersion: string;
+    platformAuthType: string;
 
     constructor(
         logger: Logger,
@@ -40,6 +42,7 @@ export class PlatformDOMHandler {
         this.brokerId = brokerId || NativeConstants.MICROSOFT_ENTRA_BROKERID;
         this.correlationId = correlationId || createNewGuid();
         this.extensionVersion = "";
+        this.platformAuthType = NativeConstants.PLATFORM_DOM_PROVIDER;
     }
 
     /**
@@ -87,9 +90,7 @@ export class PlatformDOMHandler {
                 await window.navigator.platformAuthentication.executeGetToken(
                     platformDOMRequest
                 );
-            const validatedResponse: PlatformDOMTokenResponse =
-                this.validateNativeResponse(response);
-            return this.convertToNativeResponse(validatedResponse);
+            return this.validateNativeResponse(response);
         } catch (e) {
             this.logger.error(
                 "PlatformDOMHandler: executeGetToken DOM API error"
@@ -140,7 +141,7 @@ export class PlatformDOMHandler {
         return platformDOMRequest;
     }
 
-    private validateNativeResponse(response: object): PlatformDOMTokenResponse {
+    validateNativeResponse(response: object): PlatformBrokerResponse {
         if (response.hasOwnProperty("isSuccess")) {
             if (
                 response.hasOwnProperty("access_token") &&
@@ -153,7 +154,9 @@ export class PlatformDOMHandler {
                 this.logger.trace(
                     "PlatformDOMHandler: platform broker returned successful and valid response"
                 );
-                return response as PlatformDOMTokenResponse;
+                return this.convertToPlatformBrokerResponse(
+                    response as PlatformDOMTokenResponse
+                );
             } else if (response.hasOwnProperty("error")) {
                 const errorResponse = response as PlatformDOMTokenResponse;
                 if (errorResponse.isSuccess === false) {
@@ -179,7 +182,7 @@ export class PlatformDOMHandler {
         );
     }
 
-    private convertToNativeResponse(
+    private convertToPlatformBrokerResponse(
         response: PlatformDOMTokenResponse
     ): PlatformBrokerResponse {
         this.logger.trace("PlatformDOMHandler: convertToNativeResponse called");

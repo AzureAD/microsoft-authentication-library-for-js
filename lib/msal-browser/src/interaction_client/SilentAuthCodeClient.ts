@@ -25,10 +25,9 @@ import {
 import { InteractionType, ApiId } from "../utils/BrowserConstants.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { HybridSpaAuthorizationCodeClient } from "./HybridSpaAuthorizationCodeClient.js";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { InteractionHandler } from "../interaction_handler/InteractionHandler.js";
-import { PlatformDOMHandler } from "../broker/nativeBroker/PlatformDOMHandler.js";
+import { IPlatformBrokerHandler } from "../broker/nativeBroker/IPlatformBrokerHandler.js";
 
 export class SilentAuthCodeClient extends StandardInteractionClient {
     private apiId: ApiId;
@@ -42,8 +41,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         navigationClient: INavigationClient,
         apiId: ApiId,
         performanceClient: IPerformanceClient,
-        platformAuthProvider?: NativeMessageHandler | PlatformDOMHandler,
-        platformAuthType?: string,
+        platformAuthProvider?: IPlatformBrokerHandler,
         correlationId?: string
     ) {
         super(
@@ -55,7 +53,6 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             navigationClient,
             performanceClient,
             platformAuthProvider,
-            platformAuthType,
             correlationId
         );
         this.apiId = apiId;

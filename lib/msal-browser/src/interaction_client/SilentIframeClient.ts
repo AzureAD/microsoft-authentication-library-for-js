@@ -36,15 +36,14 @@ import {
     monitorIframeForHash,
 } from "../interaction_handler/SilentHandler.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
-import { PlatformDOMHandler } from "../broker/nativeBroker/PlatformDOMHandler.js";
 import { isBrokerAvailable } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
+import { IPlatformBrokerHandler } from "../broker/nativeBroker/IPlatformBrokerHandler.js";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
@@ -60,8 +59,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         apiId: ApiId,
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
-        platformAuthProvider?: NativeMessageHandler | PlatformDOMHandler,
-        platformAuthType?: string,
+        platformAuthProvider?: IPlatformBrokerHandler,
         correlationId?: string
     ) {
         super(
@@ -73,7 +71,6 @@ export class SilentIframeClient extends StandardInteractionClient {
             navigationClient,
             performanceClient,
             platformAuthProvider,
-            platformAuthType,
             correlationId
         );
         this.apiId = apiId;
@@ -297,8 +294,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.platformAuthProvider,
-            this.platformAuthType
+            this.platformAuthProvider
         );
     }
 
@@ -414,8 +410,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.platformAuthProvider,
-            this.platformAuthType
+            this.platformAuthProvider
         );
     }
 }

@@ -37,7 +37,6 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -47,9 +46,9 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
-import { PlatformDOMHandler } from "../broker/nativeBroker/PlatformDOMHandler.js";
 import { isBrokerAvailable } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
+import { IPlatformBrokerHandler } from "../broker/nativeBroker/IPlatformBrokerHandler.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -79,8 +78,7 @@ export class RedirectClient extends StandardInteractionClient {
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
-        platformAuthHandler?: NativeMessageHandler | PlatformDOMHandler,
-        platformAuthType?: string,
+        platformAuthHandler?: IPlatformBrokerHandler,
         correlationId?: string
     ) {
         super(
@@ -92,7 +90,6 @@ export class RedirectClient extends StandardInteractionClient {
             navigationClient,
             performanceClient,
             platformAuthHandler,
-            platformAuthType,
             correlationId
         );
         this.nativeStorage = nativeStorageImpl;
@@ -586,8 +583,7 @@ export class RedirectClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.platformAuthProvider,
-            this.platformAuthType
+            this.platformAuthProvider
         );
     }
 

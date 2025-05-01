@@ -28,6 +28,7 @@ import {
 } from "../../error/BrowserAuthError.js";
 import { createNewGuid } from "../../crypto/BrowserCrypto.js";
 import { PlatformBrokerResponse } from "./NativeResponse.js";
+import { IPlatformBrokerHandler } from "./IPlatformBrokerHandler.js";
 
 type ResponseResolvers<T> = {
     resolve: (value: T | PromiseLike<T>) => void;
@@ -36,7 +37,7 @@ type ResponseResolvers<T> = {
     ) => void;
 };
 
-export class NativeMessageHandler {
+export class NativeMessageHandler implements IPlatformBrokerHandler {
     private extensionId: string | undefined;
     private extensionVersion: string | undefined;
     private logger: Logger;
@@ -48,6 +49,7 @@ export class NativeMessageHandler {
     private readonly windowListener: (event: MessageEvent) => void;
     private readonly performanceClient: IPerformanceClient;
     private readonly handshakeEvent: InProgressPerformanceEvent;
+    platformAuthType: string;
 
     constructor(
         logger: Logger,
@@ -66,6 +68,7 @@ export class NativeMessageHandler {
         this.handshakeEvent = performanceClient.startMeasurement(
             PerformanceEvents.NativeMessageHandlerHandshake
         );
+        this.platformAuthType = NativeConstants.PLATFORM_EXTENSION_PROVIDER;
     }
 
     /**
@@ -369,7 +372,7 @@ export class NativeMessageHandler {
      * Validates native platform response before processing
      * @param response
      */
-    private validateNativeResponse(response: object): PlatformBrokerResponse {
+    validateNativeResponse(response: object): PlatformBrokerResponse {
         if (
             response.hasOwnProperty("access_token") &&
             response.hasOwnProperty("id_token") &&

@@ -46,9 +46,9 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
-import { PlatformDOMHandler } from "../broker/nativeBroker/PlatformDOMHandler.js";
 import { isBrokerAvailable } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
+import { IPlatformBrokerHandler } from "../broker/nativeBroker/IPlatformBrokerHandler.js";
 
 export type PopupParams = {
     popup?: Window | null;
@@ -70,8 +70,7 @@ export class PopupClient extends StandardInteractionClient {
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
-        platformAuthHandler?: NativeMessageHandler | PlatformDOMHandler,
-        platformAuthType?: string,
+        platformAuthHandler?: IPlatformBrokerHandler,
         correlationId?: string
     ) {
         super(
@@ -83,7 +82,6 @@ export class PopupClient extends StandardInteractionClient {
             navigationClient,
             performanceClient,
             platformAuthHandler,
-            platformAuthType,
             correlationId
         );
         // Properly sets this reference for the unload event.
@@ -352,8 +350,7 @@ export class PopupClient extends StandardInteractionClient {
                 this.eventHandler,
                 this.logger,
                 this.performanceClient,
-                this.platformAuthProvider,
-                this.platformAuthType
+                this.platformAuthProvider
             );
         } catch (e) {
             // Close the synchronous popup if an error is thrown before the window unload event is registered
@@ -452,8 +449,7 @@ export class PopupClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.platformAuthProvider,
-            this.platformAuthType
+            this.platformAuthProvider
         );
     }
 

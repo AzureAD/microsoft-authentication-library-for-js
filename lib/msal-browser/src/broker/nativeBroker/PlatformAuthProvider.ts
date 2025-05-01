@@ -17,10 +17,7 @@ import {
 import { BrowserPerformanceClient } from "../../telemetry/BrowserPerformanceClient.js";
 import { NativeMessageHandler } from "./NativeMessageHandler.js";
 import { NativeConstants } from "../../utils/BrowserConstants.js";
-import { PlatformDOMHandler } from "./PlatformDOMHandler.js";
-
-export const PLATFORM_EXTENSION_PROVIDER = "NativeMessageHandler";
-export const PLATFORM_DOM_PROVIDER = "PlatformDOMHandler";
+import { IPlatformBrokerHandler } from "./IPlatformBrokerHandler.js";
 
 /**
  * Checks if the platform broker is available in the current environment.
@@ -99,7 +96,7 @@ export async function isPlatformBrokerAvailable(
 export function isBrokerAvailable(
     config: BrowserConfiguration,
     logger: Logger,
-    platformAuthProvider?: NativeMessageHandler | PlatformDOMHandler,
+    platformAuthProvider?: IPlatformBrokerHandler,
     authenticationScheme?: AuthenticationScheme
 ): boolean {
     logger.trace("isBrokerAvailable called");

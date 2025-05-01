@@ -51,14 +51,14 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     public static async createPublicClientApplication(
         configuration: Configuration,
-        featureSupportConfiguration?: FeatureSupportConfiguration
+        featureConfig?: FeatureSupportConfiguration
     ): Promise<IPublicClientApplication> {
         const controller = await ControllerFactory.createV3Controller(
             configuration
         );
         const pca = new PublicClientApplication(
             configuration,
-            featureSupportConfiguration,
+            featureConfig,
             controller
         );
 
@@ -85,20 +85,18 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Full B2C functionality will be available in this library in future versions.
      *
      * @param configuration Object for the MSAL PublicClientApplication instance
+     * @param featureConfig Optional parameter to explictly enable any feature support.
      * @param IController Optional parameter to explictly set the controller. (Will be removed when we remove public constructor)
      */
     public constructor(
         configuration: Configuration,
-        featureSupportConfiguration?: FeatureSupportConfiguration,
+        featureConfig?: FeatureSupportConfiguration,
         controller?: IController
     ) {
         this.controller =
             controller ||
             new StandardController(
-                new StandardOperatingContext(
-                    configuration,
-                    featureSupportConfiguration
-                )
+                new StandardOperatingContext(configuration, featureConfig)
             );
     }
 
@@ -455,7 +453,7 @@ export class PublicClientApplication implements IPublicClientApplication {
  */
 export async function createNestablePublicClientApplication(
     configuration: Configuration,
-    featureSupportConfiguration?: FeatureSupportConfiguration
+    featureConfig?: FeatureSupportConfiguration
 ): Promise<IPublicClientApplication> {
     const nestedAppAuth = new NestedAppOperatingContext(configuration);
     await nestedAppAuth.initialize();
@@ -464,7 +462,7 @@ export async function createNestablePublicClientApplication(
         const controller = new NestedAppAuthController(nestedAppAuth);
         const nestablePCA = new PublicClientApplication(
             configuration,
-            featureSupportConfiguration,
+            featureConfig,
             controller
         );
         await nestablePCA.initialize();
