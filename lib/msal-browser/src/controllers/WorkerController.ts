@@ -16,6 +16,7 @@ import {
     BaseAuthRequest,
     PerformanceEvents,
     invokeAsync,
+    Constants,
 } from "@azure/msal-common/browser";
 import { ITokenCache } from "../cache/ITokenCache.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -45,7 +46,7 @@ import { EventType } from "../event/EventType.js";
 import { EventHandler } from "../event/EventHandler.js";
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
-import { createNewGuid } from "../crypto/BrowserCrypto.js";
+import { createNewGuid, validateCryptoAvailable } from "../crypto/WorkerCrypto.js";
 import { WorkerOperatingContext } from "../operatingcontext/WorkerOperatingContext.js";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 
@@ -80,6 +81,8 @@ export class WorkerController implements IController {
     // Flag to indicate if in browser environment
     protected isBrowserEnvironment: boolean;
 
+    protected isWorkerEnvironment: boolean;
+
     // Flag representing whether or not the initialize API has been called and completed
     protected initialized: boolean = false;
 
@@ -88,6 +91,8 @@ export class WorkerController implements IController {
 
         this.isBrowserEnvironment =
             this.operatingContext.isBrowserEnvironment();
+        
+        this.isWorkerEnvironment = this.operatingContext.isWorkerEnvironment();
 
         this.config = operatingContext.getConfig();
 
@@ -146,8 +151,8 @@ export class WorkerController implements IController {
             return;
         }
 
-        if (!this.isBrowserEnvironment) {
-            this.logger.info("in non-browser environment, exiting early.");
+        if (this.isBrowserEnvironment) {
+            this.logger.info("in browser environment, exiting early.");
             this.initialized = true;
             this.eventHandler.emitEvent(EventType.INITIALIZE_END);
             return;
@@ -155,6 +160,7 @@ export class WorkerController implements IController {
 
         const initCorrelationId =
             request?.correlationId || this.getRequestCorrelationId();
+            console.log("initCorrelationId", initCorrelationId);
         const allowPlatformBroker = this.config.system.allowPlatformBroker;
         const initMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.InitializeClientApplication,
@@ -226,7 +232,7 @@ export class WorkerController implements IController {
             return request.correlationId;
         }
 
-        if (this.isBrowserEnvironment) {
+        if (this.isWorkerEnvironment){
             return createNewGuid();
         }
 
