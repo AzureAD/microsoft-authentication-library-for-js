@@ -307,7 +307,8 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
                     resource: "https://graph.microsoft1.com",
                 });
             } catch (e) {
-                expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(4); // request + 3 retries
+                // 4 total: request + 3 retries
+                expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(4);
             }
 
             try {
@@ -315,7 +316,8 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
                     resource: "https://graph.microsoft2.com",
                 });
             } catch (e) {
-                expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(8); // 8 total, 2 x (request + 3 retries)
+                // 8 total: 2 x (request + 3 retries)
+                expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(8);
             }
 
             try {
@@ -323,7 +325,8 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
                     resource: "https://graph.microsoft3.com",
                 });
             } catch (e) {
-                expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(12); // 12 total, 3 x (request + 3 retries)
+                // 12 total: 3 x (request + 3 retries)
+                expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(12);
             }
         });
 
