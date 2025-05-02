@@ -1208,13 +1208,14 @@ export class BrowserCacheManager extends CacheManager {
             return value ? JSON.parse(value) : null;
         } catch (e) {
             // Remove interaction and other temp keys if interaction status can't be parsed
-            this.logger.error(`Cannot parse interaction status. Removing temporary cache items and clearing url hash. Retrying interaction should fix the error`);
+            this.logger.error(
+                `Cannot parse interaction status. Removing temporary cache items and clearing url hash. Retrying interaction should fix the error`
+            );
             this.removeTemporaryItem(key);
             this.resetRequestCache();
             BrowserUtils.clearHash(window);
             return null;
         }
-
     }
 
     setInteractionInProgress(
