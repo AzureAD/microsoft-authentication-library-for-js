@@ -43,7 +43,7 @@ export type ClientConfiguration = {
     authOptions: AuthOptions;
     systemOptions?: SystemOptions;
     loggerOptions?: LoggerOptions;
-    cacheOptions?: CacheOptions;
+    cacheOptions?: undefined;
     storageInterface?: CacheManager;
     networkInterface?: INetworkModule;
     cryptoInterface?: ICrypto;
@@ -59,7 +59,7 @@ export type CommonClientConfiguration = {
     authOptions: Required<AuthOptions>;
     systemOptions: Required<SystemOptions>;
     loggerOptions: Required<LoggerOptions>;
-    cacheOptions: CacheOptions | undefined;
+    cacheOptions: undefined;
     storageInterface: CacheManager;
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
@@ -117,11 +117,6 @@ export type LoggerOptions = {
     logLevel?: LogLevel;
     correlationId?: string;
 };
-
-/**
- *  Use this to configure credential cache preferences in the ClientConfiguration object
- */
-export type CacheOptions = {};
 
 /**
  * Library-specific options
