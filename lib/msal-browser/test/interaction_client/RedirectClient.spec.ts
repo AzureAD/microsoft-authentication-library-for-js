@@ -20,6 +20,9 @@ import {
     ID_TOKEN_CLAIMS,
     TEST_TOKEN_RESPONSE,
     verifyUrl,
+    validEarJWK,
+    getTestAuthenticationResult,
+    validEarJWE,
 } from "../utils/StringConstants.js";
 import {
     ServerError,
@@ -46,6 +49,7 @@ import {
     IdTokenEntity,
     InProgressPerformanceEvent,
     StubPerformanceClient,
+    ProtocolMode,
 } from "@azure/msal-common";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import {
@@ -118,7 +122,6 @@ const loggerOptions = {
 };
 
 describe("RedirectClient", () => {
-    globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let redirectClient: RedirectClient;
     let browserStorage: BrowserCacheManager;
     let pca: PublicClientApplication;
@@ -2889,6 +2892,56 @@ describe("RedirectClient", () => {
                 TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                 onRedirectNavigate
             );
+        });
+    });
+
+    describe("EAR Flow Tests", () => {
+        beforeAll(() => {
+            jest.useFakeTimers();
+        });
+
+        afterAll(() => {
+            jest.useRealTimers();
+        });
+
+        beforeEach(async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    protocolMode: ProtocolMode.EAR,
+                },
+            });
+            await pca.initialize();
+
+            jest.spyOn(BrowserCrypto, "generateEarKey").mockResolvedValue(
+                validEarJWK
+            );
+        });
+
+        it("Invokes EAR flow when protocolMode is set to EAR", async () => {
+            const validRequest: RedirectRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                scopes: ["openid", "profile", "offline_access"],
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                redirectUri: window.location.href,
+                state: TEST_STATE_VALUES.USER_STATE,
+                nonce: ID_TOKEN_CLAIMS.nonce,
+            };
+            jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
+                TEST_STATE_VALUES.TEST_STATE_REDIRECT
+            );
+            const earFormSpy = jest
+                .spyOn(HTMLFormElement.prototype, "submit")
+                .mockImplementation(() => {
+                    // Supress navigation
+                });
+
+            await pca.acquireTokenRedirect(validRequest);
+            expect(earFormSpy).toHaveBeenCalled();
+            const result = await pca.handleRedirectPromise(
+                `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
+            );
+            expect(result).toEqual(getTestAuthenticationResult());
         });
     });
 });

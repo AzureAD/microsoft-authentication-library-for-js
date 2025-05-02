@@ -1,8 +1,56 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 26 Mar 2025 17:56:52 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 29 Apr 2025 20:25:47 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.11.1
+
+Tue, 29 Apr 2025 20:25:47 GMT
+
+### Patches
+
+- Fix throw when attempting to getAccount before initialization #7720 (thomas.norling@microsoft.com)
+- Add error messaging and change type for get/post failures #7721 (sameera.gajjarapu@microsoft.com)
+- Fix circular type imports (thomas.norling@microsoft.com)
+- Deprecate cache options #7707 (joarroyo@microsoft.com)
+- Bump @azure/msal-common to v15.5.2
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+## 4.11.0
+
+Tue, 15 Apr 2025 23:34:14 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to match @azure/msal-browser-1p (msaljsbuilds@microsoft.com)
+- Bump @azure/msal-common to v15.5.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Add config option to not encode extra params (shylasummers@microsoft.com)
+
+## 4.10.0
+
+Tue, 08 Apr 2025 16:56:05 GMT
+
+### Minor changes
+
+- Fix a bug in handleRedirectPromise when invoked after logoutRedirect #7680 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v15.5.0
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Export additional function internally for use in tests (thomas.norling@microsoft.com)
+- update cache miss to warning from error (sameera.gajjarapu@microsoft.com)
 
 ## 4.9.1
 
