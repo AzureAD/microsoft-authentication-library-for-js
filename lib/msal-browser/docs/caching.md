@@ -66,7 +66,7 @@ To faciliate efficient token acquisition while maintaining a good UX, MSAL cache
     - previous failed request 
     - performance data
 
-> :bulb: Temporary cache entries will always be stored in session storage or in memory. MSAL will fallback to memory storage if local/session storage is not available. Please read the warning below for more information.
+> :bulb: Temporary cache entries will always be stored in session storage or in memory. MSAL will fallback to memory storage if sessionStorage is not available.
 
 > :bulb: The authorization code is only stored in memory and will be discarded after redeeming it for tokens.
 
