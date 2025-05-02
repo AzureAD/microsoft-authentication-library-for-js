@@ -65,7 +65,7 @@ import { CookieStorage } from "./CookieStorage.js";
 import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
 import { EventType } from "../event/EventType.js";
 import { EventHandler } from "../event/EventHandler.js";
-import { BrowserUtils } from "../index.js";
+import { clearHash } from "../utils/BrowserUtils.js";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -1213,7 +1213,7 @@ export class BrowserCacheManager extends CacheManager {
             );
             this.removeTemporaryItem(key);
             this.resetRequestCache();
-            BrowserUtils.clearHash(window);
+            clearHash(window);
             return null;
         }
     }
