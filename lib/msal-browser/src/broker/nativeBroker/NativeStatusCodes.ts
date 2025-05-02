@@ -11,7 +11,3 @@ export const TRANSIENT_ERROR = "TRANSIENT_ERROR";
 export const PERSISTENT_ERROR = "PERSISTENT_ERROR";
 export const DISABLED = "DISABLED";
 export const ACCOUNT_UNAVAILABLE = "ACCOUNT_UNAVAILABLE";
-
-// Status codes that can be thrown by the Platform Broker via DOM APIs
-export const UI_NOT_ALLOWED = "UI_NOT_ALLOWED";
-export const THROTTLED = "THROTTLED";

@@ -53,11 +53,11 @@ import {
 import {
     PlatformBrokerRequest,
     PlatformDOMTokenRequest,
-} from "../broker/nativeBroker/NativeRequest.js";
+} from "../broker/nativeBroker/PlatformBrokerRequest.js";
 import {
     MATS,
     PlatformBrokerResponse,
-} from "../broker/nativeBroker/NativeResponse.js";
+} from "../broker/nativeBroker/PlatformBrokerResponse.js";
 import {
     NativeAuthError,
     NativeAuthErrorCodes,
@@ -75,12 +75,12 @@ import { SilentCacheClient } from "./SilentCacheClient.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import { version } from "../packageMetadata.js";
-import { IPlatformBrokerHandler } from "../broker/nativeBroker/IPlatformBrokerHandler.js";
+import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
-export class NativeInteractionClient extends BaseInteractionClient {
+export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
     protected accountId: string;
-    protected platformAuthProvider: IPlatformBrokerHandler;
+    protected platformAuthProvider: IPlatformAuthHandler;
     protected silentCacheClient: SilentCacheClient;
     protected nativeStorageManager: BrowserCacheManager;
     protected skus: string;
@@ -94,7 +94,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         navigationClient: INavigationClient,
         apiId: ApiId,
         performanceClient: IPerformanceClient,
-        provider: IPlatformBrokerHandler,
+        provider: IPlatformAuthHandler,
         accountId: string,
         nativeStorageImpl: BrowserCacheManager,
         correlationId?: string

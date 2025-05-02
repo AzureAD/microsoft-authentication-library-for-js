@@ -15,9 +15,9 @@ import {
     DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
 } from "../../config/Configuration.js";
 import { BrowserPerformanceClient } from "../../telemetry/BrowserPerformanceClient.js";
-import { NativeMessageHandler } from "./NativeMessageHandler.js";
+import { PlatformAuthExtensionHandler } from "./PlatformAuthExtensionHandler.js";
 import { NativeConstants } from "../../utils/BrowserConstants.js";
-import { IPlatformBrokerHandler } from "./IPlatformBrokerHandler.js";
+import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 
 /**
  * Checks if the platform broker is available in the current environment.
@@ -66,7 +66,7 @@ export async function isPlatformBrokerAvailable(
     // Check and initialize native extension provider if available
     try {
         const nativeExtensionProvider =
-            await NativeMessageHandler.createProvider(
+            await PlatformAuthExtensionHandler.createProvider(
                 logger,
                 DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
                 performanceClient
@@ -96,7 +96,7 @@ export async function isPlatformBrokerAvailable(
 export function isBrokerAvailable(
     config: BrowserConfiguration,
     logger: Logger,
-    platformAuthProvider?: IPlatformBrokerHandler,
+    platformAuthProvider?: IPlatformAuthHandler,
     authenticationScheme?: AuthenticationScheme
 ): boolean {
     logger.trace("isBrokerAvailable called");
@@ -112,7 +112,7 @@ export function isBrokerAvailable(
         logger.trace(
             "isBrokerAvailable: Platform auth provider is not initialized, returning false"
         );
-        // Extension is not available
+        // Platform broker auth providers are not available
         return false;
     }
 

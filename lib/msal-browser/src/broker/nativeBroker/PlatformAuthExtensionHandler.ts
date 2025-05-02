@@ -20,15 +20,15 @@ import {
     NativeExtensionRequest,
     NativeExtensionRequestBody,
     PlatformBrokerRequest,
-} from "./NativeRequest.js";
+} from "./PlatformBrokerRequest.js";
 import { createNativeAuthError } from "../../error/NativeAuthError.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../../error/BrowserAuthError.js";
 import { createNewGuid } from "../../crypto/BrowserCrypto.js";
-import { PlatformBrokerResponse } from "./NativeResponse.js";
-import { IPlatformBrokerHandler } from "./IPlatformBrokerHandler.js";
+import { PlatformBrokerResponse } from "./PlatformBrokerResponse.js";
+import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 
 type ResponseResolvers<T> = {
     resolve: (value: T | PromiseLike<T>) => void;
@@ -37,7 +37,7 @@ type ResponseResolvers<T> = {
     ) => void;
 };
 
-export class NativeMessageHandler implements IPlatformBrokerHandler {
+export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
     private extensionId: string | undefined;
     private extensionVersion: string | undefined;
     private logger: Logger;
@@ -110,7 +110,7 @@ export class NativeMessageHandler implements IPlatformBrokerHandler {
         });
 
         const validatedResponse: PlatformBrokerResponse =
-            this.validateNativeResponse(response);
+            this.validatePlatformBrokerResponse(response);
 
         return validatedResponse;
     }
@@ -126,10 +126,10 @@ export class NativeMessageHandler implements IPlatformBrokerHandler {
         logger: Logger,
         handshakeTimeoutMs: number,
         performanceClient: IPerformanceClient
-    ): Promise<NativeMessageHandler> {
+    ): Promise<PlatformAuthExtensionHandler> {
         logger.trace("NativeMessageHandler - createProvider called.");
         try {
-            const preferredProvider = new NativeMessageHandler(
+            const preferredProvider = new PlatformAuthExtensionHandler(
                 logger,
                 handshakeTimeoutMs,
                 performanceClient,
@@ -139,7 +139,7 @@ export class NativeMessageHandler implements IPlatformBrokerHandler {
             return preferredProvider;
         } catch (e) {
             // If preferred extension fails for whatever reason, fallback to using any installed extension
-            const backupProvider = new NativeMessageHandler(
+            const backupProvider = new PlatformAuthExtensionHandler(
                 logger,
                 handshakeTimeoutMs,
                 performanceClient
@@ -372,7 +372,7 @@ export class NativeMessageHandler implements IPlatformBrokerHandler {
      * Validates native platform response before processing
      * @param response
      */
-    validateNativeResponse(response: object): PlatformBrokerResponse {
+    validatePlatformBrokerResponse(response: object): PlatformBrokerResponse {
         if (
             response.hasOwnProperty("access_token") &&
             response.hasOwnProperty("id_token") &&

@@ -37,7 +37,7 @@ import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
-import { IPlatformBrokerHandler } from "../broker/nativeBroker/IPlatformBrokerHandler.js";
+import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 export abstract class BaseInteractionClient {
     protected config: BrowserConfiguration;
@@ -47,7 +47,7 @@ export abstract class BaseInteractionClient {
     protected logger: Logger;
     protected eventHandler: EventHandler;
     protected navigationClient: INavigationClient;
-    protected platformAuthProvider: IPlatformBrokerHandler | undefined;
+    protected platformAuthProvider: IPlatformAuthHandler | undefined;
     protected correlationId: string;
     protected performanceClient: IPerformanceClient;
 
@@ -59,7 +59,7 @@ export abstract class BaseInteractionClient {
         eventHandler: EventHandler,
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
-        platformAuthProvider?: IPlatformBrokerHandler,
+        platformAuthProvider?: IPlatformAuthHandler,
         correlationId?: string
     ) {
         this.config = config;

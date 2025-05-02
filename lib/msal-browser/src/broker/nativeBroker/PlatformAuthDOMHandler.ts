@@ -13,17 +13,17 @@ import {
 import {
     PlatformBrokerRequest,
     PlatformDOMTokenRequest,
-} from "./NativeRequest.js";
+} from "./PlatformBrokerRequest.js";
 import { createNewGuid } from "../../crypto/BrowserCrypto.js";
 import { NativeConstants } from "../../utils/BrowserConstants.js";
 import {
     PlatformBrokerResponse,
     PlatformDOMTokenResponse,
-} from "./NativeResponse.js";
+} from "./PlatformBrokerResponse.js";
 import { createNativeAuthError } from "../../error/NativeAuthError.js";
-import { IPlatformBrokerHandler } from "./IPlatformBrokerHandler.js";
+import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 
-export class PlatformDOMHandler implements IPlatformBrokerHandler {
+export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     protected logger: Logger;
     protected performanceClient: IPerformanceClient;
     protected correlationId: string;
@@ -90,7 +90,7 @@ export class PlatformDOMHandler implements IPlatformBrokerHandler {
                 await window.navigator.platformAuthentication.executeGetToken(
                     platformDOMRequest
                 );
-            return this.validateNativeResponse(response);
+            return this.validatePlatformBrokerResponse(response);
         } catch (e) {
             this.logger.error(
                 "PlatformDOMHandler: executeGetToken DOM API error"
@@ -141,7 +141,7 @@ export class PlatformDOMHandler implements IPlatformBrokerHandler {
         return platformDOMRequest;
     }
 
-    validateNativeResponse(response: object): PlatformBrokerResponse {
+    validatePlatformBrokerResponse(response: object): PlatformBrokerResponse {
         if (response.hasOwnProperty("isSuccess")) {
             if (
                 response.hasOwnProperty("access_token") &&

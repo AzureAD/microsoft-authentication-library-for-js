@@ -64,8 +64,8 @@ import { SilentIframeClient } from "../interaction_client/SilentIframeClient.js"
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient.js";
 import { TokenCache } from "../cache/TokenCache.js";
 import { ITokenCache } from "../cache/ITokenCache.js";
-import { NativeInteractionClient } from "../interaction_client/NativeInteractionClient.js";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
+import { PlatformAuthInteractionClient } from "../interaction_client/PlatformAuthInteractionClient.js";
+import { PlatformAuthExtensionHandler } from "../broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import {
     NativeAuthError,
@@ -78,7 +78,7 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
-import { PlatformBrokerRequest } from "../broker/nativeBroker/NativeRequest.js";
+import { PlatformBrokerRequest } from "../broker/nativeBroker/PlatformBrokerRequest.js";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext.js";
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext.js";
 import { IController } from "./IController.js";
@@ -88,10 +88,10 @@ import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { initializeSilentRequest } from "../request/RequestHelpers.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
-import { PlatformDOMHandler } from "../broker/nativeBroker/PlatformDOMHandler.js";
+import { PlatformAuthDOMHandler } from "../broker/nativeBroker/PlatformAuthDOMHandler.js";
 import { isBrokerAvailable } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { FeatureSupportConfiguration } from "../config/FeatureFlags.js";
-import { IPlatformBrokerHandler } from "../broker/nativeBroker/IPlatformBrokerHandler.js";
+import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 function getAccountType(
     account?: AccountInfo
@@ -164,7 +164,7 @@ export class StandardController implements IController {
     >;
 
     // Native Extension Provider
-    protected platformAuthProvider: IPlatformBrokerHandler | undefined;
+    protected platformAuthProvider: IPlatformAuthHandler | undefined;
 
     // Hybrid auth code responses
     private hybridAuthCodeResponses: Map<string, Promise<AuthenticationResult>>;
@@ -403,7 +403,7 @@ export class StandardController implements IController {
             this.platformAuthProvider = domPlatformApiSupported;
         } else {
             this.platformAuthProvider =
-                await NativeMessageHandler.createProvider(
+                await PlatformAuthExtensionHandler.createProvider(
                     this.logger,
                     this.config.system.nativeBrokerHandshakeTimeout,
                     this.performanceClient
@@ -419,7 +419,7 @@ export class StandardController implements IController {
     protected async checkDOMPlatformSupport(
         correlationId?: string,
         brokerId?: string
-    ): Promise<PlatformDOMHandler | undefined> {
+    ): Promise<PlatformAuthDOMHandler | undefined> {
         this.logger.trace("checkDOMPlatformSupport called", correlationId);
 
         if (!this.featureSupportConfig.enablePlatformBrokerDOMSupport) {
@@ -447,7 +447,7 @@ export class StandardController implements IController {
                     "Platform API available in DOM",
                     correlationId
                 );
-                return new PlatformDOMHandler(
+                return new PlatformAuthDOMHandler(
                     this.logger,
                     this.performanceClient,
                     brokerId || NativeConstants.MICROSOFT_ENTRA_BROKERID,
@@ -555,7 +555,7 @@ export class StandardController implements IController {
                 this.logger.trace(
                     "handleRedirectPromise - acquiring token from native platform"
                 );
-                const nativeClient = new NativeInteractionClient(
+                const nativeClient = new PlatformAuthInteractionClient(
                     this.config,
                     this.browserStorage,
                     this.browserCrypto,
@@ -771,7 +771,7 @@ export class StandardController implements IController {
                 this.platformAuthProvider &&
                 this.canUsePlatformBroker(request)
             ) {
-                const nativeClient = new NativeInteractionClient(
+                const nativeClient = new PlatformAuthInteractionClient(
                     this.config,
                     this.browserStorage,
                     this.browserCrypto,
@@ -1641,7 +1641,7 @@ export class StandardController implements IController {
             );
         }
 
-        const nativeClient = new NativeInteractionClient(
+        const nativeClient = new PlatformAuthInteractionClient(
             this.config,
             this.browserStorage,
             this.browserCrypto,

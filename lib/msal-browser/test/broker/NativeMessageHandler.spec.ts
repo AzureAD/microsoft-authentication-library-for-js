@@ -9,7 +9,7 @@ import {
     AuthErrorMessage,
     IPerformanceClient,
 } from "@azure/msal-common";
-import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
+import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/index.js";
 import { NativeExtensionMethod } from "../../src/utils/BrowserConstants.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
@@ -61,12 +61,15 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            const wamMessageHandler = await NativeMessageHandler.createProvider(
-                new Logger({}),
-                2000,
-                performanceClient
+            const wamMessageHandler =
+                await PlatformAuthExtensionHandler.createProvider(
+                    new Logger({}),
+                    2000,
+                    performanceClient
+                );
+            expect(wamMessageHandler).toBeInstanceOf(
+                PlatformAuthExtensionHandler
             );
-            expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
             window.removeEventListener("message", eventHandler, true);
         });
@@ -110,7 +113,7 @@ describe("NativeMessageHandler Tests", () => {
                 }
             );
 
-            NativeMessageHandler.createProvider(
+            PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
                 performanceClient
@@ -147,18 +150,21 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            const wamMessageHandler = await NativeMessageHandler.createProvider(
-                new Logger({}),
-                2000,
-                performanceClient
+            const wamMessageHandler =
+                await PlatformAuthExtensionHandler.createProvider(
+                    new Logger({}),
+                    2000,
+                    performanceClient
+                );
+            expect(wamMessageHandler).toBeInstanceOf(
+                PlatformAuthExtensionHandler
             );
-            expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
             window.removeEventListener("message", eventHandler, true);
         });
 
         it("Throws if no extension is installed", (done) => {
-            NativeMessageHandler.createProvider(
+            PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
                 performanceClient
@@ -181,7 +187,7 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            NativeMessageHandler.createProvider(
+            PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
                 performanceClient
@@ -219,7 +225,7 @@ describe("NativeMessageHandler Tests", () => {
                 }
             );
 
-            NativeMessageHandler.createProvider(
+            PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
                 performanceClient
@@ -275,12 +281,15 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            const wamMessageHandler = await NativeMessageHandler.createProvider(
-                new Logger({}),
-                2000,
-                performanceClient
+            const wamMessageHandler =
+                await PlatformAuthExtensionHandler.createProvider(
+                    new Logger({}),
+                    2000,
+                    performanceClient
+                );
+            expect(wamMessageHandler).toBeInstanceOf(
+                PlatformAuthExtensionHandler
             );
-            expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
             const response = await wamMessageHandler.sendMessage({
                 method: NativeExtensionMethod.GetToken,
@@ -332,7 +341,7 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            NativeMessageHandler.createProvider(
+            PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
                 performanceClient
@@ -398,7 +407,7 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            NativeMessageHandler.createProvider(
+            PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
                 performanceClient
@@ -462,7 +471,7 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            NativeMessageHandler.createProvider(
+            PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
                 performanceClient

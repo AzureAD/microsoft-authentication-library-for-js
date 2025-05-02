@@ -27,7 +27,7 @@ import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js
 import { HybridSpaAuthorizationCodeClient } from "./HybridSpaAuthorizationCodeClient.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { InteractionHandler } from "../interaction_handler/InteractionHandler.js";
-import { IPlatformBrokerHandler } from "../broker/nativeBroker/IPlatformBrokerHandler.js";
+import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 export class SilentAuthCodeClient extends StandardInteractionClient {
     private apiId: ApiId;
@@ -41,7 +41,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         navigationClient: INavigationClient,
         apiId: ApiId,
         performanceClient: IPerformanceClient,
-        platformAuthProvider?: IPlatformBrokerHandler,
+        platformAuthProvider?: IPlatformAuthHandler,
         correlationId?: string
     ) {
         super(

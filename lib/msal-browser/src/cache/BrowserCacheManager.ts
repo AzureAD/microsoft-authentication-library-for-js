@@ -53,7 +53,7 @@ import { LocalStorage } from "./LocalStorage.js";
 import { SessionStorage } from "./SessionStorage.js";
 import { MemoryStorage } from "./MemoryStorage.js";
 import { IWindowStorage } from "./IWindowStorage.js";
-import { PlatformBrokerRequest } from "../broker/nativeBroker/NativeRequest.js";
+import { PlatformBrokerRequest } from "../broker/nativeBroker/PlatformBrokerRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";

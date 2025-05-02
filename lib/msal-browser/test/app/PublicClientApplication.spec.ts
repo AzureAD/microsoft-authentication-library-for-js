@@ -95,9 +95,9 @@ import {
 } from "../../src/index.js";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
-import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
-import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient.js";
-import { PlatformBrokerRequest } from "../../src/broker/nativeBroker/NativeRequest.js";
+import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
+import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
+import { PlatformBrokerRequest } from "../../src/broker/nativeBroker/PlatformBrokerRequest.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
 import { StandardController } from "../../src/controllers/StandardController.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
@@ -148,9 +148,9 @@ function stubProvider(config: Configuration) {
     const performanceClient = newConfig.telemetry.client;
 
     return jest
-        .spyOn(NativeMessageHandler, "createProvider")
+        .spyOn(PlatformAuthExtensionHandler, "createProvider")
         .mockImplementation(async () => {
-            return new NativeMessageHandler(
+            return new PlatformAuthExtensionHandler(
                 logger,
                 2000,
                 performanceClient,
@@ -275,7 +275,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
             // @ts-ignore
             const handshakeSpy: jest.SpyInstance = jest.spyOn(
-                NativeMessageHandler.prototype,
+                PlatformAuthExtensionHandler.prototype,
                 // @ts-ignore
                 "sendHandshakeRequest"
             );
@@ -328,7 +328,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     // @ts-ignore
                     expect(
                         (apps[i] as any).controller.getNativeExtensionProvider()
-                    ).toBeInstanceOf(NativeMessageHandler);
+                    ).toBeInstanceOf(PlatformAuthExtensionHandler);
                 }
             } finally {
                 for (const port of ports) {
@@ -365,7 +365,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
             // @ts-ignore
             const createProviderSpy: jest.SpyInstance = jest.spyOn(
-                NativeMessageHandler,
+                PlatformAuthExtensionHandler,
                 "createProvider"
             );
 
@@ -458,13 +458,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(createProviderSpy).toHaveBeenCalled();
             // @ts-ignore
             expect(pca.nativeExtensionProvider).toBeInstanceOf(
-                NativeMessageHandler
+                PlatformAuthExtensionHandler
             );
         });
 
         it("does not create extension provider if allowPlatformBroker is false", async () => {
             const createProviderSpy = jest.spyOn(
-                NativeMessageHandler,
+                PlatformAuthExtensionHandler,
                 "createProvider"
             );
             pca = new PublicClientApplication({
@@ -487,7 +487,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("catches error if extension provider fails to initialize", async () => {
             const createProviderSpy = jest
-                .spyOn(NativeMessageHandler, "createProvider")
+                .spyOn(PlatformAuthExtensionHandler, "createProvider")
                 .mockRejectedValue(new Error("testError"));
             pca = new PublicClientApplication({
                 auth: {
@@ -788,7 +788,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
             const redirectClientSpy: jest.SpyInstance = jest
                 .spyOn(
-                    NativeInteractionClient.prototype,
+                    PlatformAuthInteractionClient.prototype,
                     "handleRedirectPromise"
                 )
                 .mockImplementation(() => {
@@ -909,7 +909,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     testAccount,
                 ]);
                 jest.spyOn(
-                    NativeInteractionClient.prototype,
+                    PlatformAuthInteractionClient.prototype,
                     "handleRedirectPromise"
                 ).mockResolvedValue(testTokenResponse);
 
@@ -950,7 +950,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
             const redirectClientSpy: jest.SpyInstance = jest
                 .spyOn(
-                    NativeInteractionClient.prototype,
+                    PlatformAuthInteractionClient.prototype,
                     "handleRedirectPromise"
                 )
                 .mockRejectedValue(new Error("testerror"));
@@ -1550,7 +1550,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const nativeAcquireTokenSpy = jest
                 .spyOn(
-                    NativeInteractionClient.prototype,
+                    PlatformAuthInteractionClient.prototype,
                     "acquireTokenRedirect"
                 )
                 .mockResolvedValue();
@@ -1638,7 +1638,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy = jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireTokenRedirect"
             );
             const redirectSpy: jest.SpyInstance = jest
@@ -1683,7 +1683,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(
-                    NativeInteractionClient.prototype,
+                    PlatformAuthInteractionClient.prototype,
                     "acquireTokenRedirect"
                 )
                 .mockRejectedValue(
@@ -1730,7 +1730,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(
-                    NativeInteractionClient.prototype,
+                    PlatformAuthInteractionClient.prototype,
                     "acquireTokenRedirect"
                 )
                 .mockRejectedValue(
@@ -1778,7 +1778,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
                 .spyOn(
-                    NativeInteractionClient.prototype,
+                    PlatformAuthInteractionClient.prototype,
                     "acquireTokenRedirect"
                 )
                 .mockRejectedValue(new Error("testError"));
@@ -2511,7 +2511,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockImplementation(async (request) => {
                     expect(request.correlationId).toBe(RANDOM_TEST_GUID);
                     return testTokenResponse;
@@ -2567,7 +2567,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             );
             const popupSpy: jest.SpyInstance = jest
@@ -2625,7 +2625,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockRejectedValue(
                     new NativeAuthError("ContentError", "error in extension")
                 );
@@ -2683,7 +2683,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockImplementation(() => {
                     throw createInteractionRequiredAuthError(
                         InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
@@ -2729,7 +2729,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockRejectedValue(new Error("testError"));
             const popupSpy: jest.SpyInstance = jest
                 .spyOn(PopupClient.prototype, "acquireToken")
@@ -3296,7 +3296,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockResolvedValue(testTokenResponse);
             const silentSpy: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, "acquireToken")
@@ -3353,7 +3353,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockRejectedValue(
                     new NativeAuthError("ContentError", "error in extension")
                 );
@@ -3397,7 +3397,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockRejectedValue(new Error("testError"));
             const silentSpy: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, "acquireToken")
@@ -3702,7 +3702,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockResolvedValue(testTokenResponse);
             const response = await pca.acquireTokenByCode({
                 scopes: ["User.Read"],
@@ -3731,7 +3731,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = (pca as any).controller;
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockRejectedValue(
                     new NativeAuthError(
                         "ContentError",
@@ -3762,7 +3762,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             const nativeAcquireTokenSpy = jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             );
 
@@ -4199,7 +4199,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockResolvedValue(testTokenResponse);
             const silentSpy: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, "acquireToken")
@@ -4256,7 +4256,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockRejectedValue(
                     new NativeAuthError("ContentError", "error in extension")
                 );
@@ -4301,7 +4301,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
                 .mockRejectedValue(new Error("testError"));
             const silentSpy: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, "acquireToken")
@@ -6143,10 +6143,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     .mockImplementation();
 
                 const isPlatformBrokerAvailableSpy = jest
-                    .spyOn(NativeMessageHandler, "isPlatformBrokerAvailable")
+                    .spyOn(
+                        PlatformAuthExtensionHandler,
+                        "isPlatformBrokerAvailable"
+                    )
                     .mockReturnValue(true);
                 const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                    .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                    .spyOn(
+                        PlatformAuthInteractionClient.prototype,
+                        "acquireToken"
+                    )
                     .mockImplementation();
                 const cacheAccount = testAccount;
                 cacheAccount.nativeAccountId = "nativeAccountId";
@@ -6207,13 +6213,19 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     .spyOn(SilentIframeClient.prototype, "acquireToken")
                     .mockImplementation();
                 const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                    .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                    .spyOn(
+                        PlatformAuthInteractionClient.prototype,
+                        "acquireToken"
+                    )
                     .mockImplementation();
 
                 const cacheAccount = testAccount;
                 cacheAccount.nativeAccountId = "nativeAccountId";
                 const isPlatformBrokerAvailableSpy = jest
-                    .spyOn(NativeMessageHandler, "isPlatformBrokerAvailable")
+                    .spyOn(
+                        PlatformAuthExtensionHandler,
+                        "isPlatformBrokerAvailable"
+                    )
                     .mockReturnValue(true);
                 testAccount.nativeAccountId = "nativeAccountId";
 
