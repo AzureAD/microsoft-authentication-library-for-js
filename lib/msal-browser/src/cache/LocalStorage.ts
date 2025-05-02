@@ -77,8 +77,6 @@ export class LocalStorage implements IWindowStorage<string> {
     }
 
     async initialize(correlationId: string): Promise<void> {
-        this.initialized = true;
-
         const cookies = new CookieStorage();
         const cookieString = cookies.getItem(ENCRYPTION_KEY);
         let parsedCookie = { key: "", id: "" };
@@ -158,6 +156,8 @@ export class LocalStorage implements IWindowStorage<string> {
 
         // Register listener for cache updates in other tabs
         this.broadcast.addEventListener("message", this.updateCache.bind(this));
+
+        this.initialized = true;
     }
 
     getItem(key: string): string | null {

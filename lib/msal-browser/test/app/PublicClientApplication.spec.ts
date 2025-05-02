@@ -240,6 +240,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca instanceof PublicClientApplication).toBeTruthy();
             done();
         });
+
+        it("Sets isBroker to false", () => {
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            };
+            pca = new PublicClientApplication(config);
+            // @ts-ignore
+            expect(pca.isBroker).toBe(false);
+        });
     });
 
     describe("initialize tests", () => {
@@ -581,6 +592,26 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = (pca as any).controller;
 
             expect(preGenerateSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it("passes in isBroker in request", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: false,
+                },
+            });
+            const initializeControllerSpy = jest.spyOn(
+                StandardController.prototype,
+                "initialize"
+            );
+            await pca.initialize();
+            expect(initializeControllerSpy).toHaveBeenCalledWith(
+                undefined,
+                false
+            );
         });
     });
 
@@ -6607,6 +6638,33 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(accounts).toEqual([]);
         });
 
+        it("getAllAccounts throws if called before initialize", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                cache: {
+                    cacheLocation: "localStorage",
+                },
+            });
+
+            window.localStorage.setItem(
+                "msal.account.keys",
+                JSON.stringify([testAccount1.generateAccountKey()])
+            );
+
+            try {
+                pca.getAllAccounts();
+            } catch (e) {
+                expect(e).toEqual(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
+                );
+                done();
+            }
+        });
+
         it("getAccountByUsername returns account specified", () => {
             const account = pca.getAccountByUsername(
                 ID_TOKEN_CLAIMS.preferred_username
@@ -6642,6 +6700,33 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(account).toBe(null);
         });
 
+        it("getAccountByUsername throws if called before initialize", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                cache: {
+                    cacheLocation: "localStorage",
+                },
+            });
+
+            window.localStorage.setItem(
+                "msal.account.keys",
+                JSON.stringify([testAccount1.generateAccountKey()])
+            );
+
+            try {
+                pca.getAccountByUsername(testAccount1.username);
+            } catch (e) {
+                expect(e).toEqual(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
+                );
+                done();
+            }
+        });
+
         it("getAccountByHomeId returns account specified", () => {
             const account = pca.getAccountByHomeId(
                 testAccountInfo1.homeAccountId
@@ -6661,6 +6746,33 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(account).toBe(null);
         });
 
+        it("getAccountByUsername throws if called before initialize", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                cache: {
+                    cacheLocation: "localStorage",
+                },
+            });
+
+            window.localStorage.setItem(
+                "msal.account.keys",
+                JSON.stringify([testAccount1.generateAccountKey()])
+            );
+
+            try {
+                pca.getAccountByHomeId(testAccount1.homeAccountId);
+            } catch (e) {
+                expect(e).toEqual(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
+                );
+                done();
+            }
+        });
+
         it("getAccountByLocalId returns account specified", () => {
             const account = pca.getAccountByLocalId(ID_TOKEN_CLAIMS.oid);
             expect(account?.idTokenClaims).not.toBeUndefined();
@@ -6678,10 +6790,64 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(account).toBe(null);
         });
 
+        it("getAccountByLocalId throws if called before initialize", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                cache: {
+                    cacheLocation: "localStorage",
+                },
+            });
+
+            window.localStorage.setItem(
+                "msal.account.keys",
+                JSON.stringify([testAccount1.generateAccountKey()])
+            );
+
+            try {
+                pca.getAccountByLocalId(testAccount1.localAccountId);
+            } catch (e) {
+                expect(e).toEqual(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                    )
+                );
+                done();
+            }
+        });
+
         describe("getAccount", () => {
             it("getAccount returns null if empty filter is passed in", () => {
                 const account = pca.getAccount({});
                 expect(account).toBe(null);
+            });
+
+            it("getAccount throws if called before initialize", (done) => {
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                    cache: {
+                        cacheLocation: "localStorage",
+                    },
+                });
+
+                window.localStorage.setItem(
+                    "msal.account.keys",
+                    JSON.stringify([testAccount1.generateAccountKey()])
+                );
+
+                try {
+                    pca.getAccount({ username: testAccount1.username });
+                } catch (e) {
+                    expect(e).toEqual(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                        )
+                    );
+                    done();
+                }
             });
 
             describe("loginHint filter", () => {
@@ -6812,6 +6978,40 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             it("active account is initialized as null", () => {
                 // Public client should initialze with active account set to null.
                 expect(pca.getActiveAccount()).toBe(null);
+            });
+
+            it("getActiveAccount throws if called before initialize", (done) => {
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                    cache: {
+                        cacheLocation: "localStorage",
+                    },
+                });
+
+                window.localStorage.setItem(
+                    `msal.${TEST_CONFIG.MSAL_CLIENT_ID}.active-account-filters`,
+                    JSON.stringify({
+                        homeAccountId: testAccount1.homeAccountId,
+                        localAccountId: testAccount1.localAccountId,
+                    })
+                );
+                window.localStorage.setItem(
+                    "msal.account.keys",
+                    JSON.stringify([testAccount1.generateAccountKey()])
+                );
+
+                try {
+                    pca.getActiveAccount();
+                } catch (e) {
+                    expect(e).toEqual(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.uninitializedPublicClientApplication
+                        )
+                    );
+                    done();
+                }
             });
 
             it("setActiveAccount() sets the active account local id value correctly", () => {
@@ -7556,6 +7756,125 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pkce1?.challenge).toBeDefined();
             expect(pkce2?.challenge).toBeDefined();
             expect(pkce1?.challenge !== pkce2?.challenge).toBeTruthy();
+        });
+    });
+    describe("Multi-instance tests", () => {
+        afterEach(() => {
+            // @ts-ignore
+            window.msal.clientIds = [];
+            // @ts-ignore
+            window.msal = {};
+        });
+        it("Logs warning if there are two applications with the same client id in the same frame", async () => {
+            const msalConfig: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: false,
+                    loggerOptions: {
+                        logLevel: LogLevel.Verbose,
+                        loggerCallback: jest.fn(),
+                    },
+                },
+            };
+            pca = new PublicClientApplication(msalConfig);
+            await pca.initialize();
+            const pca2 = new PublicClientApplication(msalConfig);
+            const logger = pca2.getLogger();
+            const loggerCallbackStub = jest
+                .spyOn(logger, "executeCallback")
+                .mockImplementation();
+            await pca2.initialize();
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Warning,
+                expect.stringContaining(
+                    "There is already an instance of MSAL.js in the window with the same client id."
+                ),
+                false
+            );
+        });
+
+        it("Logs verbose if there are two applications with different client ids in the same frame", async () => {
+            const msalConfig: Configuration = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: false,
+                    loggerOptions: {
+                        logLevel: LogLevel.Verbose,
+                        loggerCallback: jest.fn(),
+                    },
+                },
+            };
+            pca = new PublicClientApplication(msalConfig);
+            await pca.initialize();
+            const pca2 = new PublicClientApplication({
+                ...msalConfig,
+                auth: { clientId: "differentClientId" },
+            });
+            const logger = pca2.getLogger();
+            const loggerCallbackStub = jest
+                .spyOn(logger, "executeCallback")
+                .mockImplementation();
+            await pca2.initialize();
+            expect(loggerCallbackStub).toHaveBeenCalledWith(
+                LogLevel.Verbose,
+                expect.stringContaining(
+                    "There is already an instance of MSAL.js in the window."
+                ),
+                false
+            );
+        });
+
+        it("Reports in telemetry the number of applications in the same frame (different client ids)", async () => {
+            await pca.initialize();
+
+            const pca2 = new PublicClientApplication({
+                ...pca.getConfiguration(),
+                auth: { clientId: "different-client-id" },
+            });
+
+            const telemetryPromise = new Promise<void>((resolve) => {
+                const callbackId = pca2.addPerformanceCallback((events) => {
+                    expect(events.length).toEqual(1);
+                    const event = events[0];
+                    expect(event.name).toBe(
+                        PerformanceEvents.InitializeClientApplication
+                    );
+                    expect(event.msalInstanceCount).toEqual(2);
+                    expect(event.sameClientIdInstanceCount).toEqual(1);
+                    pca.removePerformanceCallback(callbackId);
+                    resolve();
+                });
+            });
+
+            await pca2.initialize();
+            await telemetryPromise;
+        });
+
+        it("Reports in telemetry the number of applications in the same frame (same client ids)", async () => {
+            await pca.initialize();
+
+            const pca2 = new PublicClientApplication(pca.getConfiguration());
+
+            const telemetryPromise = new Promise<void>((resolve) => {
+                const callbackId = pca2.addPerformanceCallback((events) => {
+                    expect(events.length).toEqual(1);
+                    const event = events[0];
+                    expect(event.name).toBe(
+                        PerformanceEvents.InitializeClientApplication
+                    );
+                    expect(event.msalInstanceCount).toEqual(2);
+                    expect(event.sameClientIdInstanceCount).toEqual(2);
+                    pca.removePerformanceCallback(callbackId);
+                    resolve();
+                });
+            });
+
+            await pca2.initialize();
+            await telemetryPromise;
         });
     });
 });
