@@ -4,7 +4,7 @@
  */
 
 import { AuthenticationScheme } from "../utils/Constants.js";
-import { AzureCloudOptions } from "../config/ClientConfiguration.js";
+import type { AzureCloudOptions } from "../config/ClientConfiguration.js";
 import { StringDict } from "../utils/MsalTypes.js";
 import { StoreInCache } from "./StoreInCache.js";
 import { ShrOptions } from "../crypto/SignedHttpRequest.js";

@@ -4,7 +4,7 @@
  */
 
 import { CacheAccountType, Separators } from "../../utils/Constants.js";
-import { Authority } from "../../authority/Authority.js";
+import type { Authority } from "../../authority/Authority.js";
 import { ICrypto } from "../../crypto/ICrypto.js";
 import { ClientInfo, buildClientInfo } from "../../account/ClientInfo.js";
 import {

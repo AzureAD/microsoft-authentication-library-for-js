@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 15 Apr 2025 23:34:14 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 29 Apr 2025 20:25:48 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.5.2
+
+Tue, 29 Apr 2025 20:25:48 GMT
+
+### Patches
+
+- Fix circular type imports (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v15.5.2
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 3.5.1
 

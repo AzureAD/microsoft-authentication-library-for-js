@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Multi-instance detection",
+  "packageName": "@azure/msal-common",
+  "email": "shylasummers@microsoft.com",
+  "dependentChangeType": "patch"
+}
