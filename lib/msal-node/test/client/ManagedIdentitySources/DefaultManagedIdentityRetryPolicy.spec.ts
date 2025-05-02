@@ -216,7 +216,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
             expect(
                 timeAfterNetworkRequest.valueOf() -
                     timeBeforeNetworkRequest.valueOf()
-            ).toBeGreaterThanOrEqual(RETRY_AFTER_SECONDS * 1000); // convert to milliseconds
+            ).toBeGreaterThanOrEqual(RETRY_AFTER_SECONDS * 1000); // convert to milliseconds, it was already defined as 100 times faster
 
             expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
             expect(networkManagedIdentityResult.accessToken).toEqual(
@@ -226,12 +226,12 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
 
         test("returns a 500 error response from the network request, just the first time, with a retry-after header of 3 seconds (extrapolated from an http-date)", async () => {
             // this test can not be made one hundred times faster because it is based on a date
-            // an extra second has been added to account for the below date operation
-            const RETRY_AFTER_SECONDS: number = 4;
+            const RETRY_AFTER_SECONDS: number = 3;
 
             var retryAfterHttpDate = new Date();
             retryAfterHttpDate.setSeconds(
-                retryAfterHttpDate.getSeconds() + RETRY_AFTER_SECONDS
+                // an extra second has been added to account for this date operation
+                retryAfterHttpDate.getSeconds() + RETRY_AFTER_SECONDS + 1
             );
             const headers: Record<string, string> = {
                 "Retry-After": retryAfterHttpDate.toString(),
