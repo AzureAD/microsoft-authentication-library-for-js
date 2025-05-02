@@ -39,7 +39,7 @@ import {
     ResponseMode,
 } from "@azure/msal-common";
 import {
-    BrowserCacheLocation,
+    BrowserCacheLocation, INTERACTION_TYPE,
     InteractionType,
     TemporaryCacheKeys,
 } from "../../src/utils/BrowserConstants.js";
@@ -1467,6 +1467,77 @@ describe("BrowserCacheManager tests", () => {
                         );
                 });
             });
+
+            describe("interactionInProgress", () => {
+                it("handles new format", () => {
+                    const perfClient = new BrowserPerformanceClient(
+                        {
+                            auth: {
+                                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                            },
+                        }
+                    );
+                    const cacheManager = new BrowserCacheManager(
+                        TEST_CONFIG.MSAL_CLIENT_ID,
+                        cacheConfig,
+                        browserCrypto,
+                        logger,
+                        perfClient,
+                        new EventHandler()
+                    );
+
+                    cacheManager.setInteractionInProgress(true);
+                    expect(cacheManager.getInteractionInProgress()?.clientId).toEqual(TEST_CONFIG.MSAL_CLIENT_ID);
+                    expect(cacheManager.getInteractionInProgress()?.type).toEqual(INTERACTION_TYPE.SIGNIN);
+                });
+
+                it("handles old format", () => {
+                    const perfClient = new BrowserPerformanceClient(
+                        {
+                            auth: {
+                                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                            },
+                        }
+                    );
+                    const cacheManager = new BrowserCacheManager(
+                        TEST_CONFIG.MSAL_CLIENT_ID,
+                        cacheConfig,
+                        browserCrypto,
+                        logger,
+                        perfClient,
+                        new EventHandler()
+                    );
+
+                    cacheManager.setTemporaryCache(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
+                    expect(cacheManager.getInteractionInProgress()).toBeNull();
+                });
+
+                it("handles old format and removes temporary artifacts", () => {
+                    const perfClient = new BrowserPerformanceClient(
+                        {
+                            auth: {
+                                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                            },
+                        }
+                    );
+                    const cacheManager = new BrowserCacheManager(
+                        TEST_CONFIG.MSAL_CLIENT_ID,
+                        cacheConfig,
+                        browserCrypto,
+                        logger,
+                        perfClient,
+                        new EventHandler()
+                    );
+
+                    cacheManager.setTemporaryCache(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
+                    // @ts-ignore
+                    const requestParamKey = cacheManager.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS);
+                    const requestParamPayload = JSON.stringify({ correlationId: "test-correlation-id" });
+                    cacheManager.setTemporaryCache(requestParamKey, requestParamPayload);
+                    expect(cacheManager.getInteractionInProgress()).toBeNull();
+                    expect(cacheManager.getTemporaryCache(requestParamKey)).toBeNull();
+                })
+            })
         });
     });
 

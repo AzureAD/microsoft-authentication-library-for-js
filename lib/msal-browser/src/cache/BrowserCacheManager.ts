@@ -1203,7 +1203,15 @@ export class BrowserCacheManager extends CacheManager {
     } | null {
         const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         const value = this.getTemporaryCache(key, false);
-        return value ? JSON.parse(value) : null;
+        try {
+            return value ? JSON.parse(value) : null;
+        } catch (e) {
+            // Remove interaction and other temp keys when redirect begins on version <4.10.0 and completes on 4.10.0+
+            this.removeTemporaryItem(key);
+            this.resetRequestCache();
+            return null;
+        }
+
     }
 
     setInteractionInProgress(
