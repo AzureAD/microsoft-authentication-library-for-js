@@ -63,7 +63,10 @@ export async function isPlatformBrokerAvailable(
         }
     }
 
-    // Check and initialize native extension provider if available
+    /*
+     * If DOM APIs are not available, check if browser extension is available.
+     * Platform authentication via DOM APIs is preferred over extension APIs.
+     */
     try {
         const nativeExtensionProvider =
             await PlatformAuthExtensionHandler.createProvider(
