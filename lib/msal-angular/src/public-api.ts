@@ -11,6 +11,7 @@
 export { MsalService } from "./msal.service";
 export { IMsalService } from "./IMsalService";
 export { MsalGuard } from "./msal.guard";
+export { makeRbacGuard } from './rbac.guard';
 export {
   MsalGuardConfiguration,
   MsalGuardAuthRequest,
