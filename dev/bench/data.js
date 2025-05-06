@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1746223987719,
+  "lastUpdate": 1746563065583,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15260,6 +15260,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.75%",
             "unit": "ops/sec",
             "extra": "232 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b6098464c80f3db124ca3db145446ddb71be936d",
+          "message": "Enable React 19 usage (#7710) (#7735)\n\nPR to run CI against #7710 and get it merged into dev. Thanks\n@rm-eth-a-n for making the changes\n\n---------\n\nCo-authored-by: rm-eth-a-n <ethan.pearce@rightmove.co.uk>\nCo-authored-by: Herman Jensen <herman.jensen@intility.no>",
+          "timestamp": "2025-05-06T13:17:58-07:00",
+          "tree_id": "6cfcb100efc4cbf2b140560121821f7b594ba002",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/b6098464c80f3db124ca3db145446ddb71be936d"
+        },
+        "date": 1746563062712,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 248157,
+            "range": "±0.84%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 242726,
+            "range": "±0.88%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
