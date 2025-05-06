@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "chore: Allow react 19 usage",
+  "packageName": "@azure/msal-react",
+  "email": "ethan.pearce@rightmove.co.uk",
+  "dependentChangeType": "patch"
+}
