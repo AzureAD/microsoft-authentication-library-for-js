@@ -80,7 +80,6 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Full B2C functionality will be available in this library in future versions.
      *
      * @param configuration Object for the MSAL PublicClientApplication instance
-     * @param featureConfig Optional parameter to explictly enable any feature support.
      * @param IController Optional parameter to explictly set the controller. (Will be removed when we remove public constructor)
      */
     public constructor(configuration: Configuration, controller?: IController) {
