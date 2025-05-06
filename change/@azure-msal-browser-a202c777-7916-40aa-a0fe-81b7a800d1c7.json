@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add support for new platform broker flow via DOM API",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}
