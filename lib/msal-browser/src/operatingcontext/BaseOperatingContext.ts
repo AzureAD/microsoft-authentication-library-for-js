@@ -129,9 +129,12 @@ export abstract class BaseOperatingContext {
         try {
             sessionStorage = window[BrowserCacheLocation.SessionStorage];
             // Mute errors if it's a non-browser environment or cookies are blocked.
-        } catch (e) {}
-
-        return sessionStorage?.getItem(PLATFORM_AUTH_DOM_SUPPORT) === "true";
+            return (
+                sessionStorage?.getItem(PLATFORM_AUTH_DOM_SUPPORT) === "true"
+            );
+        } catch (e) {
+            return false;
+        }
     }
 
     /**
