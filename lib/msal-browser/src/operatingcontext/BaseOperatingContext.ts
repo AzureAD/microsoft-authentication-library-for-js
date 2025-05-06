@@ -14,11 +14,8 @@ import {
     BrowserCacheLocation,
     LOG_LEVEL_CACHE_KEY,
     LOG_PII_CACHE_KEY,
+    PLATFORM_AUTH_DOM_SUPPORT,
 } from "../utils/BrowserConstants.js";
-import {
-    buildFeatureSupportConfiguration,
-    FeatureSupportConfiguration,
-} from "../config/FeatureFlags.js";
 
 /**
  * Base class for operating context
@@ -32,7 +29,6 @@ export abstract class BaseOperatingContext {
     protected config: BrowserConfiguration;
     protected available: boolean;
     protected browserEnvironment: boolean;
-    protected featureSupportConfig: FeatureSupportConfiguration;
 
     protected static loggerCallback(level: LogLevel, message: string): void {
         switch (level) {
@@ -59,10 +55,7 @@ export abstract class BaseOperatingContext {
         }
     }
 
-    constructor(
-        config: Configuration,
-        featureSupportConfig?: FeatureSupportConfiguration
-    ) {
+    constructor(config: Configuration) {
         /*
          * If loaded in an environment where window is not available,
          * set internal flag to false so that further requests fail.
@@ -70,9 +63,6 @@ export abstract class BaseOperatingContext {
          */
         this.browserEnvironment = typeof window !== "undefined";
         this.config = buildConfiguration(config, this.browserEnvironment);
-        this.featureSupportConfig =
-            buildFeatureSupportConfiguration(featureSupportConfig);
-
         let sessionStorage: Storage | undefined;
         try {
             sessionStorage = window[BrowserCacheLocation.SessionStorage];
@@ -132,11 +122,16 @@ export abstract class BaseOperatingContext {
     }
 
     /**
-     * Return MSAL config for enabled features
-     * @returns FeatureSupportConfiguration
+     * Returns true if the DOM API support for platform auth is enabled in session storage
+     * @returns boolean
      */
-    getFeatureSupportConfig(): FeatureSupportConfiguration {
-        return this.featureSupportConfig;
+    isDomEnabledForPlatformAuth(): boolean {
+        try {
+            sessionStorage = window[BrowserCacheLocation.SessionStorage];
+            // Mute errors if it's a non-browser environment or cookies are blocked.
+        } catch (e) {}
+
+        return sessionStorage?.getItem(PLATFORM_AUTH_DOM_SUPPORT) === "true";
     }
 
     /**

@@ -90,7 +90,6 @@ import { InitializeApplicationRequest } from "../request/InitializeApplicationRe
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { PlatformAuthDOMHandler } from "../broker/nativeBroker/PlatformAuthDOMHandler.js";
 import { isBrokerAvailable } from "../broker/nativeBroker/PlatformAuthProvider.js";
-import { FeatureSupportConfiguration } from "../config/FeatureFlags.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 function getAccountType(
@@ -144,7 +143,7 @@ export class StandardController implements IController {
     protected readonly config: BrowserConfiguration;
 
     // Feature support configuration
-    protected readonly featureSupportConfig: FeatureSupportConfiguration;
+    protected readonly enablePlatformBrokerDOMSupport: boolean;
 
     // Token cache implementation
     private tokenCache: TokenCache;
@@ -216,7 +215,8 @@ export class StandardController implements IController {
             this.operatingContext.isBrowserEnvironment();
         // Set the configuration.
         this.config = operatingContext.getConfig();
-        this.featureSupportConfig = operatingContext.getFeatureSupportConfig();
+        this.enablePlatformBrokerDOMSupport =
+            operatingContext.isDomEnabledForPlatformAuth();
         this.initialized = false;
 
         // Initialize logger
@@ -402,7 +402,7 @@ export class StandardController implements IController {
         }
 
         try {
-            if (this.featureSupportConfig.enablePlatformBrokerDOMSupport) {
+            if (this.enablePlatformBrokerDOMSupport) {
                 this.platformAuthProvider =
                     await PlatformAuthDOMHandler.createProvider(
                         this.logger,

@@ -252,3 +252,5 @@ export const LOG_LEVEL_CACHE_KEY = "msal.browser.log.level";
 export const LOG_PII_CACHE_KEY = "msal.browser.log.pii";
 
 export const BROWSER_PERF_ENABLED_KEY = "msal.browser.performance.enabled";
+
+export const PLATFORM_AUTH_DOM_SUPPORT = "msal.browser.platform.auth.dom";

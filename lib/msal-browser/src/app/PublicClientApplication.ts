@@ -35,7 +35,6 @@ import { NestedAppAuthController } from "../controllers/NestedAppAuthController.
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { EventType } from "../event/EventType.js";
-import { FeatureSupportConfiguration } from "../config/FeatureFlags.js";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -50,17 +49,12 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param configuration {Configuration}
      */
     public static async createPublicClientApplication(
-        configuration: Configuration,
-        featureConfig?: FeatureSupportConfiguration
+        configuration: Configuration
     ): Promise<IPublicClientApplication> {
         const controller = await ControllerFactory.createV3Controller(
             configuration
         );
-        const pca = new PublicClientApplication(
-            configuration,
-            featureConfig,
-            controller
-        );
+        const pca = new PublicClientApplication(configuration, controller);
 
         return pca;
     }
@@ -88,16 +82,10 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param featureConfig Optional parameter to explictly enable any feature support.
      * @param IController Optional parameter to explictly set the controller. (Will be removed when we remove public constructor)
      */
-    public constructor(
-        configuration: Configuration,
-        featureConfig?: FeatureSupportConfiguration,
-        controller?: IController
-    ) {
+    public constructor(configuration: Configuration, controller?: IController) {
         this.controller =
             controller ||
-            new StandardController(
-                new StandardOperatingContext(configuration, featureConfig)
-            );
+            new StandardController(new StandardOperatingContext(configuration));
     }
 
     /**
@@ -452,8 +440,7 @@ export class PublicClientApplication implements IPublicClientApplication {
  *
  */
 export async function createNestablePublicClientApplication(
-    configuration: Configuration,
-    featureConfig?: FeatureSupportConfiguration
+    configuration: Configuration
 ): Promise<IPublicClientApplication> {
     const nestedAppAuth = new NestedAppOperatingContext(configuration);
     await nestedAppAuth.initialize();
@@ -462,7 +449,6 @@ export async function createNestablePublicClientApplication(
         const controller = new NestedAppAuthController(nestedAppAuth);
         const nestablePCA = new PublicClientApplication(
             configuration,
-            featureConfig,
             controller
         );
         await nestablePCA.initialize();

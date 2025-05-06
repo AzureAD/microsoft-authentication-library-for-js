@@ -27,7 +27,6 @@ export {
     BrowserConfiguration,
     DEFAULT_IFRAME_TIMEOUT_MS,
 } from "./config/Configuration.js";
-export { FeatureSupportConfiguration } from "./config/FeatureFlags.js";
 export {
     InteractionType,
     InteractionStatus,
