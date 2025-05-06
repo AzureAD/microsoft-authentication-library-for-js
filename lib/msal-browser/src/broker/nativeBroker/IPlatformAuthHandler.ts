@@ -12,8 +12,8 @@ import { PlatformBrokerResponse } from "./PlatformBrokerResponse.js";
 export interface IPlatformAuthHandler {
     getExtensionId(): string | undefined;
     getExtensionVersion(): string | undefined;
+    getExtensionName(): string | undefined;
     sendMessage(
         request: PlatformBrokerRequest
     ): Promise<PlatformBrokerResponse>;
-    validatePlatformBrokerResponse(response: object): PlatformBrokerResponse;
 }

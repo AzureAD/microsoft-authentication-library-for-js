@@ -78,7 +78,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
     async sendMessage(
         request: PlatformBrokerRequest
     ): Promise<PlatformBrokerResponse> {
-        this.logger.trace("NativeMessageHandler - sendMessage called.");
+        this.logger.trace("PlatformAuthExtensionHandler - sendMessage called.");
 
         const { ...nativeTokenRequest } = request;
 
@@ -96,10 +96,10 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         };
 
         this.logger.trace(
-            "NativeMessageHandler - Sending request to browser extension"
+            "PlatformAuthExtensionHandler - Sending request to browser extension"
         );
         this.logger.tracePii(
-            `NativeMessageHandler - Sending request to browser extension: ${JSON.stringify(
+            `PlatformAuthExtensionHandler - Sending request to browser extension: ${JSON.stringify(
                 req
             )}`
         );
@@ -127,7 +127,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         handshakeTimeoutMs: number,
         performanceClient: IPerformanceClient
     ): Promise<PlatformAuthExtensionHandler> {
-        logger.trace("NativeMessageHandler - createProvider called.");
+        logger.trace("PlatformAuthExtensionHandler - createProvider called.");
+
         try {
             const preferredProvider = new PlatformAuthExtensionHandler(
                 logger,
@@ -154,7 +155,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      */
     private async sendHandshakeRequest(): Promise<void> {
         this.logger.trace(
-            "NativeMessageHandler - sendHandshakeRequest called."
+            "PlatformAuthExtensionHandler - sendHandshakeRequest called."
         );
         // Register this event listener before sending handshake
         window.addEventListener("message", this.windowListener, false); // false is important, because content script message processing should work first
@@ -211,7 +212,9 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      * @param event
      */
     private onWindowMessage(event: MessageEvent): void {
-        this.logger.trace("NativeMessageHandler - onWindowMessage called");
+        this.logger.trace(
+            "PlatformAuthExtensionHandler - onWindowMessage called"
+        );
         // We only accept messages from ourselves
         if (event.source !== window) {
             return;
@@ -240,7 +243,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
              */
             if (!handshakeResolver) {
                 this.logger.trace(
-                    `NativeMessageHandler.onWindowMessage - resolver can't be found for request ${request.responseId}`
+                    `PlatformAuthExtensionHandler.onWindowMessage - resolver can't be found for request ${request.responseId}`
                 );
                 return;
             }
@@ -272,7 +275,9 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      * @param event
      */
     private onChannelMessage(event: MessageEvent): void {
-        this.logger.trace("NativeMessageHandler - onChannelMessage called.");
+        this.logger.trace(
+            "PlatformAuthExtensionHandler - onChannelMessage called."
+        );
         const request = event.data;
 
         const resolver = this.resolvers.get(request.responseId);
@@ -289,10 +294,10 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 }
                 const response = request.body.response;
                 this.logger.trace(
-                    "NativeMessageHandler - Received response from browser extension"
+                    "PlatformAuthExtensionHandler - Received response from browser extension"
                 );
                 this.logger.tracePii(
-                    `NativeMessageHandler - Received response from browser extension: ${JSON.stringify(
+                    `PlatformAuthExtensionHandler - Received response from browser extension: ${JSON.stringify(
                         response
                     )}`
                 );
@@ -329,7 +334,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             } else if (method === NativeExtensionMethod.HandshakeResponse) {
                 if (!handshakeResolver) {
                     this.logger.trace(
-                        `NativeMessageHandler.onChannelMessage - resolver can't be found for request ${request.responseId}`
+                        `PlatformAuthExtensionHandler.onChannelMessage - resolver can't be found for request ${request.responseId}`
                     );
                     return;
                 }
@@ -342,7 +347,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 this.extensionId = request.extensionId;
                 this.extensionVersion = request.body.version;
                 this.logger.verbose(
-                    `NativeMessageHandler - Received HandshakeResponse from extension: ${this.extensionId}`
+                    `PlatformAuthExtensionHandler - Received HandshakeResponse from extension: ${this.extensionId}`
                 );
                 this.handshakeEvent.end({
                     extensionInstalled: true,
@@ -372,7 +377,9 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      * Validates native platform response before processing
      * @param response
      */
-    validatePlatformBrokerResponse(response: object): PlatformBrokerResponse {
+    private validatePlatformBrokerResponse(
+        response: object
+    ): PlatformBrokerResponse {
         if (
             response.hasOwnProperty("access_token") &&
             response.hasOwnProperty("id_token") &&
@@ -404,5 +411,13 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      */
     getExtensionVersion(): string | undefined {
         return this.extensionVersion;
+    }
+
+    getExtensionName(): string | undefined {
+        return this.getExtensionId() === NativeConstants.PREFERRED_EXTENSION_ID
+            ? "chrome"
+            : this.getExtensionId()?.length
+            ? "unknown"
+            : undefined;
     }
 }

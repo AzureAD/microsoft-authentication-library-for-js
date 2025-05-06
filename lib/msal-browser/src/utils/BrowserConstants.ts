@@ -46,6 +46,7 @@ export const NativeConstants = {
     PREFERRED_EXTENSION_ID: "ppnbnpeolgkicgegkbkbjmhlideopiji",
     MATS_TELEMETRY: "MATS",
     MICROSOFT_ENTRA_BROKERID: "MicrosoftEntra",
+    PLATFORM_DOM_APIS: "get-token-and-sign-out",
     PLATFORM_DOM_PROVIDER: "PlatformDOMHandler",
     PLATFORM_EXTENSION_PROVIDER: "NativeMessageHandler",
 };

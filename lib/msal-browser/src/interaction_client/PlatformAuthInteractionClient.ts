@@ -126,16 +126,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             correlationId
         );
 
-        const extensionName =
-            this.platformAuthProvider.getExtensionId() ===
-            NativeConstants.PREFERRED_EXTENSION_ID
-                ? "chrome"
-                : this.platformAuthProvider.getExtensionId() ===
-                  NativeConstants.MICROSOFT_ENTRA_BROKERID
-                ? NativeConstants.MICROSOFT_ENTRA_BROKERID
-                : this.platformAuthProvider.getExtensionId()?.length
-                ? "unknown"
-                : undefined;
+        const extensionName = this.platformAuthProvider.getExtensionName();
 
         this.skus = ServerTelemetryManager.makeExtraSkuString({
             libraryName: BrowserConstants.MSAL_SKU,

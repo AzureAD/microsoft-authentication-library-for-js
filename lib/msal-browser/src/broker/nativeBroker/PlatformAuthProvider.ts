@@ -18,6 +18,7 @@ import { BrowserPerformanceClient } from "../../telemetry/BrowserPerformanceClie
 import { PlatformAuthExtensionHandler } from "./PlatformAuthExtensionHandler.js";
 import { NativeConstants } from "../../utils/BrowserConstants.js";
 import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
+import { PlatformAuthDOMHandler } from "./PlatformAuthDOMHandler.js";
 
 /**
  * Checks if the platform broker is available in the current environment.
@@ -48,45 +49,42 @@ export async function isPlatformBrokerAvailable(
         return false;
     }
 
-    // Check if DOM platform API is supported
-
-    // @ts-ignore
-    if (window.navigator?.platformAuthentication) {
-        const supportedContracts =
-            // @ts-ignore
-            await window.navigator.platformAuthentication.getSupportedContracts(
+    try {
+        // Check if DOM platform API is supported first
+        const platformAuthDOMHandler =
+            await PlatformAuthDOMHandler.createProvider(
+                logger,
+                performanceClient,
                 NativeConstants.MICROSOFT_ENTRA_BROKERID
             );
-        if (supportedContracts.includes("get-token-and-sign-out")) {
-            logger.trace("Platform auth available in DOM");
+        if (platformAuthDOMHandler) {
+            logger.trace("Platform auth available via DOM, returning true");
             return true;
         }
-    }
 
-    /*
-     * If DOM APIs are not available, check if browser extension is available.
-     * Platform authentication via DOM APIs is preferred over extension APIs.
-     */
-    try {
-        const nativeExtensionProvider =
+        /*
+         * If DOM APIs are not available, check if browser extension is available.
+         * Platform authentication via DOM APIs is preferred over extension APIs.
+         */
+        const platformAuthExtensionHandler =
             await PlatformAuthExtensionHandler.createProvider(
                 logger,
                 DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
                 performanceClient
             );
-        if (nativeExtensionProvider) {
+        if (platformAuthExtensionHandler) {
             logger.trace(
                 "Platform auth available via extension, returning true"
             );
             return true;
-        } else {
-            logger.trace("Platform auth not available, returning false");
-            return false;
         }
     } catch (e) {
-        logger.trace(e as string);
+        logger.trace("Platform auth not available", e as string);
         return false;
     }
+
+    logger.trace("Platform auth not available, returning false");
+    return false;
 }
 
 /**

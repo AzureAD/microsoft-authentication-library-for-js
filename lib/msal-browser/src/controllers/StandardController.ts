@@ -391,76 +391,36 @@ export class StandardController implements IController {
     }
 
     protected async setPlatformAuthProvider(
+        brokerId?: string,
         correlationId?: string
     ): Promise<void> {
-        this.logger.trace("getPlatformAuthProvider called", correlationId);
-
-        const domPlatformApiSupported = await this.checkDOMPlatformSupport(
-            correlationId
-        );
-
-        if (domPlatformApiSupported) {
-            this.platformAuthProvider = domPlatformApiSupported;
-        } else {
-            this.platformAuthProvider =
-                await PlatformAuthExtensionHandler.createProvider(
-                    this.logger,
-                    this.config.system.nativeBrokerHandshakeTimeout,
-                    this.performanceClient
-                );
-
-            this.logger.trace(
-                "Platform API available via browser extension",
-                correlationId
-            );
-        }
-    }
-
-    protected async checkDOMPlatformSupport(
-        correlationId?: string,
-        brokerId?: string
-    ): Promise<PlatformAuthDOMHandler | undefined> {
-        this.logger.trace("checkDOMPlatformSupport called", correlationId);
-
-        if (!this.featureSupportConfig.enablePlatformBrokerDOMSupport) {
-            this.logger.trace(
-                "Platform DOM support is disabled, returning false.",
-                correlationId
-            );
-            return;
-        }
+        this.logger.trace("setPlatformAuthProvider called", correlationId);
 
         if (!this.isBrowserEnvironment) {
             this.logger.trace("in non-browser environment, returning false.");
             return;
         }
 
-        // @ts-ignore
-        if (window.navigator?.platformAuthentication) {
-            const supportedContracts =
-                // @ts-ignore
-                await window.navigator.platformAuthentication.getSupportedContracts(
-                    brokerId || NativeConstants.MICROSOFT_ENTRA_BROKERID
-                );
-            if (supportedContracts.includes("get-token-and-sign-out")) {
-                this.logger.trace(
-                    "Platform API available in DOM",
-                    correlationId
-                );
-                return new PlatformAuthDOMHandler(
-                    this.logger,
-                    this.performanceClient,
-                    brokerId || NativeConstants.MICROSOFT_ENTRA_BROKERID,
-                    correlationId
-                );
+        try {
+            if (this.featureSupportConfig.enablePlatformBrokerDOMSupport) {
+                this.platformAuthProvider =
+                    await PlatformAuthDOMHandler.createProvider(
+                        this.logger,
+                        this.performanceClient,
+                        brokerId || NativeConstants.MICROSOFT_ENTRA_BROKERID
+                    );
             }
+            if (!this.platformAuthProvider) {
+                this.platformAuthProvider =
+                    await PlatformAuthExtensionHandler.createProvider(
+                        this.logger,
+                        this.config.system.nativeBrokerHandshakeTimeout,
+                        this.performanceClient
+                    );
+            }
+        } catch (e) {
+            this.logger.trace("Platform auth not available", e as string);
         }
-
-        this.logger.trace(
-            "Platform DOM API not available, returning",
-            correlationId
-        );
-        return;
     }
 
     // #region Redirect Flow

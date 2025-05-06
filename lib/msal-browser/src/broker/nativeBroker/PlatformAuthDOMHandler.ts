@@ -45,6 +45,34 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         this.platformAuthType = NativeConstants.PLATFORM_DOM_PROVIDER;
     }
 
+    static async createProvider(
+        logger: Logger,
+        performanceClient: IPerformanceClient,
+        brokerId?: string
+    ): Promise<PlatformAuthDOMHandler | undefined> {
+        logger.trace("PlatformAuthDOMHandler: createProvider called");
+
+        // @ts-ignore
+        if (window.navigator?.platformAuthentication) {
+            const supportedContracts =
+                // @ts-ignore
+                await window.navigator.platformAuthentication.getSupportedContracts(
+                    brokerId || NativeConstants.MICROSOFT_ENTRA_BROKERID
+                );
+            if (
+                supportedContracts?.includes(NativeConstants.PLATFORM_DOM_APIS)
+            ) {
+                logger.trace("Platform auth api available in DOM");
+                return new PlatformAuthDOMHandler(
+                    logger,
+                    performanceClient,
+                    brokerId || NativeConstants.MICROSOFT_ENTRA_BROKERID
+                );
+            }
+        }
+        return undefined;
+    }
+
     /**
      * Returns the Id for the broker extension this handler is communicating with
      * @returns
@@ -57,12 +85,11 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
      * Gets the version of the browser this handler is communicating with
      */
     getExtensionVersion(): string | undefined {
-        // @ts-ignore
-        const userAgent = window.navigator.userAgentData?.getHighEntropyValues([
-            "uaFullVersion",
-        ]);
-        this.extensionVersion = userAgent ? userAgent["uaFullVersion"] : "";
-        return this.extensionVersion;
+        return "";
+    }
+
+    getExtensionName(): string | undefined {
+        return this.brokerId;
     }
 
     /**
@@ -75,11 +102,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     ): Promise<PlatformBrokerResponse> {
         this.logger.trace(
             "PlatformDOMHandler - Sending request to browser DOM API"
-        );
-        this.logger.tracePii(
-            `PlatformDOMHandler - Sending request to browser DOM API: ${JSON.stringify(
-                request
-            )}`
         );
 
         try {
@@ -130,7 +152,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             clientId: clientId,
             correlationId: correlationId || this.correlationId,
             extraParameters: { ...extraParameters, ...validExtraParameters },
-            isSecurityTokenService: true,
+            isSecurityTokenService: false,
             redirectUri: redirectUri,
             scope: scope,
             state: state,
@@ -141,15 +163,17 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         return platformDOMRequest;
     }
 
-    validatePlatformBrokerResponse(response: object): PlatformBrokerResponse {
+    private validatePlatformBrokerResponse(
+        response: object
+    ): PlatformBrokerResponse {
         if (response.hasOwnProperty("isSuccess")) {
             if (
-                response.hasOwnProperty("access_token") &&
-                response.hasOwnProperty("id_token") &&
-                response.hasOwnProperty("client_info") &&
+                response.hasOwnProperty("accessToken") &&
+                response.hasOwnProperty("idToken") &&
+                response.hasOwnProperty("clientInfo") &&
                 response.hasOwnProperty("account") &&
                 response.hasOwnProperty("scopes") &&
-                response.hasOwnProperty("expires_in")
+                response.hasOwnProperty("expiresIn")
             ) {
                 this.logger.trace(
                     "PlatformDOMHandler: platform broker returned successful and valid response"
