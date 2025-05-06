@@ -34,12 +34,11 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     constructor(
         logger: Logger,
         performanceClient: IPerformanceClient,
-        brokerId?: string,
         correlationId?: string
     ) {
         this.logger = logger;
         this.performanceClient = performanceClient;
-        this.brokerId = brokerId || NativeConstants.MICROSOFT_ENTRA_BROKERID;
+        this.brokerId = NativeConstants.MICROSOFT_ENTRA_BROKERID;
         this.correlationId = correlationId || createNewGuid();
         this.extensionVersion = "";
         this.platformAuthType = NativeConstants.PLATFORM_DOM_PROVIDER;
@@ -47,8 +46,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
 
     static async createProvider(
         logger: Logger,
-        performanceClient: IPerformanceClient,
-        brokerId?: string
+        performanceClient: IPerformanceClient
     ): Promise<PlatformAuthDOMHandler | undefined> {
         logger.trace("PlatformAuthDOMHandler: createProvider called");
 
@@ -57,7 +55,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             const supportedContracts =
                 // @ts-ignore
                 await window.navigator.platformAuthentication.getSupportedContracts(
-                    brokerId || NativeConstants.MICROSOFT_ENTRA_BROKERID
+                    NativeConstants.MICROSOFT_ENTRA_BROKERID
                 );
             if (
                 supportedContracts?.includes(NativeConstants.PLATFORM_DOM_APIS)
@@ -66,7 +64,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 return new PlatformAuthDOMHandler(
                     logger,
                     performanceClient,
-                    brokerId || NativeConstants.MICROSOFT_ENTRA_BROKERID
+                    NativeConstants.MICROSOFT_ENTRA_BROKERID
                 );
             }
         }

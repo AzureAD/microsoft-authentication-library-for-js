@@ -54,8 +54,7 @@ export async function isPlatformBrokerAvailable(
         const platformAuthDOMHandler =
             await PlatformAuthDOMHandler.createProvider(
                 logger,
-                performanceClient,
-                NativeConstants.MICROSOFT_ENTRA_BROKERID
+                performanceClient
             );
         if (platformAuthDOMHandler) {
             logger.trace("Platform auth available via DOM, returning true");

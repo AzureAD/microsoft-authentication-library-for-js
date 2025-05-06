@@ -45,7 +45,6 @@ import {
     DEFAULT_REQUEST,
     BrowserConstants,
     iFrameRenewalPolicies,
-    NativeConstants,
     INTERACTION_TYPE,
 } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
@@ -402,7 +401,6 @@ export class StandardController implements IController {
     }
 
     protected async setPlatformAuthProvider(
-        brokerId?: string,
         correlationId?: string
     ): Promise<void> {
         this.logger.trace("setPlatformAuthProvider called", correlationId);
@@ -417,8 +415,7 @@ export class StandardController implements IController {
                 this.platformAuthProvider =
                     await PlatformAuthDOMHandler.createProvider(
                         this.logger,
-                        this.performanceClient,
-                        brokerId || NativeConstants.MICROSOFT_ENTRA_BROKERID
+                        this.performanceClient
                     );
             }
             if (!this.platformAuthProvider) {
