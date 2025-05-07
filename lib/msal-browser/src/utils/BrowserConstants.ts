@@ -41,11 +41,12 @@ export const BrowserConstants = {
     MSAL_SKU: "msal.js.browser",
 };
 
-export const NativeConstants = {
+export const PlatformAuthConstants = {
     CHANNEL_ID: "53ee284d-920a-4b59-9d30-a60315b26836",
     PREFERRED_EXTENSION_ID: "ppnbnpeolgkicgegkbkbjmhlideopiji",
     MATS_TELEMETRY: "MATS",
     MICROSOFT_ENTRA_BROKERID: "MicrosoftEntra",
+    DOM_API_NAME: "DOM API",
     PLATFORM_DOM_APIS: "get-token-and-sign-out",
     PLATFORM_DOM_PROVIDER: "PlatformDOMHandler",
     PLATFORM_EXTENSION_PROVIDER: "NativeMessageHandler",

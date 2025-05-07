@@ -14,7 +14,6 @@ import {
     BrowserCacheLocation,
     LOG_LEVEL_CACHE_KEY,
     LOG_PII_CACHE_KEY,
-    PLATFORM_AUTH_DOM_SUPPORT,
 } from "../utils/BrowserConstants.js";
 
 /**
@@ -119,22 +118,6 @@ export abstract class BaseOperatingContext {
      */
     getConfig(): BrowserConfiguration {
         return this.config;
-    }
-
-    /**
-     * Returns true if the DOM API support for platform auth is enabled in session storage
-     * @returns boolean
-     */
-    isDomEnabledForPlatformAuth(): boolean {
-        try {
-            sessionStorage = window[BrowserCacheLocation.SessionStorage];
-            // Mute errors if it's a non-browser environment or cookies are blocked.
-            return (
-                sessionStorage?.getItem(PLATFORM_AUTH_DOM_SUPPORT) === "true"
-            );
-        } catch (e) {
-            return false;
-        }
     }
 
     /**

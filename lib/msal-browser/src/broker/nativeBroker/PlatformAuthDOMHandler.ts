@@ -14,8 +14,7 @@ import {
     PlatformBrokerRequest,
     PlatformDOMTokenRequest,
 } from "./PlatformBrokerRequest.js";
-import { createNewGuid } from "../../crypto/BrowserCrypto.js";
-import { NativeConstants } from "../../utils/BrowserConstants.js";
+import { PlatformAuthConstants } from "../../utils/BrowserConstants.js";
 import {
     PlatformBrokerResponse,
     PlatformDOMTokenResponse,
@@ -34,19 +33,20 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     constructor(
         logger: Logger,
         performanceClient: IPerformanceClient,
-        correlationId?: string
+        correlationId: string
     ) {
         this.logger = logger;
         this.performanceClient = performanceClient;
-        this.brokerId = NativeConstants.MICROSOFT_ENTRA_BROKERID;
-        this.correlationId = correlationId || createNewGuid();
+        this.brokerId = PlatformAuthConstants.MICROSOFT_ENTRA_BROKERID;
+        this.correlationId = correlationId;
         this.extensionVersion = "";
-        this.platformAuthType = NativeConstants.PLATFORM_DOM_PROVIDER;
+        this.platformAuthType = PlatformAuthConstants.PLATFORM_DOM_PROVIDER;
     }
 
     static async createProvider(
         logger: Logger,
-        performanceClient: IPerformanceClient
+        performanceClient: IPerformanceClient,
+        correlationId: string
     ): Promise<PlatformAuthDOMHandler | undefined> {
         logger.trace("PlatformAuthDOMHandler: createProvider called");
 
@@ -55,16 +55,18 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             const supportedContracts =
                 // @ts-ignore
                 await window.navigator.platformAuthentication.getSupportedContracts(
-                    NativeConstants.MICROSOFT_ENTRA_BROKERID
+                    PlatformAuthConstants.MICROSOFT_ENTRA_BROKERID
                 );
             if (
-                supportedContracts?.includes(NativeConstants.PLATFORM_DOM_APIS)
+                supportedContracts?.includes(
+                    PlatformAuthConstants.PLATFORM_DOM_APIS
+                )
             ) {
                 logger.trace("Platform auth api available in DOM");
                 return new PlatformAuthDOMHandler(
                     logger,
                     performanceClient,
-                    NativeConstants.MICROSOFT_ENTRA_BROKERID
+                    correlationId
                 );
             }
         }
@@ -79,15 +81,12 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         return this.brokerId;
     }
 
-    /**
-     * Gets the version of the browser this handler is communicating with
-     */
     getExtensionVersion(): string | undefined {
-        return "";
+        return this.extensionVersion;
     }
 
     getExtensionName(): string | undefined {
-        return this.brokerId;
+        return PlatformAuthConstants.DOM_API_NAME;
     }
 
     /**

@@ -8,17 +8,21 @@ import {
     IPerformanceClient,
     Logger,
     AuthenticationScheme,
+    StubPerformanceClient,
 } from "@azure/msal-common/browser";
 import { name, version } from "../../packageMetadata.js";
 import {
     BrowserConfiguration,
     DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
 } from "../../config/Configuration.js";
-import { BrowserPerformanceClient } from "../../telemetry/BrowserPerformanceClient.js";
 import { PlatformAuthExtensionHandler } from "./PlatformAuthExtensionHandler.js";
-import { NativeConstants } from "../../utils/BrowserConstants.js";
 import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 import { PlatformAuthDOMHandler } from "./PlatformAuthDOMHandler.js";
+import { createNewGuid } from "../../crypto/BrowserCrypto.js";
+import {
+    BrowserCacheLocation,
+    PLATFORM_AUTH_DOM_SUPPORT,
+} from "../../utils/BrowserConstants.js";
 
 /**
  * Checks if the platform broker is available in the current environment.
@@ -28,62 +32,82 @@ import { PlatformAuthDOMHandler } from "./PlatformAuthDOMHandler.js";
  */
 export async function isPlatformBrokerAvailable(
     loggerOptions?: LoggerOptions,
-    perfClient?: IPerformanceClient
+    perfClient?: IPerformanceClient,
+    correlationId?: string
 ): Promise<boolean> {
     const logger = new Logger(loggerOptions || {}, name, version);
 
     logger.trace("isPlatformBrokerAvailable called");
 
-    const defaultPerformanceClientConfig = {
-        auth: {
-            clientId: "",
-        },
-    };
-
-    const performanceClient =
-        perfClient ||
-        new BrowserPerformanceClient(defaultPerformanceClientConfig);
+    const performanceClient = perfClient || new StubPerformanceClient();
 
     if (!window) {
         logger.trace("Non DOM environment detected, returning false");
         return false;
     }
 
-    try {
-        // Check if DOM platform API is supported first
-        const platformAuthDOMHandler =
-            await PlatformAuthDOMHandler.createProvider(
-                logger,
-                performanceClient
-            );
-        if (platformAuthDOMHandler) {
-            logger.trace("Platform auth available via DOM, returning true");
-            return true;
-        }
+    return !!getPlatformAuthProvider(
+        logger,
+        performanceClient,
+        correlationId || createNewGuid()
+    );
+}
 
-        /*
-         * If DOM APIs are not available, check if browser extension is available.
-         * Platform authentication via DOM APIs is preferred over extension APIs.
-         */
-        const platformAuthExtensionHandler =
-            await PlatformAuthExtensionHandler.createProvider(
+export async function getPlatformAuthProvider(
+    logger: Logger,
+    performanceClient: IPerformanceClient,
+    correlationId: string,
+    nativeBrokerHandshakeTimeout?: number
+): Promise<IPlatformAuthHandler | undefined> {
+    logger.trace("getPlatformAuthProvider called", correlationId);
+
+    const enablePlatformBrokerDOMSupport = isDomEnabledForPlatformAuth();
+
+    logger.trace(
+        "Platform auth available via DOM API: " + enablePlatformBrokerDOMSupport
+    );
+    let platformAuthProvider: IPlatformAuthHandler | undefined;
+    try {
+        if (enablePlatformBrokerDOMSupport) {
+            // Check if DOM platform API is supported first
+            platformAuthProvider = await PlatformAuthDOMHandler.createProvider(
                 logger,
-                DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
-                performanceClient
+                performanceClient,
+                correlationId
             );
-        if (platformAuthExtensionHandler) {
-            logger.trace(
-                "Platform auth available via extension, returning true"
-            );
-            return true;
+        }
+        if (!platformAuthProvider) {
+            /*
+             * If DOM APIs are not available, check if browser extension is available.
+             * Platform authentication via DOM APIs is preferred over extension APIs.
+             */
+            platformAuthProvider =
+                await PlatformAuthExtensionHandler.createProvider(
+                    logger,
+                    nativeBrokerHandshakeTimeout ||
+                        DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
+                    performanceClient
+                );
         }
     } catch (e) {
         logger.trace("Platform auth not available", e as string);
+    }
+    return platformAuthProvider;
+}
+
+/**
+ * Returns true if the DOM API support for platform auth is enabled in session storage
+ * @returns boolean
+ */
+export function isDomEnabledForPlatformAuth(): boolean {
+    let sessionStorage: Storage | undefined;
+    try {
+        sessionStorage = window[BrowserCacheLocation.SessionStorage];
+        // Mute errors if it's a non-browser environment or cookies are blocked.
+        return sessionStorage?.getItem(PLATFORM_AUTH_DOM_SUPPORT) === "true";
+    } catch (e) {
         return false;
     }
-
-    logger.trace("Platform auth not available, returning false");
-    return false;
 }
 
 /**

@@ -64,7 +64,6 @@ import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient.j
 import { TokenCache } from "../cache/TokenCache.js";
 import { ITokenCache } from "../cache/ITokenCache.js";
 import { PlatformAuthInteractionClient } from "../interaction_client/PlatformAuthInteractionClient.js";
-import { PlatformAuthExtensionHandler } from "../broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import {
     NativeAuthError,
@@ -87,8 +86,10 @@ import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { initializeSilentRequest } from "../request/RequestHelpers.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
-import { PlatformAuthDOMHandler } from "../broker/nativeBroker/PlatformAuthDOMHandler.js";
-import { isBrokerAvailable } from "../broker/nativeBroker/PlatformAuthProvider.js";
+import {
+    getPlatformAuthProvider,
+    isBrokerAvailable,
+} from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 
@@ -141,9 +142,6 @@ export class StandardController implements IController {
 
     // Input configuration by developer/user
     protected readonly config: BrowserConfiguration;
-
-    // Feature support configuration
-    protected readonly enablePlatformBrokerDOMSupport: boolean;
 
     // Token cache implementation
     private tokenCache: TokenCache;
@@ -215,8 +213,6 @@ export class StandardController implements IController {
             this.operatingContext.isBrowserEnvironment();
         // Set the configuration.
         this.config = operatingContext.getConfig();
-        this.enablePlatformBrokerDOMSupport =
-            operatingContext.isDomEnabledForPlatformAuth();
         this.initialized = false;
 
         // Initialize logger
@@ -368,7 +364,12 @@ export class StandardController implements IController {
         if (allowPlatformBroker) {
             try {
                 // check if platform authentication is available via DOM or browser extension and create relevant handlers
-                await this.setPlatformAuthProvider();
+                this.platformAuthProvider = await getPlatformAuthProvider(
+                    this.logger,
+                    this.performanceClient,
+                    initCorrelationId,
+                    this.config.system.nativeBrokerHandshakeTimeout
+                );
             } catch (e) {
                 this.logger.verbose(e as string);
             }
@@ -398,37 +399,6 @@ export class StandardController implements IController {
             allowPlatformBroker: allowPlatformBroker,
             success: true,
         });
-    }
-
-    protected async setPlatformAuthProvider(
-        correlationId?: string
-    ): Promise<void> {
-        this.logger.trace("setPlatformAuthProvider called", correlationId);
-
-        if (!this.isBrowserEnvironment) {
-            this.logger.trace("in non-browser environment, returning false.");
-            return;
-        }
-
-        try {
-            if (this.enablePlatformBrokerDOMSupport) {
-                this.platformAuthProvider =
-                    await PlatformAuthDOMHandler.createProvider(
-                        this.logger,
-                        this.performanceClient
-                    );
-            }
-            if (!this.platformAuthProvider) {
-                this.platformAuthProvider =
-                    await PlatformAuthExtensionHandler.createProvider(
-                        this.logger,
-                        this.config.system.nativeBrokerHandshakeTimeout,
-                        this.performanceClient
-                    );
-            }
-        } catch (e) {
-            this.logger.trace("Platform auth not available", e as string);
-        }
     }
 
     // #region Redirect Flow

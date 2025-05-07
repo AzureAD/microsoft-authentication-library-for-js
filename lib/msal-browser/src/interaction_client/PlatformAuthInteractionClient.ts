@@ -46,7 +46,7 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import {
     ApiId,
     TemporaryCacheKeys,
-    NativeConstants,
+    PlatformAuthConstants,
     BrowserConstants,
     CacheLookupPolicy,
 } from "../utils/BrowserConstants.js";
@@ -924,7 +924,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         validatedRequest.extraParameters =
             validatedRequest.extraParameters || {};
         validatedRequest.extraParameters.telemetry =
-            NativeConstants.MATS_TELEMETRY;
+            PlatformAuthConstants.MATS_TELEMETRY;
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             // add POP request type

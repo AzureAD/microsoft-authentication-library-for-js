@@ -60,7 +60,7 @@ import {
     BrowserConstants,
     CacheLookupPolicy,
     InteractionType,
-    NativeConstants,
+    PlatformAuthConstants,
     TemporaryCacheKeys,
     WrapperSKU,
 } from "../../src/utils/BrowserConstants.js";
@@ -96,6 +96,7 @@ import {
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
+import * as PlatformAuthProvider from "../../src/broker/nativeBroker/PlatformAuthProvider.js";
 import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
 import { PlatformBrokerRequest } from "../../src/broker/nativeBroker/PlatformBrokerRequest.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
@@ -116,6 +117,7 @@ import {
     TestTimeUtils,
 } from "msal-test-utils";
 import { INTERACTION_TYPE } from "../../src/utils/BrowserConstants.js";
+import { BaseOperatingContext } from "../../src/operatingcontext/BaseOperatingContext.js";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -299,8 +301,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     event.stopImmediatePropagation();
                     const request = event.data;
                     const req = {
-                        channel: NativeConstants.CHANNEL_ID,
-                        extensionId: NativeConstants.PREFERRED_EXTENSION_ID,
+                        channel: PlatformAuthConstants.CHANNEL_ID,
+                        extensionId:
+                            PlatformAuthConstants.PREFERRED_EXTENSION_ID,
                         responseId: request.responseId,
                         body: {
                             method: "HandshakeResponse",
@@ -388,8 +391,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     event.stopImmediatePropagation();
                     const request = event.data;
                     const req = {
-                        channel: NativeConstants.CHANNEL_ID,
-                        extensionId: NativeConstants.PREFERRED_EXTENSION_ID,
+                        channel: PlatformAuthConstants.CHANNEL_ID,
+                        extensionId:
+                            PlatformAuthConstants.PREFERRED_EXTENSION_ID,
                         responseId: request.responseId,
                         body: {
                             method: "HandshakeResponse",
@@ -456,6 +460,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowPlatformBroker: true,
                 },
             };
+
+            jest.spyOn(
+                PlatformAuthProvider,
+                "isDomEnabledForPlatformAuth"
+            ).mockImplementation(() => {
+                return false;
+            });
             pca = new PublicClientApplication(config);
 
             const createProviderSpy = stubProvider(config);
@@ -468,7 +479,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             expect(createProviderSpy).toHaveBeenCalled();
             // @ts-ignore
-            expect(pca.nativeExtensionProvider).toBeInstanceOf(
+            expect(pca.platformAuthProvider).toBeInstanceOf(
                 PlatformAuthExtensionHandler
             );
         });
@@ -493,7 +504,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             expect(createProviderSpy).toHaveBeenCalledTimes(0);
             // @ts-ignore
-            expect(pca.nativeExtensionProvider).toBeUndefined();
+            expect(pca.platformAuthProvider).toBeUndefined();
         });
 
         it("catches error if extension provider fails to initialize", async () => {
@@ -515,7 +526,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             expect(createProviderSpy).toHaveBeenCalled();
             // @ts-ignore
-            expect(pca.nativeExtensionProvider).toBeUndefined();
+            expect(pca.platformAuthProvider).toBeUndefined();
         });
 
         it("reports telemetry event using provided correlation id", (done) => {
@@ -964,7 +975,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             //@ts-ignore
             pca.controller.browserStorage.setInteractionInProgress(true);
 
-            const nativeRequest: NativeTokenRequest = {
+            const nativeRequest: PlatformBrokerRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
@@ -6162,7 +6173,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(silentIframeSpy).toHaveBeenCalledTimes(0);
             });
 
-            it("Calls SilentCacheClient.acquireToken, and calls NativeInteractionClient.acquireToken when CacheLookupPolicy is set to AccessToken", async () => {
+            it("Calls SilentCacheClient.acquireToken, and calls PlatformAuthInteractionClient.acquireToken when CacheLookupPolicy is set to AccessToken", async () => {
                 const silentCacheSpy: jest.SpyInstance = jest
                     .spyOn(SilentCacheClient.prototype, "acquireToken")
                     .mockRejectedValue(refreshRequiredCacheError);
@@ -6173,11 +6184,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     .spyOn(SilentIframeClient.prototype, "acquireToken")
                     .mockImplementation();
 
-                const isPlatformBrokerAvailableSpy = jest
-                    .spyOn(
-                        PlatformAuthExtensionHandler,
-                        "isPlatformBrokerAvailable"
-                    )
+                const isBrokerAvailableSpy = jest
+                    .spyOn(PlatformAuthProvider, "isBrokerAvailable")
                     .mockReturnValue(true);
                 const nativeAcquireTokenSpy: jest.SpyInstance = jest
                     .spyOn(
@@ -6207,7 +6215,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(0);
 
                 nativeAcquireTokenSpy.mockRestore();
-                isPlatformBrokerAvailableSpy.mockRestore();
+                isBrokerAvailableSpy.mockRestore();
             });
 
             it("Calls SilentRefreshClient.acquireToken, and does not call SilentCacheClient.acquireToken or SilentIframeClient.acquireToken if refresh token is expired when CacheLookupPolicy is set to RefreshToken", async () => {
@@ -6252,11 +6260,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 const cacheAccount = testAccount;
                 cacheAccount.nativeAccountId = "nativeAccountId";
-                const isPlatformBrokerAvailableSpy = jest
-                    .spyOn(
-                        PlatformAuthExtensionHandler,
-                        "isPlatformBrokerAvailable"
-                    )
+                const isBrokerAvailableSpy = jest
+                    .spyOn(PlatformAuthProvider, "isBrokerAvailable")
                     .mockReturnValue(true);
                 testAccount.nativeAccountId = "nativeAccountId";
 
@@ -6279,7 +6284,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(silentIframeSpy).toHaveBeenCalledTimes(0);
                 expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(0);
                 nativeAcquireTokenSpy.mockRestore();
-                isPlatformBrokerAvailableSpy.mockRestore();
+                isBrokerAvailableSpy.mockRestore();
             });
 
             it("Calls SilentRefreshClient.acquireToken, and does not call SilentCacheClient.acquireToken or SilentIframeClient.acquireToken if refresh token is expired when CacheLookupPolicy is set to RefreshToken", async () => {

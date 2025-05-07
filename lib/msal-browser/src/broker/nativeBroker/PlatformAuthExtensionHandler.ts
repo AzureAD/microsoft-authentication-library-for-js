@@ -4,7 +4,7 @@
  */
 
 import {
-    NativeConstants,
+    PlatformAuthConstants,
     NativeExtensionMethod,
 } from "../../utils/BrowserConstants.js";
 import {
@@ -68,7 +68,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         this.handshakeEvent = performanceClient.startMeasurement(
             PerformanceEvents.NativeMessageHandlerHandshake
         );
-        this.platformAuthType = NativeConstants.PLATFORM_EXTENSION_PROVIDER;
+        this.platformAuthType =
+            PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER;
     }
 
     /**
@@ -80,16 +81,14 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
     ): Promise<PlatformBrokerResponse> {
         this.logger.trace("PlatformAuthExtensionHandler - sendMessage called.");
 
-        const { ...nativeTokenRequest } = request;
-
         // fall back to native calls
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
-            request: nativeTokenRequest,
+            request: request,
         };
 
         const req: NativeExtensionRequest = {
-            channel: NativeConstants.CHANNEL_ID,
+            channel: PlatformAuthConstants.CHANNEL_ID,
             extensionId: this.extensionId,
             responseId: createNewGuid(),
             body: messageBody,
@@ -134,7 +133,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 logger,
                 handshakeTimeoutMs,
                 performanceClient,
-                NativeConstants.PREFERRED_EXTENSION_ID
+                PlatformAuthConstants.PREFERRED_EXTENSION_ID
             );
             await preferredProvider.sendHandshakeRequest();
             return preferredProvider;
@@ -161,7 +160,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         window.addEventListener("message", this.windowListener, false); // false is important, because content script message processing should work first
 
         const req: NativeExtensionRequest = {
-            channel: NativeConstants.CHANNEL_ID,
+            channel: PlatformAuthConstants.CHANNEL_ID,
             extensionId: this.extensionId,
             responseId: createNewGuid(),
             body: {
@@ -224,7 +223,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
 
         if (
             !request.channel ||
-            request.channel !== NativeConstants.CHANNEL_ID
+            request.channel !== PlatformAuthConstants.CHANNEL_ID
         ) {
             return;
         }
@@ -414,7 +413,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
     }
 
     getExtensionName(): string | undefined {
-        return this.getExtensionId() === NativeConstants.PREFERRED_EXTENSION_ID
+        return this.getExtensionId() ===
+            PlatformAuthConstants.PREFERRED_EXTENSION_ID
             ? "chrome"
             : this.getExtensionId()?.length
             ? "unknown"
