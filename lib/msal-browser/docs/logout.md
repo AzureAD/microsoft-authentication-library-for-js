@@ -119,7 +119,7 @@ await msalInstance.logoutRedirect({ account: currentAccount});
 
 ### Option 2: Manually set the logoutHint option in the logout request
 
-Alternatively, if you prefer to manually set the `logoutHint`, you can extract the `login_hint` claim in your app and set it as the `logoutHint` in the logout request: 
+Alternatively, if you prefer to manually set the `logoutHint`, you can extract the `login_hint` claim in your app and set it as the `logoutHint` in the logout request:
 
 ```javascript
 const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
@@ -185,7 +185,7 @@ Events will be emitted when logout succeeds or fails and when the popup is opene
 
 ## Important Notes
 
-- If no account is passed to the logout API, or no EndSessionRequest object, it will log out of all accounts.
+- If no account is passed to the logout API, or no EndSessionRequest object, the server will prompt the user to select the account.
 - If an account is passed to the logout API, MSAL will only clear tokens related to that account.
 - Server signout is a convenience feature and, as such, is done with best effort. Logout APIs will resolve successfully as long as the local application cache has been successfully cleared, regardless of whether or not server signout is successful.
 
