@@ -65,6 +65,7 @@ import { CookieStorage } from "./CookieStorage.js";
 import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
 import { EventType } from "../event/EventType.js";
 import { EventHandler } from "../event/EventHandler.js";
+import { clearHash } from "../utils/BrowserUtils.js";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -1203,7 +1204,18 @@ export class BrowserCacheManager extends CacheManager {
     } | null {
         const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         const value = this.getTemporaryCache(key, false);
-        return value ? JSON.parse(value) : null;
+        try {
+            return value ? JSON.parse(value) : null;
+        } catch (e) {
+            // Remove interaction and other temp keys if interaction status can't be parsed
+            this.logger.error(
+                `Cannot parse interaction status. Removing temporary cache items and clearing url hash. Retrying interaction should fix the error`
+            );
+            this.removeTemporaryItem(key);
+            this.resetRequestCache();
+            clearHash(window);
+            return null;
+        }
     }
 
     setInteractionInProgress(

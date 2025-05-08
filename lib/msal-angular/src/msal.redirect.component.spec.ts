@@ -35,7 +35,7 @@ function initializeMsal() {
 }
 
 describe("MsalRedirectComponent", () => {
-  beforeAll(initializeMsal);
+  beforeEach(initializeMsal);
 
   it("calls handleRedirectObservable on ngInit", (done) => {
     const sampleAccessToken = {
