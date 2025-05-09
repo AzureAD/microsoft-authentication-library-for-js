@@ -172,7 +172,6 @@ function stubDOMProvider(config: Configuration) {
         "unittest"
     );
     const performanceClient = newConfig.telemetry.client;
-    console.log("stubDOMProvider");
     return jest
         .spyOn(PlatformAuthDOMHandler, "createProvider")
         .mockImplementation(async () => {
