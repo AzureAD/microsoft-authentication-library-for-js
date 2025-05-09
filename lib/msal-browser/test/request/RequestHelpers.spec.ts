@@ -11,10 +11,6 @@ import {
     Logger,
     StubPerformanceClient,
 } from "@azure/msal-common";
-// import {
-//     initializeBaseRequest,
-//     initializeSilentRequest,
-// } from "../../src/request/RequestHelpers.js";
 import * as RequestHelpers from "../../src/request/RequestHelpers.js";
 import { BrowserConfiguration } from "../../src/config/Configuration.js";
 import { SilentRequest } from "../../src/request/SilentRequest.js";
