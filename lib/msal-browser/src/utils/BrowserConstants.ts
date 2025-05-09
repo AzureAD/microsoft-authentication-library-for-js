@@ -98,6 +98,7 @@ export type TemporaryCacheKeys =
 export const StaticCacheKeys = {
     ACCOUNT_KEYS: "msal.account.keys",
     TOKEN_KEYS: "msal.token.keys",
+    VERSION: "msal.version",
 } as const;
 export type StaticCacheKeys =
     (typeof StaticCacheKeys)[keyof typeof StaticCacheKeys];

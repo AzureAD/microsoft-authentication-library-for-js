@@ -30,7 +30,6 @@ import {
     CacheHelpers,
     CacheManager,
     ClientAuthErrorCodes,
-    CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
     CommonSilentFlowRequest,
     Constants,
@@ -61,6 +60,7 @@ import {
     CacheLookupPolicy,
     InteractionType,
     NativeConstants,
+    StaticCacheKeys,
     TemporaryCacheKeys,
     WrapperSKU,
 } from "../../src/utils/BrowserConstants.js";
@@ -76,7 +76,6 @@ import { NavigationOptions } from "../../src/navigation/NavigationOptions.js";
 import { EventMessage } from "../../src/event/EventMessage.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient.js";
-import { base64Encode } from "../../src/encode/Base64Encode.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import {
     BrowserAuthError,
@@ -89,10 +88,6 @@ import { RedirectClient } from "../../src/interaction_client/RedirectClient.js";
 import { PopupClient } from "../../src/interaction_client/PopupClient.js";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient.js";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient.js";
-import {
-    AuthorizationCodeRequest,
-    EndSessionRequest,
-} from "../../src/index.js";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
@@ -116,6 +111,9 @@ import {
     TestTimeUtils,
 } from "msal-test-utils";
 import { INTERACTION_TYPE } from "../../src/utils/BrowserConstants.js";
+import { version } from "../../src/packageMetadata.js";
+import { AuthorizationCodeRequest } from "../../src/request/AuthorizationCodeRequest.js";
+import { EndSessionRequest } from "../../src/request/EndSessionRequest.js";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -750,7 +748,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.handleRedirectPromise().catch((e) => {
                 expect(e).toMatchObject(testError);
                 expect(window.localStorage.length).toEqual(0);
-                expect(window.sessionStorage.length).toEqual(0);
+                expect(window.sessionStorage.length).toEqual(1);
+                expect(
+                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                 done();
             });
         });
@@ -2022,7 +2023,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(redirectClientSpy).toHaveBeenCalledTimes(1);
                 expect(browserStorage.isInteractionInProgress()).toBe(false);
                 expect(window.localStorage.length).toBe(0);
-                expect(window.sessionStorage.length).toBe(0);
+                expect(window.sessionStorage.length).toBe(1);
+                expect(
+                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                 done();
             });
         });
@@ -5398,7 +5402,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
             } catch (e) {
                 // Test that error was cached for telemetry purposes and then thrown
-                expect(window.sessionStorage).toHaveLength(1);
+                expect(window.sessionStorage).toHaveLength(2);
+                expect(
+                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                ).toEqual(version);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
                 );
@@ -5454,7 +5461,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await silentRequest3.catch(() => {});
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(atsSpy).toHaveBeenCalledTimes(1);
-                expect(window.sessionStorage).toHaveLength(1);
+                expect(window.sessionStorage).toHaveLength(2);
+                expect(
+                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                ).toEqual(version);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
                 );
