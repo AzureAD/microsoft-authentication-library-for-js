@@ -62,6 +62,7 @@ export abstract class BaseOperatingContext {
          */
         this.browserEnvironment = typeof window !== "undefined";
         this.config = buildConfiguration(config, this.browserEnvironment);
+
         let sessionStorage: Storage | undefined;
         try {
             sessionStorage = window[BrowserCacheLocation.SessionStorage];

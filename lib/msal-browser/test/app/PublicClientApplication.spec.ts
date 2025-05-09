@@ -542,6 +542,43 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca.platformAuthProvider).toBeUndefined();
         });
 
+        it("creates platform auth dom handler if allowPlatformBroker is true and dom APIs are present", async () => {
+            const getPlatformAuthProviderSpy = jest.spyOn(
+                PlatformAuthProvider,
+                "getPlatformAuthProvider"
+            );
+
+            const config = {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+                system: {
+                    allowPlatformBroker: true,
+                },
+            };
+
+            pca = new PublicClientApplication(config);
+            window.sessionStorage.setItem(
+                "msal.browser.platform.auth.dom",
+                "true"
+            );
+            jest.spyOn(Object.getPrototypeOf(sessionStorage), "getItem");
+
+            const createDOMProviderSpy = stubDOMProvider(config);
+            await pca.initialize();
+
+            // Implementation of PCA was moved to controller.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            pca = (pca as any).controller;
+
+            expect(getPlatformAuthProviderSpy).toHaveBeenCalled();
+            expect(createDOMProviderSpy).toHaveBeenCalled();
+            // @ts-ignore
+            expect(pca.platformAuthProvider).toBeInstanceOf(
+                PlatformAuthDOMHandler
+            );
+        });
+
         it("catches error if extension provider fails to initialize", async () => {
             const createProviderSpy = jest
                 .spyOn(PlatformAuthExtensionHandler, "createProvider")

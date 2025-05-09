@@ -41,7 +41,7 @@ export async function isPlatformBrokerAvailable(
 
     const performanceClient = perfClient || new StubPerformanceClient();
 
-    if (!window) {
+    if (typeof window === "undefined") {
         logger.trace("Non DOM environment detected, returning false");
         return false;
     }
