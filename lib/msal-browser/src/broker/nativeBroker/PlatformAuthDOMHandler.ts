@@ -103,7 +103,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
 
         try {
             const platformDOMRequest: PlatformDOMTokenRequest =
-                await this.initializePlatformDOMRequest(request);
+                this.initializePlatformDOMRequest(request);
             const response: object =
                 // @ts-ignore
                 await window.navigator.platformAuthentication.executeGetToken(
@@ -118,9 +118,9 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         }
     }
 
-    private async initializePlatformDOMRequest(
+    private initializePlatformDOMRequest(
         request: PlatformBrokerRequest
-    ): Promise<PlatformDOMTokenRequest> {
+    ): PlatformDOMTokenRequest {
         this.logger.trace(
             "NativeInteractionClient: initializeNativeDOMRequest called"
         );
@@ -180,7 +180,11 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 );
             } else if (response.hasOwnProperty("error")) {
                 const errorResponse = response as PlatformDOMTokenResponse;
-                if (errorResponse.isSuccess === false) {
+                if (
+                    errorResponse.isSuccess === false &&
+                    errorResponse.error &&
+                    errorResponse.error.code
+                ) {
                     this.logger.trace(
                         "PlatformDOMHandler: platform broker returned error response"
                     );
@@ -216,7 +220,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             scope: response.scopes,
             state: response.state || "",
             properties: response.properties || {},
-            extendedLifetimeToken: response.extendedLifetimeToken,
+            extendedLifetimeToken: response.extendedLifetimeToken ?? false,
             shr: response.proofOfPossessionPayload,
         };
 

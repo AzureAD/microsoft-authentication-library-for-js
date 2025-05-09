@@ -118,6 +118,8 @@ import {
 } from "msal-test-utils";
 import { INTERACTION_TYPE } from "../../src/utils/BrowserConstants.js";
 import { BaseOperatingContext } from "../../src/operatingcontext/BaseOperatingContext.js";
+import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
+import { config } from "process";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -138,7 +140,7 @@ let testAppConfig = {
     },
 };
 
-function stubProvider(config: Configuration) {
+function stubExtensionProvider(config: Configuration) {
     const browserEnvironment = typeof window !== "undefined";
 
     const newConfig = buildConfiguration(config, browserEnvironment);
@@ -148,7 +150,6 @@ function stubProvider(config: Configuration) {
         "unittest"
     );
     const performanceClient = newConfig.telemetry.client;
-
     return jest
         .spyOn(PlatformAuthExtensionHandler, "createProvider")
         .mockImplementation(async () => {
@@ -157,6 +158,28 @@ function stubProvider(config: Configuration) {
                 2000,
                 performanceClient,
                 "test-extensionId"
+            );
+        });
+}
+
+function stubDOMProvider(config: Configuration) {
+    const browserEnvironment = typeof window !== "undefined";
+
+    const newConfig = buildConfiguration(config, browserEnvironment);
+    const logger = new Logger(
+        newConfig.system.loggerOptions,
+        "unittest",
+        "unittest"
+    );
+    const performanceClient = newConfig.telemetry.client;
+    console.log("stubDOMProvider");
+    return jest
+        .spyOn(PlatformAuthDOMHandler, "createProvider")
+        .mockImplementation(async () => {
+            return new PlatformAuthDOMHandler(
+                logger,
+                performanceClient,
+                "test-correlation-id"
             );
         });
 }
@@ -451,7 +474,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }
         });
 
-        it("creates extension provider if allowPlatformBroker is true", async () => {
+        it("creates platform auth extension handler if allowPlatformBroker is true", async () => {
             const config = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -467,9 +490,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             ).mockImplementation(() => {
                 return false;
             });
+
+            const getPlatformAuthProviderSpy = jest.spyOn(
+                PlatformAuthProvider,
+                "getPlatformAuthProvider"
+            );
+
             pca = new PublicClientApplication(config);
 
-            const createProviderSpy = stubProvider(config);
+            const createExtensionProviderSpy = stubExtensionProvider(config);
 
             await pca.initialize();
 
@@ -477,7 +506,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             pca = (pca as any).controller;
 
-            expect(createProviderSpy).toHaveBeenCalled();
+            expect(getPlatformAuthProviderSpy).toHaveBeenCalled();
+            expect(createExtensionProviderSpy).toHaveBeenCalled();
             // @ts-ignore
             expect(pca.platformAuthProvider).toBeInstanceOf(
                 PlatformAuthExtensionHandler
@@ -485,24 +515,30 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("does not create extension provider if allowPlatformBroker is false", async () => {
-            const createProviderSpy = jest.spyOn(
-                PlatformAuthExtensionHandler,
-                "createProvider"
+            const getPlatformAuthProviderSpy = jest.spyOn(
+                PlatformAuthProvider,
+                "getPlatformAuthProvider"
             );
-            pca = new PublicClientApplication({
+
+            const config = {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 system: {
                     allowPlatformBroker: false,
                 },
-            });
+            };
+
+            pca = new PublicClientApplication(config);
+            const createProviderSpy = stubExtensionProvider(config);
+
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
 
             expect(createProviderSpy).toHaveBeenCalledTimes(0);
+            expect(getPlatformAuthProviderSpy).not.toHaveBeenCalled();
             // @ts-ignore
             expect(pca.platformAuthProvider).toBeUndefined();
         });
@@ -777,7 +813,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             // Implementation of PCA was moved to controller.
@@ -871,7 +907,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             };
             pca = new PublicClientApplication(config);
-            stubProvider(config);
+            stubExtensionProvider(config);
 
             pca.initialize().then(() => {
                 const callbackId = pca.addPerformanceCallback((events) => {
@@ -970,7 +1006,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
 
             //@ts-ignore
             pca.controller.browserStorage.setInteractionInProgress(true);
@@ -1571,7 +1607,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -1626,7 +1662,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
 
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events.length).toBeGreaterThanOrEqual(1);
@@ -1665,7 +1701,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = new PublicClientApplication(config);
 
             await pca.initialize();
-            stubProvider(config);
+            stubExtensionProvider(config);
 
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
@@ -1707,7 +1743,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             // Implementation of PCA was moved to controller.
@@ -1754,7 +1790,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             // Implementation of PCA was moved to controller.
@@ -1803,7 +1839,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //PCA implementation moved to controller
@@ -2107,7 +2143,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             };
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             pca = new PublicClientApplication({
                 ...config,
                 telemetry: {
@@ -2519,7 +2555,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -2582,7 +2618,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             const testAccount: AccountInfo = {
@@ -2637,7 +2673,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -2695,7 +2731,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -2755,7 +2791,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //PCA implementation moved to controller
@@ -3308,7 +3344,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -3365,7 +3401,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -3423,7 +3459,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -3714,7 +3750,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -3766,7 +3802,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -4211,7 +4247,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -4268,7 +4304,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
@@ -4328,7 +4364,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
@@ -7311,7 +7347,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             pca = new PublicClientApplication(config);
 
-            stubProvider(config);
+            stubExtensionProvider(config);
             await pca.initialize();
 
             //Implementation of PCA was moved to controller.
