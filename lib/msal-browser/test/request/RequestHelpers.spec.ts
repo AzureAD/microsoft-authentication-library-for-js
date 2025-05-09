@@ -87,42 +87,6 @@ describe("RequestHelpers tests", () => {
                 )
             );
         });
-
-        it("should set requestedClaimsHash if claims are provided", async () => {
-            const request: Partial<BaseAuthRequest> & {
-                correlationId: string;
-            } = {
-                correlationId: "test-correlation-id",
-                claims: '{"access_token":{"xms_cc":{"values":["cp1"]}}}',
-            };
-
-            const result = await RequestHelpers.initializeBaseRequest(
-                request,
-                mockConfig,
-                mockPerformanceClient,
-                mockLogger
-            );
-
-            expect(result.requestedClaimsHash).toBeDefined();
-        });
-
-        it("should not set requestedClaimsHash if claims are empty stringified object", async () => {
-            const request: Partial<BaseAuthRequest> & {
-                correlationId: string;
-            } = {
-                correlationId: "test-correlation-id",
-                claims: "{}",
-            };
-
-            const result = await RequestHelpers.initializeBaseRequest(
-                request,
-                mockConfig,
-                mockPerformanceClient,
-                mockLogger
-            );
-
-            expect(result.requestedClaimsHash).not.toBeDefined();
-        });
     });
 
     describe("initializeSilentRequest", () => {

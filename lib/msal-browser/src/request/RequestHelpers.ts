@@ -71,15 +71,6 @@ export async function initializeBaseRequest(
         );
     }
 
-    // Set requested claims hash if claims were requested
-    if (
-        request.claims &&
-        // Checks for empty stringified object "{}" which doesn't qualify as requested claims
-        !StringUtils.isEmptyObj(request.claims)
-    ) {
-        validatedRequest.requestedClaimsHash = await hashString(request.claims);
-    }
-
     return validatedRequest;
 }
 
