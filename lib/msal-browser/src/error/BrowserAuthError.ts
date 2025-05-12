@@ -12,7 +12,11 @@ export { BrowserAuthErrorCodes }; // Allow importing as "BrowserAuthErrorCodes"
  */
 export class BrowserAuthError extends AuthError {
     constructor(errorCode: string, subError?: string) {
-        super(errorCode, `See https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md#${errorCode} for details`, subError);
+        super(
+            errorCode,
+            `See https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md#${errorCode} for details`,
+            subError
+        );
 
         Object.setPrototypeOf(this, BrowserAuthError.prototype);
         this.name = "BrowserAuthError";

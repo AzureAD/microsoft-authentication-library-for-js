@@ -21,7 +21,5 @@ export class BrowserConfigurationAuthError extends AuthError {
 export function createBrowserConfigurationAuthError(
     errorCode: string
 ): BrowserConfigurationAuthError {
-    return new BrowserConfigurationAuthError(
-        errorCode
-    );
+    return new BrowserConfigurationAuthError(errorCode);
 }

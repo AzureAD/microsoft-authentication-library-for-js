@@ -100,9 +100,5 @@ export function createNativeAuthError(
         }
     }
 
-    return new NativeAuthError(
-        code,
-        description,
-        ext
-    );
+    return new NativeAuthError(code, description, ext);
 }
