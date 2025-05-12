@@ -102,6 +102,7 @@ export async function getPlatformAuthProvider(
 /**
  * Returns true if the DOM API support for platform auth is enabled in session storage
  * @returns boolean
+ * @deprecated
  */
 export function isDomEnabledForPlatformAuth(): boolean {
     let sessionStorage: Storage | undefined;
