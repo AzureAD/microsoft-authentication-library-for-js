@@ -1,41 +1,43 @@
-# Errors
+# MSAL.js errors
 
----
+### `pkce_not_created`
+- The PKCE code challenge and verifier could not be generated.
 
-**[BrowserConfigurationAuthErrors](#browserconfigurationautherrors)**
+### `ear_jwk_empty`
+- No EAR encryption key provided. This is unexpected.
 
-1. [stubbed_public_client_application_called](#stubbed_public_client_application_called)
+### `ear_jwe_empty`
+- Server response does not contain ear_jwe property. This is unexpected.
 
-**[BrowserAuthErrors](#browserautherrors)**
+### `crypto_nonexistent`
+- The crypto object or function is not available.
 
-1. [interaction_in_progress](#interaction_in_progress)
-1. [block_iframe_reload](#block_iframe_reload)
-1. [monitor_window_timeout](#monitor_window_timeout)
-1. [hash_empty_error](#hash_empty_error)
-1. [hash_does_not_contain_known_properties](#hash_does_not_contain_known_properties)
-1. [unable_to_acquire_token_from_native_platform](#unable_to_acquire_token_from_native_platform)
-1. [native_connection_not_established](#native_connection_not_established)
-1. [uninitialized_public_client_application](#uninitialized_public_client_application)
+### `empty_navigate_uri`
+- Navigation URI is empty. Please check stack trace for more info.
 
-**[Other](#other)**
+### `hash_empty_error`
+- Hash value cannot be processed because it is empty. Please verify that your redirectUri is not clearing the hash.
 
-1. [Access to fetch at [url] has been blocked by CORS policy](#access-to-fetch-at-url-has-been-blocked-by-cors-policy)
+This error occurs when the page you use as your redirectUri is removing the hash, or auto-redirecting to another page. This most commonly happens when the application implements a router which navigates to another route, dropping the hash.
 
----
+To resolve this error we recommend using a dedicated redirectUri page which is not subject to the router. For silent and popup calls it's best to use a blank page. If this is not possible please make sure the router does not navigate while MSAL token acquisition is in progress. You can do this by detecting if your application is loaded in an iframe for silent calls, in a popup for popup calls or by awaiting `handleRedirectPromise` for redirect calls.
 
-## BrowserConfigurationAuthErrors
+### `no_state_in_hash`
+- Hash does not contain state. Please verify that the request originated from msal
 
-### stubbed_public_client_application_called
+### `hash_does_not_contain_known_properties`
+- Hash does not contain known properties. Please verify that your redirectUri is not changing the hash.
 
-**Error Message**: Stub instance of Public Client Application was called. If using msal-react, please ensure context is not used without a provider.
+Please see explanation for [hash_empty_error](#hash_empty_error) above. The root cause for this error is similar, the difference being the hash has been changed, rather than dropped.
 
-See [msal-react errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react/docs/errors.md)
+### `unable_to_parse_state`
+- Unable to parse state. Please verify that the request originated from msal.
 
-## BrowserAuthErrors
+### `state_interaction_type_mismatch`
+- Hash contains state but the interaction type does not match the caller.
 
-### Interaction_in_progress
-
-**Error Message**: Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API.
+### `interaction_in_progress`
+- Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API.
 
 This error is thrown when an interactive API (`loginPopup`, `loginRedirect`, `acquireTokenPopup`, `acquireTokenRedirect`) is invoked while another interactive API is still in progress. The login and acquireToken APIs are async so you will need to ensure that the resulting promises have resolved before invoking another one.
 
@@ -234,27 +236,20 @@ If you are unable to figure out why this error is being thrown please [open an i
 -   Refresh the page. Does the error go away?
 -   Open your application in a new tab. Does the error go away?
 
-### block_iframe_reload
+### `popup_window_error`
+- Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser.
 
-**Error Message**: Request was blocked inside an iframe because MSAL detected an authentication response.
+### `empty_window_error`
+- window.open returned null or undefined window object.
 
-This error is thrown when calling `ssoSilent` or `acquireTokenSilent` and the page used as your `redirectUri` is attempting to invoke a login or acquireToken function.
-Our recommended mitigation for this is to set your `redirectUri` to a blank page that does not implement MSAL when invoking silent APIs. This will also have the added benefit of improving performance as the hidden iframe doesn't need to render your page.
+### `user_cancelled`
+- User cancelled the flow.
 
-✔️ You can do this on a per request basis, for example:
+### `monitor_popup_timeout`
+- Token acquisition in popup failed due to timeout. For more visit: https://aka.ms/msaljs/browser-errors#monitor_popup_timeout
 
-```javascript
-msalInstance.acquireTokenSilent({
-    scopes: ["User.Read"],
-    redirectUri: "http://localhost:3000/blank.html",
-});
-```
-
-Remember that you will need to register this new `redirectUri` on your App Registration.
-
-If you do not want to use a dedicated `redirectUri` for this purpose, you should instead ensure that your `redirectUri` is not attempting to call MSAL APIs when rendered inside the hidden iframe used by the silent APIs.
-
-### monitor_window_timeout
+### `monitor_window_timeout`
+- Token acquisition in iframe failed due to timeout. For more visit: https://aka.ms/msaljs/browser-errors#monitor_window_timeout
 
 **Error Messages**:
 
@@ -337,48 +332,112 @@ const msalConfig = {
 > [!IMPORTANT]
 > Please consult the [Troubleshooting Single-Sign On](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md#troubleshooting-single-sign-on) section of the MSAL Browser FAQ if you are having trouble with the `ssoSilent` API.
 
-### hash_empty_error
+### `redirect_in_iframe`
+- Redirects are not supported for iframed or brokered applications. Please ensure you are using MSAL.js in a top frame of the window if using the redirect APIs, or use the popup APIs.
 
-**Error Messages**:
+### `block_iframe_reload`
+- Request was blocked inside an iframe because MSAL detected an authentication response. For more visit: https://aka.ms/msaljs/browser-errors#block_iframe_reload
 
-> Hash value cannot be processed because it is empty. Please verify that your redirectUri is not clearing the hash.
+This error is thrown when calling `ssoSilent` or `acquireTokenSilent` and the page used as your `redirectUri` is attempting to invoke a login or acquireToken function.
+Our recommended mitigation for this is to set your `redirectUri` to a blank page that does not implement MSAL when invoking silent APIs. This will also have the added benefit of improving performance as the hidden iframe doesn't need to render your page.
 
-This error occurs when the page you use as your redirectUri is removing the hash, or auto-redirecting to another page. This most commonly happens when the application implements a router which navigates to another route, dropping the hash.
+✔️ You can do this on a per request basis, for example:
 
-To resolve this error we recommend using a dedicated redirectUri page which is not subject to the router. For silent and popup calls it's best to use a blank page. If this is not possible please make sure the router does not navigate while MSAL token acquisition is in progress. You can do this by detecting if your application is loaded in an iframe for silent calls, in a popup for popup calls or by awaiting `handleRedirectPromise` for redirect calls.
+```javascript
+msalInstance.acquireTokenSilent({
+    scopes: ["User.Read"],
+    redirectUri: "http://localhost:3000/blank.html",
+});
+```
 
-### hash_does_not_contain_known_properties
+Remember that you will need to register this new `redirectUri` on your App Registration.
 
-**Error Messages**:
+If you do not want to use a dedicated `redirectUri` for this purpose, you should instead ensure that your `redirectUri` is not attempting to call MSAL APIs when rendered inside the hidden iframe used by the silent APIs.
 
-> Hash does not contain known properites. Please verify that your redirectUri is not changing the hash.
+### `block_nested_popups`
+- Request was blocked inside a popup because MSAL detected it was running in a popup.
 
-Please see explanation for [hash_empty_error](#hash_empty_error) above. The root cause for this error is similar, the difference being the hash has been changed, rather than dropped.
+### `iframe_closed_prematurely`
+- The iframe being monitored was closed prematurely.
 
-### unable_to_acquire_token_from_native_platform
+### `silent_logout_unsupported`
+- Silent logout not supported. Please call logoutRedirect or logoutPopup instead.
 
-**Error Messages**:
+### `no_account_error`
+- No account object provided to acquireTokenSilent and no active account has been set. Please call setActiveAccount or provide an account on the request.
 
--   Unable to acquire token from native platform.
+### `silent_prompt_value_error`
+- The value given for the prompt value is not valid for silent requests - must be set to 'none' or 'no_session'.
+
+### `no_token_request_cache_error`
+- No token request found in cache.
+
+### `unable_to_parse_token_request_cache_error`
+- The cached token request could not be parsed.
+
+### `auth_request_not_set_error`
+- Auth Request not set. Please ensure initiateAuthRequest was called from the InteractionHandler.
+
+### `invalid_cache_type`
+- Invalid cache type.
+
+### `non_browser_environment`
+- Login and token requests are not supported in non-browser environments.
+
+### `database_not_open`
+- Database is not open.
+
+### `no_network_connectivity`
+- No network connectivity. Check your internet connection.
+
+### `post_request_failed`
+- Network request failed: If the browser threw a CORS error, check that the redirectUri is registered in the Azure App Portal as type 'SPA'.
+
+### `get_request_failed`
+- Network request failed. Please check the network trace to determine root cause.
+
+### `failed_to_parse_response`
+- Failed to parse network response. Check network trace.
+
+### `unable_to_load_token`
+- Error loading token to cache.
+
+### `crypto_key_not_found`
+- Cryptographic Key or Keypair not found in browser storage.
+
+### `auth_code_required`
+- An authorization code must be provided (as the `code` property on the request) to this flow.
+
+### `auth_code_or_nativeAccountId_required`
+- An authorization code or nativeAccountId must be provided to this flow.
+
+### `spa_code_and_nativeAccountId_present`
+- Request cannot contain both spa code and native account id.
+
+### `database_unavailable`
+- IndexedDB, which is required for persistent cryptographic key storage, is unavailable. This may be caused by browser privacy features which block persistent storage in third-party contexts.
+
+### `unable_to_acquire_token_from_native_platform`
+- Unable to acquire token from native platform.
 
 This error is thrown when calling the `acquireTokenByCode` API with the `nativeAccountId` instead of `code` and the app is running in an environment which does not acquire tokens from the native broker. For a list of pre-requisites please review the doc on [device bound tokens](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/device-bound-tokens.md).
 
-### native_connection_not_established
+### `native_handshake_timeout`
+- Timed out while attempting to establish connection to browser extension.
 
-**Error Messages**:
+### `native_extension_not_installed`
+- Native extension is not installed. If you think this is a mistake call the initialize function.
 
--   Connection to native platform has not been established. Please install a compatible browser extension and run initialize().
+### `native_connection_not_established`
+- Connection to native platform has not been established. Please install a compatible browser extension and run initialize().
 
 This error is thrown when the user signed in with the native broker but no connection to the native broker currently exists. This can happen for the following reasons:
 
 -   The Windows Accounts extension was uninstalled or disabled
 -   The `initialize` API has not been called or was not awaited before invoking another MSAL API
 
-### uninitialized_public_client_application
-
-**Error Messages**:
-
--   You must call and await the initialize function before attempting to call any other MSAL API.
+### `uninitialized_public_client_application`
+- You must call and await the initialize function before attempting to call any other MSAL API.
 
 This error is thrown when a `login`, `acquireToken` or `handleRedirectPromise` API is invoked before the `initialize` API has been called. The `initialize` API must be called and awaited before attempting to acquire tokens.
 
@@ -415,27 +474,51 @@ await msalInstance.handleRedirectPromise(); // This will no longer throw this er
 msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 ```
 
-## Other
+### `native_prompt_not_supported`
+- The provided prompt is not supported by the native platform. This request should be routed to the web based flow.
+
+### `invalid_base64_string`
+- Invalid base64 encoded string.
+
+### `invalid_pop_token_request`
+- Invalid PoP token request. The request should not have both a popKid value and signPopToken set to true.
+
+### `failed_to_build_headers`
+- Failed to build request headers object.
+
+### `failed_to_parse_headers`
+- Failed to parse response headers.
+
+### `failed_to_decrypt_ear_response`
+- Failed to decrypt ear response.
+
+### `storage_not_supported`
+- Given storage configuration option was not supported.
+
+### `stubbed_public_client_application_called`
+- Stub instance of Public Client Application was called. If using msal-react, please ensure context is not used without a provider.
+- See [msal-react errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react/docs/errors.md).
+
+### `in_mem_redirect_unavailable`
+- Redirect cannot be supported. In-memory storage was selected and storeAuthStateInCookie=false, which would cause the library to be unable to handle the incoming hash. If you would like to use the redirect API, please use session/localStorage or set storeAuthStateInCookie=true.
+
+### `ContentError`
+- Native broker content error.
+
+### `user_switch`
+- User attempted to switch accounts in the native broker, which is not allowed. All new accounts must sign-in through the standard web flow first, please try again.
+
+### `unsupported_method`
+- This method is not supported in nested app environment.
+
+### Other
 
 Errors not thrown by MSAL, such as server or cache errors.
 
-### Access to fetch at [url] has been blocked by CORS policy
+#### Access to fetch at [url] has been blocked by CORS policy
 
 This error occurs with MSAL.js v2.x and is due to improper configuration during **App Registration** on **Azure Portal**. In particular, you should ensure your `redirectUri` is registered as type: `Single-page application` under the **Authentication** blade in your App Registration. If done successfully, you will see a green checkmark that says:
 
 > Your Redirect URI is eligible for the Authorization Code Flow with PKCE.
 
 ![image](https://user-images.githubusercontent.com/5307810/110390912-922fa380-801b-11eb-9e2b-d7aa88ca0687.png)
-
-### cache_quota_exceeded
-
-**Error messages**:
-
--   Exceeded cache storage capacity
-
-This error occurs when MSAL.js surpasses the allotted storage limit when attempting to save token information in the [configured cache storage](./caching.md#cache-storage). See [here](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria#web_storage) for web storage limits.
-
-**Mitigation**:
-
-1. Make sure the configured cache storage has enough capacity to allow MSAL.js to persist token payload. The amount of cache storage required depends on the number of [cached artifacts](./caching.md#cached-artifacts).
-2. Disable [claimsBasedCachingEnabled](./configuration.md#cache-config-options) cache config option. When enabled, it caches access tokens under a key containing the hash of the requested claims. Depending on the MSAL.js API usage, it may result in the vast number of access tokens persisted in the cache storage.

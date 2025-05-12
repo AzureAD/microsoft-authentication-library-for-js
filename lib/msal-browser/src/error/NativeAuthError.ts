@@ -28,11 +28,6 @@ export type OSError = {
 
 const INVALID_METHOD_ERROR = -2147186943;
 
-export const NativeAuthErrorMessages = {
-    [NativeAuthErrorCodes.userSwitch]:
-        "User attempted to switch accounts in the native broker, which is not allowed. All new accounts must sign-in through the standard web flow first, please try again.",
-};
-
 export class NativeAuthError extends AuthError {
     ext: OSError | undefined;
 
@@ -107,7 +102,7 @@ export function createNativeAuthError(
 
     return new NativeAuthError(
         code,
-        NativeAuthErrorMessages[code] || description,
+        description,
         ext
     );
 }

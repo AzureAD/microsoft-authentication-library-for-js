@@ -7,11 +7,9 @@ import { Constants } from "../utils/Constants.js";
 import * as AuthErrorCodes from "./AuthErrorCodes.js";
 export { AuthErrorCodes };
 
-export const AuthErrorMessages = {
-    [AuthErrorCodes.unexpectedError]: "Unexpected error in authentication.",
-    [AuthErrorCodes.postRequestFailed]:
-        "Post request failed from the network, could be a 4xx/5xx or a network unavailability. Please check the exact error code for details.",
-};
+export function getDefaultErrorMessage(code: string): string {
+    return `See https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/errors.md#${code} for details`;
+}
 
 /**
  * General error class thrown by the MSAL.js library.
@@ -61,8 +59,6 @@ export function createAuthError(
 ): AuthError {
     return new AuthError(
         code,
-        additionalMessage
-            ? `${AuthErrorMessages[code]} ${additionalMessage}`
-            : AuthErrorMessages[code]
+        additionalMessage || getDefaultErrorMessage(code)
     );
 }

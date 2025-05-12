@@ -5,3 +5,4 @@
 
 export const contentError = "ContentError";
 export const userSwitch = "user_switch";
+export const unsupportedMethod = "unsupported_method";
