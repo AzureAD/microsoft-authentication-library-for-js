@@ -26,8 +26,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     protected logger: Logger;
     protected performanceClient: IPerformanceClient;
     protected correlationId: string;
-    protected brokerId: string;
-    protected extensionVersion: string;
     platformAuthType: string;
 
     constructor(
@@ -37,9 +35,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     ) {
         this.logger = logger;
         this.performanceClient = performanceClient;
-        this.brokerId = PlatformAuthConstants.MICROSOFT_ENTRA_BROKERID;
         this.correlationId = correlationId;
-        this.extensionVersion = "";
         this.platformAuthType = PlatformAuthConstants.PLATFORM_DOM_PROVIDER;
     }
 
@@ -78,11 +74,11 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
      * @returns
      */
     getExtensionId(): string {
-        return this.brokerId;
+        return PlatformAuthConstants.MICROSOFT_ENTRA_BROKERID;
     }
 
     getExtensionVersion(): string | undefined {
-        return this.extensionVersion;
+        return "";
     }
 
     getExtensionName(): string | undefined {

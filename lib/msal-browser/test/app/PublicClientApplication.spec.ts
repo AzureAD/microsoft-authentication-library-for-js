@@ -562,7 +562,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "msal.browser.platform.auth.dom",
                 "true"
             );
-            jest.spyOn(Object.getPrototypeOf(sessionStorage), "getItem");
 
             const createDOMProviderSpy = stubDOMProvider(config);
             await pca.initialize();

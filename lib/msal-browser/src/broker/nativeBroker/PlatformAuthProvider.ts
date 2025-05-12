@@ -42,15 +42,15 @@ export async function isPlatformBrokerAvailable(
     const performanceClient = perfClient || new StubPerformanceClient();
 
     if (typeof window === "undefined") {
-        logger.trace("Non DOM environment detected, returning false");
+        logger.trace("Non-browser environment detected, returning false");
         return false;
     }
 
-    return !!getPlatformAuthProvider(
+    return !!(await getPlatformAuthProvider(
         logger,
         performanceClient,
         correlationId || createNewGuid()
-    );
+    ));
 }
 
 export async function getPlatformAuthProvider(
@@ -64,7 +64,8 @@ export async function getPlatformAuthProvider(
     const enablePlatformBrokerDOMSupport = isDomEnabledForPlatformAuth();
 
     logger.trace(
-        "Platform auth available via DOM API: " + enablePlatformBrokerDOMSupport
+        "Has client allowed platform auth via DOM API: " +
+            enablePlatformBrokerDOMSupport
     );
     let platformAuthProvider: IPlatformAuthHandler | undefined;
     try {
@@ -77,6 +78,9 @@ export async function getPlatformAuthProvider(
             );
         }
         if (!platformAuthProvider) {
+            logger.trace(
+                "Platform auth via DOM API not available, checking for extension"
+            );
             /*
              * If DOM APIs are not available, check if browser extension is available.
              * Platform authentication via DOM APIs is preferred over extension APIs.
@@ -155,6 +159,5 @@ export function isBrokerAvailable(
                 return false;
         }
     }
-
     return true;
 }
