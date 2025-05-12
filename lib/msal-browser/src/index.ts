@@ -110,13 +110,10 @@ export {
     // Error
     AuthError,
     AuthErrorCodes,
-    AuthErrorMessages,
     ClientAuthError,
     ClientAuthErrorCodes,
-    ClientAuthErrorMessages,
     ClientConfigurationError,
     ClientConfigurationErrorCodes,
-    ClientConfigurationErrorMessages,
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
     ServerError,
