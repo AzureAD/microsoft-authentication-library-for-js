@@ -5,6 +5,7 @@
 
 import { AuthError } from "@azure/msal-common/node";
 
+// test comment
 export class NativeAuthError extends AuthError {
     public statusCode: number;
     public tag: number;
