@@ -16,10 +16,7 @@ export { ClientAuthErrorCodes }; // Allow importing as "ClientAuthErrorCodes";
  */
 export class ClientAuthError extends AuthError {
     constructor(errorCode: string, additionalMessage?: string) {
-        super(
-            errorCode,
-            additionalMessage
-        );
+        super(errorCode, additionalMessage);
         this.name = "ClientAuthError";
 
         Object.setPrototypeOf(this, ClientAuthError.prototype);
