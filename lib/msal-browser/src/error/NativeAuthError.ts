@@ -12,6 +12,7 @@ import {
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
+    getDefaultErrorMessage,
 } from "./BrowserAuthError.js";
 
 import * as NativeAuthErrorCodes from "./NativeAuthErrorCodes.js";
@@ -32,7 +33,7 @@ export class NativeAuthError extends AuthError {
     ext: OSError | undefined;
 
     constructor(errorCode: string, description?: string, ext?: OSError) {
-        super(errorCode, description);
+        super(errorCode, description || getDefaultErrorMessage(errorCode));
 
         Object.setPrototypeOf(this, NativeAuthError.prototype);
         this.name = "NativeAuthError";
@@ -85,7 +86,8 @@ export function createNativeAuthError(
         switch (ext.status) {
             case NativeStatusCodes.ACCOUNT_UNAVAILABLE:
                 return createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
+                    InteractionRequiredAuthErrorCodes.nativeAccountUnavailable,
+                    getDefaultErrorMessage(code)
                 );
             case NativeStatusCodes.USER_INTERACTION_REQUIRED:
                 return new InteractionRequiredAuthError(code, description);

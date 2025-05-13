@@ -2,9 +2,9 @@ import { AuthError } from "../../src/error/AuthError";
 import {
     ClientConfigurationError,
     ClientConfigurationErrorCodes,
-    ClientConfigurationErrorMessages,
     createClientConfigurationError,
 } from "../../src/error/ClientConfigurationError";
+import { getDefaultErrorMessage } from "../../src/error/AuthError.js";
 
 describe("ClientConfigurationError.ts Class Unit Tests", () => {
     for (const key in ClientConfigurationErrorCodes) {
@@ -16,7 +16,7 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
             const err: ClientConfigurationError =
                 createClientConfigurationError(code);
 
-            const message = ClientConfigurationErrorMessages[code];
+            const message = getDefaultErrorMessage(code);
             expect(message).toBeTruthy();
 
             expect(err instanceof ClientConfigurationError).toBe(true);

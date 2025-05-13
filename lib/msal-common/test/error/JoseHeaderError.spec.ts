@@ -1,10 +1,10 @@
 import {
     JoseHeaderError,
     JoseHeaderErrorCodes,
-    JoseHeaderErrorMessages,
     createJoseHeaderError,
 } from "../../src/error/JoseHeaderError";
 import { AuthError } from "../../src/error/AuthError";
+import { getDefaultErrorMessage } from "../../src/error/AuthError.js";
 
 describe("JoseHeaderError.ts Class Unit Tests", () => {
     for (const key in JoseHeaderErrorCodes) {
@@ -13,7 +13,7 @@ describe("JoseHeaderError.ts Class Unit Tests", () => {
         it(`JoseHeaderError object can be created for code ${code}`, () => {
             const err: JoseHeaderError = createJoseHeaderError(code);
 
-            const message = JoseHeaderErrorMessages[code];
+            const message = getDefaultErrorMessage(code);
             expect(message).toBeTruthy();
 
             expect(err instanceof JoseHeaderError).toBe(true);

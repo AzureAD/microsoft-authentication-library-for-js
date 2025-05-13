@@ -18,10 +18,7 @@ import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { SilentRequest } from "../../src/request/SilentRequest.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
 import { TestTimeUtils } from "msal-test-utils";
-import {
-    BrowserAuthErrorCodes,
-    BrowserAuthErrorMessages,
-} from "../../src/error/BrowserAuthError.js";
+import { BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
 
 /**
  * Tests for PublicClientApplication.ts when run in a non-browser environment

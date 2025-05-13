@@ -5,6 +5,7 @@
 
 import { AuthError } from "@azure/msal-common/browser";
 import * as BrowserConfigurationAuthErrorCodes from "./BrowserConfigurationAuthErrorCodes.js";
+import { getDefaultErrorMessage } from "./BrowserAuthError.js";
 export { BrowserConfigurationAuthErrorCodes };
 /**
  * Browser library error class thrown by the MSAL.js library for SPAs
@@ -21,5 +22,8 @@ export class BrowserConfigurationAuthError extends AuthError {
 export function createBrowserConfigurationAuthError(
     errorCode: string
 ): BrowserConfigurationAuthError {
-    return new BrowserConfigurationAuthError(errorCode);
+    return new BrowserConfigurationAuthError(
+        errorCode,
+        getDefaultErrorMessage(errorCode)
+    );
 }
