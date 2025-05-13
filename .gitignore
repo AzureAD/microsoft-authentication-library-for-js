@@ -287,3 +287,6 @@ junit.xml
 
 # ApiExtractor
 temp/
+
+# Temp json files
+*.json.temp
