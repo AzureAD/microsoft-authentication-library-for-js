@@ -107,15 +107,16 @@ describe("B2C user-flow tests (msa account)", () => {
         const editProfileButton = await page.waitForSelector(
             "#editProfileButton"
         );
-        if (editProfileButton) {
-            await editProfileButton.click();
-        }
+        await editProfileButton.click();
+        await page.waitForNetworkIdle();
         let displayName = (Math.random() + 1).toString(36).substring(7); // generate a random string
-        await page.waitForNavigation();
+        await screenshot.takeScreenshot(page, "Edit profile button clicked");
         await page.waitForSelector("#attributeVerification", { visible: true });
-        await page.$eval("#displayName", (el: any) => (el.value = "")), // clear the text field
-            await page.type("#displayName", `${displayName}`),
-            await page.click("#continue");
+        await page.$eval("#displayName", (el: any) => (el.value = "")); // clear the text field
+        await page.type("#displayName", `${displayName}`);
+        await page.click("#continue");
+        await page.waitForNetworkIdle();
+        await screenshot.takeScreenshot(page, "Edit profile page filled");
         await Promise.all([
             page.waitForFunction(
                 `window.location.href.startsWith("http://localhost:${port}")`

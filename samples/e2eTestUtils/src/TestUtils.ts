@@ -1,8 +1,8 @@
 import * as fs from "fs";
-import { Page, HTTPResponse, Browser, WaitForOptions } from "puppeteer";
+import { Page, HTTPResponse, Browser, WaitForOptions, ElementHandle } from "puppeteer";
 import { LabConfig } from "./LabConfig";
 import { LabClient } from "./LabClient";
-import { HtmlSelectors } from "./Constants";
+import { HtmlSelectors, PasswordInputSelectors, SubmitButtonSelectors, UsernameSelectors } from "./Constants";
 
 export const ONE_SECOND_IN_MS = 1000;
 export const RETRY_TIMES = 5;
@@ -174,11 +174,13 @@ export async function b2cLocalAccountEnterCredentials(
     username: string,
     accountPwd: string
 ) {
-    await page.waitForSelector(HtmlSelectors.B2C_LOCAL_ACCOUNT_USERNAME);
+    const usernameInput = await getUsernameInput(page);
+    const passwordInput = await getPasswordInput(page);
+    const submitButton = await getSubmitButton(page);
     await screenshot.takeScreenshot(page, "b2cSignInPage");
-    await page.type(HtmlSelectors.B2C_LOCAL_ACCOUNT_USERNAME, username);
-    await page.type(HtmlSelectors.B2C_LOCAL_ACCOUNT_PASSWORD, accountPwd);
-    await page.click(HtmlSelectors.NEXT_BUTTON);
+    await usernameInput.type(username);
+    await passwordInput.type(accountPwd);
+    await submitButton.click();
 }
 
 export async function b2cAadPpeAccountEnterCredentials(
@@ -216,126 +218,139 @@ export const SUCCESSFUL_GRAPH_CALL_ID = "graph-called-successfully";
 export const SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID = "token-acquired-silently";
 export const SUCCESSFUL_GET_ALL_ACCOUNTS_ID = "accounts-retrieved-successfully";
 
+export async function getUsernameInput(page: Page): Promise<ElementHandle> {
+    const usernameInput = await Promise.any([
+        page.waitForSelector(
+            UsernameSelectors.I0116),
+        page.waitForSelector(
+            UsernameSelectors.USERNAME_ENTRY),
+        page.waitForSelector(
+            UsernameSelectors.LOGON_IDENTIFIER)
+    ]).catch(() => {
+        throw new Error("Username input not found");
+    });
+
+    return usernameInput;
+}
+
+export async function getSubmitButton(page: Page): Promise<ElementHandle> {
+    const submitButton = await Promise.any([
+        page.waitForSelector(SubmitButtonSelectors.IDSIBUTTON9),
+        page.waitForSelector(SubmitButtonSelectors.NEXT),
+        page.waitForSelector(SubmitButtonSelectors.ACCEPTBUTTON),
+        page.waitForSelector(SubmitButtonSelectors.REMOTE_CONNECT_SUBMIT),
+        page.waitForSelector(SubmitButtonSelectors.SUBMITBUTTON),
+        page.waitForSelector(SubmitButtonSelectors.SUBMIT),
+    ]).catch(() => {
+        throw new Error("Submit button not found");
+    });
+
+    return submitButton;
+}
+
+export async function getPasswordInput(page: Page): Promise<ElementHandle> {
+    const passwordInput = await Promise.any([
+        page.waitForSelector(PasswordInputSelectors.PASSWORD),
+        page.waitForSelector(PasswordInputSelectors.PASSWORD_INPUT),
+        page.waitForSelector(PasswordInputSelectors.I0118),
+        page.waitForSelector(PasswordInputSelectors.PASSWORDENTRY),
+    ]).catch(() => {
+        throw new Error("Password input not found");
+    });
+    return passwordInput;
+}
+
 export async function enterCredentials(
     page: Page,
     screenshot: Screenshot,
     username: string,
     accountPwd: string
 ): Promise<void> {
-    await Promise.all([
-        page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {}), // Wait for navigation but don't throw due to timeout
-        page.waitForSelector(HtmlSelectors.USERNAME_INPUT),
-        page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR),
-    ]).catch(async (e) => {
-        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
-        throw e;
-    });
-    await screenshot.takeScreenshot(page, "loginPage");
-    await page.type(HtmlSelectors.USERNAME_INPUT, username);
-    await screenshot.takeScreenshot(page, "loginPageUsernameFilled");
-    await Promise.all([
-        page.waitForNavigation({
-            waitUntil: ["load", "domcontentloaded", "networkidle0"],
-        }),
-        page.click(HtmlSelectors.BUTTON9SELECTOR),
-    ]).catch(async (e) => {
-        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
-        throw e;
-    });
-
-    // agce: which type of account do you want to use
     try {
-        await page.waitForSelector(HtmlSelectors.AAD_TITLE, { timeout: 1000 });
-        await screenshot.takeScreenshot(page, "accountType");
+        await page.waitForNetworkIdle();
+        const usernameInput = await getUsernameInput(page);
+
+        await screenshot.takeScreenshot(page, "loginPage");
+        await usernameInput.type(username);
+        await screenshot.takeScreenshot(page, "loginPageUsernameFilled");
+        let submitButton = await getSubmitButton(page);
         await Promise.all([
-            page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
-            page.click(HtmlSelectors.AAD_TITLE),
-        ]).catch(async (e) => {
-            await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
-            throw e;
-        });
-    } catch (e) {
-        //
-    }
-
-    await page.waitForSelector(HtmlSelectors.FORGOT_PASSWORD_LINK);
-    await page.waitForSelector(HtmlSelectors.PASSWORD_INPUT_TEXTBOX);
-    await page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR);
-    await screenshot.takeScreenshot(page, "pwdInputPage");
-    await page.type(HtmlSelectors.PASSWORD_INPUT_TEXTBOX, accountPwd);
-    await screenshot.takeScreenshot(page, "loginPagePasswordFilled");
-    await Promise.all([
-        page.click(HtmlSelectors.BUTTON9SELECTOR),
-
-        // Wait either for another navigation to Keep me signed in page or back to redirectUri
-        Promise.race([
-            page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
-            page.waitForResponse(
-                (response: HTTPResponse) =>
-                    response.url().startsWith(SAMPLE_HOME_URL),
-                { timeout: 0 }
-            ),
-        ]),
-    ]).catch(async (e) => {
-        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
-        throw e;
-    });
-
-    if (page.url().startsWith(SAMPLE_HOME_URL)) {
-        return;
-    }
-    await screenshot.takeScreenshot(page, "passwordSubmitted");
-
-    // agce: check if the "help us protect your account" dialog appears
-    try {
-        const selector =
-            "#lightbox > div:nth-child(3) > div > div.pagination-view.has-identity-banner.animate.slide-in-next > div > div:nth-child(3) > a";
-        await page.waitForSelector(selector, { timeout: 1000 });
-        await page.click(selector);
-    } catch (e) {
-        // continue
-    }
-
-    // keep me signed in page
-    try {
-        const aadKmsi = page
-            .waitForSelector(HtmlSelectors.BUTTON9SELECTOR, { timeout: 1000 })
-            .then(() => {
-                return HtmlSelectors.BUTTON9SELECTOR;
+            page.waitForNetworkIdle(),
+            submitButton.click()
+        ]);
+    
+        // agce: which type of account do you want to use
+        try {
+            await page.waitForSelector(HtmlSelectors.AAD_TITLE, { timeout: 1000 });
+            await screenshot.takeScreenshot(page, "accountType");
+            await Promise.all([
+                page.waitForNetworkIdle(),
+                page.click(HtmlSelectors.AAD_TITLE),
+            ]).catch(async (e) => {
+                await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+                throw e;
             });
-        const msaKmsi = page
-            .waitForSelector(HtmlSelectors.KMSI_PAGE, { timeout: 1000 })
-            .then(() => {
-                return HtmlSelectors.STAY_SIGNEDIN_BUTTON;
+        } catch (e) {
+            //
+        }
+    
+        const passwordInput = await getPasswordInput(page);
+        await screenshot.takeScreenshot(page, "pwdInputPage");
+        await passwordInput.type(accountPwd);
+        await screenshot.takeScreenshot(page, "loginPagePasswordFilled");
+        submitButton = await getSubmitButton(page);
+        await Promise.all([
+            submitButton.click(),
+            page.waitForNetworkIdle(),
+        ]);
+    
+        if (page.url().startsWith(SAMPLE_HOME_URL)) {
+            return;
+        }
+        await screenshot.takeScreenshot(page, "passwordSubmitted");
+    
+        // agce: check if the "help us protect your account" dialog appears
+        try {
+            const selector =
+                "#lightbox > div:nth-child(3) > div > div.pagination-view.has-identity-banner.animate.slide-in-next > div > div:nth-child(3) > a";
+            await page.waitForSelector(selector, { timeout: 1000 });
+            await page.click(selector);
+        } catch (e) {
+            // continue
+        }
+    
+        // keep me signed in page
+        try {
+            submitButton = await getSubmitButton(page);
+            await screenshot.takeScreenshot(page, "keepMeSignedInPage");
+            await Promise.all([
+                page.waitForNetworkIdle(),
+                submitButton.click(),
+            ]).catch(async (e) => {
+                await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+                throw e;
             });
-        const buttonTag = await Promise.race([aadKmsi, msaKmsi]);
-        await screenshot.takeScreenshot(page, "keepMeSignedInPage");
-        await Promise.all([
-            page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
-            page.click(buttonTag),
-        ]).catch(async (e) => {
-            await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
-            throw e;
-        });
+        } catch (e) {
+            return;
+        }
+    
+        // agce: private tenant sign in page
+        try {
+            submitButton = await getSubmitButton(page);
+            await screenshot.takeScreenshot(page, "privateTenantSignInPage");
+            await Promise.all([
+                page.waitForNetworkIdle(),
+                submitButton.click(),
+            ]).catch(async (e) => {
+                await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+                throw e;
+            });
+        } catch (e) {
+            return;
+        }
     } catch (e) {
-        return;
-    }
-
-    // agce: private tenant sign in page
-    try {
-        await page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR, {
-            timeout: 1000,
-        });
-        await screenshot.takeScreenshot(page, "privateTenantSignInPage");
-        await Promise.all([
-            page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
-            page.click(HtmlSelectors.BUTTON9SELECTOR),
-        ]).catch(async (e) => {
-            await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
-            throw e;
-        });
-    } catch (e) {
-        return;
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+        throw e;
     }
 }
 
@@ -345,11 +360,11 @@ export async function approveRemoteConnect(
 ): Promise<void> {
     try {
         await page.waitForSelector(HtmlSelectors.REMOTE_LOCATION_DESCRPITION);
-        await page.waitForSelector(HtmlSelectors.REMOTE_LOCATION_SUBMIT_BUTTON);
+        const submit = await page.waitForSelector(SubmitButtonSelectors.REMOTE_CONNECT_SUBMIT);
         await screenshot.takeScreenshot(page, "remoteConnectPage");
         await Promise.all([
-            page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
-            page.click(HtmlSelectors.REMOTE_LOCATION_SUBMIT_BUTTON),
+            page.waitForNetworkIdle(),
+            submit.click(),
         ]).catch(async (e) => {
             await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
             throw e;
@@ -373,12 +388,10 @@ export async function approveConsent(
     page: Page,
     screenshot: Screenshot
 ): Promise<void> {
-    await page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR);
+    const submitButton = await getSubmitButton(page);
     await Promise.all([
-        page.waitForNavigation({
-            waitUntil: ["load", "domcontentloaded", "networkidle0"],
-        }),
-        page.click(HtmlSelectors.BUTTON9SELECTOR),
+        page.waitForNetworkIdle(),
+        submitButton.click(),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
@@ -393,9 +406,7 @@ export async function clickSignIn(
     await page.waitForSelector("#SignIn");
     await screenshot.takeScreenshot(page, "samplePageInit");
     await Promise.all([
-        page.waitForNavigation({
-            waitUntil: ["load", "domcontentloaded", "networkidle0"],
-        }),
+        page.waitForNetworkIdle(),
         page.click("#SignIn"),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
@@ -410,35 +421,26 @@ export async function enterCredentialsADFS(
     username: string,
     accountPwd: string
 ): Promise<void> {
-    await Promise.all([
-        page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {}), // Wait for navigation but don't throw due to timeout
-        page.waitForSelector(HtmlSelectors.USERNAME_INPUT),
-        page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR),
-    ]).catch(async (e) => {
-        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
-        throw e;
-    });
+    await page.waitForNetworkIdle(); // Wait for navigation but don't throw due to timeout
+    const usernameInput = await getUsernameInput(page);
+    let submitButton = await getSubmitButton(page);
     await screenshot.takeScreenshot(page, "loginPageADFS");
-    await page.type(HtmlSelectors.USERNAME_INPUT, username);
+    await usernameInput.type(username);
     await screenshot.takeScreenshot(page, "usernameEntered");
     await Promise.all([
-        page.waitForNavigation({
-            waitUntil: ["load", "domcontentloaded", "networkidle0"],
-        }),
-        page.click(HtmlSelectors.BUTTON9SELECTOR),
+        page.waitForNetworkIdle(),
+        submitButton.click(),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
-    await page.waitForSelector(HtmlSelectors.PASSWORD_INPUT_SELECTOR);
-    await page.waitForSelector(HtmlSelectors.CREDENTIALS_SUBMIT_BUTTON);
-    await page.type(HtmlSelectors.PASSWORD_INPUT_SELECTOR, accountPwd);
+    const passwordInput = await getPasswordInput(page);
+    await passwordInput.type(accountPwd);
     await screenshot.takeScreenshot(page, "passwordEntered");
+    submitButton = await getSubmitButton(page);
     await Promise.all([
-        page.waitForNavigation({
-            waitUntil: ["load", "domcontentloaded", "networkidle0"],
-        }),
-        page.click(HtmlSelectors.CREDENTIALS_SUBMIT_BUTTON),
+        page.waitForNetworkIdle(),
+        submitButton.click(),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
@@ -456,14 +458,12 @@ export async function enterDeviceCode(
         waitUntil: ["load", "domcontentloaded", "networkidle0"],
     });
     await page.waitForSelector(HtmlSelectors.DEVICE_OTC_INPUT_SELECTOR);
-    await page.waitForSelector(HtmlSelectors.BUTTON9SELECTOR);
+    const submitButton = await getSubmitButton(page);
     await screenshot.takeScreenshot(page, "deviceCodePage");
     await page.type(HtmlSelectors.DEVICE_OTC_INPUT_SELECTOR, code);
     await Promise.all([
-        page.waitForNavigation({
-            waitUntil: ["load", "domcontentloaded", "networkidle0"],
-        }),
-        page.click(HtmlSelectors.BUTTON9SELECTOR),
+        page.waitForNetworkIdle(),
+        submitButton.click(),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
