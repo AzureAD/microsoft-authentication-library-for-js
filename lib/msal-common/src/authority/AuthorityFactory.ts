@@ -36,10 +36,6 @@ export async function createDiscoveredInstance(
     correlationId: string,
     performanceClient?: IPerformanceClient
 ): Promise<Authority> {
-    performanceClient?.addQueueMeasurement(
-        PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
-        correlationId
-    );
     const authorityUriFinal = Authority.transformCIAMAuthority(
         formatAuthorityUri(authorityUri)
     );

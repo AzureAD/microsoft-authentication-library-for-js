@@ -159,10 +159,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         request: PopupRequest | SilentRequest | SsoSilentRequest,
         cacheLookupPolicy?: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.NativeInteractionClientAcquireToken,
-            request.correlationId
-        );
         this.logger.trace("NativeInteractionClient - acquireToken called.");
 
         // start the perf measurement

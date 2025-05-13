@@ -39,10 +39,6 @@ export class SilentFlowClient extends BaseClient {
     async acquireCachedToken(
         request: CommonSilentFlowRequest
     ): Promise<[AuthenticationResult, CacheOutcome]> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.SilentFlowClientAcquireCachedToken,
-            request.correlationId
-        );
         let lastCacheOutcome: CacheOutcome = CacheOutcome.NOT_APPLICABLE;
 
         if (request.forceRefresh || !StringUtils.isEmptyObj(request.claims)) {
@@ -171,10 +167,6 @@ export class SilentFlowClient extends BaseClient {
         cacheRecord: CacheRecord,
         request: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.SilentFlowClientGenerateResultFromCacheRecord,
-            request.correlationId
-        );
         let idTokenClaims: TokenClaims | undefined;
         if (cacheRecord.idToken) {
             idTokenClaims = extractTokenClaims(

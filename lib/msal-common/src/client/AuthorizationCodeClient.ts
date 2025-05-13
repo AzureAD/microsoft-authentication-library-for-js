@@ -77,11 +77,6 @@ export class AuthorizationCodeClient extends BaseClient {
         request: CommonAuthorizationCodeRequest,
         authCodePayload?: AuthorizationCodePayload
     ): Promise<AuthenticationResult> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthClientAcquireToken,
-            request.correlationId
-        );
-
         if (!request.code) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.requestCannotBeMade
@@ -162,11 +157,6 @@ export class AuthorizationCodeClient extends BaseClient {
         authority: Authority,
         request: CommonAuthorizationCodeRequest
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthClientExecuteTokenRequest,
-            request.correlationId
-        );
-
         const queryParametersString = this.createTokenQueryParameters(request);
         const endpoint = UrlString.appendQueryString(
             authority.tokenEndpoint,
@@ -213,14 +203,7 @@ export class AuthorizationCodeClient extends BaseClient {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(
-            endpoint,
-            requestBody,
-            headers,
-            thumbprint,
-            request.correlationId,
-            PerformanceEvents.AuthorizationCodeClientExecutePostToTokenEndpoint
-        );
+        )(endpoint, requestBody, headers, thumbprint, request.correlationId);
     }
 
     /**
@@ -230,11 +213,6 @@ export class AuthorizationCodeClient extends BaseClient {
     private async createTokenRequestBody(
         request: CommonAuthorizationCodeRequest
     ): Promise<string> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthClientCreateTokenRequestBody,
-            request.correlationId
-        );
-
         const parameters = new Map<string, string>();
 
         RequestParameterBuilder.addClientId(

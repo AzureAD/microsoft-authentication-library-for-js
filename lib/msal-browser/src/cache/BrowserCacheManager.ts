@@ -996,11 +996,6 @@ export class BrowserCacheManager extends CacheManager {
         performanceClient: IPerformanceClient,
         correlationId: string
     ): Promise<void> {
-        performanceClient.addQueueMeasurement(
-            PerformanceEvents.ClearTokensAndKeysWithClaims,
-            correlationId
-        );
-
         const tokenKeys = this.getTokenKeys();
 
         const removedAccessTokens: Array<Promise<void>> = [];
