@@ -58,11 +58,6 @@ export class InteractionHandler {
         response: AuthorizeResponse,
         request: CommonAuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.HandleCodeResponse,
-            request.correlationId
-        );
-
         let authCodeResponse;
         try {
             authCodeResponse = AuthorizeProtocol.getAuthorizationCodePayload(
@@ -105,10 +100,6 @@ export class InteractionHandler {
         request: CommonAuthorizationUrlRequest,
         validateNonce: boolean = true
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.HandleCodeResponseFromServer,
-            request.correlationId
-        );
         this.logger.trace(
             "InteractionHandler.handleCodeResponseFromServer called"
         );

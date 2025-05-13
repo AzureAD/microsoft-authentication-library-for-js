@@ -68,11 +68,6 @@ export class RefreshTokenClient extends BaseClient {
     public async acquireToken(
         request: CommonRefreshTokenRequest
     ): Promise<AuthenticationResult> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.RefreshTokenClientAcquireToken,
-            request.correlationId
-        );
-
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await invokeAsync(
             this.executeTokenRequest.bind(this),
@@ -126,12 +121,6 @@ export class RefreshTokenClient extends BaseClient {
                 ClientConfigurationErrorCodes.tokenRequestEmpty
             );
         }
-
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken,
-            request.correlationId
-        );
-
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (!request.account) {
             throw createClientAuthError(
@@ -197,11 +186,6 @@ export class RefreshTokenClient extends BaseClient {
         request: CommonSilentFlowRequest,
         foci: boolean
     ) {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken,
-            request.correlationId
-        );
-
         // fetches family RT or application RT based on FOCI value
         const refreshToken = invoke(
             this.cacheManager.getRefreshToken.bind(this.cacheManager),
@@ -291,11 +275,6 @@ export class RefreshTokenClient extends BaseClient {
         request: CommonRefreshTokenRequest,
         authority: Authority
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.RefreshTokenClientExecuteTokenRequest,
-            request.correlationId
-        );
-
         const queryParametersString = this.createTokenQueryParameters(request);
         const endpoint = UrlString.appendQueryString(
             authority.tokenEndpoint,
@@ -324,14 +303,7 @@ export class RefreshTokenClient extends BaseClient {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(
-            endpoint,
-            requestBody,
-            headers,
-            thumbprint,
-            request.correlationId,
-            PerformanceEvents.RefreshTokenClientExecutePostToTokenEndpoint
-        );
+        )(endpoint, requestBody, headers, thumbprint, request.correlationId);
     }
 
     /**
@@ -341,11 +313,6 @@ export class RefreshTokenClient extends BaseClient {
     private async createTokenRequestBody(
         request: CommonRefreshTokenRequest
     ): Promise<string> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.RefreshTokenClientCreateTokenRequestBody,
-            request.correlationId
-        );
-
         const parameters = new Map<string, string>();
 
         RequestParameterBuilder.addClientId(

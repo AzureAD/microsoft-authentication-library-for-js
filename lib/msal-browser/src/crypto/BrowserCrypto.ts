@@ -88,10 +88,6 @@ export async function sha256Digest(
     performanceClient?: IPerformanceClient,
     correlationId?: string
 ): Promise<ArrayBuffer> {
-    performanceClient?.addQueueMeasurement(
-        PerformanceEvents.Sha256Digest,
-        correlationId
-    );
     const encoder = new TextEncoder();
     const data = encoder.encode(dataString);
     return window.crypto.subtle.digest(

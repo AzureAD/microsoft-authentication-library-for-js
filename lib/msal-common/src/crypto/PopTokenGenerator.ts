@@ -54,11 +54,6 @@ export class PopTokenGenerator {
         request: SignedHttpRequestParameters,
         logger: Logger
     ): Promise<ReqCnfData> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.PopTokenGenerateCnf,
-            request.correlationId
-        );
-
         const reqCnf = await invokeAsync(
             this.generateKid.bind(this),
             PerformanceEvents.PopTokenGenerateCnf,
@@ -82,11 +77,6 @@ export class PopTokenGenerator {
      * @returns
      */
     async generateKid(request: SignedHttpRequestParameters): Promise<ReqCnf> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.PopTokenGenerateKid,
-            request.correlationId
-        );
-
         const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(
             request
         );

@@ -28,10 +28,6 @@ export async function initializeBaseRequest(
     performanceClient: IPerformanceClient,
     logger: Logger
 ): Promise<BaseAuthRequest> {
-    performanceClient.addQueueMeasurement(
-        PerformanceEvents.InitializeBaseRequest,
-        request.correlationId
-    );
     const authority = request.authority || config.auth.authority;
 
     const scopes = [...((request && request.scopes) || [])];
@@ -79,11 +75,6 @@ export async function initializeSilentRequest(
     performanceClient: IPerformanceClient,
     logger: Logger
 ): Promise<CommonSilentFlowRequest> {
-    performanceClient.addQueueMeasurement(
-        PerformanceEvents.InitializeSilentRequest,
-        request.correlationId
-    );
-
     const baseRequest = await invokeAsync(
         initializeBaseRequest,
         PerformanceEvents.InitializeBaseRequest,

@@ -55,11 +55,6 @@ export class RegionDiscovery {
         environmentRegion: string | undefined,
         regionDiscoveryMetadata: RegionDiscoveryMetadata
     ): Promise<string | null> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.RegionDiscoveryDetectRegion,
-            this.correlationId
-        );
-
         // Initialize auto detected region with the region from the envrionment
         let autodetectedRegionName = environmentRegion;
 
@@ -148,10 +143,6 @@ export class RegionDiscovery {
         version: string,
         options: ImdsOptions
     ): Promise<NetworkResponse<string>> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.RegionDiscoveryGetRegionFromIMDS,
-            this.correlationId
-        );
         return this.networkInterface.sendGetRequestAsync<string>(
             `${Constants.IMDS_ENDPOINT}?api-version=${version}&format=text`,
             options,
@@ -167,10 +158,6 @@ export class RegionDiscovery {
     private async getCurrentVersion(
         options: ImdsOptions
     ): Promise<string | null> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.RegionDiscoveryGetCurrentVersion,
-            this.correlationId
-        );
         try {
             const response =
                 await this.networkInterface.sendGetRequestAsync<IMDSBadResponse>(

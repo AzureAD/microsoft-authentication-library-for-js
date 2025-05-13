@@ -39,7 +39,6 @@ import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCa
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
 import { checkMaxAge, extractTokenClaims } from "../account/AuthToken.js";
 import {
     TokenClaims,
@@ -66,7 +65,6 @@ export class ResponseHandler {
     private homeAccountIdentifier: string;
     private serializableCache: ISerializableTokenCache | null;
     private persistencePlugin: ICachePlugin | null;
-    private performanceClient?: IPerformanceClient;
 
     constructor(
         clientId: string,
@@ -83,7 +81,6 @@ export class ResponseHandler {
         this.logger = logger;
         this.serializableCache = serializableCache;
         this.persistencePlugin = persistencePlugin;
-        this.performanceClient = performanceClient;
     }
 
     /**
@@ -190,11 +187,6 @@ export class ResponseHandler {
         forceCacheRefreshTokenResponse?: boolean,
         serverRequestId?: string
     ): Promise<AuthenticationResult> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.HandleServerTokenResponse,
-            serverTokenResponse.correlation_id
-        );
-
         // create an idToken object (not entity)
         let idTokenClaims: TokenClaims | undefined;
         if (serverTokenResponse.id_token) {
