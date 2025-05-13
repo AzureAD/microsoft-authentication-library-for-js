@@ -33,7 +33,6 @@ import {
 } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
-    BrowserAuthErrorMessages,
     BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError.js";
 import * as SilentHandler from "../../src/interaction_handler/SilentHandler.js";
@@ -54,8 +53,8 @@ import {
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
-import { SilentRequest } from "../../src/request/SilentRequest.js";
 import { SsoSilentRequest } from "../../src/index.js";
+import { getDefaultErrorMessage } from "../../src/error/BrowserAuthError.js";
 
 describe("SilentIframeClient", () => {
     let silentIframeClient: SilentIframeClient;
@@ -612,9 +611,9 @@ describe("SilentIframeClient", () => {
                         BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessages[
+                        getDefaultErrorMessage(
                             BrowserAuthErrorCodes.nativeConnectionNotEstablished
-                        ]
+                        )
                     );
                     done();
                 });

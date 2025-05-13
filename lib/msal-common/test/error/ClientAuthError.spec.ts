@@ -1,10 +1,10 @@
 import {
     ClientAuthError,
     ClientAuthErrorCodes,
-    ClientAuthErrorMessages,
     createClientAuthError,
 } from "../../src/error/ClientAuthError";
 import { AuthError } from "../../src/error/AuthError";
+import { getDefaultErrorMessage } from "../../src/error/AuthError.js";
 
 describe("ClientAuthError.ts Class Unit Tests", () => {
     for (const key in ClientAuthErrorCodes) {
@@ -13,7 +13,7 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
         it(`ClientAuthError object can be created for code ${code}`, () => {
             const err: ClientAuthError = createClientAuthError(code);
 
-            const message = ClientAuthErrorMessages[code];
+            const message = getDefaultErrorMessage(code);
             expect(message).toBeTruthy();
 
             expect(err instanceof ClientAuthError).toBe(true);

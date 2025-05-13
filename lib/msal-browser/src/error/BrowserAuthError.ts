@@ -7,16 +7,16 @@ import { AuthError } from "@azure/msal-common/browser";
 import * as BrowserAuthErrorCodes from "./BrowserAuthErrorCodes.js";
 export { BrowserAuthErrorCodes }; // Allow importing as "BrowserAuthErrorCodes"
 
+export function getDefaultErrorMessage(code: string): string {
+    return `See https://aka.ms/msaljs/browser/errors#${code} for details`;
+}
+
 /**
  * Browser library error class thrown by the MSAL.js library for SPAs
  */
 export class BrowserAuthError extends AuthError {
     constructor(errorCode: string, subError?: string) {
-        super(
-            errorCode,
-            `See https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md#${errorCode} for details`,
-            subError
-        );
+        super(errorCode, getDefaultErrorMessage(errorCode), subError);
 
         Object.setPrototypeOf(this, BrowserAuthError.prototype);
         this.name = "BrowserAuthError";

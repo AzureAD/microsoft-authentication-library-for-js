@@ -8,7 +8,7 @@ import * as AuthErrorCodes from "./AuthErrorCodes.js";
 export { AuthErrorCodes };
 
 export function getDefaultErrorMessage(code: string): string {
-    return `See https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/errors.md#${code} for details`;
+    return `See https://aka.ms/msaljs/common/errors#${code} for details`;
 }
 
 /**
@@ -36,14 +36,15 @@ export class AuthError extends Error {
     correlationId: string;
 
     constructor(errorCode?: string, errorMessage?: string, suberror?: string) {
-        const errorString = errorMessage
-            ? `${errorCode}: ${errorMessage}`
-            : errorCode;
+        const message =
+            errorMessage ||
+            (errorCode ? getDefaultErrorMessage(errorCode) : "");
+        const errorString = message ? `${errorCode}: ${message}` : errorCode;
         super(errorString);
         Object.setPrototypeOf(this, AuthError.prototype);
 
         this.errorCode = errorCode || Constants.EMPTY_STRING;
-        this.errorMessage = errorMessage || Constants.EMPTY_STRING;
+        this.errorMessage = message || Constants.EMPTY_STRING;
         this.subError = suberror || Constants.EMPTY_STRING;
         this.name = "AuthError";
     }
