@@ -14,15 +14,12 @@ import { AuthenticationResult as AuthenticationResult_2 } from '@azure/msal-comm
 import { AuthenticationScheme } from '@azure/msal-common/browser';
 import { AuthError } from '@azure/msal-common/browser';
 import { AuthErrorCodes } from '@azure/msal-common/browser';
-import { AuthErrorMessages } from '@azure/msal-common/browser';
 import { AzureCloudInstance } from '@azure/msal-common/browser';
 import { AzureCloudOptions } from '@azure/msal-common/browser';
 import { ClientAuthError } from '@azure/msal-common/browser';
 import { ClientAuthErrorCodes } from '@azure/msal-common/browser';
-import { ClientAuthErrorMessages } from '@azure/msal-common/browser';
 import { ClientConfigurationError } from '@azure/msal-common/browser';
 import { ClientConfigurationErrorCodes } from '@azure/msal-common/browser';
-import { ClientConfigurationErrorMessages } from '@azure/msal-common/browser';
 import { CommonAuthorizationCodeRequest } from '@azure/msal-common/browser';
 import { CommonAuthorizationUrlRequest } from '@azure/msal-common/browser';
 import { CommonEndSessionRequest } from '@azure/msal-common/browser';
@@ -112,8 +109,6 @@ export { AuthenticationScheme }
 export { AuthError }
 
 export { AuthErrorCodes }
-
-export { AuthErrorMessages }
 
 // Warning: (ae-missing-release-tag) "AuthorizationCodeRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -431,13 +426,9 @@ export { ClientAuthError }
 
 export { ClientAuthErrorCodes }
 
-export { ClientAuthErrorMessages }
-
 export { ClientConfigurationError }
 
 export { ClientConfigurationErrorCodes }
-
-export { ClientConfigurationErrorMessages }
 
 // Warning: (ae-missing-release-tag) "Configuration" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
