@@ -87,28 +87,36 @@ export const GuestHomedIn = {
     ONPREM: "onprem",
 };
 
+export const UsernameSelectors = {
+    I0116: "#i0116, input[name='i0116']",
+    USERNAME_ENTRY: "#usernameEntry, input[name='usernameEntry']",
+    LOGON_IDENTIFIER: "#logonIdentifier, input[type='email']",
+}
+
+export const SubmitButtonSelectors = {
+    IDSIBUTTON9: "#idSIButton9, input[name='idSIButton9']",
+    NEXT: "#next, input[name='next']",
+    ACCEPTBUTTON: "#acceptButton, input[name='acceptButton']",
+    REMOTE_CONNECT_SUBMIT: "#remoteConnectSubmit, input[name='remoteConnectSubmit']",
+    SUBMITBUTTON: "#submitButton, input[name='submitButton']",
+    SUBMIT: "button[type='submit']"
+}
+
+export const PasswordInputSelectors = {
+    PASSWORD: "#password, input[name='password']",
+    PASSWORD_INPUT: "#passwordInput, input[name='passwordInput']",
+    I0118: "#i0118, input[name='i0118']",
+    PASSWORDENTRY: "#passwordEntry, input[type='password']",
+}
+
 export const HtmlSelectors = {
-    BUTTON9SELECTOR: "#idSIButton9, input[name='idSIButton9']",
-    USERNAME_INPUT: "#i0116, input[name='i0116']",
     AAD_TITLE: "#aadTile, input[name='aadTile']",
-    B2C_LOCAL_ACCOUNT_USERNAME:
-        "#logonIdentifier, input[name='logonIdentifier']",
-    B2C_LOCAL_ACCOUNT_PASSWORD: "#password, input[name='password']",
-    NEXT_BUTTON: "#next, input[name='next']",
     B2C_AAD_MSIDLAB4_SIGNIN_PAGE:
         "#MSIDLAB4_AzureAD, input[name='MSIDLAB4_AzureAD']",
     B2C_MSA_SIGNIN_PAGE:
         "#MicrosoftAccountExchange, input[name='MicrosoftAccountExchange']",
-    FORGOT_PASSWORD_LINK:
-        "#idA_PWD_ForgotPassword, input[name='idA_PWD_ForgotPassword']",
-    PASSWORD_INPUT_TEXTBOX: "#i0118, input[name='i0118']",
     KMSI_PAGE: "#kmsiTitle, input[name='kmsiTitle']",
-    STAY_SIGNEDIN_BUTTON: "#acceptButton, input[name='acceptButton']",
     REMOTE_LOCATION_DESCRPITION:
         "#remoteConnectDescription, input[name='remoteConnectDescription']",
-    REMOTE_LOCATION_SUBMIT_BUTTON:
-        "#remoteConnectSubmit, input[name='remoteConnectSubmit']",
-    PASSWORD_INPUT_SELECTOR: "#passwordInput, input[name='passwordInput']",
-    CREDENTIALS_SUBMIT_BUTTON: "#submitButton, input[name='submitButton']",
     DEVICE_OTC_INPUT_SELECTOR: "#otc, input[name='otc']",
 };
