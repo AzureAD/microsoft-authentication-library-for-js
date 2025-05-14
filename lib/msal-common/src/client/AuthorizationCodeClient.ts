@@ -101,7 +101,7 @@ export class AuthorizationCodeClient extends BaseClient {
             this.cryptoUtils,
             this.logger,
             this.config.serializableCache,
-            this.config.persistencePlugin,
+            this.config.persistencePlugin
         );
 
         // Validate response. This function throws a server error if an error is returned by the server.
