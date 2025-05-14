@@ -378,7 +378,7 @@ export class StandardController implements IController {
             this.logger,
             this.performanceClient,
             initCorrelationId
-        )(this.performanceClient, initCorrelationId);
+        )();
 
         if (
             this.config.cache.cacheLocation ===
