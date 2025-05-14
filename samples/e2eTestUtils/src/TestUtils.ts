@@ -9,11 +9,13 @@ export const RETRY_TIMES = 5;
 
 const WAIT_FOR_NAVIGATION_CONFIG: WaitForOptions = {
     waitUntil: ["load", "domcontentloaded", "networkidle0"],
+    timeout: 2000
 };
 
 export class Screenshot {
     private folderName: string;
     private screenshotNum: number;
+    private lastTimeStamp: number;
 
     constructor(foldername: string) {
         this.folderName = foldername;
@@ -239,10 +241,7 @@ export async function fillUsername(page: Page, screenshot: Screenshot, username:
 export async function clickSubmitButton(page: Page, screenshot: Screenshot): Promise<void> {
     try {
         await page.locator(`${Object.values(SubmitButtonSelectors).join(", ")}`).setTimeout(2000).click();
-        await Promise.all([
-            page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
-            page.waitForNetworkIdle(),
-        ]).catch(() => {});
+        await page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {});
     } catch (e) {
         await screenshot.takeScreenshot(page, "errorClickingSubmit").catch(() => {});
         throw e;
@@ -256,10 +255,7 @@ export async function enterCredentials(
     accountPwd: string
 ): Promise<void> {
     try {
-        await Promise.all([
-            page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
-            page.waitForNetworkIdle()
-        ]).catch(() => {});
+        await page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {});
         await fillUsername(page, screenshot, username);
         await clickSubmitButton(page, screenshot);
     
@@ -268,7 +264,7 @@ export async function enterCredentials(
             await page.waitForSelector(HtmlSelectors.AAD_TITLE, { timeout: 1000 });
             await screenshot.takeScreenshot(page, "accountType");
             await Promise.all([
-                page.waitForNetworkIdle(),
+                page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
                 page.click(HtmlSelectors.AAD_TITLE),
             ]).catch(async (e) => {
                 await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
@@ -281,7 +277,7 @@ export async function enterCredentials(
         await fillPassword(page, screenshot, accountPwd);
         await clickSubmitButton(page, screenshot);
     
-        if (page.url().startsWith(SAMPLE_HOME_URL)) {
+        if (page.isClosed() || page.url().startsWith(SAMPLE_HOME_URL)) {
             return;
         }
         await screenshot.takeScreenshot(page, "passwordSubmitted");
@@ -323,18 +319,7 @@ export async function approveRemoteConnect(
 ): Promise<void> {
     try {
         await page.waitForSelector(HtmlSelectors.REMOTE_LOCATION_DESCRPITION);
-        const submit = await page.waitForSelector(SubmitButtonSelectors.REMOTE_CONNECT_SUBMIT);
-        if (!submit) {
-            throw new Error("Submit button not found");
-        }
-        await screenshot.takeScreenshot(page, "remoteConnectPage");
-        await Promise.all([
-            page.waitForNetworkIdle(),
-            submit.click(),
-        ]).catch(async (e) => {
-            await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
-            throw e;
-        });
+        await clickSubmitButton(page, screenshot);
     } catch (e) {
         return;
     }
@@ -365,7 +350,7 @@ export async function clickSignIn(
     await page.waitForSelector("#SignIn");
     await screenshot.takeScreenshot(page, "samplePageInit");
     await Promise.all([
-        page.waitForNetworkIdle(),
+        page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
         page.click("#SignIn"),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
@@ -380,10 +365,7 @@ export async function enterCredentialsADFS(
     username: string,
     accountPwd: string
 ): Promise<void> {
-    await Promise.all([
-        page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG),
-        page.waitForNetworkIdle()
-    ]).catch(() => {});
+    await page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {});
     await fillUsername(page, screenshot, username);
     await clickSubmitButton(page, screenshot);
     await page.waitForSelector(PasswordInputSelectors.PASSWORD_INPUT);
