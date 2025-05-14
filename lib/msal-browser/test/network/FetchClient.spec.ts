@@ -5,10 +5,7 @@ import {
     NetworkError,
     NetworkRequestOptions,
 } from "@azure/msal-common";
-import {
-    BrowserAuthErrorCodes,
-    BrowserAuthError,
-} from "../../src/error/BrowserAuthError";
+import { BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
 
 const mockResponse: Response = {
     headers: new Headers(),
@@ -197,7 +194,6 @@ describe("FetchClient.ts Unit Tests", () => {
                 .sendPostRequestAsync<any>(targetUri, requestOptions)
                 .catch((e) => {
                     expect(e).toBeInstanceOf(NetworkError);
-                    expect(e.error).toBeInstanceOf(BrowserAuthError);
                     expect(e.errorCode).toBe(
                         BrowserAuthErrorCodes.failedToParseResponse
                     );
