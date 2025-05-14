@@ -15,7 +15,6 @@ const WAIT_FOR_NAVIGATION_CONFIG: WaitForOptions = {
 export class Screenshot {
     private folderName: string;
     private screenshotNum: number;
-    private lastTimeStamp: number;
 
     constructor(foldername: string) {
         this.folderName = foldername;
