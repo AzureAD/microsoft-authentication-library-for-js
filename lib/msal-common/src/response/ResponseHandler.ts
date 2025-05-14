@@ -38,7 +38,6 @@ import { TokenCacheContext } from "../cache/persistence/TokenCacheContext.js";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache.js";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import { checkMaxAge, extractTokenClaims } from "../account/AuthToken.js";
 import {
     TokenClaims,
@@ -72,8 +71,7 @@ export class ResponseHandler {
         cryptoObj: ICrypto,
         logger: Logger,
         serializableCache: ISerializableTokenCache | null,
-        persistencePlugin: ICachePlugin | null,
-        performanceClient?: IPerformanceClient
+        persistencePlugin: ICachePlugin | null
     ) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;

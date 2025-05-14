@@ -992,10 +992,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param correlationId {string} correlation id
      * @returns
      */
-    async clearTokensAndKeysWithClaims(
-        performanceClient: IPerformanceClient,
-        correlationId: string
-    ): Promise<void> {
+    async clearTokensAndKeysWithClaims(): Promise<void> {
         const tokenKeys = this.getTokenKeys();
 
         const removedAccessTokens: Array<Promise<void>> = [];

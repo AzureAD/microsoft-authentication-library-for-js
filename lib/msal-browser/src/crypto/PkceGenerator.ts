@@ -98,7 +98,7 @@ async function generateCodeChallengeFromVerifier(
             logger,
             performanceClient,
             correlationId
-        )(pkceCodeVerifier, performanceClient, correlationId);
+        )(pkceCodeVerifier);
         // encode hash as base64
         return urlEncodeArr(new Uint8Array(pkceHashedCodeVerifier));
     } catch (e) {
