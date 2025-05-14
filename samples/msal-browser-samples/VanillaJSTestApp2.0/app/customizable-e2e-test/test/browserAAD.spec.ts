@@ -368,6 +368,9 @@ describe("AAD-Prod Tests", () => {
                     .startsWith("https://login.microsoftonline.com/common/")
             ).toBeTruthy();
             expect(page.url()).toContain("logout");
+            await page.waitForFunction(
+                `window.location.href.startsWith("${sampleHomeUrl}")`
+            );
 
             const tokenStore = await BrowserCache.getTokens();
             expect(tokenStore.idTokens.length).toEqual(0);
