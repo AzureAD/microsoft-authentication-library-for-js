@@ -90,7 +90,7 @@ export const GuestHomedIn = {
 export const UsernameSelectors = {
     I0116: "#i0116, input[name='i0116']",
     USERNAME_ENTRY: "#usernameEntry, input[name='usernameEntry']",
-    LOGON_IDENTIFIER: "#logonIdentifier, input[name='logonIdentifier']",
+    LOGON_IDENTIFIER: "#logonIdentifier, input[type='email']",
 }
 
 export const SubmitButtonSelectors = {

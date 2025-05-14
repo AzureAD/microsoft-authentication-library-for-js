@@ -221,42 +221,55 @@ export const SUCCESSFUL_GET_ALL_ACCOUNTS_ID = "accounts-retrieved-successfully";
 export async function getUsernameInput(page: Page): Promise<ElementHandle> {
     const usernameInput = await Promise.any([
         page.waitForSelector(
-            UsernameSelectors.I0116, {timeout: 1000}),
+            UsernameSelectors.I0116, {timeout: 2000}),
         page.waitForSelector(
-            UsernameSelectors.USERNAME_ENTRY, {timeout: 1000}),
+            UsernameSelectors.USERNAME_ENTRY, {timeout: 2000}),
         page.waitForSelector(
-            UsernameSelectors.LOGON_IDENTIFIER, {timeout: 1000})
+            UsernameSelectors.LOGON_IDENTIFIER, {timeout: 2000})
     ]).catch(() => {
         throw new Error("Username input not found");
     });
+
+    if (!usernameInput) {
+        throw new Error("Username input not found");
+    }
 
     return usernameInput;
 }
 
 export async function getSubmitButton(page: Page): Promise<ElementHandle> {
     const submitButton = await Promise.any([
-        page.waitForSelector(SubmitButtonSelectors.IDSIBUTTON9, {timeout: 1000}),
-        page.waitForSelector(SubmitButtonSelectors.NEXT, {timeout: 1000}),
-        page.waitForSelector(SubmitButtonSelectors.ACCEPTBUTTON, {timeout: 1000}),
-        page.waitForSelector(SubmitButtonSelectors.REMOTE_CONNECT_SUBMIT, {timeout: 1000}),
-        page.waitForSelector(SubmitButtonSelectors.SUBMITBUTTON, {timeout: 1000}),
-        page.waitForSelector(SubmitButtonSelectors.SUBMIT, {timeout: 1000}),
+        page.waitForSelector(SubmitButtonSelectors.IDSIBUTTON9, {timeout: 2000}),
+        page.waitForSelector(SubmitButtonSelectors.NEXT, {timeout: 2000}),
+        page.waitForSelector(SubmitButtonSelectors.ACCEPTBUTTON, {timeout: 2000}),
+        page.waitForSelector(SubmitButtonSelectors.REMOTE_CONNECT_SUBMIT, {timeout: 2000}),
+        page.waitForSelector(SubmitButtonSelectors.SUBMITBUTTON, {timeout: 2000}),
+        page.waitForSelector(SubmitButtonSelectors.SUBMIT, {timeout: 2000}),
     ]).catch(() => {
         throw new Error("Submit button not found");
     });
+
+    if (!submitButton) {
+        throw new Error("Submit button not found");
+    }
 
     return submitButton;
 }
 
 export async function getPasswordInput(page: Page): Promise<ElementHandle> {
     const passwordInput = await Promise.any([
-        page.waitForSelector(PasswordInputSelectors.PASSWORD, {timeout: 1000}),
-        page.waitForSelector(PasswordInputSelectors.PASSWORD_INPUT, {timeout: 1000}),
-        page.waitForSelector(PasswordInputSelectors.I0118, {timeout: 1000}),
-        page.waitForSelector(PasswordInputSelectors.PASSWORDENTRY, {timeout: 1000}),
+        page.waitForSelector(PasswordInputSelectors.PASSWORD, {timeout: 2000}),
+        page.waitForSelector(PasswordInputSelectors.PASSWORD_INPUT, {timeout: 2000}),
+        page.waitForSelector(PasswordInputSelectors.I0118, {timeout: 2000}),
+        page.waitForSelector(PasswordInputSelectors.PASSWORDENTRY, {timeout: 2000}),
     ]).catch(() => {
         throw new Error("Password input not found");
     });
+
+    if (!passwordInput) {
+        throw new Error("Password input not found");
+    }
+
     return passwordInput;
 }
 
@@ -361,6 +374,9 @@ export async function approveRemoteConnect(
     try {
         await page.waitForSelector(HtmlSelectors.REMOTE_LOCATION_DESCRPITION);
         const submit = await page.waitForSelector(SubmitButtonSelectors.REMOTE_CONNECT_SUBMIT);
+        if (!submit) {
+            throw new Error("Submit button not found");
+        }
         await screenshot.takeScreenshot(page, "remoteConnectPage");
         await Promise.all([
             page.waitForNetworkIdle(),
@@ -389,6 +405,9 @@ export async function approveConsent(
     screenshot: Screenshot
 ): Promise<void> {
     const submitButton = await getSubmitButton(page);
+    if (!submitButton) {
+        throw new Error("Submit button not found");
+    }
     await Promise.all([
         page.waitForNetworkIdle(),
         submitButton.click(),
