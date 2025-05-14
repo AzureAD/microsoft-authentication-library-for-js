@@ -440,26 +440,35 @@ export async function enterCredentialsADFS(
     username: string,
     accountPwd: string
 ): Promise<void> {
-    await page.waitForNetworkIdle(); // Wait for navigation but don't throw due to timeout
-    const usernameInput = await getUsernameInput(page);
-    let submitButton = await getSubmitButton(page);
-    await screenshot.takeScreenshot(page, "loginPageADFS");
-    await usernameInput.type(username);
-    await screenshot.takeScreenshot(page, "usernameEntered");
     await Promise.all([
-        page.waitForNetworkIdle(),
-        submitButton.click(),
+        page.waitForNavigation(WAIT_FOR_NAVIGATION_CONFIG).catch(() => {}), // Wait for navigation but don't throw due to timeout
+        page.waitForSelector(UsernameSelectors.I0116),
+        page.waitForSelector(SubmitButtonSelectors.IDSIBUTTON9),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
-    const passwordInput = await getPasswordInput(page);
-    await passwordInput.type(accountPwd);
-    await screenshot.takeScreenshot(page, "passwordEntered");
-    submitButton = await getSubmitButton(page);
+    await screenshot.takeScreenshot(page, "loginPageADFS");
+    await page.type(UsernameSelectors.I0116, username);
+    await screenshot.takeScreenshot(page, "usernameEntered");
     await Promise.all([
-        page.waitForNetworkIdle(),
-        submitButton.click(),
+        page.waitForNavigation({
+            waitUntil: ["load", "domcontentloaded", "networkidle0"],
+        }),
+        page.click(SubmitButtonSelectors.IDSIBUTTON9),
+    ]).catch(async (e) => {
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+        throw e;
+    });
+    await page.waitForSelector(PasswordInputSelectors.PASSWORD_INPUT);
+    await page.waitForSelector(SubmitButtonSelectors.SUBMITBUTTON);
+    await page.type(PasswordInputSelectors.PASSWORD_INPUT, accountPwd);
+    await screenshot.takeScreenshot(page, "passwordEntered");
+    await Promise.all([
+        page.waitForNavigation({
+            waitUntil: ["load", "domcontentloaded", "networkidle0"],
+        }),
+        page.click(SubmitButtonSelectors.SUBMITBUTTON),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
@@ -477,12 +486,14 @@ export async function enterDeviceCode(
         waitUntil: ["load", "domcontentloaded", "networkidle0"],
     });
     await page.waitForSelector(HtmlSelectors.DEVICE_OTC_INPUT_SELECTOR);
-    const submitButton = await getSubmitButton(page);
+    await page.waitForSelector(SubmitButtonSelectors.IDSIBUTTON9);
     await screenshot.takeScreenshot(page, "deviceCodePage");
     await page.type(HtmlSelectors.DEVICE_OTC_INPUT_SELECTOR, code);
     await Promise.all([
-        page.waitForNetworkIdle(),
-        submitButton.click(),
+        page.waitForNavigation({
+            waitUntil: ["load", "domcontentloaded", "networkidle0"],
+        }),
+        page.click(SubmitButtonSelectors.IDSIBUTTON9),
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
