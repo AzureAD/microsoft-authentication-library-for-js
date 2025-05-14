@@ -295,7 +295,6 @@ describe("AAD-Prod Tests", () => {
                     .startsWith("https://login.microsoftonline.com/common/")
             ).toBeTruthy();
             expect(popupWindow.url()).toContain("logout");
-            await popupWindow.waitForNavigation();
             const tokenStore = await BrowserCache.getTokens();
 
             expect(tokenStore.idTokens.length).toEqual(0);
@@ -369,8 +368,6 @@ describe("AAD-Prod Tests", () => {
                     .startsWith("https://login.microsoftonline.com/common/")
             ).toBeTruthy();
             expect(page.url()).toContain("logout");
-
-            await page.waitForNavigation();
 
             const tokenStore = await BrowserCache.getTokens();
             expect(tokenStore.idTokens.length).toEqual(0);
