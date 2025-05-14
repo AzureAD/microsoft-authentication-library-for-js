@@ -79,9 +79,7 @@ export function validateCryptoAvailable(
  * @param performanceClient {?IPerformanceClient}
  * @param correlationId {?string} correlation id
  */
-export async function sha256Digest(
-    dataString: string
-): Promise<ArrayBuffer> {
+export async function sha256Digest(dataString: string): Promise<ArrayBuffer> {
     const encoder = new TextEncoder();
     const data = encoder.encode(dataString);
     return window.crypto.subtle.digest(
