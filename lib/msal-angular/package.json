@@ -21,7 +21,7 @@
     "build:all:prod": "npm run build:browser && npm run build:prod",
     "build:browser": "cd ../.. && npm run build --workspace=@azure/msal-common --workspace=@azure/msal-browser",
     "build:pack": "npm run build && cd dist && npm pack",
-    "deploy": "npm publish --workspaces=false",
+    "deploy": "npm publish \"$1\" --workspaces=false",
     "test": "ng test",
     "test:coverage": "npm test",
     "lint": "eslint src --ext .ts",
