@@ -48,8 +48,8 @@ export const PlatformAuthConstants = {
     MICROSOFT_ENTRA_BROKERID: "MicrosoftEntra",
     DOM_API_NAME: "DOM API",
     PLATFORM_DOM_APIS: "get-token-and-sign-out",
-    PLATFORM_DOM_PROVIDER: "PlatformDOMHandler",
-    PLATFORM_EXTENSION_PROVIDER: "NativeMessageHandler",
+    PLATFORM_DOM_PROVIDER: "PlatformAuthDOMHandler",
+    PLATFORM_EXTENSION_PROVIDER: "PlatformAuthExtensionHandler",
 };
 
 export const NativeExtensionMethod = {

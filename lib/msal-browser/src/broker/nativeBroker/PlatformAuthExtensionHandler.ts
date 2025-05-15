@@ -79,7 +79,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
     async sendMessage(
         request: PlatformBrokerRequest
     ): Promise<PlatformBrokerResponse> {
-        this.logger.trace("PlatformAuthExtensionHandler - sendMessage called.");
+        this.logger.trace(this.platformAuthType + " - sendMessage called.");
 
         // fall back to native calls
         const messageBody: NativeExtensionRequestBody = {
@@ -95,12 +95,13 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         };
 
         this.logger.trace(
-            "PlatformAuthExtensionHandler - Sending request to browser extension"
+            this.platformAuthType + " - Sending request to browser extension"
         );
         this.logger.tracePii(
-            `PlatformAuthExtensionHandler - Sending request to browser extension: ${JSON.stringify(
-                req
-            )}`
+            this.platformAuthType +
+                ` - Sending request to browser extension: ${JSON.stringify(
+                    req
+                )}`
         );
         this.messageChannel.port1.postMessage(req);
 
@@ -154,7 +155,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      */
     private async sendHandshakeRequest(): Promise<void> {
         this.logger.trace(
-            "PlatformAuthExtensionHandler - sendHandshakeRequest called."
+            this.platformAuthType + " - sendHandshakeRequest called."
         );
         // Register this event listener before sending handshake
         window.addEventListener("message", this.windowListener, false); // false is important, because content script message processing should work first
@@ -211,9 +212,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      * @param event
      */
     private onWindowMessage(event: MessageEvent): void {
-        this.logger.trace(
-            "PlatformAuthExtensionHandler - onWindowMessage called"
-        );
+        this.logger.trace(this.platformAuthType + " - onWindowMessage called");
         // We only accept messages from ourselves
         if (event.source !== window) {
             return;
@@ -242,7 +241,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
              */
             if (!handshakeResolver) {
                 this.logger.trace(
-                    `PlatformAuthExtensionHandler.onWindowMessage - resolver can't be found for request ${request.responseId}`
+                    this.platformAuthType +
+                        `.onWindowMessage - resolver can't be found for request ${request.responseId}`
                 );
                 return;
             }
@@ -275,7 +275,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      */
     private onChannelMessage(event: MessageEvent): void {
         this.logger.trace(
-            "PlatformAuthExtensionHandler - onChannelMessage called."
+            this.platformAuthType + " - onChannelMessage called."
         );
         const request = event.data;
 
@@ -293,12 +293,14 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 }
                 const response = request.body.response;
                 this.logger.trace(
-                    "PlatformAuthExtensionHandler - Received response from browser extension"
+                    this.platformAuthType +
+                        " - Received response from browser extension"
                 );
                 this.logger.tracePii(
-                    `PlatformAuthExtensionHandler - Received response from browser extension: ${JSON.stringify(
-                        response
-                    )}`
+                    this.platformAuthType +
+                        ` - Received response from browser extension: ${JSON.stringify(
+                            response
+                        )}`
                 );
                 if (response.status !== "Success") {
                     resolver.reject(
@@ -333,7 +335,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             } else if (method === NativeExtensionMethod.HandshakeResponse) {
                 if (!handshakeResolver) {
                     this.logger.trace(
-                        `PlatformAuthExtensionHandler.onChannelMessage - resolver can't be found for request ${request.responseId}`
+                        this.platformAuthType +
+                            `.onChannelMessage - resolver can't be found for request ${request.responseId}`
                     );
                     return;
                 }
@@ -346,7 +349,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 this.extensionId = request.extensionId;
                 this.extensionVersion = request.body.version;
                 this.logger.verbose(
-                    `PlatformAuthExtensionHandler - Received HandshakeResponse from extension: ${this.extensionId}`
+                    this.platformAuthType +
+                        ` - Received HandshakeResponse from extension: ${this.extensionId}`
                 );
                 this.handshakeEvent.end({
                     extensionInstalled: true,

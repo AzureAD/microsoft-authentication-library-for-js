@@ -94,7 +94,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         request: PlatformBrokerRequest
     ): Promise<PlatformBrokerResponse> {
         this.logger.trace(
-            "PlatformDOMHandler - Sending request to browser DOM API"
+            this.platformAuthType + " - Sending request to browser DOM API"
         );
 
         try {
@@ -108,7 +108,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             return this.validatePlatformBrokerResponse(response);
         } catch (e) {
             this.logger.error(
-                "PlatformDOMHandler: executeGetToken DOM API error"
+                this.platformAuthType + " - executeGetToken DOM API error"
             );
             throw e;
         }
@@ -118,7 +118,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         request: PlatformBrokerRequest
     ): PlatformDOMTokenRequest {
         this.logger.trace(
-            "NativeInteractionClient: initializeNativeDOMRequest called"
+            this.platformAuthType + " - initializeNativeDOMRequest called"
         );
 
         const {
@@ -169,7 +169,8 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 response.hasOwnProperty("expiresIn")
             ) {
                 this.logger.trace(
-                    "PlatformDOMHandler: platform broker returned successful and valid response"
+                    this.platformAuthType +
+                        " - platform broker returned successful and valid response"
                 );
                 return this.convertToPlatformBrokerResponse(
                     response as PlatformDOMTokenResponse
@@ -182,7 +183,8 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                     errorResponse.error.code
                 ) {
                     this.logger.trace(
-                        "PlatformDOMHandler: platform broker returned error response"
+                        this.platformAuthType +
+                            " - platform broker returned error response"
                     );
                     throw createNativeAuthError(
                         errorResponse.error.code,
@@ -206,7 +208,9 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     private convertToPlatformBrokerResponse(
         response: PlatformDOMTokenResponse
     ): PlatformBrokerResponse {
-        this.logger.trace("PlatformDOMHandler: convertToNativeResponse called");
+        this.logger.trace(
+            this.platformAuthType + " - convertToNativeResponse called"
+        );
         const nativeResponse: PlatformBrokerResponse = {
             access_token: response.accessToken,
             id_token: response.idToken,
