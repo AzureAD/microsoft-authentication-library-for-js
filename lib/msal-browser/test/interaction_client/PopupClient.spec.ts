@@ -50,8 +50,8 @@ import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest.js";
 import { PopupClient } from "../../src/interaction_client/PopupClient.js";
-import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient.js";
-import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
+import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
+import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import {
     BrowserAuthError,
     createBrowserAuthError,
@@ -391,7 +391,7 @@ describe("PopupClient", () => {
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP
             );
             jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -401,7 +401,7 @@ describe("PopupClient", () => {
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
                 RANDOM_TEST_GUID
             );
-            const nativeMessageHandler = new NativeMessageHandler(
+            const nativeMessageHandler = new PlatformAuthExtensionHandler(
                 //@ts-ignore
                 pca.logger,
                 2000,
@@ -518,7 +518,7 @@ describe("PopupClient", () => {
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP
             );
             jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
