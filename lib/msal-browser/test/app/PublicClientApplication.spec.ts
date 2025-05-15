@@ -59,7 +59,6 @@ import {
     BrowserConstants,
     CacheLookupPolicy,
     InteractionType,
-    NativeConstants,
     StaticCacheKeys,
     PlatformAuthConstants,
     TemporaryCacheKeys,
