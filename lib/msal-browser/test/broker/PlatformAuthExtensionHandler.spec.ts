@@ -10,17 +10,30 @@ import {
     AuthErrorCodes,
     IPerformanceClient,
 } from "@azure/msal-common";
-import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
+import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { BrowserAuthError, BrowserAuthErrorCodes } from "../../src/index.js";
 import { NativeExtensionMethod } from "../../src/utils/BrowserConstants.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
+import { mock } from "node:test";
+import { PlatformBrokerRequest } from "../../src/broker/nativeBroker/PlatformBrokerRequest.js";
+import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants.js";
 import { BrowserAuthErrorMessages } from "../../src/error/BrowserAuthError.js";
 
 let performanceClient: IPerformanceClient;
 
-describe("NativeMessageHandler Tests", () => {
+const TEST_REQUEST: PlatformBrokerRequest = {
+    accountId: "test-account-id",
+    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    authority: TEST_CONFIG.validAuthority,
+    redirectUri: TEST_URIS.TEST_REDIR_URI,
+    scope: "User.Read",
+    correlationId: "test-correlation-id",
+    windowTitleSubstring: "",
+};
+
+describe("PlatformAuthExtensionHandler Tests", () => {
     let postMessageSpy: jest.SpyInstance;
     let mcPort: MessagePort;
     let cryptoInterface: CryptoOps;
@@ -63,12 +76,15 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            const wamMessageHandler = await NativeMessageHandler.createProvider(
-                new Logger({}),
-                2000,
-                performanceClient
+            const wamMessageHandler =
+                await PlatformAuthExtensionHandler.createProvider(
+                    new Logger({}),
+                    2000,
+                    performanceClient
+                );
+            expect(wamMessageHandler).toBeInstanceOf(
+                PlatformAuthExtensionHandler
             );
-            expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
             window.removeEventListener("message", eventHandler, true);
         });
@@ -112,7 +128,7 @@ describe("NativeMessageHandler Tests", () => {
                 }
             );
 
-            NativeMessageHandler.createProvider(
+            PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
                 performanceClient
@@ -149,18 +165,21 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            const wamMessageHandler = await NativeMessageHandler.createProvider(
-                new Logger({}),
-                2000,
-                performanceClient
+            const wamMessageHandler =
+                await PlatformAuthExtensionHandler.createProvider(
+                    new Logger({}),
+                    2000,
+                    performanceClient
+                );
+            expect(wamMessageHandler).toBeInstanceOf(
+                PlatformAuthExtensionHandler
             );
-            expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
             window.removeEventListener("message", eventHandler, true);
         });
 
         it("Throws if no extension is installed", (done) => {
-            NativeMessageHandler.createProvider(
+            PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
                 performanceClient
@@ -185,7 +204,7 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            NativeMessageHandler.createProvider(
+            PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
                 performanceClient
@@ -225,7 +244,7 @@ describe("NativeMessageHandler Tests", () => {
                 }
             );
 
-            NativeMessageHandler.createProvider(
+            PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
                 performanceClient
@@ -239,11 +258,21 @@ describe("NativeMessageHandler Tests", () => {
 
     describe("sendMessage", () => {
         it("Sends message to WAM extension", async () => {
+            const testWAMResponse = {
+                access_token: "test-access-token",
+                id_token: "test-id-token",
+                client_info: "test-client-info",
+                account: {
+                    id: "test-account-id",
+                    properties: {},
+                    userName: "test-user-name",
+                },
+                scope: "read openid",
+                expires_in: "3600",
+            };
             const testResponse = {
                 status: "Success",
-                result: {
-                    accessToken: "test-access-token",
-                },
+                result: testWAMResponse,
             };
             const eventHandler = function (event: MessageEvent) {
                 event.stopImmediatePropagation();
@@ -281,16 +310,17 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            const wamMessageHandler = await NativeMessageHandler.createProvider(
-                new Logger({}),
-                2000,
-                performanceClient
+            const wamMessageHandler =
+                await PlatformAuthExtensionHandler.createProvider(
+                    new Logger({}),
+                    2000,
+                    performanceClient
+                );
+            expect(wamMessageHandler).toBeInstanceOf(
+                PlatformAuthExtensionHandler
             );
-            expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
-            const response = await wamMessageHandler.sendMessage({
-                method: NativeExtensionMethod.GetToken,
-            });
+            const response = await wamMessageHandler.sendMessage(TEST_REQUEST);
             expect(response).toEqual(testResponse.result);
 
             window.removeEventListener("message", eventHandler, true);
@@ -338,22 +368,20 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            NativeMessageHandler.createProvider(
+            PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
                 performanceClient
             )
                 .then((wamMessageHandler) => {
-                    wamMessageHandler
-                        .sendMessage({ method: NativeExtensionMethod.GetToken })
-                        .catch((e) => {
-                            expect(e).toBeInstanceOf(NativeAuthError);
-                            expect(e.errorCode).toEqual(testResponse.code);
-                            expect(e.errorMessage).toEqual(
-                                testResponse.description
-                            );
-                            done();
-                        });
+                    wamMessageHandler.sendMessage(TEST_REQUEST).catch((e) => {
+                        expect(e).toBeInstanceOf(NativeAuthError);
+                        expect(e.errorCode).toEqual(testResponse.code);
+                        expect(e.errorMessage).toEqual(
+                            testResponse.description
+                        );
+                        done();
+                    });
                 })
                 .finally(() => {
                     window.removeEventListener("message", eventHandler, true);
@@ -404,24 +432,20 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            NativeMessageHandler.createProvider(
+            PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
                 performanceClient
             )
                 .then((wamMessageHandler) => {
-                    wamMessageHandler
-                        .sendMessage({ method: NativeExtensionMethod.GetToken })
-                        .catch((e) => {
-                            expect(e).toBeInstanceOf(NativeAuthError);
-                            expect(e.errorCode).toEqual(
-                                testResponse.result.code
-                            );
-                            expect(e.errorMessage).toEqual(
-                                testResponse.result.description
-                            );
-                            done();
-                        });
+                    wamMessageHandler.sendMessage(TEST_REQUEST).catch((e) => {
+                        expect(e).toBeInstanceOf(NativeAuthError);
+                        expect(e.errorCode).toEqual(testResponse.result.code);
+                        expect(e.errorMessage).toEqual(
+                            testResponse.result.description
+                        );
+                        done();
+                    });
                 })
                 .finally(() => {
                     window.removeEventListener("message", eventHandler, true);
@@ -468,26 +492,22 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            NativeMessageHandler.createProvider(
+            PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
                 performanceClient
             )
                 .then((wamMessageHandler) => {
-                    wamMessageHandler
-                        .sendMessage({ method: NativeExtensionMethod.GetToken })
-                        .catch((e) => {
-                            expect(e).toBeInstanceOf(AuthError);
-                            expect(e.errorCode).toEqual(
-                                AuthErrorCodes.unexpectedError
-                            );
-                            expect(e.errorMessage).toContain(
-                                AuthErrorMessages[
-                                    AuthErrorCodes.unexpectedError
-                                ]
-                            );
-                            done();
-                        });
+                    wamMessageHandler.sendMessage(TEST_REQUEST).catch((e) => {
+                        expect(e).toBeInstanceOf(AuthError);
+                        expect(e.errorCode).toEqual(
+                            AuthErrorCodes.unexpectedError
+                        );
+                        expect(e.errorMessage).toContain(
+                            AuthErrorCodes.unexpectedError
+                        );
+                        done();
+                    });
                 })
                 .finally(() => {
                     window.removeEventListener("message", eventHandler, true);

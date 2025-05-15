@@ -154,3 +154,5 @@ export {
 } from "@azure/msal-common/browser";
 
 export { version } from "./packageMetadata.js";
+
+export { isPlatformBrokerAvailable } from "./broker/nativeBroker/PlatformAuthProvider.js";
