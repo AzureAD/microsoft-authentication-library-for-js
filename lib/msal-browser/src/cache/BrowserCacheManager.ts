@@ -4,49 +4,50 @@
  */
 
 import {
-    Constants,
-    PersistentCacheKeys,
-    StringUtils,
-    ICrypto,
-    AccountEntity,
-    IdTokenEntity,
     AccessTokenEntity,
-    RefreshTokenEntity,
-    AppMetadataEntity,
-    CacheManager,
-    ServerTelemetryEntity,
-    ThrottlingEntity,
-    Logger,
-    AuthorityMetadataEntity,
-    DEFAULT_CRYPTO_IMPLEMENTATION,
+    AccountEntity,
     AccountInfo,
     ActiveAccountFilters,
-    TokenKeys,
-    CredentialType,
-    CacheRecord,
+    AppMetadataEntity,
     AuthenticationScheme,
-    createClientAuthError,
-    ClientAuthErrorCodes,
-    PerformanceEvents,
-    IPerformanceClient,
-    StaticAuthorityOptions,
-    CacheHelpers,
-    StoreInCache,
+    AuthorityMetadataEntity,
     CacheError,
-    invokeAsync,
-    TimeUtils,
+    CacheHelpers,
+    CacheManager,
+    CacheRecord,
+    ClientAuthErrorCodes,
     CommonAuthorizationUrlRequest,
+    Constants,
+    createClientAuthError,
+    CredentialType,
+    DEFAULT_CRYPTO_IMPLEMENTATION,
+    ICrypto,
+    IdTokenEntity,
+    invokeAsync,
+    IPerformanceClient,
+    Logger,
+    PerformanceEvents,
+    PersistentCacheKeys,
+    RefreshTokenEntity,
+    ServerTelemetryEntity,
+    StaticAuthorityOptions,
+    StoreInCache,
+    StringUtils,
+    ThrottlingEntity,
+    TimeUtils,
+    TokenKeys,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
-    createBrowserAuthError,
     BrowserAuthErrorCodes,
+    createBrowserAuthError,
 } from "../error/BrowserAuthError.js";
 import {
     BrowserCacheLocation,
-    TemporaryCacheKeys,
     InMemoryCacheKeys,
+    INTERACTION_TYPE,
     StaticCacheKeys,
+    TemporaryCacheKeys,
 } from "../utils/BrowserConstants.js";
 import { LocalStorage } from "./LocalStorage.js";
 import { SessionStorage } from "./SessionStorage.js";
@@ -64,6 +65,7 @@ import { CookieStorage } from "./CookieStorage.js";
 import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
 import { EventType } from "../event/EventType.js";
 import { EventHandler } from "../event/EventHandler.js";
+import { clearHash } from "../utils/BrowserUtils.js";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -1187,7 +1189,7 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     isInteractionInProgress(matchClientId?: boolean): boolean {
-        const clientId = this.getInteractionInProgress();
+        const clientId = this.getInteractionInProgress()?.clientId;
 
         if (matchClientId) {
             return clientId === this.clientId;
@@ -1196,12 +1198,30 @@ export class BrowserCacheManager extends CacheManager {
         }
     }
 
-    getInteractionInProgress(): string | null {
+    getInteractionInProgress(): {
+        clientId: string;
+        type: INTERACTION_TYPE;
+    } | null {
         const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
-        return this.getTemporaryCache(key, false);
+        const value = this.getTemporaryCache(key, false);
+        try {
+            return value ? JSON.parse(value) : null;
+        } catch (e) {
+            // Remove interaction and other temp keys if interaction status can't be parsed
+            this.logger.error(
+                `Cannot parse interaction status. Removing temporary cache items and clearing url hash. Retrying interaction should fix the error`
+            );
+            this.removeTemporaryItem(key);
+            this.resetRequestCache();
+            clearHash(window);
+            return null;
+        }
     }
 
-    setInteractionInProgress(inProgress: boolean): void {
+    setInteractionInProgress(
+        inProgress: boolean,
+        type: INTERACTION_TYPE = INTERACTION_TYPE.SIGNIN
+    ): void {
         // Ensure we don't overwrite interaction in progress for a different clientId
         const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         if (inProgress) {
@@ -1211,11 +1231,15 @@ export class BrowserCacheManager extends CacheManager {
                 );
             } else {
                 // No interaction is in progress
-                this.setTemporaryCache(key, this.clientId, false);
+                this.setTemporaryCache(
+                    key,
+                    JSON.stringify({ clientId: this.clientId, type }),
+                    false
+                );
             }
         } else if (
             !inProgress &&
-            this.getInteractionInProgress() === this.clientId
+            this.getInteractionInProgress()?.clientId === this.clientId
         ) {
             this.removeTemporaryItem(key);
         }

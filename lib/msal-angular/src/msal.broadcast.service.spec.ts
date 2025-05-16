@@ -40,6 +40,7 @@ function initializeMsal(providers: any[] = []) {
       }),
     ],
     providers: [MsalBroadcastService, ...providers],
+    teardown: { destroyAfterEach: false },
   });
   broadcastService = TestBed.inject(MsalBroadcastService);
 }
@@ -439,6 +440,31 @@ describe("MsalBroadcastService", () => {
     eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
     eventHandler.emitEvent(
       EventType.HANDLE_REDIRECT_END,
+      InteractionType.Redirect
+    );
+  });
+
+  it("automatically sets inProgress to None when handleRedirectPromise returns without emitting an event", (done) => {
+    const expectedInProgress = [
+      InteractionStatus.Startup,
+      InteractionStatus.None,
+    ];
+    let index = 0;
+
+    subscription = broadcastService.inProgress$.subscribe((result) => {
+      expect(result).toEqual(expectedInProgress[index]);
+      if (index === expectedInProgress.length - 1) {
+        done();
+      } else if (expectedInProgress[index] === InteractionStatus.Startup) {
+        index++;
+        broadcastService.resetInProgressEvent();
+      } else {
+        index++;
+      }
+    });
+
+    eventHandler.emitEvent(
+      EventType.INITIALIZE_START,
       InteractionType.Redirect
     );
   });

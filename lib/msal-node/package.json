@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@azure/msal-node",
-  "version": "3.4.1",
+  "version": "3.5.3",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -73,6 +73,7 @@
     "@types/uuid": "^7.0.0",
     "eslint-config-msal": "file:../../shared-configs/eslint-config-msal",
     "jest": "^29.5.0",
+    "jest-junit": "^16.0.0",
     "prettier": "2.8.7",
     "rollup": "^4.22.4",
     "rollup-msal": "file:../../shared-configs/rollup-msal",
@@ -82,7 +83,7 @@
     "yargs": "^17.3.1"
   },
   "dependencies": {
-    "@azure/msal-common": "15.4.0",
+    "@azure/msal-common": "15.6.0",
     "jsonwebtoken": "^9.0.0",
     "uuid": "^8.3.0"
   },

@@ -14,7 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "@azure/msal-node": "^3.0.0",
-    "axios": "^1.7.4",
+    "axios": "^1.8.2",
     "express": "^4.20.0",
     "express-handlebars": "^5.3.5",
     "express-session": "^1.17.2"

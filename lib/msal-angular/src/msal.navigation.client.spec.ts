@@ -26,7 +26,7 @@ const msalInstance = new PublicClientApplication({
 });
 
 describe("MsalCustomNaviationClient", () => {
-  beforeAll(() => {
+  beforeEach(() => {
     TestBed.resetTestingModule();
 
     TestBed.configureTestingModule({
@@ -44,6 +44,7 @@ describe("MsalCustomNaviationClient", () => {
         MsalService,
         MsalGuard,
       ],
+      teardown: { destroyAfterEach: false },
     });
     authService = TestBed.inject(MsalService);
     navigationClient = TestBed.inject(MsalCustomNavigationClient);

@@ -509,6 +509,7 @@ export type BrowserAuthOptions = {
     supportsNestedAppAuth?: boolean;
     onRedirectNavigate?: (url: string) => boolean | void;
     instanceAware?: boolean;
+    encodeExtraQueryParams?: boolean;
 };
 
 // Warning: (ae-missing-release-tag) "BrowserCacheLocation" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -571,7 +572,10 @@ export class BrowserCacheManager extends CacheManager {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     getIdTokenCredential(idTokenKey: string): IdTokenEntity | null;
     // (undocumented)
-    getInteractionInProgress(): string | null;
+    getInteractionInProgress(): {
+        clientId: string;
+        type: INTERACTION_TYPE;
+    } | null;
     getKeys(): string[];
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null;
@@ -639,7 +643,7 @@ export class BrowserCacheManager extends CacheManager {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     setIdTokenCredential(idToken: IdTokenEntity, correlationId: string): Promise<void>;
     // (undocumented)
-    setInteractionInProgress(inProgress: boolean): void;
+    setInteractionInProgress(inProgress: boolean, type?: INTERACTION_TYPE): void;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     setRefreshTokenCredential(refreshToken: RefreshTokenEntity, correlationId: string): Promise<void>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -1140,7 +1144,7 @@ export interface IController {
     // (undocumented)
     hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
     // (undocumented)
-    initialize(request?: InitializeApplicationRequest): Promise<void>;
+    initialize(request?: InitializeApplicationRequest, isBroker?: boolean): Promise<void>;
     // (undocumented)
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
     // @internal (undocumented)
@@ -1671,6 +1675,8 @@ export class PublicClientApplication implements IPublicClientApplication {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
+    // (undocumented)
+    protected isBroker: boolean;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     loginPopup(request?: PopupRequest | undefined): Promise<AuthenticationResult>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -2028,7 +2034,7 @@ export class StandardController implements IController {
     hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    initialize(request?: InitializeApplicationRequest): Promise<void>;
+    initialize(request?: InitializeApplicationRequest, isBroker?: boolean): Promise<void>;
     // (undocumented)
     protected initialized: boolean;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -2182,7 +2188,7 @@ const userCancelled = "user_cancelled";
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "4.9.1";
+export const version = "4.12.0";
 
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -2209,19 +2215,20 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/app/PublicClientNext.ts:85:79 - (tsdoc-malformed-inline-tag) Expecting a TSDoc tag starting with "{@"
 // src/app/PublicClientNext.ts:88:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/app/PublicClientNext.ts:89:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/cache/BrowserCacheManager.ts:1203:9 - (ae-forgotten-export) The symbol "INTERACTION_TYPE" needs to be exported by the entry point index.d.ts
 // src/cache/LocalStorage.ts:296:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:354:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:385:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/config/Configuration.ts:247:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
-// src/controllers/StandardController.ts:433:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/controllers/StandardController.ts:1171:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/controllers/StandardController.ts:2007:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/controllers/StandardController.ts:2008:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/controllers/StandardController.ts:2009:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/controllers/StandardController.ts:2245:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/controllers/StandardController.ts:2246:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/controllers/StandardController.ts:2328:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/controllers/StandardController.ts:2344:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/config/Configuration.ts:256:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
+// src/controllers/StandardController.ts:445:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/controllers/StandardController.ts:1204:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/controllers/StandardController.ts:2046:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/controllers/StandardController.ts:2047:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/controllers/StandardController.ts:2048:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/controllers/StandardController.ts:2284:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/controllers/StandardController.ts:2285:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/controllers/StandardController.ts:2367:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/controllers/StandardController.ts:2383:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/event/EventHandler.ts:113:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/event/EventHandler.ts:139:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"

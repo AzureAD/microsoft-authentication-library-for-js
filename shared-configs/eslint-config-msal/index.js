@@ -81,6 +81,7 @@ module.exports = {
         ],
         "import/first": 2,
         "import/no-commonjs": 2,
+        "import/no-cycle": 2,
         "import/no-duplicates": 2,
         "import/no-extraneous-dependencies": 2,
         "import/no-unresolved": 2,
