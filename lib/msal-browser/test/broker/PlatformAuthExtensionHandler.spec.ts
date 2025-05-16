@@ -504,7 +504,9 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                             AuthErrorCodes.unexpectedError
                         );
                         expect(e.errorMessage).toContain(
-                            AuthErrorCodes.unexpectedError
+                            AuthErrorMessages[
+                                AuthErrorCodes.unexpectedError
+                            ]
                         );
                         done();
                     });
