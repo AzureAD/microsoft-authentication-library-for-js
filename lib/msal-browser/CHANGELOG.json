@@ -2,6 +2,39 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Fri, 16 May 2025 16:04:49 GMT",
+      "version": "4.13.0",
+      "tag": "@azure/msal-browser_v4.13.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "8e80655ac9a6dba79ef5d1ddce82bae0f1fdb1be",
+            "comment": "Add support for new platform broker flow via DOM API #7632"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 06 May 2025 22:47:42 GMT",
       "version": "4.12.0",
       "tag": "@azure/msal-browser_v4.12.0",
