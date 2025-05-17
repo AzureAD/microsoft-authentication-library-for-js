@@ -20,10 +20,6 @@ import {
 } from "@azure/msal-common/browser";
 import { ITokenCache } from "../cache/ITokenCache.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
-import {
-    BrowserCacheManager,
-    DEFAULT_BROWSER_CACHE_MANAGER,
-} from "../cache/BrowserCacheManager.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
@@ -46,9 +42,10 @@ import { EventType } from "../event/EventType.js";
 import { EventHandler } from "../event/EventHandler.js";
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
-import { createNewGuid, validateCryptoAvailable } from "../crypto/WorkerCrypto.js";
+import { createNewGuid } from "../crypto/WorkerCrypto.js";
 import { WorkerOperatingContext } from "../operatingcontext/WorkerOperatingContext.js";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
+import { DEFAULT_WORKER_CACHE_MANAGER, WorkerCacheManager } from "../cache/WorkerCacheManager.js";
 
 /**
  * WorkerController class
@@ -61,7 +58,7 @@ export class WorkerController implements IController {
     protected logger: Logger;
 
     // Storage interface implementation
-    protected readonly browserStorage: BrowserCacheManager;
+    protected readonly workerStorage: WorkerCacheManager;
 
     // Input configuration by developer/user
     protected readonly config: BrowserConfiguration;
@@ -109,8 +106,8 @@ export class WorkerController implements IController {
         this.eventHandler = new EventHandler(this.logger);
 
         // Initialize the browser storage class.
-        this.browserStorage = this.isBrowserEnvironment
-            ? new BrowserCacheManager(
+        this.workerStorage = this.isWorkerEnvironment
+            ? new WorkerCacheManager(
                   this.config.auth.clientId,
                   this.config.cache,
                   this.browserCrypto,
@@ -119,7 +116,7 @@ export class WorkerController implements IController {
                   this.eventHandler,
                   undefined
               )
-            : DEFAULT_BROWSER_CACHE_MANAGER(
+            : DEFAULT_WORKER_CACHE_MANAGER(
                   this.config.auth.clientId,
                   this.logger,
                   this.performanceClient,
@@ -160,7 +157,6 @@ export class WorkerController implements IController {
 
         const initCorrelationId =
             request?.correlationId || this.getRequestCorrelationId();
-            console.log("initCorrelationId", initCorrelationId);
         const allowPlatformBroker = this.config.system.allowPlatformBroker;
         const initMeasurement = this.performanceClient.startMeasurement(
             PerformanceEvents.InitializeClientApplication,
@@ -169,12 +165,12 @@ export class WorkerController implements IController {
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
 
         await invokeAsync(
-            this.browserStorage.initialize.bind(this.browserStorage),
+            this.workerStorage.initialize.bind(this.workerStorage),
             PerformanceEvents.InitializeCache,
             this.logger,
             this.performanceClient,
             initCorrelationId
-        )(initCorrelationId);
+        )();
 
         if (allowPlatformBroker) {
             try {
@@ -195,8 +191,8 @@ export class WorkerController implements IController {
             );
 
             await invokeAsync(
-                this.browserStorage.clearTokensAndKeysWithClaims.bind(
-                    this.browserStorage
+                this.workerStorage.clearTokensAndKeysWithClaims.bind(
+                    this.workerStorage
                 ),
                 PerformanceEvents.ClearTokensAndKeysWithClaims,
                 this.logger,
@@ -243,8 +239,8 @@ export class WorkerController implements IController {
         return Constants.EMPTY_STRING;
     }
     
-    getBrowserStorage(): BrowserCacheManager {
-        return this.browserStorage;
+    getBrowserStorage(): WorkerCacheManager {
+        return this.workerStorage;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -449,7 +445,7 @@ export class WorkerController implements IController {
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void {
-        this.browserStorage.setWrapperMetadata(sku, version);
+        this.workerStorage.setWrapperMetadata(sku, version);
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setNavigationClient(navigationClient: INavigationClient): void {

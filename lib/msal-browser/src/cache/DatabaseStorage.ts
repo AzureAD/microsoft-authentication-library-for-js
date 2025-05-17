@@ -43,12 +43,22 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
         this.dbOpen = false;
     }
 
+    async initialize(): Promise<void> {
+    }
+
     /**
      * Opens IndexedDB instance.
      */
     async open(): Promise<void> {
         return new Promise((resolve, reject) => {
-            const openDB = window.indexedDB.open(this.dbName, this.version);
+
+            let openDB = null;
+            if(typeof window !== "undefined" && window.indexedDB) {
+                openDB = window.indexedDB.open(this.dbName, this.version);
+            } else {
+                openDB = self.indexedDB.open(this.dbName, this.version);
+            }
+
             openDB.addEventListener(
                 "upgradeneeded",
                 (e: IDBVersionChangeEvent) => {

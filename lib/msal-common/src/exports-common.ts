@@ -64,6 +64,7 @@ export { AuthorityType } from "./authority/AuthorityType.js";
 export { ProtocolMode } from "./authority/ProtocolMode.js";
 export { OIDCOptions } from "./authority/OIDCOptions.js";
 export { CacheManager, DefaultStorageClass } from "./cache/CacheManager.js";
+export { AsyncCacheManager, DefaultAsyncStorageClass } from "./cache/AsyncCacheManager.js";
 export {
     AccountCache,
     AccountFilter,

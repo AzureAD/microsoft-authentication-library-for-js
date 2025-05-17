@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Logger } from "@azure/msal-common/browser";
+import { IPerformanceClient, Logger, PerformanceEvents } from "@azure/msal-common/browser";
 import {
     BrowserAuthError,
     BrowserAuthErrorCodes,
@@ -12,20 +12,35 @@ import { DatabaseStorage } from "./DatabaseStorage.js";
 import { IAsyncStorage } from "./IAsyncStorage.js";
 import { MemoryStorage } from "./MemoryStorage.js";
 
+const BROADCAST_CHANNEL_NAME = "msal.broadcast.cache"; // TODO: Dedupe
+
 /**
  * This class allows MSAL to store artifacts asynchronously using the DatabaseStorage IndexedDB wrapper,
  * backed up with the more volatile MemoryStorage object for cases in which IndexedDB may be unavailable.
  */
 export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
+    private clientId: string | undefined;
     private inMemoryCache: MemoryStorage<T>;
     private indexedDBCache: DatabaseStorage<T>;
     private logger: Logger;
+    private initialized: boolean = false;
+    private performanceClient: IPerformanceClient | undefined;
+    private broadcast: BroadcastChannel;
 
-    constructor(logger: Logger) {
+    constructor(logger: Logger, clientId?: string, performanceClient?: IPerformanceClient) {
         this.inMemoryCache = new MemoryStorage<T>();
         this.indexedDBCache = new DatabaseStorage<T>();
+        this.clientId = clientId;
         this.logger = logger;
+        this.performanceClient = performanceClient;
+        this.broadcast = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
     }
+
+    async initialize(): Promise<void> {
+        this.initialized = true;
+        // Register listener for cache updates in other tabs
+        this.broadcast.addEventListener("message", this.updateCache.bind(this));
+    };
 
     private handleDatabaseAccessError(error: unknown): void {
         if (
@@ -152,5 +167,40 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
             this.handleDatabaseAccessError(e);
             return false;
         }
+    }
+
+    private updateCache(event: MessageEvent): void {
+        this.logger.trace("Updating internal cache from broadcast event");
+        const perfMeasurement = this.performanceClient?.startMeasurement(
+            PerformanceEvents.LocalStorageUpdated
+        );
+        perfMeasurement?.add({ isBackground: true });
+
+        const { key, value, context } = event.data;
+        if (!key) {
+            this.logger.error("Broadcast event missing key");
+            perfMeasurement?.end({ success: false, errorCode: "noKey" });
+            return;
+        }
+
+        if (context && context !== this.clientId) {
+            this.logger.trace(
+                `Ignoring broadcast event from clientId: ${context}`
+            );
+            perfMeasurement?.end({
+                success: false,
+                errorCode: "contextMismatch",
+            });
+            return;
+        }
+
+        if (!value) {
+            this.inMemoryCache.removeItem(key);
+            this.logger.verbose("Removed item from internal cache");
+        } else {
+            this.inMemoryCache.setItem(key, value);
+            this.logger.verbose("Updated item in internal cache");
+        }
+        perfMeasurement?.end({ success: true });
     }
 }

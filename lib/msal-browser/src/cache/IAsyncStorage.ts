@@ -5,6 +5,11 @@
 
 export interface IAsyncStorage<T> {
     /**
+     * Async initializer
+     */
+
+    initialize(): Promise<void>;
+    /**
      * Get the item from the asynchronous storage object matching the given key.
      * @param key
      */

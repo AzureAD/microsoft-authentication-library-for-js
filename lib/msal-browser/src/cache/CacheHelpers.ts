@@ -6,6 +6,7 @@
 import { TokenKeys } from "@azure/msal-common/browser";
 import { StaticCacheKeys } from "../utils/BrowserConstants.js";
 import { IWindowStorage } from "./IWindowStorage.js";
+import { IAsyncStorage } from "./IAsyncStorage.js";
 
 /**
  * Returns a list of cache keys for all known accounts
@@ -14,6 +15,15 @@ import { IWindowStorage } from "./IWindowStorage.js";
  */
 export function getAccountKeys(storage: IWindowStorage<string>): Array<string> {
     const accountKeys = storage.getItem(StaticCacheKeys.ACCOUNT_KEYS);
+    if (accountKeys) {
+        return JSON.parse(accountKeys);
+    }
+
+    return [];
+}
+
+export async function getAccountKeysAsync(storage: IAsyncStorage<string>): Promise<Array<string>> {
+    const accountKeys = await storage.getItem(StaticCacheKeys.ACCOUNT_KEYS);
     if (accountKeys) {
         return JSON.parse(accountKeys);
     }
@@ -32,6 +42,36 @@ export function getTokenKeys(
     storage: IWindowStorage<string>
 ): TokenKeys {
     const item = storage.getItem(`${StaticCacheKeys.TOKEN_KEYS}.${clientId}`);
+    if (item) {
+        const tokenKeys = JSON.parse(item);
+        if (
+            tokenKeys &&
+            tokenKeys.hasOwnProperty("idToken") &&
+            tokenKeys.hasOwnProperty("accessToken") &&
+            tokenKeys.hasOwnProperty("refreshToken")
+        ) {
+            return tokenKeys as TokenKeys;
+        }
+    }
+
+    return {
+        idToken: [],
+        accessToken: [],
+        refreshToken: [],
+    };
+}
+
+/**
+ * Returns a list of cache keys for all known tokens
+ * @param clientId
+ * @param storage
+ * @returns
+ */
+export async function getTokenKeysAsync(
+    clientId: string,
+    storage: IAsyncStorage<string>
+): Promise<TokenKeys> {
+    const item = await storage.getItem(`${StaticCacheKeys.TOKEN_KEYS}.${clientId}`);
     if (item) {
         const tokenKeys = JSON.parse(item);
         if (
