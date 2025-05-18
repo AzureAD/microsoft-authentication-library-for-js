@@ -243,10 +243,8 @@ export abstract class AsyncCacheManager {
      * @returns Array of AccountInfo objects in cache
      */
     async getAllAccounts(accountFilter?: AccountFilter): Promise<AccountInfo[]> {
-        return this.buildTenantProfiles(
-            await this.getAccountsFilteredBy(accountFilter || {}),
-            accountFilter
-        );
+        const filteredAccounts= await this.getAccountsFilteredBy(accountFilter || {});
+        return this.buildTenantProfiles(filteredAccounts, accountFilter);
     }
 
     /**
@@ -293,16 +291,15 @@ export abstract class AsyncCacheManager {
         cachedAccounts: AccountEntity[],
         accountFilter?: AccountFilter
     ): Promise<AccountInfo[]> {
-        const allProfiles: AccountInfo[] = [];
-        for (const accountEntity of cachedAccounts) {
-            const profiles = await this.getTenantProfilesFromAccountEntity(
+        const profilePromises = cachedAccounts.map(accountEntity =>
+            this.getTenantProfilesFromAccountEntity(
                 accountEntity,
                 accountFilter?.tenantId,
                 accountFilter
-            );
-            allProfiles.push(...profiles);
-        }
-        return allProfiles;
+            )
+        );
+        const profilesArrays = await Promise.all(profilePromises);
+        return profilesArrays.flat();
     }
 
     private async getTenantedAccountInfoByFilter(
@@ -383,20 +380,19 @@ export abstract class AsyncCacheManager {
             }
         }
 
-        const matchingTenantProfiles: AccountInfo[] = [];
-        searchTenantProfiles.forEach(async (tenantProfile: TenantProfile) => {
-            const tenantedAccountInfo = await this.getTenantedAccountInfoByFilter(
+        const tenantProfilePromises = Array.from(searchTenantProfiles.values()).map(
+            async (tenantProfile: TenantProfile) => {
+            return this.getTenantedAccountInfoByFilter(
                 accountInfo,
                 tokenKeys,
                 tenantProfile,
                 tenantProfileFilter
             );
-            if (tenantedAccountInfo) {
-                matchingTenantProfiles.push(tenantedAccountInfo);
             }
-        });
+        );
 
-        return matchingTenantProfiles;
+        const results = await Promise.all(tenantProfilePromises);
+        return results.filter((tenantedAccountInfo): tenantedAccountInfo is AccountInfo => !!tenantedAccountInfo);
     }
 
     private tenantProfileMatchesFilter(
@@ -621,93 +617,94 @@ export abstract class AsyncCacheManager {
      */
     async getAccountsFilteredBy(accountFilter: AccountFilter): Promise<AccountEntity[]> {
         const allAccountKeys = await this.getAccountKeys();
-        const matchingAccounts: AccountEntity[] = [];
-        allAccountKeys.forEach(async (cacheKey) => {
+        const accountPromises = allAccountKeys.map(async (cacheKey) => {
             if (!this.isAccountKey(cacheKey, accountFilter.homeAccountId)) {
-                // Don't parse value if the key doesn't match the account filters
-                return;
+            // Don't parse value if the key doesn't match the account filters
+            return null;
             }
 
             const entity: AccountEntity | null = await this.getAccount(
-                cacheKey,
-                this.commonLogger
+            cacheKey,
+            this.commonLogger
             );
 
             // Match base account fields
 
             if (!entity) {
-                return;
+            return null;
             }
 
             if (
-                !!accountFilter.homeAccountId &&
-                !this.matchHomeAccountId(entity, accountFilter.homeAccountId)
+            !!accountFilter.homeAccountId &&
+            !this.matchHomeAccountId(entity, accountFilter.homeAccountId)
             ) {
-                return;
+            return null;
             }
 
             if (
-                !!accountFilter.username &&
-                !this.matchUsername(entity.username, accountFilter.username)
+            !!accountFilter.username &&
+            !this.matchUsername(entity.username, accountFilter.username)
             ) {
-                return;
+            return null;
             }
 
             if (
-                !!accountFilter.environment &&
-                !this.matchEnvironment(entity, accountFilter.environment)
+            !!accountFilter.environment &&
+            !(await this.matchEnvironment(entity, accountFilter.environment))
             ) {
-                return;
+            return null;
             }
 
             if (
-                !!accountFilter.realm &&
-                !this.matchRealm(entity, accountFilter.realm)
+            !!accountFilter.realm &&
+            !this.matchRealm(entity, accountFilter.realm)
             ) {
-                return;
+            return null;
             }
 
             if (
-                !!accountFilter.nativeAccountId &&
-                !this.matchNativeAccountId(
-                    entity,
-                    accountFilter.nativeAccountId
-                )
+            !!accountFilter.nativeAccountId &&
+            !this.matchNativeAccountId(
+                entity,
+                accountFilter.nativeAccountId
+            )
             ) {
-                return;
+            return null;
             }
 
             if (
-                !!accountFilter.authorityType &&
-                !this.matchAuthorityType(entity, accountFilter.authorityType)
+            !!accountFilter.authorityType &&
+            !this.matchAuthorityType(entity, accountFilter.authorityType)
             ) {
-                return;
+            return null;
             }
 
             // If at least one tenant profile matches the tenant profile filter, add the account to the list of matching accounts
             const tenantProfileFilter: TenantProfileFilter = {
-                localAccountId: accountFilter?.localAccountId,
-                name: accountFilter?.name,
+            localAccountId: accountFilter?.localAccountId,
+            name: accountFilter?.name,
             };
 
             const matchingTenantProfiles = entity.tenantProfiles?.filter(
-                (tenantProfile: TenantProfile) => {
-                    return this.tenantProfileMatchesFilter(
-                        tenantProfile,
-                        tenantProfileFilter
-                    );
-                }
+            (tenantProfile: TenantProfile) => {
+                return this.tenantProfileMatchesFilter(
+                tenantProfile,
+                tenantProfileFilter
+                );
+            }
             );
 
             if (matchingTenantProfiles && matchingTenantProfiles.length === 0) {
-                // No tenant profile for this account matches filter, don't add to list of matching accounts
-                return;
+            // No tenant profile for this account matches filter, don't add to list of matching accounts
+            return null;
             }
 
-            matchingAccounts.push(entity);
+            return entity;
         });
 
-        return matchingAccounts;
+        const results = await Promise.all(accountPromises);
+        console.dir(results);
+        return results.filter((entity): entity is AccountEntity => entity !== null);
     }
 
     /**
@@ -1169,22 +1166,28 @@ export abstract class AsyncCacheManager {
         const idTokenKeys =
             (tokenKeys && tokenKeys.idToken) || (await this.getTokenKeys()).idToken;
 
-        const idTokens: Map<string, IdTokenEntity> = new Map<
-            string,
-            IdTokenEntity
-        >();
-        idTokenKeys.forEach(async (key) => {
+        const idTokens: Map<string, IdTokenEntity> = new Map<string, IdTokenEntity>();
+
+        const idTokenPromises = idTokenKeys.map(async (key) => {
             if (
-                !this.idTokenKeyMatchesFilter(key, {
-                    clientId: this.clientId,
-                    ...filter,
-                })
+            !this.idTokenKeyMatchesFilter(key, {
+                clientId: this.clientId,
+                ...filter,
+            })
             ) {
-                return;
+            return null;
             }
             const idToken = await this.getIdTokenCredential(key);
             if (idToken && this.credentialMatchesFilter(idToken, filter)) {
-                idTokens.set(key, idToken);
+            return { key, idToken };
+            }
+            return null;
+        });
+
+        const results = await Promise.all(idTokenPromises);
+        results.forEach((result) => {
+            if (result) {
+            idTokens.set(result.key, result.idToken);
             }
         });
 

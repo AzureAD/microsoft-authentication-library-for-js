@@ -17,6 +17,7 @@ import {
     PerformanceEvents,
     invokeAsync,
     Constants,
+    AccountEntity,
 } from "@azure/msal-common/browser";
 import { ITokenCache } from "../cache/ITokenCache.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -46,6 +47,7 @@ import { createNewGuid } from "../crypto/WorkerCrypto.js";
 import { WorkerOperatingContext } from "../operatingcontext/WorkerOperatingContext.js";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import { DEFAULT_WORKER_CACHE_MANAGER, WorkerCacheManager } from "../cache/WorkerCacheManager.js";
+import * as AsyncAccountManager from "../cache/AsyncAccountManager.js";
 
 /**
  * WorkerController class
@@ -73,7 +75,7 @@ export class WorkerController implements IController {
     protected nativeExtensionProvider: NativeMessageHandler | undefined;
 
     // Crypto interface implementation
-    protected readonly browserCrypto: ICrypto;
+    protected readonly workerCrypto: ICrypto;
 
     // Flag to indicate if in browser environment
     protected isBrowserEnvironment: boolean;
@@ -99,9 +101,7 @@ export class WorkerController implements IController {
         this.performanceClient = this.config.telemetry.client;
 
         // Initialize the crypto class.
-        this.browserCrypto = this.isBrowserEnvironment
-            ? new CryptoOps(this.logger, this.performanceClient)
-            : DEFAULT_CRYPTO_IMPLEMENTATION;
+        this.workerCrypto = new CryptoOps(this.logger, this.performanceClient);
 
         this.eventHandler = new EventHandler(this.logger);
 
@@ -110,7 +110,7 @@ export class WorkerController implements IController {
             ? new WorkerCacheManager(
                   this.config.auth.clientId,
                   this.config.cache,
-                  this.browserCrypto,
+                  this.workerCrypto,
                   this.logger,
                   this.performanceClient,
                   this.eventHandler,
@@ -213,6 +213,19 @@ export class WorkerController implements IController {
         });
     }
 
+    /**
+     * Returns all the accounts in the cache that match the optional filter. If no filter is provided, all accounts are returned.
+     * @param accountFilter - (Optional) filter to narrow down the accounts returned
+     * @returns Array of AccountInfo objects in cache
+     */
+    async getAllAccountsAsync(accountFilter?: AccountFilter): Promise<AccountInfo[]> {
+        return AsyncAccountManager.getAllAccounts(
+            this.logger,
+            this.workerStorage,
+            accountFilter
+        );
+    }
+
     // TODO: Dedupe with StandardController
     /**
      * Generates a correlation id for a request if none is provided.
@@ -238,6 +251,45 @@ export class WorkerController implements IController {
          */
         return Constants.EMPTY_STRING;
     }
+
+    /**
+     * Hydrates the cache with the tokens from an AuthenticationResult
+     * @param result
+     * @param request
+     * @returns
+     */
+    async hydrateCache(
+        result: AuthenticationResult,
+        request:
+            | SilentRequest
+            | SsoSilentRequest
+            | RedirectRequest
+            | PopupRequest
+    ): Promise<void> {
+        this.logger.verbose("hydrateCache called");
+
+        // Account gets saved to browser storage regardless of native or not
+        const accountEntity = AccountEntity.createFromAccountInfo(
+            result.account,
+            result.cloudGraphHostName,
+            result.msGraphHost
+        );
+        await this.workerStorage.setAccount(
+            accountEntity
+        );
+
+        /*
+         * if (result.fromNativeBroker) {
+         *     this.logger.verbose(
+         *         "Response was from native broker, storing in-memory"
+         *     );
+         *     // Tokens from native broker are stored in-memory
+         *     return this.nativeInternalStorage.hydrateCache(result, request);
+         * } else {
+         */
+            return this.workerStorage.hydrateCache(result, request);
+        // }
+    }
     
     getBrowserStorage(): WorkerCacheManager {
         return this.workerStorage;
@@ -262,7 +314,6 @@ export class WorkerController implements IController {
     getAllAccounts(): AccountInfo[] {
         return [];
     }
-
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         blockAPICallsBeforeInitialize(this.initialized);
@@ -478,21 +529,6 @@ export class WorkerController implements IController {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async hydrateCache(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        result: AuthenticationResult,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        request:
-            | SilentRequest
-            | SsoSilentRequest
-            | RedirectRequest
-            | PopupRequest
-    ): Promise<void> {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();
     }

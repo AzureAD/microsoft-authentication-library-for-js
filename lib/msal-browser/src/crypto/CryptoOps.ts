@@ -20,6 +20,7 @@ import {
 } from "../encode/Base64Encode.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import * as BrowserCrypto from "./BrowserCrypto.js";
+import * as WorkerCrypto from "./WorkerCrypto.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -32,13 +33,13 @@ export type CachedKeyPair = {
     requestMethod?: string;
     requestUri?: string;
 };
-
 /**
  * This class implements MSAL's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and
  * implementing Proof Key for Code Exchange specs for the OAuth Authorization Code Flow using PKCE (rfc here: https://tools.ietf.org/html/rfc7636).
  */
 export class CryptoOps implements ICrypto {
     private logger: Logger;
+    private cryptoImpl: typeof BrowserCrypto | typeof WorkerCrypto;
 
     /**
      * CryptoOps can be used in contexts outside a PCA instance,
@@ -56,8 +57,10 @@ export class CryptoOps implements ICrypto {
         skipValidateSubtleCrypto?: boolean
     ) {
         this.logger = logger;
+        this.cryptoImpl = (typeof window !== "undefined") ? BrowserCrypto : WorkerCrypto;
+
         // Browser crypto needs to be validated first before any other classes can be set.
-        BrowserCrypto.validateCryptoAvailable(
+        this.cryptoImpl.validateCryptoAvailable(
             skipValidateSubtleCrypto ?? false
         );
         this.cache = new AsyncMemoryStorage<CachedKeyPair>(this.logger);
@@ -69,7 +72,7 @@ export class CryptoOps implements ICrypto {
      * @returns string (GUID)
      */
     createNewGuid(): string {
-        return BrowserCrypto.createNewGuid();
+    return this.cryptoImpl.createNewGuid();
     }
 
     /**
@@ -119,13 +122,13 @@ export class CryptoOps implements ICrypto {
             );
 
         // Generate Keypair
-        const keyPair: CryptoKeyPair = await BrowserCrypto.generateKeyPair(
+        const keyPair: CryptoKeyPair = await this.cryptoImpl.generateKeyPair(
             CryptoOps.EXTRACTABLE,
             CryptoOps.POP_KEY_USAGES
         );
 
         // Generate Thumbprint for Public Key
-        const publicKeyJwk: JsonWebKey = await BrowserCrypto.exportJwk(
+        const publicKeyJwk: JsonWebKey = await this.cryptoImpl.exportJwk(
             keyPair.publicKey
         );
 
@@ -140,12 +143,12 @@ export class CryptoOps implements ICrypto {
         const publicJwkHash = await this.hashString(publicJwkString);
 
         // Generate Thumbprint for Private Key
-        const privateKeyJwk: JsonWebKey = await BrowserCrypto.exportJwk(
+        const privateKeyJwk: JsonWebKey = await this.cryptoImpl.exportJwk(
             keyPair.privateKey
         );
         // Re-import private key to make it unextractable
         const unextractablePrivateKey: CryptoKey =
-            await BrowserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
+            await this.cryptoImpl.importJwk(privateKeyJwk, false, ["sign"]);
 
         // Store Keypair data in keystore
         await this.cache.setItem(publicJwkHash, {
@@ -227,7 +230,7 @@ export class CryptoOps implements ICrypto {
         }
 
         // Get public key as JWK
-        const publicKeyJwk = await BrowserCrypto.exportJwk(
+        const publicKeyJwk = await this.cryptoImpl.exportJwk(
             cachedKeyPair.publicKey
         );
         const publicKeyJwkString = getSortedObjectString(publicKeyJwk);
@@ -254,7 +257,7 @@ export class CryptoOps implements ICrypto {
         // Sign token
         const encoder = new TextEncoder();
         const tokenBuffer = encoder.encode(tokenString);
-        const signatureBuffer = await BrowserCrypto.sign(
+        const signatureBuffer = await this.cryptoImpl.sign(
             cachedKeyPair.privateKey,
             tokenBuffer
         );
@@ -276,7 +279,7 @@ export class CryptoOps implements ICrypto {
      * @param plainText
      */
     async hashString(plainText: string): Promise<string> {
-        return BrowserCrypto.hashString(plainText);
+        return this.cryptoImpl.hashString(plainText);
     }
 }
 

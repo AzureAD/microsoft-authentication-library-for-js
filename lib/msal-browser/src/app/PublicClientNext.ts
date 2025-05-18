@@ -282,6 +282,18 @@ export class PublicClientNext implements IPublicClientApplication {
     }
 
     /**
+     * Returns all the accounts in the cache that match the optional filter. If no filter is provided, all accounts are returned.
+     * @param accountFilter - (Optional) filter to narrow down the accounts returned
+     * @returns Array of AccountInfo objects in cache
+     */
+    async getAllAccountsAsync(accountFilter?: AccountFilter): Promise<AccountInfo[]> {
+        if (typeof this.controller.getAllAccountsAsync === "function") {
+            return this.controller.getAllAccountsAsync(accountFilter);
+        }
+        return Promise.resolve([]);
+    }
+
+    /**
      * Event handler function which allows users to fire events after the PublicClientApplication object
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
      * auth flows.

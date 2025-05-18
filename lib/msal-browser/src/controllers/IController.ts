@@ -74,6 +74,10 @@ export interface IController {
 
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
 
+    getAllAccountsAsync?(
+        accountFilter?: AccountFilter
+    ): Promise<AccountInfo[]>;
+
     handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
 
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
