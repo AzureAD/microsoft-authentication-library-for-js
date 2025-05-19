@@ -38,10 +38,11 @@ import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandle
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
+import { WorkerCacheManager } from "../cache/WorkerCacheManager.js";
 
 export abstract class BaseInteractionClient {
     protected config: BrowserConfiguration;
-    protected browserStorage: BrowserCacheManager;
+    protected browserStorage: BrowserCacheManager | WorkerCacheManager;
     protected browserCrypto: ICrypto;
     protected networkClient: INetworkModule;
     protected logger: Logger;
@@ -53,7 +54,7 @@ export abstract class BaseInteractionClient {
 
     constructor(
         config: BrowserConfiguration,
-        storageImpl: BrowserCacheManager,
+        storageImpl: BrowserCacheManager | WorkerCacheManager,
         browserCrypto: ICrypto,
         logger: Logger,
         eventHandler: EventHandler,
@@ -93,12 +94,12 @@ export abstract class BaseInteractionClient {
             if (
                 AccountEntity.accountInfoIsEqual(
                     account,
-                    this.browserStorage.getActiveAccount(),
+                   await this.browserStorage.getActiveAccount(),
                     false
                 )
             ) {
                 this.logger.verbose("Setting active account to null");
-                this.browserStorage.setActiveAccount(null);
+                await this.browserStorage.setActiveAccount(null);
             }
             // Clear given account.
             try {

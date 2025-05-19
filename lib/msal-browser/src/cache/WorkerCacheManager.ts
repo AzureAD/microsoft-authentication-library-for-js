@@ -500,6 +500,7 @@ export class WorkerCacheManager extends AsyncCacheManager {
      */
     async getAccessTokenCredential(accessTokenKey: string): Promise<AccessTokenEntity | null> {
         const value = await this.workerStorage.getItem(accessTokenKey);
+        console.log("AT: ", value);
         if (!value) {
             this.logger.trace(
                 "WorkerCacheManager.getAccessTokenCredential: called, no cache hit"

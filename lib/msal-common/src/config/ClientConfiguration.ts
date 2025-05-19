@@ -14,6 +14,7 @@ import { version } from "../packageMetadata.js";
 import { Authority } from "../authority/Authority.js";
 import { AzureCloudInstance } from "../authority/AuthorityOptions.js";
 import { CacheManager, DefaultStorageClass } from "../cache/CacheManager.js";
+import { AsyncCacheManager } from "../cache/AsyncCacheManager.js";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
 import { ICachePlugin } from "../cache/interface/ICachePlugin.js";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache.js";
@@ -44,7 +45,7 @@ export type ClientConfiguration = {
     systemOptions?: SystemOptions;
     loggerOptions?: LoggerOptions;
     cacheOptions?: CacheOptions;
-    storageInterface?: CacheManager;
+    storageInterface?: CacheManager | AsyncCacheManager;
     networkInterface?: INetworkModule;
     cryptoInterface?: ICrypto;
     clientCredentials?: ClientCredentials;
@@ -60,7 +61,7 @@ export type CommonClientConfiguration = {
     systemOptions: Required<SystemOptions>;
     loggerOptions: Required<LoggerOptions>;
     cacheOptions: Required<CacheOptions>;
-    storageInterface: CacheManager;
+    storageInterface: CacheManager | AsyncCacheManager;
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
     libraryInfo: LibraryInfo;

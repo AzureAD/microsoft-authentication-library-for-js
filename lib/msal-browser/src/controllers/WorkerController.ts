@@ -11,13 +11,17 @@ import {
     Logger,
     ICrypto,
     IPerformanceClient,
-    DEFAULT_CRYPTO_IMPLEMENTATION,
     AccountFilter,
     BaseAuthRequest,
     PerformanceEvents,
     invokeAsync,
     Constants,
     AccountEntity,
+    InProgressPerformanceEvent,
+    AuthError,
+    getRequestThumbprint,
+    ClientAuthErrorCodes,
+    createClientAuthError,
 } from "@azure/msal-common/browser";
 import { ITokenCache } from "../cache/ITokenCache.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -30,7 +34,7 @@ import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
-import { ApiId, WrapperSKU } from "../utils/BrowserConstants.js";
+import { ApiId, CacheLookupPolicy, InteractionType, WrapperSKU } from "../utils/BrowserConstants.js";
 import { IController } from "./IController.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
 import {
@@ -48,6 +52,40 @@ import { WorkerOperatingContext } from "../operatingcontext/WorkerOperatingConte
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import { DEFAULT_WORKER_CACHE_MANAGER, WorkerCacheManager } from "../cache/WorkerCacheManager.js";
 import * as AsyncAccountManager from "../cache/AsyncAccountManager.js";
+import { BrowserAuthErrorCodes, createBrowserAuthError } from "../error/BrowserAuthError.js";
+import { initializeSilentRequest } from "../request/RequestHelpers.js";
+// import { NativeAuthError, isFatalNativeAuthError } from "../error/NativeAuthError.js";
+import { SilentCacheClient } from "../interaction_client/SilentCacheClient.js";
+import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient.js";
+
+function getAccountType(
+    account?: AccountInfo
+): "AAD" | "MSA" | "B2C" | undefined {
+    const idTokenClaims = account?.idTokenClaims;
+    if (idTokenClaims?.tfp || idTokenClaims?.acr) {
+        return "B2C";
+    }
+
+    if (!idTokenClaims?.tid) {
+        return undefined;
+    } else if (idTokenClaims?.tid === "9188040d-6c67-4c5b-b112-36a304b66dad") {
+        return "MSA";
+    }
+    return "AAD";
+}
+
+function preflightCheck(
+    initialized: boolean,
+    performanceEvent: InProgressPerformanceEvent
+) {
+    try {        
+        // Block token acquisition before initialize has been called
+        blockAPICallsBeforeInitialize(initialized);
+    } catch (e) {
+        performanceEvent.end({ success: false }, e);
+        throw e;
+    }
+}
 
 /**
  * WorkerController class
@@ -82,8 +120,16 @@ export class WorkerController implements IController {
 
     protected isWorkerEnvironment: boolean;
 
+    // Navigation interface implementation
+    protected navigationClient: INavigationClient;
+
     // Flag representing whether or not the initialize API has been called and completed
     protected initialized: boolean = false;
+        // Active requests
+    private activeSilentTokenRequests: Map<
+        string,
+        Promise<AuthenticationResult>
+    >;
 
     constructor(operatingContext: WorkerOperatingContext) {
         this.operatingContext = operatingContext;
@@ -105,6 +151,8 @@ export class WorkerController implements IController {
 
         this.eventHandler = new EventHandler(this.logger);
 
+        this.navigationClient = this.config.system.navigationClient;
+
         // Initialize the browser storage class.
         this.workerStorage = this.isWorkerEnvironment
             ? new WorkerCacheManager(
@@ -122,6 +170,8 @@ export class WorkerController implements IController {
                   this.performanceClient,
                   this.eventHandler
               );
+
+              this.activeSilentTokenRequests = new Map();
     }
     
     // TODO: Dedupe with StandardController
@@ -226,6 +276,401 @@ export class WorkerController implements IController {
         );
     }
 
+    /**
+     * Silently acquire an access token for a given set of scopes. Returns currently processing promise if parallel requests are made.
+     *
+     * @param {@link (SilentRequest:type)}
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     */
+    async acquireTokenSilent(
+        request: SilentRequest
+    ): Promise<AuthenticationResult> {
+        const correlationId = this.getRequestCorrelationId(request);
+        const atsMeasurement = this.performanceClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            correlationId
+        );
+        atsMeasurement.add({
+            cacheLookupPolicy: request.cacheLookupPolicy,
+            scenarioId: request.scenarioId,
+        });
+
+        preflightCheck(this.initialized, atsMeasurement);
+        this.logger.verbose("acquireTokenSilent called", correlationId);
+
+        const account = request.account || this.getActiveAccount();
+        if (!account) {
+            throw createBrowserAuthError(BrowserAuthErrorCodes.noAccountError);
+        }
+        atsMeasurement.add({ accountType: getAccountType(account) });
+
+        return this.acquireTokenSilentDeduped(request, account, correlationId)
+            .then((result) => {
+                atsMeasurement.end({
+                    success: true,
+                    fromCache: result.fromCache,
+                    isNativeBroker: result.fromNativeBroker,
+                    accessTokenSize: result.accessToken.length,
+                    idTokenSize: result.idToken.length,
+                });
+                return {
+                    ...result,
+                    state: request.state,
+                    correlationId: correlationId, // Ensures PWB scenarios can correctly match request to response
+                };
+            })
+            .catch((error: Error) => {
+                if (error instanceof AuthError) {
+                    // Ensures PWB scenarios can correctly match request to response
+                    error.setCorrelationId(correlationId);
+                }
+
+                atsMeasurement.end(
+                    {
+                        success: false,
+                    },
+                    error
+                );
+                throw error;
+            });
+    }
+
+    /**
+     * Checks if identical request is already in flight and returns reference to the existing promise or fires off a new one if this is the first
+     * @param request
+     * @param account
+     * @param correlationId
+     * @returns
+     */
+    private async acquireTokenSilentDeduped(
+        request: SilentRequest,
+        account: AccountInfo,
+        correlationId: string
+    ): Promise<AuthenticationResult> {
+        const thumbprint = getRequestThumbprint(
+            this.config.auth.clientId,
+            {
+                ...request,
+                authority: request.authority || this.config.auth.authority,
+                correlationId: correlationId,
+            },
+            account.homeAccountId
+        );
+        const silentRequestKey = JSON.stringify(thumbprint);
+
+        const inProgressRequest =
+            this.activeSilentTokenRequests.get(silentRequestKey);
+
+        if (typeof inProgressRequest === "undefined") {
+            this.logger.verbose(
+                "acquireTokenSilent called for the first time, storing active request",
+                correlationId
+            );
+            this.performanceClient.addFields({ deduped: false }, correlationId);
+
+            const activeRequest = invokeAsync(
+                this.acquireTokenSilentAsync.bind(this),
+                PerformanceEvents.AcquireTokenSilentAsync,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                {
+                    ...request,
+                    correlationId,
+                },
+                account
+            );
+            this.activeSilentTokenRequests.set(silentRequestKey, activeRequest);
+
+            return activeRequest.finally(() => {
+                this.activeSilentTokenRequests.delete(silentRequestKey);
+            });
+        } else {
+            this.logger.verbose(
+                "acquireTokenSilent has been called previously, returning the result from the first call",
+                correlationId
+            );
+            this.performanceClient.addFields({ deduped: true }, correlationId);
+            return inProgressRequest;
+        }
+    }
+
+    /**
+     * Silently acquire an access token for a given set of scopes. Will use cached token if available, otherwise will attempt to acquire a new token from the network via refresh token.
+     * @param {@link (SilentRequest:type)}
+     * @param {@link (AccountInfo:type)}
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse}
+     */
+    protected async acquireTokenSilentAsync(
+        request: SilentRequest & { correlationId: string },
+        account: AccountInfo
+    ): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(
+            PerformanceEvents.AcquireTokenSilentAsync,
+            request.correlationId
+        );
+
+        this.eventHandler.emitEvent(
+            EventType.ACQUIRE_TOKEN_START,
+            InteractionType.Silent,
+            request
+        );
+
+        if (request.correlationId) {
+            this.performanceClient.incrementFields(
+                { visibilityChangeCount: 0 },
+                request.correlationId
+            );
+        }
+
+        const silentRequest = await invokeAsync(
+            initializeSilentRequest,
+            PerformanceEvents.InitializeSilentRequest,
+            this.logger,
+            this.performanceClient,
+            request.correlationId
+        )(request, account, this.config, this.performanceClient, this.logger);
+        const cacheLookupPolicy =
+            request.cacheLookupPolicy || CacheLookupPolicy.Default;
+
+        const result = this.acquireTokenSilentNoIframe(
+            silentRequest,
+            cacheLookupPolicy
+        ).catch(async (refreshTokenError: AuthError) => {        
+            // Error cannot be silently resolved since iframes are not allowed
+            throw refreshTokenError;
+        });
+
+        return result
+            .then((response) => {
+                this.eventHandler.emitEvent(
+                    EventType.ACQUIRE_TOKEN_SUCCESS,
+                    InteractionType.Silent,
+                    response
+                );
+                if (request.correlationId) {
+                    this.performanceClient.addFields(
+                        {
+                            fromCache: response.fromCache,
+                            isNativeBroker: response.fromNativeBroker,
+                        },
+                        request.correlationId
+                    );
+                }
+
+                return response;
+            })
+            .catch((tokenRenewalError: Error) => {
+                this.eventHandler.emitEvent(
+                    EventType.ACQUIRE_TOKEN_FAILURE,
+                    InteractionType.Silent,
+                    null,
+                    tokenRenewalError
+                );
+                throw tokenRenewalError;
+            });
+    }
+
+    /**
+     * AcquireTokenSilent without the iframe fallback. This is used to enable the correct fallbacks in cases where there's a potential for multiple silent requests to be made in parallel and prevent those requests from making concurrent iframe requests.
+     * @param silentRequest
+     * @param cacheLookupPolicy
+     * @returns
+     */
+    private async acquireTokenSilentNoIframe(
+        silentRequest: CommonSilentFlowRequest,
+        cacheLookupPolicy: CacheLookupPolicy
+    ): Promise<AuthenticationResult> {
+        /*
+         * if the cache policy is set to access_token only, we should not be hitting the native layer yet
+         * if (
+         *     NativeMessageHandler.isPlatformBrokerAvailable(
+         *         this.config,
+         *         this.logger,
+         *         this.nativeExtensionProvider,
+         *         silentRequest.authenticationScheme
+         *     ) &&
+         *     silentRequest.account.nativeAccountId
+         * ) {
+         *     this.logger.verbose(
+         *         "acquireTokenSilent - attempting to acquire token from native platform"
+         *     );
+         *     return this.acquireTokenNative(
+         *         silentRequest,
+         *         ApiId.acquireTokenSilent_silentFlow,
+         *         silentRequest.account.nativeAccountId,
+         *         cacheLookupPolicy
+         *     ).catch(async (e: AuthError) => {
+         *         // If native token acquisition fails for availability reasons fallback to web flow
+         *         if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
+         *             this.logger.verbose(
+         *                 "acquireTokenSilent - native platform unavailable, falling back to web flow"
+         *             );
+         *             this.nativeExtensionProvider = undefined; // Prevent future requests from continuing to attempt
+         */
+
+        /*
+         *             // Cache will not contain tokens, given that previous WAM requests succeeded. Skip cache and RT renewal and go straight to iframe renewal
+         *             throw createClientAuthError(
+         *                 ClientAuthErrorCodes.tokenRefreshRequired
+         *             );
+         *         }
+         *         throw e;
+         *     });
+         * } else {
+         */
+            this.logger.verbose(
+                "acquireTokenSilent - attempting to acquire token from web flow"
+            );
+            // add logs to identify embedded cache retrieval
+            if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
+                this.logger.verbose(
+                    "acquireTokenSilent - cache lookup policy set to AccessToken, attempting to acquire token from local cache"
+                );
+            }
+            return invokeAsync(
+                this.acquireTokenFromCache.bind(this),
+                PerformanceEvents.AcquireTokenFromCache,
+                this.logger,
+                this.performanceClient,
+                silentRequest.correlationId
+            )(silentRequest, cacheLookupPolicy).catch(
+                (cacheError: AuthError) => {
+                    if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
+                        throw cacheError;
+                    }
+
+                    this.eventHandler.emitEvent(
+                        EventType.ACQUIRE_TOKEN_NETWORK_START,
+                        InteractionType.Silent,
+                        silentRequest
+                    );
+
+                    return invokeAsync(
+                        this.acquireTokenByRefreshToken.bind(this),
+                        PerformanceEvents.AcquireTokenByRefreshToken,
+                        this.logger,
+                        this.performanceClient,
+                        silentRequest.correlationId
+                    )(silentRequest, cacheLookupPolicy);
+                }
+            );
+        // }
+    }
+
+        /**
+         * Attempt to acquire an access token from the cache
+         * @param silentCacheClient SilentCacheClient
+         * @param commonRequest CommonSilentFlowRequest
+         * @param silentRequest SilentRequest
+         * @returns A promise that, when resolved, returns the access token
+         */
+    protected async acquireTokenFromCache(
+        commonRequest: CommonSilentFlowRequest,
+        cacheLookupPolicy: CacheLookupPolicy
+    ): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(
+            PerformanceEvents.AcquireTokenFromCache,
+            commonRequest.correlationId
+        );
+        switch (cacheLookupPolicy) {
+            case CacheLookupPolicy.Default:
+            case CacheLookupPolicy.AccessToken:
+            case CacheLookupPolicy.AccessTokenAndRefreshToken:
+                const silentCacheClient = this.createSilentCacheClient(
+                    commonRequest.correlationId
+                );
+                return invokeAsync(
+                    silentCacheClient.acquireToken.bind(silentCacheClient),
+                    PerformanceEvents.SilentCacheClientAcquireToken,
+                    this.logger,
+                    this.performanceClient,
+                    commonRequest.correlationId
+                )(commonRequest);
+            default:
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired
+                );
+        }
+        
+    }
+
+    /**
+     * Attempt to acquire an access token via a refresh token
+     * @param commonRequest CommonSilentFlowRequest
+     * @param cacheLookupPolicy CacheLookupPolicy
+     * @returns A promise that, when resolved, returns the access token
+     */
+    public async acquireTokenByRefreshToken(
+        commonRequest: CommonSilentFlowRequest,
+        cacheLookupPolicy: CacheLookupPolicy
+    ): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(
+            PerformanceEvents.AcquireTokenByRefreshToken,
+            commonRequest.correlationId
+        );
+        switch (cacheLookupPolicy) {
+            case CacheLookupPolicy.Default:
+            case CacheLookupPolicy.AccessTokenAndRefreshToken:
+            case CacheLookupPolicy.RefreshToken:
+            case CacheLookupPolicy.RefreshTokenAndNetwork:
+                const silentRefreshClient = this.createSilentRefreshClient(
+                    commonRequest.correlationId
+                );
+
+                return invokeAsync(
+                    silentRefreshClient.acquireToken.bind(silentRefreshClient),
+                    PerformanceEvents.SilentRefreshClientAcquireToken,
+                    this.logger,
+                    this.performanceClient,
+                    commonRequest.correlationId
+                )(commonRequest);
+            default:
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired
+                );
+        }
+    }
+
+    /**
+     * Returns new instance of the Silent Cache Interaction Client
+     */
+    protected createSilentCacheClient(
+        correlationId?: string
+    ): SilentCacheClient {
+        return new SilentCacheClient(
+            this.config,
+            this.workerStorage,
+            this.workerCrypto,
+            this.logger,
+            this.eventHandler,
+            this.navigationClient,
+            this.performanceClient,
+            this.nativeExtensionProvider,
+            correlationId
+        );
+    }
+
+        /**
+         * Returns new instance of the Silent Refresh Interaction Client
+         */
+        protected createSilentRefreshClient(
+            correlationId?: string
+        ): SilentRefreshClient {
+            return new SilentRefreshClient(
+                this.config,
+                this.workerStorage,
+                this.workerCrypto,
+                this.logger,
+                this.eventHandler,
+                this.navigationClient,
+                this.performanceClient,
+                this.nativeExtensionProvider,
+                correlationId
+            );
+        }
+
     // TODO: Dedupe with StandardController
     /**
      * Generates a correlation id for a request if none is provided.
@@ -326,14 +771,6 @@ export class WorkerController implements IController {
         blockNonBrowserEnvironment();
         return Promise.resolve();
     }
-    acquireTokenSilent(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        silentRequest: SilentRequest
-    ): Promise<AuthenticationResult> {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
-        return {} as Promise<AuthenticationResult>;
-    }
     acquireTokenByCode(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         request: AuthorizationCodeRequest
@@ -362,16 +799,6 @@ export class WorkerController implements IController {
         apiId: ApiId,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         accountId?: string | undefined
-    ): Promise<AuthenticationResult> {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
-        return {} as Promise<AuthenticationResult>;
-    }
-    acquireTokenByRefreshToken(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        commonRequest: CommonSilentFlowRequest,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();

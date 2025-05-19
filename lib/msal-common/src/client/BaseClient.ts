@@ -38,6 +38,7 @@ import {
 } from "../error/ClientAuthError.js";
 import { NetworkError } from "../error/NetworkError.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
+import { AsyncCacheManager } from "../exports-common.js";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -54,7 +55,7 @@ export abstract class BaseClient {
     protected cryptoUtils: ICrypto;
 
     // Storage Interface
-    protected cacheManager: CacheManager;
+    protected cacheManager: CacheManager | AsyncCacheManager;
 
     // Network Interface
     protected networkClient: INetworkModule;

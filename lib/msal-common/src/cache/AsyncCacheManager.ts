@@ -1286,20 +1286,28 @@ export abstract class AsyncCacheManager {
             (await this.getTokenKeys()).accessToken;
         const accessTokens: AccessTokenEntity[] = [];
 
-        accessTokenKeys.forEach(async (key) => {
+        const accessTokenPromises = accessTokenKeys.map(async (key) => {
             // Validate key
             if (
-                this.accessTokenKeyMatchesFilter(key, accessTokenFilter, true)
+            this.accessTokenKeyMatchesFilter(key, accessTokenFilter, true)
             ) {
-                const accessToken = await this.getAccessTokenCredential(key);
+            const accessToken = await this.getAccessTokenCredential(key);
 
-                // Validate value
-                if (
-                    accessToken &&
-                    this.credentialMatchesFilter(accessToken, accessTokenFilter)
-                ) {
-                    accessTokens.push(accessToken);
-                }
+            // Validate value
+            if (
+                accessToken &&
+                this.credentialMatchesFilter(accessToken, accessTokenFilter)
+            ) {
+                return accessToken;
+            }
+            }
+            return null;
+        });
+
+        const accessTokenResults = await Promise.all(accessTokenPromises);
+        accessTokenResults.forEach((accessToken) => {
+            if (accessToken) {
+            accessTokens.push(accessToken);
             }
         });
 

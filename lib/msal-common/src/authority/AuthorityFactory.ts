@@ -15,6 +15,7 @@ import { Logger } from "../logger/Logger.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
+import { AsyncCacheManager } from "../exports-common.js";
 
 /**
  * Create an authority object of the correct type based on the url
@@ -30,7 +31,7 @@ import { invokeAsync } from "../utils/FunctionWrappers.js";
 export async function createDiscoveredInstance(
     authorityUri: string,
     networkClient: INetworkModule,
-    cacheManager: ICacheManager,
+    cacheManager: ICacheManager | AsyncCacheManager,
     authorityOptions: AuthorityOptions,
     logger: Logger,
     correlationId: string,

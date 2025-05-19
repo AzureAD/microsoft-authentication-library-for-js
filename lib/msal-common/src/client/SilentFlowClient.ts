@@ -70,8 +70,8 @@ export class SilentFlowClient extends BaseClient {
         const requestTenantId =
             request.account.tenantId ||
             getTenantFromAuthorityString(request.authority);
-        const tokenKeys = this.cacheManager.getTokenKeys();
-        const cachedAccessToken = this.cacheManager.getAccessToken(
+        const tokenKeys = await this.cacheManager.getTokenKeys();
+        const cachedAccessToken = await this.cacheManager.getAccessToken(
             request.account,
             request,
             tokenKeys,
@@ -117,9 +117,9 @@ export class SilentFlowClient extends BaseClient {
         const environment =
             request.authority || this.authority.getPreferredCache();
         const cacheRecord: CacheRecord = {
-            account: this.cacheManager.readAccountFromCache(request.account),
+            account: await this.cacheManager.readAccountFromCache(request.account),
             accessToken: cachedAccessToken,
-            idToken: this.cacheManager.getIdToken(
+            idToken: await this.cacheManager.getIdToken(
                 request.account,
                 tokenKeys,
                 requestTenantId,
@@ -128,15 +128,14 @@ export class SilentFlowClient extends BaseClient {
             ),
             refreshToken: null,
             appMetadata:
-                this.cacheManager.readAppMetadataFromCache(environment),
+                await this.cacheManager.readAppMetadataFromCache(environment),
         };
 
         this.setCacheOutcome(lastCacheOutcome, request.correlationId);
 
         if (this.config.serverTelemetryManager) {
-            this.config.serverTelemetryManager.incrementCacheHits();
+            await this.config.serverTelemetryManager.incrementCacheHits();
         }
-
         return [
             await invokeAsync(
                 this.generateResultFromCacheRecord.bind(this),

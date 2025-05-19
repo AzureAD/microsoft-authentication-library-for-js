@@ -58,6 +58,7 @@ import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
+import { AsyncCacheManager } from "../exports-common.js";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -72,7 +73,7 @@ export class Authority {
     // Network interface to make requests with.
     protected networkInterface: INetworkModule;
     // Cache Manager to cache network responses
-    protected cacheManager: ICacheManager;
+    protected cacheManager: ICacheManager | AsyncCacheManager;
     // Protocol mode to construct endpoints
     private authorityOptions: AuthorityOptions;
     // Authority metadata
@@ -101,7 +102,7 @@ export class Authority {
     constructor(
         authority: string,
         networkInterface: INetworkModule,
-        cacheManager: ICacheManager,
+        cacheManager: ICacheManager | AsyncCacheManager,
         authorityOptions: AuthorityOptions,
         logger: Logger,
         correlationId: string,
@@ -403,7 +404,7 @@ export class Authority {
             this.correlationId
         );
 
-        const metadataEntity = this.getCurrentMetadataEntity();
+        const metadataEntity = await this.getCurrentMetadataEntity();
 
         const cloudDiscoverySource = await invokeAsync(
             this.updateCloudDiscoveryMetadata.bind(this),
@@ -423,7 +424,7 @@ export class Authority {
             this.performanceClient,
             this.correlationId
         )(metadataEntity);
-        this.updateCachedMetadata(metadataEntity, cloudDiscoverySource, {
+        await this.updateCachedMetadata(metadataEntity, cloudDiscoverySource, {
             source: endpointSource,
         });
         this.performanceClient?.addFields(
@@ -440,9 +441,9 @@ export class Authority {
      * from the configured canonical authority
      * @returns
      */
-    private getCurrentMetadataEntity(): AuthorityMetadataEntity {
+    private async getCurrentMetadataEntity(): Promise<AuthorityMetadataEntity> {
         let metadataEntity: AuthorityMetadataEntity | null =
-            this.cacheManager.getAuthorityMetadataByAlias(this.hostnameAndPort);
+            await this.cacheManager.getAuthorityMetadataByAlias(this.hostnameAndPort);
 
         if (!metadataEntity) {
             metadataEntity = {
@@ -470,14 +471,14 @@ export class Authority {
      * @param cloudDiscoverySource
      * @param endpointMetadataResult
      */
-    private updateCachedMetadata(
+    private async updateCachedMetadata(
         metadataEntity: AuthorityMetadataEntity,
         cloudDiscoverySource: AuthorityMetadataSource | null,
         endpointMetadataResult: {
             source: AuthorityMetadataSource;
             metadata?: OpenIdConfigResponse;
         } | null
-    ): void {
+    ): Promise<void> {
         if (
             cloudDiscoverySource !== AuthorityMetadataSource.CACHE &&
             endpointMetadataResult?.source !== AuthorityMetadataSource.CACHE
@@ -491,7 +492,7 @@ export class Authority {
         const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(
             metadataEntity.preferred_cache
         );
-        this.cacheManager.setAuthorityMetadata(cacheKey, metadataEntity);
+        await this.cacheManager.setAuthorityMetadata(cacheKey, metadataEntity);
         this.metadata = metadataEntity;
     }
 
