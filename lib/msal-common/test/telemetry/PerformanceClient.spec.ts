@@ -17,8 +17,8 @@ import crypto from "crypto";
 import {
     compactStack,
     compactStackLine,
-} from "../../src/telemetry/performance/PerformanceClient";
-import * as PerformanceClient from "../../src/telemetry/performance/PerformanceClient";
+} from "../../src/telemetry/performance/PerformanceClient.js";
+import * as PerformanceClient from "../../src/telemetry/performance/PerformanceClient.js";
 import { PerformanceEventAbbreviations } from "../../src/telemetry/performance/PerformanceEvent";
 import { AuthError } from "../../src/error/AuthError.js";
 
@@ -944,7 +944,7 @@ describe("PerformanceClient.spec.ts", () => {
             );
 
             const thirdChildEventChild = mockPerfClient.startMeasurement(
-                PerformanceEvents.AuthClientCreateQueryString,
+                PerformanceEvents.GetAuthCodeUrl,
                 correlationId
             );
             thirdChildEventChild.end({ success: true });

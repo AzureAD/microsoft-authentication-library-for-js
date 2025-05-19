@@ -253,34 +253,10 @@ export class ClientTestUtils {
             },
         };
 
-        const authorityOptions: AuthorityOptions = {
-            protocolMode: protocolMode,
-            knownAuthorities: [TEST_CONFIG.validAuthority],
-            cloudDiscoveryMetadata: "",
-            authorityMetadata: "",
-        };
-
-        const loggerOptions = {
-            loggerCallback: (): void => {},
-            piiLoggingEnabled: true,
-            logLevel: LogLevel.Verbose,
-        };
-        const logger = new Logger(loggerOptions);
-
-        const authority = new Authority(
-            TEST_CONFIG.validAuthority,
-            mockHttpClient,
-            mockStorage,
-            authorityOptions,
-            logger,
-            TEST_CONFIG.CORRELATION_ID
+        const authority = await getDiscoveredAuthority(
+            protocolMode,
+            mockStorage
         );
-
-        await authority.resolveEndpointsAsync().catch((error) => {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
-            );
-        });
 
         let serverTelemetryManager = null;
 
@@ -329,4 +305,56 @@ export class ClientTestUtils {
             serverTelemetryManager: serverTelemetryManager,
         };
     }
+}
+
+export async function getDiscoveredAuthority(
+    protocolMode: ProtocolMode = ProtocolMode.AAD,
+    mockStorage: MockStorageClass = new MockStorageClass(
+        TEST_CONFIG.MSAL_CLIENT_ID,
+        mockCrypto,
+        new Logger({}),
+        {
+            canonicalAuthority: TEST_CONFIG.validAuthority,
+        }
+    )
+): Promise<Authority> {
+    const mockHttpClient = {
+        sendGetRequestAsync<T>(): T {
+            return {} as T;
+        },
+        sendPostRequestAsync<T>(): T {
+            return {} as T;
+        },
+    };
+
+    const authorityOptions: AuthorityOptions = {
+        protocolMode: protocolMode,
+        knownAuthorities: [TEST_CONFIG.validAuthority],
+        cloudDiscoveryMetadata: "",
+        authorityMetadata: "",
+    };
+
+    const loggerOptions = {
+        loggerCallback: (): void => {},
+        piiLoggingEnabled: true,
+        logLevel: LogLevel.Verbose,
+    };
+    const logger = new Logger(loggerOptions);
+
+    const authority = new Authority(
+        TEST_CONFIG.validAuthority,
+        mockHttpClient,
+        mockStorage,
+        authorityOptions,
+        logger,
+        TEST_CONFIG.CORRELATION_ID
+    );
+
+    await authority.resolveEndpointsAsync().catch((error) => {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.endpointResolutionError
+        );
+    });
+
+    return authority;
 }

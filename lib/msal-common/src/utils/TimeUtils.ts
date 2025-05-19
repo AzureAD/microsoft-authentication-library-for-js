@@ -16,6 +16,26 @@ export function nowSeconds(): number {
 }
 
 /**
+ * Converts JS Date object to seconds
+ * @param date Date
+ */
+export function toSecondsFromDate(date: Date): number {
+    // Convert date to seconds
+    return date.getTime() / 1000;
+}
+
+/**
+ * Convert seconds to JS Date object. Seconds can be in a number or string format or undefined (will still return a date).
+ * @param seconds
+ */
+export function toDateFromSeconds(seconds: number | string | undefined): Date {
+    if (seconds) {
+        return new Date(Number(seconds) * 1000);
+    }
+    return new Date();
+}
+
+/**
  * check if a token is expired based on given UTC time in seconds.
  * @param expiresOn
  */

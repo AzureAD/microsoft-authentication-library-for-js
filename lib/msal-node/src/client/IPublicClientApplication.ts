@@ -51,7 +51,10 @@ export interface IPublicClientApplication {
         request: DeviceCodeRequest
     ): Promise<AuthenticationResult | null>;
 
-    /** Acquires tokens with password grant by exchanging client applications username and password for credentials */
+    /**
+     * Acquires tokens with password grant by exchanging client applications username and password for credentials
+     * @deprecated - Use a more secure flow instead
+     */
     acquireTokenByUsernamePassword(
         request: UsernamePasswordRequest
     ): Promise<AuthenticationResult | null>;

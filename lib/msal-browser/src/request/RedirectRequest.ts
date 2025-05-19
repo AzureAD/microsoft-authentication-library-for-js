@@ -3,10 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    CommonAuthorizationUrlRequest,
-    StringDict,
-} from "@azure/msal-common/browser";
+import { CommonAuthorizationUrlRequest } from "@azure/msal-common/browser";
 
 /**
  * RedirectRequest: Request object passed by user to retrieve a Code from the
@@ -41,6 +38,7 @@ export type RedirectRequest = Partial<
         CommonAuthorizationUrlRequest,
         | "responseMode"
         | "scopes"
+        | "earJwk"
         | "codeChallenge"
         | "codeChallengeMethod"
         | "requestedClaimsHash"
@@ -55,5 +53,4 @@ export type RedirectRequest = Partial<
      * Set onRedirectNavigate in Configuration instead.
      */
     onRedirectNavigate?: (url: string) => boolean | void;
-    tokenBodyParameters?: StringDict;
 };

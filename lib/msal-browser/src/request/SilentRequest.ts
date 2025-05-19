@@ -46,5 +46,4 @@ export type SilentRequest = Omit<
     cacheLookupPolicy?: CacheLookupPolicy;
     prompt?: string;
     state?: string;
-    tokenBodyParameters?: StringDict;
 };

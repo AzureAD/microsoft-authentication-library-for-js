@@ -51,7 +51,7 @@ import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata.js";
 import { RegionDiscovery } from "./RegionDiscovery.js";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata.js";
 import { ImdsOptions } from "./ImdsOptions.js";
-import { AzureCloudOptions } from "../config/ClientConfiguration.js";
+import type { AzureCloudOptions } from "../config/ClientConfiguration.js";
 import { Logger } from "../logger/Logger.js";
 import { AuthError } from "../error/AuthError.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
@@ -311,7 +311,7 @@ export class Authority {
                 authorityUri.PathSegments[0]
             ) &&
             this.getAuthorityType(authorityUri) === AuthorityType.Default &&
-            this.protocolMode === ProtocolMode.AAD
+            this.protocolMode !== ProtocolMode.OIDC
         );
     }
 
@@ -378,7 +378,7 @@ export class Authority {
         if (
             this.canonicalAuthority.endsWith("v2.0/") ||
             this.authorityType === AuthorityType.Adfs ||
-            (this.protocolMode !== ProtocolMode.AAD &&
+            (this.protocolMode === ProtocolMode.OIDC &&
                 !this.isAliasOfKnownMicrosoftAuthority(canonicalAuthorityHost))
         ) {
             return `${this.canonicalAuthority}.well-known/openid-configuration`;

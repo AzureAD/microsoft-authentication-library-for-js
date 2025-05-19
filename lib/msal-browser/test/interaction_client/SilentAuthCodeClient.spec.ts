@@ -34,6 +34,8 @@ import {
 } from "../../src/index.js";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
+import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 describe("SilentAuthCodeClient", () => {
     let silentAuthCodeClient: SilentAuthCodeClient;
@@ -129,15 +131,15 @@ describe("SilentAuthCodeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
             };
             jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getAuthCodeUrl"
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
             ).mockResolvedValue(testNavUrl);
             const handleCodeSpy = jest
                 .spyOn(
