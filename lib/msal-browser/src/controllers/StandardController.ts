@@ -63,8 +63,7 @@ import { SilentIframeClient } from "../interaction_client/SilentIframeClient.js"
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient.js";
 import { TokenCache } from "../cache/TokenCache.js";
 import { ITokenCache } from "../cache/ITokenCache.js";
-import { NativeInteractionClient } from "../interaction_client/NativeInteractionClient.js";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
+import { PlatformAuthInteractionClient } from "../interaction_client/PlatformAuthInteractionClient.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import {
     NativeAuthError,
@@ -77,7 +76,7 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
-import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest.js";
+import { PlatformBrokerRequest } from "../broker/nativeBroker/PlatformBrokerRequest.js";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext.js";
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext.js";
 import { IController } from "./IController.js";
@@ -87,6 +86,12 @@ import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { initializeSilentRequest } from "../request/RequestHelpers.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
+import {
+    getPlatformAuthProvider,
+    isBrokerAvailable,
+} from "../broker/nativeBroker/PlatformAuthProvider.js";
+import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
+import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 
 function getAccountType(
     account?: AccountInfo
@@ -156,7 +161,7 @@ export class StandardController implements IController {
     >;
 
     // Native Extension Provider
-    protected nativeExtensionProvider: NativeMessageHandler | undefined;
+    protected platformAuthProvider: IPlatformAuthHandler | undefined;
 
     // Hybrid auth code responses
     private hybridAuthCodeResponses: Map<string, Promise<AuthenticationResult>>;
@@ -312,7 +317,10 @@ export class StandardController implements IController {
      * Initializer function to perform async startup tasks such as connecting to WAM extension
      * @param request {?InitializeApplicationRequest} correlation id
      */
-    async initialize(request?: InitializeApplicationRequest): Promise<void> {
+    async initialize(
+        request?: InitializeApplicationRequest,
+        isBroker?: boolean
+    ): Promise<void> {
         this.logger.trace("initialize called");
         if (this.initialized) {
             this.logger.info(
@@ -337,6 +345,13 @@ export class StandardController implements IController {
         );
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
 
+        // Broker applications are initialized twice, so we avoid double-counting it
+        if (!isBroker) {
+            try {
+                this.logMultipleInstances(initMeasurement);
+            } catch {}
+        }
+
         await invokeAsync(
             this.browserStorage.initialize.bind(this.browserStorage),
             PerformanceEvents.InitializeCache,
@@ -347,12 +362,13 @@ export class StandardController implements IController {
 
         if (allowPlatformBroker) {
             try {
-                this.nativeExtensionProvider =
-                    await NativeMessageHandler.createProvider(
-                        this.logger,
-                        this.config.system.nativeBrokerHandshakeTimeout,
-                        this.performanceClient
-                    );
+                // check if platform authentication is available via DOM or browser extension and create relevant handlers
+                this.platformAuthProvider = await getPlatformAuthProvider(
+                    this.logger,
+                    this.performanceClient,
+                    initCorrelationId,
+                    this.config.system.nativeBrokerHandshakeTimeout
+                );
             } catch (e) {
                 this.logger.verbose(e as string);
             }
@@ -461,18 +477,13 @@ export class StandardController implements IController {
         }
 
         const loggedInAccounts = this.getAllAccounts();
-        const platformBrokerRequest: NativeTokenRequest | null =
+        const platformBrokerRequest: PlatformBrokerRequest | null =
             this.browserStorage.getCachedNativeRequest();
         const useNative =
-            platformBrokerRequest &&
-            NativeMessageHandler.isPlatformBrokerAvailable(
-                this.config,
-                this.logger,
-                this.nativeExtensionProvider
-            ) &&
-            this.nativeExtensionProvider &&
-            !hash;
+            platformBrokerRequest && this.platformAuthProvider && !hash;
+
         let rootMeasurement: InProgressPerformanceEvent;
+
         this.eventHandler.emitEvent(
             EventType.HANDLE_REDIRECT_START,
             InteractionType.Redirect
@@ -480,7 +491,7 @@ export class StandardController implements IController {
 
         let redirectResponse: Promise<AuthenticationResult | null>;
         try {
-            if (useNative && this.nativeExtensionProvider) {
+            if (useNative && this.platformAuthProvider) {
                 rootMeasurement = this.performanceClient.startMeasurement(
                     PerformanceEvents.AcquireTokenRedirect,
                     platformBrokerRequest?.correlationId || ""
@@ -488,7 +499,7 @@ export class StandardController implements IController {
                 this.logger.trace(
                     "handleRedirectPromise - acquiring token from native platform"
                 );
-                const nativeClient = new NativeInteractionClient(
+                const nativeClient = new PlatformAuthInteractionClient(
                     this.config,
                     this.browserStorage,
                     this.browserCrypto,
@@ -497,7 +508,7 @@ export class StandardController implements IController {
                     this.navigationClient,
                     ApiId.handleRedirectPromise,
                     this.performanceClient,
-                    this.nativeExtensionProvider,
+                    this.platformAuthProvider,
                     platformBrokerRequest.accountId,
                     this.nativeInternalStorage,
                     platformBrokerRequest.correlationId
@@ -683,10 +694,10 @@ export class StandardController implements IController {
             let result: Promise<void>;
 
             if (
-                this.nativeExtensionProvider &&
+                this.platformAuthProvider &&
                 this.canUsePlatformBroker(request)
             ) {
-                const nativeClient = new NativeInteractionClient(
+                const nativeClient = new PlatformAuthInteractionClient(
                     this.config,
                     this.browserStorage,
                     this.browserCrypto,
@@ -695,7 +706,7 @@ export class StandardController implements IController {
                     this.navigationClient,
                     ApiId.acquireTokenRedirect,
                     this.performanceClient,
-                    this.nativeExtensionProvider,
+                    this.platformAuthProvider,
                     this.getNativeAccountId(request),
                     this.nativeInternalStorage,
                     correlationId
@@ -707,7 +718,7 @@ export class StandardController implements IController {
                             e instanceof NativeAuthError &&
                             isFatalNativeAuthError(e)
                         ) {
-                            this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                            this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                             const redirectClient =
                                 this.createRedirectClient(correlationId);
                             return redirectClient.acquireToken(request);
@@ -824,7 +835,7 @@ export class StandardController implements IController {
                         e instanceof NativeAuthError &&
                         isFatalNativeAuthError(e)
                     ) {
-                        this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                        this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                         const popupClient =
                             this.createPopupClient(correlationId);
                         return popupClient.acquireToken(request, pkce);
@@ -983,7 +994,7 @@ export class StandardController implements IController {
             ).catch((e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to standard flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
-                    this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                    this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                     const silentIframeClient = this.createSilentIframeClient(
                         validRequest.correlationId
                     );
@@ -1140,7 +1151,7 @@ export class StandardController implements IController {
                             e instanceof NativeAuthError &&
                             isFatalNativeAuthError(e)
                         ) {
-                            this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                            this.platformAuthProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                         }
                         throw e;
                     });
@@ -1534,13 +1545,13 @@ export class StandardController implements IController {
         cacheLookupPolicy?: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenNative called");
-        if (!this.nativeExtensionProvider) {
+        if (!this.platformAuthProvider) {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.nativeConnectionNotEstablished
             );
         }
 
-        const nativeClient = new NativeInteractionClient(
+        const nativeClient = new PlatformAuthInteractionClient(
             this.config,
             this.browserStorage,
             this.browserCrypto,
@@ -1549,7 +1560,7 @@ export class StandardController implements IController {
             this.navigationClient,
             apiId,
             this.performanceClient,
-            this.nativeExtensionProvider,
+            this.platformAuthProvider,
             accountId || this.getNativeAccountId(request),
             this.nativeInternalStorage,
             request.correlationId
@@ -1567,16 +1578,23 @@ export class StandardController implements IController {
         accountId?: string
     ): boolean {
         this.logger.trace("canUsePlatformBroker called");
+        if (!this.platformAuthProvider) {
+            this.logger.trace(
+                "canUsePlatformBroker: platform broker unavilable, returning false"
+            );
+            return false;
+        }
+
         if (
-            !NativeMessageHandler.isPlatformBrokerAvailable(
+            !isBrokerAvailable(
                 this.config,
                 this.logger,
-                this.nativeExtensionProvider,
+                this.platformAuthProvider,
                 request.authenticationScheme
             )
         ) {
             this.logger.trace(
-                "canUsePlatformBroker: isPlatformBrokerAvailable returned false, returning false"
+                "canUsePlatformBroker: isBrokerAvailable returned false, returning false"
             );
             return false;
         }
@@ -1641,7 +1659,7 @@ export class StandardController implements IController {
             this.navigationClient,
             this.performanceClient,
             this.nativeInternalStorage,
-            this.nativeExtensionProvider,
+            this.platformAuthProvider,
             correlationId
         );
     }
@@ -1660,7 +1678,7 @@ export class StandardController implements IController {
             this.navigationClient,
             this.performanceClient,
             this.nativeInternalStorage,
-            this.nativeExtensionProvider,
+            this.platformAuthProvider,
             correlationId
         );
     }
@@ -1682,7 +1700,7 @@ export class StandardController implements IController {
             ApiId.ssoSilent,
             this.performanceClient,
             this.nativeInternalStorage,
-            this.nativeExtensionProvider,
+            this.platformAuthProvider,
             correlationId
         );
     }
@@ -1701,7 +1719,7 @@ export class StandardController implements IController {
             this.eventHandler,
             this.navigationClient,
             this.performanceClient,
-            this.nativeExtensionProvider,
+            this.platformAuthProvider,
             correlationId
         );
     }
@@ -1720,7 +1738,7 @@ export class StandardController implements IController {
             this.eventHandler,
             this.navigationClient,
             this.performanceClient,
-            this.nativeExtensionProvider,
+            this.platformAuthProvider,
             correlationId
         );
     }
@@ -1740,7 +1758,7 @@ export class StandardController implements IController {
             this.navigationClient,
             ApiId.acquireTokenByCode,
             this.performanceClient,
-            this.nativeExtensionProvider,
+            this.platformAuthProvider,
             correlationId
         );
     }
@@ -2216,10 +2234,10 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         // if the cache policy is set to access_token only, we should not be hitting the native layer yet
         if (
-            NativeMessageHandler.isPlatformBrokerAvailable(
+            isBrokerAvailable(
                 this.config,
                 this.logger,
-                this.nativeExtensionProvider,
+                this.platformAuthProvider,
                 silentRequest.authenticationScheme
             ) &&
             silentRequest.account.nativeAccountId
@@ -2238,8 +2256,7 @@ export class StandardController implements IController {
                     this.logger.verbose(
                         "acquireTokenSilent - native platform unavailable, falling back to web flow"
                     );
-                    this.nativeExtensionProvider = undefined; // Prevent future requests from continuing to attempt
-
+                    this.platformAuthProvider = undefined; // Prevent future requests from continuing to attempt
                     // Cache will not contain tokens, given that previous WAM requests succeeded. Skip cache and RT renewal and go straight to iframe renewal
                     throw createClientAuthError(
                         ClientAuthErrorCodes.tokenRefreshRequired
@@ -2321,6 +2338,30 @@ export class StandardController implements IController {
             correlationId
         );
         return res;
+    }
+
+    private logMultipleInstances(
+        performanceEvent: InProgressPerformanceEvent
+    ): void {
+        const clientId = this.config.auth.clientId;
+
+        if (!window) return;
+        // @ts-ignore
+        window.msal = window.msal || {};
+        // @ts-ignore
+        window.msal.clientIds = window.msal.clientIds || [];
+
+        // @ts-ignore
+        const clientIds: string[] = window.msal.clientIds;
+
+        if (clientIds.length > 0) {
+            this.logger.verbose(
+                "There is already an instance of MSAL.js in the window."
+            );
+        }
+        // @ts-ignore
+        window.msal.clientIds.push(clientId);
+        collectInstanceStats(clientId, performanceEvent, this.logger);
     }
 }
 

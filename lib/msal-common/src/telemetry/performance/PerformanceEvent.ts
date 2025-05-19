@@ -888,6 +888,11 @@ export type PerformanceEvent = {
     prompt?: string;
 
     usePreGeneratedPkce?: boolean;
+
+    // Number of MSAL JS instances in the frame
+    msalInstanceCount?: number;
+    // Number of MSAL JS instances using the same client id in the frame
+    sameClientIdInstanceCount?: number;
 };
 
 export type PerformanceEventContext = {
