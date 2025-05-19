@@ -76,7 +76,7 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
-import { PlatformBrokerRequest } from "../broker/nativeBroker/PlatformBrokerRequest.js";
+import { PlatformAuthRequest } from "../broker/nativeBroker/PlatformAuthRequest.js";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext.js";
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext.js";
 import { IController } from "./IController.js";
@@ -471,7 +471,7 @@ export class StandardController implements IController {
         }
 
         const loggedInAccounts = this.getAllAccounts();
-        const platformBrokerRequest: PlatformBrokerRequest | null =
+        const platformBrokerRequest: PlatformAuthRequest | null =
             this.browserStorage.getCachedNativeRequest();
         const useNative =
             platformBrokerRequest && this.platformAuthProvider && !hash;
