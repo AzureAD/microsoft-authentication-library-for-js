@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 29 Apr 2025 20:25:47 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 06 May 2025 22:47:43 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 15.6.0
+
+Tue, 06 May 2025 22:47:43 GMT
+
+### Minor changes
+
+- Multi-instance detection (shylasummers@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 15.5.2
 
