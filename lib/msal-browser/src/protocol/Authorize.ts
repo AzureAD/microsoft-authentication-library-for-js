@@ -40,10 +40,10 @@ import {
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { InteractionHandler } from "../interaction_handler/InteractionHandler.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
-import { PlatformAuthInteractionClient } from "../interaction_client/PlatformAuthInteractionClient.js";
+import { NativeInteractionClient } from "../interaction_client/NativeInteractionClient.js";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import { EventHandler } from "../event/EventHandler.js";
 import { decryptEarResponse } from "../crypto/BrowserCrypto.js";
-import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 /**
  * Returns map of parameters that are applicable to all calls to /authorize whether using PKCE or EAR
@@ -253,17 +253,15 @@ export async function handleResponsePlatformBroker(
     eventHandler: EventHandler,
     logger: Logger,
     performanceClient: IPerformanceClient,
-    platformAuthProvider?: IPlatformAuthHandler
+    nativeMessageHandler?: NativeMessageHandler
 ): Promise<AuthenticationResult> {
-    logger.verbose("Account id found, calling WAM for token");
-
-    if (!platformAuthProvider) {
+    if (!nativeMessageHandler) {
         throw createBrowserAuthError(
             BrowserAuthErrorCodes.nativeConnectionNotEstablished
         );
     }
     const browserCrypto = new CryptoOps(logger, performanceClient);
-    const nativeInteractionClient = new PlatformAuthInteractionClient(
+    const nativeInteractionClient = new NativeInteractionClient(
         config,
         browserStorage,
         browserCrypto,
@@ -272,7 +270,7 @@ export async function handleResponsePlatformBroker(
         config.system.navigationClient,
         apiId,
         performanceClient,
-        platformAuthProvider,
+        nativeMessageHandler,
         accountId,
         nativeStorage,
         request.correlationId
@@ -317,7 +315,7 @@ export async function handleResponseCode(
     eventHandler: EventHandler,
     logger: Logger,
     performanceClient: IPerformanceClient,
-    platformAuthProvider?: IPlatformAuthHandler
+    nativeMessageHandler?: NativeMessageHandler
 ): Promise<AuthenticationResult> {
     // Remove throttle if it exists
     ThrottlingUtils.removeThrottle(
@@ -342,7 +340,7 @@ export async function handleResponseCode(
             eventHandler,
             logger,
             performanceClient,
-            platformAuthProvider
+            nativeMessageHandler
         );
     }
     const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -396,7 +394,7 @@ export async function handleResponseEAR(
     eventHandler: EventHandler,
     logger: Logger,
     performanceClient: IPerformanceClient,
-    platformAuthProvider?: IPlatformAuthHandler
+    nativeMessageHandler?: NativeMessageHandler
 ): Promise<AuthenticationResult> {
     // Remove throttle if it exists
     ThrottlingUtils.removeThrottle(
@@ -443,7 +441,7 @@ export async function handleResponseEAR(
             eventHandler,
             logger,
             performanceClient,
-            platformAuthProvider
+            nativeMessageHandler
         );
     }
 

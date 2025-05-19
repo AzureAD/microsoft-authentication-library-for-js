@@ -112,7 +112,7 @@ describe("LocalStorage Tests", function () {
                 `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
             );
             await clickLoginRedirect(screenshot, page);
-            await page.waitForNavigation({ waitUntil: "networkidle0" }).catch(() => {});
+            await page.waitForNavigation({ waitUntil: "networkidle0" });
             // Navigate back to home page
             await page.goto(sampleHomeUrl);
             // Wait for processing
@@ -166,7 +166,7 @@ describe("LocalStorage Tests", function () {
                 screenshot,
                 page
             );
-            await popupPage.waitForNavigation({ waitUntil: "networkidle0" }).catch(() => {});
+            await popupPage.waitForNavigation({ waitUntil: "networkidle0" });
             await popupPage.close();
             // Wait until popup window closes
             await popupWindowClosed;

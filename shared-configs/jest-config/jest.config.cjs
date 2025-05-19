@@ -8,7 +8,6 @@ const path = require("path");
 module.exports = {
     preset: "ts-jest",
     resolver: "ts-jest-resolver",
-    reporters: ['default', 'jest-junit'],
     testEnvironment: "jsdom",
     testEnvironmentOptions: {
         url: "https://localhost:8081/index.html"

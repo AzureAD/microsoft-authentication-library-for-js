@@ -36,14 +36,13 @@ import {
     monitorIframeForHash,
 } from "../interaction_handler/SilentHandler.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
-import { isBrokerAvailable } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
-import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
@@ -59,7 +58,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         apiId: ApiId,
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
-        platformAuthProvider?: IPlatformAuthHandler,
+        nativeMessageHandler?: NativeMessageHandler,
         correlationId?: string
     ) {
         super(
@@ -70,7 +69,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             eventHandler,
             navigationClient,
             performanceClient,
-            platformAuthProvider,
+            nativeMessageHandler,
             correlationId
         );
         this.apiId = apiId;
@@ -123,12 +122,13 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.performanceClient,
             request.correlationId
         )(inputRequest, InteractionType.Silent);
-        silentRequest.platformBroker = isBrokerAvailable(
-            this.config,
-            this.logger,
-            this.platformAuthProvider,
-            silentRequest.authenticationScheme
-        );
+        silentRequest.platformBroker =
+            NativeMessageHandler.isPlatformBrokerAvailable(
+                this.config,
+                this.logger,
+                this.nativeMessageHandler,
+                silentRequest.authenticationScheme
+            );
         BrowserUtils.preconnect(silentRequest.authority);
 
         if (this.config.system.protocolMode === ProtocolMode.EAR) {
@@ -294,7 +294,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.platformAuthProvider
+            this.nativeMessageHandler
         );
     }
 
@@ -404,7 +404,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.platformAuthProvider
+            this.nativeMessageHandler
         );
     }
 }

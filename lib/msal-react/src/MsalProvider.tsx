@@ -85,11 +85,6 @@ const reducer = (
             throw new Error(`Unknown action type: ${type}`);
     }
 
-    if (newInProgress === InteractionStatus.Startup) {
-        // Can't start checking accounts until initialization is complete
-        return previousState;
-    }
-
     const currentAccounts = payload.instance.getAllAccounts();
     if (
         newInProgress !== previousState.inProgress &&
@@ -140,7 +135,7 @@ export function MsalProvider({
         // Lazy initialization of the initial state
         return {
             inProgress: InteractionStatus.Startup,
-            accounts: [],
+            accounts: instance.getAllAccounts(),
         };
     });
 

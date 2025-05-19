@@ -16,7 +16,6 @@ import { version } from "../../src/packageMetadata.js";
 import { base64Decode, base64DecToArr } from "../../src/encode/Base64Decode.js";
 import { urlEncodeArr } from "../../src/encode/Base64Encode.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
-import { PlatformDOMTokenResponse } from "../../src/broker/nativeBroker/PlatformBrokerResponse.js";
 
 /**
  * This file contains the string constants used by the test classes.
@@ -580,47 +579,3 @@ export function getTestAuthenticationResult(): AuthenticationResult {
         familyId: "",
     };
 }
-
-export const PlatformDOMTestTokenResponseObject = {
-    isSuccess: true,
-    state: "1234state",
-    accessToken: "eyJ0eXAiOiJKV1QiLCJub25j…",
-    expiresIn: 1744768881,
-    account: {
-        userName: "idlab@msidlab4.onmicrosoft.com",
-        id: "test-nativeAccountId",
-        properties: {},
-    },
-    clientInfo:
-        "clienteyJ1aWQiOiJkMTdkMzcwNi0xZTRlLTQ2OTUtODA0OC1lZjYxOTZlOTZm",
-    idToken: TEST_TOKENS.IDTOKEN_V2,
-    scopes: "openid profile User.Read email",
-    proofOfPossessionPayload: "successshr",
-    extendedLifetimeToken: true,
-    properties: {},
-    error: {
-        code: "",
-        description: "",
-        errorCode: "",
-        properties: {},
-        status: "",
-        protocolError: "",
-    },
-};
-
-export const PlatformDOMTestErrorResponseObject = {
-    isSuccess: false,
-    expiresIn: 0,
-    extendedLifetimeToken: false,
-    error: {
-        code: "OSError",
-        description:
-            'Error Domain=com.apple.AuthenticationServices.AuthorizationError Code=-6000 "(null)" UserInfo={NSUnderlyingError=0x1319056b0 {Error Domain=MSALErrorDomain Code=-50000 "(null)" UserInfo={MSALErrorDescriptionKey=redirectUri host doesn\'t match sender host., MSALBrokerVersionKey=1.0, MSALInternalErrorCodeKey=-42008, MSALBrowserNativeMessageErrorStatus=PERSISTENT_ERROR}}}',
-        errorCode: "-6000",
-        properties: {
-            MATS: '{"x_ms_clitelem":"1,0,0,,I","ui_visible":true}',
-        },
-        status: "PERSISTENT_ERROR",
-        protocolError: "",
-    },
-};

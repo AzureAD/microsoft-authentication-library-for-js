@@ -34,10 +34,10 @@ import { version } from "../packageMetadata.js";
 import { BrowserConstants } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
-import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 export abstract class BaseInteractionClient {
     protected config: BrowserConfiguration;
@@ -47,7 +47,7 @@ export abstract class BaseInteractionClient {
     protected logger: Logger;
     protected eventHandler: EventHandler;
     protected navigationClient: INavigationClient;
-    protected platformAuthProvider: IPlatformAuthHandler | undefined;
+    protected nativeMessageHandler: NativeMessageHandler | undefined;
     protected correlationId: string;
     protected performanceClient: IPerformanceClient;
 
@@ -59,7 +59,7 @@ export abstract class BaseInteractionClient {
         eventHandler: EventHandler,
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
-        platformAuthProvider?: IPlatformAuthHandler,
+        nativeMessageHandler?: NativeMessageHandler,
         correlationId?: string
     ) {
         this.config = config;
@@ -68,7 +68,7 @@ export abstract class BaseInteractionClient {
         this.networkClient = this.config.system.networkClient;
         this.eventHandler = eventHandler;
         this.navigationClient = navigationClient;
-        this.platformAuthProvider = platformAuthProvider;
+        this.nativeMessageHandler = nativeMessageHandler;
         this.correlationId = correlationId || createNewGuid();
         this.logger = logger.clone(
             BrowserConstants.MSAL_SKU,

@@ -31,6 +31,7 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
 import { NavigationOptions } from "../navigation/NavigationOptions.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { PopupRequest } from "../request/PopupRequest.js";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -45,9 +46,7 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
-import { isBrokerAvailable } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
-import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 export type PopupParams = {
     popup?: Window | null;
@@ -69,7 +68,7 @@ export class PopupClient extends StandardInteractionClient {
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
-        platformAuthHandler?: IPlatformAuthHandler,
+        nativeMessageHandler?: NativeMessageHandler,
         correlationId?: string
     ) {
         super(
@@ -80,7 +79,7 @@ export class PopupClient extends StandardInteractionClient {
             eventHandler,
             navigationClient,
             performanceClient,
-            platformAuthHandler,
+            nativeMessageHandler,
             correlationId
         );
         // Properly sets this reference for the unload event.
@@ -223,10 +222,10 @@ export class PopupClient extends StandardInteractionClient {
             BrowserUtils.preconnect(validRequest.authority);
         }
 
-        const isPlatformBroker = isBrokerAvailable(
+        const isPlatformBroker = NativeMessageHandler.isPlatformBrokerAvailable(
             this.config,
             this.logger,
-            this.platformAuthProvider,
+            this.nativeMessageHandler,
             request.authenticationScheme
         );
         validRequest.platformBroker = isPlatformBroker;
@@ -349,7 +348,7 @@ export class PopupClient extends StandardInteractionClient {
                 this.eventHandler,
                 this.logger,
                 this.performanceClient,
-                this.platformAuthProvider
+                this.nativeMessageHandler
             );
         } catch (e) {
             // Close the synchronous popup if an error is thrown before the window unload event is registered
@@ -448,7 +447,7 @@ export class PopupClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.platformAuthProvider
+            this.nativeMessageHandler
         );
     }
 

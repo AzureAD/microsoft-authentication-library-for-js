@@ -9,7 +9,7 @@ import { StoreInCache, StringDict } from "@azure/msal-common/browser";
 /**
  * Token request which native broker will use to acquire tokens
  */
-export type PlatformBrokerRequest = {
+export type NativeTokenRequest = {
     accountId: string; // WAM specific account id used for identification of WAM account. This can be any broker-id eventually
     clientId: string;
     authority: string;
@@ -40,7 +40,7 @@ export type PlatformBrokerRequest = {
  */
 export type NativeExtensionRequestBody = {
     method: NativeExtensionMethod;
-    request?: PlatformBrokerRequest;
+    request?: NativeTokenRequest;
 };
 
 /**
@@ -51,25 +51,4 @@ export type NativeExtensionRequest = {
     responseId: string;
     extensionId?: string;
     body: NativeExtensionRequestBody;
-};
-
-export type PlatformDOMTokenRequest = {
-    brokerId: string;
-    accountId?: string;
-    clientId: string;
-    authority: string;
-    scope: string;
-    redirectUri: string;
-    correlationId: string;
-    isSecurityTokenService: boolean;
-    state?: string;
-    /*
-     * Known optional parameters will go into extraQueryParameters.
-     * List of known parameters is:
-     * "prompt", "nonce", "claims", "loginHint", "instanceAware", "windowTitleSubstring", "extendedExpiryToken", "storeInCache",
-     * ProofOfPossessionParams: "reqCnf", "keyId", "tokenType", "shrClaims", "shrNonce", "resourceRequestMethod", "resourceRequestUri", "signPopToken"
-     */
-    extraParameters?: StringDict;
-    embeddedClientId?: string;
-    storeInCache?: StoreInCache; // Object of booleans indicating whether to store tokens in the cache or not (default is true)
 };

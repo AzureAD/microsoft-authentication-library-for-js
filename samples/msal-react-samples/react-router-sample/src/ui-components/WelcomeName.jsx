@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { useMsal } from "@azure/msal-react";
-import { InteractionStatus } from "@azure/msal-browser";
 import Typography from "@mui/material/Typography";
 
 const WelcomeName = () => {
-    const { instance, inProgress } = useMsal();
+    const { instance } = useMsal();
     const [name, setName] = useState(null);
 
-    const activeAccount = inProgress === InteractionStatus.None ? instance.getActiveAccount() : null;
+    const activeAccount = instance.getActiveAccount();
     useEffect(() => {
         if (activeAccount) {
             setName(activeAccount.name.split(' ')[0]);

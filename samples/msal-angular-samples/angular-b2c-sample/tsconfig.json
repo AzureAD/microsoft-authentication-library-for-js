@@ -19,7 +19,7 @@
     "module": "es2020",
     "esModuleInterop": true,
     "lib": [
-      "es2021",
+      "es2020",
       "dom"
     ],
     "paths": {

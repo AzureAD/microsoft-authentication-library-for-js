@@ -6,6 +6,7 @@
 import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication.js";
 import {
     DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT,
+    LINEAR_POLICY_MAX_RETRIES_IN_MS,
     MANAGED_IDENTITY_SERVICE_FABRIC_NETWORK_REQUEST_400_ERROR,
     MANAGED_IDENTITY_TOKEN_RETRIEVAL_ERROR_MESSAGE,
     ONE_HUNDRED_TIMES_FASTER,
@@ -185,11 +186,8 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
         });
 
         test("returns a 500 error response from the network request, just the first time, with a retry-after header of 3 seconds", async () => {
-            // make it one hundred times faster so the test completes quickly
-            const RETRY_AFTER_SECONDS: number = 3 * ONE_HUNDRED_TIMES_FASTER;
-
             const headers: Record<string, string> = {
-                "Retry-After": RETRY_AFTER_SECONDS.toString(),
+                "Retry-After": ".03", // 3 seconds, but make it one hundred times faster so the test completes quickly
             };
             const managedIdentityNetworkErrorClient =
                 new ManagedIdentityNetworkErrorClient(undefined, headers);
@@ -216,7 +214,9 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
             expect(
                 timeAfterNetworkRequest.valueOf() -
                     timeBeforeNetworkRequest.valueOf()
-            ).toBeGreaterThanOrEqual(RETRY_AFTER_SECONDS * 1000); // convert to milliseconds, it was already defined as 100 times faster
+            ).toBeGreaterThanOrEqual(
+                LINEAR_POLICY_MAX_RETRIES_IN_MS * ONE_HUNDRED_TIMES_FASTER
+            );
 
             expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
             expect(networkManagedIdentityResult.accessToken).toEqual(
@@ -225,14 +225,10 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
         });
 
         test("returns a 500 error response from the network request, just the first time, with a retry-after header of 3 seconds (extrapolated from an http-date)", async () => {
-            // this test can not be made one hundred times faster because it is based on a date
-            const RETRY_AFTER_SECONDS: number = 3;
-
             var retryAfterHttpDate = new Date();
             retryAfterHttpDate.setSeconds(
-                // an extra second has been added to account for this date operation
-                retryAfterHttpDate.getSeconds() + RETRY_AFTER_SECONDS + 1
-            );
+                retryAfterHttpDate.getSeconds() + 4 // 4 seconds. An extra second has been added to account for this date operation
+            ); // this test can not be made one hundred times faster because it is based on a date
             const headers: Record<string, string> = {
                 "Retry-After": retryAfterHttpDate.toString(),
             };
@@ -261,7 +257,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
             expect(
                 timeAfterNetworkRequest.valueOf() -
                     timeBeforeNetworkRequest.valueOf()
-            ).toBeGreaterThanOrEqual(RETRY_AFTER_SECONDS * 1000); // convert to milliseconds
+            ).toBeGreaterThanOrEqual(LINEAR_POLICY_MAX_RETRIES_IN_MS);
 
             expect(sendGetRequestAsyncSpy).toHaveBeenCalledTimes(2);
             expect(networkManagedIdentityResult.accessToken).toEqual(
@@ -307,8 +303,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
                     resource: "https://graph.microsoft1.com",
                 });
             } catch (e) {
-                // 4 total: request + 3 retries
-                expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(4);
+                expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(4); // request + 3 retries
             }
 
             try {
@@ -316,8 +311,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
                     resource: "https://graph.microsoft2.com",
                 });
             } catch (e) {
-                // 8 total: 2 x (request + 3 retries)
-                expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(8);
+                expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(8); // 8 total, 2 x (request + 3 retries)
             }
 
             try {
@@ -325,8 +319,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
                     resource: "https://graph.microsoft3.com",
                 });
             } catch (e) {
-                // 12 total: 3 x (request + 3 retries)
-                expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(12);
+                expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(12); // 12 total, 3 x (request + 3 retries)
             }
         });
 

@@ -4,7 +4,7 @@ import { NavigationBar } from "./NavigationBar";
 
 type PageLayoutProps = {
     account: AccountInfo;
-    children: React.JSX.Element;
+    children: JSX.Element;
 };
 
 export const PageLayout = (props: PageLayoutProps) => {

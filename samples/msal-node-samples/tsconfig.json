@@ -6,7 +6,7 @@
         "lib": [
             "ES2021",
             "dom",
-            "ES2021.Promise"
+            "es2015.promise"
         ],
         "allowUnusedLabels": false,
         "noImplicitReturns": true,
