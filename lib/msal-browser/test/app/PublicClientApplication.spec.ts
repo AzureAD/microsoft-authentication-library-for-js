@@ -6684,7 +6684,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             window.localStorage.setItem(
                 "msal.account.keys",
-                JSON.stringify([AccountEntityUtils.generateAccountKey(testAccount1)])
+                JSON.stringify([
+                    AccountEntityUtils.generateAccountKey(testAccount1),
+                ])
             );
 
             try {
@@ -6717,7 +6719,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 window.localStorage.setItem(
                     "msal.account.keys",
-                    JSON.stringify([AccountEntityUtils.generateAccountKey(testAccount1)])
+                    JSON.stringify([
+                        AccountEntityUtils.generateAccountKey(testAccount1),
+                    ])
                 );
 
                 try {
@@ -6881,7 +6885,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 );
                 window.localStorage.setItem(
                     "msal.account.keys",
-                    JSON.stringify([AccountEntityUtils.generateAccountKey(testAccount1)])
+                    JSON.stringify([
+                        AccountEntityUtils.generateAccountKey(testAccount1),
+                    ])
                 );
 
                 try {

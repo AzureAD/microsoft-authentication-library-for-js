@@ -1188,7 +1188,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 failedRequests: [],
             });
         });
-
     });
 
     describe("handleRedirectPromise tests", () => {
