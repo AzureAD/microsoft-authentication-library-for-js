@@ -30,7 +30,6 @@ import {
     CacheHelpers,
     CacheManager,
     ClientAuthErrorCodes,
-    CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
     CommonSilentFlowRequest,
     Constants,
@@ -76,7 +75,6 @@ import { NavigationOptions } from "../../src/navigation/NavigationOptions.js";
 import { EventMessage } from "../../src/event/EventMessage.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient.js";
-import { base64Encode } from "../../src/encode/Base64Encode.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import {
     BrowserAuthError,
@@ -98,7 +96,7 @@ import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import * as PlatformAuthProvider from "../../src/broker/nativeBroker/PlatformAuthProvider.js";
 import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
-import { PlatformBrokerRequest } from "../../src/broker/nativeBroker/PlatformBrokerRequest.js";
+import { PlatformAuthRequest } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
 import { StandardController } from "../../src/controllers/StandardController.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
@@ -117,9 +115,7 @@ import {
     TestTimeUtils,
 } from "msal-test-utils";
 import { INTERACTION_TYPE } from "../../src/utils/BrowserConstants.js";
-import { BaseOperatingContext } from "../../src/operatingcontext/BaseOperatingContext.js";
 import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
-import { config } from "process";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
@@ -884,7 +880,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "isInteractionInProgress"
             ).mockReturnValue(true);
 
-            const nativeRequest: PlatformBrokerRequest = {
+            const nativeRequest: PlatformAuthRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
@@ -1003,7 +999,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     "getCachedRequest"
                 ).mockReturnValue([testRequest, TEST_CONFIG.TEST_VERIFIER]);
 
-                const nativeRequest: PlatformBrokerRequest = {
+                const nativeRequest: PlatformAuthRequest = {
                     authority: TEST_CONFIG.validAuthority,
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
@@ -1046,7 +1042,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             //@ts-ignore
             pca.controller.browserStorage.setInteractionInProgress(true);
 
-            const nativeRequest: PlatformBrokerRequest = {
+            const nativeRequest: PlatformAuthRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),

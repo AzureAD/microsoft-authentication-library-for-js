@@ -7,14 +7,13 @@ import {
 import { PlatformAuthConstants } from "../../src/utils/BrowserConstants.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
-import { get } from "http";
-import { PlatformBrokerResponse } from "../../src/broker/nativeBroker/PlatformBrokerResponse.js";
+import { PlatformAuthResponse } from "../../src/broker/nativeBroker/PlatformAuthResponse.js";
 import {
     TEST_CONFIG,
     TEST_TOKENS,
     TEST_URIS,
 } from "../utils/StringConstants.js";
-import { PlatformBrokerRequest } from "../../src/broker/nativeBroker/PlatformBrokerRequest.js";
+import { PlatformAuthRequest } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
 
 describe("PlatformAuthDOMHandler tests", () => {
@@ -136,7 +135,7 @@ describe("PlatformAuthDOMHandler tests", () => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
             ]);
-            const testRequest: PlatformBrokerRequest = {
+            const testRequest: PlatformAuthRequest = {
                 accountId: "test-id",
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
@@ -167,7 +166,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 },
                 extendedLifetimeToken: true,
             };
-            const validatedResponse: PlatformBrokerResponse = {
+            const validatedResponse: PlatformAuthResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 account: {
                     id: "test-id",
@@ -202,7 +201,7 @@ describe("PlatformAuthDOMHandler tests", () => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
             ]);
-            const testRequest: PlatformBrokerRequest = {
+            const testRequest: PlatformAuthRequest = {
                 accountId: "test-id",
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
@@ -259,7 +258,7 @@ describe("PlatformAuthDOMHandler tests", () => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
             ]);
-            const testRequest: PlatformBrokerRequest = {
+            const testRequest: PlatformAuthRequest = {
                 accountId: "test-id",
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
@@ -305,7 +304,7 @@ describe("PlatformAuthDOMHandler tests", () => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
             ]);
-            const testRequest: PlatformBrokerRequest = {
+            const testRequest: PlatformAuthRequest = {
                 accountId: "test-id",
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
@@ -364,14 +363,17 @@ describe("PlatformAuthDOMHandler tests", () => {
                     performanceClient,
                     "test-correlation-id"
                 );
-            const testRequest: PlatformBrokerRequest = {
+            const testRequest: PlatformAuthRequest = {
                 accountId: "test-id",
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scope: "read openid",
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                windowTitleSubstring: "",
+                windowTitleSubstring: "test-window-substring",
+                prompt: "login",
+                nonce: "test-nonce",
+                claims: "test-claims",
                 extraParameters: {
                     extendedExpiryToken: "true",
                 },
@@ -390,7 +392,10 @@ describe("PlatformAuthDOMHandler tests", () => {
                 isSecurityTokenService: false,
                 extraParameters: {
                     extendedExpiryToken: "true",
-                    windowTitleSubstring: "",
+                    windowTitleSubstring: "test-window-substring",
+                    prompt: "login",
+                    nonce: "test-nonce",
+                    claims: "test-claims",
                 },
                 redirectUri: testRequest.redirectUri,
                 scope: testRequest.scope,
