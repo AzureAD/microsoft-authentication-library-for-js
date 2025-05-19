@@ -93,7 +93,10 @@ export {
 } from "./network/INetworkModule.js";
 export { NetworkResponse } from "./network/NetworkResponse.js";
 export { ThrottlingUtils } from "./network/ThrottlingUtils.js";
-export { RequestThumbprint } from "./network/RequestThumbprint.js";
+export {
+    RequestThumbprint,
+    getRequestThumbprint,
+} from "./network/RequestThumbprint.js";
 export { IUri } from "./url/IUri.js";
 export { UrlString } from "./url/UrlString.js";
 export {
@@ -102,19 +105,21 @@ export {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     SignedHttpRequestParameters,
 } from "./crypto/ICrypto.js";
+
+export * as AuthorizeProtocol from "./protocol/Authorize.js";
 export { BaseAuthRequest } from "./request/BaseAuthRequest.js";
 export { CommonAuthorizationUrlRequest } from "./request/CommonAuthorizationUrlRequest.js";
 export { CommonAuthorizationCodeRequest } from "./request/CommonAuthorizationCodeRequest.js";
 export { CommonRefreshTokenRequest } from "./request/CommonRefreshTokenRequest.js";
 export { CommonSilentFlowRequest } from "./request/CommonSilentFlowRequest.js";
 export { CommonEndSessionRequest } from "./request/CommonEndSessionRequest.js";
-export { RequestParameterBuilder } from "./request/RequestParameterBuilder.js";
+export * as RequestParameterBuilder from "./request/RequestParameterBuilder.js";
 export { StoreInCache } from "./request/StoreInCache.js";
 export { AzureRegion } from "./authority/AzureRegion.js";
 export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration.js";
 export { AuthenticationResult } from "./response/AuthenticationResult.js";
 export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload.js";
-export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse.js";
+export { AuthorizeResponse } from "./response/AuthorizeResponse.js";
 export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse.js";
 export {
     ResponseHandler,
@@ -155,6 +160,7 @@ export {
     OIDC_DEFAULT_SCOPES,
     PromptValue,
     PersistentCacheKeys,
+    OAuthResponseType,
     ServerResponseType,
     ResponseMode,
     CacheOutcome,

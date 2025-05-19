@@ -34,11 +34,8 @@ export const Constants = {
     PROFILE_SCOPE: "profile",
     OFFLINE_ACCESS_SCOPE: "offline_access",
     EMAIL_SCOPE: "email",
-    // Default response type for authorization code flow
-    CODE_RESPONSE_TYPE: "code",
     CODE_GRANT_TYPE: "authorization_code",
     RT_GRANT_TYPE: "refresh_token",
-    FRAGMENT_RESPONSE_MODE: "fragment",
     S256_CODE_CHALLENGE_METHOD: "S256",
     URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
     AUTHORIZATION_PENDING: "authorization_pending",
@@ -58,8 +55,6 @@ export const Constants = {
         "login.microsoft.com",
         "sts.windows.net",
     ],
-    TOKEN_RESPONSE_TYPE: "token",
-    ID_TOKEN_RESPONSE_TYPE: "id_token",
     SHR_NONCE_VALIDITY: 240,
     INVALID_INSTANCE: "invalid_instance",
 };
@@ -75,6 +70,7 @@ export const HttpStatus = {
     UNAUTHORIZED: 401,
     NOT_FOUND: 404,
     REQUEST_TIMEOUT: 408,
+    GONE: 410,
     TOO_MANY_REQUESTS: 429,
     CLIENT_ERROR_RANGE_END: 499,
     SERVER_ERROR: 500,
@@ -162,7 +158,19 @@ export const CodeChallengeMethodValues = {
 };
 
 /**
+ * Allowed values for response_type
+ */
+export const OAuthResponseType = {
+    CODE: "code",
+    IDTOKEN_TOKEN: "id_token token",
+    IDTOKEN_TOKEN_REFRESHTOKEN: "id_token token refresh_token",
+} as const;
+export type OAuthResponseType =
+    (typeof OAuthResponseType)[keyof typeof OAuthResponseType];
+
+/**
  * allowed values for server response type
+ * @deprecated Use ResponseMode instead
  */
 export const ServerResponseType = {
     QUERY: "query",
@@ -175,7 +183,8 @@ export type ServerResponseType =
  * allowed values for response_mode
  */
 export const ResponseMode = {
-    ...ServerResponseType,
+    QUERY: "query",
+    FRAGMENT: "fragment",
     FORM_POST: "form_post",
 } as const;
 export type ResponseMode = (typeof ResponseMode)[keyof typeof ResponseMode];

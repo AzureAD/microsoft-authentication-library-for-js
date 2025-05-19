@@ -8,7 +8,7 @@ First party users should follow the instructions on the [internal AAD wiki](http
 
 ## x5c claim
 
-You will need to supply the string from your `pem` encoded certificate to MSAL configuration object in the `clientCertificate.x5c` field in addition to providing both `clientCertificate.thumbprint` and `clientCertificate.privateKey`:
+You will need to supply the string from your `pem` encoded certificate to MSAL configuration object in the `clientCertificate.x5c` field in addition to providing both `clientCertificate.thumbprintSha256` and `clientCertificate.privateKey`:
 
 Example `x5c` string from a `.pem` file:
 
@@ -49,7 +49,7 @@ const config = {
         clientId: "ENTER_CLIENT_ID",
         authority: "https://login.microsoftonline.com/ENTER_TENANT_ID",
         clientCertificate: {
-                thumbprint: process.env.thumbprint, // a 40-digit hexadecimal string
+                thumbprintSha256: process.env.thumbprint,
                 privateKey: process.env.privateKey,
                 x5c: process.env.x5c
             }

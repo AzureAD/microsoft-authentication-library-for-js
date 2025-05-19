@@ -30,7 +30,7 @@ let browserPage: Page;
 let username: string;
 let accountPwd: string;
 
-const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/ElectronSystemBrowserTestApp/AAD`;
+const screenshotFolder = path.join(__dirname, "screenshots/ElectronSystemBrowserTestApp");
 
 const TEST_CACHE_LOCATION = `${__dirname}/../data/aad.cache.json`;
 

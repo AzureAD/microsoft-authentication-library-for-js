@@ -23,12 +23,16 @@ export class EventHandler {
         [EventCallbackFunction, Array<EventType>]
     >;
     private logger: Logger;
-    private broadcastChannel: BroadcastChannel;
+    private broadcastChannel?: BroadcastChannel;
 
     constructor(logger?: Logger) {
         this.eventCallbacks = new Map();
         this.logger = logger || new Logger({});
-        this.broadcastChannel = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+        if (typeof BroadcastChannel !== "undefined") {
+            this.broadcastChannel = new BroadcastChannel(
+                BROADCAST_CHANNEL_NAME
+            );
+        }
         this.invokeCrossTabCallbacks = this.invokeCrossTabCallbacks.bind(this);
     }
 
@@ -95,7 +99,7 @@ export class EventHandler {
             case EventType.ACCOUNT_REMOVED:
             case EventType.ACTIVE_ACCOUNT_CHANGED:
                 // Send event to other open tabs / MSAL instances on same domain
-                this.broadcastChannel.postMessage(message);
+                this.broadcastChannel?.postMessage(message);
                 break;
             default:
                 // Emit event to callbacks registered in this instance
@@ -143,7 +147,7 @@ export class EventHandler {
      * Listen for events broadcasted from other tabs/instances
      */
     subscribeCrossTab(): void {
-        this.broadcastChannel.addEventListener(
+        this.broadcastChannel?.addEventListener(
             "message",
             this.invokeCrossTabCallbacks
         );
@@ -153,7 +157,7 @@ export class EventHandler {
      * Unsubscribe from broadcast events
      */
     unsubscribeCrossTab(): void {
-        this.broadcastChannel.removeEventListener(
+        this.broadcastChannel?.removeEventListener(
             "message",
             this.invokeCrossTabCallbacks
         );

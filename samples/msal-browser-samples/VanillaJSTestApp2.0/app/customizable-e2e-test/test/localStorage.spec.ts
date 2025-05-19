@@ -23,8 +23,9 @@ import {
     request as aadTokenRequest,
 } from "../authConfigs/localStorageAuthConfig.json";
 import fs from "fs";
+import path from "path";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/localStorageTests`;
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screenshots/customizable-e2e-test/localStorage");
 
 describe("LocalStorage Tests", function () {
     let username = "";
@@ -111,7 +112,7 @@ describe("LocalStorage Tests", function () {
                 `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
             );
             await clickLoginRedirect(screenshot, page);
-            await page.waitForNavigation({ waitUntil: "networkidle0" });
+            await page.waitForNavigation({ waitUntil: "networkidle0" }).catch(() => {});
             // Navigate back to home page
             await page.goto(sampleHomeUrl);
             // Wait for processing
@@ -165,7 +166,7 @@ describe("LocalStorage Tests", function () {
                 screenshot,
                 page
             );
-            await popupPage.waitForNavigation({ waitUntil: "networkidle0" });
+            await popupPage.waitForNavigation({ waitUntil: "networkidle0" }).catch(() => {});
             await popupPage.close();
             // Wait until popup window closes
             await popupWindowClosed;

@@ -34,10 +34,17 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         identityEndpoint: string,
         identityHeader: string
     ) {
-        super(logger, nodeStorage, networkClient, cryptoProvider);
+        super(
+            logger,
+            nodeStorage,
+            networkClient,
+            cryptoProvider,
+            disableInternalRetries
+        );
 
         this.identityEndpoint = identityEndpoint;
         this.identityHeader = identityHeader;
@@ -66,6 +73,7 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         managedIdentityId: ManagedIdentityId
     ): ServiceFabric | null {
         const [identityEndpoint, identityHeader, identityServerThumbprint] =
@@ -107,6 +115,7 @@ export class ServiceFabric extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
+            disableInternalRetries,
             identityEndpoint,
             identityHeader
         );

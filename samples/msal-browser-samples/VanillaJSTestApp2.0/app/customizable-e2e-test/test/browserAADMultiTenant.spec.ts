@@ -25,9 +25,10 @@ import {
     tenants as aadTenants,
 } from "../authConfigs/aadMultiTenantAuthConfig.json";
 import fs from "fs";
+import path from "path";
 import { GuestHomedIn } from "e2e-test-utils/src/Constants";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/multiTenantTests`;
+const SCREENSHOT_BASE_FOLDER_NAME = path.join(__dirname, "../../../test/screenshots/customizable-e2e-test/browserAADMultiTenant");
 let sampleHomeUrl = "";
 
 describe("AAD-Prod Tests", () => {
@@ -149,7 +150,6 @@ describe("AAD-Prod Tests", () => {
                     )
             ).toBeTruthy();
             expect(popupWindow.url()).toContain("logout");
-            await popupWindow.waitForNavigation();
             const tokenStore = await BrowserCache.getTokens();
 
             expect(tokenStore.idTokens.length).toEqual(0);

@@ -31,10 +31,17 @@ export class MachineLearning extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         msiEndpoint: string,
         secret: string
     ) {
-        super(logger, nodeStorage, networkClient, cryptoProvider);
+        super(
+            logger,
+            nodeStorage,
+            networkClient,
+            cryptoProvider,
+            disableInternalRetries
+        );
 
         this.msiEndpoint = msiEndpoint;
         this.secret = secret;
@@ -54,7 +61,8 @@ export class MachineLearning extends BaseManagedIdentitySource {
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
-        cryptoProvider: CryptoProvider
+        cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean
     ): MachineLearning | null {
         const [msiEndpoint, secret] = MachineLearning.getEnvironmentVariables();
 
@@ -83,6 +91,7 @@ export class MachineLearning extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
+            disableInternalRetries,
             msiEndpoint,
             secret
         );
@@ -111,7 +120,9 @@ export class MachineLearning extends BaseManagedIdentitySource {
         ) {
             request.queryParameters[
                 this.getManagedIdentityUserAssignedIdQueryParameterKey(
-                    managedIdentityId.idType
+                    managedIdentityId.idType,
+                    false, // isIMDS
+                    true // uses2017API
                 )
             ] = managedIdentityId.id;
         }

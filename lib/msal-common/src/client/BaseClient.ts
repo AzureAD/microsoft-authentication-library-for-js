@@ -25,7 +25,8 @@ import { version, name } from "../packageMetadata.js";
 import { CcsCredential, CcsCredentialType } from "../account/CcsCredential.js";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
-import { RequestParameterBuilder } from "../request/RequestParameterBuilder.js";
+import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js";
+import * as UrlUtils from "../utils/UrlUtils.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 import { createDiscoveredInstance } from "../authority/AuthorityFactory.js";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
@@ -278,26 +279,33 @@ export abstract class BaseClient {
      * @param request
      */
     createTokenQueryParameters(request: BaseAuthRequest): string {
-        const parameterBuilder = new RequestParameterBuilder(
-            request.correlationId,
-            this.performanceClient
-        );
+        const parameters = new Map<string, string>();
 
         if (request.embeddedClientId) {
-            parameterBuilder.addBrokerParameters({
-                brokerClientId: this.config.authOptions.clientId,
-                brokerRedirectUri: this.config.authOptions.redirectUri,
-            });
+            RequestParameterBuilder.addBrokerParameters(
+                parameters,
+                this.config.authOptions.clientId,
+                this.config.authOptions.redirectUri
+            );
         }
 
         if (request.tokenQueryParameters) {
-            parameterBuilder.addExtraQueryParameters(
+            RequestParameterBuilder.addExtraQueryParameters(
+                parameters,
                 request.tokenQueryParameters
             );
         }
 
-        parameterBuilder.addCorrelationId(request.correlationId);
+        RequestParameterBuilder.addCorrelationId(
+            parameters,
+            request.correlationId
+        );
 
-        return parameterBuilder.createQueryString();
+        RequestParameterBuilder.instrumentBrokerParams(
+            parameters,
+            request.correlationId,
+            this.performanceClient
+        );
+        return UrlUtils.mapToQueryString(parameters);
     }
 }

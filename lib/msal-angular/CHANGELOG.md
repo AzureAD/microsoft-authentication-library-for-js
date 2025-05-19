@@ -1,8 +1,84 @@
 # Change Log - @azure/msal-angular
 
-<!-- This log was last generated on Wed, 05 Feb 2025 00:15:19 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 06 May 2025 22:47:43 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.0.12
+
+Tue, 06 May 2025 22:47:43 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.12.0
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.11
+
+Tue, 29 Apr 2025 20:25:48 GMT
+
+### Patches
+
+- Fix circular dependency (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v4.11.1
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.10
+
+Tue, 15 Apr 2025 23:34:14 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.11.0
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.9
+
+Tue, 08 Apr 2025 16:56:05 GMT
+
+### Patches
+
+- added resetInProgressEvent function to reset event after handleRedirectPromise is called #7682 (lalimasharda@microsoft.com)
+- Deprecate logout() in Angular (shylasummers@microsoft.com)
+- Bump @azure/msal-browser to v4.10.0
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.8
+
+Tue, 25 Mar 2025 22:29:34 GMT
+
+### Patches
+
+- Fix request type for ssoSilent (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v4.9.0
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.7
+
+Thu, 20 Mar 2025 22:09:04 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.8.0
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.6
+
+Tue, 11 Mar 2025 18:51:25 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.7.0
+- Bump eslint-config-msal to v0.0.0
+
+## 4.0.5
+
+Tue, 18 Feb 2025 18:51:41 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v4.3.0
+- Bump eslint-config-msal to v0.0.0
 
 ## 4.0.4
 
