@@ -33,8 +33,8 @@ import {
     BrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError.js";
-import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
-import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient.js";
+import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
+import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
 
 describe("Authorize Protocol Tests", () => {
     describe("EAR Protocol Tests", () => {
@@ -295,13 +295,16 @@ describe("Authorize Protocol Tests", () => {
                 );
                 const response = { ...validResponse, ear_jwe: jwe };
 
-                const nativeMessageHandler = new NativeMessageHandler(
+                const nativeMessageHandler = new PlatformAuthExtensionHandler(
                     logger,
                     2000,
                     performanceClient
                 );
                 const platformBrokerSpy = jest
-                    .spyOn(NativeInteractionClient.prototype, "acquireToken")
+                    .spyOn(
+                        PlatformAuthInteractionClient.prototype,
+                        "acquireToken"
+                    )
                     .mockResolvedValue(getTestAuthenticationResult());
 
                 const authResult = await Authorize.handleResponseEAR(

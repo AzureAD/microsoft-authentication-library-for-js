@@ -8,7 +8,7 @@ import { HttpStatus, Logger } from "@azure/msal-common";
 import { IHttpRetryPolicy } from "./IHttpRetryPolicy.js";
 import { LinearRetryStrategy } from "./LinearRetryStrategy.js";
 
-const DEFAULT_MANAGED_IDENTITY_MAX_RETRIES: number = 3;
+export const DEFAULT_MANAGED_IDENTITY_MAX_RETRIES: number = 3; // referenced in unit test
 const DEFAULT_MANAGED_IDENTITY_RETRY_DELAY_MS: number = 1000;
 const DEFAULT_MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON: Array<number> = [
     HttpStatus.NOT_FOUND,

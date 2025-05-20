@@ -5,9 +5,9 @@
         "module": "commonjs",
         "target": "es5",
         "lib": [
-            "es2015",
+            "es2021",
             "dom",
-            "es2015.promise"
+            "es2021.promise"
         ],
         "allowUnusedLabels": false,
         "noImplicitReturns": true,

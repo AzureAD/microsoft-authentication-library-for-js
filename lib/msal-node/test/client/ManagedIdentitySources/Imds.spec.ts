@@ -316,10 +316,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const timeAfterNetworkRequest = new Date();
 
-                /**
-                 * ensure that each retry followed the exponential backoff strategy
-                 * 2 x exponential backoff (1 second -> 2 seconds)
-                 */
+                // exponential backoff (1 second -> 2 seconds)
                 expect(
                     timeAfterNetworkRequest.valueOf() -
                         timeBeforeNetworkRequest.valueOf()
@@ -378,10 +375,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const timeAfterNetworkRequest = new Date();
 
-                /**
-                 * ensure that each retry followed the exponential backoff strategy
-                 * 7 x linear backoff (10 seconds)
-                 */
+                // linear backoff (10 seconds * 4 retries)
                 expect(
                     timeAfterNetworkRequest.valueOf() -
                         timeBeforeNetworkRequest.valueOf()
@@ -415,7 +409,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
                     .spyOn(networkClient, <any>"sendGetRequestAsync")
-                    // permanently override the networkClient's sendGetRequestAsync method to return a 504
+                    // permanently override the networkClient's sendGetRequestAsync method to return a 410
                     .mockReturnValue(
                         managedIdentityNetworkErrorClient410.sendGetRequestAsync()
                     );
@@ -433,10 +427,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const timeAfterNetworkRequest = new Date();
 
-                /**
-                 * ensure that each retry followed the exponential backoff strategy
-                 * 7 x linear backoff (10 seconds)
-                 */
+                // linear backoff (10 seconds * 7 retries)
                 expect(
                     timeAfterNetworkRequest.valueOf() -
                         timeBeforeNetworkRequest.valueOf()
@@ -490,10 +481,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
 
                 const timeAfterNetworkRequest = new Date();
 
-                /**
-                 * ensure that each retry followed the exponential backoff strategy
-                 * 3 x exponential backoff (1 second -> 2 seconds -> 4 seconds)
-                 */
+                // exponential backoff (1 second -> 2 seconds -> 4 seconds)
                 expect(
                     timeAfterNetworkRequest.valueOf() -
                         timeBeforeNetworkRequest.valueOf()
@@ -531,9 +519,10 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         resource: "https://graph.microsoft1.com",
                     });
                 } catch (e) {
+                    // 4 total: request + 3 retries
                     expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(
                         IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_NUM_REQUESTS
-                    ); // request + 3 retries
+                    );
                 }
 
                 try {
@@ -541,9 +530,10 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         resource: "https://graph.microsoft2.com",
                     });
                 } catch (e) {
+                    // 8 total: 2 x (request + 3 retries)
                     expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(
                         IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_NUM_REQUESTS * 2
-                    ); // 8 total, 2 x (request + 3 retries)
+                    );
                 }
 
                 try {
@@ -551,9 +541,10 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         resource: "https://graph.microsoft3.com",
                     });
                 } catch (e) {
+                    // 12 total: 3 x (request + 3 retries)
                     expect(sendGetRequestAsyncSpyApp).toHaveBeenCalledTimes(
                         IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_NUM_REQUESTS * 3
-                    ); // 12 total, 3 x (request + 3 retries)
+                    );
                 }
             }
         );

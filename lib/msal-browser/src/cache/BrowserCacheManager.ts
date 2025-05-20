@@ -54,7 +54,7 @@ import { LocalStorage } from "./LocalStorage.js";
 import { SessionStorage } from "./SessionStorage.js";
 import { MemoryStorage } from "./MemoryStorage.js";
 import { IWindowStorage } from "./IWindowStorage.js";
-import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest.js";
+import { PlatformBrokerRequest } from "../broker/nativeBroker/PlatformBrokerRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
@@ -66,6 +66,7 @@ import { CookieStorage } from "./CookieStorage.js";
 import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
 import { EventType } from "../event/EventType.js";
 import { EventHandler } from "../event/EventHandler.js";
+import { clearHash } from "../utils/BrowserUtils.js";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -1131,7 +1132,7 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Gets cached native request for redirect flows
      */
-    getCachedNativeRequest(): NativeTokenRequest | null {
+    getCachedNativeRequest(): PlatformBrokerRequest | null {
         this.logger.trace("BrowserCacheManager.getCachedNativeRequest called");
         const cachedRequest = this.getTemporaryCache(
             TemporaryCacheKeys.NATIVE_REQUEST,
@@ -1146,7 +1147,7 @@ export class BrowserCacheManager extends CacheManager {
 
         const parsedRequest = this.validateAndParseJson(
             cachedRequest
-        ) as NativeTokenRequest;
+        ) as PlatformBrokerRequest;
         if (!parsedRequest) {
             this.logger.error(
                 "BrowserCacheManager.getCachedNativeRequest: Unable to parse native request"
@@ -1173,7 +1174,18 @@ export class BrowserCacheManager extends CacheManager {
     } | null {
         const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         const value = this.getTemporaryCache(key, false);
-        return value ? JSON.parse(value) : null;
+        try {
+            return value ? JSON.parse(value) : null;
+        } catch (e) {
+            // Remove interaction and other temp keys if interaction status can't be parsed
+            this.logger.error(
+                `Cannot parse interaction status. Removing temporary cache items and clearing url hash. Retrying interaction should fix the error`
+            );
+            this.removeTemporaryItem(key);
+            this.resetRequestCache();
+            clearHash(window);
+            return null;
+        }
     }
 
     setInteractionInProgress(
