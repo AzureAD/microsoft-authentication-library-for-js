@@ -20,7 +20,7 @@ describe("AuthError.ts Class", () => {
             expect(err.errorCode).toBe(code);
             expect(err.errorMessage).toBe(message);
             expect(err.errorMessage).toBe(
-                `See https://aka.ms/msaljs/common/errors#${code} for details`
+                `See https://aka.ms/msal.js.errors#${code} for details`
             );
             expect(err.message).toBe(`${code}: ${message}`);
             expect(err.name).toBe("AuthError");
