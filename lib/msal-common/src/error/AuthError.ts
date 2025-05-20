@@ -8,7 +8,7 @@ import * as AuthErrorCodes from "./AuthErrorCodes.js";
 export { AuthErrorCodes };
 
 export function getDefaultErrorMessage(code: string): string {
-    return `See https://aka.ms/msaljs/common/errors#${code} for details`;
+    return `See https://aka.ms/msal.js.errors#${code} for details`;
 }
 
 /**
