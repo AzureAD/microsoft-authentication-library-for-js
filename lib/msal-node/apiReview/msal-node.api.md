@@ -19,7 +19,6 @@ import { AppTokenProviderResult } from '@azure/msal-common/node';
 import { AuthenticationResult } from '@azure/msal-common/node';
 import { AuthError } from '@azure/msal-common/node';
 import { AuthErrorCodes } from '@azure/msal-common/node';
-import { AuthErrorMessages } from '@azure/msal-common/node';
 import { Authority } from '@azure/msal-common/node';
 import { AuthorityMetadataEntity } from '@azure/msal-common/node';
 import { AuthorizationCodePayload } from '@azure/msal-common/node';
@@ -34,11 +33,9 @@ import { CacheOutcome } from '@azure/msal-common/node';
 import { ClientAssertionCallback } from '@azure/msal-common/node';
 import { ClientAuthError } from '@azure/msal-common/node';
 import { ClientAuthErrorCodes } from '@azure/msal-common/node';
-import { ClientAuthErrorMessages } from '@azure/msal-common/node';
 import { ClientConfiguration } from '@azure/msal-common/node';
 import { ClientConfigurationError } from '@azure/msal-common/node';
 import { ClientConfigurationErrorCodes } from '@azure/msal-common/node';
-import { ClientConfigurationErrorMessages } from '@azure/msal-common/node';
 import { CommonAuthorizationCodeRequest } from '@azure/msal-common/node';
 import { CommonAuthorizationUrlRequest } from '@azure/msal-common/node';
 import { CommonClientCredentialRequest } from '@azure/msal-common/node';
@@ -93,8 +90,6 @@ export { AuthenticationResult }
 export { AuthError }
 
 export { AuthErrorCodes }
-
-export { AuthErrorMessages }
 
 export { AuthorizationCodePayload }
 
@@ -178,13 +173,9 @@ export { ClientAuthError }
 
 export { ClientAuthErrorCodes }
 
-export { ClientAuthErrorMessages }
-
 export { ClientConfigurationError }
 
 export { ClientConfigurationErrorCodes }
-
-export { ClientConfigurationErrorMessages }
 
 // @public
 export class ClientCredentialClient extends BaseClient {
