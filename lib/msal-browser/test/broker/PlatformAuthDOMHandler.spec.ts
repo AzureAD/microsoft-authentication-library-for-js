@@ -376,8 +376,60 @@ describe("PlatformAuthDOMHandler tests", () => {
                 prompt: "login",
                 nonce: "test-nonce",
                 claims: "test-claims",
+                extendedExpiryToken: true,
+            };
+            const platformDOMRequest =
+                //@ts-ignore
+                platformAuthDOMHandler.initializePlatformDOMRequest(
+                    testRequest
+                );
+            expect(platformDOMRequest).toEqual({
+                accountId: testRequest.accountId,
+                brokerId: PlatformAuthConstants.MICROSOFT_ENTRA_BROKERID,
+                authority: testRequest.authority,
+                clientId: testRequest.clientId,
+                correlationId: testRequest.correlationId,
+                isSecurityTokenService: false,
                 extraParameters: {
+                    windowTitleSubstring: "test-window-substring",
                     extendedExpiryToken: "true",
+                    prompt: "login",
+                    nonce: "test-nonce",
+                    claims: "test-claims",
+                },
+                redirectUri: testRequest.redirectUri,
+                scope: testRequest.scope,
+                state: undefined,
+                storeInCache: undefined,
+                embeddedClientId: undefined,
+            });
+        });
+
+        it("returned DOM request object should include user input extra parameters", async () => {
+            getSupportedContractsMock.mockResolvedValue([
+                PlatformAuthConstants.PLATFORM_DOM_APIS,
+            ]);
+            const platformAuthDOMHandler =
+                await PlatformAuthDOMHandler.createProvider(
+                    logger,
+                    performanceClient,
+                    "test-correlation-id"
+                );
+            const testRequest: PlatformAuthRequest = {
+                accountId: "test-id",
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                authority: TEST_CONFIG.validAuthority,
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scope: "read openid",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                windowTitleSubstring: "test-window-substring",
+                prompt: "login",
+                nonce: "test-nonce",
+                claims: "test-claims",
+                extendedExpiryToken: true,
+                extraParameters: {
+                    customUserInput1: "test-user-input1",
+                    customUserInput2: "test-user-input2",
                 },
             };
             const platformDOMRequest =
@@ -393,11 +445,13 @@ describe("PlatformAuthDOMHandler tests", () => {
                 correlationId: testRequest.correlationId,
                 isSecurityTokenService: false,
                 extraParameters: {
-                    extendedExpiryToken: "true",
                     windowTitleSubstring: "test-window-substring",
+                    extendedExpiryToken: "true",
                     prompt: "login",
                     nonce: "test-nonce",
                     claims: "test-claims",
+                    customUserInput1: "test-user-input1",
+                    customUserInput2: "test-user-input2",
                 },
                 redirectUri: testRequest.redirectUri,
                 scope: testRequest.scope,
