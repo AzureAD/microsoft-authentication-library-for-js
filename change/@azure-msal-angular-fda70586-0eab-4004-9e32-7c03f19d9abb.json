@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "fake angular and node extensions changes",
-  "packageName": "@azure/msal-angular",
-  "email": "shylasummers@microsoft.com",
-  "dependentChangeType": "patch"
-}

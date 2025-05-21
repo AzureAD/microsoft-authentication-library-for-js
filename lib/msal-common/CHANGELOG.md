@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 06 May 2025 22:47:43 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 21 May 2025 20:39:34 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 15.6.1
+
+Wed, 21 May 2025 20:39:34 GMT
+
+### Patches
+
+- Upgrade/rollback telemetry #7738 (thomas.norling@microsoft.com)
+- initial commit (shylasummers@microsoft.com)
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
 
 ## 15.6.0
 
