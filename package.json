@@ -53,7 +53,6 @@
         "lib/msal-node",
         "lib/msal-angular",
         "lib/msal-react",
-        "lib/msal-custom-auth",
         "extensions/msal-node-extensions",
         "extensions/samples/*",
         "shared-test-utils",
@@ -62,7 +61,6 @@
         "samples/msal-angular-samples/*",
         "samples/msal-react-samples/*",
         "samples/msal-node-samples/*",
-        "samples/msal-custom-auth-samples/*",
         "regression-tests/msal-node/client-credential"
     ]
 }

@@ -41,10 +41,6 @@
         {
             "name": "msal-node-extensions",
             "rootPath": "extensions/msal-node-extensions"
-        },
-        {
-            "name": "msal-custom-auth",
-            "rootPath": "lib/msal-custom-auth"
         }
     ]
 }

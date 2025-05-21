@@ -27,6 +27,16 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
+    "./custom-auth": {
+      "import": {
+        "types": "./dist/custom_auth/index.d.ts",
+        "default": "./dist/custom_auth/index.mjs"
+      },
+      "require": {
+        "types": "./lib/types/custom_auth/index.d.ts",
+        "default": "./lib/msal-custom-auth.cjs"
+      }
+    },
     ".": {
       "import": {
         "types": "./dist/index.d.ts",

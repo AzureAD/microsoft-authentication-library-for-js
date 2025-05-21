@@ -17,11 +17,6 @@
                         "@azure/msal-node"
                     ]
                 },
-                "msal-custom-auth": {
-                    "searchStrings": [
-                        "@azure/msal-custom-auth"
-                    ]
-                },
                 "adal-node": {
                     "searchStrings": [
                         "adal-node"

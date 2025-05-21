@@ -62,11 +62,6 @@ extends:
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                   - template: .pipelines/templates/ci-template.yml@1P
                     parameters:
-                        libName: msal-custom-auth
-                        path: "lib/"
-                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
-                  - template: .pipelines/templates/ci-template.yml@1P
-                    parameters:
                         libName: msal-angular
                         path: "lib/"
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}

@@ -18,7 +18,6 @@ export {
 } from "./app/PublicClientApplication.js";
 export { PublicClientNext } from "./app/PublicClientNext.js";
 export { IController } from "./controllers/IController.js";
-export { StandardController } from "./controllers/StandardController.js";
 export {
     Configuration,
     BrowserAuthOptions,
@@ -69,22 +68,15 @@ export { AuthenticationResult } from "./response/AuthenticationResult.js";
 export { ClearCacheRequest } from "./request/ClearCacheRequest.js";
 export { InitializeApplicationRequest } from "./request/InitializeApplicationRequest.js";
 
-// Operating Context
-export { BaseOperatingContext } from "./operatingcontext/BaseOperatingContext.js";
-
 // Cache
 export { LoadTokenOptions } from "./cache/TokenCache.js";
 export { ITokenCache } from "./cache/ITokenCache.js";
-export { BrowserCacheManager } from "./cache/BrowserCacheManager.js";
 
 // Storage
 export { MemoryStorage } from "./cache/MemoryStorage.js";
 export { LocalStorage } from "./cache/LocalStorage.js";
 export { SessionStorage } from "./cache/SessionStorage.js";
 export { IWindowStorage } from "./cache/IWindowStorage.js";
-
-// Interaction Client
-export { StandardInteractionClient } from "./interaction_client/StandardInteractionClient.js";
 
 // Events
 export {
@@ -120,11 +112,6 @@ export {
     AccountInfo,
     AccountEntity,
     IdTokenClaims,
-    // Client
-    SilentFlowClient,
-    RefreshTokenClient,
-    // Configuration
-    ClientConfiguration,
     // Error
     AuthError,
     AuthErrorCodes,
@@ -153,9 +140,6 @@ export {
     PromptValue,
     // Server Response
     ExternalTokenResponse,
-    ResponseHandler,
-    // Request
-    CommonSilentFlowRequest,
     // Utils
     StringUtils,
     UrlString,
@@ -168,20 +152,11 @@ export {
     PerformanceCallbackFunction,
     PerformanceEvent,
     PerformanceEvents,
-    // Crypto
-    ICrypto,
     // Telemetry
     InProgressPerformanceEvent,
     TenantProfile,
     IPerformanceClient,
     StubPerformanceClient,
-    TokenClaims,
-    Constants,
-    AADServerParamKeys,
-    ServerTelemetryManager,
-    // Authority
-    Authority,
-    AuthorityOptions,
 } from "@azure/msal-common/browser";
 
 export { version } from "./packageMetadata.js";

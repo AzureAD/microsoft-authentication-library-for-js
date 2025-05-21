@@ -26,10 +26,6 @@ parameters:
       displayName: "Run Angular Tests"
       type: boolean
       default: true
-    - name: "runCustomAuthTests"
-      displayName: "Run Custom Auth Tests"
-      type: boolean
-      default: true
     - name: "npmInstallTimeout"
       displayName: "NPM Install Timeout (Tests)"
       type: number
@@ -136,19 +132,5 @@ extends:
                                   - "angular-b2c-sample"
                                   - "angular-modules-sample"
                                   - "angular-standalone-sample"
-                              debug: ${{ parameters.debug }}
-                              npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
-                  - ${{ if eq(parameters.runCustomAuthTests, true) }}:
-                        - template: .pipelines/templates/e2e-tests.yml@1P
-                          parameters:
-                              jobName: "validate_msal_custom_auth"
-                              targetLib: "msal-custom-auth"
-                              poolType: ${{ parameters.poolType }}
-                              stage: "CI"
-                              sourceRepo: ${{ variables.sourceRepo }}
-                              sourceBranch: ${{ variables.sourceBranch }}
-                              workspace: "samples/msal-custom-auth-samples"
-                              samples:
-                                  - "sample-sample"
                               debug: ${{ parameters.debug }}
                               npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
