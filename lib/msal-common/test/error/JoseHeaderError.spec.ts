@@ -3,8 +3,7 @@ import {
     JoseHeaderErrorCodes,
     createJoseHeaderError,
 } from "../../src/error/JoseHeaderError";
-import { AuthError } from "../../src/error/AuthError";
-import { getDefaultErrorMessage } from "../../src/error/AuthError.js";
+import { AuthError, getDefaultErrorMessage } from "../../src/error/AuthError";
 
 describe("JoseHeaderError.ts Class Unit Tests", () => {
     for (const key in JoseHeaderErrorCodes) {
