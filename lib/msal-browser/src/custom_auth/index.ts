@@ -34,33 +34,12 @@ export {
     SignInWithContinuationTokenInputs,
 } from "./CustomAuthActionInputs.js";
 
-// Operation Errors
-export {
-    GetAccountError,
-    SignOutError,
-    GetCurrentAccountAccessTokenError,
-} from "./get_account/auth_flow/error_type/GetAccountError.js";
-export {
-    SignInError,
-    SignInSubmitPasswordError,
-    SignInSubmitCodeError,
-    SignInResendCodeError,
-} from "./sign_in/auth_flow/error_type/SignInError.js";
-export {
-    SignUpError,
-    SignUpSubmitPasswordError,
-    SignUpSubmitCodeError,
-    SignUpSubmitAttributesError,
-    SignUpResendCodeError,
-} from "./sign_up/auth_flow/error_type/SignUpError.js";
-export {
-    ResetPasswordError,
-    ResetPasswordSubmitPasswordError,
-    ResetPasswordSubmitCodeError,
-    ResetPasswordResendCodeError,
-} from "./reset_password/auth_flow/error_type/ResetPasswordError.js";
+// Operation Base State
+export { AuthFlowStateBase } from "./core/auth_flow/AuthFlowState.js";
+export { AuthFlowActionRequiredStateBase } from "./core/auth_flow/AuthFlowState.js";
 
 // Sign-in State
+export { SignInState } from "./sign_in/auth_flow/state/SignInState.js";
 export { SignInCodeRequiredState } from "./sign_in/auth_flow/state/SignInCodeRequiredState.js";
 export { SignInContinuationState } from "./sign_in/auth_flow/state/SignInContinuationState.js";
 export { SignInPasswordRequiredState } from "./sign_in/auth_flow/state/SignInPasswordRequiredState.js";
@@ -80,10 +59,19 @@ export {
 export { SignInSubmitPasswordResult } from "./sign_in/auth_flow/result/SignInSubmitPasswordResult.js";
 export { SignInSubmitCredentialResultState } from "./sign_in/auth_flow/result/SignInSubmitCredentialResult.js";
 
+// Sign-in Errors
+export {
+    SignInError,
+    SignInSubmitPasswordError,
+    SignInSubmitCodeError,
+    SignInResendCodeError,
+} from "./sign_in/auth_flow/error_type/SignInError.js";
+
 // Sign-up User Account Attributes
 export { UserAccountAttributes } from "./UserAccountAttributes.js";
 
 // Sign-up State
+export { SignUpState } from "./sign_up/auth_flow/state/SignUpState.js";
 export { SignUpAttributesRequiredState } from "./sign_up/auth_flow/state/SignUpAttributesRequiredState.js";
 export { SignUpCodeRequiredState } from "./sign_up/auth_flow/state/SignUpCodeRequiredState.js";
 export { SignUpPasswordRequiredState } from "./sign_up/auth_flow/state/SignUpPasswordRequiredState.js";
@@ -112,7 +100,17 @@ export {
     SignUpSubmitPasswordResultState,
 } from "./sign_up/auth_flow/result/SignUpSubmitPasswordResult.js";
 
+// Sign-up Errors
+export {
+    SignUpError,
+    SignUpSubmitPasswordError,
+    SignUpSubmitCodeError,
+    SignUpSubmitAttributesError,
+    SignUpResendCodeError,
+} from "./sign_up/auth_flow/error_type/SignUpError.js";
+
 // Reset-password State
+export { ResetPasswordState } from "./reset_password/auth_flow/state/ResetPasswordState.js";
 export { ResetPasswordCodeRequiredState } from "./reset_password/auth_flow/state/ResetPasswordCodeRequiredState.js";
 export { ResetPasswordPasswordRequiredState } from "./reset_password/auth_flow/state/ResetPasswordPasswordRequiredState.js";
 export { ResetPasswordCompletedState } from "./reset_password/auth_flow/state/ResetPasswordCompletedState.js";
@@ -136,6 +134,14 @@ export {
     ResetPasswordSubmitPasswordResultState,
 } from "./reset_password/auth_flow/result/ResetPasswordSubmitPasswordResult.js";
 
+// Reset-password Errors
+export {
+    ResetPasswordError,
+    ResetPasswordSubmitPasswordError,
+    ResetPasswordSubmitCodeError,
+    ResetPasswordResendCodeError,
+} from "./reset_password/auth_flow/error_type/ResetPasswordError.js";
+
 // Get Access Token Results
 export {
     GetAccessTokenResult,
@@ -153,6 +159,13 @@ export {
     SignOutResult,
     SignOutResultState,
 } from "./get_account/auth_flow/result/SignOutResult.js";
+
+// Token Management Errors
+export {
+    GetAccountError,
+    SignOutError,
+    GetCurrentAccountAccessTokenError,
+} from "./get_account/auth_flow/error_type/GetAccountError.js";
 
 // Errors
 export { CustomAuthApiError } from "./core/error/CustomAuthApiError.js";
