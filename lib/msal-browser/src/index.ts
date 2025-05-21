@@ -110,13 +110,10 @@ export {
     // Error
     AuthError,
     AuthErrorCodes,
-    AuthErrorMessages,
     ClientAuthError,
     ClientAuthErrorCodes,
-    ClientAuthErrorMessages,
     ClientConfigurationError,
     ClientConfigurationErrorCodes,
-    ClientConfigurationErrorMessages,
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
     ServerError,
@@ -154,3 +151,5 @@ export {
 } from "@azure/msal-common/browser";
 
 export { version } from "./packageMetadata.js";
+
+export { isPlatformBrokerAvailable } from "./broker/nativeBroker/PlatformAuthProvider.js";

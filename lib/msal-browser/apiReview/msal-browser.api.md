@@ -14,15 +14,12 @@ import { AuthenticationResult as AuthenticationResult_2 } from '@azure/msal-comm
 import { AuthenticationScheme } from '@azure/msal-common/browser';
 import { AuthError } from '@azure/msal-common/browser';
 import { AuthErrorCodes } from '@azure/msal-common/browser';
-import { AuthErrorMessages } from '@azure/msal-common/browser';
 import { AzureCloudInstance } from '@azure/msal-common/browser';
 import { AzureCloudOptions } from '@azure/msal-common/browser';
 import { ClientAuthError } from '@azure/msal-common/browser';
 import { ClientAuthErrorCodes } from '@azure/msal-common/browser';
-import { ClientAuthErrorMessages } from '@azure/msal-common/browser';
 import { ClientConfigurationError } from '@azure/msal-common/browser';
 import { ClientConfigurationErrorCodes } from '@azure/msal-common/browser';
-import { ClientConfigurationErrorMessages } from '@azure/msal-common/browser';
 import { CommonAuthorizationCodeRequest } from '@azure/msal-common/browser';
 import { CommonAuthorizationUrlRequest } from '@azure/msal-common/browser';
 import { CommonEndSessionRequest } from '@azure/msal-common/browser';
@@ -112,8 +109,6 @@ export { AuthenticationScheme }
 export { AuthError }
 
 export { AuthErrorCodes }
-
-export { AuthErrorMessages }
 
 // Warning: (ae-missing-release-tag) "AuthorizationCodeRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -431,13 +426,9 @@ export { ClientAuthError }
 
 export { ClientAuthErrorCodes }
 
-export { ClientAuthErrorMessages }
-
 export { ClientConfigurationError }
 
 export { ClientConfigurationErrorCodes }
-
-export { ClientConfigurationErrorMessages }
 
 // Warning: (ae-missing-release-tag) "Configuration" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -711,7 +702,7 @@ export interface IController {
     // (undocumented)
     hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
     // (undocumented)
-    initialize(request?: InitializeApplicationRequest): Promise<void>;
+    initialize(request?: InitializeApplicationRequest, isBroker?: boolean): Promise<void>;
     // (undocumented)
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
     // @internal (undocumented)
@@ -896,6 +887,13 @@ function isInIframe(): boolean;
 //
 // @public
 function isInPopup(): boolean;
+
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (ae-missing-release-tag) "isPlatformBrokerAvailable" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export function isPlatformBrokerAvailable(loggerOptions?: LoggerOptions, perfClient?: IPerformanceClient, correlationId?: string): Promise<boolean>;
 
 // Warning: (ae-missing-release-tag) "ITokenCache" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1205,6 +1203,8 @@ export class PublicClientApplication implements IPublicClientApplication {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
+    // (undocumented)
+    protected isBroker: boolean;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     loginPopup(request?: PopupRequest | undefined): Promise<AuthenticationResult>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -1461,7 +1461,7 @@ const userCancelled = "user_cancelled";
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "4.11.0";
+export const version = "4.12.0";
 
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1491,7 +1491,7 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/cache/LocalStorage.ts:296:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:354:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:385:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/config/Configuration.ts:256:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
+// src/config/Configuration.ts:231:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
 // src/event/EventHandler.ts:113:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/event/EventHandler.ts:139:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"

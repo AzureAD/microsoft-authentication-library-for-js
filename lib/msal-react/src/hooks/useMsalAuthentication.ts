@@ -253,8 +253,8 @@ export function useMsalAuthentication(
             shouldAcquireToken.current &&
             inProgress === InteractionStatus.None
         ) {
-            shouldAcquireToken.current = false;
             if (!isAuthenticated) {
+                shouldAcquireToken.current = false;
                 logger.info(
                     "useMsalAuthentication - No user is authenticated, attempting to login"
                 );
@@ -263,6 +263,7 @@ export function useMsalAuthentication(
                     return;
                 });
             } else if (account) {
+                shouldAcquireToken.current = false;
                 logger.info(
                     "useMsalAuthentication - User is authenticated, attempting to acquire token"
                 );

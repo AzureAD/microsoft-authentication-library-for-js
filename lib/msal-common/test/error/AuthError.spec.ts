@@ -1,10 +1,10 @@
 import {
     AuthError,
     AuthErrorCodes,
-    AuthErrorMessages,
     createAuthError,
 } from "../../src/error/AuthError";
 import { TEST_CONFIG } from "../test_kit/StringConstants";
+import { getDefaultErrorMessage } from "../../src/error/AuthError.js";
 
 describe("AuthError.ts Class", () => {
     for (const key in AuthErrorCodes) {
@@ -12,14 +12,16 @@ describe("AuthError.ts Class", () => {
         it(`AuthError object can be created for code ${code}`, () => {
             const err: AuthError = createAuthError(code);
 
-            const message = AuthErrorMessages[code];
+            const message = getDefaultErrorMessage(code);
             expect(message).toBeTruthy();
 
-            expect(err instanceof AuthError).toBe(true);
             expect(err instanceof AuthError).toBe(true);
             expect(err instanceof Error).toBe(true);
             expect(err.errorCode).toBe(code);
             expect(err.errorMessage).toBe(message);
+            expect(err.errorMessage).toBe(
+                `See https://aka.ms/msal.js.errors#${code} for details`
+            );
             expect(err.message).toBe(`${code}: ${message}`);
             expect(err.name).toBe("AuthError");
             expect(err.stack?.includes("AuthError.spec.ts")).toBe(true);

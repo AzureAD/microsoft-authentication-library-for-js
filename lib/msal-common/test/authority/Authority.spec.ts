@@ -18,7 +18,6 @@ import {
     B2C_OPENID_CONFIG_RESPONSE,
 } from "../test_kit/StringConstants";
 import {
-    ClientConfigurationErrorMessages,
     ClientConfigurationError,
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
@@ -46,6 +45,7 @@ import {
 import { RegionDiscovery } from "../../src/authority/RegionDiscovery";
 import { InstanceDiscoveryMetadata } from "../../src/authority/AuthorityMetadata";
 import * as authorityMetadata from "../../src/authority/AuthorityMetadata";
+import { getDefaultErrorMessage } from "../../src/error/AuthError.js";
 
 let mockStorage: MockStorageClass;
 
@@ -1099,10 +1099,9 @@ describe("Authority.ts Class Unit Tests", () => {
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toBe(
-                        ClientConfigurationErrorMessages[
-                            ClientConfigurationErrorCodes
-                                .invalidAuthorityMetadata
-                        ]
+                        getDefaultErrorMessage(
+                            ClientConfigurationErrorCodes.invalidAuthorityMetadata
+                        )
                     );
                     done();
                 });
@@ -2315,11 +2314,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 );
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
-                    expect(e.errorMessage).toBe(
-                        ClientConfigurationErrorMessages[
-                            ClientConfigurationErrorCodes
-                                .invalidCloudDiscoveryMetadata
-                        ]
+                    getDefaultErrorMessage(
+                        ClientConfigurationErrorCodes.invalidCloudDiscoveryMetadata
                     );
                     done();
                 });
@@ -2360,9 +2356,9 @@ describe("Authority.ts Class Unit Tests", () => {
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toBe(
-                        ClientConfigurationErrorMessages[
+                        getDefaultErrorMessage(
                             ClientConfigurationErrorCodes.untrustedAuthority
-                        ]
+                        )
                     );
                     expect(e.errorCode).toBe(
                         ClientConfigurationErrorCodes.untrustedAuthority
@@ -2410,10 +2406,10 @@ describe("Authority.ts Class Unit Tests", () => {
 
                 authority.resolveEndpointsAsync().catch((e) => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
-                    expect(e.errorMessage).toEqual(
-                        ClientConfigurationErrorMessages[
+                    expect(e.errorMessage).toBe(
+                        getDefaultErrorMessage(
                             ClientConfigurationErrorCodes.untrustedAuthority
-                        ]
+                        )
                     );
                     expect(e.errorCode).toEqual(
                         ClientConfigurationErrorCodes.untrustedAuthority

@@ -33,7 +33,6 @@ import {
 } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
-    BrowserAuthErrorMessages,
     BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError.js";
 import * as SilentHandler from "../../src/interaction_handler/SilentHandler.js";
@@ -42,8 +41,8 @@ import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
 import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
-import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient.js";
-import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
+import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
+import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
 import {
@@ -54,8 +53,8 @@ import {
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
-import { SilentRequest } from "../../src/request/SilentRequest.js";
 import { SsoSilentRequest } from "../../src/index.js";
+import { getDefaultErrorMessage } from "../../src/error/BrowserAuthError.js";
 
 describe("SilentIframeClient", () => {
     let silentIframeClient: SilentIframeClient;
@@ -413,7 +412,7 @@ describe("SilentIframeClient", () => {
             pca = (pca as any).controller;
 
             // @ts-ignore
-            const nativeMessageHandler = new NativeMessageHandler(
+            const nativeMessageHandler = new PlatformAuthExtensionHandler(
                 //@ts-ignore
                 pca.logger,
                 2000,
@@ -491,7 +490,7 @@ describe("SilentIframeClient", () => {
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT
             );
             jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -593,7 +592,7 @@ describe("SilentIframeClient", () => {
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT
             );
             jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -612,9 +611,9 @@ describe("SilentIframeClient", () => {
                         BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessages[
+                        getDefaultErrorMessage(
                             BrowserAuthErrorCodes.nativeConnectionNotEstablished
-                        ]
+                        )
                     );
                     done();
                 });
