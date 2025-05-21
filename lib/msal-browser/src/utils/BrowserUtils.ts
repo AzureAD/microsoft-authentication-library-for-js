@@ -175,11 +175,8 @@ export function redirectPreflightCheck(
 ): void {
     preflightCheck(initialized);
     blockRedirectInIframe(config.system.allowRedirectInIframe);
-    // Block redirects if memory storage is enabled but storeAuthStateInCookie is not
-    if (
-        config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage &&
-        !config.cache.storeAuthStateInCookie
-    ) {
+    // Block redirects if memory storage is enabled
+    if (config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage) {
         throw createBrowserConfigurationAuthError(
             BrowserConfigurationAuthErrorCodes.inMemRedirectUnavailable
         );

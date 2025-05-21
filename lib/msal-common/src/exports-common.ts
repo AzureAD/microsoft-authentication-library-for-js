@@ -27,7 +27,6 @@ export {
     AuthOptions,
     SystemOptions,
     LoggerOptions,
-    CacheOptions,
     DEFAULT_SYSTEM_OPTIONS,
     AzureCloudOptions,
     ApplicationTelemetry,

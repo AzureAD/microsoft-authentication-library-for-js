@@ -12,13 +12,11 @@ import {
     IPerformanceClient,
     Logger,
     PerformanceEvents,
-    StringUtils,
     createClientConfigurationError,
     invokeAsync,
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { SilentRequest } from "./SilentRequest.js";
-import { hashString } from "../crypto/BrowserCrypto.js";
 
 /**
  * Initializer function for all request APIs
@@ -69,16 +67,6 @@ export async function initializeBaseRequest(
         logger.verbose(
             `Authentication Scheme set to "${validatedRequest.authenticationScheme}" as configured in Auth request`
         );
-    }
-
-    // Set requested claims hash if claims-based caching is enabled and claims were requested
-    if (
-        config.cache.claimsBasedCachingEnabled &&
-        request.claims &&
-        // Checks for empty stringified object "{}" which doesn't qualify as requested claims
-        !StringUtils.isEmptyObj(request.claims)
-    ) {
-        validatedRequest.requestedClaimsHash = await hashString(request.claims);
     }
 
     return validatedRequest;

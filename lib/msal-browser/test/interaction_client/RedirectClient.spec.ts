@@ -92,10 +92,6 @@ import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformance
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
-    temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
-    storeAuthStateInCookie: false,
-    cacheMigrationEnabled: false,
-    claimsBasedCachingEnabled: false,
 };
 
 const testRequest: CommonAuthorizationUrlRequest = {

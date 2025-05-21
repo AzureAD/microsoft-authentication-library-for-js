@@ -99,19 +99,6 @@ describe("In Memory Storage Tests", function () {
             await page.close();
         });
 
-        it("Performs loginRedirect", async () => {
-            const testName = "redirectBaseCase";
-            const screenshot = new Screenshot(
-                `${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`
-            );
-
-            await clickLoginRedirect(screenshot, page);
-            await enterCredentials(page, screenshot, username, accountPwd);
-            await waitForReturnToApp(screenshot, page);
-            // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, memStorageTokenRequest.scopes);
-        });
-
         it("Performs loginPopup", async () => {
             const testName = "popupBaseCase";
             const screenshot = new Screenshot(

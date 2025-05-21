@@ -1152,13 +1152,6 @@ export abstract class CacheManager implements ICacheManager {
     static toObject<T>(obj: T, json: object): T;
 }
 
-// Warning: (ae-missing-release-tag) "CacheOptions" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-export type CacheOptions = {
-    claimsBasedCachingEnabled?: boolean;
-};
-
 // Warning: (ae-missing-release-tag) "CacheOutcome" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "CacheOutcome" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1408,7 +1401,6 @@ export type ClientConfiguration = {
     authOptions: AuthOptions;
     systemOptions?: SystemOptions;
     loggerOptions?: LoggerOptions;
-    cacheOptions?: CacheOptions;
     storageInterface?: CacheManager;
     networkInterface?: INetworkModule;
     cryptoInterface?: ICrypto;
@@ -4331,9 +4323,9 @@ const X_MS_LIB_CAPABILITY = "x-ms-lib-capability";
 // src/client/RefreshTokenClient.ts:287:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:288:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/client/RefreshTokenClient.ts:339:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/client/SilentFlowClient.ts:172:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/config/ClientConfiguration.ts:50:5 - (ae-forgotten-export) The symbol "ClientCredentials" needs to be exported by the entry point index.d.ts
-// src/config/ClientConfiguration.ts:52:5 - (ae-forgotten-export) The symbol "TelemetryOptions" needs to be exported by the entry point index.d.ts
+// src/client/SilentFlowClient.ts:168:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/config/ClientConfiguration.ts:49:5 - (ae-forgotten-export) The symbol "ClientCredentials" needs to be exported by the entry point index.d.ts
+// src/config/ClientConfiguration.ts:51:5 - (ae-forgotten-export) The symbol "TelemetryOptions" needs to be exported by the entry point index.d.ts
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
 // src/index.ts:8:4 - (tsdoc-undefined-tag) The TSDoc tag "@module" is not defined in this configuration
 // src/request/AuthenticationHeaderParser.ts:74:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

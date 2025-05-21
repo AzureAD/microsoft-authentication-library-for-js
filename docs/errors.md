@@ -17,8 +17,7 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 **Mitigation**:
 
-1. Make sure the configured cache storage has enough capacity to allow MSAL.js to persist token payload. The amount of cache storage required depends on the number of [cached artifacts](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs/caching.md#cached-artifacts).
-2. Disable [claimsBasedCachingEnabled](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs/configuration.md#cache-config-options) cache config option. When enabled, it caches access tokens under a key containing the hash of the requested claims. Depending on the MSAL.js API usage, it may result in the vast number of access tokens persisted in the cache storage.
+1. Make sure the configured cache storage has enough capacity to allow MSAL.js to persist token payload. The amount of cache storage required depends on the number of [cached artifacts](./caching.md#cached-artifacts).
 
 ### `cache_error_unknown`
 - An unknown error occurred while accessing the browser cache.
