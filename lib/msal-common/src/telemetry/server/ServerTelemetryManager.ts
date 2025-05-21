@@ -113,10 +113,10 @@ export class ServerTelemetryManager {
     /**
      * API to add MSER Telemetry to request
      */
-    generateCurrentRequestHeaderValue(): string {
+    async generateCurrentRequestHeaderValue(): Promise<string> {
         const request = `${this.apiId}${SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR}${this.cacheOutcome}`;
         const platformFieldsArr = [this.wrapperSKU, this.wrapperVer];
-        const nativeBrokerErrorCode = this.getNativeBrokerErrorCode();
+        const nativeBrokerErrorCode = await this.getNativeBrokerErrorCode();
         if (nativeBrokerErrorCode?.length) {
             platformFieldsArr.push(`broker_error=${nativeBrokerErrorCode}`);
         }
@@ -139,8 +139,8 @@ export class ServerTelemetryManager {
     /**
      * API to add MSER Telemetry for the last failed request
      */
-    generateLastRequestHeaderValue(): string {
-        const lastRequests = this.getLastRequests();
+    async generateLastRequestHeaderValue(): Promise<string> {
+        const lastRequests = await this.getLastRequests();
 
         const maxErrors = ServerTelemetryManager.maxErrorsToSend(lastRequests);
         const failedRequests = lastRequests.failedRequests
@@ -174,7 +174,7 @@ export class ServerTelemetryManager {
      * @param error
      */
     async cacheFailedRequest(error: unknown): Promise<void> {
-        const lastRequests = this.getLastRequests();
+        const lastRequests = await this.getLastRequests();
         if (
             lastRequests.errors.length >=
             SERVER_TELEM_CONSTANTS.MAX_CACHED_ERRORS
@@ -215,7 +215,7 @@ export class ServerTelemetryManager {
      * Update server telemetry cache entry by incrementing cache hit counter
      */
     async incrementCacheHits(): Promise<number> {
-        const lastRequests = this.getLastRequests();
+        const lastRequests = await this.getLastRequests();
         lastRequests.cacheHits += 1;
 
         await this.cacheManager.setServerTelemetry(
@@ -228,13 +228,13 @@ export class ServerTelemetryManager {
     /**
      * Get the server telemetry entity from cache or initialize a new one
      */
-    getLastRequests(): ServerTelemetryEntity {
+    async getLastRequests(): Promise<ServerTelemetryEntity> {
         const initialValue: ServerTelemetryEntity = {
             failedRequests: [],
             errors: [],
             cacheHits: 0,
         };
-        const lastRequests = this.cacheManager.getServerTelemetry(
+        const lastRequests = await this.cacheManager.getServerTelemetry(
             this.telemetryCacheKey
         ) as ServerTelemetryEntity;
 
@@ -245,7 +245,7 @@ export class ServerTelemetryManager {
      * Remove server telemetry cache entry
      */
     async clearTelemetryCache(): Promise<void> {
-        const lastRequests = this.getLastRequests();
+        const lastRequests = await this.getLastRequests();
         const numErrorsFlushed =
             ServerTelemetryManager.maxErrorsToSend(lastRequests);
         const errorCount = lastRequests.errors.length;
@@ -348,7 +348,7 @@ export class ServerTelemetryManager {
     }
 
     async setNativeBrokerErrorCode(errorCode: string): Promise<void> {
-        const lastRequests = this.getLastRequests();
+        const lastRequests = await this.getLastRequests();
         lastRequests.nativeBrokerErrorCode = errorCode;
         await this.cacheManager.setServerTelemetry(
             this.telemetryCacheKey,
@@ -356,12 +356,13 @@ export class ServerTelemetryManager {
         );
     }
 
-    getNativeBrokerErrorCode(): string | undefined {
-        return this.getLastRequests().nativeBrokerErrorCode;
+    async getNativeBrokerErrorCode(): Promise<string | undefined> {
+        const lastRequests = await this.getLastRequests();
+        return lastRequests.nativeBrokerErrorCode;
     }
 
     async clearNativeBrokerErrorCode(): Promise<void> {
-        const lastRequests = this.getLastRequests();
+        const lastRequests = await this.getLastRequests();
         delete lastRequests.nativeBrokerErrorCode;
         await this.cacheManager.setServerTelemetry(
             this.telemetryCacheKey,

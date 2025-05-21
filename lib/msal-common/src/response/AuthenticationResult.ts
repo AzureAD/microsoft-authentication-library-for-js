@@ -31,6 +31,7 @@ export type AuthenticationResult = {
     idToken: string;
     idTokenClaims: object;
     accessToken: string;
+    refreshToken?: string;
     fromCache: boolean;
     expiresOn: Date | null;
     extExpiresOn?: Date;

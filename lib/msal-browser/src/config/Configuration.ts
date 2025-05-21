@@ -275,7 +275,8 @@ export function buildConfiguration(
         system: userInputSystem,
         telemetry: userInputTelemetry,
     }: Configuration,
-    isBrowserEnvironment: boolean
+    isBrowserEnvironment: boolean,
+    isWebWorkerEnvironment?: boolean
 ): BrowserConfiguration {
     // Default auth options for browser
     const DEFAULT_AUTH_OPTIONS: InternalAuthOptions = {
@@ -337,7 +338,7 @@ export function buildConfiguration(
     const DEFAULT_BROWSER_SYSTEM_OPTIONS: Required<BrowserSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: DEFAULT_LOGGER_OPTIONS,
-        networkClient: isBrowserEnvironment
+        networkClient: (isBrowserEnvironment || isWebWorkerEnvironment)
             ? new FetchClient()
             : StubbedNetworkModule,
         navigationClient: new NavigationClient(),

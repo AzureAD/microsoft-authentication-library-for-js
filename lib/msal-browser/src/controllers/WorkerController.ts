@@ -22,6 +22,7 @@ import {
     getRequestThumbprint,
     ClientAuthErrorCodes,
     createClientAuthError,
+    INetworkModule,
 } from "@azure/msal-common/browser";
 import { ITokenCache } from "../cache/ITokenCache.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -57,6 +58,7 @@ import { initializeSilentRequest } from "../request/RequestHelpers.js";
 // import { NativeAuthError, isFatalNativeAuthError } from "../error/NativeAuthError.js";
 import { SilentCacheClient } from "../interaction_client/SilentCacheClient.js";
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient.js";
+import { FetchClient } from "../network/FetchClient.js";
 
 function getAccountType(
     account?: AccountInfo
@@ -100,6 +102,9 @@ export class WorkerController implements IController {
     // Storage interface implementation
     protected readonly workerStorage: WorkerCacheManager;
 
+    // Network interface implementation
+    protected readonly networkClient: INetworkModule;
+
     // Input configuration by developer/user
     protected readonly config: BrowserConfiguration;
 
@@ -142,6 +147,8 @@ export class WorkerController implements IController {
         this.config = operatingContext.getConfig();
 
         this.logger = operatingContext.getLogger();
+
+        this.networkClient = this.config.system.networkClient;
 
         // Initialize performance client
         this.performanceClient = this.config.telemetry.client;

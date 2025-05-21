@@ -1086,7 +1086,7 @@ export abstract class AsyncCacheManager {
         performanceClient?: IPerformanceClient,
         correlationId?: string
     ): Promise<IdTokenEntity | null> {
-        this.commonLogger.trace("CacheManager - getIdToken called");
+        this.commonLogger.trace("AsyncCacheManager - getIdToken called");
         const idTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
             environment: account.environment,
@@ -1254,7 +1254,7 @@ export abstract class AsyncCacheManager {
         performanceClient?: IPerformanceClient,
         correlationId?: string
     ): Promise<AccessTokenEntity | null> {
-        this.commonLogger.trace("CacheManager - getAccessToken called");
+        this.commonLogger.trace("AsyncCacheManager - getAccessToken called");
         const scopes = ScopeSet.createSearchScopes(request.scopes);
         const authScheme =
             request.authenticationScheme || AuthenticationScheme.BEARER;
@@ -1440,7 +1440,7 @@ export abstract class AsyncCacheManager {
         performanceClient?: IPerformanceClient,
         correlationId?: string
     ): Promise<RefreshTokenEntity | null> {
-        this.commonLogger.trace("CacheManager - getRefreshToken called");
+        this.commonLogger.trace("AsyncCacheManager - getRefreshToken called");
         const id = familyRT ? THE_FAMILY_ID : undefined;
         const refreshTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
@@ -1450,27 +1450,35 @@ export abstract class AsyncCacheManager {
             familyId: id,
         };
 
-        const refreshTokenKeys =
-            (tokenKeys && tokenKeys.refreshToken) ||
-            (await this.getTokenKeys()).refreshToken;
-        const refreshTokens: RefreshTokenEntity[] = [];
+        let refreshTokenKeys: string[] = [];
+        if(tokenKeys && tokenKeys.refreshToken) {
+            refreshTokenKeys = tokenKeys.refreshToken;
+        } else {
+            refreshTokenKeys = await this.getTokenKeys().then((keys) => keys.refreshToken);
+        }
 
-        refreshTokenKeys.forEach(async (key) => {
+        const refreshTokenPromises = refreshTokenKeys.map(async (key) => {
             // Validate key
             if (this.refreshTokenKeyMatchesFilter(key, refreshTokenFilter)) {
-                const refreshToken = await this.getRefreshTokenCredential(key);
-                // Validate value
-                if (
-                    refreshToken &&
-                    this.credentialMatchesFilter(
-                        refreshToken,
-                        refreshTokenFilter
-                    )
-                ) {
-                    refreshTokens.push(refreshToken);
-                }
+            const refreshToken = await this.getRefreshTokenCredential(key);
+            // Validate value
+            if (
+                refreshToken &&
+                this.credentialMatchesFilter(
+                refreshToken,
+                refreshTokenFilter
+                )
+            ) {
+                return refreshToken;
             }
+            }
+            return null;
         });
+
+        const refreshTokenResults = await Promise.all(refreshTokenPromises);
+        const refreshTokens: RefreshTokenEntity[] = refreshTokenResults.filter(
+            (token): token is RefreshTokenEntity => token !== null
+        );
 
         const numRefreshTokens = refreshTokens.length;
         if (numRefreshTokens < 1) {

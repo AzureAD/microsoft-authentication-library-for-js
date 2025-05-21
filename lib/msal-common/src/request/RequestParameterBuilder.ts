@@ -567,17 +567,17 @@ export function addSshJwk(
  * add server telemetry fields
  * @param serverTelemetryManager
  */
-export function addServerTelemetry(
+export async function addServerTelemetry(
     parameters: Map<string, string>,
     serverTelemetryManager: ServerTelemetryManager
-): void {
+): Promise<void> {
     parameters.set(
         AADServerParamKeys.X_CLIENT_CURR_TELEM,
-        serverTelemetryManager.generateCurrentRequestHeaderValue()
+        await serverTelemetryManager.generateCurrentRequestHeaderValue()
     );
     parameters.set(
         AADServerParamKeys.X_CLIENT_LAST_TELEM,
-        serverTelemetryManager.generateLastRequestHeaderValue()
+        await serverTelemetryManager.generateLastRequestHeaderValue()
     );
 }
 

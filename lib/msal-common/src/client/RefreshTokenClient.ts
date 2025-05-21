@@ -46,7 +46,7 @@ import {
 } from "../error/InteractionRequiredAuthError.js";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
-import { invoke, invokeAsync } from "../utils/FunctionWrappers.js";
+import { invokeAsync } from "../utils/FunctionWrappers.js";
 import { generateCredentialKey } from "../cache/utils/CacheHelpers.js";
 import { ClientAssertion } from "../account/ClientCredentials.js";
 import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
@@ -74,43 +74,49 @@ export class RefreshTokenClient extends BaseClient {
         );
 
         const reqTimestamp = TimeUtils.nowSeconds();
-        const response = await invokeAsync(
-            this.executeTokenRequest.bind(this),
-            PerformanceEvents.RefreshTokenClientExecuteTokenRequest,
-            this.logger,
-            this.performanceClient,
-            request.correlationId
-        )(request, this.authority);
+        let response: NetworkResponse<ServerAuthorizationTokenResponse>;
+        try {
+            response = await invokeAsync(
+                this.executeTokenRequest.bind(this),
+                PerformanceEvents.RefreshTokenClientExecuteTokenRequest,
+                this.logger,
+                this.performanceClient,
+                request.correlationId
+            )(request, this.authority);
+            // Retrieve requestId from response headers
+            const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
+            const responseHandler = new ResponseHandler(
+                this.config.authOptions.clientId,
+                this.cacheManager,
+                this.cryptoUtils,
+                this.logger,
+                this.config.serializableCache,
+                this.config.persistencePlugin
+            );
+            responseHandler.validateTokenResponse(response.body);
 
-        // Retrieve requestId from response headers
-        const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
-        const responseHandler = new ResponseHandler(
-            this.config.authOptions.clientId,
-            this.cacheManager,
-            this.cryptoUtils,
-            this.logger,
-            this.config.serializableCache,
-            this.config.persistencePlugin
-        );
-        responseHandler.validateTokenResponse(response.body);
-
-        return invokeAsync(
-            responseHandler.handleServerTokenResponse.bind(responseHandler),
-            PerformanceEvents.HandleServerTokenResponse,
-            this.logger,
-            this.performanceClient,
-            request.correlationId
-        )(
-            response.body,
-            this.authority,
-            reqTimestamp,
-            request,
-            undefined,
-            undefined,
-            true,
-            request.forceCache,
-            requestId
-        );
+            return await invokeAsync(
+                responseHandler.handleServerTokenResponse.bind(responseHandler),
+                PerformanceEvents.HandleServerTokenResponse,
+                this.logger,
+                this.performanceClient,
+                request.correlationId
+            )(
+                response.body,
+                this.authority,
+                reqTimestamp,
+                request,
+                undefined,
+                undefined,
+                true,
+                request.forceCache,
+                requestId
+            );
+        } catch (e) {
+            console.log("Error: ", e);
+            return Promise.reject(e);
+        }
+        
     }
 
     /**
@@ -140,7 +146,7 @@ export class RefreshTokenClient extends BaseClient {
         }
 
         // try checking if FOCI is enabled for the given application
-        const isFOCI = this.cacheManager.isAppMetadataFOCI(
+        const isFOCI = await this.cacheManager.isAppMetadataFOCI(
             request.account.environment
         );
 
@@ -203,8 +209,14 @@ export class RefreshTokenClient extends BaseClient {
         );
 
         // fetches family RT or application RT based on FOCI value
-        const refreshToken = invoke(
-            this.cacheManager.getRefreshToken.bind(this.cacheManager),
+        const refreshToken = await invokeAsync(
+            async (
+                account,
+                familyRT,
+                tokenKeys,
+                performanceClient,
+                correlationId
+            ) => this.cacheManager.getRefreshToken(account, familyRT, tokenKeys, performanceClient, correlationId),
             PerformanceEvents.CacheManagerGetRefreshToken,
             this.logger,
             this.performanceClient,
@@ -274,7 +286,7 @@ export class RefreshTokenClient extends BaseClient {
                     );
                     const badRefreshTokenKey =
                         generateCredentialKey(refreshToken);
-                    this.cacheManager.removeRefreshToken(badRefreshTokenKey);
+                    await this.cacheManager.removeRefreshToken(badRefreshTokenKey);
                 }
             }
 
@@ -387,7 +399,7 @@ export class RefreshTokenClient extends BaseClient {
         RequestParameterBuilder.addThrottling(parameters);
 
         if (this.serverTelemetryManager && !isOidcProtocolMode(this.config)) {
-            RequestParameterBuilder.addServerTelemetry(
+            await RequestParameterBuilder.addServerTelemetry(
                 parameters,
                 this.serverTelemetryManager
             );

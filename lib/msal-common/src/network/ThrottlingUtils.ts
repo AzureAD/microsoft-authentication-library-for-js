@@ -18,6 +18,7 @@ import {
 } from "./RequestThumbprint.js";
 import { ThrottlingEntity } from "../cache/entities/ThrottlingEntity.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
+import { AsyncCacheManager } from "../exports-common.js";
 
 /** @internal */
 export class ThrottlingUtils {
@@ -36,16 +37,16 @@ export class ThrottlingUtils {
      * @param cacheManager
      * @param thumbprint
      */
-    static preProcess(
-        cacheManager: CacheManager,
+    static async preProcess(
+        cacheManager: CacheManager | AsyncCacheManager,
         thumbprint: RequestThumbprint
-    ): void {
+    ): Promise<void> {
         const key = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
-        const value = cacheManager.getThrottlingCache(key);
+        const value = await cacheManager.getThrottlingCache(key);
 
         if (value) {
             if (value.throttleTime < Date.now()) {
-                cacheManager.removeItem(key);
+                await cacheManager.removeItem(key);
                 return;
             }
             throw new ServerError(
@@ -62,11 +63,11 @@ export class ThrottlingUtils {
      * @param thumbprint
      * @param response
      */
-    static postProcess(
-        cacheManager: CacheManager,
+    static async postProcess(
+        cacheManager: CacheManager | AsyncCacheManager,
         thumbprint: RequestThumbprint,
         response: NetworkResponse<ServerAuthorizationTokenResponse>
-    ): void {
+    ): Promise<void> {
         if (
             ThrottlingUtils.checkResponseStatus(response) ||
             ThrottlingUtils.checkResponseForRetryAfter(response)
@@ -80,7 +81,7 @@ export class ThrottlingUtils {
                 errorMessage: response.body.error_description,
                 subError: response.body.suberror,
             };
-            cacheManager.setThrottlingCache(
+            await cacheManager.setThrottlingCache(
                 ThrottlingUtils.generateThrottlingStorageKey(thumbprint),
                 thumbprintValue
             );

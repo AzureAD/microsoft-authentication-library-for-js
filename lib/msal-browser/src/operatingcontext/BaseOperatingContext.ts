@@ -63,7 +63,7 @@ export abstract class BaseOperatingContext {
          */
         this.browserEnvironment = typeof window !== "undefined";
         this.workerEnvironment = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
-        this.config = buildConfiguration(config, this.browserEnvironment);
+        this.config = buildConfiguration(config, this.browserEnvironment, this.workerEnvironment);
 
         let sessionStorage: Storage | undefined;
         try {

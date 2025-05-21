@@ -10,4 +10,5 @@ import {
 
 export type AuthenticationResult = CommonAuthenticationResult & {
     account: AccountInfo;
+    refreshToken?: string;
 };

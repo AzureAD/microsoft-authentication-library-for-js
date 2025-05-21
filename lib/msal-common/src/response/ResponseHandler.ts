@@ -52,6 +52,7 @@ import {
 } from "../account/AccountInfo.js";
 import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import * as TimeUtils from "../utils/TimeUtils.js";
+import { AsyncCacheManager } from "../exports-common.js";
 
 /**
  * Class that handles response parsing.
@@ -59,7 +60,7 @@ import * as TimeUtils from "../utils/TimeUtils.js";
  */
 export class ResponseHandler {
     private clientId: string;
-    private cacheStorage: CacheManager;
+    private cacheStorage: CacheManager | AsyncCacheManager;
     private cryptoObj: ICrypto;
     private logger: Logger;
     private homeAccountIdentifier: string;
@@ -69,7 +70,7 @@ export class ResponseHandler {
 
     constructor(
         clientId: string,
-        cacheStorage: CacheManager,
+        cacheStorage: CacheManager | AsyncCacheManager,
         cryptoObj: ICrypto,
         logger: Logger,
         serializableCache: ISerializableTokenCache | null,
@@ -246,7 +247,7 @@ export class ResponseHandler {
         serverTokenResponse.key_id =
             serverTokenResponse.key_id || request.sshKid || undefined;
 
-        const cacheRecord = this.generateCacheRecord(
+        const cacheRecord = await this.generateCacheRecord(
             serverTokenResponse,
             authority,
             reqTimestamp,
@@ -334,7 +335,7 @@ export class ResponseHandler {
      * @param idTokenObj
      * @param authority
      */
-    private generateCacheRecord(
+    private async generateCacheRecord(
         serverTokenResponse: ServerAuthorizationTokenResponse,
         authority: Authority,
         reqTimestamp: number,
@@ -342,7 +343,7 @@ export class ResponseHandler {
         idTokenClaims?: TokenClaims,
         userAssertionHash?: string,
         authCodePayload?: AuthorizationCodePayload
-    ): CacheRecord {
+    ): Promise<CacheRecord> {
         const env = authority.getPreferredCache();
         if (!env) {
             throw createClientAuthError(
@@ -364,7 +365,7 @@ export class ResponseHandler {
                 claimsTenantId || ""
             );
 
-            cachedAccount = buildAccountToCache(
+            cachedAccount = await buildAccountToCache(
                 this.cacheStorage,
                 authority,
                 this.homeAccountIdentifier,
@@ -498,6 +499,7 @@ export class ResponseHandler {
         requestId?: string
     ): Promise<AuthenticationResult> {
         let accessToken: string = Constants.EMPTY_STRING;
+        let refreshToken: string = Constants.EMPTY_STRING; // TODO: Remove once a better way to handle post-interaction worker cache hydration is in place
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
         let extExpiresOn: Date | undefined;
@@ -549,6 +551,15 @@ export class ResponseHandler {
             }
         }
 
+        if (cacheRecord.refreshToken) {
+            refreshToken = cacheRecord.refreshToken.secret;
+
+            // Access token expiresOn cached in seconds, converting to Date for AuthenticationResult
+            expiresOn = TimeUtils.toDateFromSeconds(
+                cacheRecord.refreshToken.expiresOn
+            );
+        }
+
         if (cacheRecord.appMetadata) {
             familyId =
                 cacheRecord.appMetadata.familyId === THE_FAMILY_ID
@@ -582,6 +593,7 @@ export class ResponseHandler {
             idToken: cacheRecord?.idToken?.secret || "",
             idTokenClaims: idTokenClaims || {},
             accessToken: accessToken,
+            refreshToken: refreshToken,
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
             extExpiresOn: extExpiresOn,
@@ -605,8 +617,8 @@ export class ResponseHandler {
     }
 }
 
-export function buildAccountToCache(
-    cacheStorage: CacheManager,
+export async function buildAccountToCache(
+    cacheStorage: CacheManager | AsyncCacheManager,
     authority: Authority,
     homeAccountId: string,
     base64Decode: (input: string) => string,
@@ -617,18 +629,18 @@ export function buildAccountToCache(
     authCodePayload?: AuthorizationCodePayload,
     nativeAccountId?: string,
     logger?: Logger
-): AccountEntity {
+): Promise<AccountEntity> {
     logger?.verbose("setCachedAccount called");
 
     // Check if base account is already cached
-    const accountKeys = cacheStorage.getAccountKeys();
+    const accountKeys = await cacheStorage.getAccountKeys();
     const baseAccountKey = accountKeys.find((accountKey: string) => {
         return accountKey.startsWith(homeAccountId);
     });
 
     let cachedAccount: AccountEntity | null = null;
     if (baseAccountKey) {
-        cachedAccount = cacheStorage.getAccount(baseAccountKey);
+        cachedAccount = await cacheStorage.getAccount(baseAccountKey);
     }
 
     const baseAccount =

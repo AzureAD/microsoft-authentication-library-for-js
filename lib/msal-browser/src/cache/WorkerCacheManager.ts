@@ -500,7 +500,6 @@ export class WorkerCacheManager extends AsyncCacheManager {
      */
     async getAccessTokenCredential(accessTokenKey: string): Promise<AccessTokenEntity | null> {
         const value = await this.workerStorage.getItem(accessTokenKey);
-        console.log("AT: ", value);
         if (!value) {
             this.logger.trace(
                 "WorkerCacheManager.getAccessTokenCredential: called, no cache hit"
@@ -1254,9 +1253,22 @@ export class WorkerCacheManager extends AsyncCacheManager {
             claimsHash
         );
 
+        let refreshToken: RefreshTokenEntity | null = null;
+
+        if(result.refreshToken) {
+            refreshToken = CacheHelpers.createRefreshTokenEntity(
+                result.account?.homeAccountId,
+                result.account?.environment,
+                result.refreshToken,
+                this.clientId,
+                result.familyId,
+            );
+        }
+
         const cacheRecord = {
             idToken: idTokenEntity,
             accessToken: accessTokenEntity,
+            refreshToken: refreshToken
         };
         return this.saveCacheRecord(cacheRecord, result.correlationId);
     }

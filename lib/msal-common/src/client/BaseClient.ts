@@ -169,7 +169,7 @@ export abstract class BaseClient {
             response.status !== 429
         ) {
             // Telemetry data successfully logged by server, clear Telemetry cache
-            this.config.serverTelemetryManager.clearTelemetryCache();
+            await this.config.serverTelemetryManager.clearTelemetryCache();
         }
 
         return response;
@@ -188,8 +188,7 @@ export abstract class BaseClient {
         options: NetworkRequestOptions,
         correlationId: string
     ): Promise<NetworkResponse<T>> {
-        ThrottlingUtils.preProcess(this.cacheManager, thumbprint);
-
+        await ThrottlingUtils.preProcess(this.cacheManager, thumbprint);
         let response;
         try {
             response = await invokeAsync(
@@ -245,7 +244,7 @@ export abstract class BaseClient {
             }
         }
 
-        ThrottlingUtils.postProcess(this.cacheManager, thumbprint, response);
+        await ThrottlingUtils.postProcess(this.cacheManager, thumbprint, response);
 
         return response;
     }
