@@ -34,7 +34,7 @@ import {
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-    getDefaultErrorMessage
+    getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError.js";
 import * as SilentHandler from "../../src/interaction_handler/SilentHandler.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";

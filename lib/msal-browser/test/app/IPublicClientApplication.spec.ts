@@ -4,7 +4,10 @@
  */
 
 import { stubbedPublicClientApplication } from "../../src/app/IPublicClientApplication";
-import { BrowserAuthError, getDefaultErrorMessage } from "../../src/error/BrowserAuthError.js";
+import {
+    BrowserAuthError,
+    getDefaultErrorMessage,
+} from "../../src/error/BrowserAuthError.js";
 import { BrowserConfigurationAuthErrorCodes } from "../../src/error/BrowserConfigurationAuthError.js";
 
 describe("IPublicClientApplication.ts Class Unit Tests", () => {

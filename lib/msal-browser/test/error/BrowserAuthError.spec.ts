@@ -2,7 +2,7 @@ import {
     BrowserAuthError,
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-    getDefaultErrorMessage
+    getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError";
 import { AuthError } from "@azure/msal-common";
 

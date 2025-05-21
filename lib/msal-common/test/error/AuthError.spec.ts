@@ -2,7 +2,7 @@ import {
     AuthError,
     AuthErrorCodes,
     createAuthError,
-    getDefaultErrorMessage
+    getDefaultErrorMessage,
 } from "../../src/error/AuthError";
 import { TEST_CONFIG } from "../test_kit/StringConstants";
 

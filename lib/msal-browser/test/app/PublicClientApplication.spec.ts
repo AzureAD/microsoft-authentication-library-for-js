@@ -82,7 +82,7 @@ import {
     BrowserAuthError,
     BrowserAuthErrorCodes,
     createBrowserAuthError,
-    getDefaultErrorMessage
+    getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError.js";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient.js";

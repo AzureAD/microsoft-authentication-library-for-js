@@ -30,7 +30,10 @@ import { Logger, LogLevel } from "../../src/logger/Logger.js";
 import * as AuthToken from "../../src/account/AuthToken.js";
 import { BaseAuthRequest } from "../../src/request/BaseAuthRequest.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
-import { AuthError, getDefaultErrorMessage } from "../../src/error/AuthError.js";
+import {
+    AuthError,
+    getDefaultErrorMessage,
+} from "../../src/error/AuthError.js";
 import {
     ClientAuthError,
     ClientAuthErrorCodes,

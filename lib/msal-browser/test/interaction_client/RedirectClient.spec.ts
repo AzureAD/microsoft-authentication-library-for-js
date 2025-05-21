@@ -66,7 +66,7 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
     BrowserAuthError,
-    getDefaultErrorMessage
+    getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";

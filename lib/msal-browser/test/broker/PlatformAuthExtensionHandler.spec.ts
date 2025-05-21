@@ -16,7 +16,11 @@ import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import { PlatformBrokerRequest } from "../../src/broker/nativeBroker/PlatformBrokerRequest.js";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants.js";
-import { getDefaultErrorMessage, BrowserAuthError, BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
+import {
+    getDefaultErrorMessage,
+    BrowserAuthError,
+    BrowserAuthErrorCodes,
+} from "../../src/error/BrowserAuthError.js";
 
 let performanceClient: IPerformanceClient;
 

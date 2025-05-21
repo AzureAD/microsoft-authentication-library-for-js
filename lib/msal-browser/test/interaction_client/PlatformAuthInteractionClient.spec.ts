@@ -30,7 +30,10 @@ import {
     TEST_TOKENS,
 } from "../utils/StringConstants.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
-import { BrowserAuthErrorCodes, getDefaultErrorMessage } from "../../src/error/BrowserAuthError.js";
+import {
+    BrowserAuthErrorCodes,
+    getDefaultErrorMessage,
+} from "../../src/error/BrowserAuthError.js";
 import {
     NativeAuthError,
     NativeAuthErrorCodes,
