@@ -1,12 +1,14 @@
 # MSAL.js errors
 
-## Common errors
+## Auth errors
 
 ### `unexpected_error`
 - Unexpected error in authentication.
 
 ### `post_request_failed`
 - Post request failed from the network, could be a 4xx/5xx or a network unavailability. Please check the exact error code for details.
+
+## Cache errors
 
 ### `cache_quota_exceeded`
 - Exceeded cache storage capacity.
@@ -20,6 +22,8 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 ### `cache_error_unknown`
 - An unknown error occurred while accessing the browser cache.
+
+## Client auth errors
 
 ### `client_info_decoding_error`
 - The client info could not be parsed/decoded correctly.
@@ -129,6 +133,8 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 ### `nested_app_auth_bridge_disabled`
 - The nested app auth bridge is disabled.
 
+## Client configuration errors
+
 ### `redirect_uri_empty`
 - A redirect URI is required for all calls, and none has been set.
 
@@ -195,6 +201,8 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 ### `authority_mismatch`
 - Authority mismatch error. Authority provided in login request or PublicClientApplication config does not match the environment of the provided account. Please use a matching account or make an interactive request to login to this authority.
 
+## Interaction required errors
+
 ### `no_tokens_found`
 - No refresh token found in the cache. Please sign-in.
 
@@ -216,13 +224,15 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 ### `bad_token`
 - Identity provider returned bad_token due to an expired or invalid refresh token. Please invoke an interactive API to resolve.
 
+## JOSE header errors
+
 ### `missing_kid_error`
 - The JOSE Header for the requested JWT, JWS or JWK object requires a keyId to be configured as the 'kid' header claim. No 'kid' value was provided.
 
 ### `missing_alg_error`
 - The JOSE Header for the requested JWT, JWS or JWK object requires an algorithm to be specified as the 'alg' header claim. No 'alg' value was provided.
 
-## Browser errors
+## Browser auth errors
 
 ### `pkce_not_created`
 - The PKCE code challenge and verifier could not be generated.
@@ -716,6 +726,8 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 ### `failed_to_decrypt_ear_response`
 - Failed to decrypt ear response.
 
+## Browser configuration errors
+
 ### `storage_not_supported`
 - Given storage configuration option was not supported.
 
@@ -726,6 +738,8 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 ### `in_mem_redirect_unavailable`
 - Redirect cannot be supported. In-memory storage was selected and storeAuthStateInCookie=false, which would cause the library to be unable to handle the incoming hash. If you would like to use the redirect API, please use session/localStorage or set storeAuthStateInCookie=true.
 
+## Native auth errors
+
 ### `ContentError`
 - Native broker content error.
 
@@ -735,11 +749,11 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 ### `unsupported_method`
 - This method is not supported in nested app environment.
 
-### Other
+## Other
 
 Errors not thrown by MSAL, such as server or cache errors.
 
-#### Access to fetch at [url] has been blocked by CORS policy
+### Access to fetch at [url] has been blocked by CORS policy
 
 This error occurs with MSAL.js v2.x and is due to improper configuration during **App Registration** on **Azure Portal**. In particular, you should ensure your `redirectUri` is registered as type: `Single-page application` under the **Authentication** blade in your App Registration. If done successfully, you will see a green checkmark that says:
 
