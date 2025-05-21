@@ -130,6 +130,8 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
                     ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID_NON_IMDS
                 )
             ).toEqual(MANAGED_IDENTITY_RESOURCE_ID);
+
+            jest.restoreAllMocks();
         });
     });
 
