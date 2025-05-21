@@ -43,7 +43,6 @@ export type ClientConfiguration = {
     authOptions: AuthOptions;
     systemOptions?: SystemOptions;
     loggerOptions?: LoggerOptions;
-    cacheOptions?: undefined;
     storageInterface?: CacheManager;
     networkInterface?: INetworkModule;
     cryptoInterface?: ICrypto;
