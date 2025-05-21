@@ -480,10 +480,10 @@ If you are unable to figure out why this error is being thrown please [open an i
 - User cancelled the flow.
 
 ### `monitor_popup_timeout`
-- Token acquisition in popup failed due to timeout. For more visit: https://aka.ms/msaljs/browser-errors#monitor_popup_timeout
+- Token acquisition in popup failed due to timeout.
 
 ### `monitor_window_timeout`
-- Token acquisition in iframe failed due to timeout. For more visit: https://aka.ms/msaljs/browser-errors#monitor_window_timeout
+- Token acquisition in iframe failed due to timeout.
 
 **Error Messages**:
 
@@ -570,7 +570,7 @@ const msalConfig = {
 - Redirects are not supported for iframed or brokered applications. Please ensure you are using MSAL.js in a top frame of the window if using the redirect APIs, or use the popup APIs.
 
 ### `block_iframe_reload`
-- Request was blocked inside an iframe because MSAL detected an authentication response. For more visit: https://aka.ms/msaljs/browser-errors#block_iframe_reload
+- Request was blocked inside an iframe because MSAL detected an authentication response.
 
 This error is thrown when calling `ssoSilent` or `acquireTokenSilent` and the page used as your `redirectUri` is attempting to invoke a login or acquireToken function.
 Our recommended mitigation for this is to set your `redirectUri` to a blank page that does not implement MSAL when invoking silent APIs. This will also have the added benefit of improving performance as the hidden iframe doesn't need to render your page.
