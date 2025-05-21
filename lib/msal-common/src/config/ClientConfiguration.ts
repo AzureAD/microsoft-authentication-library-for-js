@@ -59,7 +59,6 @@ export type CommonClientConfiguration = {
     authOptions: Required<AuthOptions>;
     systemOptions: Required<SystemOptions>;
     loggerOptions: Required<LoggerOptions>;
-    cacheOptions: undefined;
     storageInterface: CacheManager;
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
@@ -211,7 +210,6 @@ export function buildClientConfiguration({
     authOptions: userAuthOptions,
     systemOptions: userSystemOptions,
     loggerOptions: userLoggerOption,
-    cacheOptions: userCacheOptions,
     storageInterface: storageImplementation,
     networkInterface: networkImplementation,
     cryptoInterface: cryptoImplementation,
@@ -231,7 +229,6 @@ export function buildClientConfiguration({
         authOptions: buildAuthOptions(userAuthOptions),
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
         loggerOptions: loggerOptions,
-        cacheOptions: userCacheOptions || undefined,
         storageInterface:
             storageImplementation ||
             new DefaultStorageClass(

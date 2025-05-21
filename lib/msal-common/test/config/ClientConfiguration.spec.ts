@@ -107,8 +107,6 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         // Logger options checks
         expect(emptyConfig.loggerOptions).not.toBeNull();
         expect(emptyConfig.loggerOptions.piiLoggingEnabled).toBe(false);
-        // Cache Options checks
-        expect(emptyConfig.cacheOptions).toBeUndefined();
         // Client info checks
         expect(emptyConfig.libraryInfo.sku).toBe(Constants.SKU);
         expect(emptyConfig.libraryInfo.version).toBe(version);
@@ -269,8 +267,6 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.loggerOptions).not.toBeNull();
         expect(newConfig.loggerOptions.loggerCallback).not.toBeNull();
         expect(newConfig.loggerOptions.piiLoggingEnabled).toBe(true);
-        // Cache options tests
-        expect(newConfig.cacheOptions).toBeUndefined();
         // Client info tests
         expect(newConfig.libraryInfo.sku).toBe(TEST_CONFIG.TEST_SKU);
         expect(newConfig.libraryInfo.version).toBe(TEST_CONFIG.TEST_VERSION);
