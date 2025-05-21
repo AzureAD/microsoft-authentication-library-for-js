@@ -266,6 +266,44 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
         });
 
+        it("Extension: token request contains user input extra params", async () => {
+            const sendMessageSpy = jest
+                .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
+                .mockImplementation((): Promise<PlatformAuthResponse> => {
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
+            const response = await platformAuthInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                extraQueryParameters: {
+                    testQP1: "testQP1",
+                    testQP2: "testQP2",
+                },
+            });
+
+            expect(sendMessageSpy).toHaveProperty(
+                "mock.calls[0][0].extraParameters",
+                {
+                    telemetry: "MATS",
+                    testQP1: "testQP1",
+                    testQP2: "testQP2",
+                    "x-client-xtra-sku": `${BrowserConstants.MSAL_SKU}|${version},|,|,|`,
+                }
+            );
+
+            expect(response.accessToken).toEqual(
+                MOCK_WAM_RESPONSE.access_token
+            );
+            expect(response.idToken).toEqual(MOCK_WAM_RESPONSE.id_token);
+            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
+            expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
+            expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
+            expect(response.account).toEqual(TEST_ACCOUNT_INFO);
+            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+        });
+
         it("DOM API: acquires token successfully", async () => {
             platformAuthDOMHandler = new PlatformAuthDOMHandler(
                 pca.getLogger(),
@@ -294,15 +332,28 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 RANDOM_TEST_GUID
             );
 
-            jest.spyOn(
-                PlatformAuthDOMHandler.prototype,
-                "sendMessage"
-            ).mockImplementation((): Promise<PlatformAuthResponse> => {
-                return Promise.resolve(MOCK_WAM_RESPONSE);
-            });
+            const sendMessageSpy = jest
+                .spyOn(PlatformAuthDOMHandler.prototype, "sendMessage")
+                .mockImplementation((): Promise<PlatformAuthResponse> => {
+                    return Promise.resolve(MOCK_WAM_RESPONSE);
+                });
             const response = await testInterctionClient.acquireToken({
                 scopes: ["User.Read"],
+                extraQueryParameters: {
+                    testQP1: "testQP1",
+                    testQP2: "testQP2",
+                },
             });
+
+            expect(sendMessageSpy).toHaveProperty(
+                "mock.calls[0][0].extraParameters",
+                {
+                    telemetry: "MATS",
+                    testQP1: "testQP1",
+                    testQP2: "testQP2",
+                    "x-client-xtra-sku": `${BrowserConstants.MSAL_SKU}|${version},|,|,|`,
+                }
+            );
             expect(response.accessToken).toEqual(
                 MOCK_WAM_RESPONSE.access_token
             );
