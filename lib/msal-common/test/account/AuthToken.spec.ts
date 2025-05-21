@@ -9,7 +9,6 @@ import {
 } from "../test_kit/StringConstants";
 import { ICrypto } from "../../src/crypto/ICrypto";
 import {
-    ClientAuthErrorMessages,
     ClientAuthErrorCodes,
     ClientAuthError,
 } from "../../src/error/ClientAuthError";
@@ -106,16 +105,6 @@ describe("AuthToken.ts Class Unit Tests", () => {
                 expect(parsedErr.errorCode).toBe(
                     ClientAuthErrorCodes.nullOrEmptyToken
                 );
-                expect(parsedErr.errorMessage).toContain(
-                    ClientAuthErrorMessages[
-                        ClientAuthErrorCodes.nullOrEmptyToken
-                    ]
-                );
-                expect(parsedErr.message).toContain(
-                    ClientAuthErrorMessages[
-                        ClientAuthErrorCodes.nullOrEmptyToken
-                    ]
-                );
                 expect(parsedErr.name).toBe("ClientAuthError");
                 expect(parsedErr.stack).toContain("AuthToken.spec.ts");
                 done();
@@ -133,16 +122,6 @@ describe("AuthToken.ts Class Unit Tests", () => {
                 expect(parsedErr.errorCode).toBe(
                     ClientAuthErrorCodes.nullOrEmptyToken
                 );
-                expect(parsedErr.errorMessage).toContain(
-                    ClientAuthErrorMessages[
-                        ClientAuthErrorCodes.nullOrEmptyToken
-                    ]
-                );
-                expect(parsedErr.message).toContain(
-                    ClientAuthErrorMessages[
-                        ClientAuthErrorCodes.nullOrEmptyToken
-                    ]
-                );
                 expect(parsedErr.name).toBe("ClientAuthError");
                 expect(parsedErr.stack).toContain("AuthToken.spec.ts");
                 done();
@@ -159,16 +138,6 @@ describe("AuthToken.ts Class Unit Tests", () => {
                 const parsedErr = err as ClientAuthError;
                 expect(parsedErr.errorCode).toBe(
                     ClientAuthErrorCodes.tokenParsingError
-                );
-                expect(parsedErr.errorMessage).toContain(
-                    ClientAuthErrorMessages[
-                        ClientAuthErrorCodes.tokenParsingError
-                    ]
-                );
-                expect(parsedErr.message).toContain(
-                    ClientAuthErrorMessages[
-                        ClientAuthErrorCodes.tokenParsingError
-                    ]
                 );
                 expect(parsedErr.name).toBe("ClientAuthError");
                 expect(parsedErr.stack).toContain("AuthToken.spec.ts");

@@ -577,14 +577,6 @@ declare namespace AuthErrorCodes {
 }
 export { AuthErrorCodes }
 
-// Warning: (ae-missing-release-tag) "AuthErrorMessages" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-export const AuthErrorMessages: {
-    unexpected_error: string;
-    post_request_failed: string;
-};
-
 // Warning: (ae-internal-missing-underscore) The name "AuthOptions" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
@@ -1402,56 +1394,6 @@ declare namespace ClientAuthErrorCodes {
 }
 export { ClientAuthErrorCodes }
 
-// Warning: (ae-missing-release-tag) "ClientAuthErrorMessages" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-export const ClientAuthErrorMessages: {
-    client_info_decoding_error: string;
-    client_info_empty_error: string;
-    token_parsing_error: string;
-    null_or_empty_token: string;
-    endpoints_resolution_error: string;
-    network_error: string;
-    openid_config_error: string;
-    hash_not_deserialized: string;
-    invalid_state: string;
-    state_mismatch: string;
-    state_not_found: string;
-    nonce_mismatch: string;
-    auth_time_not_found: string;
-    max_age_transpired: string;
-    multiple_matching_tokens: string;
-    multiple_matching_accounts: string;
-    multiple_matching_appMetadata: string;
-    request_cannot_be_made: string;
-    cannot_remove_empty_scope: string;
-    cannot_append_scopeset: string;
-    empty_input_scopeset: string;
-    device_code_polling_cancelled: string;
-    device_code_expired: string;
-    device_code_unknown_error: string;
-    no_account_in_silent_request: string;
-    invalid_cache_record: string;
-    invalid_cache_environment: string;
-    no_account_found: string;
-    no_crypto_object: string;
-    unexpected_credential_type: string;
-    invalid_assertion: string;
-    invalid_client_credential: string;
-    token_refresh_required: string;
-    user_timeout_reached: string;
-    token_claims_cnf_required_for_signedjwt: string;
-    authorization_code_missing_from_server_response: string;
-    binding_key_not_removed: string;
-    end_session_endpoint_not_supported: string;
-    key_id_missing: string;
-    no_network_connectivity: string;
-    user_canceled: string;
-    missing_tenant_id_error: string;
-    method_not_implemented: string;
-    nested_app_auth_bridge_disabled: string;
-};
-
 // Warning: (ae-internal-missing-underscore) The name "ClientConfiguration" should be prefixed with an underscore because the declaration is marked as @internal
 //
 // @internal
@@ -1505,34 +1447,6 @@ declare namespace ClientConfigurationErrorCodes {
     }
 }
 export { ClientConfigurationErrorCodes }
-
-// Warning: (ae-missing-release-tag) "ClientConfigurationErrorMessages" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-export const ClientConfigurationErrorMessages: {
-    redirect_uri_empty: string;
-    claims_request_parsing_error: string;
-    authority_uri_insecure: string;
-    url_parse_error: string;
-    empty_url_error: string;
-    empty_input_scopes_error: string;
-    invalid_prompt_value: string;
-    invalid_claims: string;
-    token_request_empty: string;
-    logout_request_empty: string;
-    invalid_code_challenge_method: string;
-    pkce_params_missing: string;
-    invalid_cloud_discovery_metadata: string;
-    invalid_authority_metadata: string;
-    untrusted_authority: string;
-    missing_ssh_jwk: string;
-    missing_ssh_kid: string;
-    missing_nonce_authentication_header: string;
-    invalid_authentication_header: string;
-    cannot_set_OIDCOptions: string;
-    cannot_allow_platform_broker: string;
-    authority_mismatch: string;
-};
 
 // Warning: (ae-missing-release-tag) "ClientInfo" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1805,7 +1719,7 @@ function createIdTokenEntity(homeAccountId: string, environment: string, idToken
 // Warning: (ae-missing-release-tag) "createInteractionRequiredAuthError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export function createInteractionRequiredAuthError(errorCode: string): InteractionRequiredAuthError;
+export function createInteractionRequiredAuthError(errorCode: string, errorMessage?: string): InteractionRequiredAuthError;
 
 // Warning: (ae-missing-release-tag) "createNetworkError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

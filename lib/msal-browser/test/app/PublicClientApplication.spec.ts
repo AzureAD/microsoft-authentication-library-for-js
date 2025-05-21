@@ -81,7 +81,6 @@ import { FetchClient } from "../../src/network/FetchClient.js";
 import {
     BrowserAuthError,
     BrowserAuthErrorCodes,
-    BrowserAuthErrorMessages,
     createBrowserAuthError,
 } from "../../src/error/BrowserAuthError.js";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
@@ -120,6 +119,7 @@ import { INTERACTION_TYPE } from "../../src/utils/BrowserConstants.js";
 import { BaseOperatingContext } from "../../src/operatingcontext/BaseOperatingContext.js";
 import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
 import { config } from "process";
+import { getDefaultErrorMessage } from "../../src/error/BrowserAuthError.js";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -2001,9 +2001,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         BrowserAuthErrorCodes.blockNestedPopups
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessages[
+                        getDefaultErrorMessage(
                             BrowserAuthErrorCodes.blockNestedPopups
-                        ]
+                        )
                     );
                     done();
                 })
@@ -3122,9 +3122,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         BrowserAuthErrorCodes.blockNestedPopups
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessages[
+                        getDefaultErrorMessage(
                             BrowserAuthErrorCodes.blockNestedPopups
-                        ]
+                        )
                     );
                     done();
                 })
@@ -3873,10 +3873,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         BrowserAuthErrorCodes.unableToAcquireTokenFromNativePlatform
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessages[
-                            BrowserAuthErrorCodes
-                                .unableToAcquireTokenFromNativePlatform
-                        ]
+                        getDefaultErrorMessage(
+                            BrowserAuthErrorCodes.unableToAcquireTokenFromNativePlatform
+                        )
                     );
                 });
             expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(0);

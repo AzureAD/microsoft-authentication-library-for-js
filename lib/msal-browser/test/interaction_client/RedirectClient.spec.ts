@@ -64,7 +64,6 @@ import { base64Encode } from "../../src/encode/Base64Encode.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import {
     createBrowserAuthError,
-    BrowserAuthErrorMessages,
     BrowserAuthErrorCodes,
     BrowserAuthError,
 } from "../../src/error/BrowserAuthError.js";
@@ -89,6 +88,7 @@ import {
     TestTimeUtils,
 } from "msal-test-utils";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
+import { getDefaultErrorMessage } from "../../src/error/BrowserAuthError.js";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -698,9 +698,9 @@ describe("RedirectClient", () => {
                         BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessages[
+                        getDefaultErrorMessage(
                             BrowserAuthErrorCodes.nativeConnectionNotEstablished
-                        ]
+                        )
                     );
                     done();
                 });

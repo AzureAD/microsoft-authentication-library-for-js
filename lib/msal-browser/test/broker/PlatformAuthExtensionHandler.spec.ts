@@ -6,7 +6,6 @@
 import {
     Logger,
     AuthError,
-    AuthErrorMessages,
     AuthErrorCodes,
     IPerformanceClient,
 } from "@azure/msal-common";
@@ -19,7 +18,7 @@ import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import { mock } from "node:test";
 import { PlatformBrokerRequest } from "../../src/broker/nativeBroker/PlatformBrokerRequest.js";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants.js";
-import { BrowserAuthErrorMessages } from "../../src/error/BrowserAuthError.js";
+import { getDefaultErrorMessage } from "../../src/error/BrowserAuthError.js";
 
 let performanceClient: IPerformanceClient;
 
@@ -189,9 +188,9 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                     BrowserAuthErrorCodes.nativeExtensionNotInstalled
                 );
                 expect(e.errorMessage).toBe(
-                    BrowserAuthErrorMessages[
+                    getDefaultErrorMessage(
                         BrowserAuthErrorCodes.nativeExtensionNotInstalled
-                    ]
+                    )
                 );
                 done();
             });
@@ -215,9 +214,9 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                         BrowserAuthErrorCodes.nativeHandshakeTimeout
                     );
                     expect(e.errorMessage).toBe(
-                        BrowserAuthErrorMessages[
+                        getDefaultErrorMessage(
                             BrowserAuthErrorCodes.nativeHandshakeTimeout
-                        ]
+                        )
                     );
                     done();
                 })
@@ -504,7 +503,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                             AuthErrorCodes.unexpectedError
                         );
                         expect(e.errorMessage).toContain(
-                            AuthErrorMessages[AuthErrorCodes.unexpectedError]
+                            "Event does not contain result"
                         );
                         done();
                     });
