@@ -19,7 +19,7 @@ import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
-const APP_SERVICE_MSI_API_VERSION: string = "2019-08-01";
+const APP_SERVICE_MSI_API_VERSION: string = "2025-03-30";
 
 /**
  * Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/AppServiceManagedIdentitySource.cs

@@ -40,7 +40,10 @@ import { ManagedIdentityId } from "../config/ManagedIdentityId.js";
 import { HashUtils } from "../crypto/HashUtils.js";
 
 const SOURCES_THAT_SUPPORT_TOKEN_REVOCATION: Array<ManagedIdentitySourceNames> =
-    [ManagedIdentitySourceNames.SERVICE_FABRIC];
+    [
+        ManagedIdentitySourceNames.APP_SERVICE,
+        ManagedIdentitySourceNames.SERVICE_FABRIC,
+    ];
 
 /**
  * Class to initialize a managed identity and identify the service
