@@ -8,21 +8,25 @@ import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_cl
 import { SignInClient } from "../../interaction_client/SignInClient.js";
 import { SignInScenario } from "../SignInScenario.js";
 
-export interface SignInStateParameters extends AuthFlowActionRequiredStateParameters {
+export interface SignInStateParameters
+    extends AuthFlowActionRequiredStateParameters {
     username: string;
     signInClient: SignInClient;
     cacheClient: CustomAuthSilentCacheClient;
 }
 
-export interface SignInPasswordRequiredStateParameters extends SignInStateParameters {
+export interface SignInPasswordRequiredStateParameters
+    extends SignInStateParameters {
     scopes?: string[];
 }
 
-export interface SignInCodeRequiredStateParameters extends SignInStateParameters {
+export interface SignInCodeRequiredStateParameters
+    extends SignInStateParameters {
     codeLength: number;
     scopes?: string[];
 }
 
-export interface SignInContinuationStateParameters extends SignInStateParameters {
+export interface SignInContinuationStateParameters
+    extends SignInStateParameters {
     signInScenario: SignInScenario;
 }

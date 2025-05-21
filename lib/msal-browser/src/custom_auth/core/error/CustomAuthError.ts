@@ -7,7 +7,7 @@ export class CustomAuthError extends Error {
     constructor(
         public error: string,
         public errorDescription?: string,
-        public correlationId?: string,
+        public correlationId?: string
     ) {
         super(`${error}: ${errorDescription ?? ""}`);
         Object.setPrototypeOf(this, CustomAuthError.prototype);

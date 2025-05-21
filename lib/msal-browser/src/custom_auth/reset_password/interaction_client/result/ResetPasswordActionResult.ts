@@ -6,7 +6,7 @@
 class ResetPasswordResultBase {
     constructor(
         public correlationId: string,
-        public continuationToken: string,
+        public continuationToken: string
     ) {}
 }
 
@@ -17,7 +17,7 @@ export class ResetPasswordCodeRequiredResult extends ResetPasswordResultBase {
         public challengeChannel: string,
         public challengeTargetLabel: string,
         public codeLength: number,
-        public bindingMethod: string,
+        public bindingMethod: string
     ) {
         super(correlationId, continuationToken);
     }

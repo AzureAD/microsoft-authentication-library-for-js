@@ -21,7 +21,8 @@ export interface ResetPasswordSubmitCodeParams extends ResetPasswordParamsBase {
     code: string;
 }
 
-export interface ResetPasswordSubmitNewPasswordParams extends ResetPasswordParamsBase {
+export interface ResetPasswordSubmitNewPasswordParams
+    extends ResetPasswordParamsBase {
     continuationToken: string;
     newPassword: string;
 }

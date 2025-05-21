@@ -60,6 +60,7 @@ export interface ResetPasswordSubmitResponse extends ContinuousResponse {
     poll_interval: number;
 }
 
-export interface ResetPasswordPollCompletionResponse extends ContinuousResponse {
+export interface ResetPasswordPollCompletionResponse
+    extends ContinuousResponse {
     status: string;
 }

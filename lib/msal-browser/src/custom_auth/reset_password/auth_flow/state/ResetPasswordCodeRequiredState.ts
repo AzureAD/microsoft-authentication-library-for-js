@@ -24,21 +24,25 @@ export class ResetPasswordCodeRequiredState extends ResetPasswordState<ResetPass
 
             this.stateParameters.logger.verbose(
                 "Submitting code for password reset.",
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
-            const result = await this.stateParameters.resetPasswordClient.submitCode({
-                clientId: this.stateParameters.config.auth.clientId,
-                correlationId: this.stateParameters.correlationId,
-                challengeType: this.stateParameters.config.customAuth.challengeTypes ?? [],
-                continuationToken: this.stateParameters.continuationToken ?? "",
-                code: code,
-                username: this.stateParameters.username,
-            });
+            const result =
+                await this.stateParameters.resetPasswordClient.submitCode({
+                    clientId: this.stateParameters.config.auth.clientId,
+                    correlationId: this.stateParameters.correlationId,
+                    challengeType:
+                        this.stateParameters.config.customAuth.challengeTypes ??
+                        [],
+                    continuationToken:
+                        this.stateParameters.continuationToken ?? "",
+                    code: code,
+                    username: this.stateParameters.username,
+                });
 
             this.stateParameters.logger.verbose(
                 "Code is submitted for password reset.",
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
             return new ResetPasswordSubmitCodeResult(
@@ -47,16 +51,17 @@ export class ResetPasswordCodeRequiredState extends ResetPasswordState<ResetPass
                     continuationToken: result.continuationToken,
                     logger: this.stateParameters.logger,
                     config: this.stateParameters.config,
-                    resetPasswordClient: this.stateParameters.resetPasswordClient,
+                    resetPasswordClient:
+                        this.stateParameters.resetPasswordClient,
                     signInClient: this.stateParameters.signInClient,
                     cacheClient: this.stateParameters.cacheClient,
                     username: this.stateParameters.username,
-                }),
+                })
             );
         } catch (error) {
             this.stateParameters.logger.errorPii(
                 `Failed to submit code for password reset. Error: ${error}.`,
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
             return ResetPasswordSubmitCodeResult.createWithError(error);
@@ -71,20 +76,24 @@ export class ResetPasswordCodeRequiredState extends ResetPasswordState<ResetPass
         try {
             this.stateParameters.logger.verbose(
                 "Resending code for password reset.",
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
-            const result = await this.stateParameters.resetPasswordClient.resendCode({
-                clientId: this.stateParameters.config.auth.clientId,
-                challengeType: this.stateParameters.config.customAuth.challengeTypes ?? [],
-                username: this.stateParameters.username,
-                correlationId: this.stateParameters.correlationId,
-                continuationToken: this.stateParameters.continuationToken ?? "",
-            });
+            const result =
+                await this.stateParameters.resetPasswordClient.resendCode({
+                    clientId: this.stateParameters.config.auth.clientId,
+                    challengeType:
+                        this.stateParameters.config.customAuth.challengeTypes ??
+                        [],
+                    username: this.stateParameters.username,
+                    correlationId: this.stateParameters.correlationId,
+                    continuationToken:
+                        this.stateParameters.continuationToken ?? "",
+                });
 
             this.stateParameters.logger.verbose(
                 "Code is resent for password reset.",
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
             return new ResetPasswordResendCodeResult(
@@ -93,17 +102,18 @@ export class ResetPasswordCodeRequiredState extends ResetPasswordState<ResetPass
                     continuationToken: result.continuationToken,
                     logger: this.stateParameters.logger,
                     config: this.stateParameters.config,
-                    resetPasswordClient: this.stateParameters.resetPasswordClient,
+                    resetPasswordClient:
+                        this.stateParameters.resetPasswordClient,
                     signInClient: this.stateParameters.signInClient,
                     cacheClient: this.stateParameters.cacheClient,
                     username: this.stateParameters.username,
                     codeLength: result.codeLength,
-                }),
+                })
             );
         } catch (error) {
             this.stateParameters.logger.errorPii(
                 `Failed to resend code for password reset. Error: ${error}.`,
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
             return ResetPasswordResendCodeResult.createWithError(error);

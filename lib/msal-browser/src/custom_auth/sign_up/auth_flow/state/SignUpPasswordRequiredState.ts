@@ -24,28 +24,40 @@ export class SignUpPasswordRequiredState extends SignUpState<SignUpPasswordRequi
      * @param {string} password - The password to submit.
      * @returns {Promise<SignUpSubmitPasswordResult>} The result of the operation.
      */
-    async submitPassword(password: string): Promise<SignUpSubmitPasswordResult> {
+    async submitPassword(
+        password: string
+    ): Promise<SignUpSubmitPasswordResult> {
         try {
             this.ensurePasswordIsNotEmpty(password);
 
-            this.stateParameters.logger.verbose("Submitting password for sign-up.", this.stateParameters.correlationId);
+            this.stateParameters.logger.verbose(
+                "Submitting password for sign-up.",
+                this.stateParameters.correlationId
+            );
 
-            const result = await this.stateParameters.signUpClient.submitPassword({
-                clientId: this.stateParameters.config.auth.clientId,
-                correlationId: this.stateParameters.correlationId,
-                challengeType: this.stateParameters.config.customAuth.challengeTypes ?? [],
-                continuationToken: this.stateParameters.continuationToken ?? "",
-                password: password,
-                username: this.stateParameters.username,
-            });
+            const result =
+                await this.stateParameters.signUpClient.submitPassword({
+                    clientId: this.stateParameters.config.auth.clientId,
+                    correlationId: this.stateParameters.correlationId,
+                    challengeType:
+                        this.stateParameters.config.customAuth.challengeTypes ??
+                        [],
+                    continuationToken:
+                        this.stateParameters.continuationToken ?? "",
+                    password: password,
+                    username: this.stateParameters.username,
+                });
 
-            this.stateParameters.logger.verbose("Password submitted for sign-up.", this.stateParameters.correlationId);
+            this.stateParameters.logger.verbose(
+                "Password submitted for sign-up.",
+                this.stateParameters.correlationId
+            );
 
             if (result instanceof SignUpAttributesRequiredResult) {
                 // Attributes required
                 this.stateParameters.logger.verbose(
                     "Attributes required for sign-up.",
-                    this.stateParameters.correlationId,
+                    this.stateParameters.correlationId
                 );
 
                 return new SignUpSubmitPasswordResult(
@@ -59,11 +71,14 @@ export class SignUpPasswordRequiredState extends SignUpState<SignUpPasswordRequi
                         cacheClient: this.stateParameters.cacheClient,
                         username: this.stateParameters.username,
                         requiredAttributes: result.requiredAttributes,
-                    }),
+                    })
                 );
             } else if (result instanceof SignUpCompletedResult) {
                 // Sign-up completed
-                this.stateParameters.logger.verbose("Sign-up completed.", this.stateParameters.correlationId);
+                this.stateParameters.logger.verbose(
+                    "Sign-up completed.",
+                    this.stateParameters.correlationId
+                );
 
                 return new SignUpSubmitPasswordResult(
                     new SignUpCompletedState({
@@ -75,17 +90,20 @@ export class SignUpPasswordRequiredState extends SignUpState<SignUpPasswordRequi
                         cacheClient: this.stateParameters.cacheClient,
                         username: this.stateParameters.username,
                         signInScenario: SignInScenario.SignInAfterSignUp,
-                    }),
+                    })
                 );
             }
 
             return SignUpSubmitPasswordResult.createWithError(
-                new UnexpectedError("Unknown sign-up result type.", this.stateParameters.correlationId),
+                new UnexpectedError(
+                    "Unknown sign-up result type.",
+                    this.stateParameters.correlationId
+                )
             );
         } catch (error) {
             this.stateParameters.logger.errorPii(
                 `Failed to submit password for sign up. Error: ${error}.`,
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
             return SignUpSubmitPasswordResult.createWithError(error);

@@ -50,15 +50,18 @@ interface SignUpContinueRequestBase extends ApiRequestBase {
     continuation_token: string;
 }
 
-export interface SignUpContinueWithOobRequest extends SignUpContinueRequestBase {
+export interface SignUpContinueWithOobRequest
+    extends SignUpContinueRequestBase {
     oob: string;
 }
 
-export interface SignUpContinueWithPasswordRequest extends SignUpContinueRequestBase {
+export interface SignUpContinueWithPasswordRequest
+    extends SignUpContinueRequestBase {
     password: string;
 }
 
-export interface SignUpContinueWithAttributesRequest extends SignUpContinueRequestBase {
+export interface SignUpContinueWithAttributesRequest
+    extends SignUpContinueRequestBase {
     attributes: Record<string, string>;
 }
 

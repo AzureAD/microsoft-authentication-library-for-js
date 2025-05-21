@@ -30,8 +30,12 @@ export class ResetPasswordStartResult extends AuthFlowResultBase<
      * @returns {ResetPasswordStartResult} A new instance of ResetPasswordStartResult with the error set.
      */
     static createWithError(error: unknown): ResetPasswordStartResult {
-        const result = new ResetPasswordStartResult(new ResetPasswordFailedState());
-        result.error = new ResetPasswordError(ResetPasswordStartResult.createErrorData(error));
+        const result = new ResetPasswordStartResult(
+            new ResetPasswordFailedState()
+        );
+        result.error = new ResetPasswordError(
+            ResetPasswordStartResult.createErrorData(error)
+        );
 
         return result;
     }
@@ -39,14 +43,18 @@ export class ResetPasswordStartResult extends AuthFlowResultBase<
     /**
      * Checks if the result is in a failed state.
      */
-    isFailed(): this is ResetPasswordStartResult & { state: ResetPasswordFailedState } {
+    isFailed(): this is ResetPasswordStartResult & {
+        state: ResetPasswordFailedState;
+    } {
         return this.state instanceof ResetPasswordFailedState;
     }
 
     /**
      * Checks if the result is in a code required state.
      */
-    isCodeRequired(): this is ResetPasswordStartResult & { state: ResetPasswordCodeRequiredState } {
+    isCodeRequired(): this is ResetPasswordStartResult & {
+        state: ResetPasswordCodeRequiredState;
+    } {
         return this.state instanceof ResetPasswordCodeRequiredState;
     }
 }
@@ -57,4 +65,6 @@ export class ResetPasswordStartResult extends AuthFlowResultBase<
  * - ResetPasswordCodeRequiredState: The reset password process requires a code.
  * - ResetPasswordFailedState: The reset password process has failed.
  */
-export type ResetPasswordStartResultState = ResetPasswordCodeRequiredState | ResetPasswordFailedState;
+export type ResetPasswordStartResultState =
+    | ResetPasswordCodeRequiredState
+    | ResetPasswordFailedState;

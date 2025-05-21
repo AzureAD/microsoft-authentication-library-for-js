@@ -5,12 +5,19 @@
 
 import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { SignOutError } from "../error_type/GetAccountError.js";
-import { SignOutCompletedState, SignOutFailedState } from "../state/SignOutState.js";
+import {
+    SignOutCompletedState,
+    SignOutFailedState,
+} from "../state/SignOutState.js";
 
 /*
  * Result of a sign-out operation.
  */
-export class SignOutResult extends AuthFlowResultBase<SignOutResultState, SignOutError, void> {
+export class SignOutResult extends AuthFlowResultBase<
+    SignOutResultState,
+    SignOutError,
+    void
+> {
     /**
      * Creates a new instance of SignOutResult.
      * @param state The state of the result.

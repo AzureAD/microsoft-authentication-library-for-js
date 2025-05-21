@@ -4,7 +4,10 @@
  */
 
 import { CustomAuthAccountData } from "../../../get_account/auth_flow/CustomAuthAccountData.js";
-import { SignInResendCodeParams, SignInSubmitCodeParams } from "../../interaction_client/parameter/SignInParams.js";
+import {
+    SignInResendCodeParams,
+    SignInSubmitCodeParams,
+} from "../../interaction_client/parameter/SignInParams.js";
 import { SignInResendCodeResult } from "../result/SignInResendCodeResult.js";
 import { SignInSubmitCodeResult } from "../result/SignInSubmitCodeResult.js";
 import { SignInCodeRequiredStateParameters } from "./SignInStateParameters.js";
@@ -28,32 +31,45 @@ export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredState
             const submitCodeParams: SignInSubmitCodeParams = {
                 clientId: this.stateParameters.config.auth.clientId,
                 correlationId: this.stateParameters.correlationId,
-                challengeType: this.stateParameters.config.customAuth.challengeTypes ?? [],
+                challengeType:
+                    this.stateParameters.config.customAuth.challengeTypes ?? [],
                 scopes: this.stateParameters.scopes ?? [],
                 continuationToken: this.stateParameters.continuationToken ?? "",
                 code: code,
                 username: this.stateParameters.username,
             };
 
-            this.stateParameters.logger.verbose("Submitting code for sign-in.", this.stateParameters.correlationId);
+            this.stateParameters.logger.verbose(
+                "Submitting code for sign-in.",
+                this.stateParameters.correlationId
+            );
 
-            const completedResult = await this.stateParameters.signInClient.submitCode(submitCodeParams);
+            const completedResult =
+                await this.stateParameters.signInClient.submitCode(
+                    submitCodeParams
+                );
 
-            this.stateParameters.logger.verbose("Code submitted for sign-in.", this.stateParameters.correlationId);
+            this.stateParameters.logger.verbose(
+                "Code submitted for sign-in.",
+                this.stateParameters.correlationId
+            );
 
             const accountInfo = new CustomAuthAccountData(
                 completedResult.authenticationResult.account,
                 this.stateParameters.config,
                 this.stateParameters.cacheClient,
                 this.stateParameters.logger,
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
-            return new SignInSubmitCodeResult(new SignInCompletedState(), accountInfo);
+            return new SignInSubmitCodeResult(
+                new SignInCompletedState(),
+                accountInfo
+            );
         } catch (error) {
             this.stateParameters.logger.errorPii(
                 `Failed to submit code for sign-in. Error: ${error}.`,
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
             return SignInSubmitCodeResult.createWithError(error);
@@ -69,16 +85,25 @@ export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredState
             const submitCodeParams: SignInResendCodeParams = {
                 clientId: this.stateParameters.config.auth.clientId,
                 correlationId: this.stateParameters.correlationId,
-                challengeType: this.stateParameters.config.customAuth.challengeTypes ?? [],
+                challengeType:
+                    this.stateParameters.config.customAuth.challengeTypes ?? [],
                 continuationToken: this.stateParameters.continuationToken ?? "",
                 username: this.stateParameters.username,
             };
 
-            this.stateParameters.logger.verbose("Resending code for sign-in.", this.stateParameters.correlationId);
+            this.stateParameters.logger.verbose(
+                "Resending code for sign-in.",
+                this.stateParameters.correlationId
+            );
 
-            const result = await this.stateParameters.signInClient.resendCode(submitCodeParams);
+            const result = await this.stateParameters.signInClient.resendCode(
+                submitCodeParams
+            );
 
-            this.stateParameters.logger.verbose("Code resent for sign-in.", this.stateParameters.correlationId);
+            this.stateParameters.logger.verbose(
+                "Code resent for sign-in.",
+                this.stateParameters.correlationId
+            );
 
             return new SignInResendCodeResult(
                 new SignInCodeRequiredState({
@@ -91,7 +116,7 @@ export class SignInCodeRequiredState extends SignInState<SignInCodeRequiredState
                     username: this.stateParameters.username,
                     codeLength: result.codeLength,
                     scopes: this.stateParameters.scopes,
-                }),
+                })
             );
         } catch (error) {
             return SignInResendCodeResult.createWithError(error);

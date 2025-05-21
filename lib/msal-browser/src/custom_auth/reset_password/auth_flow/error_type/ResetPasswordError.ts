@@ -47,7 +47,9 @@ export class ResetPasswordSubmitPasswordError extends AuthFlowErrorBase {
      * @returns {boolean} True if the new password is invalid, false otherwise.
      */
     isInvalidPassword(): boolean {
-        return this.isInvalidNewPasswordError() || this.isPasswordIncorrectError();
+        return (
+            this.isInvalidNewPasswordError() || this.isPasswordIncorrectError()
+        );
     }
 
     /**
@@ -57,8 +59,10 @@ export class ResetPasswordSubmitPasswordError extends AuthFlowErrorBase {
     isPasswordResetFailed(): boolean {
         return (
             this.errorData instanceof CustomAuthApiError &&
-            (this.errorData.error === CustomAuthApiErrorCode.PASSWORD_RESET_TIMEOUT ||
-                this.errorData.error === CustomAuthApiErrorCode.PASSWORD_CHANGE_FAILED)
+            (this.errorData.error ===
+                CustomAuthApiErrorCode.PASSWORD_RESET_TIMEOUT ||
+                this.errorData.error ===
+                    CustomAuthApiErrorCode.PASSWORD_CHANGE_FAILED)
         );
     }
 }

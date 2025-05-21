@@ -6,7 +6,10 @@
 import { AuthFlowResultBase } from "../../../core/auth_flow/AuthFlowResultBase.js";
 import { CustomAuthAccountData } from "../CustomAuthAccountData.js";
 import { GetAccountError } from "../error_type/GetAccountError.js";
-import { GetAccountCompletedState, GetAccountFailedState } from "../state/GetAccountState.js";
+import {
+    GetAccountCompletedState,
+    GetAccountFailedState,
+} from "../state/GetAccountState.js";
 
 /*
  * Result of getting an account.
@@ -30,7 +33,9 @@ export class GetAccountResult extends AuthFlowResultBase<
      */
     static createWithError(error: unknown): GetAccountResult {
         const result = new GetAccountResult();
-        result.error = new GetAccountError(GetAccountResult.createErrorData(error));
+        result.error = new GetAccountError(
+            GetAccountResult.createErrorData(error)
+        );
         result.state = new GetAccountFailedState();
 
         return result;
@@ -39,7 +44,9 @@ export class GetAccountResult extends AuthFlowResultBase<
     /**
      * Checks if the result is in a completed state.
      */
-    isCompleted(): this is GetAccountResult & { state: GetAccountCompletedState } {
+    isCompleted(): this is GetAccountResult & {
+        state: GetAccountCompletedState;
+    } {
         return this.state instanceof GetAccountCompletedState;
     }
 
@@ -57,4 +64,6 @@ export class GetAccountResult extends AuthFlowResultBase<
  * - GetAccountCompletedState: The account was successfully retrieved.
  * - GetAccountFailedState: The account retrieval failed.
  */
-export type GetAccountResultState = GetAccountCompletedState | GetAccountFailedState;
+export type GetAccountResultState =
+    | GetAccountCompletedState
+    | GetAccountFailedState;

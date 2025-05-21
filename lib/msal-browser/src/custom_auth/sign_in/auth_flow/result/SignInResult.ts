@@ -14,7 +14,11 @@ import { SignInCompletedState } from "../state/SignInCompletedState.js";
 /*
  * Result of a sign-in operation.
  */
-export class SignInResult extends AuthFlowResultBase<SignInResultState, SignInError, CustomAuthAccountData> {
+export class SignInResult extends AuthFlowResultBase<
+    SignInResultState,
+    SignInError,
+    CustomAuthAccountData
+> {
     /**
      * Creates a new instance of SignInResultState.
      * @param state The state of the result.
@@ -45,14 +49,18 @@ export class SignInResult extends AuthFlowResultBase<SignInResultState, SignInEr
     /**
      * Checks if the result is in a code required state.
      */
-    isCodeRequired(): this is SignInResult & { state: SignInCodeRequiredState } {
+    isCodeRequired(): this is SignInResult & {
+        state: SignInCodeRequiredState;
+    } {
         return this.state instanceof SignInCodeRequiredState;
     }
 
     /**
      * Checks if the result is in a password required state.
      */
-    isPasswordRequired(): this is SignInResult & { state: SignInPasswordRequiredState } {
+    isPasswordRequired(): this is SignInResult & {
+        state: SignInPasswordRequiredState;
+    } {
         return this.state instanceof SignInPasswordRequiredState;
     }
 

@@ -13,7 +13,11 @@ import { SignUpPasswordRequiredState } from "../state/SignUpPasswordRequiredStat
 /*
  * Result of a sign-up operation.
  */
-export class SignUpResult extends AuthFlowResultBase<SignUpResultState, SignUpError, void> {
+export class SignUpResult extends AuthFlowResultBase<
+    SignUpResultState,
+    SignUpError,
+    void
+> {
     /**
      * Creates a new instance of SignUpResult.
      * @param state The state of the result.
@@ -44,21 +48,27 @@ export class SignUpResult extends AuthFlowResultBase<SignUpResultState, SignUpEr
     /**
      * Checks if the result is in a code required state.
      */
-    isCodeRequired(): this is SignUpResult & { state: SignUpCodeRequiredState } {
+    isCodeRequired(): this is SignUpResult & {
+        state: SignUpCodeRequiredState;
+    } {
         return this.state instanceof SignUpCodeRequiredState;
     }
 
     /**
      * Checks if the result is in a password required state.
      */
-    isPasswordRequired(): this is SignUpResult & { state: SignUpPasswordRequiredState } {
+    isPasswordRequired(): this is SignUpResult & {
+        state: SignUpPasswordRequiredState;
+    } {
         return this.state instanceof SignUpPasswordRequiredState;
     }
 
     /**
      * Checks if the result is in an attributes required state.
      */
-    isAttributesRequired(): this is SignUpResult & { state: SignUpAttributesRequiredState } {
+    isAttributesRequired(): this is SignUpResult & {
+        state: SignUpAttributesRequiredState;
+    } {
         return this.state instanceof SignUpAttributesRequiredState;
     }
 }

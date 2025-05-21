@@ -11,7 +11,7 @@ import { SignUpStateParameters } from "./SignUpStateParameters.js";
  * Base state handler for sign-up flow.
  */
 export abstract class SignUpState<
-    TParameters extends SignUpStateParameters,
+    TParameters extends SignUpStateParameters
 > extends AuthFlowActionRequiredStateBase<TParameters> {
     /*
      * Creates a new SignUpState.
@@ -23,32 +23,32 @@ export abstract class SignUpState<
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "config",
             stateParameters.config,
-            stateParameters.correlationId,
+            stateParameters.correlationId
         );
         ArgumentValidator.ensureArgumentIsNotEmptyString(
             "username",
             stateParameters.username,
-            stateParameters.correlationId,
+            stateParameters.correlationId
         );
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "signUpClient",
             stateParameters.signUpClient,
-            stateParameters.correlationId,
+            stateParameters.correlationId
         );
         ArgumentValidator.ensureArgumentIsNotEmptyString(
             "continuationToken",
             stateParameters.continuationToken,
-            stateParameters.correlationId,
+            stateParameters.correlationId
         );
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "signInClient",
             stateParameters.signInClient,
-            stateParameters.correlationId,
+            stateParameters.correlationId
         );
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "cacheClient",
             stateParameters.cacheClient,
-            stateParameters.correlationId,
+            stateParameters.correlationId
         );
     }
 }

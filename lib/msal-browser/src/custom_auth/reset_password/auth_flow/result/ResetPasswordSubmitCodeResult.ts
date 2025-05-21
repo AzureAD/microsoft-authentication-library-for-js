@@ -30,8 +30,12 @@ export class ResetPasswordSubmitCodeResult extends AuthFlowResultBase<
      * @returns {ResetPasswordSubmitCodeResult} A new instance of ResetPasswordSubmitCodeResult with the error set.
      */
     static createWithError(error: unknown): ResetPasswordSubmitCodeResult {
-        const result = new ResetPasswordSubmitCodeResult(new ResetPasswordFailedState());
-        result.error = new ResetPasswordSubmitCodeError(ResetPasswordSubmitCodeResult.createErrorData(error));
+        const result = new ResetPasswordSubmitCodeResult(
+            new ResetPasswordFailedState()
+        );
+        result.error = new ResetPasswordSubmitCodeError(
+            ResetPasswordSubmitCodeResult.createErrorData(error)
+        );
 
         return result;
     }
@@ -39,14 +43,18 @@ export class ResetPasswordSubmitCodeResult extends AuthFlowResultBase<
     /**
      * Checks if the result is in a failed state.
      */
-    isFailed(): this is ResetPasswordSubmitCodeResult & { state: ResetPasswordFailedState } {
+    isFailed(): this is ResetPasswordSubmitCodeResult & {
+        state: ResetPasswordFailedState;
+    } {
         return this.state instanceof ResetPasswordFailedState;
     }
 
     /**
      * Checks if the result is in a password required state.
      */
-    isPasswordRequired(): this is ResetPasswordSubmitCodeResult & { state: ResetPasswordPasswordRequiredState } {
+    isPasswordRequired(): this is ResetPasswordSubmitCodeResult & {
+        state: ResetPasswordPasswordRequiredState;
+    } {
         return this.state instanceof ResetPasswordPasswordRequiredState;
     }
 }
@@ -57,4 +65,6 @@ export class ResetPasswordSubmitCodeResult extends AuthFlowResultBase<
  * - ResetPasswordPasswordRequiredState: The reset password process requires a password.
  * - ResetPasswordFailedState: The reset password process has failed.
  */
-export type ResetPasswordSubmitCodeResultState = ResetPasswordPasswordRequiredState | ResetPasswordFailedState;
+export type ResetPasswordSubmitCodeResultState =
+    | ResetPasswordPasswordRequiredState
+    | ResetPasswordFailedState;

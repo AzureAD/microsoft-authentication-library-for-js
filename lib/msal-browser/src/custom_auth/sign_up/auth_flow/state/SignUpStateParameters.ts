@@ -9,7 +9,8 @@ import { CustomAuthSilentCacheClient } from "../../../get_account/interaction_cl
 import { AuthFlowActionRequiredStateParameters } from "../../../core/auth_flow/AuthFlowState.js";
 import { UserAttribute } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 
-export interface SignUpStateParameters extends AuthFlowActionRequiredStateParameters {
+export interface SignUpStateParameters
+    extends AuthFlowActionRequiredStateParameters {
     username: string;
     signUpClient: SignUpClient;
     signInClient: SignInClient;
@@ -18,11 +19,13 @@ export interface SignUpStateParameters extends AuthFlowActionRequiredStateParame
 
 export type SignUpPasswordRequiredStateParameters = SignUpStateParameters;
 
-export interface SignUpCodeRequiredStateParameters extends SignUpStateParameters {
+export interface SignUpCodeRequiredStateParameters
+    extends SignUpStateParameters {
     codeLength: number;
     codeResendInterval: number;
 }
 
-export interface SignUpAttributesRequiredStateParameters extends SignUpStateParameters {
+export interface SignUpAttributesRequiredStateParameters
+    extends SignUpStateParameters {
     requiredAttributes: Array<UserAttribute>;
 }

@@ -31,24 +31,31 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
         try {
             this.ensureCodeIsValid(code, this.stateParameters.codeLength);
 
-            this.stateParameters.logger.verbose("Submitting code for sign-up.", this.stateParameters.correlationId);
+            this.stateParameters.logger.verbose(
+                "Submitting code for sign-up.",
+                this.stateParameters.correlationId
+            );
 
             const result = await this.stateParameters.signUpClient.submitCode({
                 clientId: this.stateParameters.config.auth.clientId,
                 correlationId: this.stateParameters.correlationId,
-                challengeType: this.stateParameters.config.customAuth.challengeTypes ?? [],
+                challengeType:
+                    this.stateParameters.config.customAuth.challengeTypes ?? [],
                 continuationToken: this.stateParameters.continuationToken ?? "",
                 code: code,
                 username: this.stateParameters.username,
             });
 
-            this.stateParameters.logger.verbose("Code submitted for sign-up.", this.stateParameters.correlationId);
+            this.stateParameters.logger.verbose(
+                "Code submitted for sign-up.",
+                this.stateParameters.correlationId
+            );
 
             if (result instanceof SignUpPasswordRequiredResult) {
                 // Password required
                 this.stateParameters.logger.verbose(
                     "Password required for sign-up.",
-                    this.stateParameters.correlationId,
+                    this.stateParameters.correlationId
                 );
 
                 return new SignUpSubmitCodeResult(
@@ -61,13 +68,13 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
                         signUpClient: this.stateParameters.signUpClient,
                         cacheClient: this.stateParameters.cacheClient,
                         username: this.stateParameters.username,
-                    }),
+                    })
                 );
             } else if (result instanceof SignUpAttributesRequiredResult) {
                 // Attributes required
                 this.stateParameters.logger.verbose(
                     "Attributes required for sign-up.",
-                    this.stateParameters.correlationId,
+                    this.stateParameters.correlationId
                 );
 
                 return new SignUpSubmitCodeResult(
@@ -81,11 +88,14 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
                         cacheClient: this.stateParameters.cacheClient,
                         username: this.stateParameters.username,
                         requiredAttributes: result.requiredAttributes,
-                    }),
+                    })
                 );
             } else if (result instanceof SignUpCompletedResult) {
                 // Sign-up completed
-                this.stateParameters.logger.verbose("Sign-up completed.", this.stateParameters.correlationId);
+                this.stateParameters.logger.verbose(
+                    "Sign-up completed.",
+                    this.stateParameters.correlationId
+                );
 
                 return new SignUpSubmitCodeResult(
                     new SignUpCompletedState({
@@ -97,17 +107,20 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
                         cacheClient: this.stateParameters.cacheClient,
                         username: this.stateParameters.username,
                         signInScenario: SignInScenario.SignInAfterSignUp,
-                    }),
+                    })
                 );
             }
 
             return SignUpSubmitCodeResult.createWithError(
-                new UnexpectedError("Unknown sign-up result type.", this.stateParameters.correlationId),
+                new UnexpectedError(
+                    "Unknown sign-up result type.",
+                    this.stateParameters.correlationId
+                )
             );
         } catch (error) {
             this.stateParameters.logger.errorPii(
                 `Failed to submit code for sign up. Error: ${error}.`,
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
             return SignUpSubmitCodeResult.createWithError(error);
@@ -120,17 +133,24 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
      */
     async resendCode(): Promise<SignUpResendCodeResult> {
         try {
-            this.stateParameters.logger.verbose("Resending code for sign-up.", this.stateParameters.correlationId);
+            this.stateParameters.logger.verbose(
+                "Resending code for sign-up.",
+                this.stateParameters.correlationId
+            );
 
             const result = await this.stateParameters.signUpClient.resendCode({
                 clientId: this.stateParameters.config.auth.clientId,
-                challengeType: this.stateParameters.config.customAuth.challengeTypes ?? [],
+                challengeType:
+                    this.stateParameters.config.customAuth.challengeTypes ?? [],
                 username: this.stateParameters.username,
                 correlationId: this.stateParameters.correlationId,
                 continuationToken: this.stateParameters.continuationToken ?? "",
             });
 
-            this.stateParameters.logger.verbose("Code resent for sign-up.", this.stateParameters.correlationId);
+            this.stateParameters.logger.verbose(
+                "Code resent for sign-up.",
+                this.stateParameters.correlationId
+            );
 
             return new SignUpResendCodeResult(
                 new SignUpCodeRequiredState({
@@ -144,12 +164,12 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
                     username: this.stateParameters.username,
                     codeLength: result.codeLength,
                     codeResendInterval: result.interval,
-                }),
+                })
             );
         } catch (error) {
             this.stateParameters.logger.errorPii(
                 `Failed to resend code for sign up. Error: ${error}.`,
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
             return SignUpResendCodeResult.createWithError(error);

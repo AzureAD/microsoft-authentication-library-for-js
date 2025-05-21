@@ -25,43 +25,55 @@ export class SignUpAttributesRequiredState extends SignUpState<SignUpAttributesR
      * @param {UserAccountAttributes} attributes - The attributes to submit.
      * @returns {Promise<SignUpSubmitAttributesResult>} The result of the operation.
      */
-    async submitAttributes(attributes: UserAccountAttributes): Promise<SignUpSubmitAttributesResult> {
+    async submitAttributes(
+        attributes: UserAccountAttributes
+    ): Promise<SignUpSubmitAttributesResult> {
         if (!attributes || Object.keys(attributes.toRecord()).length === 0) {
             this.stateParameters.logger.error(
                 "Attributes are required for sign-up.",
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
             return Promise.resolve(
                 SignUpSubmitAttributesResult.createWithError(
-                    new InvalidArgumentError("attributes", this.stateParameters.correlationId),
-                ),
+                    new InvalidArgumentError(
+                        "attributes",
+                        this.stateParameters.correlationId
+                    )
+                )
             );
         }
 
         try {
             this.stateParameters.logger.verbose(
                 "Submitting attributes for sign-up.",
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
-            const result = await this.stateParameters.signUpClient.submitAttributes({
-                clientId: this.stateParameters.config.auth.clientId,
-                correlationId: this.stateParameters.correlationId,
-                challengeType: this.stateParameters.config.customAuth.challengeTypes ?? [],
-                continuationToken: this.stateParameters.continuationToken ?? "",
-                attributes: attributes.toRecord(),
-                username: this.stateParameters.username,
-            });
+            const result =
+                await this.stateParameters.signUpClient.submitAttributes({
+                    clientId: this.stateParameters.config.auth.clientId,
+                    correlationId: this.stateParameters.correlationId,
+                    challengeType:
+                        this.stateParameters.config.customAuth.challengeTypes ??
+                        [],
+                    continuationToken:
+                        this.stateParameters.continuationToken ?? "",
+                    attributes: attributes.toRecord(),
+                    username: this.stateParameters.username,
+                });
 
             this.stateParameters.logger.verbose(
                 "Attributes submitted for sign-up.",
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
             if (result instanceof SignUpCompletedResult) {
                 // Sign-up completed
-                this.stateParameters.logger.verbose("Sign-up completed.", this.stateParameters.correlationId);
+                this.stateParameters.logger.verbose(
+                    "Sign-up completed.",
+                    this.stateParameters.correlationId
+                );
 
                 return new SignUpSubmitAttributesResult(
                     new SignUpCompletedState({
@@ -73,17 +85,20 @@ export class SignUpAttributesRequiredState extends SignUpState<SignUpAttributesR
                         cacheClient: this.stateParameters.cacheClient,
                         username: this.stateParameters.username,
                         signInScenario: SignInScenario.SignInAfterSignUp,
-                    }),
+                    })
                 );
             }
 
             return SignUpSubmitAttributesResult.createWithError(
-                new UnexpectedError("Unknown sign-up result type.", this.stateParameters.correlationId),
+                new UnexpectedError(
+                    "Unknown sign-up result type.",
+                    this.stateParameters.correlationId
+                )
             );
         } catch (error) {
             this.stateParameters.logger.errorPii(
                 `Failed to submit attributes for sign up. Error: ${error}.`,
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
             return SignUpSubmitAttributesResult.createWithError(error);

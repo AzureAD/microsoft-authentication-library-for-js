@@ -13,7 +13,11 @@ import {
     SignUpContinueWithPasswordRequest,
     SignUpStartRequest,
 } from "./types/ApiRequestTypes.js";
-import { SignUpChallengeResponse, SignUpContinueResponse, SignUpStartResponse } from "./types/ApiResponseTypes.js";
+import {
+    SignUpChallengeResponse,
+    SignUpContinueResponse,
+    SignUpStartResponse,
+} from "./types/ApiResponseTypes.js";
 
 export class SignupApiClient extends BaseApiClient {
     /**
@@ -31,10 +35,13 @@ export class SignupApiClient extends BaseApiClient {
                 challenge_type: params.challenge_type,
             },
             params.telemetryManager,
-            params.correlationId,
+            params.correlationId
         );
 
-        this.ensureContinuationTokenIsValid(result.continuation_token, params.correlationId);
+        this.ensureContinuationTokenIsValid(
+            result.continuation_token,
+            params.correlationId
+        );
 
         return result;
     }
@@ -42,7 +49,9 @@ export class SignupApiClient extends BaseApiClient {
     /**
      * Request challenge (e.g., OTP)
      */
-    async requestChallenge(params: SignUpChallengeRequest): Promise<SignUpChallengeResponse> {
+    async requestChallenge(
+        params: SignUpChallengeRequest
+    ): Promise<SignUpChallengeResponse> {
         const result = await this.request<SignUpChallengeResponse>(
             CustomAuthApiEndpoint.SIGNUP_CHALLENGE,
             {
@@ -50,10 +59,13 @@ export class SignupApiClient extends BaseApiClient {
                 challenge_type: params.challenge_type,
             },
             params.telemetryManager,
-            params.correlationId,
+            params.correlationId
         );
 
-        this.ensureContinuationTokenIsValid(result.continuation_token, params.correlationId);
+        this.ensureContinuationTokenIsValid(
+            result.continuation_token,
+            params.correlationId
+        );
 
         return result;
     }
@@ -61,7 +73,9 @@ export class SignupApiClient extends BaseApiClient {
     /**
      * Continue sign-up flow with code.
      */
-    async continueWithCode(params: SignUpContinueWithOobRequest): Promise<SignUpContinueResponse> {
+    async continueWithCode(
+        params: SignUpContinueWithOobRequest
+    ): Promise<SignUpContinueResponse> {
         const result = await this.request<SignUpContinueResponse>(
             CustomAuthApiEndpoint.SIGNUP_CONTINUE,
             {
@@ -70,15 +84,20 @@ export class SignupApiClient extends BaseApiClient {
                 oob: params.oob,
             },
             params.telemetryManager,
-            params.correlationId,
+            params.correlationId
         );
 
-        this.ensureContinuationTokenIsValid(result.continuation_token, params.correlationId);
+        this.ensureContinuationTokenIsValid(
+            result.continuation_token,
+            params.correlationId
+        );
 
         return result;
     }
 
-    async continueWithPassword(params: SignUpContinueWithPasswordRequest): Promise<SignUpContinueResponse> {
+    async continueWithPassword(
+        params: SignUpContinueWithPasswordRequest
+    ): Promise<SignUpContinueResponse> {
         const result = await this.request<SignUpContinueResponse>(
             CustomAuthApiEndpoint.SIGNUP_CONTINUE,
             {
@@ -87,15 +106,20 @@ export class SignupApiClient extends BaseApiClient {
                 password: params.password,
             },
             params.telemetryManager,
-            params.correlationId,
+            params.correlationId
         );
 
-        this.ensureContinuationTokenIsValid(result.continuation_token, params.correlationId);
+        this.ensureContinuationTokenIsValid(
+            result.continuation_token,
+            params.correlationId
+        );
 
         return result;
     }
 
-    async continueWithAttributes(params: SignUpContinueWithAttributesRequest): Promise<SignUpContinueResponse> {
+    async continueWithAttributes(
+        params: SignUpContinueWithAttributesRequest
+    ): Promise<SignUpContinueResponse> {
         const result = await this.request<SignUpContinueResponse>(
             CustomAuthApiEndpoint.SIGNUP_CONTINUE,
             {
@@ -104,10 +128,13 @@ export class SignupApiClient extends BaseApiClient {
                 attributes: JSON.stringify(params.attributes),
             },
             params.telemetryManager,
-            params.correlationId,
+            params.correlationId
         );
 
-        this.ensureContinuationTokenIsValid(result.continuation_token, params.correlationId);
+        this.ensureContinuationTokenIsValid(
+            result.continuation_token,
+            params.correlationId
+        );
 
         return result;
     }

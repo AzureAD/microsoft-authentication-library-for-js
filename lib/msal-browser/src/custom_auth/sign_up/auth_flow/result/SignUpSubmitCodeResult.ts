@@ -33,7 +33,9 @@ export class SignUpSubmitCodeResult extends AuthFlowResultBase<
      */
     static createWithError(error: unknown): SignUpSubmitCodeResult {
         const result = new SignUpSubmitCodeResult(new SignUpFailedState());
-        result.error = new SignUpSubmitCodeError(SignUpSubmitCodeResult.createErrorData(error));
+        result.error = new SignUpSubmitCodeError(
+            SignUpSubmitCodeResult.createErrorData(error)
+        );
 
         return result;
     }
@@ -48,21 +50,27 @@ export class SignUpSubmitCodeResult extends AuthFlowResultBase<
     /**
      * Checks if the result is in a password required state.
      */
-    isPasswordRequired(): this is SignUpSubmitCodeResult & { state: SignUpPasswordRequiredState } {
+    isPasswordRequired(): this is SignUpSubmitCodeResult & {
+        state: SignUpPasswordRequiredState;
+    } {
         return this.state instanceof SignUpPasswordRequiredState;
     }
 
     /**
      * Checks if the result is in an attributes required state.
      */
-    isAttributesRequired(): this is SignUpSubmitCodeResult & { state: SignUpAttributesRequiredState } {
+    isAttributesRequired(): this is SignUpSubmitCodeResult & {
+        state: SignUpAttributesRequiredState;
+    } {
         return this.state instanceof SignUpAttributesRequiredState;
     }
 
     /**
      * Checks if the result is in a completed state.
      */
-    isCompleted(): this is SignUpSubmitCodeResult & { state: SignUpCompletedState } {
+    isCompleted(): this is SignUpSubmitCodeResult & {
+        state: SignUpCompletedState;
+    } {
         return this.state instanceof SignUpCompletedState;
     }
 }

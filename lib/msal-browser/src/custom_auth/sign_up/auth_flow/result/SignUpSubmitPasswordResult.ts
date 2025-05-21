@@ -32,7 +32,9 @@ export class SignUpSubmitPasswordResult extends AuthFlowResultBase<
      */
     static createWithError(error: unknown): SignUpSubmitPasswordResult {
         const result = new SignUpSubmitPasswordResult(new SignUpFailedState());
-        result.error = new SignUpSubmitPasswordError(SignUpSubmitPasswordResult.createErrorData(error));
+        result.error = new SignUpSubmitPasswordError(
+            SignUpSubmitPasswordResult.createErrorData(error)
+        );
 
         return result;
     }
@@ -40,21 +42,27 @@ export class SignUpSubmitPasswordResult extends AuthFlowResultBase<
     /**
      * Checks if the result is in a failed state.
      */
-    isFailed(): this is SignUpSubmitPasswordResult & { state: SignUpFailedState } {
+    isFailed(): this is SignUpSubmitPasswordResult & {
+        state: SignUpFailedState;
+    } {
         return this.state instanceof SignUpFailedState;
     }
 
     /**
      * Checks if the result is in an attributes required state.
      */
-    isAttributesRequired(): this is SignUpSubmitPasswordResult & { state: SignUpAttributesRequiredState } {
+    isAttributesRequired(): this is SignUpSubmitPasswordResult & {
+        state: SignUpAttributesRequiredState;
+    } {
         return this.state instanceof SignUpAttributesRequiredState;
     }
 
     /**
      * Checks if the result is in a completed state.
      */
-    isCompleted(): this is SignUpSubmitPasswordResult & { state: SignUpCompletedState } {
+    isCompleted(): this is SignUpSubmitPasswordResult & {
+        state: SignUpCompletedState;
+    } {
         return this.state instanceof SignUpCompletedState;
     }
 }
@@ -66,4 +74,7 @@ export class SignUpSubmitPasswordResult extends AuthFlowResultBase<
  * - SignUpCompletedState: The sign-up process has completed successfully.
  * - SignUpFailedState: The sign-up process has failed.
  */
-export type SignUpSubmitPasswordResultState = SignUpAttributesRequiredState | SignUpCompletedState | SignUpFailedState;
+export type SignUpSubmitPasswordResultState =
+    | SignUpAttributesRequiredState
+    | SignUpCompletedState
+    | SignUpFailedState;

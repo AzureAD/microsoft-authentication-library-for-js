@@ -18,27 +18,35 @@ export class ResetPasswordPasswordRequiredState extends ResetPasswordState<Reset
      * @param {string} password - The password to submit.
      * @returns {Promise<ResetPasswordSubmitPasswordResult>} The result of the operation.
      */
-    async submitNewPassword(password: string): Promise<ResetPasswordSubmitPasswordResult> {
+    async submitNewPassword(
+        password: string
+    ): Promise<ResetPasswordSubmitPasswordResult> {
         try {
             this.ensurePasswordIsNotEmpty(password);
 
             this.stateParameters.logger.verbose(
                 "Submitting new password for password reset.",
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
-            const result = await this.stateParameters.resetPasswordClient.submitNewPassword({
-                clientId: this.stateParameters.config.auth.clientId,
-                correlationId: this.stateParameters.correlationId,
-                challengeType: this.stateParameters.config.customAuth.challengeTypes ?? [],
-                continuationToken: this.stateParameters.continuationToken ?? "",
-                newPassword: password,
-                username: this.stateParameters.username,
-            });
+            const result =
+                await this.stateParameters.resetPasswordClient.submitNewPassword(
+                    {
+                        clientId: this.stateParameters.config.auth.clientId,
+                        correlationId: this.stateParameters.correlationId,
+                        challengeType:
+                            this.stateParameters.config.customAuth
+                                .challengeTypes ?? [],
+                        continuationToken:
+                            this.stateParameters.continuationToken ?? "",
+                        newPassword: password,
+                        username: this.stateParameters.username,
+                    }
+                );
 
             this.stateParameters.logger.verbose(
                 "New password is submitted for sign-up.",
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
             return new ResetPasswordSubmitPasswordResult(
@@ -51,12 +59,12 @@ export class ResetPasswordPasswordRequiredState extends ResetPasswordState<Reset
                     signInClient: this.stateParameters.signInClient,
                     cacheClient: this.stateParameters.cacheClient,
                     signInScenario: SignInScenario.SignInAfterPasswordReset,
-                }),
+                })
             );
         } catch (error) {
             this.stateParameters.logger.errorPii(
                 `Failed to submit password for password reset. Error: ${error}.`,
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
             return ResetPasswordSubmitPasswordResult.createWithError(error);

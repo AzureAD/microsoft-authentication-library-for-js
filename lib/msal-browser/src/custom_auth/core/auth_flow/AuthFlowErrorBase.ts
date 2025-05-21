@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { CustomAuthApiError, RedirectError } from "../error/CustomAuthApiError.js";
+import {
+    CustomAuthApiError,
+    RedirectError,
+} from "../error/CustomAuthApiError.js";
 import { CustomAuthError } from "../error/CustomAuthError.js";
 import { NoCachedAccountFoundError } from "../error/NoCachedAccountFoundError.js";
 import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
@@ -23,9 +26,12 @@ export class AuthFlowErrorBase {
 
     protected isUserInvalidError(): boolean {
         return (
-            (this.errorData instanceof InvalidArgumentError && this.errorData.errorDescription?.includes("username")) ||
+            (this.errorData instanceof InvalidArgumentError &&
+                this.errorData.errorDescription?.includes("username")) ||
             (this.errorData instanceof CustomAuthApiError &&
-                !!this.errorData.errorDescription?.includes("username parameter is empty or not valid") &&
+                !!this.errorData.errorDescription?.includes(
+                    "username parameter is empty or not valid"
+                ) &&
                 !!this.errorData.errorCodes?.includes(90100))
         );
     }
@@ -34,10 +40,11 @@ export class AuthFlowErrorBase {
         return (
             (this.errorData.error === CustomAuthApiErrorCode.INVALID_REQUEST &&
                 (this.errorData.errorDescription?.includes(
-                    "The challenge_type list parameter contains an unsupported challenge type",
+                    "The challenge_type list parameter contains an unsupported challenge type"
                 ) ??
                     false)) ||
-            this.errorData.error === CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE
+            this.errorData.error ===
+                CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE
         );
     }
 
@@ -58,7 +65,8 @@ export class AuthFlowErrorBase {
         return (
             (this.errorData.error === CustomAuthApiErrorCode.INVALID_GRANT &&
                 this.errorData instanceof CustomAuthApiError &&
-                this.errorData.subError === CustomAuthApiSuberror.INVALID_OOB_VALUE) ||
+                this.errorData.subError ===
+                    CustomAuthApiSuberror.INVALID_OOB_VALUE) ||
             (this.errorData instanceof InvalidArgumentError &&
                 this.errorData.errorDescription?.includes("code") === true)
         );
@@ -101,9 +109,11 @@ export class AuthFlowErrorBase {
         return (
             (this.errorData instanceof CustomAuthApiError &&
                 this.errorData.error === CustomAuthApiErrorCode.INVALID_GRANT &&
-                this.errorData.subError === CustomAuthApiSuberror.ATTRIBUTE_VALIATION_FAILED) ||
+                this.errorData.subError ===
+                    CustomAuthApiSuberror.ATTRIBUTE_VALIATION_FAILED) ||
             (this.errorData instanceof InvalidArgumentError &&
-                this.errorData.errorDescription?.includes("attributes") === true)
+                this.errorData.errorDescription?.includes("attributes") ===
+                    true)
         );
     }
 

@@ -3,7 +3,15 @@
  * Licensed under the MIT License.
  */
 
-export type RequestBody = string | ArrayBuffer | DataView | Blob | File | URLSearchParams | FormData | ReadableStream;
+export type RequestBody =
+    | string
+    | ArrayBuffer
+    | DataView
+    | Blob
+    | File
+    | URLSearchParams
+    | FormData
+    | ReadableStream;
 /**
  * Interface for HTTP client.
  */
@@ -21,7 +29,11 @@ export interface IHttpClient {
      * @param body The body of the request.
      * @param headers Optional headers for the request.
      */
-    post(url: string | URL, body: RequestBody, headers?: Record<string, string>): Promise<Response>;
+    post(
+        url: string | URL,
+        body: RequestBody,
+        headers?: Record<string, string>
+    ): Promise<Response>;
 
     /**
      * Sends a GET request.

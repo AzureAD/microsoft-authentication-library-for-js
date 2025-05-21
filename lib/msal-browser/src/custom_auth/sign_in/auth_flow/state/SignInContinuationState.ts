@@ -20,12 +20,15 @@ export class SignInContinuationState extends SignInState<SignInContinuationState
      * @param {SignInWithContinuationTokenInputs} signInWithContinuationTokenInputs - The result of the operation.
      * @returns {Promise<SignInResult>} The result of the operation.
      */
-    async signIn(signInWithContinuationTokenInputs?: SignInWithContinuationTokenInputs): Promise<SignInResult> {
+    async signIn(
+        signInWithContinuationTokenInputs?: SignInWithContinuationTokenInputs
+    ): Promise<SignInResult> {
         try {
             const continuationTokenParams: SignInContinuationTokenParams = {
                 clientId: this.stateParameters.config.auth.clientId,
                 correlationId: this.stateParameters.correlationId,
-                challengeType: this.stateParameters.config.customAuth.challengeTypes ?? [],
+                challengeType:
+                    this.stateParameters.config.customAuth.challengeTypes ?? [],
                 scopes: signInWithContinuationTokenInputs?.scopes ?? [],
                 continuationToken: this.stateParameters.continuationToken ?? "",
                 username: this.stateParameters.username,
@@ -34,15 +37,17 @@ export class SignInContinuationState extends SignInState<SignInContinuationState
 
             this.stateParameters.logger.verbose(
                 "Signing in with continuation token.",
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
             const completedResult =
-                await this.stateParameters.signInClient.signInWithContinuationToken(continuationTokenParams);
+                await this.stateParameters.signInClient.signInWithContinuationToken(
+                    continuationTokenParams
+                );
 
             this.stateParameters.logger.verbose(
                 "Signed in with continuation token.",
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
             const accountInfo = new CustomAuthAccountData(
@@ -50,14 +55,14 @@ export class SignInContinuationState extends SignInState<SignInContinuationState
                 this.stateParameters.config,
                 this.stateParameters.cacheClient,
                 this.stateParameters.logger,
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
             return new SignInResult(new SignInCompletedState(), accountInfo);
         } catch (error) {
             this.stateParameters.logger.errorPii(
                 `Failed to sign in with continuation token. Error: ${error}.`,
-                this.stateParameters.correlationId,
+                this.stateParameters.correlationId
             );
 
             return SignInResult.createWithError(error);

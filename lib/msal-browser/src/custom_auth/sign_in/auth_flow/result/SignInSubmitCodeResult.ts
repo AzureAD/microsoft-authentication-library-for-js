@@ -19,7 +19,9 @@ export class SignInSubmitCodeResult extends SignInSubmitCredentialResult<SignInS
      */
     static createWithError(error: unknown): SignInSubmitCodeResult {
         const result = new SignInSubmitCodeResult(new SignInFailedState());
-        result.error = new SignInSubmitCodeError(SignInSubmitCodeResult.createErrorData(error));
+        result.error = new SignInSubmitCodeError(
+            SignInSubmitCodeResult.createErrorData(error)
+        );
 
         return result;
     }
@@ -34,7 +36,9 @@ export class SignInSubmitCodeResult extends SignInSubmitCredentialResult<SignInS
     /**
      * Checks if the result is in a completed state.
      */
-    isCompleted(): this is SignInSubmitCodeResult & { state: SignInCompletedState } {
+    isCompleted(): this is SignInSubmitCodeResult & {
+        state: SignInCompletedState;
+    } {
         return this.state instanceof SignInCompletedState;
     }
 }

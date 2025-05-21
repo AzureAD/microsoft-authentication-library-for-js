@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { GrantType, ResetPasswordPollStatus } from "../../../CustomAuthConstants.js";
+import {
+    GrantType,
+    ResetPasswordPollStatus,
+} from "../../../CustomAuthConstants.js";
 import { CustomAuthApiError } from "../../error/CustomAuthApiError.js";
 import { BaseApiClient } from "./BaseApiClient.js";
 import { CustomAuthApiEndpoint } from "./CustomAuthApiEndpoint.js";
@@ -27,7 +30,9 @@ export class ResetPasswordApiClient extends BaseApiClient {
     /**
      * Start the password reset flow
      */
-    async start(params: ResetPasswordStartRequest): Promise<ResetPasswordStartResponse> {
+    async start(
+        params: ResetPasswordStartRequest
+    ): Promise<ResetPasswordStartResponse> {
         const result = await this.request<ResetPasswordStartResponse>(
             CustomAuthApiEndpoint.RESET_PWD_START,
             {
@@ -35,10 +40,13 @@ export class ResetPasswordApiClient extends BaseApiClient {
                 username: params.username,
             },
             params.telemetryManager,
-            params.correlationId,
+            params.correlationId
         );
 
-        this.ensureContinuationTokenIsValid(result.continuation_token, params.correlationId);
+        this.ensureContinuationTokenIsValid(
+            result.continuation_token,
+            params.correlationId
+        );
 
         return result;
     }
@@ -47,7 +55,9 @@ export class ResetPasswordApiClient extends BaseApiClient {
      * Request a challenge (OTP) to be sent to the user's email
      * @param ChallengeResetPasswordRequest Parameters for the challenge request
      */
-    async requestChallenge(params: ResetPasswordChallengeRequest): Promise<ResetPasswordChallengeResponse> {
+    async requestChallenge(
+        params: ResetPasswordChallengeRequest
+    ): Promise<ResetPasswordChallengeResponse> {
         const result = await this.request<ResetPasswordChallengeResponse>(
             CustomAuthApiEndpoint.RESET_PWD_CHALLENGE,
             {
@@ -55,10 +65,13 @@ export class ResetPasswordApiClient extends BaseApiClient {
                 continuation_token: params.continuation_token,
             },
             params.telemetryManager,
-            params.correlationId,
+            params.correlationId
         );
 
-        this.ensureContinuationTokenIsValid(result.continuation_token, params.correlationId);
+        this.ensureContinuationTokenIsValid(
+            result.continuation_token,
+            params.correlationId
+        );
 
         return result;
     }
@@ -67,7 +80,9 @@ export class ResetPasswordApiClient extends BaseApiClient {
      * Submit the code for verification
      * @param ContinueResetPasswordRequest Token from previous response
      */
-    async continueWithCode(params: ResetPasswordContinueRequest): Promise<ResetPasswordContinueResponse> {
+    async continueWithCode(
+        params: ResetPasswordContinueRequest
+    ): Promise<ResetPasswordContinueResponse> {
         const result = await this.request<ResetPasswordContinueResponse>(
             CustomAuthApiEndpoint.RESET_PWD_CONTINUE,
             {
@@ -76,10 +91,13 @@ export class ResetPasswordApiClient extends BaseApiClient {
                 oob: params.oob,
             },
             params.telemetryManager,
-            params.correlationId,
+            params.correlationId
         );
 
-        this.ensureContinuationTokenIsValid(result.continuation_token, params.correlationId);
+        this.ensureContinuationTokenIsValid(
+            result.continuation_token,
+            params.correlationId
+        );
 
         return result;
     }
@@ -88,7 +106,9 @@ export class ResetPasswordApiClient extends BaseApiClient {
      * Submit the new password
      * @param SubmitResetPasswordResponse Token from previous response
      */
-    async submitNewPassword(params: ResetPasswordSubmitRequest): Promise<ResetPasswordSubmitResponse> {
+    async submitNewPassword(
+        params: ResetPasswordSubmitRequest
+    ): Promise<ResetPasswordSubmitResponse> {
         const result = await this.request<ResetPasswordSubmitResponse>(
             CustomAuthApiEndpoint.RESET_PWD_SUBMIT,
             {
@@ -96,10 +116,13 @@ export class ResetPasswordApiClient extends BaseApiClient {
                 new_password: params.new_password,
             },
             params.telemetryManager,
-            params.correlationId,
+            params.correlationId
         );
 
-        this.ensureContinuationTokenIsValid(result.continuation_token, params.correlationId);
+        this.ensureContinuationTokenIsValid(
+            result.continuation_token,
+            params.correlationId
+        );
 
         if (result.poll_interval === 0) {
             result.poll_interval = 2;
@@ -112,14 +135,16 @@ export class ResetPasswordApiClient extends BaseApiClient {
      * Poll for password reset completion status
      * @param continuationToken Token from previous response
      */
-    async pollCompletion(params: ResetPasswordPollCompletionRequest): Promise<ResetPasswordPollCompletionResponse> {
+    async pollCompletion(
+        params: ResetPasswordPollCompletionRequest
+    ): Promise<ResetPasswordPollCompletionResponse> {
         const result = await this.request<ResetPasswordPollCompletionResponse>(
             CustomAuthApiEndpoint.RESET_PWD_POLL,
             {
                 continuation_token: params.continuation_token,
             },
             params.telemetryManager,
-            params.correlationId,
+            params.correlationId
         );
 
         this.ensurePollStatusIsValid(result.status, params.correlationId);
@@ -127,7 +152,10 @@ export class ResetPasswordApiClient extends BaseApiClient {
         return result;
     }
 
-    protected ensurePollStatusIsValid(status: string, correlationId: string): void {
+    protected ensurePollStatusIsValid(
+        status: string,
+        correlationId: string
+    ): void {
         if (
             status !== ResetPasswordPollStatus.FAILED &&
             status !== ResetPasswordPollStatus.IN_PROGRESS &&
@@ -137,7 +165,7 @@ export class ResetPasswordApiClient extends BaseApiClient {
             throw new CustomAuthApiError(
                 CustomAuthApiErrorCode.INVALID_POLL_STATUS,
                 `The poll status '${status}' for password reset is invalid`,
-                correlationId,
+                correlationId
             );
         }
     }

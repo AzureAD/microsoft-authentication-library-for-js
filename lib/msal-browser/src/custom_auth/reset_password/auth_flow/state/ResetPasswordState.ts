@@ -11,7 +11,7 @@ import { ResetPasswordStateParameters } from "./ResetPasswordStateParameters.js"
  * Base state handler for reset password operation.
  */
 export abstract class ResetPasswordState<
-    TParameters extends ResetPasswordStateParameters,
+    TParameters extends ResetPasswordStateParameters
 > extends AuthFlowActionRequiredStateBase<TParameters> {
     /*
      * Creates a new state for reset password operation.
@@ -23,27 +23,27 @@ export abstract class ResetPasswordState<
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "config",
             this.stateParameters.config,
-            this.stateParameters.correlationId,
+            this.stateParameters.correlationId
         );
         ArgumentValidator.ensureArgumentIsNotEmptyString(
             "username",
             this.stateParameters.username,
-            this.stateParameters.correlationId,
+            this.stateParameters.correlationId
         );
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "resetPasswordClient",
             this.stateParameters.resetPasswordClient,
-            this.stateParameters.correlationId,
+            this.stateParameters.correlationId
         );
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "signInClient",
             this.stateParameters.signInClient,
-            this.stateParameters.correlationId,
+            this.stateParameters.correlationId
         );
         ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
             "cacheClient",
             this.stateParameters.cacheClient,
-            this.stateParameters.correlationId,
+            this.stateParameters.correlationId
         );
     }
 }

@@ -30,8 +30,12 @@ export class SignUpSubmitAttributesResult extends AuthFlowResultBase<
      * @returns {SignUpSubmitAttributesResult} A new instance of SignUpSubmitAttributesResult with the error set.
      */
     static createWithError(error: unknown): SignUpSubmitAttributesResult {
-        const result = new SignUpSubmitAttributesResult(new SignUpFailedState());
-        result.error = new SignUpSubmitAttributesError(SignUpSubmitAttributesResult.createErrorData(error));
+        const result = new SignUpSubmitAttributesResult(
+            new SignUpFailedState()
+        );
+        result.error = new SignUpSubmitAttributesError(
+            SignUpSubmitAttributesResult.createErrorData(error)
+        );
 
         return result;
     }
@@ -39,14 +43,18 @@ export class SignUpSubmitAttributesResult extends AuthFlowResultBase<
     /**
      * Checks if the result is in a failed state.
      */
-    isFailed(): this is SignUpSubmitAttributesResult & { state: SignUpFailedState } {
+    isFailed(): this is SignUpSubmitAttributesResult & {
+        state: SignUpFailedState;
+    } {
         return this.state instanceof SignUpFailedState;
     }
 
     /**
      * Checks if the result is in a completed state.
      */
-    isCompleted(): this is SignUpSubmitAttributesResult & { state: SignUpCompletedState } {
+    isCompleted(): this is SignUpSubmitAttributesResult & {
+        state: SignUpCompletedState;
+    } {
         return this.state instanceof SignUpCompletedState;
     }
 }
@@ -57,4 +65,6 @@ export class SignUpSubmitAttributesResult extends AuthFlowResultBase<
  * - SignUpCompletedState: The sign-up process has completed successfully.
  * - SignUpFailedState: The sign-up process has failed.
  */
-export type SignUpSubmitAttributesResultState = SignUpCompletedState | SignUpFailedState;
+export type SignUpSubmitAttributesResultState =
+    | SignUpCompletedState
+    | SignUpFailedState;

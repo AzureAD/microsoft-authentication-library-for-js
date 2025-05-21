@@ -8,7 +8,7 @@ import { UserAttribute } from "../../../core/network_client/custom_auth_api/type
 class SignUpResultBase {
     constructor(
         public correlationId: string,
-        public continuationToken: string,
+        public continuationToken: string
     ) {}
 }
 
@@ -24,7 +24,7 @@ export class SignUpCodeRequiredResult extends SignUpResultBase {
         public challengeTargetLabel: string,
         public codeLength: number,
         public interval: number,
-        public bindingMethod: string,
+        public bindingMethod: string
     ) {
         super(correlationId, continuationToken);
     }
@@ -34,7 +34,7 @@ export class SignUpAttributesRequiredResult extends SignUpResultBase {
     constructor(
         correlationId: string,
         continuationToken: string,
-        public requiredAttributes: Array<UserAttribute>,
+        public requiredAttributes: Array<UserAttribute>
     ) {
         super(correlationId, continuationToken);
     }

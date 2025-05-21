@@ -12,7 +12,9 @@ import { SignInCompletedState } from "../state/SignInCompletedState.js";
 /*
  * Result of a sign-in submit credential operation.
  */
-export abstract class SignInSubmitCredentialResult<TError extends AuthFlowErrorBase> extends AuthFlowResultBase<
+export abstract class SignInSubmitCredentialResult<
+    TError extends AuthFlowErrorBase
+> extends AuthFlowResultBase<
     SignInSubmitCredentialResultState,
     TError,
     CustomAuthAccountData
@@ -22,7 +24,10 @@ export abstract class SignInSubmitCredentialResult<TError extends AuthFlowErrorB
      * @param state The state of the result.
      * @param resultData The result data.
      */
-    constructor(state: SignInSubmitCredentialResultState, resultData?: CustomAuthAccountData) {
+    constructor(
+        state: SignInSubmitCredentialResultState,
+        resultData?: CustomAuthAccountData
+    ) {
         super(state, resultData);
     }
 }
@@ -33,4 +38,6 @@ export abstract class SignInSubmitCredentialResult<TError extends AuthFlowErrorB
  * - SignInCompletedState: The sign-in process has completed successfully.
  * - SignInFailedState: The sign-in process has failed.
  */
-export type SignInSubmitCredentialResultState = SignInCompletedState | SignInFailedState;
+export type SignInSubmitCredentialResultState =
+    | SignInCompletedState
+    | SignInFailedState;

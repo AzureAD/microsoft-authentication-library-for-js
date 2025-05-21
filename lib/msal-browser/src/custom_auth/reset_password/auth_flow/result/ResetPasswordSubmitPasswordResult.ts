@@ -25,8 +25,12 @@ export class ResetPasswordSubmitPasswordResult extends AuthFlowResultBase<
     }
 
     static createWithError(error: unknown): ResetPasswordSubmitPasswordResult {
-        const result = new ResetPasswordSubmitPasswordResult(new ResetPasswordFailedState());
-        result.error = new ResetPasswordSubmitPasswordError(ResetPasswordSubmitPasswordResult.createErrorData(error));
+        const result = new ResetPasswordSubmitPasswordResult(
+            new ResetPasswordFailedState()
+        );
+        result.error = new ResetPasswordSubmitPasswordError(
+            ResetPasswordSubmitPasswordResult.createErrorData(error)
+        );
 
         return result;
     }
@@ -34,14 +38,18 @@ export class ResetPasswordSubmitPasswordResult extends AuthFlowResultBase<
     /**
      * Checks if the result is in a failed state.
      */
-    isFailed(): this is ResetPasswordSubmitPasswordResult & { state: ResetPasswordFailedState } {
+    isFailed(): this is ResetPasswordSubmitPasswordResult & {
+        state: ResetPasswordFailedState;
+    } {
         return this.state instanceof ResetPasswordFailedState;
     }
 
     /**
      * Checks if the result is in a completed state.
      */
-    isCompleted(): this is ResetPasswordSubmitPasswordResult & { state: ResetPasswordCompletedState } {
+    isCompleted(): this is ResetPasswordSubmitPasswordResult & {
+        state: ResetPasswordCompletedState;
+    } {
         return this.state instanceof ResetPasswordCompletedState;
     }
 }
@@ -52,4 +60,6 @@ export class ResetPasswordSubmitPasswordResult extends AuthFlowResultBase<
  * - ResetPasswordCompletedState: The reset password process has completed successfully.
  * - ResetPasswordFailedState: The reset password process has failed.
  */
-export type ResetPasswordSubmitPasswordResultState = ResetPasswordCompletedState | ResetPasswordFailedState;
+export type ResetPasswordSubmitPasswordResultState =
+    | ResetPasswordCompletedState
+    | ResetPasswordFailedState;

@@ -69,7 +69,9 @@ export class SignUpSubmitPasswordError extends AuthFlowErrorBase {
      * @returns {boolean} True if the error is due to the password being invalid, false otherwise.
      */
     isInvalidPassword(): boolean {
-        return this.isPasswordIncorrectError() || this.isInvalidNewPasswordError();
+        return (
+            this.isPasswordIncorrectError() || this.isInvalidNewPasswordError()
+        );
     }
 
     /**
