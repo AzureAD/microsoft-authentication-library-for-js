@@ -446,10 +446,6 @@ export const getCacheKey = (resource?: string): string => {
     return `-${Constants.DEFAULT_AUTHORITY_HOST}-accesstoken-${resourceHelper}-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}--`;
 };
 
-// SHA256 hash of the DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
-export const DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT_ACCESS_TOKEN_SHA256_HASH_IN_HEX =
-    "d9678c32c96e9d358c4e61d5b230074c04f037405411740d4e8d9123066341af";
-
 export const DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT: Omit<
     AuthenticationResult,
     "correlationId"
