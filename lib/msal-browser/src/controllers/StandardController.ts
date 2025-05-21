@@ -88,7 +88,7 @@ import { InitializeApplicationRequest } from "../request/InitializeApplicationRe
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import {
     getPlatformAuthProvider,
-    isBrokerAvailable,
+    isPlatformAuthAllowed,
 } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
@@ -1614,7 +1614,7 @@ export class StandardController implements IController {
         }
 
         if (
-            !isBrokerAvailable(
+            !isPlatformAuthAllowed(
                 this.config,
                 this.logger,
                 this.platformAuthProvider,
@@ -2298,7 +2298,7 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         // if the cache policy is set to access_token only, we should not be hitting the native layer yet
         if (
-            isBrokerAvailable(
+            isPlatformAuthAllowed(
                 this.config,
                 this.logger,
                 this.platformAuthProvider,
