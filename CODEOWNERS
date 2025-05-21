@@ -20,10 +20,6 @@
 /lib/msal-react/ @tnorling @jo-arroyo @peterzenz
 /samples/msal-react-samples/ @tnorling @jo-arroyo @peterzenz
 
-# MSAL Custom Auth
-/lib/msal-custom-auth/ @yongdiw @shenj @albanx
-/samples/msal-custom-auth-samples/ @yongdiw @shenj @albanx
-
 # Build
 /build/ @sameerag @tnorling @hectormmg @peterzenz
 /release-scripts/ @sameerag @tnorling @hectormmg @peterzenz
