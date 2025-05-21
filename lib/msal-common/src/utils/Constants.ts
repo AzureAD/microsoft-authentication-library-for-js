@@ -327,15 +327,6 @@ export type PasswordGrantConstants =
     (typeof PasswordGrantConstants)[keyof typeof PasswordGrantConstants];
 
 /**
- * Response codes
- */
-export const ResponseCodes = {
-    httpSuccess: 200,
-    httpBadRequest: 400,
-} as const;
-export type ResponseCodes = (typeof ResponseCodes)[keyof typeof ResponseCodes];
-
-/**
  * Region Discovery Sources
  */
 export const RegionDiscoverySources = {
