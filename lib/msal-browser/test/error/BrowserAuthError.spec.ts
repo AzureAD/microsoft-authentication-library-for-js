@@ -2,9 +2,9 @@ import {
     BrowserAuthError,
     createBrowserAuthError,
     BrowserAuthErrorCodes,
+    getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError";
 import { AuthError } from "@azure/msal-common";
-import { getDefaultErrorMessage } from "../../src/error/BrowserAuthError.js";
 
 describe("BrowserAuthError Unit Tests", () => {
     for (const key in BrowserAuthErrorCodes) {

@@ -1,10 +1,9 @@
-import { AuthError } from "../../src/error/AuthError";
+import { AuthError, getDefaultErrorMessage } from "../../src/error/AuthError";
 import {
     ClientConfigurationError,
     ClientConfigurationErrorCodes,
     createClientConfigurationError,
 } from "../../src/error/ClientConfigurationError";
-import { getDefaultErrorMessage } from "../../src/error/AuthError.js";
 
 describe("ClientConfigurationError.ts Class Unit Tests", () => {
     for (const key in ClientConfigurationErrorCodes) {

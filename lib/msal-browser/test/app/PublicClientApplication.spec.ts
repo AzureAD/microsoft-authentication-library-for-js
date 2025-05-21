@@ -82,6 +82,7 @@ import {
     BrowserAuthError,
     BrowserAuthErrorCodes,
     createBrowserAuthError,
+    getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError.js";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient.js";
@@ -119,7 +120,6 @@ import { INTERACTION_TYPE } from "../../src/utils/BrowserConstants.js";
 import { BaseOperatingContext } from "../../src/operatingcontext/BaseOperatingContext.js";
 import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
 import { config } from "process";
-import { getDefaultErrorMessage } from "../../src/error/BrowserAuthError.js";
 
 const cacheConfig = {
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,

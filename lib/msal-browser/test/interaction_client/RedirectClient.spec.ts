@@ -66,6 +66,7 @@ import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
     BrowserAuthError,
+    getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
@@ -88,7 +89,6 @@ import {
     TestTimeUtils,
 } from "msal-test-utils";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
-import { getDefaultErrorMessage } from "../../src/error/BrowserAuthError.js";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
