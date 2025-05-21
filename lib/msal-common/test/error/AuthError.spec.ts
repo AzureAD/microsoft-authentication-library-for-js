@@ -2,9 +2,9 @@ import {
     AuthError,
     AuthErrorCodes,
     createAuthError,
+    getDefaultErrorMessage
 } from "../../src/error/AuthError";
 import { TEST_CONFIG } from "../test_kit/StringConstants";
-import { getDefaultErrorMessage } from "../../src/error/AuthError.js";
 
 describe("AuthError.ts Class", () => {
     for (const key in AuthErrorCodes) {

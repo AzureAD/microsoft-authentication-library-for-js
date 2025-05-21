@@ -4,9 +4,8 @@
  */
 
 import { stubbedPublicClientApplication } from "../../src/app/IPublicClientApplication";
-import { BrowserAuthError } from "../../src/error/BrowserAuthError";
+import { BrowserAuthError, getDefaultErrorMessage } from "../../src/error/BrowserAuthError.js";
 import { BrowserConfigurationAuthErrorCodes } from "../../src/error/BrowserConfigurationAuthError.js";
-import { getDefaultErrorMessage } from "../../src/error/BrowserAuthError.js";
 
 describe("IPublicClientApplication.ts Class Unit Tests", () => {
     describe("stubbedPublicClientApplication tests", () => {

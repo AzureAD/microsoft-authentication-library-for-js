@@ -34,6 +34,7 @@ import {
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
+    getDefaultErrorMessage
 } from "../../src/error/BrowserAuthError.js";
 import * as SilentHandler from "../../src/interaction_handler/SilentHandler.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
@@ -54,7 +55,6 @@ import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
 import { SsoSilentRequest } from "../../src/index.js";
-import { getDefaultErrorMessage } from "../../src/error/BrowserAuthError.js";
 
 describe("SilentIframeClient", () => {
     let silentIframeClient: SilentIframeClient;

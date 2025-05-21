@@ -10,15 +10,13 @@ import {
     IPerformanceClient,
 } from "@azure/msal-common";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
-import { BrowserAuthError, BrowserAuthErrorCodes } from "../../src/index.js";
 import { NativeExtensionMethod } from "../../src/utils/BrowserConstants.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
-import { mock } from "node:test";
 import { PlatformBrokerRequest } from "../../src/broker/nativeBroker/PlatformBrokerRequest.js";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants.js";
-import { getDefaultErrorMessage } from "../../src/error/BrowserAuthError.js";
+import { getDefaultErrorMessage, BrowserAuthError, BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
 
 let performanceClient: IPerformanceClient;
 

@@ -30,7 +30,7 @@ import {
     TEST_TOKENS,
 } from "../utils/StringConstants.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
-import { BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
+import { BrowserAuthErrorCodes, getDefaultErrorMessage } from "../../src/error/BrowserAuthError.js";
 import {
     NativeAuthError,
     NativeAuthErrorCodes,
@@ -47,7 +47,6 @@ import { version } from "../../src/packageMetadata.js";
 import { BrowserConstants } from "../../src/utils/BrowserConstants.js";
 import * as NativeStatusCodes from "../../src/broker/nativeBroker/NativeStatusCodes.js";
 import { PlatformBrokerResponse } from "../../src/broker/nativeBroker/PlatformBrokerResponse.js";
-import { getDefaultErrorMessage } from "../../src/error/BrowserAuthError.js";
 
 const MOCK_WAM_RESPONSE: PlatformBrokerResponse = {
     access_token: TEST_TOKENS.ACCESS_TOKEN,
