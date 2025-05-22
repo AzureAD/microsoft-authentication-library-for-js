@@ -703,7 +703,6 @@ export abstract class AsyncCacheManager {
         });
 
         const results = await Promise.all(accountPromises);
-        console.dir(results);
         return results.filter((entity): entity is AccountEntity => entity !== null);
     }
 
