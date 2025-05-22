@@ -15,7 +15,7 @@ export type NativeAccountInfo = {
 /**
  * Token response returned by Native Platform
  */
-export type PlatformBrokerResponse = {
+export type PlatformAuthResponse = {
     access_token: string;
     account: NativeAccountInfo;
     client_info: string;
