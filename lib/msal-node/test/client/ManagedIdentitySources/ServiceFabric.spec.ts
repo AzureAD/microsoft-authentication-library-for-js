@@ -193,7 +193,7 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
             ],
             [undefined, null],
         ])(
-            "ignores a cached token when claims are provided (regardless of if client capabilities were provided or not) and the Managed Identity does support token revocation, and ensures the token revocation query parameter token_sha256_to_refresh was included in the network request to the Managed Identity",
+            "ignores a cached token when claims are provided (regardless of if client capabilities are provided or not) and the Managed Identity does support token revocation, and ensures the token revocation query parameter token_sha256_to_refresh is included in the network request to the Managed Identity",
             async (providedCapabilities, capabilitiesOnNetworkRequest) => {
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
                     networkClient,
