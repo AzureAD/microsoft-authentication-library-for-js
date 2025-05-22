@@ -25,7 +25,7 @@ import {
     INetworkModule,
 } from "@azure/msal-common/browser";
 import { ITokenCache } from "../cache/ITokenCache.js";
-import { BrowserConfiguration } from "../config/Configuration.js";
+import { BrowserConfiguration, CacheOptions } from "../config/Configuration.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
@@ -35,7 +35,7 @@ import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
-import { ApiId, CacheLookupPolicy, InteractionType, WrapperSKU } from "../utils/BrowserConstants.js";
+import { ApiId, BrowserCacheLocation, CacheLookupPolicy, InteractionType, WrapperSKU } from "../utils/BrowserConstants.js";
 import { IController } from "./IController.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
 import {
@@ -58,7 +58,9 @@ import { initializeSilentRequest } from "../request/RequestHelpers.js";
 // import { NativeAuthError, isFatalNativeAuthError } from "../error/NativeAuthError.js";
 import { SilentCacheClient } from "../interaction_client/SilentCacheClient.js";
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient.js";
-import { FetchClient } from "../network/FetchClient.js";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
+import { NativeInteractionClient } from "../interaction_client/NativeInteractionClient.js";
+import { isFatalNativeAuthError, NativeAuthError } from "../error/NativeAuthError.js";
 
 function getAccountType(
     account?: AccountInfo
@@ -101,6 +103,9 @@ export class WorkerController implements IController {
 
     // Storage interface implementation
     protected readonly workerStorage: WorkerCacheManager;
+
+    // Native Cache in memory storage implementation
+    protected readonly nativeInternalStorage: BrowserCacheManager;
 
     // Network interface implementation
     protected readonly networkClient: INetworkModule;
@@ -179,6 +184,25 @@ export class WorkerController implements IController {
               );
 
               this.activeSilentTokenRequests = new Map();
+
+        // initialize in memory storage for native flows
+        const nativeCacheOptions: Required<CacheOptions> = {
+            cacheLocation: BrowserCacheLocation.MemoryStorage,
+            temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
+            storeAuthStateInCookie: false,
+            secureCookies: false,
+            cacheMigrationEnabled: false,
+            claimsBasedCachingEnabled: false,
+        };
+
+        this.nativeInternalStorage = new BrowserCacheManager(
+            this.config.auth.clientId,
+            nativeCacheOptions,
+            this.workerCrypto,
+            this.logger,
+            this.performanceClient,
+            this.eventHandler,
+        )
     }
     
     // TODO: Dedupe with StandardController
@@ -284,6 +308,26 @@ export class WorkerController implements IController {
     }
 
     /**
+     * Returns the first account found in the cache that matches the account filter passed in.
+     * @param accountFilter
+     * @returns The first account found in the cache matching the provided filter or null if no account could be found.
+     */
+    async getAccountAsync(accountFilter: AccountFilter): Promise<AccountInfo | null> {
+        return AsyncAccountManager.getAccount(
+            accountFilter,
+            this.logger,
+            this.workerStorage,
+        );
+    }
+
+    /**
+     * Gets the currently active account
+     */
+    async getActiveAccountAsync(): Promise<AccountInfo | null> {
+        return AsyncAccountManager.getActiveAccount(this.workerStorage);
+    }
+
+    /**
      * Silently acquire an access token for a given set of scopes. Returns currently processing promise if parallel requests are made.
      *
      * @param {@link (SilentRequest:type)}
@@ -305,7 +349,7 @@ export class WorkerController implements IController {
         preflightCheck(this.initialized, atsMeasurement);
         this.logger.verbose("acquireTokenSilent called", correlationId);
 
-        const account = request.account || this.getActiveAccount();
+        const account = request.account || await this.getActiveAccountAsync();
         if (!account) {
             throw createBrowserAuthError(BrowserAuthErrorCodes.noAccountError);
         }
@@ -444,7 +488,7 @@ export class WorkerController implements IController {
         const result = this.acquireTokenSilentNoIframe(
             silentRequest,
             cacheLookupPolicy
-        ).catch(async (refreshTokenError: AuthError) => {        
+        ).catch(async (refreshTokenError: AuthError) => {
             // Error cannot be silently resolved since iframes are not allowed
             throw refreshTokenError;
         });
@@ -489,44 +533,41 @@ export class WorkerController implements IController {
         silentRequest: CommonSilentFlowRequest,
         cacheLookupPolicy: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
-        /*
-         * if the cache policy is set to access_token only, we should not be hitting the native layer yet
-         * if (
-         *     NativeMessageHandler.isPlatformBrokerAvailable(
-         *         this.config,
-         *         this.logger,
-         *         this.nativeExtensionProvider,
-         *         silentRequest.authenticationScheme
-         *     ) &&
-         *     silentRequest.account.nativeAccountId
-         * ) {
-         *     this.logger.verbose(
-         *         "acquireTokenSilent - attempting to acquire token from native platform"
-         *     );
-         *     return this.acquireTokenNative(
-         *         silentRequest,
-         *         ApiId.acquireTokenSilent_silentFlow,
-         *         silentRequest.account.nativeAccountId,
-         *         cacheLookupPolicy
-         *     ).catch(async (e: AuthError) => {
-         *         // If native token acquisition fails for availability reasons fallback to web flow
-         *         if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
-         *             this.logger.verbose(
-         *                 "acquireTokenSilent - native platform unavailable, falling back to web flow"
-         *             );
-         *             this.nativeExtensionProvider = undefined; // Prevent future requests from continuing to attempt
-         */
+        // if the cache policy is set to access_token only, we should not be hitting the native layer yet
+        if (
+            NativeMessageHandler.isPlatformBrokerAvailable(
+                this.config,
+                this.logger,
+                this.nativeExtensionProvider,
+                silentRequest.authenticationScheme
+            ) &&
+            silentRequest.account.nativeAccountId
+        ) {
+            this.logger.verbose(
+                "acquireTokenSilent - attempting to acquire token from native platform"
+            );
+            return this.acquireTokenNative(
+                silentRequest,
+                ApiId.acquireTokenSilent_silentFlow,
+                silentRequest.account.nativeAccountId,
+                cacheLookupPolicy
+            ).catch(async (e: AuthError) => {
+                // If native token acquisition fails for availability reasons fallback to web flow
+                if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {
+                    this.logger.verbose(
+                        "acquireTokenSilent - native platform unavailable, falling back to web flow"
+                    );
+                    this.nativeExtensionProvider = undefined; // Prevent future requests from continuing to attempt
 
-        /*
-         *             // Cache will not contain tokens, given that previous WAM requests succeeded. Skip cache and RT renewal and go straight to iframe renewal
-         *             throw createClientAuthError(
-         *                 ClientAuthErrorCodes.tokenRefreshRequired
-         *             );
-         *         }
-         *         throw e;
-         *     });
-         * } else {
-         */
+                    // Cache will not contain tokens, given that previous WAM requests succeeded. Skip cache and RT renewal and go straight to iframe renewal
+                    throw createClientAuthError(
+                        ClientAuthErrorCodes.tokenRefreshRequired
+                    );
+                }
+                throw e;
+            });
+        } else {
+         
             this.logger.verbose(
                 "acquireTokenSilent - attempting to acquire token from web flow"
             );
@@ -563,16 +604,70 @@ export class WorkerController implements IController {
                     )(silentRequest, cacheLookupPolicy);
                 }
             );
-        // }
+        }
+    }
+
+    /**
+     * Acquire a token from native device (e.g. WAM)
+     * @param request
+     */
+    public async acquireTokenNative(
+        request: PopupRequest | SilentRequest | SsoSilentRequest,
+        apiId: ApiId,
+        accountId?: string,
+        cacheLookupPolicy?: CacheLookupPolicy
+    ): Promise<AuthenticationResult> {
+        this.logger.trace("acquireTokenNative called");
+        if (!this.nativeExtensionProvider) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.nativeConnectionNotEstablished
+            );
+        }
+
+        const nativeClient = new NativeInteractionClient(
+            this.config,
+            this.workerStorage,
+            this.workerCrypto,
+            this.logger,
+            this.eventHandler,
+            this.navigationClient,
+            apiId,
+            this.performanceClient,
+            this.nativeExtensionProvider,
+            accountId || await this.getNativeAccountId(request),
+            this.nativeInternalStorage,
+            request.correlationId
+        );
+
+        return nativeClient.acquireToken(request, cacheLookupPolicy);
     }
 
         /**
-         * Attempt to acquire an access token from the cache
-         * @param silentCacheClient SilentCacheClient
-         * @param commonRequest CommonSilentFlowRequest
-         * @param silentRequest SilentRequest
-         * @returns A promise that, when resolved, returns the access token
+         * Get the native accountId from the account
+         * @param request
+         * @returns
          */
+    public async getNativeAccountId(
+        request: RedirectRequest | PopupRequest | SsoSilentRequest
+    ): Promise<string> {
+        const account =
+            request.account ||
+            await this.getAccountAsync({
+                loginHint: request.loginHint,
+                sid: request.sid,
+            }) ||
+            await this.getActiveAccountAsync();
+
+        return (account && account.nativeAccountId) || "";
+    }
+
+    /**
+     * Attempt to acquire an access token from the cache
+     * @param silentCacheClient SilentCacheClient
+     * @param commonRequest CommonSilentFlowRequest
+     * @param silentRequest SilentRequest
+     * @returns A promise that, when resolved, returns the access token
+     */
     protected async acquireTokenFromCache(
         commonRequest: CommonSilentFlowRequest,
         cacheLookupPolicy: CacheLookupPolicy
@@ -632,7 +727,7 @@ export class WorkerController implements IController {
                     this.logger,
                     this.performanceClient,
                     commonRequest.correlationId
-                )(commonRequest);
+                )(commonRequest)
             default:
                 throw createClientAuthError(
                     ClientAuthErrorCodes.tokenRefreshRequired
@@ -781,31 +876,6 @@ export class WorkerController implements IController {
     acquireTokenByCode(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         request: AuthorizationCodeRequest
-    ): Promise<AuthenticationResult> {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
-        return {} as Promise<AuthenticationResult>;
-    }
-    acquireTokenNative(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        request:
-            | PopupRequest
-            | SilentRequest
-            | Partial<
-                  Omit<
-                      CommonAuthorizationUrlRequest,
-                      | "responseMode"
-                      | "earJwk"
-                      | "codeChallenge"
-                      | "codeChallengeMethod"
-                      | "requestedClaimsHash"
-                      | "platformBroker"
-                  >
-              >,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        apiId: ApiId,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        accountId?: string | undefined
     ): Promise<AuthenticationResult> {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();

@@ -19,39 +19,34 @@ export async function getAllAccounts(
     return workerStorage.getAllAccounts(accountFilter);
 }
 
-// /**
-//  * Returns the first account found in the cache that matches the account filter passed in.
-//  * @param accountFilter
-//  * @returns The first account found in the cache matching the provided filter or null if no account could be found.
-//  */
-// export function getAccount(
-//     accountFilter: AccountFilter,
-//     logger: Logger,
-//     workerStorage: WorkerCacheManager
-// ): AccountInfo | null {
-//     logger.trace("getAccount called");
-//     if (Object.keys(accountFilter).length === 0) {
-//         logger.warning("getAccount: No accountFilter provided");
-//         return null;
-//     }
-
-/*
- *     const account: AccountInfo | null =
- *         workerStorage.getAccountInfoFilteredBy(accountFilter);
+/**
+ * Returns the first account found in the cache that matches the account filter passed in.
+ * @param accountFilter
+ * @returns The first account found in the cache matching the provided filter or null if no account could be found.
  */
+export async function getAccount(
+    accountFilter: AccountFilter,
+    logger: Logger,
+    workerStorage: WorkerCacheManager
+): Promise<AccountInfo | null> {
+    logger.trace("getAccount called");
+    if (Object.keys(accountFilter).length === 0) {
+        logger.warning("getAccount: No accountFilter provided");
+        return null;
+    }
 
-/*
- *     if (account) {
- *         logger.verbose(
- *             "getAccount: Account matching provided filter found, returning"
- *         );
- *         return account;
- *     } else {
- *         logger.verbose("getAccount: No matching account found, returning null");
- *         return null;
- *     }
- * }
- */
+    const account: AccountInfo | null = await workerStorage.getAccountInfoFilteredBy(accountFilter);
+
+    if (account) {
+        logger.verbose(
+            "getAccount: Account matching provided filter found, returning"
+        );
+        return account;
+    } else {
+        logger.verbose("getAccount: No matching account found, returning null");
+        return null;
+    }
+}
 
 // /**
 //  * Returns the signed in account matching username.
@@ -182,11 +177,11 @@ export async function getAllAccounts(
 //     workerStorage.setActiveAccount(account);
 // }
 
-// /**
-//  * Gets the currently active account
-//  */
-// export function getActiveAccount(
-//     workerStorage: WorkerCacheManager
-// ): AccountInfo | null {
-//     return workerStorage.getActiveAccount();
-// }
+/**
+ * Gets the currently active account
+ */
+export async function getActiveAccount(
+    workerStorage: WorkerCacheManager
+): Promise<AccountInfo | null> {
+    return await workerStorage.getActiveAccount();
+}

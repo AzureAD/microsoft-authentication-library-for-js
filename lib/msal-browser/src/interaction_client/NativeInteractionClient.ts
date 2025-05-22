@@ -76,6 +76,7 @@ import { SilentCacheClient } from "./SilentCacheClient.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import { version } from "../packageMetadata.js";
+import { WorkerCacheManager } from "../cache/WorkerCacheManager.js";
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -87,7 +88,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
     constructor(
         config: BrowserConfiguration,
-        browserStorage: BrowserCacheManager,
+        browserStorage: BrowserCacheManager | WorkerCacheManager,
         browserCrypto: ICrypto,
         logger: Logger,
         eventHandler: EventHandler,
@@ -286,7 +287,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             throw createClientAuthError(ClientAuthErrorCodes.noAccountFound);
         }
         // fetch the account from browser cache
-        const account = this.browserStorage.getBaseAccountInfo({
+        const account = await this.browserStorage.getBaseAccountInfo({
             nativeAccountId,
         });
 
@@ -359,7 +360,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 }
             }
         }
-        this.browserStorage.setTemporaryCache(
+        await this.browserStorage.setTemporaryCache(
             TemporaryCacheKeys.NATIVE_REQUEST,
             JSON.stringify(nativeRequest),
             true
@@ -400,7 +401,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         }
 
         // remove prompt from the request to prevent WAM from prompting twice
-        const cachedRequest = this.browserStorage.getCachedNativeRequest();
+        const cachedRequest = await this.browserStorage.getCachedNativeRequest();
         if (!cachedRequest) {
             this.logger.verbose(
                 "NativeInteractionClient - handleRedirectPromise called but there is no cached request, returning null."
@@ -421,7 +422,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             );
         }
 
-        this.browserStorage.removeItem(
+        await this.browserStorage.removeItem(
             this.browserStorage.generateCacheKey(
                 TemporaryCacheKeys.NATIVE_REQUEST
             )
@@ -492,9 +493,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
         );
 
         const cachedhomeAccountId =
-            this.browserStorage.getAccountInfoFilteredBy({
+            (await this.browserStorage.getAccountInfoFilteredBy({
                 nativeAccountId: request.accountId,
-            })?.homeAccountId;
+            }))?.homeAccountId;
 
         // add exception for double brokering, please note this is temporary and will be fortified in future
         if (
@@ -517,7 +518,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             requestAuthority: request.authority,
         });
 
-        const baseAccount = buildAccountToCache(
+        const baseAccount = await buildAccountToCache(
             this.browserStorage,
             authority,
             homeAccountIdentifier,
