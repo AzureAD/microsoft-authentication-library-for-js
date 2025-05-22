@@ -27,7 +27,6 @@ export {
     AuthOptions,
     SystemOptions,
     LoggerOptions,
-    CacheOptions,
     DEFAULT_SYSTEM_OPTIONS,
     AzureCloudOptions,
     ApplicationTelemetry,
@@ -137,7 +136,6 @@ export {
 } from "./error/InteractionRequiredAuthError.js";
 export {
     AuthError,
-    AuthErrorMessages,
     AuthErrorCodes,
     createAuthError,
 } from "./error/AuthError.js";
@@ -146,13 +144,11 @@ export { NetworkError, createNetworkError } from "./error/NetworkError.js";
 export { CacheError, CacheErrorCodes } from "./error/CacheError.js";
 export {
     ClientAuthError,
-    ClientAuthErrorMessages,
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "./error/ClientAuthError.js";
 export {
     ClientConfigurationError,
-    ClientConfigurationErrorMessages,
     ClientConfigurationErrorCodes,
     createClientConfigurationError,
 } from "./error/ClientConfigurationError.js";

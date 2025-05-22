@@ -45,11 +45,7 @@ export class SilentFlowClient extends BaseClient {
         );
         let lastCacheOutcome: CacheOutcome = CacheOutcome.NOT_APPLICABLE;
 
-        if (
-            request.forceRefresh ||
-            (!this.config.cacheOptions.claimsBasedCachingEnabled &&
-                !StringUtils.isEmptyObj(request.claims))
-        ) {
+        if (request.forceRefresh || !StringUtils.isEmptyObj(request.claims)) {
             // Must refresh due to present force_refresh flag.
             this.setCacheOutcome(
                 CacheOutcome.FORCE_REFRESH_OR_CLAIMS,

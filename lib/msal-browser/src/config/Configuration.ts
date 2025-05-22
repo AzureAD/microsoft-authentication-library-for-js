@@ -113,26 +113,6 @@ export type CacheOptions = {
      * Used to specify the cacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
      */
     cacheLocation?: BrowserCacheLocation | string;
-    /**
-     * Used to specify the temporaryCacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
-     * @deprecated This option is deprecated and will be removed in the next major version.
-     */
-    temporaryCacheLocation?: BrowserCacheLocation | string;
-    /**
-     * If set, MSAL stores the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
-     * @deprecated This option is deprecated and will be removed in the next major version.
-     */
-    storeAuthStateInCookie?: boolean;
-    /**
-     * If set, MSAL will attempt to migrate cache entries from older versions on initialization. By default this flag is set to true if cacheLocation is localStorage, otherwise false.
-     * @deprecated This option is deprecated and will be removed in the next major version.
-     */
-    cacheMigrationEnabled?: boolean;
-    /**
-     * Flag that determines whether access tokens are stored based on requested claims
-     * @deprecated This option is deprecated and will be removed in the next major version.
-     */
-    claimsBasedCachingEnabled?: boolean;
 };
 
 export type BrowserSystemOptions = SystemOptions & {
@@ -282,15 +262,6 @@ export function buildConfiguration(
     // Default cache options for browser
     const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
-        temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
-        storeAuthStateInCookie: false,
-        // Default cache migration to true if cache location is localStorage since entries are preserved across tabs/windows. Migration has little to no benefit in sessionStorage and memoryStorage
-        cacheMigrationEnabled:
-            userInputCache &&
-            userInputCache.cacheLocation === BrowserCacheLocation.LocalStorage
-                ? true
-                : false,
-        claimsBasedCachingEnabled: false,
     };
 
     // Default logger options for browser

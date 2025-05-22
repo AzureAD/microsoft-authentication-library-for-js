@@ -30,18 +30,17 @@ import { Logger, LogLevel } from "../../src/logger/Logger.js";
 import * as AuthToken from "../../src/account/AuthToken.js";
 import { BaseAuthRequest } from "../../src/request/BaseAuthRequest.js";
 import * as TimeUtils from "../../src/utils/TimeUtils.js";
-import { AuthError } from "../../src/error/AuthError.js";
+import {
+    AuthError,
+    getDefaultErrorMessage,
+} from "../../src/error/AuthError.js";
 import {
     ClientAuthError,
     ClientAuthErrorCodes,
 } from "../../src/error/ClientAuthError.js";
 import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError.js";
 import { ServerError } from "../../src/error/ServerError.js";
-import {
-    CacheError,
-    CacheErrorCodes,
-    CacheErrorMessages,
-} from "../../src/error/CacheError.js";
+import { CacheError, CacheErrorCodes } from "../../src/error/CacheError.js";
 import { CacheManager } from "../../src/cache/CacheManager.js";
 import { cacheQuotaExceededErrorCode } from "../../src/error/CacheErrorCodes.js";
 import { TestTimeUtils } from "msal-test-utils";
@@ -893,7 +892,7 @@ describe("ResponseHandler.ts", () => {
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual("cache_quota_exceeded");
                 expect(cacheError.errorMessage).toEqual(
-                    CacheErrorMessages[cacheQuotaExceededErrorCode]
+                    getDefaultErrorMessage(cacheQuotaExceededErrorCode)
                 );
             }
         });
@@ -939,7 +938,7 @@ describe("ResponseHandler.ts", () => {
                 const cacheError: CacheError = e as CacheError;
                 expect(cacheError.errorCode).toEqual("cache_quota_exceeded");
                 expect(cacheError.errorMessage).toEqual(
-                    CacheErrorMessages[cacheQuotaExceededErrorCode]
+                    getDefaultErrorMessage(cacheQuotaExceededErrorCode)
                 );
             }
         });
@@ -1030,7 +1029,9 @@ describe("ResponseHandler.ts", () => {
                     CacheErrorCodes.cacheUnknownErrorCode
                 );
                 expect(cacheError.errorMessage).toEqual(
-                    CacheErrorMessages[CacheErrorCodes.cacheUnknownErrorCode]
+                    getDefaultErrorMessage(
+                        CacheErrorCodes.cacheUnknownErrorCode
+                    )
                 );
             }
         });

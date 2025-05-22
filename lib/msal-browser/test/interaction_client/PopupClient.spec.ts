@@ -56,8 +56,8 @@ import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/Plat
 import {
     BrowserAuthError,
     createBrowserAuthError,
-    BrowserAuthErrorMessages,
     BrowserAuthErrorCodes,
+    getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError.js";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
@@ -560,9 +560,9 @@ describe("PopupClient", () => {
                         BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessages[
+                        getDefaultErrorMessage(
                             BrowserAuthErrorCodes.nativeConnectionNotEstablished
-                        ]
+                        )
                     );
                 });
         });

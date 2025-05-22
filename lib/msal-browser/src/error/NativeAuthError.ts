@@ -12,6 +12,7 @@ import {
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
+    getDefaultErrorMessage,
 } from "./BrowserAuthError.js";
 
 import * as NativeAuthErrorCodes from "./NativeAuthErrorCodes.js";
@@ -28,16 +29,11 @@ export type OSError = {
 
 const INVALID_METHOD_ERROR = -2147186943;
 
-export const NativeAuthErrorMessages = {
-    [NativeAuthErrorCodes.userSwitch]:
-        "User attempted to switch accounts in the native broker, which is not allowed. All new accounts must sign-in through the standard web flow first, please try again.",
-};
-
 export class NativeAuthError extends AuthError {
     ext: OSError | undefined;
 
     constructor(errorCode: string, description?: string, ext?: OSError) {
-        super(errorCode, description);
+        super(errorCode, description || getDefaultErrorMessage(errorCode));
 
         Object.setPrototypeOf(this, NativeAuthError.prototype);
         this.name = "NativeAuthError";
@@ -90,7 +86,8 @@ export function createNativeAuthError(
         switch (ext.status) {
             case NativeStatusCodes.ACCOUNT_UNAVAILABLE:
                 return createInteractionRequiredAuthError(
-                    InteractionRequiredAuthErrorCodes.nativeAccountUnavailable
+                    InteractionRequiredAuthErrorCodes.nativeAccountUnavailable,
+                    getDefaultErrorMessage(code)
                 );
             case NativeStatusCodes.USER_INTERACTION_REQUIRED:
                 return new InteractionRequiredAuthError(code, description);
@@ -105,9 +102,5 @@ export function createNativeAuthError(
         }
     }
 
-    return new NativeAuthError(
-        code,
-        NativeAuthErrorMessages[code] || description,
-        ext
-    );
+    return new NativeAuthError(code, description, ext);
 }

@@ -14,12 +14,8 @@ import {
     CredentialType,
     TimeUtils,
     CacheManager,
-    Logger,
-    CacheRecord,
-    AADServerParamKeys,
     IPerformanceClient,
     InProgressPerformanceEvent,
-    PerformanceEvents,
     AccountEntityUtils,
 } from "@azure/msal-common";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
@@ -35,13 +31,12 @@ import {
 } from "../utils/StringConstants.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import {
-    BrowserAuthErrorMessages,
     BrowserAuthErrorCodes,
+    getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError.js";
 import {
     NativeAuthError,
     NativeAuthErrorCodes,
-    NativeAuthErrorMessages,
 } from "../../src/error/NativeAuthError.js";
 import {
     NativeExtensionRequestBody,
@@ -49,12 +44,7 @@ import {
 } from "../../src/broker/nativeBroker/PlatformBrokerRequest.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
-import {
-    BrowserPerformanceClient,
-    IPublicClientApplication,
-    PopupRequest,
-    SsoSilentRequest,
-} from "../../src/index.js";
+import { BrowserPerformanceClient } from "../../src/index.js";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 import { version } from "../../src/packageMetadata.js";
 import { BrowserConstants } from "../../src/utils/BrowserConstants.js";
@@ -316,9 +306,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                         BrowserAuthErrorCodes.nativePromptNotSupported
                     );
                     expect(e.errorMessage).toBe(
-                        BrowserAuthErrorMessages[
+                        getDefaultErrorMessage(
                             BrowserAuthErrorCodes.nativePromptNotSupported
-                        ]
+                        )
                     );
                     done();
                 });
@@ -335,9 +325,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                         BrowserAuthErrorCodes.nativePromptNotSupported
                     );
                     expect(e.errorMessage).toBe(
-                        BrowserAuthErrorMessages[
+                        getDefaultErrorMessage(
                             BrowserAuthErrorCodes.nativePromptNotSupported
-                        ]
+                        )
                     );
                     done();
                 });
@@ -460,7 +450,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                         NativeAuthErrorCodes.userSwitch
                     );
                     expect(e.errorMessage).not.toBe(
-                        NativeAuthErrorMessages[NativeAuthErrorCodes.userSwitch]
+                        getDefaultErrorMessage(NativeAuthErrorCodes.userSwitch)
                     );
                     done();
                 });
@@ -504,7 +494,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 .catch((e) => {
                     expect(e.errorCode).toBe(NativeAuthErrorCodes.userSwitch);
                     expect(e.errorMessage).toBe(
-                        NativeAuthErrorMessages[NativeAuthErrorCodes.userSwitch]
+                        getDefaultErrorMessage(NativeAuthErrorCodes.userSwitch)
                     );
                     done();
                 });
@@ -559,7 +549,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                         NativeAuthErrorCodes.userSwitch
                     );
                     expect(e.errorMessage).not.toBe(
-                        NativeAuthErrorMessages[NativeAuthErrorCodes.userSwitch]
+                        getDefaultErrorMessage(NativeAuthErrorCodes.userSwitch)
                     );
                     done();
                 });

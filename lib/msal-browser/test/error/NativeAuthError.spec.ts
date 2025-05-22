@@ -8,12 +8,11 @@ import {
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
 } from "@azure/msal-common";
-import {
-    BrowserAuthError,
-    BrowserAuthErrorMessages,
-} from "../../src/error/BrowserAuthError";
 import * as NativeStatusCode from "../../src/broker/nativeBroker/NativeStatusCodes";
-import { BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
+import {
+    BrowserAuthErrorCodes,
+    BrowserAuthError,
+} from "../../src/error/BrowserAuthError.js";
 
 describe("NativeAuthError Unit Tests", () => {
     describe("NativeAuthError", () => {

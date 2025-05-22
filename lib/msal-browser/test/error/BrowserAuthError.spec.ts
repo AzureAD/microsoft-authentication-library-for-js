@@ -1,8 +1,8 @@
 import {
     BrowserAuthError,
     createBrowserAuthError,
-    BrowserAuthErrorMessages,
     BrowserAuthErrorCodes,
+    getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError";
 import { AuthError } from "@azure/msal-common";
 
@@ -13,7 +13,7 @@ describe("BrowserAuthError Unit Tests", () => {
         it(`BrowserAuthError object can be created for code ${code}`, () => {
             const err: BrowserAuthError = createBrowserAuthError(code);
 
-            const message = BrowserAuthErrorMessages[code];
+            const message = getDefaultErrorMessage(code);
             expect(message).toBeTruthy();
 
             expect(err instanceof BrowserAuthError).toBe(true);

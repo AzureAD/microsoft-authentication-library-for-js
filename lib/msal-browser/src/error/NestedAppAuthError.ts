@@ -4,16 +4,7 @@
  */
 
 import { AuthError } from "@azure/msal-common/browser";
-
-/**
- * NestedAppAuthErrorMessage class containing string constants used by error codes and messages.
- */
-export const NestedAppAuthErrorMessage = {
-    unsupportedMethod: {
-        code: "unsupported_method",
-        desc: "This method is not supported in nested app environment.",
-    },
-};
+import { unsupportedMethod } from "./NativeAuthErrorCodes.js";
 
 export class NestedAppAuthError extends AuthError {
     constructor(errorCode: string, errorMessage?: string) {
@@ -24,9 +15,6 @@ export class NestedAppAuthError extends AuthError {
     }
 
     public static createUnsupportedError(): NestedAppAuthError {
-        return new NestedAppAuthError(
-            NestedAppAuthErrorMessage.unsupportedMethod.code,
-            NestedAppAuthErrorMessage.unsupportedMethod.desc
-        );
+        return new NestedAppAuthError(unsupportedMethod);
     }
 }

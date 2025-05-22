@@ -65,9 +65,9 @@ import { base64Encode } from "../../src/encode/Base64Encode.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import {
     createBrowserAuthError,
-    BrowserAuthErrorMessages,
     BrowserAuthErrorCodes,
     BrowserAuthError,
+    getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
@@ -94,10 +94,6 @@ import { version } from "../../src/packageMetadata.js";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
-    temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
-    storeAuthStateInCookie: false,
-    cacheMigrationEnabled: false,
-    claimsBasedCachingEnabled: false,
 };
 
 const testRequest: CommonAuthorizationUrlRequest = {
@@ -713,9 +709,9 @@ describe("RedirectClient", () => {
                         BrowserAuthErrorCodes.nativeConnectionNotEstablished
                     );
                     expect(e.errorMessage).toEqual(
-                        BrowserAuthErrorMessages[
+                        getDefaultErrorMessage(
                             BrowserAuthErrorCodes.nativeConnectionNotEstablished
-                        ]
+                        )
                     );
                     done();
                 });
