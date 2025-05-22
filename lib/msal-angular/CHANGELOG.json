@@ -2,6 +2,33 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Thu, 22 May 2025 20:29:40 GMT",
+      "version": "4.0.13",
+      "tag": "@azure/msal-angular_v4.0.13",
+      "comments": {
+        "patch": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "b27e7561944bbd714d56db08d05935477043f44d",
+            "comment": "fake angular and node extensions changes"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v4.13.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 06 May 2025 22:47:43 GMT",
       "version": "4.0.12",
       "tag": "@azure/msal-angular_v4.0.12",
