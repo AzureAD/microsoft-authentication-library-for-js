@@ -316,18 +316,16 @@ describe("ConfidentialClientApplication", () => {
                 jest.spyOn(
                     ClientCredentialClient.prototype,
                     "acquireToken"
-                ).mockImplementation(
-                    (request: ClientCredentialRequest) => {
-                        expect(request.clientAssertion).not.toBe(undefined);
-                        expect(request.clientAssertion?.assertion).toBe(
-                            TEST_CONFIG.TEST_REQUEST_ASSERTION
-                        );
-                        expect(request.clientAssertion?.assertionType).toBe(
-                            Constants.JWT_BEARER_ASSERTION_TYPE
-                        );
-                        return Promise.resolve(null);
-                    }
-                );
+                ).mockImplementation((request: ClientCredentialRequest) => {
+                    expect(request.clientAssertion).not.toBe(undefined);
+                    expect(request.clientAssertion?.assertion).toBe(
+                        TEST_CONFIG.TEST_REQUEST_ASSERTION
+                    );
+                    expect(request.clientAssertion?.assertionType).toBe(
+                        Constants.JWT_BEARER_ASSERTION_TYPE
+                    );
+                    return Promise.resolve(null);
+                });
             });
 
             it.each([

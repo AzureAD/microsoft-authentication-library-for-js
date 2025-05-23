@@ -20,8 +20,7 @@ import { BaseAuthRequest } from "@azure/msal-common/node";
  */
 export type UsernamePasswordRequest = Omit<
     BaseAuthRequest,
-    | "requestedClaimsHash"
-    | "storeInCache"
+    "requestedClaimsHash" | "storeInCache"
 > & {
     username: string;
     password: string;

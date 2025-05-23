@@ -385,10 +385,13 @@ export class ClientCredentialClient extends BaseClient {
         // Use clientAssertion from request, fallback to client assertion in base configuration
         let clientAssertion: ClientAssertion | undefined;
 
-        if (typeof request.clientAssertion === "string" || typeof request.clientAssertion === "function") {
+        if (
+            typeof request.clientAssertion === "string" ||
+            typeof request.clientAssertion === "function"
+        ) {
             clientAssertion = {
                 assertion: request.clientAssertion,
-                assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE // TODO: check this
+                assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE, // TODO: check this
             };
         } else if (request.clientAssertion) {
             clientAssertion = request.clientAssertion;

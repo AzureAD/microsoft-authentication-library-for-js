@@ -18,7 +18,7 @@ import {
     RANDOM_TEST_GUID,
     TEST_CONFIG,
 } from "../test_kit/StringConstants.js";
-import { 
+import {
     UsernamePasswordClient,
     UsernamePasswordRequest,
 } from "../../src/index.js";

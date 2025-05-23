@@ -149,7 +149,10 @@ export class ConfidentialClientApplication
 
         // If there is a client assertion present in the request, it overrides the one present in the client configuration
         let clientAssertion: ClientAssertionType | undefined;
-        if (typeof request.clientAssertion === "string" || typeof request.clientAssertion === "function") {
+        if (
+            typeof request.clientAssertion === "string" ||
+            typeof request.clientAssertion === "function"
+        ) {
             clientAssertion = {
                 assertion: await getClientAssertion(
                     request.clientAssertion,

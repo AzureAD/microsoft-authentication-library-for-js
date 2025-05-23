@@ -17,7 +17,11 @@ import {
     ScopeSet,
     TimeUtils,
 } from "@azure/msal-common";
-import { AuthenticationResult, OnBehalfOfClient, OnBehalfOfRequest } from "../../src/index.js";
+import {
+    AuthenticationResult,
+    OnBehalfOfClient,
+    OnBehalfOfRequest,
+} from "../../src/index.js";
 import {
     AUTHENTICATION_RESULT,
     CAE_CONSTANTS,

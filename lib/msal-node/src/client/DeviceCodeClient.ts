@@ -109,9 +109,7 @@ export class DeviceCodeClient extends BaseClient {
      * Creates query string for the device code request
      * @param request - developer provided DeviceCodeRequest
      */
-    public createExtraQueryParameters(
-        request: DeviceCodeRequest
-    ): string {
+    public createExtraQueryParameters(request: DeviceCodeRequest): string {
         const parameters = new Map<string, string>();
 
         if (request.extraQueryParameters) {

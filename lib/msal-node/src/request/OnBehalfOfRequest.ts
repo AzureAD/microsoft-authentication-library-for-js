@@ -13,10 +13,7 @@ import { BaseAuthRequest } from "@azure/msal-common/node";
  * - skipCache               - Skip token cache lookup and force request to authority to get a a new token. Defaults to false.
  * @public
  */
-export type OnBehalfOfRequest = Omit<
-    BaseAuthRequest,
-    | "storeInCache"
-> & {
+export type OnBehalfOfRequest = Omit<BaseAuthRequest, "storeInCache"> & {
     oboAssertion: string;
     skipCache?: boolean;
 };

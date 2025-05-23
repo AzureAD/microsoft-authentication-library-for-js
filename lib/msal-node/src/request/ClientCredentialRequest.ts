@@ -21,11 +21,7 @@ import {
  * @public
  */
 export type ClientCredentialRequest = Partial<
-    Omit<
-        BaseAuthRequest,
-        | "requestedClaimsHash"
-        | "storeInCache"
-    >
+    Omit<BaseAuthRequest, "requestedClaimsHash" | "storeInCache">
 > & {
     authority: string;
     scopes: Array<string>;
