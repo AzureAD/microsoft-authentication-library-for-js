@@ -1526,25 +1526,6 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     platformBroker?: boolean;
 };
 
-// Warning: (ae-missing-release-tag) "CommonClientCredentialRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-export type CommonClientCredentialRequest = BaseAuthRequest & {
-    skipCache?: boolean;
-    azureRegion?: AzureRegion;
-    clientAssertion?: ClientAssertion;
-};
-
-// Warning: (ae-missing-release-tag) "CommonDeviceCodeRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-export type CommonDeviceCodeRequest = Omit<BaseAuthRequest, "tokenQueryParameters" | "tokenBodyParameters"> & {
-    deviceCodeCallback: (response: DeviceCodeResponse) => void;
-    cancel?: boolean;
-    timeout?: number;
-    extraQueryParameters?: StringDict;
-};
-
 // Warning: (ae-missing-release-tag) "CommonEndSessionRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -1556,14 +1537,6 @@ export type CommonEndSessionRequest = {
     state?: string;
     logoutHint?: string;
     extraQueryParameters?: StringDict;
-};
-
-// Warning: (ae-missing-release-tag) "CommonOnBehalfOfRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-export type CommonOnBehalfOfRequest = BaseAuthRequest & {
-    oboAssertion: string;
-    skipCache?: boolean;
 };
 
 // Warning: (ae-missing-release-tag) "CommonRefreshTokenRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1584,14 +1557,6 @@ export type CommonSilentFlowRequest = BaseAuthRequest & {
     forceRefresh: boolean;
     redirectUri?: string;
     refreshTokenExpirationOffsetSeconds?: number;
-};
-
-// Warning: (ae-missing-release-tag) "CommonUsernamePasswordRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public
-export type CommonUsernamePasswordRequest = BaseAuthRequest & {
-    username: string;
-    password: string;
 };
 
 // Warning: (ae-missing-release-tag) "consentRequired" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
