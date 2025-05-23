@@ -84,10 +84,6 @@ export class SilentIframeClient extends StandardInteractionClient {
     async acquireToken(
         request: SsoSilentRequest
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.SilentIframeClientAcquireToken,
-            request.correlationId
-        );
         // Check that we have some SSO data
         if (
             !request.loginHint &&
@@ -321,10 +317,6 @@ export class SilentIframeClient extends StandardInteractionClient {
         request: CommonAuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
         const correlationId = request.correlationId;
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.SilentIframeClientTokenHelper,
-            correlationId
-        );
         const pkceCodes = await invokeAsync(
             generatePkceCodes,
             PerformanceEvents.GeneratePkceCodes,

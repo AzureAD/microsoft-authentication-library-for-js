@@ -31,11 +31,6 @@ export class SilentRefreshClient extends StandardInteractionClient {
     async acquireToken(
         request: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.SilentRefreshClientAcquireToken,
-            request.correlationId
-        );
-
         const baseRequest = await invokeAsync(
             initializeBaseRequest,
             PerformanceEvents.InitializeBaseRequest,

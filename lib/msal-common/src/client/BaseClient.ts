@@ -144,16 +144,8 @@ export abstract class BaseClient {
         queryString: string,
         headers: Record<string, string>,
         thumbprint: RequestThumbprint,
-        correlationId: string,
-        queuedEvent?: string
+        correlationId: string
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        if (queuedEvent) {
-            this.performanceClient?.addQueueMeasurement(
-                queuedEvent,
-                correlationId
-            );
-        }
-
         const response =
             await this.sendPostRequest<ServerAuthorizationTokenResponse>(
                 thumbprint,
@@ -257,10 +249,6 @@ export abstract class BaseClient {
         cloudInstanceHostname: string,
         correlationId: string
     ): Promise<void> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.UpdateTokenEndpointAuthority,
-            correlationId
-        );
         const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${this.authority.tenant}/`;
         const cloudInstanceAuthority = await createDiscoveredInstance(
             cloudInstanceAuthorityUri,

@@ -33,11 +33,6 @@ export async function initiateCodeRequest(
     logger: Logger,
     correlationId: string
 ): Promise<HTMLIFrameElement> {
-    performanceClient.addQueueMeasurement(
-        PerformanceEvents.SilentHandlerInitiateAuthRequest,
-        correlationId
-    );
-
     if (!requestUrl) {
         // Throw error if request URL is empty.
         logger.info("Navigate url is empty");
@@ -90,11 +85,6 @@ export async function monitorIframeForHash(
     correlationId: string,
     responseType: ResponseMode
 ): Promise<string> {
-    performanceClient.addQueueMeasurement(
-        PerformanceEvents.SilentHandlerMonitorIframeForHash,
-        correlationId
-    );
-
     return new Promise<string>((resolve, reject) => {
         if (timeout < DEFAULT_IFRAME_TIMEOUT_MS) {
             logger.warning(

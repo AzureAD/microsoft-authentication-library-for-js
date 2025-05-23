@@ -10,7 +10,6 @@ export {
     IPerformanceClient,
     PerformanceCallbackFunction,
     InProgressPerformanceEvent,
-    QueueMeasurement,
 } from "./telemetry/performance/IPerformanceClient.js";
 export {
     IntFields,
@@ -20,10 +19,7 @@ export {
     SubMeasurement,
 } from "./telemetry/performance/PerformanceEvent.js";
 export { IPerformanceMeasurement } from "./telemetry/performance/IPerformanceMeasurement.js";
-export {
-    PerformanceClient,
-    PreQueueEvent,
-} from "./telemetry/performance/PerformanceClient.js";
+export { PerformanceClient } from "./telemetry/performance/PerformanceClient.js";
 export { StubPerformanceClient } from "./telemetry/performance/StubPerformanceClient.js";
 
 export { PopTokenGenerator } from "./crypto/PopTokenGenerator.js";

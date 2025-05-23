@@ -453,8 +453,7 @@ export async function handleResponseEAR(
         new CryptoOps(logger, performanceClient),
         logger,
         null,
-        null,
-        performanceClient
+        null
     );
 
     // Validate response. This function throws a server error if an error is returned by the server.

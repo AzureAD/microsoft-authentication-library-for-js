@@ -983,14 +983,8 @@ describe("BrowserCacheManager tests", () => {
                         )
                     ).toEqual(testAT4);
 
-                    browserSessionStorage.clearTokensAndKeysWithClaims(
-                        getDefaultPerformanceClient(),
-                        "test-correlation-id"
-                    );
-                    browserLocalStorage.clearTokensAndKeysWithClaims(
-                        getDefaultPerformanceClient(),
-                        "test-correlation-id"
-                    );
+                    browserSessionStorage.clearTokensAndKeysWithClaims();
+                    browserLocalStorage.clearTokensAndKeysWithClaims();
 
                     expect(
                         browserSessionStorage.getAccessTokenCredential(

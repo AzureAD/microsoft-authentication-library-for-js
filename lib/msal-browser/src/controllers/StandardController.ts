@@ -378,7 +378,7 @@ export class StandardController implements IController {
             this.logger,
             this.performanceClient,
             initCorrelationId
-        )(this.performanceClient, initCorrelationId);
+        )();
 
         if (
             this.config.cache.cacheLocation ===
@@ -1243,10 +1243,6 @@ export class StandardController implements IController {
         commonRequest: CommonSilentFlowRequest,
         cacheLookupPolicy: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.AcquireTokenFromCache,
-            commonRequest.correlationId
-        );
         switch (cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessToken:
@@ -1278,10 +1274,6 @@ export class StandardController implements IController {
         commonRequest: CommonSilentFlowRequest,
         cacheLookupPolicy: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.AcquireTokenByRefreshToken,
-            commonRequest.correlationId
-        );
         switch (cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessTokenAndRefreshToken:
@@ -1313,11 +1305,6 @@ export class StandardController implements IController {
     protected async acquireTokenBySilentIframe(
         request: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.AcquireTokenBySilentIframe,
-            request.correlationId
-        );
-
         const silentIframeClient = this.createSilentIframeClient(
             request.correlationId
         );
@@ -2047,11 +2034,6 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         const trackPageVisibility = () =>
             this.trackPageVisibility(request.correlationId);
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.AcquireTokenSilentAsync,
-            request.correlationId
-        );
-
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
             InteractionType.Silent,
