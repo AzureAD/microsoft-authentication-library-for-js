@@ -7,7 +7,6 @@ import {
     AuthorizationCodeClient,
     AuthenticationResult,
     OIDC_DEFAULT_SCOPES,
-    CommonClientCredentialRequest,
     createClientAuthError,
     ClientAuthErrorCodes,
     AccountEntity,
@@ -33,6 +32,7 @@ import {
     RefreshTokenRequest,
     SilentFlowRequest,
     ClientApplication,
+    ClientAssertion,
 } from "../../src/index.js";
 import {
     CAE_CONSTANTS,
@@ -293,8 +293,10 @@ describe("ConfidentialClientApplication", () => {
                 );
 
             const request: ClientCredentialRequest = {
+                authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 skipCache: false,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
             };
 
             const client: ConfidentialClientApplication =
@@ -309,13 +311,14 @@ describe("ConfidentialClientApplication", () => {
             expect(acquireTokenByClientCredentialSpy).toHaveBeenCalledTimes(1);
         });
 
+        // TODO: fix this test after talking to Robbie
         describe("clientAssertion is used to acquire a token after being provided in the request", () => {
             beforeEach(() => {
                 jest.spyOn(
                     ClientCredentialClient.prototype,
                     "acquireToken"
                 ).mockImplementation(
-                    (request: CommonClientCredentialRequest) => {
+                    (request: ClientCredentialRequest) => {
                         expect(request.clientAssertion).not.toBe(undefined);
                         expect(request.clientAssertion?.assertion).toBe(
                             TEST_CONFIG.TEST_REQUEST_ASSERTION
@@ -335,9 +338,11 @@ describe("ConfidentialClientApplication", () => {
                 "acquireTokenByClientCredential with client assertion",
                 async (clientAssertion) => {
                     const request: ClientCredentialRequest = {
+                        authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
                         scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                         skipCache: false,
                         clientAssertion: clientAssertion,
+                        correlationId: TEST_CONFIG.CORRELATION_ID,
                     };
 
                     const client: ConfidentialClientApplication =
@@ -384,8 +389,10 @@ describe("ConfidentialClientApplication", () => {
                 client = new ConfidentialClientApplication(config);
 
                 request = {
+                    authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
                     scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                     skipCache: false,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
                 };
 
                 process.env[MSAL_FORCE_REGION] = "eastus";
@@ -459,14 +466,16 @@ describe("ConfidentialClientApplication", () => {
 
         test("acquireTokenByClientCredential request does not contain OIDC scopes", async () => {
             const request: ClientCredentialRequest = {
+                authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 skipCache: false,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
             };
 
             jest.spyOn(
                 ClientCredentialClient.prototype,
                 "acquireToken"
-            ).mockImplementation((request: CommonClientCredentialRequest) => {
+            ).mockImplementation((request: ClientCredentialRequest) => {
                 OIDC_DEFAULT_SCOPES.forEach((scope: string) => {
                     expect(request.scopes).not.toContain(scope);
                 });
@@ -483,8 +492,10 @@ describe("ConfidentialClientApplication", () => {
 
         test('acquireTokenByClientCredential throws missingTenantIdError if "common", ""organization", or "consumers" was provided as the tenant id', async () => {
             const request: ClientCredentialRequest = {
+                authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 skipCache: false,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
             };
 
             config.auth.authority = TEST_CONSTANTS.DEFAULT_AUTHORITY; // contains "common"
@@ -508,8 +519,10 @@ describe("ConfidentialClientApplication", () => {
                 new ConfidentialClientApplication(config);
 
             const request: ClientCredentialRequest = {
+                authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 skipCache: false,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
             };
 
             const authResult = (await client.acquireTokenByClientCredential(
@@ -534,8 +547,10 @@ describe("ConfidentialClientApplication", () => {
                 new ConfidentialClientApplication(config);
 
             const request: ClientCredentialRequest = {
+                authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 skipCache: false,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
             };
 
             const authResult = (await client.acquireTokenByClientCredential(

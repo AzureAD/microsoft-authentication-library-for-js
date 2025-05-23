@@ -13,7 +13,6 @@ import {
     CacheOutcome,
     ClientAuthErrorCodes,
     ClientConfiguration,
-    CommonClientCredentialRequest,
     Constants,
     CredentialFilter,
     CredentialType,
@@ -40,6 +39,8 @@ import {
     ManagedIdentityConfiguration,
     ManagedIdentityNodeConfiguration,
 } from "../config/Configuration.js";
+import { ClientCredentialRequest } from "../request/ClientCredentialRequest.js";
+import { Constants as NodeConstants } from "../utils/Constants.js";
 
 /**
  * OAuth2.0 client credential grant
@@ -58,10 +59,10 @@ export class ClientCredentialClient extends BaseClient {
 
     /**
      * Public API to acquire a token with ClientCredential Flow for Confidential clients
-     * @param request - CommonClientCredentialRequest provided by the developer
+     * @param request - ClientCredentialRequest provided by the developer
      */
     public async acquireToken(
-        request: CommonClientCredentialRequest
+        request: ClientCredentialRequest
     ): Promise<AuthenticationResult | null> {
         if (request.skipCache || request.claims) {
             return this.executeTokenRequest(request, this.authority);
@@ -104,7 +105,7 @@ export class ClientCredentialClient extends BaseClient {
      * looks up cache if the tokens are cached already
      */
     public async getCachedAuthenticationResult(
-        request: CommonClientCredentialRequest,
+        request: ClientCredentialRequest,
         config: ClientConfiguration | ManagedIdentityConfiguration,
         cryptoUtils: ICrypto,
         authority: Authority,
@@ -234,11 +235,11 @@ export class ClientCredentialClient extends BaseClient {
 
     /**
      * Makes a network call to request the token from the service
-     * @param request - CommonClientCredentialRequest provided by the developer
+     * @param request - ClientCredentialRequest provided by the developer
      * @param authority - authority object
      */
     private async executeTokenRequest(
-        request: CommonClientCredentialRequest,
+        request: ClientCredentialRequest,
         authority: Authority,
         refreshAccessToken?: boolean
     ): Promise<AuthenticationResult | null> {
@@ -332,10 +333,10 @@ export class ClientCredentialClient extends BaseClient {
 
     /**
      * generate the request to the server in the acceptable format
-     * @param request - CommonClientCredentialRequest provided by the developer
+     * @param request - ClientCredentialRequest provided by the developer
      */
     private async createTokenRequestBody(
-        request: CommonClientCredentialRequest
+        request: ClientCredentialRequest
     ): Promise<string> {
         const parameters = new Map<string, string>();
 
@@ -382,9 +383,18 @@ export class ClientCredentialClient extends BaseClient {
         }
 
         // Use clientAssertion from request, fallback to client assertion in base configuration
-        const clientAssertion: ClientAssertion | undefined =
-            request.clientAssertion ||
-            this.config.clientCredentials.clientAssertion;
+        let clientAssertion: ClientAssertion | undefined;
+
+        if (typeof request.clientAssertion === "string" || typeof request.clientAssertion === "function") {
+            clientAssertion = {
+                assertion: request.clientAssertion,
+                assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE // TODO: check this
+            };
+        } else if (request.clientAssertion) {
+            clientAssertion = request.clientAssertion;
+        } else {
+            clientAssertion = this.config.clientCredentials.clientAssertion;
+        }
 
         if (clientAssertion) {
             RequestParameterBuilder.addClientAssertion(

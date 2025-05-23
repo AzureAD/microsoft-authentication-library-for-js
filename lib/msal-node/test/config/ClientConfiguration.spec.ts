@@ -207,6 +207,7 @@ describe("ClientConfiguration tests", () => {
         };
 
         const request: ClientCredentialRequest = {
+            authority: TEST_CONSTANTS.AUTHORITY,
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             skipCache: true,
             correlationId: RANDOM_TEST_GUID,

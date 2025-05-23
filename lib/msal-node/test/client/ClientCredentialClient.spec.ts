@@ -12,7 +12,6 @@ import {
     BaseClient,
     CacheManager,
     ClientConfiguration,
-    CommonClientCredentialRequest,
     CommonUsernamePasswordRequest,
     IAppTokenProvider,
     InteractionRequiredAuthError,
@@ -25,6 +24,7 @@ import {
 import {
     ClientCredentialClient,
     UsernamePasswordClient,
+    ClientCredentialRequest,
 } from "../../src/index.js";
 import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
@@ -83,7 +83,7 @@ describe("ClientCredentialClient unit tests", () => {
             config
         );
 
-        const clientCredentialRequest: CommonClientCredentialRequest = {
+        const clientCredentialRequest: ClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -134,7 +134,7 @@ describe("ClientCredentialClient unit tests", () => {
             fakeConfig
         );
 
-        const clientCredentialRequest: CommonClientCredentialRequest = {
+        const clientCredentialRequest: ClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -185,7 +185,7 @@ describe("ClientCredentialClient unit tests", () => {
             interactionRequiredAuthErrorConfig
         );
 
-        const clientCredentialRequest: CommonClientCredentialRequest = {
+        const clientCredentialRequest: ClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -210,7 +210,7 @@ describe("ClientCredentialClient unit tests", () => {
             config
         );
 
-        const clientCredentialRequest: CommonClientCredentialRequest = {
+        const clientCredentialRequest: ClientCredentialRequest = {
             authority: "https://login.microsoftonline.com/common",
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: ["https://graph.microsoft.com/.default"],
@@ -266,7 +266,7 @@ describe("ClientCredentialClient unit tests", () => {
             dSTSConfig
         );
 
-        const clientCredentialRequest: CommonClientCredentialRequest = {
+        const clientCredentialRequest: ClientCredentialRequest = {
             authority: TEST_CONFIG.DSTS_VALID_AUTHORITY,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DSTS_TEST_SCOPE,
@@ -317,7 +317,7 @@ describe("ClientCredentialClient unit tests", () => {
             dSTSConfig
         );
 
-        const clientCredentialRequest: CommonClientCredentialRequest = {
+        const clientCredentialRequest: ClientCredentialRequest = {
             authority: TEST_CONFIG.DSTS_VALID_AUTHORITY,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DSTS_TEST_SCOPE,
@@ -347,7 +347,7 @@ describe("ClientCredentialClient unit tests", () => {
             config
         );
 
-        const clientCredentialRequest: CommonClientCredentialRequest = {
+        const clientCredentialRequest: ClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -389,7 +389,7 @@ describe("ClientCredentialClient unit tests", () => {
 
     describe("CAE, claims and client capabilities", () => {
         let client: ClientCredentialClient;
-        let clientCredentialRequest: CommonClientCredentialRequest;
+        let clientCredentialRequest: ClientCredentialRequest;
         beforeEach(async () => {
             const clientCapabilitiesConfig: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration(
@@ -510,7 +510,7 @@ describe("ClientCredentialClient unit tests", () => {
             config
         );
 
-        const clientCredentialRequest: CommonClientCredentialRequest = {
+        const clientCredentialRequest: ClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -567,7 +567,7 @@ describe("ClientCredentialClient unit tests", () => {
                 config
             );
 
-            const clientCredentialRequest: CommonClientCredentialRequest = {
+            const clientCredentialRequest: ClientCredentialRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -626,7 +626,7 @@ describe("ClientCredentialClient unit tests", () => {
                 config
             );
 
-            const clientCredentialRequest: CommonClientCredentialRequest = {
+            const clientCredentialRequest: ClientCredentialRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -683,7 +683,7 @@ describe("ClientCredentialClient unit tests", () => {
             config
         );
 
-        const clientCredentialRequest: CommonClientCredentialRequest = {
+        const clientCredentialRequest: ClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -729,7 +729,7 @@ describe("ClientCredentialClient unit tests", () => {
             config
         );
 
-        const clientCredentialRequest: CommonClientCredentialRequest = {
+        const clientCredentialRequest: ClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -776,7 +776,7 @@ describe("ClientCredentialClient unit tests", () => {
             config
         );
 
-        const clientCredentialRequest: CommonClientCredentialRequest = {
+        const clientCredentialRequest: ClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -870,7 +870,7 @@ describe("ClientCredentialClient unit tests", () => {
             config
         );
 
-        const clientCredentialRequest: CommonClientCredentialRequest = {
+        const clientCredentialRequest: ClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -945,7 +945,7 @@ describe("ClientCredentialClient unit tests", () => {
             config
         );
 
-        const clientCredentialRequest: CommonClientCredentialRequest = {
+        const clientCredentialRequest: ClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -1003,7 +1003,7 @@ describe("ClientCredentialClient unit tests", () => {
             appTokenProvider
         );
 
-        const clientCredentialRequest: CommonClientCredentialRequest = {
+        const clientCredentialRequest: ClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,

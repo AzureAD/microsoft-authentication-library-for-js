@@ -4,12 +4,14 @@
  */
 
 import {
+    AzureRegion,
+    BaseAuthRequest,
+    ClientAssertion,
     ClientAssertionCallback,
-    CommonClientCredentialRequest,
 } from "@azure/msal-common/node";
 
 /**
- * CommonClientCredentialRequest
+ * ClientCredentialRequest
  * - scopes                  - Array of scopes the application is requesting access to. Typically contains only the .default scope for a single resource. See: https://learn.microsoft.com/azure/active-directory/develop/scopes-oidc#the-default-scope
  * - authority               - URL of the authority, the security token service (STS) from which MSAL will acquire tokens.
  * - correlationId           - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
@@ -20,13 +22,15 @@ import {
  */
 export type ClientCredentialRequest = Partial<
     Omit<
-        CommonClientCredentialRequest,
-        | "resourceRequestMethod"
-        | "resourceRequestUri"
+        BaseAuthRequest,
         | "requestedClaimsHash"
-        | "clientAssertion"
         | "storeInCache"
     >
 > & {
-    clientAssertion?: string | ClientAssertionCallback;
+    authority: string;
+    scopes: Array<string>;
+    correlationId: string;
+    skipCache?: boolean;
+    azureRegion?: AzureRegion;
+    clientAssertion?: string | ClientAssertion | ClientAssertionCallback;
 };
