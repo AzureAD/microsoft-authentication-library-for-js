@@ -8,8 +8,11 @@ import { ManagedIdentityRequestParams } from "./ManagedIdentityRequestParams.js"
 
 /**
  * ManagedIdentityRequest
- * - forceRefresh - forces managed identity requests to skip the cache and make network calls if true
- * - resource  - resource requested to access the protected API. It should be of the form "{ResourceIdUri}" or {ResourceIdUri/.default}. For instance https://management.azure.net or, for Microsoft Graph, https://graph.microsoft.com/.default
+ * - clientCapabilities      - an array of capabilities to be added to all network requests as part of the `xms_cc` claim
+ * - revokedTokenSha256Hash  - a SHA256 hash of the token that was revoked. The managed identity will revoke the token based on the SHA256 hash of the token, not the token itself. This is to prevent the token from being leaked in transit.
  */
 export type ManagedIdentityRequest = ManagedIdentityRequestParams &
-    CommonClientCredentialRequest;
+    CommonClientCredentialRequest & {
+        clientCapabilities?: Array<string>;
+        revokedTokenSha256Hash?: string;
+    };

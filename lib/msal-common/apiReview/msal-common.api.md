@@ -2216,6 +2216,17 @@ const emptyInputScopesError = "empty_input_scopes_error";
 // @public (undocumented)
 const emptyInputScopeSet = "empty_input_scopeset";
 
+// Warning: (ae-missing-release-tag) "EncodingTypes" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "EncodingTypes" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export const EncodingTypes: {
+    readonly HEX: "hex";
+};
+
+// @public (undocumented)
+export type EncodingTypes = (typeof EncodingTypes)[keyof typeof EncodingTypes];
+
 // Warning: (ae-missing-release-tag) "endpointResolutionError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
