@@ -25,11 +25,13 @@ import { AuthorizationCodePayload } from '@azure/msal-common/node';
 import { AuthorizeResponse } from '@azure/msal-common/node';
 import { AzureCloudInstance } from '@azure/msal-common/node';
 import { AzureCloudOptions } from '@azure/msal-common/node';
+import { AzureRegion } from '@azure/msal-common/node';
 import { AzureRegionConfiguration } from '@azure/msal-common/node';
 import { BaseAuthRequest } from '@azure/msal-common/node';
 import { BaseClient } from '@azure/msal-common/node';
 import { CacheManager } from '@azure/msal-common/node';
 import { CacheOutcome } from '@azure/msal-common/node';
+import { ClientAssertion as ClientAssertion_2 } from '@azure/msal-common/node';
 import { ClientAssertionCallback } from '@azure/msal-common/node';
 import { ClientAuthError } from '@azure/msal-common/node';
 import { ClientAuthErrorCodes } from '@azure/msal-common/node';
@@ -38,12 +40,8 @@ import { ClientConfigurationError } from '@azure/msal-common/node';
 import { ClientConfigurationErrorCodes } from '@azure/msal-common/node';
 import { CommonAuthorizationCodeRequest } from '@azure/msal-common/node';
 import { CommonAuthorizationUrlRequest } from '@azure/msal-common/node';
-import { CommonClientCredentialRequest } from '@azure/msal-common/node';
-import { CommonDeviceCodeRequest } from '@azure/msal-common/node';
-import { CommonOnBehalfOfRequest } from '@azure/msal-common/node';
 import { CommonRefreshTokenRequest } from '@azure/msal-common/node';
 import { CommonSilentFlowRequest } from '@azure/msal-common/node';
-import { CommonUsernamePasswordRequest } from '@azure/msal-common/node';
 import { DeviceCodeResponse } from '@azure/msal-common/node';
 import http from 'http';
 import https from 'https';
@@ -73,6 +71,7 @@ import { ServerError } from '@azure/msal-common/node';
 import { ServerTelemetryEntity } from '@azure/msal-common/node';
 import { ServerTelemetryManager } from '@azure/msal-common/node';
 import { StaticAuthorityOptions } from '@azure/msal-common/node';
+import { StringDict } from '@azure/msal-common/node';
 import { ThrottlingEntity } from '@azure/msal-common/node';
 import { TokenCacheContext } from '@azure/msal-common/node';
 import { TokenKeys } from '@azure/msal-common/node';
@@ -180,13 +179,18 @@ export { ClientConfigurationErrorCodes }
 // @public
 export class ClientCredentialClient extends BaseClient {
     constructor(configuration: ClientConfiguration, appTokenProvider?: IAppTokenProvider);
-    acquireToken(request: CommonClientCredentialRequest): Promise<AuthenticationResult | null>;
-    getCachedAuthenticationResult(request: CommonClientCredentialRequest, config: ClientConfiguration | ManagedIdentityConfiguration, cryptoUtils: ICrypto, authority: Authority, cacheManager: CacheManager, serverTelemetryManager?: ServerTelemetryManager | null): Promise<[AuthenticationResult | null, CacheOutcome]>;
+    acquireToken(request: ClientCredentialRequest): Promise<AuthenticationResult | null>;
+    getCachedAuthenticationResult(request: ClientCredentialRequest, config: ClientConfiguration | ManagedIdentityConfiguration, cryptoUtils: ICrypto, authority: Authority, cacheManager: CacheManager, serverTelemetryManager?: ServerTelemetryManager | null): Promise<[AuthenticationResult | null, CacheOutcome]>;
 }
 
 // @public
-export type ClientCredentialRequest = Partial<Omit<CommonClientCredentialRequest, "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "clientAssertion" | "storeInCache">> & {
-    clientAssertion?: string | ClientAssertionCallback;
+export type ClientCredentialRequest = Partial<Omit<BaseAuthRequest, "requestedClaimsHash" | "storeInCache">> & {
+    authority: string;
+    scopes: Array<string>;
+    correlationId: string;
+    skipCache?: boolean;
+    azureRegion?: AzureRegion;
+    clientAssertion?: string | ClientAssertion_2 | ClientAssertionCallback;
 };
 
 // @public
@@ -236,14 +240,16 @@ class Deserializer {
 // @public
 export class DeviceCodeClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
-    acquireToken(request: CommonDeviceCodeRequest): Promise<AuthenticationResult | null>;
-    createExtraQueryParameters(request: CommonDeviceCodeRequest): string;
+    acquireToken(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
+    createExtraQueryParameters(request: DeviceCodeRequest): string;
 }
 
 // @public
-export type DeviceCodeRequest = Partial<Omit<CommonDeviceCodeRequest, "scopes" | "deviceCodeCallback" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
-    scopes: Array<string>;
+export type DeviceCodeRequest = Omit<BaseAuthRequest, "requestedClaimsHash" | "storeInCache" | "tokenQueryParameters" | "tokenBodyParameters"> & {
     deviceCodeCallback: (response: DeviceCodeResponse) => void;
+    cancel?: boolean;
+    timeout?: number;
+    extraQueryParameters?: StringDict;
 };
 
 // @public
@@ -456,13 +462,13 @@ export type NodeTelemetryOptions = {
 // @public
 export class OnBehalfOfClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
-    acquireToken(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult | null>;
+    acquireToken(request: OnBehalfOfRequest): Promise<AuthenticationResult | null>;
 }
 
 // @public
-export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssertion" | "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
+export type OnBehalfOfRequest = Omit<BaseAuthRequest, "storeInCache"> & {
     oboAssertion: string;
-    scopes: Array<string>;
+    skipCache?: boolean;
 };
 
 export { PromptValue }
@@ -599,12 +605,11 @@ export { TokenCacheContext }
 // @public @deprecated
 export class UsernamePasswordClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
-    acquireToken(request: CommonUsernamePasswordRequest): Promise<AuthenticationResult | null>;
+    acquireToken(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
 }
 
 // @public
-export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest, "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "username" | "password" | "requestedClaimsHash" | "storeInCache">> & {
-    scopes: Array<string>;
+export type UsernamePasswordRequest = Omit<BaseAuthRequest, "requestedClaimsHash" | "storeInCache"> & {
     username: string;
     password: string;
 };
