@@ -10,9 +10,9 @@ import {
     AuthenticationScheme,
     ClientAuthErrorCodes,
     ClientConfigurationErrorCodes,
-    Constants,
     createClientAuthError,
     createClientConfigurationError,
+    EMPTY_STRING,
     IdTokenClaims,
     INativeBrokerPlugin,
     InteractionRequiredAuthError,
@@ -280,7 +280,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                                 request.correlationId
                             );
                             const loginHint =
-                                request.loginHint || Constants.EMPTY_STRING;
+                                request.loginHint || EMPTY_STRING;
                             msalNodeRuntime.SignInInteractivelyAsync(
                                 windowHandle,
                                 authParams,
@@ -332,7 +332,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                                     request.correlationId
                                 );
                                 const loginHint =
-                                    request.loginHint || Constants.EMPTY_STRING;
+                                    request.loginHint || EMPTY_STRING;
                                 msalNodeRuntime.SignInAsync(
                                     windowHandle,
                                     authParams,
