@@ -16,9 +16,7 @@ import {
 import { CacheOptions } from "../../src/config/Configuration.js";
 import {
     Constants,
-    PersistentCacheKeys,
     CommonAuthorizationCodeRequest as AuthorizationCodeRequest,
-    ProtocolUtils,
     Logger,
     LogLevel,
     AuthenticationScheme,
@@ -41,18 +39,18 @@ import {
 import {
     BrowserCacheLocation,
     INTERACTION_TYPE,
-    InteractionType,
+    StaticCacheKeys,
     TemporaryCacheKeys,
 } from "../../src/utils/BrowserConstants.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
-import { BrowserStateObject } from "../../src/utils/BrowserProtocolUtils.js";
 import { base64Decode } from "../../src/encode/Base64Decode.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
 import { CookieStorage } from "../../src/cache/CookieStorage.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
+import { version } from "../../src/packageMetadata.js";
 
 describe("BrowserCacheManager tests", () => {
     let cacheConfig: Required<CacheOptions>;
@@ -132,6 +130,85 @@ describe("BrowserCacheManager tests", () => {
             localCache.browserStorage.setItem("key", "value");
             // @ts-ignore
             expect(localCache.browserStorage.getItem("key")).toBe("value");
+        });
+    });
+
+    describe("initialize", () => {
+        it("sets MSAL version in localStorage if not already set", async () => {
+            const browserCacheManager = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                {
+                    ...cacheConfig,
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+            await browserCacheManager.initialize(TEST_CONFIG.CORRELATION_ID);
+            expect(window.localStorage.getItem(StaticCacheKeys.VERSION)).toBe(
+                version
+            );
+        });
+
+        it("sets MSAL version in localStorage if previous version doesn't match", async () => {
+            window.localStorage.setItem(StaticCacheKeys.VERSION, "1.0.0");
+            const browserCacheManager = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                {
+                    ...cacheConfig,
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+            await browserCacheManager.initialize(TEST_CONFIG.CORRELATION_ID);
+            expect(window.localStorage.getItem(StaticCacheKeys.VERSION)).toBe(
+                version
+            );
+        });
+
+        it("does not set MSAL version in localStorage if existing version already matches", async () => {
+            // First make sure the version gets set
+            const browserCacheManager1 = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                {
+                    ...cacheConfig,
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+            await browserCacheManager1.initialize(TEST_CONFIG.CORRELATION_ID);
+            expect(window.localStorage.getItem(StaticCacheKeys.VERSION)).toBe(
+                version
+            );
+
+            const setSpy = jest.spyOn(Storage.prototype, "setItem");
+            const browserCacheManager2 = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                {
+                    ...cacheConfig,
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+            await browserCacheManager2.initialize(TEST_CONFIG.CORRELATION_ID);
+            expect(window.localStorage.getItem(StaticCacheKeys.VERSION)).toBe(
+                version
+            );
+            expect(setSpy).not.toHaveBeenCalledWith(
+                StaticCacheKeys.VERSION,
+                expect.anything()
+            );
         });
     });
 
@@ -246,6 +323,7 @@ describe("BrowserCacheManager tests", () => {
             expect(browserLocalStorage.getKeys()).toEqual([
                 "msal.account.keys",
                 `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                StaticCacheKeys.VERSION,
                 msalCacheKey,
                 msalCacheKey2,
             ]);
