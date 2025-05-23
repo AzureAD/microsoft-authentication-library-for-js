@@ -2,6 +2,45 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Fri, 23 May 2025 20:37:07 GMT",
+      "version": "15.6.1",
+      "tag": "@azure/msal-common_v15.6.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "8f6c61c7efe9204d3b73e9f67b707ba39611b105",
+            "comment": "Upgrade/rollback telemetry #7738"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "06d14fd45f5da4ca503b340ae6110221f25b95f8",
+            "comment": "initial commit"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 06 May 2025 22:47:43 GMT",
       "version": "15.6.0",
       "tag": "@azure/msal-common_v15.6.0",
