@@ -19,7 +19,6 @@ import {
     CommonRefreshTokenRequest,
     CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
-    CommonUsernamePasswordRequest,
     AuthenticationScheme,
     ResponseMode,
     AuthorityOptions,
@@ -392,7 +391,7 @@ export abstract class ClientApplication {
             "acquireTokenByUsernamePassword called",
             request.correlationId
         );
-        const validRequest: CommonUsernamePasswordRequest = {
+        const validRequest: UsernamePasswordRequest = {
             ...request,
             ...(await this.initializeBaseRequest(request)),
         };
@@ -593,7 +592,7 @@ export abstract class ClientApplication {
             ],
             correlationId:
                 (authRequest && authRequest.correlationId) ||
-                this.cryptoProvider.createNewGuid(),
+                this.cryptoProvider.createNewGuid(), // TODO: figure this out. Authority and correlationId are now not optional on changed requests
             authority: authRequest.authority || this.config.auth.authority,
         };
     }

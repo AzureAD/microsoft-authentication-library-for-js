@@ -7,7 +7,6 @@ import {
     AuthenticationResult,
     BaseClient,
     ClientConfiguration,
-    CommonUsernamePasswordRequest,
     Constants,
     GrantType,
 } from "@azure/msal-common";
@@ -19,7 +18,10 @@ import {
     RANDOM_TEST_GUID,
     TEST_CONFIG,
 } from "../test_kit/StringConstants.js";
-import { UsernamePasswordClient } from "../../src/index.js";
+import { 
+    UsernamePasswordClient,
+    UsernamePasswordRequest,
+} from "../../src/index.js";
 import {
     ClientTestUtils,
     checkMockedNetworkRequest,
@@ -64,7 +66,7 @@ describe("Username Password unit tests", () => {
     it("acquires a token", async () => {
         const client = new UsernamePasswordClient(config);
 
-        const usernamePasswordRequest: CommonUsernamePasswordRequest = {
+        const usernamePasswordRequest: UsernamePasswordRequest = {
             authority: Constants.DEFAULT_AUTHORITY,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             username: MOCK_USERNAME,
@@ -130,7 +132,7 @@ describe("Username Password unit tests", () => {
             fakeConfig
         );
 
-        const usernamePasswordRequest: CommonUsernamePasswordRequest = {
+        const usernamePasswordRequest: UsernamePasswordRequest = {
             authority: Constants.DEFAULT_AUTHORITY,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             username: MOCK_USERNAME,
@@ -162,7 +164,7 @@ describe("Username Password unit tests", () => {
     it("properly encodes special characters in emails (usernames)", async () => {
         const client = new UsernamePasswordClient(config);
 
-        const usernamePasswordRequest: CommonUsernamePasswordRequest = {
+        const usernamePasswordRequest: UsernamePasswordRequest = {
             authority: Constants.DEFAULT_AUTHORITY,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             username: `${MOCK_USERNAME}&+`,
@@ -218,7 +220,7 @@ describe("Username Password unit tests", () => {
     it("properly encodes special characters in passwords", async () => {
         const client = new UsernamePasswordClient(config);
 
-        const usernamePasswordRequest: CommonUsernamePasswordRequest = {
+        const usernamePasswordRequest: UsernamePasswordRequest = {
             authority: Constants.DEFAULT_AUTHORITY,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             username: MOCK_USERNAME,
@@ -274,7 +276,7 @@ describe("Username Password unit tests", () => {
     it("Does not include claims if empty object is passed", async () => {
         const client = new UsernamePasswordClient(config);
 
-        const usernamePasswordRequest: CommonUsernamePasswordRequest = {
+        const usernamePasswordRequest: UsernamePasswordRequest = {
             authority: Constants.DEFAULT_AUTHORITY,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             username: MOCK_USERNAME,
@@ -344,7 +346,7 @@ describe("Username Password unit tests", () => {
                 config
             );
 
-            const usernamePasswordRequest: CommonUsernamePasswordRequest = {
+            const usernamePasswordRequest: UsernamePasswordRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 username: MOCK_USERNAME,

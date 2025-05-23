@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CommonUsernamePasswordRequest } from "@azure/msal-common/node";
+import { BaseAuthRequest } from "@azure/msal-common/node";
 
 /**
  * UsernamePassword parameters passed by the user to retrieve credentials
@@ -18,19 +18,11 @@ import { CommonUsernamePasswordRequest } from "@azure/msal-common/node";
  * - tokenQueryParameters   - String to string map of custom query parameters added to the /token call
  * @public
  */
-export type UsernamePasswordRequest = Partial<
-    Omit<
-        CommonUsernamePasswordRequest,
-        | "scopes"
-        | "resourceRequestMethod"
-        | "resourceRequestUri"
-        | "username"
-        | "password"
-        | "requestedClaimsHash"
-        | "storeInCache"
-    >
+export type UsernamePasswordRequest = Omit<
+    BaseAuthRequest,
+    | "requestedClaimsHash"
+    | "storeInCache"
 > & {
-    scopes: Array<string>;
     username: string;
     password: string;
 };

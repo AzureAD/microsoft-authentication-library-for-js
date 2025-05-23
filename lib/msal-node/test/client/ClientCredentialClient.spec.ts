@@ -12,7 +12,6 @@ import {
     BaseClient,
     CacheManager,
     ClientConfiguration,
-    CommonUsernamePasswordRequest,
     IAppTokenProvider,
     InteractionRequiredAuthError,
     TimeUtils,
@@ -25,6 +24,7 @@ import {
     ClientCredentialClient,
     UsernamePasswordClient,
     ClientCredentialRequest,
+    UsernamePasswordRequest,
 } from "../../src/index.js";
 import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
@@ -228,7 +228,7 @@ describe("ClientCredentialClient unit tests", () => {
                 )
             );
         const client2 = new UsernamePasswordClient(upcConfig);
-        const usernamePasswordRequest: CommonUsernamePasswordRequest = {
+        const usernamePasswordRequest: UsernamePasswordRequest = {
             authority: "https://login.microsoftonline.com/common",
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: ["https://graph.microsoft.com/.default"],

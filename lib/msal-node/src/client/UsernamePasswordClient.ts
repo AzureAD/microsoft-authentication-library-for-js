@@ -10,7 +10,6 @@ import {
     CcsCredentialType,
     ClientAssertion,
     ClientConfiguration,
-    CommonUsernamePasswordRequest,
     GrantType,
     NetworkResponse,
     OAuthResponseType,
@@ -24,6 +23,7 @@ import {
     UrlUtils,
     getClientAssertion,
 } from "@azure/msal-common/node";
+import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest.js";
 
 /**
  * Oauth2.0 Password grant client
@@ -39,10 +39,10 @@ export class UsernamePasswordClient extends BaseClient {
     /**
      * API to acquire a token by passing the username and password to the service in exchage of credentials
      * password_grant
-     * @param request - CommonUsernamePasswordRequest
+     * @param request - UsernamePasswordRequest
      */
     async acquireToken(
-        request: CommonUsernamePasswordRequest
+        request: UsernamePasswordRequest
     ): Promise<AuthenticationResult | null> {
         this.logger.info("in acquireToken call in username-password client");
 
@@ -76,11 +76,11 @@ export class UsernamePasswordClient extends BaseClient {
     /**
      * Executes POST request to token endpoint
      * @param authority - authority object
-     * @param request - CommonUsernamePasswordRequest provided by the developer
+     * @param request - UsernamePasswordRequest provided by the developer
      */
     private async executeTokenRequest(
         authority: Authority,
-        request: CommonUsernamePasswordRequest
+        request: UsernamePasswordRequest
     ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const queryParametersString = this.createTokenQueryParameters(request);
         const endpoint = UrlString.appendQueryString(
@@ -115,10 +115,10 @@ export class UsernamePasswordClient extends BaseClient {
 
     /**
      * Generates a map for all the params to be sent to the service
-     * @param request - CommonUsernamePasswordRequest provided by the developer
+     * @param request - UsernamePasswordRequest provided by the developer
      */
     private async createTokenRequestBody(
-        request: CommonUsernamePasswordRequest
+        request: UsernamePasswordRequest
     ): Promise<string> {
         const parameters = new Map<string, string>();
 

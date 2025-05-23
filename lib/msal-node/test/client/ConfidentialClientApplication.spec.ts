@@ -32,7 +32,6 @@ import {
     RefreshTokenRequest,
     SilentFlowRequest,
     ClientApplication,
-    ClientAssertion,
 } from "../../src/index.js";
 import {
     CAE_CONSTANTS,
@@ -603,7 +602,9 @@ describe("ConfidentialClientApplication", () => {
         );
 
         const request: UsernamePasswordRequest = {
+            authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
             username: TEST_CONSTANTS.USERNAME,
             password: TEST_CONSTANTS.PASSWORD,
         };

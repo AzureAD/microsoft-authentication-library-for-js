@@ -1232,7 +1232,9 @@ describe("PublicClientApplication", () => {
 
     test("acquireTokenByUsernamePassword", async () => {
         const request: UsernamePasswordRequest = {
+            authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
             username: TEST_CONSTANTS.USERNAME,
             password: TEST_CONSTANTS.PASSWORD,
         };
