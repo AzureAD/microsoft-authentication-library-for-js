@@ -7,8 +7,9 @@ import {
     AuthenticationResult,
     PasswordGrantConstants,
     AuthenticationScheme,
-    Constants,
     ONE_DAY_IN_MS,
+    RESOURCE_DELIM,
+    DEFAULT_AUTHORITY_HOST,
 } from "@azure/msal-common";
 import {
     DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
@@ -257,7 +258,7 @@ export const TEST_STATE_VALUES = {
         "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ==",
     URI_ENCODED_LIB_STATE:
         "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ%3D%3D",
-    TEST_STATE: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ==${Constants.RESOURCE_DELIM}userState`,
+    TEST_STATE: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ==${RESOURCE_DELIM}userState`,
 };
 export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
     body: {
@@ -443,7 +444,7 @@ export const MANAGED_IDENTITY_RESOURCE_ID_2: string =
 
 export const getCacheKey = (resource?: string): string => {
     const resourceHelper = resource || DEFAULT_MANAGED_IDENTITY_ID;
-    return `-${Constants.DEFAULT_AUTHORITY_HOST}-accesstoken-${resourceHelper}-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}--`;
+    return `-${DEFAULT_AUTHORITY_HOST}-accesstoken-${resourceHelper}-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}--`;
 };
 
 export const DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT: Omit<

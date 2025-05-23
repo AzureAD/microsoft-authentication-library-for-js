@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "@azure/msal-common/node";
+import { EMPTY_STRING } from "@azure/msal-common/node";
 
 export class EncodingUtils {
     /**
@@ -22,7 +22,7 @@ export class EncodingUtils {
      */
     static base64EncodeUrl(str: string, encoding?: BufferEncoding): string {
         return EncodingUtils.base64Encode(str, encoding)
-            .replace(/=/g, Constants.EMPTY_STRING)
+            .replace(/=/g, EMPTY_STRING)
             .replace(/\+/g, "-")
             .replace(/\//g, "_");
     }

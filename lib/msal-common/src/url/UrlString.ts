@@ -9,7 +9,7 @@ import {
 } from "../error/ClientConfigurationError.js";
 import { StringUtils } from "../utils/StringUtils.js";
 import { IUri } from "./IUri.js";
-import { AADAuthorityConstants, Constants } from "../utils/Constants.js";
+import { AADAuthorityConstants, FORWARD_SLASH } from "../utils/Constants.js";
 
 /**
  * Url object class which can perform various transformations on url strings.
@@ -190,7 +190,7 @@ export class UrlString {
     }
 
     static getAbsoluteUrl(relativeUrl: string, baseUrl: string): string {
-        if (relativeUrl[0] === Constants.FORWARD_SLASH) {
+        if (relativeUrl[0] === FORWARD_SLASH) {
             const url = new UrlString(baseUrl);
             const baseComponents = url.getUrlComponents();
 

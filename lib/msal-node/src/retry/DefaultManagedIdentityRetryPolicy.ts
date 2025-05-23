@@ -4,19 +4,27 @@
  */
 
 import { IncomingHttpHeaders } from "http";
-import { HttpStatus, Logger } from "@azure/msal-common";
+import {
+    HTTP_GATEWAY_TIMEOUT,
+    HTTP_NOT_FOUND,
+    HTTP_REQUEST_TIMEOUT,
+    HTTP_SERVER_ERROR,
+    HTTP_SERVICE_UNAVAILABLE,
+    HTTP_TOO_MANY_REQUESTS,
+    Logger,
+} from "@azure/msal-common";
 import { IHttpRetryPolicy } from "./IHttpRetryPolicy.js";
 import { LinearRetryStrategy } from "./LinearRetryStrategy.js";
 
 export const DEFAULT_MANAGED_IDENTITY_MAX_RETRIES: number = 3; // referenced in unit test
 const DEFAULT_MANAGED_IDENTITY_RETRY_DELAY_MS: number = 1000;
 const DEFAULT_MANAGED_IDENTITY_HTTP_STATUS_CODES_TO_RETRY_ON: Array<number> = [
-    HttpStatus.NOT_FOUND,
-    HttpStatus.REQUEST_TIMEOUT,
-    HttpStatus.TOO_MANY_REQUESTS,
-    HttpStatus.SERVER_ERROR,
-    HttpStatus.SERVICE_UNAVAILABLE,
-    HttpStatus.GATEWAY_TIMEOUT,
+    HTTP_NOT_FOUND,
+    HTTP_REQUEST_TIMEOUT,
+    HTTP_TOO_MANY_REQUESTS,
+    HTTP_SERVER_ERROR,
+    HTTP_SERVICE_UNAVAILABLE,
+    HTTP_GATEWAY_TIMEOUT,
 ];
 
 export class DefaultManagedIdentityRetryPolicy implements IHttpRetryPolicy {

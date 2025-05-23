@@ -13,7 +13,6 @@ import {
     TEST_TOKEN_RESPONSE,
 } from "../utils/StringConstants.js";
 import {
-    Constants,
     AccountInfo,
     TokenClaims,
     AuthenticationResult,
@@ -22,6 +21,7 @@ import {
     CommonSilentFlowRequest,
     CredentialType,
     AccountEntity,
+    DEFAULT_AUTHORITY,
 } from "@azure/msal-common";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import {
@@ -141,7 +141,7 @@ describe("SilentRefreshClient", () => {
             const expectedTokenRequest: CommonSilentFlowRequest = {
                 ...tokenRequest,
                 scopes: ["scope1"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                authority: `${DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
@@ -196,7 +196,7 @@ describe("SilentRefreshClient", () => {
             const expectedTokenRequest: CommonSilentFlowRequest = {
                 ...tokenRequest,
                 scopes: ["scope1"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                authority: `${DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
                 redirectUri: "https://localhost:8081/", // absolute redirectUri

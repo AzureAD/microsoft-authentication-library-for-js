@@ -22,7 +22,6 @@ import {
     validEarJWE,
 } from "../utils/StringConstants.js";
 import {
-    Constants,
     AccountInfo,
     TokenClaims,
     CommonAuthorizationUrlRequest,
@@ -38,6 +37,8 @@ import {
     AuthError,
     ProtocolUtils,
     ProtocolMode,
+    CACHE_PREFIX,
+    DEFAULT_AUTHORITY,
 } from "@azure/msal-common";
 import {
     TemporaryCacheKeys,
@@ -1505,7 +1506,7 @@ describe("PopupClient", () => {
             jest.spyOn(PopupClient.prototype, "cleanPopup").mockImplementation(
                 (popup) => {
                     window.sessionStorage.removeItem(
-                        `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`
+                        `${CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`
                     );
                 }
             );
@@ -2037,7 +2038,7 @@ describe("PopupClient", () => {
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                authority: `${DEFAULT_AUTHORITY}/`,
                 correlationId: RANDOM_TEST_GUID,
             };
             expect(() =>
@@ -2073,7 +2074,7 @@ describe("PopupClient", () => {
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                authority: `${DEFAULT_AUTHORITY}/`,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
             };
@@ -2119,7 +2120,7 @@ describe("PopupClient", () => {
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                authority: `${DEFAULT_AUTHORITY}/`,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
             };
@@ -2150,7 +2151,7 @@ describe("PopupClient", () => {
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                authority: `${DEFAULT_AUTHORITY}/`,
                 correlationId: RANDOM_TEST_GUID,
             };
 
@@ -2206,7 +2207,7 @@ describe("PopupClient", () => {
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                authority: `${DEFAULT_AUTHORITY}/`,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
             };
@@ -2231,7 +2232,7 @@ describe("PopupClient", () => {
                 code: "thisIsATestCode",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                authority: `${DEFAULT_AUTHORITY}/`,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
             };

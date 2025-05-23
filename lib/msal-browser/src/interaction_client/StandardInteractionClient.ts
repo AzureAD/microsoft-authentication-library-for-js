@@ -5,7 +5,6 @@
 
 import {
     ServerTelemetryManager,
-    Constants,
     AuthorizationCodeClient,
     ClientConfiguration,
     UrlString,
@@ -19,6 +18,7 @@ import {
     BaseAuthRequest,
     StringDict,
     CommonAuthorizationUrlRequest,
+    EMPTY_STRING,
 } from "@azure/msal-common/browser";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
 import {
@@ -262,8 +262,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             libraryInfo: {
                 sku: BrowserConstants.MSAL_SKU,
                 version: version,
-                cpu: Constants.EMPTY_STRING,
-                os: Constants.EMPTY_STRING,
+                cpu: EMPTY_STRING,
+                os: EMPTY_STRING,
             },
             telemetry: this.config.telemetry,
         };
@@ -284,7 +284,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         };
         const state = ProtocolUtils.setRequestState(
             this.browserCrypto,
-            (request && request.state) || Constants.EMPTY_STRING,
+            (request && request.state) || EMPTY_STRING,
             browserState
         );
 

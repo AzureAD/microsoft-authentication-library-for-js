@@ -18,7 +18,6 @@ import {
     ProtocolMode,
     RequestParameterBuilder,
     OAuthResponseType,
-    Constants,
     CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,
     ProtocolUtils,
@@ -28,6 +27,7 @@ import {
     TimeUtils,
     AuthorizationCodePayload,
     ServerAuthorizationTokenResponse,
+    S256_CODE_CHALLENGE_METHOD,
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { ApiId, BrowserConstants } from "../utils/BrowserConstants.js";
@@ -150,7 +150,7 @@ export async function getAuthCodeRequestUrl(
     RequestParameterBuilder.addCodeChallengeParams(
         parameters,
         request.codeChallenge,
-        Constants.S256_CODE_CHALLENGE_METHOD
+        S256_CODE_CHALLENGE_METHOD
     );
 
     RequestParameterBuilder.addExtraQueryParameters(

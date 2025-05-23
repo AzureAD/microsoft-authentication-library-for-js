@@ -4,7 +4,11 @@ import {
     mockIdTokenEntity,
 } from "./entities/cacheConstants.js";
 import * as AuthToken from "../../src/account/AuthToken.js";
-import { CacheAccountType, Constants } from "../../src/utils/Constants.js";
+import {
+    CACHE_ACCOUNT_TYPE_ADFS,
+    CACHE_ACCOUNT_TYPE_GENERIC,
+    DEFAULT_AUTHORITY,
+} from "../../src/utils/Constants.js";
 import {
     NetworkRequestOptions,
     INetworkModule,
@@ -105,7 +109,7 @@ const networkInterface: INetworkModule = {
 
 const authorityOptions: AuthorityOptions = {
     protocolMode: ProtocolMode.AAD,
-    knownAuthorities: [Constants.DEFAULT_AUTHORITY],
+    knownAuthorities: [DEFAULT_AUTHORITY],
     cloudDiscoveryMetadata: "",
     authorityMetadata: "",
 };
@@ -124,7 +128,7 @@ const loggerOptions = {
 const logger = new Logger(loggerOptions);
 
 const authority = new Authority(
-    Constants.DEFAULT_AUTHORITY,
+    DEFAULT_AUTHORITY,
     networkInterface,
     new MockStorageClass("client-id", mockCrypto, logger),
     authorityOptions,
@@ -268,7 +272,7 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
 
     it("create an Account no preferred_username or emails claim", () => {
         const authority = new Authority(
-            Constants.DEFAULT_AUTHORITY,
+            DEFAULT_AUTHORITY,
             networkInterface,
             new MockStorageClass("client-id", mockCrypto, logger),
             authorityOptions,
@@ -316,12 +320,12 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
 
     it("creates a generic account", () => {
         const authority = new Authority(
-            Constants.DEFAULT_AUTHORITY,
+            DEFAULT_AUTHORITY,
             networkInterface,
             new MockStorageClass("client-id", mockCrypto, logger),
             {
                 protocolMode: ProtocolMode.OIDC,
-                knownAuthorities: [Constants.DEFAULT_AUTHORITY],
+                knownAuthorities: [DEFAULT_AUTHORITY],
                 cloudDiscoveryMetadata: "",
                 authorityMetadata: "",
             },
@@ -365,7 +369,7 @@ describe("AccountEntityUtils.ts Unit Tests", () => {
         expect(acc.realm).toBe(""); // Realm empty for generic accounts
         expect(acc.username).toBe("testupn");
         expect(acc.localAccountId).toBe(idTokenClaims.oid);
-        expect(acc.authorityType).toBe(CacheAccountType.GENERIC_ACCOUNT_TYPE);
+        expect(acc.authorityType).toBe(CACHE_ACCOUNT_TYPE_GENERIC);
         expect(AccountEntityUtils.isAccountEntity(acc)).toEqual(true);
     });
 
@@ -703,7 +707,7 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
         expect(acc.realm).toBe("");
         expect(acc.username).toBe("testupn");
         expect(acc.localAccountId).toBe(idTokenClaims.oid);
-        expect(acc.authorityType).toBe(CacheAccountType.ADFS_ACCOUNT_TYPE);
+        expect(acc.authorityType).toBe(CACHE_ACCOUNT_TYPE_ADFS);
         expect(AccountEntityUtils.isAccountEntity(acc)).toEqual(true);
     });
 
@@ -757,7 +761,7 @@ describe("AccountEntityUtils.ts Unit Tests for ADFS", () => {
         expect(acc.environment).toBe("myadfs.com");
         expect(acc.realm).toBe("");
         expect(acc.username).toBe("testupn");
-        expect(acc.authorityType).toBe(CacheAccountType.ADFS_ACCOUNT_TYPE);
+        expect(acc.authorityType).toBe(CACHE_ACCOUNT_TYPE_ADFS);
         expect(acc.localAccountId).toBe(idTokenClaims.sub);
         expect(AccountEntityUtils.isAccountEntity(acc)).toEqual(true);
     });

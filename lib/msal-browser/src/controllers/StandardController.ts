@@ -7,7 +7,6 @@ import { CryptoOps } from "../crypto/CryptoOps.js";
 import {
     InteractionRequiredAuthError,
     AccountInfo,
-    Constants,
     INetworkModule,
     Logger,
     CommonSilentFlowRequest,
@@ -29,6 +28,7 @@ import {
     InteractionRequiredAuthErrorCodes,
     PkceCodes,
     AccountEntityUtils,
+    EMPTY_STRING,
 } from "@azure/msal-common/browser";
 import {
     BrowserCacheManager,
@@ -1863,7 +1863,7 @@ export class StandardController implements IController {
          * Included for fallback for non-browser environments,
          * and to ensure this method always returns a string.
          */
-        return Constants.EMPTY_STRING;
+        return EMPTY_STRING;
     }
 
     // #endregion

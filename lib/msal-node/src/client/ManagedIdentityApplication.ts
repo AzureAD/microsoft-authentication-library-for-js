@@ -9,7 +9,6 @@ import {
     AuthorityOptions,
     CacheOutcome,
     ClientConfiguration,
-    Constants,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     INetworkModule,
     Logger,
@@ -18,6 +17,7 @@ import {
     AuthenticationResult,
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
+    DEFAULT_AUTHORITY,
 } from "@azure/msal-common/node";
 import {
     ManagedIdentityConfiguration,
@@ -67,7 +67,7 @@ export class ManagedIdentityApplication {
         );
 
         const fakeStatusAuthorityOptions: StaticAuthorityOptions = {
-            canonicalAuthority: Constants.DEFAULT_AUTHORITY,
+            canonicalAuthority: DEFAULT_AUTHORITY,
         };
 
         if (!ManagedIdentityApplication.nodeStorage) {

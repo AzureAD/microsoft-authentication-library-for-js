@@ -5,7 +5,8 @@
 
 import {
     AuthenticationScheme,
-    HttpStatus,
+    HTTP_SERVER_ERROR,
+    HTTP_SUCCESS,
     INetworkModule,
     NetworkResponse,
     TimeUtils,
@@ -38,7 +39,7 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
     getSuccessResponse<T>(iso8601Date?: string): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve({
-                status: HttpStatus.SUCCESS,
+                status: HTTP_SUCCESS,
                 body: {
                     access_token: TEST_TOKENS.ACCESS_TOKEN,
                     client_id: this.clientId,
@@ -82,7 +83,7 @@ export class ManagedIdentityNetworkErrorClient implements INetworkModule {
         this.errorResponse =
             errorResponse || MANAGED_IDENTITY_NETWORK_REQUEST_500_ERROR;
         this.headers = headers || EMPTY_HEADERS;
-        this.status = status || HttpStatus.SERVER_ERROR;
+        this.status = status || HTTP_SERVER_ERROR;
     }
 
     /**

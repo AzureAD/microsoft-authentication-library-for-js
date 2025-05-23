@@ -16,8 +16,9 @@ import * as UrlUtils from "../utils/UrlUtils.js";
 import {
     GrantType,
     AuthenticationScheme,
-    Errors,
     HeaderNames,
+    INVALID_GRANT_ERROR,
+    CLIENT_MISMATCH_ERROR,
 } from "../utils/Constants.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import { ResponseHandler } from "../response/ResponseHandler.js";
@@ -150,8 +151,8 @@ export class RefreshTokenClient extends BaseClient {
                         InteractionRequiredAuthErrorCodes.noTokensFound;
                 const clientMismatchErrorWithFamilyRT =
                     e instanceof ServerError &&
-                    e.errorCode === Errors.INVALID_GRANT_ERROR &&
-                    e.subError === Errors.CLIENT_MISMATCH_ERROR;
+                    e.errorCode === INVALID_GRANT_ERROR &&
+                    e.subError === CLIENT_MISMATCH_ERROR;
 
                 // if family Refresh Token (FRT) cache acquisition fails or if client_mismatch error is seen with FRT, reattempt with application Refresh Token (ART)
                 if (noFamilyRTInCache || clientMismatchErrorWithFamilyRT) {

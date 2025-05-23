@@ -1,11 +1,13 @@
 import {
-    Constants,
     PromptValue,
     ResponseMode,
     GrantType,
     AuthenticationScheme,
     HeaderNames,
     OAuthResponseType,
+    OPENID_SCOPE,
+    PROFILE_SCOPE,
+    OFFLINE_ACCESS_SCOPE,
 } from "../../src/utils/Constants.js";
 import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
 import {
@@ -116,7 +118,7 @@ describe("RequestParameterBuilder unit tests", () => {
         ).toBe(true);
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+                `${AADServerParamKeys.SCOPE}=${OPENID_SCOPE}%20${PROFILE_SCOPE}%20${OFFLINE_ACCESS_SCOPE}`
             )
         ).toBe(true);
         expect(
@@ -301,7 +303,7 @@ describe("RequestParameterBuilder unit tests", () => {
         let requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.SCOPE}=testScope%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+                `${AADServerParamKeys.SCOPE}=testScope%20${OPENID_SCOPE}%20${PROFILE_SCOPE}%20${OFFLINE_ACCESS_SCOPE}`
             )
         ).toBe(true);
 
@@ -310,7 +312,7 @@ describe("RequestParameterBuilder unit tests", () => {
         requestQueryString = UrlUtils.mapToQueryString(parameters2);
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+                `${AADServerParamKeys.SCOPE}=${OPENID_SCOPE}%20${PROFILE_SCOPE}%20${OFFLINE_ACCESS_SCOPE}`
             )
         ).toBe(true);
     });
@@ -333,12 +335,12 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}`
+                `${AADServerParamKeys.SCOPE}=${OPENID_SCOPE}%20${PROFILE_SCOPE}`
             )
         ).toBe(true);
-        expect(
-            requestQueryString.includes(`${Constants.OFFLINE_ACCESS_SCOPE}`)
-        ).toBe(false);
+        expect(requestQueryString.includes(`${OFFLINE_ACCESS_SCOPE}`)).toBe(
+            false
+        );
     });
 
     it("addScopes adds openid scope when in OIDC protocol mode", () => {
@@ -347,7 +349,7 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestQueryString = UrlUtils.mapToQueryString(parameters);
         expect(
             requestQueryString.includes(
-                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}`
+                `${AADServerParamKeys.SCOPE}=${OPENID_SCOPE}`
             )
         ).toBe(true);
     });

@@ -17,10 +17,16 @@ import { ClientConfiguration } from "../../src/config/ClientConfiguration.js";
 import { BaseClient } from "../../src/client/BaseClient.js";
 import {
     AuthenticationScheme,
-    ThrottlingConstants,
-    Constants,
     HeaderNames,
     ONE_DAY_IN_MS,
+    RESOURCE_DELIM,
+    DEFAULT_AUTHORITY,
+    OPENID_SCOPE,
+    PROFILE_SCOPE,
+    OFFLINE_ACCESS_SCOPE,
+    CODE_GRANT_TYPE,
+    SKU,
+    X_MS_LIB_CAPABILITY_VALUE,
 } from "../../src/utils/Constants.js";
 import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
 import { ClientTestUtils } from "./ClientTestUtils.js";
@@ -163,7 +169,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             config.systemOptions.preventCorsPreflight = true;
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -217,7 +223,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -284,7 +290,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             config.systemOptions.preventCorsPreflight = false;
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -338,7 +344,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -400,7 +406,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             }
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -454,7 +460,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -493,7 +499,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             }
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -548,7 +554,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -590,7 +596,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             }
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -645,7 +651,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -690,7 +696,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             }
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -744,7 +750,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -787,7 +793,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 .value) as string;
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${OPENID_SCOPE}%20${PROFILE_SCOPE}%20${OFFLINE_ACCESS_SCOPE}`
                 )
             ).toBe(true);
             expect(
@@ -809,7 +815,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`
+                    `${AADServerParamKeys.GRANT_TYPE}=${CODE_GRANT_TYPE}`
                 )
             ).toBe(true);
             expect(
@@ -823,9 +829,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 )
             ).toBe(true);
             expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-                )
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_SKU}=${SKU}`)
             ).toBe(true);
             expect(
                 returnVal.includes(
@@ -846,9 +850,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 returnVal.includes(
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
-                    }=${encodeURIComponent(
-                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
-                    )}`
+                    }=${encodeURIComponent(X_MS_LIB_CAPABILITY_VALUE)}`
                 )
             ).toBe(true);
         });
@@ -873,7 +875,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             }
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -928,7 +930,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -972,7 +974,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 .value) as string;
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${OPENID_SCOPE}%20${PROFILE_SCOPE}%20${OFFLINE_ACCESS_SCOPE}`
                 )
             ).toBe(true);
             expect(
@@ -994,7 +996,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`
+                    `${AADServerParamKeys.GRANT_TYPE}=${CODE_GRANT_TYPE}`
                 )
             ).toBe(true);
             expect(
@@ -1008,9 +1010,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 )
             ).toBe(true);
             expect(
-                returnVal.includes(
-                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-                )
+                returnVal.includes(`${AADServerParamKeys.X_CLIENT_SKU}=${SKU}`)
             ).toBe(true);
             expect(
                 returnVal.includes(
@@ -1031,9 +1031,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 returnVal.includes(
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
-                    }=${encodeURIComponent(
-                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
-                    )}`
+                    }=${encodeURIComponent(X_MS_LIB_CAPABILITY_VALUE)}`
                 )
             ).toBe(true);
         });
@@ -1060,7 +1058,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const client = new AuthorizationCodeClient(config);
             const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1103,7 +1101,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const client = new AuthorizationCodeClient(config);
             const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1148,7 +1146,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const client = new AuthorizationCodeClient(config);
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1191,7 +1189,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const client = new AuthorizationCodeClient(config);
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1238,7 +1236,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const client = new TestAuthorizationCodeClient(config);
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1279,7 +1277,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             }
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -1363,7 +1361,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authenticationScheme: AuthenticationScheme.POP,
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1400,7 +1398,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 .value) as string;
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${OPENID_SCOPE}%20${PROFILE_SCOPE}%20${OFFLINE_ACCESS_SCOPE}`
                 )
             ).toBe(true);
             expect(
@@ -1422,7 +1420,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`
+                    `${AADServerParamKeys.GRANT_TYPE}=${CODE_GRANT_TYPE}`
                 )
             ).toBe(true);
             expect(
@@ -1474,7 +1472,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             }
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             config.cryptoInterface.base64Decode = (input: string): string => {
@@ -1552,7 +1550,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authenticationScheme: AuthenticationScheme.SSH,
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1588,7 +1586,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 .value) as string;
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${OPENID_SCOPE}%20${PROFILE_SCOPE}%20${OFFLINE_ACCESS_SCOPE}`
                 )
             ).toBe(true);
             expect(
@@ -1610,7 +1608,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`
+                    `${AADServerParamKeys.GRANT_TYPE}=${CODE_GRANT_TYPE}`
                 )
             ).toBe(true);
             expect(
@@ -1659,7 +1657,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             }
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             config.cryptoInterface.base64Decode = (input: string): string => {
@@ -1736,7 +1734,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authenticationScheme: AuthenticationScheme.SSH,
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1788,7 +1786,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 );
             }
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -1842,7 +1840,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1895,7 +1893,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 );
             }
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -1949,7 +1947,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -2032,7 +2030,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -2096,7 +2094,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -2178,7 +2176,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -2258,7 +2256,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -2350,7 +2348,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 performanceClient
             );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -2444,7 +2442,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 performanceClient
             );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,

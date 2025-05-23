@@ -5,11 +5,9 @@
 
 import {
     AADServerParamKeys,
-    ThrottlingConstants,
     ServerTelemetryEntity,
     CacheManager,
     ClientConfiguration,
-    Constants,
     PkceCodes,
     AccountEntity,
     AppMetadataEntity,
@@ -33,6 +31,11 @@ import {
     PasswordGrantConstants,
     OAuthResponseType,
     AccountEntityUtils,
+    SKU,
+    X_MS_LIB_CAPABILITY_VALUE,
+    OPENID_SCOPE,
+    PROFILE_SCOPE,
+    OFFLINE_ACCESS_SCOPE,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -338,7 +341,7 @@ export class ClientTestUtils {
                 clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
             },
             libraryInfo: {
-                sku: Constants.SKU,
+                sku: SKU,
                 version: TEST_CONFIG.TEST_VERSION,
                 os: TEST_CONFIG.TEST_OS,
                 cpu: TEST_CONFIG.TEST_CPU,
@@ -479,9 +482,7 @@ export const checkMockedNetworkRequest = (
 
     if (checks.clientSku !== undefined) {
         expect(
-            returnVal.includes(
-                `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-            )
+            returnVal.includes(`${AADServerParamKeys.X_CLIENT_SKU}=${SKU}`)
         ).toBe(checks.clientSku);
     }
 
@@ -529,7 +530,7 @@ export const checkMockedNetworkRequest = (
         expect(
             returnVal.includes(
                 `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${encodeURIComponent(
-                    ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    X_MS_LIB_CAPABILITY_VALUE
                 )}`
             )
         ).toBe(checks.msLibraryCapability);
@@ -608,7 +609,7 @@ export const checkMockedNetworkRequest = (
     if (checks.queryString) {
         expect(
             returnVal.includes(
-                `${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+                `${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${OPENID_SCOPE}%20${PROFILE_SCOPE}%20${OFFLINE_ACCESS_SCOPE}`
             )
         ).toBe(true);
     }

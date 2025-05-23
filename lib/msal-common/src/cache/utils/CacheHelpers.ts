@@ -13,12 +13,13 @@ import {
 } from "../../error/ClientAuthError.js";
 import {
     APP_METADATA,
-    AUTHORITY_METADATA_CONSTANTS,
     AuthenticationScheme,
+    AUTHORITY_METADATA_CACHE_KEY,
+    AUTHORITY_METADATA_REFRESH_TIME_SECONDS,
+    CACHE_KEY_SEPARATOR,
     CredentialType,
-    SERVER_TELEM_CONSTANTS,
-    Separators,
-    ThrottlingConstants,
+    SERVER_TELEM_CACHE_KEY,
+    THROTTLING_PREFIX,
 } from "../../utils/Constants.js";
 import * as TimeUtils from "../../utils/TimeUtils.js";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity.js";
@@ -47,7 +48,7 @@ export function generateCredentialKey(
         generateScheme(credentialEntity),
     ];
 
-    return credentialKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    return credentialKey.join(CACHE_KEY_SEPARATOR).toLowerCase();
 }
 
 /**
@@ -269,7 +270,7 @@ function generateAccountId(credentialEntity: CredentialEntity): string {
         credentialEntity.homeAccountId,
         credentialEntity.environment,
     ];
-    return accountId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    return accountId.join(CACHE_KEY_SEPARATOR).toLowerCase();
 }
 
 /**
@@ -286,7 +287,7 @@ function generateCredentialId(credentialEntity: CredentialEntity): string {
         credentialEntity.realm || "",
     ];
 
-    return credentialId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    return credentialId.join(CACHE_KEY_SEPARATOR).toLowerCase();
 }
 
 /**
@@ -324,8 +325,7 @@ function generateScheme(credentialEntity: CredentialEntity): string {
  * @param entity
  */
 export function isServerTelemetryEntity(key: string, entity?: object): boolean {
-    const validateKey: boolean =
-        key.indexOf(SERVER_TELEM_CONSTANTS.CACHE_KEY) === 0;
+    const validateKey: boolean = key.indexOf(SERVER_TELEM_CACHE_KEY) === 0;
     let validateEntity: boolean = true;
 
     if (entity) {
@@ -346,7 +346,7 @@ export function isServerTelemetryEntity(key: string, entity?: object): boolean {
 export function isThrottlingEntity(key: string, entity?: object): boolean {
     let validateKey: boolean = false;
     if (key) {
-        validateKey = key.indexOf(ThrottlingConstants.THROTTLING_PREFIX) === 0;
+        validateKey = key.indexOf(THROTTLING_PREFIX) === 0;
     }
 
     let validateEntity: boolean = true;
@@ -369,9 +369,7 @@ export function generateAppMetadataKey({
         environment,
         clientId,
     ];
-    return appMetaDataKeyArray
-        .join(Separators.CACHE_KEY_SEPARATOR)
-        .toLowerCase();
+    return appMetaDataKeyArray.join(CACHE_KEY_SEPARATOR).toLowerCase();
 }
 
 /*
@@ -403,7 +401,7 @@ export function isAuthorityMetadataEntity(
     }
 
     return (
-        key.indexOf(AUTHORITY_METADATA_CONSTANTS.CACHE_KEY) === 0 &&
+        key.indexOf(AUTHORITY_METADATA_CACHE_KEY) === 0 &&
         entity.hasOwnProperty("aliases") &&
         entity.hasOwnProperty("preferred_cache") &&
         entity.hasOwnProperty("preferred_network") &&
@@ -422,10 +420,7 @@ export function isAuthorityMetadataEntity(
  * Reset the exiresAt value
  */
 export function generateAuthorityMetadataExpiresAt(): number {
-    return (
-        TimeUtils.nowSeconds() +
-        AUTHORITY_METADATA_CONSTANTS.REFRESH_TIME_SECONDS
-    );
+    return TimeUtils.nowSeconds() + AUTHORITY_METADATA_REFRESH_TIME_SECONDS;
 }
 
 export function updateAuthorityEndpointMetadata(

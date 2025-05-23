@@ -4,7 +4,7 @@
  */
 
 import type { LoggerOptions } from "../config/ClientConfiguration.js";
-import { Constants } from "../utils/Constants.js";
+import { EMPTY_STRING } from "../utils/Constants.js";
 
 /**
  * Options for logger messages.
@@ -73,10 +73,9 @@ export class Logger {
             typeof setLoggerOptions.logLevel === "number"
                 ? setLoggerOptions.logLevel
                 : LogLevel.Info;
-        this.correlationId =
-            setLoggerOptions.correlationId || Constants.EMPTY_STRING;
-        this.packageName = packageName || Constants.EMPTY_STRING;
-        this.packageVersion = packageVersion || Constants.EMPTY_STRING;
+        this.correlationId = setLoggerOptions.correlationId || EMPTY_STRING;
+        this.packageName = packageName || EMPTY_STRING;
+        this.packageVersion = packageVersion || EMPTY_STRING;
     }
 
     private static createDefaultLoggerOptions(): LoggerOptions {
@@ -160,7 +159,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Error,
             containsPii: false,
-            correlationId: correlationId || Constants.EMPTY_STRING,
+            correlationId: correlationId || EMPTY_STRING,
         });
     }
 
@@ -171,7 +170,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Error,
             containsPii: true,
-            correlationId: correlationId || Constants.EMPTY_STRING,
+            correlationId: correlationId || EMPTY_STRING,
         });
     }
 
@@ -182,7 +181,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Warning,
             containsPii: false,
-            correlationId: correlationId || Constants.EMPTY_STRING,
+            correlationId: correlationId || EMPTY_STRING,
         });
     }
 
@@ -193,7 +192,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Warning,
             containsPii: true,
-            correlationId: correlationId || Constants.EMPTY_STRING,
+            correlationId: correlationId || EMPTY_STRING,
         });
     }
 
@@ -204,7 +203,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Info,
             containsPii: false,
-            correlationId: correlationId || Constants.EMPTY_STRING,
+            correlationId: correlationId || EMPTY_STRING,
         });
     }
 
@@ -215,7 +214,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Info,
             containsPii: true,
-            correlationId: correlationId || Constants.EMPTY_STRING,
+            correlationId: correlationId || EMPTY_STRING,
         });
     }
 
@@ -226,7 +225,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Verbose,
             containsPii: false,
-            correlationId: correlationId || Constants.EMPTY_STRING,
+            correlationId: correlationId || EMPTY_STRING,
         });
     }
 
@@ -237,7 +236,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Verbose,
             containsPii: true,
-            correlationId: correlationId || Constants.EMPTY_STRING,
+            correlationId: correlationId || EMPTY_STRING,
         });
     }
 
@@ -248,7 +247,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Trace,
             containsPii: false,
-            correlationId: correlationId || Constants.EMPTY_STRING,
+            correlationId: correlationId || EMPTY_STRING,
         });
     }
 
@@ -259,7 +258,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Trace,
             containsPii: true,
-            correlationId: correlationId || Constants.EMPTY_STRING,
+            correlationId: correlationId || EMPTY_STRING,
         });
     }
 

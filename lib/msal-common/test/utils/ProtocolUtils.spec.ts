@@ -5,7 +5,7 @@ import {
     TEST_POP_VALUES,
 } from "../test_kit/StringConstants.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
-import { Constants } from "../../src/utils/Constants.js";
+import { RESOURCE_DELIM } from "../../src/utils/Constants.js";
 import {
     ClientAuthError,
     ClientAuthErrorCodes,
@@ -15,7 +15,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
     const userState = "userState";
     const decodedLibState = `{"id":"${RANDOM_TEST_GUID}"}`;
     const encodedLibState = `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSJ9`;
-    const testState = `${encodedLibState}${Constants.RESOURCE_DELIM}${userState}`;
+    const testState = `${encodedLibState}${RESOURCE_DELIM}${userState}`;
 
     let cryptoInterface: ICrypto;
     beforeEach(() => {
@@ -131,7 +131,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
     it("parseRequestState returns user state without decoding", () => {
         const requestState = ProtocolUtils.parseRequestState(
             cryptoInterface,
-            `${encodedLibState}${Constants.RESOURCE_DELIM}${"test%25u00f1"}`
+            `${encodedLibState}${RESOURCE_DELIM}${"test%25u00f1"}`
         );
         expect(requestState.userRequestState).toBe(`${"test%25u00f1"}`);
     });

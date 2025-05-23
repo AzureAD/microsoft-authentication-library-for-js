@@ -17,8 +17,20 @@ import {
 import { INetworkModule } from "../network/INetworkModule.js";
 import {
     AADAuthorityConstants,
+    AAD_INSTANCE_DISCOVERY_ENDPT,
     AuthorityMetadataSource,
-    Constants,
+    AZURE_REGION_AUTO_DISCOVER_FLAG,
+    DEFAULT_AUTHORITY_HOST,
+    DEFAULT_COMMON_TENANT,
+    INVALID_INSTANCE,
+    NOT_APPLICABLE,
+    KNOWN_PUBLIC_CLOUDS,
+    REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX,
+    CIAM_AUTH_URL,
+    AAD_TENANT_DOMAIN_SUFFIX,
+    FORWARD_SLASH,
+    ADFS,
+    DSTS,
     RegionDiscoveryOutcomes,
 } from "../utils/Constants.js";
 import {
@@ -137,16 +149,16 @@ export class Authority {
      */
     private getAuthorityType(authorityUri: IUri): AuthorityType {
         // CIAM auth url pattern is being standardized as: <tenant>.ciamlogin.com
-        if (authorityUri.HostNameAndPort.endsWith(Constants.CIAM_AUTH_URL)) {
+        if (authorityUri.HostNameAndPort.endsWith(CIAM_AUTH_URL)) {
             return AuthorityType.Ciam;
         }
 
         const pathSegments = authorityUri.PathSegments;
         if (pathSegments.length) {
             switch (pathSegments[0].toLowerCase()) {
-                case Constants.ADFS:
+                case ADFS:
                     return AuthorityType.Adfs;
-                case Constants.DSTS:
+                case DSTS:
                     return AuthorityType.Dsts;
                 default:
                     break;
@@ -740,10 +752,7 @@ export class Authority {
             this.authorityOptions.azureRegionConfiguration?.azureRegion;
 
         if (userConfiguredAzureRegion) {
-            if (
-                userConfiguredAzureRegion !==
-                Constants.AZURE_REGION_AUTO_DISCOVER_FLAG
-            ) {
+            if (userConfiguredAzureRegion !== AZURE_REGION_AUTO_DISCOVER_FLAG) {
                 this.regionDiscoveryMetadata.region_outcome =
                     RegionDiscoveryOutcomes.CONFIGURED_NO_AUTO_DETECTION;
                 this.regionDiscoveryMetadata.region_used =
@@ -831,19 +840,17 @@ export class Authority {
         );
         this.logger.verbosePii(
             `Known Authorities: ${
-                this.authorityOptions.knownAuthorities ||
-                Constants.NOT_APPLICABLE
+                this.authorityOptions.knownAuthorities || NOT_APPLICABLE
             }`
         );
         this.logger.verbosePii(
             `Authority Metadata: ${
-                this.authorityOptions.authorityMetadata ||
-                Constants.NOT_APPLICABLE
+                this.authorityOptions.authorityMetadata || NOT_APPLICABLE
             }`
         );
         this.logger.verbosePii(
             `Canonical Authority: ${
-                metadataEntity.canonical_authority || Constants.NOT_APPLICABLE
+                metadataEntity.canonical_authority || NOT_APPLICABLE
             }`
         );
         const metadata = this.getCloudDiscoveryMetadataFromConfig();
@@ -970,7 +977,7 @@ export class Authority {
      * @param hasHardcodedMetadata boolean
      */
     private async getCloudDiscoveryMetadataFromNetwork(): Promise<CloudDiscoveryMetadata | null> {
-        const instanceDiscoveryEndpoint = `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
+        const instanceDiscoveryEndpoint = `${AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
         const options: ImdsOptions = {};
 
         /*
@@ -1003,7 +1010,7 @@ export class Authority {
 
                 typedResponseBody =
                     response.body as CloudInstanceDiscoveryErrorResponse;
-                if (typedResponseBody.error === Constants.INVALID_INSTANCE) {
+                if (typedResponseBody.error === INVALID_INSTANCE) {
                     this.logger.error(
                         "The CloudInstanceDiscoveryErrorResponse error is invalid_instance."
                     );
@@ -1099,7 +1106,7 @@ export class Authority {
         ) {
             const tenant = azureCloudOptions.tenant
                 ? azureCloudOptions.tenant
-                : Constants.DEFAULT_COMMON_TENANT;
+                : DEFAULT_COMMON_TENANT;
             authorityAzureCloudInstance = `${azureCloudOptions.azureCloudInstance}/${tenant}/`;
         }
 
@@ -1127,7 +1134,7 @@ export class Authority {
      */
     getPreferredCache(): string {
         if (this.managedIdentity) {
-            return Constants.DEFAULT_AUTHORITY_HOST;
+            return DEFAULT_AUTHORITY_HOST;
         } else if (this.discoveryComplete()) {
             return this.metadata.preferred_cache;
         } else {
@@ -1160,7 +1167,7 @@ export class Authority {
      * @returns bool
      */
     static isPublicCloudAuthority(host: string): boolean {
-        return Constants.KNOWN_PUBLIC_CLOUDS.indexOf(host) >= 0;
+        return KNOWN_PUBLIC_CLOUDS.indexOf(host) >= 0;
     }
 
     /**
@@ -1183,7 +1190,7 @@ export class Authority {
         let hostNameAndPort = `${region}.${authorityUrlParts.HostNameAndPort}`;
 
         if (this.isPublicCloudAuthority(authorityUrlParts.HostNameAndPort)) {
-            hostNameAndPort = `${region}.${Constants.REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX}`;
+            hostNameAndPort = `${region}.${REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX}`;
         }
 
         // Include the query string portion of the url
@@ -1249,13 +1256,11 @@ export class Authority {
         // check if transformation is needed
         if (
             authorityUrlComponents.PathSegments.length === 0 &&
-            authorityUrlComponents.HostNameAndPort.endsWith(
-                Constants.CIAM_AUTH_URL
-            )
+            authorityUrlComponents.HostNameAndPort.endsWith(CIAM_AUTH_URL)
         ) {
             const tenantIdOrDomain =
                 authorityUrlComponents.HostNameAndPort.split(".")[0];
-            ciamAuthority = `${ciamAuthority}${tenantIdOrDomain}${Constants.AAD_TENANT_DOMAIN_SUFFIX}`;
+            ciamAuthority = `${ciamAuthority}${tenantIdOrDomain}${AAD_TENANT_DOMAIN_SUFFIX}`;
         }
 
         return ciamAuthority;
@@ -1292,9 +1297,9 @@ export function getTenantFromAuthorityString(
 }
 
 export function formatAuthorityUri(authorityUri: string): string {
-    return authorityUri.endsWith(Constants.FORWARD_SLASH)
+    return authorityUri.endsWith(FORWARD_SLASH)
         ? authorityUri
-        : `${authorityUri}${Constants.FORWARD_SLASH}`;
+        : `${authorityUri}${FORWARD_SLASH}`;
 }
 
 export function buildStaticAuthorityOptions(

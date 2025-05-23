@@ -6,9 +6,11 @@
 import { NetworkResponse } from "./NetworkResponse.js";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
 import {
+    DEFAULT_MAX_THROTTLE_TIME_SECONDS,
+    DEFAULT_THROTTLE_TIME_SECONDS,
+    EMPTY_STRING,
     HeaderNames,
-    ThrottlingConstants,
-    Constants,
+    THROTTLING_PREFIX,
 } from "../utils/Constants.js";
 import { CacheManager } from "../cache/CacheManager.js";
 import { ServerError } from "../error/ServerError.js";
@@ -26,9 +28,7 @@ export class ThrottlingUtils {
      * @param thumbprint
      */
     static generateThrottlingStorageKey(thumbprint: RequestThumbprint): string {
-        return `${ThrottlingConstants.THROTTLING_PREFIX}.${JSON.stringify(
-            thumbprint
-        )}`;
+        return `${THROTTLING_PREFIX}.${JSON.stringify(thumbprint)}`;
     }
 
     /**
@@ -49,7 +49,7 @@ export class ThrottlingUtils {
                 return;
             }
             throw new ServerError(
-                value.errorCodes?.join(" ") || Constants.EMPTY_STRING,
+                value.errorCodes?.join(" ") || EMPTY_STRING,
                 value.errorMessage,
                 value.subError
             );
@@ -126,10 +126,8 @@ export class ThrottlingUtils {
         const currentSeconds = Date.now() / 1000;
         return Math.floor(
             Math.min(
-                currentSeconds +
-                    (time || ThrottlingConstants.DEFAULT_THROTTLE_TIME_SECONDS),
-                currentSeconds +
-                    ThrottlingConstants.DEFAULT_MAX_THROTTLE_TIME_SECONDS
+                currentSeconds + (time || DEFAULT_THROTTLE_TIME_SECONDS),
+                currentSeconds + DEFAULT_MAX_THROTTLE_TIME_SECONDS
             ) * 1000
         );
     }

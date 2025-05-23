@@ -17,7 +17,6 @@ import {
     ClientAuthErrorCodes,
     ClientConfiguration,
     CommonOnBehalfOfRequest,
-    Constants,
     createClientAuthError,
     CredentialFilter,
     CredentialType,
@@ -33,6 +32,7 @@ import {
     ClientAssertion,
     getClientAssertion,
     UrlUtils,
+    EMPTY_STRING,
 } from "@azure/msal-common/node";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 
@@ -143,8 +143,8 @@ export class OnBehalfOfClient extends BaseClient {
                 homeAccountId: cachedIdToken.homeAccountId,
                 environment: cachedIdToken.environment,
                 tenantId: cachedIdToken.realm,
-                username: Constants.EMPTY_STRING,
-                localAccountId: localAccountId || Constants.EMPTY_STRING,
+                username: EMPTY_STRING,
+                localAccountId: localAccountId || EMPTY_STRING,
             };
 
             cachedAccount = this.cacheManager.readAccountFromCache(accountInfo);

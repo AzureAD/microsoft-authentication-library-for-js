@@ -3,10 +3,14 @@ import { AuthOptions } from "../../src/config/ClientConfiguration.js";
 import { CommonAuthorizationUrlRequest } from "../../src/request/CommonAuthorizationUrlRequest.js";
 import {
     AuthenticationScheme,
-    Constants,
+    DEFAULT_AUTHORITY,
     HeaderNames,
+    OFFLINE_ACCESS_SCOPE,
+    OPENID_SCOPE,
+    PROFILE_SCOPE,
     PromptValue,
     ResponseMode,
+    S256_CODE_CHALLENGE_METHOD,
 } from "../../src/utils/Constants.js";
 import { getDiscoveredAuthority } from "../client/ClientTestUtils.js";
 import {
@@ -64,7 +68,7 @@ describe("Authorize Protocol Tests", () => {
                 state: TEST_CONFIG.STATE,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                codeChallengeMethod: S256_CODE_CHALLENGE_METHOD,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
             };
@@ -78,7 +82,7 @@ describe("Authorize Protocol Tests", () => {
                 authority,
                 params
             );
-            expect(loginUrl.includes(Constants.DEFAULT_AUTHORITY)).toBe(true);
+            expect(loginUrl.includes(DEFAULT_AUTHORITY)).toBe(true);
             expect(
                 loginUrl.includes(
                     DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
@@ -89,7 +93,7 @@ describe("Authorize Protocol Tests", () => {
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+                    `${AADServerParamKeys.SCOPE}=${OPENID_SCOPE}%20${PROFILE_SCOPE}%20${OFFLINE_ACCESS_SCOPE}`
                 )
             ).toBe(true);
             expect(
@@ -154,7 +158,7 @@ describe("Authorize Protocol Tests", () => {
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${OPENID_SCOPE}%20${PROFILE_SCOPE}%20${OFFLINE_ACCESS_SCOPE}`
                 )
             ).toBe(true);
             expect(
@@ -1189,7 +1193,7 @@ describe("Authorize Protocol Tests", () => {
                 nonce: RANDOM_TEST_GUID,
                 state: TEST_CONFIG.STATE,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                codeChallengeMethod: S256_CODE_CHALLENGE_METHOD,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,

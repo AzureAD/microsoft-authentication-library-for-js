@@ -23,10 +23,13 @@ import {
 import { BaseClient } from "../../src/client/BaseClient.js";
 import {
     GrantType,
-    Constants,
     CredentialType,
     AuthenticationScheme,
-    ThrottlingConstants,
+    OPENID_SCOPE,
+    PROFILE_SCOPE,
+    SKU,
+    X_MS_LIB_CAPABILITY_VALUE,
+    EMPTY_STRING,
 } from "../../src/utils/Constants.js";
 import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils.js";
@@ -436,8 +439,8 @@ describe("RefreshTokenClient unit tests", () => {
                 refreshTokenRequest
             );
             const expectedScopes = [
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
+                OPENID_SCOPE,
+                PROFILE_SCOPE,
                 TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0],
                 "email",
             ];
@@ -491,9 +494,7 @@ describe("RefreshTokenClient unit tests", () => {
                 )
             ).toBe(true);
             expect(
-                result.includes(
-                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-                )
+                result.includes(`${AADServerParamKeys.X_CLIENT_SKU}=${SKU}`)
             ).toBe(true);
             expect(
                 result.includes(
@@ -524,9 +525,7 @@ describe("RefreshTokenClient unit tests", () => {
                 result.includes(
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
-                    }=${encodeURIComponent(
-                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
-                    )}`
+                    }=${encodeURIComponent(X_MS_LIB_CAPABILITY_VALUE)}`
                 )
             ).toBe(true);
         });
@@ -702,8 +701,8 @@ describe("RefreshTokenClient unit tests", () => {
                 refreshTokenRequest
             );
             const expectedScopes = [
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
+                OPENID_SCOPE,
+                PROFILE_SCOPE,
                 TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0],
                 "email",
             ];
@@ -757,9 +756,7 @@ describe("RefreshTokenClient unit tests", () => {
                 )
             ).toBe(false);
             expect(
-                result.includes(
-                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-                )
+                result.includes(`${AADServerParamKeys.X_CLIENT_SKU}=${SKU}`)
             ).toBe(true);
             expect(
                 result.includes(
@@ -790,9 +787,7 @@ describe("RefreshTokenClient unit tests", () => {
                 result.includes(
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
-                    }=${encodeURIComponent(
-                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
-                    )}`
+                    }=${encodeURIComponent(X_MS_LIB_CAPABILITY_VALUE)}`
                 )
             ).toBe(true);
         });
@@ -824,8 +819,8 @@ describe("RefreshTokenClient unit tests", () => {
                 refreshTokenRequest
             );
             const expectedScopes = [
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
+                OPENID_SCOPE,
+                PROFILE_SCOPE,
                 TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0],
                 "email",
             ];
@@ -879,9 +874,7 @@ describe("RefreshTokenClient unit tests", () => {
                 )
             ).toBe(false);
             expect(
-                result.includes(
-                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
-                )
+                result.includes(`${AADServerParamKeys.X_CLIENT_SKU}=${SKU}`)
             ).toBe(true);
             expect(
                 result.includes(
@@ -912,9 +905,7 @@ describe("RefreshTokenClient unit tests", () => {
                 result.includes(
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
-                    }=${encodeURIComponent(
-                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
-                    )}`
+                    }=${encodeURIComponent(X_MS_LIB_CAPABILITY_VALUE)}`
                 )
             ).toBe(true);
         });
@@ -1133,8 +1124,8 @@ describe("RefreshTokenClient unit tests", () => {
                 refreshTokenRequest
             );
             const expectedScopes = [
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
+                OPENID_SCOPE,
+                PROFILE_SCOPE,
                 TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0],
                 "email",
             ];
@@ -1440,11 +1431,11 @@ describe("RefreshTokenClient unit tests", () => {
                 serverResponse.error,
                 serverResponse.error_description,
                 serverResponse.suberror,
-                serverResponse.timestamp || Constants.EMPTY_STRING,
-                serverResponse.trace_id || Constants.EMPTY_STRING,
-                serverResponse.correlation_id || Constants.EMPTY_STRING,
+                serverResponse.timestamp || EMPTY_STRING,
+                serverResponse.trace_id || EMPTY_STRING,
+                serverResponse.correlation_id || EMPTY_STRING,
                 // @ts-ignore
-                serverResponse.claims || Constants.EMPTY_STRING
+                serverResponse.claims || EMPTY_STRING
             );
 
             const silentFlowRequest: CommonSilentFlowRequest = {

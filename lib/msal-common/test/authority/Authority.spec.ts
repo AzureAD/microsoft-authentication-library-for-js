@@ -8,7 +8,12 @@ import {
     INetworkModule,
     NetworkRequestOptions,
 } from "../../src/network/INetworkModule";
-import { Constants } from "../../src/utils/Constants";
+import {
+    AZURE_REGION_AUTO_DISCOVER_FLAG,
+    DEFAULT_AUTHORITY,
+    DEFAULT_AUTHORITY_HOST,
+    INVALID_INSTANCE,
+} from "../../src/utils/Constants.js";
 import {
     TEST_URIS,
     RANDOM_TEST_GUID,
@@ -51,7 +56,7 @@ let mockStorage: MockStorageClass;
 
 const authorityOptions: AuthorityOptions = {
     protocolMode: ProtocolMode.AAD,
-    knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
+    knownAuthorities: [DEFAULT_AUTHORITY_HOST],
     cloudDiscoveryMetadata: "",
     authorityMetadata: "",
 };
@@ -78,7 +83,7 @@ const authorityMetadataCacheValue: AuthorityMetadataEntity = {
     preferred_network:
         DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0].preferred_network,
     aliasesFromNetwork: true,
-    canonical_authority: Constants.DEFAULT_AUTHORITY,
+    canonical_authority: DEFAULT_AUTHORITY,
     expiresAt: CacheHelpers.generateAuthorityMetadataExpiresAt(),
 };
 
@@ -113,16 +118,14 @@ describe("Authority.ts Class Unit Tests", () => {
                 },
             };
             const authority = new Authority(
-                Constants.DEFAULT_AUTHORITY,
+                DEFAULT_AUTHORITY,
                 networkInterface,
                 mockStorage,
                 authorityOptions,
                 logger,
                 TEST_CONFIG.CORRELATION_ID
             );
-            expect(authority.canonicalAuthority).toBe(
-                `${Constants.DEFAULT_AUTHORITY}`
-            );
+            expect(authority.canonicalAuthority).toBe(`${DEFAULT_AUTHORITY}`);
         });
 
         it("Throws error if URI is not in valid format", () => {
@@ -211,7 +214,7 @@ describe("Authority.ts Class Unit Tests", () => {
         let authority: Authority;
         beforeEach(() => {
             authority = new Authority(
-                Constants.DEFAULT_AUTHORITY,
+                DEFAULT_AUTHORITY,
                 networkInterface,
                 mockStorage,
                 authorityOptions,
@@ -222,9 +225,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
         it("Gets canonical authority that ends in '/'", () => {
             expect(authority.canonicalAuthority.endsWith("/")).toBe(true);
-            expect(authority.canonicalAuthority).toBe(
-                `${Constants.DEFAULT_AUTHORITY}`
-            );
+            expect(authority.canonicalAuthority).toBe(`${DEFAULT_AUTHORITY}`);
         });
 
         it("Set canonical authority performs validation and canonicalization on url", () => {
@@ -345,7 +346,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
             it("Throws error if endpoint discovery is incomplete for authorizationEndpoint, tokenEndpoint, endSessionEndpoint and selfSignedJwtAudience", () => {
                 authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
                     authorityOptions,
@@ -473,7 +474,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 ).mockReturnValue(response);
 
                 const authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
                     authorityOptions,
@@ -622,7 +623,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
         const authorityOptions = {
             protocolMode: ProtocolMode.AAD,
-            knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
+            knownAuthorities: [DEFAULT_AUTHORITY_HOST],
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
             azureRegionConfiguration: {
@@ -645,7 +646,7 @@ describe("Authority.ts Class Unit Tests", () => {
             };
 
             const authority = new Authority(
-                Constants.DEFAULT_AUTHORITY,
+                DEFAULT_AUTHORITY,
                 networkInterface,
                 mockStorage,
                 authorityOptions,
@@ -695,7 +696,7 @@ describe("Authority.ts Class Unit Tests", () => {
             };
 
             const authority = new Authority(
-                Constants.DEFAULT_AUTHORITY,
+                DEFAULT_AUTHORITY,
                 networkInterface,
                 mockStorage,
                 {
@@ -756,7 +757,7 @@ describe("Authority.ts Class Unit Tests", () => {
             );
 
             const authority = new Authority(
-                Constants.DEFAULT_AUTHORITY,
+                DEFAULT_AUTHORITY,
                 networkInterface,
                 mockStorage,
                 {
@@ -814,13 +815,13 @@ describe("Authority.ts Class Unit Tests", () => {
             };
 
             const authority = new Authority(
-                Constants.DEFAULT_AUTHORITY,
+                DEFAULT_AUTHORITY,
                 networkInterface,
                 mockStorage,
                 {
                     ...authorityOptions,
                     azureRegionConfiguration: {
-                        azureRegion: Constants.AZURE_REGION_AUTO_DISCOVER_FLAG,
+                        azureRegion: AZURE_REGION_AUTO_DISCOVER_FLAG,
                         environmentRegion: "centralus",
                     },
                 },
@@ -870,13 +871,13 @@ describe("Authority.ts Class Unit Tests", () => {
             };
 
             const authority = new Authority(
-                Constants.DEFAULT_AUTHORITY,
+                DEFAULT_AUTHORITY,
                 networkInterface,
                 mockStorage,
                 {
                     ...authorityOptions,
                     azureRegionConfiguration: {
-                        azureRegion: Constants.AZURE_REGION_AUTO_DISCOVER_FLAG,
+                        azureRegion: AZURE_REGION_AUTO_DISCOVER_FLAG,
                         environmentRegion: undefined,
                     },
                 },
@@ -927,7 +928,7 @@ describe("Authority.ts Class Unit Tests", () => {
         let authority: Authority;
         beforeEach(() => {
             authority = new Authority(
-                Constants.DEFAULT_AUTHORITY,
+                DEFAULT_AUTHORITY,
                 networkInterface,
                 mockStorage,
                 authorityOptions,
@@ -999,14 +1000,14 @@ describe("Authority.ts Class Unit Tests", () => {
             it("Gets endpoints from config", async () => {
                 const options = {
                     protocolMode: ProtocolMode.AAD,
-                    knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
+                    knownAuthorities: [DEFAULT_AUTHORITY_HOST],
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: JSON.stringify(
                         DEFAULT_OPENID_CONFIG_RESPONSE.body
                     ),
                 };
                 authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
                     options,
@@ -1045,7 +1046,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 );
 
                 // Test that the metadata is cached
-                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
+                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${DEFAULT_AUTHORITY_HOST}`;
                 const cachedAuthorityMetadata =
                     mockStorage.getAuthorityMetadata(key);
                 if (!cachedAuthorityMetadata) {
@@ -1084,12 +1085,12 @@ describe("Authority.ts Class Unit Tests", () => {
             it("Throws error if authorityMetadata cannot be parsed to json", (done) => {
                 const options = {
                     protocolMode: ProtocolMode.AAD,
-                    knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
+                    knownAuthorities: [DEFAULT_AUTHORITY_HOST],
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: "invalid-json",
                 };
                 authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
                     options,
@@ -1115,12 +1116,12 @@ describe("Authority.ts Class Unit Tests", () => {
 
                 const options = {
                     protocolMode: ProtocolMode.AAD,
-                    knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
+                    knownAuthorities: [DEFAULT_AUTHORITY_HOST],
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: JSON.stringify(authorityJson),
                 };
                 authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
                     options,
@@ -1139,7 +1140,7 @@ describe("Authority.ts Class Unit Tests", () => {
             it("Gets endpoints from hardcoded values", async () => {
                 const customAuthorityOptions: AuthorityOptions = {
                     protocolMode: ProtocolMode.AAD,
-                    knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
+                    knownAuthorities: [DEFAULT_AUTHORITY_HOST],
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: "",
                 };
@@ -1152,7 +1153,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 };
 
                 authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
                     customAuthorityOptions,
@@ -1261,7 +1262,7 @@ describe("Authority.ts Class Unit Tests", () => {
             it("Gets endpoints from hardcoded values with regional information", async () => {
                 const customAuthorityOptions: AuthorityOptions = {
                     protocolMode: ProtocolMode.AAD,
-                    knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
+                    knownAuthorities: [DEFAULT_AUTHORITY_HOST],
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: "",
                     azureRegionConfiguration: {
@@ -1293,7 +1294,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 };
 
                 authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
                     customAuthorityOptions,
@@ -1335,14 +1336,14 @@ describe("Authority.ts Class Unit Tests", () => {
             });
 
             it("Gets endpoints from cache if not present in configuration or hardcoded metadata", async () => {
-                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
+                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${DEFAULT_AUTHORITY_HOST}`;
                 mockStorage.setAuthorityMetadata(
                     key,
                     authorityMetadataCacheValue
                 );
 
                 authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
                     authorityOptions,
@@ -1420,7 +1421,7 @@ describe("Authority.ts Class Unit Tests", () => {
             });
 
             it("Gets endpoints from network if cached metadata is expired and metadata was not included in configuration or hardcoded values", async () => {
-                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
+                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${DEFAULT_AUTHORITY_HOST}`;
                 mockStorage.setAuthorityMetadata(key, {
                     ...authorityMetadataCacheValue,
                     expiresAt: TimeUtils.nowSeconds() - 1000,
@@ -1433,7 +1434,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     return DEFAULT_OPENID_CONFIG_RESPONSE;
                 };
                 authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
                     authorityOptions,
@@ -1517,7 +1518,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     return DEFAULT_OPENID_CONFIG_RESPONSE;
                 };
                 authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
                     authorityOptions,
@@ -1558,7 +1559,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 );
 
                 // Test that the metadata is cached
-                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
+                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${DEFAULT_AUTHORITY_HOST}`;
                 const cachedAuthorityMetadata =
                     mockStorage.getAuthorityMetadata(key);
                 if (!cachedAuthorityMetadata) {
@@ -1600,7 +1601,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     throw Error("Unable to reach endpoint");
                 };
                 authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
                     authorityOptions,
@@ -1624,7 +1625,7 @@ describe("Authority.ts Class Unit Tests", () => {
             it("Sets instance metadata from knownAuthorities config", async () => {
                 const authorityOptions: AuthorityOptions = {
                     protocolMode: ProtocolMode.AAD,
-                    knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
+                    knownAuthorities: [DEFAULT_AUTHORITY_HOST],
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: "",
                 };
@@ -1635,7 +1636,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     return DEFAULT_OPENID_CONFIG_RESPONSE;
                 };
                 authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
                     authorityOptions,
@@ -1643,33 +1644,31 @@ describe("Authority.ts Class Unit Tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 );
                 await authority.resolveEndpointsAsync();
-                expect(
-                    authority.isAlias(Constants.DEFAULT_AUTHORITY_HOST)
-                ).toBe(true);
+                expect(authority.isAlias(DEFAULT_AUTHORITY_HOST)).toBe(true);
                 expect(authority.getPreferredCache()).toBe(
-                    Constants.DEFAULT_AUTHORITY_HOST
+                    DEFAULT_AUTHORITY_HOST
                 );
                 expect(
                     authority.canonicalAuthority.includes(
-                        Constants.DEFAULT_AUTHORITY_HOST
+                        DEFAULT_AUTHORITY_HOST
                     )
                 ).toBe(true);
 
                 // Test that the metadata is cached
-                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
+                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${DEFAULT_AUTHORITY_HOST}`;
                 const cachedAuthorityMetadata =
                     mockStorage.getAuthorityMetadata(key);
                 if (!cachedAuthorityMetadata) {
                     throw Error("Cached AuthorityMetadata should not be null!");
                 } else {
                     expect(cachedAuthorityMetadata.aliases).toContain(
-                        Constants.DEFAULT_AUTHORITY_HOST
+                        DEFAULT_AUTHORITY_HOST
                     );
                     expect(cachedAuthorityMetadata.preferred_cache).toBe(
-                        Constants.DEFAULT_AUTHORITY_HOST
+                        DEFAULT_AUTHORITY_HOST
                     );
                     expect(cachedAuthorityMetadata.preferred_network).toBe(
-                        Constants.DEFAULT_AUTHORITY_HOST
+                        DEFAULT_AUTHORITY_HOST
                     );
                     expect(cachedAuthorityMetadata.aliasesFromNetwork).toBe(
                         false
@@ -1703,7 +1702,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 };
 
                 authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
                     authorityOptions,
@@ -1752,7 +1751,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 };
 
                 authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
                     authorityOptions,
@@ -1849,7 +1848,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     };
 
                     authority = new Authority(
-                        Constants.DEFAULT_AUTHORITY,
+                        DEFAULT_AUTHORITY,
                         networkInterface,
                         mockStorage,
                         authorityOptions,
@@ -1899,7 +1898,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     };
 
                     authority = new Authority(
-                        Constants.DEFAULT_AUTHORITY,
+                        DEFAULT_AUTHORITY,
                         networkInterface,
                         mockStorage,
                         authorityOptions,
@@ -1967,7 +1966,7 @@ describe("Authority.ts Class Unit Tests", () => {
                         <any>"updateEndpointMetadata"
                     ).mockResolvedValue("cache");
                     authority = new Authority(
-                        Constants.DEFAULT_AUTHORITY,
+                        DEFAULT_AUTHORITY,
                         networkInterface,
                         mockStorage,
                         authorityOptions,
@@ -2050,7 +2049,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     };
 
                     authority = new Authority(
-                        Constants.DEFAULT_AUTHORITY,
+                        DEFAULT_AUTHORITY,
                         networkInterface,
                         mockStorage,
                         authorityOptions,
@@ -2102,7 +2101,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     };
 
                     authority = new Authority(
-                        Constants.DEFAULT_AUTHORITY,
+                        DEFAULT_AUTHORITY,
                         networkInterface,
                         mockStorage,
                         authorityOptions,
@@ -2305,7 +2304,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     authorityMetadata: "",
                 };
                 authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
                     authorityOptions,
@@ -2345,7 +2344,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     throw Error("Unable to get response");
                 };
                 authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
                     authorityOptions,
@@ -2390,13 +2389,13 @@ describe("Authority.ts Class Unit Tests", () => {
                 ): any => {
                     return {
                         body: {
-                            error: Constants.INVALID_INSTANCE,
+                            error: INVALID_INSTANCE,
                             error_description: "error_description",
                         },
                     };
                 };
                 authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
                     authorityOptions,
@@ -2441,7 +2440,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     <any>"updateEndpointMetadata"
                 ).mockResolvedValue("cache");
                 authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    DEFAULT_AUTHORITY,
                     networkInterface,
                     mockStorage,
                     authorityOptions,
@@ -2600,7 +2599,7 @@ describe("Authority.ts Class Unit Tests", () => {
             const authorityUrl = "https://login.microsoftonline.com/";
             const options = {
                 protocolMode: ProtocolMode.OIDC,
-                knownAuthorities: [Constants.DEFAULT_AUTHORITY],
+                knownAuthorities: [DEFAULT_AUTHORITY],
                 cloudDiscoveryMetadata: "",
                 authorityMetadata: "",
             };

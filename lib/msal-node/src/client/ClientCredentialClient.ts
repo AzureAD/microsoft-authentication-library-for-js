@@ -14,7 +14,6 @@ import {
     ClientAuthErrorCodes,
     ClientConfiguration,
     CommonClientCredentialRequest,
-    Constants,
     CredentialFilter,
     CredentialType,
     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
@@ -35,6 +34,7 @@ import {
     ClientAssertion,
     getClientAssertion,
     UrlUtils,
+    EMPTY_STRING,
 } from "@azure/msal-common/node";
 import {
     ManagedIdentityConfiguration,
@@ -211,7 +211,7 @@ export class ClientCredentialClient extends BaseClient {
         cacheManager: CacheManager
     ): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
-            homeAccountId: Constants.EMPTY_STRING,
+            homeAccountId: EMPTY_STRING,
             environment:
                 authority.canonicalAuthorityUrlComponents.HostNameAndPort,
             credentialType: CredentialType.ACCESS_TOKEN,

@@ -8,7 +8,6 @@ import {
     LoggerOptions,
     INetworkModule,
     DEFAULT_SYSTEM_OPTIONS,
-    Constants,
     ProtocolMode,
     OIDCOptions,
     ResponseMode,
@@ -22,6 +21,11 @@ import {
     IPerformanceClient,
     StubPerformanceClient,
     Logger,
+    EMPTY_STRING,
+    DEFAULT_AUTHORITY,
+    OPENID_SCOPE,
+    PROFILE_SCOPE,
+    OFFLINE_ACCESS_SCOPE,
 } from "@azure/msal-common/browser";
 import {
     BrowserCacheLocation,
@@ -234,27 +238,23 @@ export function buildConfiguration(
 ): BrowserConfiguration {
     // Default auth options for browser
     const DEFAULT_AUTH_OPTIONS: InternalAuthOptions = {
-        clientId: Constants.EMPTY_STRING,
-        authority: `${Constants.DEFAULT_AUTHORITY}`,
+        clientId: EMPTY_STRING,
+        authority: `${DEFAULT_AUTHORITY}`,
         knownAuthorities: [],
-        cloudDiscoveryMetadata: Constants.EMPTY_STRING,
-        authorityMetadata: Constants.EMPTY_STRING,
+        cloudDiscoveryMetadata: EMPTY_STRING,
+        authorityMetadata: EMPTY_STRING,
         redirectUri:
             typeof window !== "undefined" ? BrowserUtils.getCurrentUri() : "",
-        postLogoutRedirectUri: Constants.EMPTY_STRING,
+        postLogoutRedirectUri: EMPTY_STRING,
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
         OIDCOptions: {
             responseMode: ResponseMode.FRAGMENT,
-            defaultScopes: [
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
-                Constants.OFFLINE_ACCESS_SCOPE,
-            ],
+            defaultScopes: [OPENID_SCOPE, PROFILE_SCOPE, OFFLINE_ACCESS_SCOPE],
         },
         azureCloudOptions: {
             azureCloudInstance: AzureCloudInstance.None,
-            tenant: Constants.EMPTY_STRING,
+            tenant: EMPTY_STRING,
         },
         instanceAware: false,
     };
@@ -307,8 +307,8 @@ export function buildConfiguration(
 
     const DEFAULT_TELEMETRY_OPTIONS: Required<BrowserTelemetryOptions> = {
         application: {
-            appName: Constants.EMPTY_STRING,
-            appVersion: Constants.EMPTY_STRING,
+            appName: EMPTY_STRING,
+            appVersion: EMPTY_STRING,
         },
         client: new StubPerformanceClient(),
     };

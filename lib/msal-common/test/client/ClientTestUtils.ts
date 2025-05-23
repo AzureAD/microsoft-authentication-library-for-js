@@ -29,7 +29,7 @@ import {
     createClientAuthError,
 } from "../../src/error/ClientAuthError.js";
 import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemetryManager.js";
-import { Constants } from "../../src/utils/Constants.js";
+import { SKU } from "../../src/utils/Constants.js";
 import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
 import { TokenKeys } from "../../src/cache/utils/CacheTypes.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
@@ -292,7 +292,7 @@ export class ClientTestUtils {
                 clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
             },
             libraryInfo: {
-                sku: Constants.SKU,
+                sku: SKU,
                 version: TEST_CONFIG.TEST_VERSION,
                 os: TEST_CONFIG.TEST_OS,
                 cpu: TEST_CONFIG.TEST_CPU,

@@ -7,11 +7,11 @@ import {
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants.js";
 import {
     LogLevel,
-    Constants,
     AzureCloudInstance,
     ProtocolMode,
     ResponseMode,
     Logger,
+    DEFAULT_AUTHORITY,
 } from "@azure/msal-common";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants.js";
 
@@ -38,9 +38,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         // Auth config checks
         expect(emptyConfig.auth).not.toBeNull();
         expect(emptyConfig.auth.clientId).toHaveLength(0);
-        expect(emptyConfig.auth.authority).toBe(
-            `${Constants.DEFAULT_AUTHORITY}`
-        );
+        expect(emptyConfig.auth.authority).toBe(`${DEFAULT_AUTHORITY}`);
         expect(emptyConfig.auth.redirectUri).toBeDefined();
         expect(emptyConfig.auth.postLogoutRedirectUri).toBe("");
         expect(emptyConfig.auth.navigateToLoginRequestUrl).toBe(true);

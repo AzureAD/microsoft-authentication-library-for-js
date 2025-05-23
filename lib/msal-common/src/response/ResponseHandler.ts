@@ -27,9 +27,13 @@ import { CacheManager } from "../cache/CacheManager.js";
 import { ProtocolUtils, RequestStateObject } from "../utils/ProtocolUtils.js";
 import {
     AuthenticationScheme,
-    Constants,
     THE_FAMILY_ID,
-    HttpStatus,
+    NOT_AVAILABLE,
+    EMPTY_STRING,
+    HTTP_SERVER_ERROR_RANGE_START,
+    HTTP_SERVER_ERROR_RANGE_END,
+    HTTP_CLIENT_ERROR_RANGE_START,
+    HTTP_CLIENT_ERROR_RANGE_END,
 } from "../utils/Constants.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity.js";
@@ -97,16 +101,14 @@ export class ResponseHandler {
             serverResponse.suberror
         ) {
             const errString = `Error(s): ${
-                serverResponse.error_codes || Constants.NOT_AVAILABLE
+                serverResponse.error_codes || NOT_AVAILABLE
             } - Timestamp: ${
-                serverResponse.timestamp || Constants.NOT_AVAILABLE
+                serverResponse.timestamp || NOT_AVAILABLE
             } - Description: ${
-                serverResponse.error_description || Constants.NOT_AVAILABLE
+                serverResponse.error_description || NOT_AVAILABLE
             } - Correlation ID: ${
-                serverResponse.correlation_id || Constants.NOT_AVAILABLE
-            } - Trace ID: ${
-                serverResponse.trace_id || Constants.NOT_AVAILABLE
-            }`;
+                serverResponse.correlation_id || NOT_AVAILABLE
+            } - Trace ID: ${serverResponse.trace_id || NOT_AVAILABLE}`;
             const serverErrorNo = serverResponse.error_codes?.length
                 ? serverResponse.error_codes[0]
                 : undefined;
@@ -122,8 +124,8 @@ export class ResponseHandler {
             if (
                 refreshAccessToken &&
                 serverResponse.status &&
-                serverResponse.status >= HttpStatus.SERVER_ERROR_RANGE_START &&
-                serverResponse.status <= HttpStatus.SERVER_ERROR_RANGE_END
+                serverResponse.status >= HTTP_SERVER_ERROR_RANGE_START &&
+                serverResponse.status <= HTTP_SERVER_ERROR_RANGE_END
             ) {
                 this.logger.warning(
                     `executeTokenRequest:validateTokenResponse - AAD is currently unavailable and the access token is unable to be refreshed.\n${serverError}`
@@ -135,8 +137,8 @@ export class ResponseHandler {
             } else if (
                 refreshAccessToken &&
                 serverResponse.status &&
-                serverResponse.status >= HttpStatus.CLIENT_ERROR_RANGE_START &&
-                serverResponse.status <= HttpStatus.CLIENT_ERROR_RANGE_END
+                serverResponse.status >= HTTP_CLIENT_ERROR_RANGE_START &&
+                serverResponse.status <= HTTP_CLIENT_ERROR_RANGE_END
             ) {
                 this.logger.warning(
                     `executeTokenRequest:validateTokenResponse - AAD is currently available but is unable to refresh the access token.\n${serverError}`
@@ -157,10 +159,10 @@ export class ResponseHandler {
                     serverResponse.error,
                     serverResponse.error_description,
                     serverResponse.suberror,
-                    serverResponse.timestamp || Constants.EMPTY_STRING,
-                    serverResponse.trace_id || Constants.EMPTY_STRING,
-                    serverResponse.correlation_id || Constants.EMPTY_STRING,
-                    serverResponse.claims || Constants.EMPTY_STRING,
+                    serverResponse.timestamp || EMPTY_STRING,
+                    serverResponse.trace_id || EMPTY_STRING,
+                    serverResponse.correlation_id || EMPTY_STRING,
+                    serverResponse.claims || EMPTY_STRING,
                     serverErrorNo
                 );
             }
@@ -189,7 +191,7 @@ export class ResponseHandler {
         let idTokenClaims: TokenClaims | undefined;
         if (serverTokenResponse.id_token) {
             idTokenClaims = extractTokenClaims(
-                serverTokenResponse.id_token || Constants.EMPTY_STRING,
+                serverTokenResponse.id_token || EMPTY_STRING,
                 this.cryptoObj.base64Decode
             );
 
@@ -217,7 +219,7 @@ export class ResponseHandler {
 
         // generate homeAccountId
         this.homeAccountIdentifier = AccountEntityUtils.generateHomeAccountId(
-            serverTokenResponse.client_info || Constants.EMPTY_STRING,
+            serverTokenResponse.client_info || EMPTY_STRING,
             authority.authorityType,
             this.logger,
             this.cryptoObj,
@@ -490,12 +492,12 @@ export class ResponseHandler {
         serverTokenResponse?: ServerAuthorizationTokenResponse,
         requestId?: string
     ): Promise<AuthenticationResult> {
-        let accessToken: string = Constants.EMPTY_STRING;
+        let accessToken: string = EMPTY_STRING;
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
         let extExpiresOn: Date | undefined;
         let refreshOn: Date | undefined;
-        let familyId: string = Constants.EMPTY_STRING;
+        let familyId: string = EMPTY_STRING;
 
         if (cacheRecord.accessToken) {
             /*
@@ -580,18 +582,13 @@ export class ResponseHandler {
             extExpiresOn: extExpiresOn,
             refreshOn: refreshOn,
             correlationId: request.correlationId,
-            requestId: requestId || Constants.EMPTY_STRING,
+            requestId: requestId || EMPTY_STRING,
             familyId: familyId,
-            tokenType:
-                cacheRecord.accessToken?.tokenType || Constants.EMPTY_STRING,
-            state: requestState
-                ? requestState.userRequestState
-                : Constants.EMPTY_STRING,
+            tokenType: cacheRecord.accessToken?.tokenType || EMPTY_STRING,
+            state: requestState ? requestState.userRequestState : EMPTY_STRING,
             cloudGraphHostName:
-                cacheRecord.account?.cloudGraphHostName ||
-                Constants.EMPTY_STRING,
-            msGraphHost:
-                cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING,
+                cacheRecord.account?.cloudGraphHostName || EMPTY_STRING,
+            msGraphHost: cacheRecord.account?.msGraphHost || EMPTY_STRING,
             code: serverTokenResponse?.spa_code,
             fromNativeBroker: false,
         };

@@ -32,7 +32,6 @@ import {
     ClientAuthErrorCodes,
     CommonAuthorizationUrlRequest,
     CommonSilentFlowRequest,
-    Constants,
     createClientAuthError,
     createInteractionRequiredAuthError,
     IdTokenEntity,
@@ -52,6 +51,8 @@ import {
     TokenClaims,
     StubPerformanceClient,
     AccountEntityUtils,
+    DEFAULT_AUTHORITY,
+    CACHE_PREFIX,
 } from "@azure/msal-common/browser";
 import {
     ApiId,
@@ -179,7 +180,7 @@ function stubDOMProvider(config: Configuration) {
 const testRequest: CommonAuthorizationUrlRequest = {
     redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
     scopes: TEST_CONFIG.DEFAULT_SCOPES,
-    authority: `${Constants.DEFAULT_AUTHORITY}`,
+    authority: `${DEFAULT_AUTHORITY}`,
     correlationId: RANDOM_TEST_GUID,
     authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
     responseMode: ResponseMode.FRAGMENT,
@@ -1193,15 +1194,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 TEST_URIS.TEST_REDIR_URI
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
+                `${CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
             );
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 JSON.stringify({
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     type: INTERACTION_TYPE.SIGNIN,
@@ -1359,7 +1360,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 JSON.stringify({
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     type: INTERACTION_TYPE.SIGNIN,
@@ -1403,7 +1404,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 JSON.stringify({
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     type: INTERACTION_TYPE.SIGNOUT,
@@ -1426,7 +1427,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             window.sessionStorage.setItem(
-                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 JSON.stringify({
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     type: INTERACTION_TYPE.SIGNIN,
@@ -1478,7 +1479,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const request: CommonAuthorizationUrlRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                authority: `${DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
@@ -4739,7 +4740,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const expectedTokenRequest: CommonSilentFlowRequest = {
                 ...tokenRequest,
                 scopes: ["User.Read"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                authority: `${DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
@@ -4841,7 +4842,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const expectedTokenRequest1: CommonSilentFlowRequest = {
                 ...tokenRequest1,
                 scopes: ["User.Read"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                authority: `${DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
@@ -4856,7 +4857,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const expectedTokenRequest2: CommonSilentFlowRequest = {
                 ...tokenRequest1,
                 scopes: ["Mail.Read"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                authority: `${DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
@@ -4886,7 +4887,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const expectedPopTokenRequest1: CommonSilentFlowRequest = {
                 ...popTokenRequest1,
                 scopes: ["User.Read"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                authority: `${DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
@@ -4894,7 +4895,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const expectedPopTokenRequest2: CommonSilentFlowRequest = {
                 ...popTokenRequest2,
                 scopes: ["Mail.Read"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                authority: `${DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
@@ -4925,7 +4926,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const expectedSshCertificateRequest1: CommonSilentFlowRequest = {
                 ...sshCertRequest1,
                 scopes: ["User.Read"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                authority: `${DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
@@ -4933,7 +4934,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const expectedSshCertificateRequest2: CommonSilentFlowRequest = {
                 ...sshCertRequest2,
                 scopes: ["Mail.Read"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                authority: `${DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
@@ -5487,7 +5488,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
                 correlationId: RANDOM_TEST_GUID,
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                authority: `${DEFAULT_AUTHORITY}`,
                 prompt: "none",
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 state: TEST_STATE_VALUES.TEST_STATE_SILENT,

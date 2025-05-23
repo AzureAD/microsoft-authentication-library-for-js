@@ -3,7 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { CacheAccountType, Separators } from "../../utils/Constants.js";
+import {
+    CACHE_ACCOUNT_TYPE_ADFS,
+    CACHE_ACCOUNT_TYPE_GENERIC,
+    CACHE_ACCOUNT_TYPE_MSSTS,
+    CACHE_KEY_SEPARATOR,
+} from "../../utils/Constants.js";
 import { Authority } from "../../authority/Authority.js";
 import { ICrypto } from "../../crypto/ICrypto.js";
 import { ClientInfo, buildClientInfo } from "../../account/ClientInfo.js";
@@ -33,7 +38,7 @@ export function generateAccountId(accountEntity: AccountEntity): string {
         accountEntity.homeAccountId,
         accountEntity.environment,
     ];
-    return accountId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    return accountId.join(CACHE_KEY_SEPARATOR).toLowerCase();
 }
 
 /**
@@ -90,7 +95,7 @@ export function generateAccountCacheKey(accountInterface: AccountInfo): string {
         homeTenantId || accountInterface.tenantId || "",
     ];
 
-    return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+    return accountKey.join(CACHE_KEY_SEPARATOR).toLowerCase();
 }
 
 /**
@@ -113,11 +118,11 @@ export function createAccountEntity(
 ): AccountEntity {
     let authorityType;
     if (authority.authorityType === AuthorityType.Adfs) {
-        authorityType = CacheAccountType.ADFS_ACCOUNT_TYPE;
+        authorityType = CACHE_ACCOUNT_TYPE_ADFS;
     } else if (authority.protocolMode === ProtocolMode.OIDC) {
-        authorityType = CacheAccountType.GENERIC_ACCOUNT_TYPE;
+        authorityType = CACHE_ACCOUNT_TYPE_GENERIC;
     } else {
-        authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
+        authorityType = CACHE_ACCOUNT_TYPE_MSSTS;
     }
 
     let clientInfo: ClientInfo | undefined;
@@ -204,8 +209,7 @@ export function createAccountEntityFromAccountInfo(
     msGraphHost?: string
 ): AccountEntity {
     return {
-        authorityType:
-            accountInfo.authorityType || CacheAccountType.GENERIC_ACCOUNT_TYPE,
+        authorityType: accountInfo.authorityType || CACHE_ACCOUNT_TYPE_GENERIC,
         homeAccountId: accountInfo.homeAccountId,
         localAccountId: accountInfo.localAccountId,
         nativeAccountId: accountInfo.nativeAccountId,

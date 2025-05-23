@@ -8,7 +8,6 @@ import {
     UrlString,
     AuthError,
     ServerTelemetryManager,
-    Constants,
     AuthorizeResponse,
     ICrypto,
     Logger,
@@ -20,6 +19,7 @@ import {
     UrlUtils,
     InProgressPerformanceEvent,
     CommonAuthorizationUrlRequest,
+    EMPTY_STRING,
 } from "@azure/msal-common/browser";
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import {
@@ -321,7 +321,7 @@ export class RedirectClient extends StandardInteractionClient {
                 this.browserStorage.getTemporaryCache(
                     TemporaryCacheKeys.ORIGIN_URI,
                     true
-                ) || Constants.EMPTY_STRING;
+                ) || EMPTY_STRING;
             const loginRequestUrlNormalized =
                 UrlString.removeHashFromUrl(loginRequestUrl);
             const currentUrlNormalized = UrlString.removeHashFromUrl(

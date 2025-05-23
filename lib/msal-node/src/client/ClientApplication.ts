@@ -28,7 +28,6 @@ import {
     AuthError,
     AzureCloudOptions,
     AuthorizationCodePayload,
-    Constants,
     createClientAuthError,
     ClientAuthErrorCodes,
     buildStaticAuthorityOptions,
@@ -37,6 +36,7 @@ import {
     ClientAssertionCallback,
     CacheOutcome,
     ClientAuthError,
+    EMPTY_STRING,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -525,8 +525,8 @@ export abstract class ClientApplication {
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
                 version: version,
-                cpu: process.arch || Constants.EMPTY_STRING,
-                os: process.platform || Constants.EMPTY_STRING,
+                cpu: process.arch || EMPTY_STRING,
+                os: process.platform || EMPTY_STRING,
             },
             telemetry: this.config.telemetry,
             persistencePlugin: this.config.cache.cachePlugin,

@@ -16,12 +16,13 @@ import {
     CacheHelpers,
     CacheManager,
     CacheRecord,
+    CACHE_PREFIX,
     ClientAuthErrorCodes,
     CommonAuthorizationUrlRequest,
-    Constants,
     createClientAuthError,
     CredentialType,
     DEFAULT_CRYPTO_IMPLEMENTATION,
+    EMPTY_STRING,
     ICrypto,
     IdTokenEntity,
     invokeAsync,
@@ -784,10 +785,10 @@ export class BrowserCacheManager extends CacheManager {
     getWrapperMetadata(): [string, string] {
         const sku =
             this.internalStorage.getItem(InMemoryCacheKeys.WRAPPER_SKU) ||
-            Constants.EMPTY_STRING;
+            EMPTY_STRING;
         const version =
             this.internalStorage.getItem(InMemoryCacheKeys.WRAPPER_VER) ||
-            Constants.EMPTY_STRING;
+            EMPTY_STRING;
         return [sku, version];
     }
 
@@ -990,7 +991,7 @@ export class BrowserCacheManager extends CacheManager {
         // Remove temp storage first to make sure any cookies are cleared
         this.temporaryCacheStorage.getKeys().forEach((cacheKey: string) => {
             if (
-                cacheKey.indexOf(Constants.CACHE_PREFIX) !== -1 ||
+                cacheKey.indexOf(CACHE_PREFIX) !== -1 ||
                 cacheKey.indexOf(this.clientId) !== -1
             ) {
                 this.removeTemporaryItem(cacheKey);
@@ -1000,7 +1001,7 @@ export class BrowserCacheManager extends CacheManager {
         // Removes all remaining MSAL cache items
         this.browserStorage.getKeys().forEach((cacheKey: string) => {
             if (
-                cacheKey.indexOf(Constants.CACHE_PREFIX) !== -1 ||
+                cacheKey.indexOf(CACHE_PREFIX) !== -1 ||
                 cacheKey.indexOf(this.clientId) !== -1
             ) {
                 this.browserStorage.removeItem(cacheKey);
@@ -1048,10 +1049,10 @@ export class BrowserCacheManager extends CacheManager {
     generateCacheKey(key: string): string {
         const generatedKey = this.validateAndParseJson(key);
         if (!generatedKey) {
-            if (StringUtils.startsWith(key, Constants.CACHE_PREFIX)) {
+            if (StringUtils.startsWith(key, CACHE_PREFIX)) {
                 return key;
             }
-            return `${Constants.CACHE_PREFIX}.${this.clientId}.${key}`;
+            return `${CACHE_PREFIX}.${this.clientId}.${key}`;
         }
 
         return JSON.stringify(key);
@@ -1188,7 +1189,7 @@ export class BrowserCacheManager extends CacheManager {
         clientId: string;
         type: INTERACTION_TYPE;
     } | null {
-        const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
+        const key = `${CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         const value = this.getTemporaryCache(key, false);
         try {
             return value ? JSON.parse(value) : null;
@@ -1209,7 +1210,7 @@ export class BrowserCacheManager extends CacheManager {
         type: INTERACTION_TYPE = INTERACTION_TYPE.SIGNIN
     ): void {
         // Ensure we don't overwrite interaction in progress for a different clientId
-        const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
+        const key = `${CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         if (inProgress) {
             if (this.getInteractionInProgress()) {
                 throw createBrowserAuthError(

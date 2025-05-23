@@ -9,10 +9,10 @@ import {
     ClientAuthErrorCodes,
     ClientConfiguration,
     CommonDeviceCodeRequest,
-    Constants,
     GrantType,
     createAuthError,
     createClientAuthError,
+    DEFAULT_AUTHORITY,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -193,7 +193,7 @@ describe("DeviceCodeClient unit tests", () => {
         it("Adds claims to request", async () => {
             let deviceCodeResponse = null;
             const request: CommonDeviceCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -241,7 +241,7 @@ describe("DeviceCodeClient unit tests", () => {
         it("Does not add claims to request if empty object passed", async () => {
             let deviceCodeResponse = null;
             const request: CommonDeviceCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
+                authority: DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,

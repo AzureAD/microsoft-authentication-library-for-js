@@ -9,12 +9,13 @@ import {
     LogLevel,
     ProtocolMode,
     ICachePlugin,
-    Constants,
     AzureCloudInstance,
     AzureCloudOptions,
     ApplicationTelemetry,
     INativeBrokerPlugin,
     ClientAssertionCallback,
+    EMPTY_STRING,
+    DEFAULT_AUTHORITY,
 } from "@azure/msal-common/node";
 import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
@@ -128,23 +129,23 @@ export type ManagedIdentityConfiguration = {
 };
 
 const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
-    clientId: Constants.EMPTY_STRING,
-    authority: Constants.DEFAULT_AUTHORITY,
-    clientSecret: Constants.EMPTY_STRING,
-    clientAssertion: Constants.EMPTY_STRING,
+    clientId: EMPTY_STRING,
+    authority: DEFAULT_AUTHORITY,
+    clientSecret: EMPTY_STRING,
+    clientAssertion: EMPTY_STRING,
     clientCertificate: {
-        thumbprint: Constants.EMPTY_STRING,
-        thumbprintSha256: Constants.EMPTY_STRING,
-        privateKey: Constants.EMPTY_STRING,
-        x5c: Constants.EMPTY_STRING,
+        thumbprint: EMPTY_STRING,
+        thumbprintSha256: EMPTY_STRING,
+        privateKey: EMPTY_STRING,
+        x5c: EMPTY_STRING,
     },
     knownAuthorities: [],
-    cloudDiscoveryMetadata: Constants.EMPTY_STRING,
-    authorityMetadata: Constants.EMPTY_STRING,
+    cloudDiscoveryMetadata: EMPTY_STRING,
+    authorityMetadata: EMPTY_STRING,
     clientCapabilities: [],
     azureCloudOptions: {
         azureCloudInstance: AzureCloudInstance.None,
-        tenant: Constants.EMPTY_STRING,
+        tenant: EMPTY_STRING,
     },
 };
 
@@ -159,7 +160,7 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
 const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: new HttpClient(),
-    proxyUrl: Constants.EMPTY_STRING,
+    proxyUrl: EMPTY_STRING,
     customAgentOptions: {} as http.AgentOptions | https.AgentOptions,
     disableInternalRetries: false,
     protocolMode: ProtocolMode.AAD,
@@ -167,8 +168,8 @@ const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
     application: {
-        appName: Constants.EMPTY_STRING,
-        appVersion: Constants.EMPTY_STRING,
+        appName: EMPTY_STRING,
+        appVersion: EMPTY_STRING,
     },
 };
 

@@ -8,7 +8,6 @@ import {
     ICrypto,
     PromptValue,
     AuthToken,
-    Constants,
     AccountEntity,
     AuthorityType,
     ScopeSet,
@@ -36,6 +35,8 @@ import {
     InProgressPerformanceEvent,
     ServerTelemetryManager,
     AccountEntityUtils,
+    EMPTY_STRING,
+    SHR_NONCE_VALIDITY,
 } from "@azure/msal-common/browser";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -538,7 +539,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     ): string {
         // Save account in browser storage
         const homeAccountIdentifier = AccountEntityUtils.generateHomeAccountId(
-            response.client_info || Constants.EMPTY_STRING,
+            response.client_info || EMPTY_STRING,
             AuthorityType.Default,
             this.logger,
             this.browserCrypto,
@@ -648,11 +649,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             accountProperties["UID"] ||
             idTokenClaims.oid ||
             idTokenClaims.sub ||
-            Constants.EMPTY_STRING;
+            EMPTY_STRING;
         const tid =
-            accountProperties["TenantId"] ||
-            idTokenClaims.tid ||
-            Constants.EMPTY_STRING;
+            accountProperties["TenantId"] || idTokenClaims.tid || EMPTY_STRING;
 
         const accountInfo: AccountInfo | null = updateAccountTenantProfileData(
             AccountEntityUtils.getAccountInfo(accountEntity),
@@ -749,7 +748,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         // cache accessToken in inmemory storage
         const expiresIn: number =
             request.tokenType === AuthenticationScheme.POP
-                ? Constants.SHR_NONCE_VALIDITY
+                ? SHR_NONCE_VALIDITY
                 : (typeof response.expires_in === "string"
                       ? parseInt(response.expires_in, 10)
                       : response.expires_in) || 0;
@@ -793,7 +792,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         expiresIn: string | number | undefined
     ): number {
         return tokenType === AuthenticationScheme.POP
-            ? Constants.SHR_NONCE_VALIDITY
+            ? SHR_NONCE_VALIDITY
             : (typeof expiresIn === "string"
                   ? parseInt(expiresIn, 10)
                   : expiresIn) || 0;

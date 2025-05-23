@@ -1,8 +1,11 @@
 import { ScopeSet } from "../../src/request/ScopeSet.js";
 import {
+    EMAIL_SCOPE,
+    OFFLINE_ACCESS_SCOPE,
     OIDC_DEFAULT_SCOPES,
     OIDC_SCOPES,
-    Constants,
+    OPENID_SCOPE,
+    PROFILE_SCOPE,
 } from "../../src/utils/Constants.js";
 import {
     ClientConfigurationErrorCodes,
@@ -138,7 +141,7 @@ describe("ScopeSet.ts", () => {
         });
 
         it("containsScope() checks if a given scope is present in the set of scopes", () => {
-            expect(scopes.containsScope(Constants.OPENID_SCOPE)).toBe(false);
+            expect(scopes.containsScope(OPENID_SCOPE)).toBe(false);
             expect(scopes.containsScope("notinset")).toBe(false);
             expect(scopes.containsScope(testScope)).toBe(true);
         });
@@ -252,13 +255,10 @@ describe("ScopeSet.ts", () => {
         it("appendScopes() does not add duplicate scopes", () => {
             const unchangedScopes = new ScopeSet([
                 testScope,
-                Constants.OFFLINE_ACCESS_SCOPE,
+                OFFLINE_ACCESS_SCOPE,
             ]);
             const scopeArr = unchangedScopes.asArray();
-            unchangedScopes.appendScopes([
-                testScope,
-                Constants.OFFLINE_ACCESS_SCOPE,
-            ]);
+            unchangedScopes.appendScopes([testScope, OFFLINE_ACCESS_SCOPE]);
             expect(unchangedScopes.asArray()).toEqual(scopeArr);
         });
 
@@ -302,7 +302,7 @@ describe("ScopeSet.ts", () => {
             const testScope2 = "testScope2";
             const testScope3 = "testScope3";
             const newScopeSet = new ScopeSet([testScope2, testScope3]);
-            newScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
+            newScopeSet.removeScope(OFFLINE_ACCESS_SCOPE);
 
             const unionSet = newScopeSet.unionScopeSets(scopes);
             const unionArray = Array.from(unionSet);
@@ -340,7 +340,7 @@ describe("ScopeSet.ts", () => {
             const testScope2 = "testScope2";
             const testScope3 = "testScope3";
             const newScopeSet = new ScopeSet([testScope2, testScope3]);
-            newScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
+            newScopeSet.removeScope(OFFLINE_ACCESS_SCOPE);
 
             expect(newScopeSet.intersectingScopeSets(scopes)).toBe(false);
         });
@@ -359,9 +359,9 @@ describe("ScopeSet.ts", () => {
             expect(scopeset1.intersectingScopeSets(scopeset2)).toBe(false);
 
             const scopeset3 = new ScopeSet([
-                Constants.OPENID_SCOPE,
-                Constants.PROFILE_SCOPE,
-                Constants.EMAIL_SCOPE,
+                OPENID_SCOPE,
+                PROFILE_SCOPE,
+                EMAIL_SCOPE,
                 testScope,
             ]);
             const scopeset4 = new ScopeSet([...OIDC_DEFAULT_SCOPES, testScope]);
@@ -413,7 +413,7 @@ describe("ScopeSet.ts", () => {
 
         it("printScopes() prints empty string if ScopeSet is empty", () => {
             requiredScopeSet.removeScope(testScope);
-            requiredScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
+            requiredScopeSet.removeScope(OFFLINE_ACCESS_SCOPE);
             expect(requiredScopeSet.printScopes()).toBe("");
         });
 

@@ -4,9 +4,9 @@
  */
 
 import {
-    Constants as CommonConstants,
     AuthorizeResponse,
-    HttpStatus,
+    FORWARD_SLASH,
+    HTTP_REDIRECT,
     UrlUtils,
 } from "@azure/msal-common/node";
 import http from "http";
@@ -44,7 +44,7 @@ export class LoopbackClient implements ILoopbackClient {
                             NodeAuthError.createUnableToLoadRedirectUrlError()
                         );
                         return;
-                    } else if (url === CommonConstants.FORWARD_SLASH) {
+                    } else if (url === FORWARD_SLASH) {
                         res.end(
                             successTemplate ||
                                 "Auth code was successfully acquired. You can close this window now."
@@ -58,7 +58,7 @@ export class LoopbackClient implements ILoopbackClient {
                         UrlUtils.getDeserializedResponse(parsedUrl.search) ||
                         {};
                     if (authCodeResponse.code) {
-                        res.writeHead(HttpStatus.REDIRECT, {
+                        res.writeHead(HTTP_REDIRECT, {
                             location: redirectUri,
                         }); // Prevent auth code from being saved in the browser history
                         res.end();

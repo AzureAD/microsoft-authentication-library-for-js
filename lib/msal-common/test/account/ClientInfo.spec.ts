@@ -15,7 +15,7 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../../src/error/ClientAuthError";
-import { Constants } from "../../src";
+import { EMPTY_STRING } from "../../src/utils/Constants.js";
 
 describe("ClientInfo.ts Class Unit Tests", () => {
     describe("buildClientInfo()", () => {
@@ -137,7 +137,7 @@ describe("ClientInfo.ts Class Unit Tests", () => {
         it("Builds partial clientInfo from homeAccountId with only single string", () => {
             const expectedClientInfo: ClientInfo = {
                 uid: TEST_DATA_CLIENT_INFO.TEST_UID,
-                utid: Constants.EMPTY_STRING,
+                utid: EMPTY_STRING,
             };
             expect(
                 buildClientInfoFromHomeAccountId(TEST_DATA_CLIENT_INFO.TEST_UID)

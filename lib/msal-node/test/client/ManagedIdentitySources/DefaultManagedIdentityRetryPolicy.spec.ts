@@ -20,7 +20,7 @@ import {
 } from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
     AuthenticationResult,
-    HttpStatus,
+    HTTP_BAD_REQUEST,
     ServerError,
 } from "@azure/msal-common";
 import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient.js";
@@ -78,7 +78,7 @@ describe("Linear Retry Policy (App Service, Azure Arc, Cloud Shell, Machine Lear
         new ManagedIdentityNetworkErrorClient(
             MANAGED_IDENTITY_SERVICE_FABRIC_NETWORK_REQUEST_400_ERROR,
             undefined,
-            HttpStatus.BAD_REQUEST
+            HTTP_BAD_REQUEST
         );
 
     describe("User Assigned", () => {

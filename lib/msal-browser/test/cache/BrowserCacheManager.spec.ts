@@ -15,7 +15,6 @@ import {
 } from "../utils/StringConstants.js";
 import { CacheOptions } from "../../src/config/Configuration.js";
 import {
-    Constants,
     CommonAuthorizationCodeRequest as AuthorizationCodeRequest,
     Logger,
     LogLevel,
@@ -35,6 +34,11 @@ import {
     CommonAuthorizationUrlRequest,
     ResponseMode,
     AccountEntityUtils,
+    DEFAULT_AUTHORITY_HOST,
+    CACHE_PREFIX,
+    OPENID_SCOPE,
+    PROFILE_SCOPE,
+    DEFAULT_AUTHORITY,
 } from "@azure/msal-common";
 import {
     BrowserCacheLocation,
@@ -1269,12 +1273,12 @@ describe("BrowserCacheManager tests", () => {
             });
 
             describe("AuthorityMetadata", () => {
-                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
+                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${DEFAULT_AUTHORITY_HOST}`;
                 const testObj: AuthorityMetadataEntity = {
-                    aliases: [Constants.DEFAULT_AUTHORITY_HOST],
-                    preferred_cache: Constants.DEFAULT_AUTHORITY_HOST,
-                    preferred_network: Constants.DEFAULT_AUTHORITY_HOST,
-                    canonical_authority: Constants.DEFAULT_AUTHORITY,
+                    aliases: [DEFAULT_AUTHORITY_HOST],
+                    preferred_cache: DEFAULT_AUTHORITY_HOST,
+                    preferred_network: DEFAULT_AUTHORITY_HOST,
+                    canonical_authority: DEFAULT_AUTHORITY_HOST,
                     authorization_endpoint:
                         //@ts-ignore
                         DEFAULT_OPENID_CONFIG_RESPONSE.body
@@ -1587,7 +1591,7 @@ describe("BrowserCacheManager tests", () => {
                     );
 
                     cacheManager.setTemporaryCache(
-                        `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                        `${CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                         TEST_CONFIG.MSAL_CLIENT_ID
                     );
                     expect(cacheManager.getInteractionInProgress()).toBeNull();
@@ -1609,7 +1613,7 @@ describe("BrowserCacheManager tests", () => {
                     );
 
                     cacheManager.setTemporaryCache(
-                        `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                        `${CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                         TEST_CONFIG.MSAL_CLIENT_ID
                     );
                     // @ts-ignore
@@ -1642,12 +1646,12 @@ describe("BrowserCacheManager tests", () => {
                 new StubPerformanceClient(),
                 new EventHandler()
             );
-            const requestParamsKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`;
+            const requestParamsKey = `${CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`;
             window.sessionStorage.setItem(
                 requestParamsKey,
                 "TestRequestParams"
             );
-            const originUriKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`;
+            const originUriKey = `${CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`;
             window.sessionStorage.setItem(
                 originUriKey,
                 TEST_URIS.TEST_REDIR_URI
@@ -1677,8 +1681,8 @@ describe("BrowserCacheManager tests", () => {
             );
             const tokenRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
-                scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                scopes: [OPENID_SCOPE, PROFILE_SCOPE],
+                authority: `${DEFAULT_AUTHORITY}/`,
                 correlationId: `${RANDOM_TEST_GUID}`,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 responseMode: ResponseMode.FRAGMENT,
@@ -1731,10 +1735,10 @@ describe("BrowserCacheManager tests", () => {
             );
             const tokenRequest: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
-                scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
+                scopes: [OPENID_SCOPE, PROFILE_SCOPE],
                 code: "thisIsAnAuthCode",
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                authority: `${DEFAULT_AUTHORITY}/`,
                 correlationId: `${RANDOM_TEST_GUID}`,
                 authenticationScheme: AuthenticationScheme.BEARER,
             };

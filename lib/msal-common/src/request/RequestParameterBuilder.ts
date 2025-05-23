@@ -10,9 +10,9 @@ import {
     ClaimsRequestKeys,
     PasswordGrantConstants,
     OIDC_DEFAULT_SCOPES,
-    ThrottlingConstants,
     HeaderNames,
     OAuthResponseType,
+    X_MS_LIB_CAPABILITY_VALUE,
 } from "../utils/Constants.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import { ScopeSet } from "./ScopeSet.js";
@@ -587,7 +587,7 @@ export function addServerTelemetry(
 export function addThrottling(parameters: Map<string, string>): void {
     parameters.set(
         AADServerParamKeys.X_MS_LIB_CAPABILITY,
-        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+        X_MS_LIB_CAPABILITY_VALUE
     );
 }
 

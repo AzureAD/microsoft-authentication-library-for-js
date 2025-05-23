@@ -17,9 +17,9 @@ import {
     CredentialType,
     APP_METADATA,
     THE_FAMILY_ID,
-    AUTHORITY_METADATA_CONSTANTS,
     AuthenticationScheme,
-    Separators,
+    AUTHORITY_METADATA_CACHE_KEY,
+    CACHE_KEY_SEPARATOR,
 } from "../utils/Constants.js";
 import { CredentialEntity } from "./entities/CredentialEntity.js";
 import { generateCredentialKey } from "./utils/CacheHelpers.js";
@@ -721,7 +721,7 @@ export abstract class CacheManager implements ICacheManager {
         homeAccountId?: string,
         tenantId?: string
     ): boolean {
-        if (key.split(Separators.CACHE_KEY_SEPARATOR).length < 3) {
+        if (key.split(CACHE_KEY_SEPARATOR).length < 3) {
             // Account cache keys contain 3 items separated by '-' (each item may also contain '-')
             return false;
         }
@@ -747,7 +747,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param key
      */
     isCredentialKey(key: string): boolean {
-        if (key.split(Separators.CACHE_KEY_SEPARATOR).length < 6) {
+        if (key.split(CACHE_KEY_SEPARATOR).length < 6) {
             // Credential cache keys contain 6 items separated by '-' (each item may also contain '-')
             return false;
         }
@@ -773,8 +773,8 @@ export abstract class CacheManager implements ICacheManager {
             -1
         ) {
             // Refresh tokens must contain the client id or family id
-            const clientIdValidation = `${CredentialType.REFRESH_TOKEN}${Separators.CACHE_KEY_SEPARATOR}${this.clientId}${Separators.CACHE_KEY_SEPARATOR}`;
-            const familyIdValidation = `${CredentialType.REFRESH_TOKEN}${Separators.CACHE_KEY_SEPARATOR}${THE_FAMILY_ID}${Separators.CACHE_KEY_SEPARATOR}`;
+            const clientIdValidation = `${CredentialType.REFRESH_TOKEN}${CACHE_KEY_SEPARATOR}${this.clientId}${CACHE_KEY_SEPARATOR}`;
+            const familyIdValidation = `${CredentialType.REFRESH_TOKEN}${CACHE_KEY_SEPARATOR}${THE_FAMILY_ID}${CACHE_KEY_SEPARATOR}`;
             if (
                 lowerCaseKey.indexOf(clientIdValidation.toLowerCase()) === -1 &&
                 lowerCaseKey.indexOf(familyIdValidation.toLowerCase()) === -1
@@ -1835,14 +1835,14 @@ export abstract class CacheManager implements ICacheManager {
      * @param key
      */
     protected isAuthorityMetadata(key: string): boolean {
-        return key.indexOf(AUTHORITY_METADATA_CONSTANTS.CACHE_KEY) !== -1;
+        return key.indexOf(AUTHORITY_METADATA_CACHE_KEY) !== -1;
     }
 
     /**
      * returns cache key used for cloud instance metadata
      */
     generateAuthorityMetadataCacheKey(authority: string): string {
-        return `${AUTHORITY_METADATA_CONSTANTS.CACHE_KEY}-${this.clientId}-${authority}`;
+        return `${AUTHORITY_METADATA_CACHE_KEY}-${this.clientId}-${authority}`;
     }
 
     /**

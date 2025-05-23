@@ -7,7 +7,7 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
 } from "../error/ClientAuthError.js";
-import { Separators, Constants } from "../utils/Constants.js";
+import { CLIENT_INFO_SEPARATOR, EMPTY_STRING } from "../utils/Constants.js";
 
 /**
  * Client info object which consists of two IDs. Need to add more info here.
@@ -53,14 +53,11 @@ export function buildClientInfoFromHomeAccountId(
         );
     }
     const clientInfoParts: string[] = homeAccountId.split(
-        Separators.CLIENT_INFO_SEPARATOR,
+        CLIENT_INFO_SEPARATOR,
         2
     );
     return {
         uid: clientInfoParts[0],
-        utid:
-            clientInfoParts.length < 2
-                ? Constants.EMPTY_STRING
-                : clientInfoParts[1],
+        utid: clientInfoParts.length < 2 ? EMPTY_STRING : clientInfoParts[1],
     };
 }

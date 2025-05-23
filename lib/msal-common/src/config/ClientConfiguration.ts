@@ -7,8 +7,10 @@ import { INetworkModule } from "../network/INetworkModule.js";
 import { DEFAULT_CRYPTO_IMPLEMENTATION, ICrypto } from "../crypto/ICrypto.js";
 import { ILoggerCallback, Logger, LogLevel } from "../logger/Logger.js";
 import {
-    Constants,
+    DEFAULT_COMMON_TENANT,
     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
+    EMPTY_STRING,
+    SKU,
 } from "../utils/Constants.js";
 import { version } from "../packageMetadata.js";
 import type { Authority } from "../authority/Authority.js";
@@ -162,7 +164,7 @@ const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,
-    correlationId: Constants.EMPTY_STRING,
+    correlationId: EMPTY_STRING,
 };
 
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
@@ -175,20 +177,20 @@ const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
 };
 
 const DEFAULT_LIBRARY_INFO: LibraryInfo = {
-    sku: Constants.SKU,
+    sku: SKU,
     version: version,
-    cpu: Constants.EMPTY_STRING,
-    os: Constants.EMPTY_STRING,
+    cpu: EMPTY_STRING,
+    os: EMPTY_STRING,
 };
 
 const DEFAULT_CLIENT_CREDENTIALS: ClientCredentials = {
-    clientSecret: Constants.EMPTY_STRING,
+    clientSecret: EMPTY_STRING,
     clientAssertion: undefined,
 };
 
 const DEFAULT_AZURE_CLOUD_OPTIONS: AzureCloudOptions = {
     azureCloudInstance: AzureCloudInstance.None,
-    tenant: `${Constants.DEFAULT_COMMON_TENANT}`,
+    tenant: `${DEFAULT_COMMON_TENANT}`,
 };
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<TelemetryOptions> = {

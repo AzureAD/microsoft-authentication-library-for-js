@@ -11,8 +11,8 @@ import * as UrlUtils from "../utils/UrlUtils.js";
 import {
     GrantType,
     AuthenticationScheme,
-    Separators,
     HeaderNames,
+    CLIENT_INFO_SEPARATOR,
 } from "../utils/Constants.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import {
@@ -178,7 +178,7 @@ export class AuthorizationCodeClient extends BaseClient {
                     this.cryptoUtils.base64Decode
                 );
                 ccsCredential = {
-                    credential: `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
+                    credential: `${clientInfo.uid}${CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 };
             } catch (e) {
@@ -356,7 +356,7 @@ export class AuthorizationCodeClient extends BaseClient {
                     this.cryptoUtils.base64Decode
                 );
                 ccsCred = {
-                    credential: `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
+                    credential: `${clientInfo.uid}${CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 };
             } catch (e) {

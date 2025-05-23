@@ -1,9 +1,10 @@
 import { FetchClient } from "../../src/network/FetchClient";
 import { HTTP_REQUEST_TYPE } from "../../src/utils/BrowserConstants";
 import {
-    Constants,
+    DEFAULT_AUTHORITY,
     NetworkError,
     NetworkRequestOptions,
+    URL_FORM_CONTENT_TYPE,
 } from "@azure/msal-common";
 import { BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
 
@@ -39,7 +40,7 @@ describe("FetchClient.ts Unit Tests", () => {
 
     describe("Get requests", () => {
         it("sends a get request as expected", (done) => {
-            const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
+            const targetUri = `${DEFAULT_AUTHORITY}/`;
             global["fetch"] = jest
                 .fn()
                 .mockImplementation(
@@ -57,7 +58,7 @@ describe("FetchClient.ts Unit Tests", () => {
 
     describe("Post requests", () => {
         it("sends a post request as expected", (done) => {
-            const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
+            const targetUri = `${DEFAULT_AUTHORITY}/`;
             const requestOptions: NetworkRequestOptions = {
                 body: "thisIsAPostBody",
             };
@@ -79,9 +80,9 @@ describe("FetchClient.ts Unit Tests", () => {
         });
 
         it("sends headers with the requests", (done) => {
-            const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
+            const targetUri = `${DEFAULT_AUTHORITY}/`;
             const reqHeaders: Record<string, string> = {
-                "Content-Type": Constants.URL_FORM_CONTENT_TYPE,
+                "Content-Type": URL_FORM_CONTENT_TYPE,
             };
             const requestOptions: NetworkRequestOptions = {
                 body: "thisIsAPostBody",
@@ -116,7 +117,7 @@ describe("FetchClient.ts Unit Tests", () => {
 
     describe("sendRequestAsync", () => {
         it("throws error if fetch post returns non-200 status", (done) => {
-            const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
+            const targetUri = `${DEFAULT_AUTHORITY}/`;
             const requestOptions: NetworkRequestOptions = {
                 body: "thisIsAPostBody",
             };
@@ -147,7 +148,7 @@ describe("FetchClient.ts Unit Tests", () => {
         });
 
         it("throws error if fetch get returns non-200 status", (done) => {
-            const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
+            const targetUri = `${DEFAULT_AUTHORITY}/`;
             global["fetch"] = jest
                 .fn()
                 .mockImplementation(
@@ -169,7 +170,7 @@ describe("FetchClient.ts Unit Tests", () => {
         });
 
         it("throws error if fetch request cannot parse response", (done) => {
-            const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
+            const targetUri = `${DEFAULT_AUTHORITY}/`;
             const requestOptions: NetworkRequestOptions = {
                 body: "thisIsAPostBody",
             };
@@ -203,7 +204,7 @@ describe("FetchClient.ts Unit Tests", () => {
         });
 
         it("throws error if fetch errors and network is unavailable", (done) => {
-            const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
+            const targetUri = `${DEFAULT_AUTHORITY}/`;
             const requestOptions: NetworkRequestOptions = {
                 body: "thisIsAPostBody",
             };

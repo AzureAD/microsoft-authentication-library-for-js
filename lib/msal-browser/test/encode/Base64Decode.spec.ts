@@ -1,5 +1,10 @@
 import { base64Decode } from "../../src/encode/Base64Decode";
-import { IdTokenClaims, Constants } from "@azure/msal-common";
+import {
+    DEFAULT_AUTHORITY,
+    IdTokenClaims,
+    OPENID_SCOPE,
+    PROFILE_SCOPE,
+} from "@azure/msal-common";
 import {
     TEST_DATA_CLIENT_INFO,
     TEST_URIS,
@@ -84,10 +89,10 @@ describe("Base64Decode.ts Unit Tests", () => {
             // Request object B64
             const tokenRequest: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
-                scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
+                scopes: [OPENID_SCOPE, PROFILE_SCOPE],
                 code: "thisIsAnAuthCode",
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                authority: `${DEFAULT_AUTHORITY}/`,
                 correlationId: `${RANDOM_TEST_GUID}`,
             };
             const stringifiedReq = JSON.stringify(tokenRequest);

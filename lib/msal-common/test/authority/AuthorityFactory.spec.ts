@@ -4,7 +4,7 @@ import {
     NetworkRequestOptions,
 } from "../../src/network/INetworkModule";
 import { TEST_CONFIG } from "../test_kit/StringConstants";
-import { Constants } from "../../src/utils/Constants";
+import { DEFAULT_AUTHORITY } from "../../src/utils/Constants.js";
 import { Authority } from "../../src/authority/Authority";
 import { AuthorityType } from "../../src/authority/AuthorityType";
 import { MockCache } from "../cache/MockCache";
@@ -66,7 +66,7 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
             .mockResolvedValue();
         const authorityInstance =
             await AuthorityFactory.createDiscoveredInstance(
-                Constants.DEFAULT_AUTHORITY,
+                DEFAULT_AUTHORITY,
                 networkInterface,
                 mockStorage,
                 authorityOptions,
@@ -83,7 +83,7 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
             .spyOn(Authority.prototype, "resolveEndpointsAsync")
             .mockRejectedValue("Discovery failed.");
         AuthorityFactory.createDiscoveredInstance(
-            Constants.DEFAULT_AUTHORITY,
+            DEFAULT_AUTHORITY,
             networkInterface,
             mockStorage,
             authorityOptions,

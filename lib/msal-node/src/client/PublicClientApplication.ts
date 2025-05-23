@@ -15,7 +15,6 @@ import {
     ResponseMode,
     OIDC_DEFAULT_SCOPES,
     CodeChallengeMethodValues,
-    Constants as CommonConstants,
     ServerError,
     NativeRequest,
     NativeSignOutRequest,
@@ -24,6 +23,7 @@ import {
     AuthorizeResponse,
     AADServerParamKeys,
     ServerTelemetryManager,
+    EMPTY_STRING,
 } from "@azure/msal-common/node";
 import { Configuration } from "../config/Configuration.js";
 import { ClientApplication } from "./ClientApplication.js";
@@ -232,7 +232,7 @@ export class PublicClientApplication
             const tokenRequest: AuthorizationCodeRequest = {
                 code: authCodeResponse.code,
                 codeVerifier: verifier,
-                clientInfo: clientInfo || CommonConstants.EMPTY_STRING,
+                clientInfo: clientInfo || EMPTY_STRING,
                 ...validRequest,
             };
             return await this.acquireTokenByCode(tokenRequest); // Await this so the server doesn't close prematurely

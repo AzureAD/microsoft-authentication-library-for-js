@@ -4,7 +4,7 @@
  */
 
 import {
-    Constants,
+    DEFAULT_AUTHORITY,
     InProgressPerformanceEvent,
     IPerformanceClient,
     Logger,
@@ -74,7 +74,7 @@ export class BrowserPerformanceClient
     ) {
         super(
             configuration.auth.clientId,
-            configuration.auth.authority || `${Constants.DEFAULT_AUTHORITY}`,
+            configuration.auth.authority || `${DEFAULT_AUTHORITY}`,
             new Logger(
                 configuration.system?.loggerOptions || {},
                 name,
