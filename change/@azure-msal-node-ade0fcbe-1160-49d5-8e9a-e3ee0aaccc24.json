@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Move unused requests out of MSAL Common to MSAL Node #7779",
+  "packageName": "@azure/msal-node",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}
