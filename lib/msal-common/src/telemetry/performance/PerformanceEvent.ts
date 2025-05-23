@@ -704,6 +704,11 @@ export type PerformanceEvent = {
     libraryVersion: string;
 
     /**
+     * Version of the library used last. Used to track upgrades and downgrades
+     */
+    previousLibraryVersion?: string;
+
+    /**
      * Whether the response is from a native component (e.g., WAM)
      *
      * @type {?boolean}
