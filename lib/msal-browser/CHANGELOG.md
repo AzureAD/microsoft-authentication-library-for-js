@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 06 May 2025 22:47:42 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 23 May 2025 19:59:36 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 4.13.0
+
+Fri, 23 May 2025 19:59:36 GMT
+
+### Minor changes
+
+- Add support for new platform broker flow via DOM API #7632 (lalimasharda@microsoft.com)
+- Bump @azure/msal-common to v15.6.1
+- Bump eslint-config-msal to v0.0.0
+- Bump msal-test-utils to v0.0.1
+- Bump rollup-msal to v0.0.0
+
+### Patches
+
+- Upgrade/rollback telemetry #7738 (thomas.norling@microsoft.com)
 
 ## 4.12.0
 
