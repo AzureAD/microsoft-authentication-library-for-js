@@ -578,8 +578,10 @@ describe("ConfidentialClientApplication", () => {
         );
 
         const request: OnBehalfOfRequest = {
+            authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             oboAssertion: TEST_CONSTANTS.ACCESS_TOKEN,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
         };
 
         const client: ConfidentialClientApplication =

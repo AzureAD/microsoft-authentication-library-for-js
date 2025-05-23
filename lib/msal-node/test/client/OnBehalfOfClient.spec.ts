@@ -11,14 +11,13 @@ import {
     BaseClient,
     CacheManager,
     ClientConfiguration,
-    CommonOnBehalfOfRequest,
     AccountEntityUtils,
     CredentialType,
     IdTokenEntity,
     ScopeSet,
     TimeUtils,
 } from "@azure/msal-common";
-import { AuthenticationResult, OnBehalfOfClient } from "../../src/index.js";
+import { AuthenticationResult, OnBehalfOfClient, OnBehalfOfRequest } from "../../src/index.js";
 import {
     AUTHENTICATION_RESULT,
     CAE_CONSTANTS,
@@ -69,7 +68,7 @@ describe("OnBehalfOf unit tests", () => {
         it("Adds claims when provided", async () => {
             const client = new OnBehalfOfClient(config);
 
-            const oboRequest: CommonOnBehalfOfRequest = {
+            const oboRequest: OnBehalfOfRequest = {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -110,7 +109,7 @@ describe("OnBehalfOf unit tests", () => {
 
         describe("CAE, claims and client capabilities", () => {
             let client: OnBehalfOfClient;
-            let oboRequest: CommonOnBehalfOfRequest;
+            let oboRequest: OnBehalfOfRequest;
             beforeEach(async () => {
                 const config: ClientConfiguration =
                     await ClientTestUtils.createTestClientConfiguration(
@@ -242,7 +241,7 @@ describe("OnBehalfOf unit tests", () => {
                 await ClientTestUtils.createTestClientConfiguration();
             const client: OnBehalfOfClient = new OnBehalfOfClient(fakeConfig);
 
-            const oboRequest: CommonOnBehalfOfRequest = {
+            const oboRequest: OnBehalfOfRequest = {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -274,7 +273,7 @@ describe("OnBehalfOf unit tests", () => {
         it("Does not add claims when empty object provided", async () => {
             const client = new OnBehalfOfClient(config);
 
-            const oboRequest: CommonOnBehalfOfRequest = {
+            const oboRequest: OnBehalfOfRequest = {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -362,7 +361,7 @@ describe("OnBehalfOf unit tests", () => {
 
             const client = new OnBehalfOfClient(config);
 
-            const oboRequest: CommonOnBehalfOfRequest = {
+            const oboRequest: OnBehalfOfRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -423,7 +422,7 @@ describe("OnBehalfOf unit tests", () => {
                 };
                 const client: OnBehalfOfClient = new OnBehalfOfClient(config);
 
-                const oboRequest: CommonOnBehalfOfRequest = {
+                const oboRequest: OnBehalfOfRequest = {
                     scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
                     authority: TEST_CONFIG.validAuthority,
                     correlationId: TEST_CONFIG.CORRELATION_ID,

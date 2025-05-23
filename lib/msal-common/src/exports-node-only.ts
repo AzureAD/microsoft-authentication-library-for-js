@@ -16,7 +16,6 @@ export { INativeBrokerPlugin } from "./broker/nativeBroker/INativeBrokerPlugin.j
 export { ICachePlugin } from "./cache/interface/ICachePlugin.js";
 export { TokenCacheContext } from "./cache/persistence/TokenCacheContext.js";
 export { ISerializableTokenCache } from "./cache/interface/ISerializableTokenCache.js";
-export { CommonOnBehalfOfRequest } from "./request/CommonOnBehalfOfRequest.js";
 export { CommonUsernamePasswordRequest } from "./request/CommonUsernamePasswordRequest.js";
 export { NativeRequest } from "./request/NativeRequest.js";
 export { NativeSignOutRequest } from "./request/NativeSignOutRequest.js";

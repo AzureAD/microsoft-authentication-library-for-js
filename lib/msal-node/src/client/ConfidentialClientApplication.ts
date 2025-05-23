@@ -15,7 +15,6 @@ import {
     MSAL_FORCE_REGION,
 } from "../utils/Constants.js";
 import {
-    CommonOnBehalfOfRequest,
     AuthenticationResult,
     AzureRegionConfiguration,
     AuthError,
@@ -271,7 +270,7 @@ export class ConfidentialClientApplication
             "acquireTokenOnBehalfOf called",
             request.correlationId
         );
-        const validRequest: CommonOnBehalfOfRequest = {
+        const validRequest: OnBehalfOfRequest = {
             ...request,
             ...(await this.initializeBaseRequest(request)),
         };

@@ -16,7 +16,6 @@ import {
     CacheOutcome,
     ClientAuthErrorCodes,
     ClientConfiguration,
-    CommonOnBehalfOfRequest,
     Constants,
     createClientAuthError,
     CredentialFilter,
@@ -35,6 +34,7 @@ import {
     UrlUtils,
 } from "@azure/msal-common/node";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
+import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest.js";
 
 /**
  * On-Behalf-Of client
@@ -50,10 +50,10 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * Public API to acquire tokens with on behalf of flow
-     * @param request - developer provided CommonOnBehalfOfRequest
+     * @param request - developer provided OnBehalfOfRequest
      */
     public async acquireToken(
-        request: CommonOnBehalfOfRequest
+        request: OnBehalfOfRequest
     ): Promise<AuthenticationResult | null> {
         this.scopeSet = new ScopeSet(request.scopes || []);
 
@@ -88,10 +88,10 @@ export class OnBehalfOfClient extends BaseClient {
      * Find accessToken based on user assertion and account info in the cache
      * Please note we are not yet supported OBO tokens refreshed with long lived RT. User will have to send a new assertion if the current access token expires
      * This is to prevent security issues when the assertion changes over time, however, longlived RT helps retaining the session
-     * @param request - developer provided CommonOnBehalfOfRequest
+     * @param request - developer provided OnBehalfOfRequest
      */
     private async getCachedAuthenticationResult(
-        request: CommonOnBehalfOfRequest
+        request: OnBehalfOfRequest
     ): Promise<AuthenticationResult | null> {
         // look in the cache for the access_token which matches the incoming_assertion
         const cachedAccessToken = this.readAccessTokenFromCacheForOBO(
@@ -201,11 +201,11 @@ export class OnBehalfOfClient extends BaseClient {
     /**
      * Fetches the cached access token based on incoming assertion
      * @param clientId - client id
-     * @param request - developer provided CommonOnBehalfOfRequest
+     * @param request - developer provided OnBehalfOfRequest
      */
     private readAccessTokenFromCacheForOBO(
         clientId: string,
-        request: CommonOnBehalfOfRequest
+        request: OnBehalfOfRequest
     ) {
         const authScheme =
             request.authenticationScheme || AuthenticationScheme.BEARER;
@@ -247,11 +247,11 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * Make a network call to the server requesting credentials
-     * @param request - developer provided CommonOnBehalfOfRequest
+     * @param request - developer provided OnBehalfOfRequest
      * @param authority - authority object
      */
     private async executeTokenRequest(
-        request: CommonOnBehalfOfRequest,
+        request: OnBehalfOfRequest,
         authority: Authority,
         userAssertionHash: string
     ): Promise<AuthenticationResult | null> {
@@ -308,10 +308,10 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * generate a server request in accepable format
-     * @param request - developer provided CommonOnBehalfOfRequest
+     * @param request - developer provided OnBehalfOfRequest
      */
     private async createTokenRequestBody(
-        request: CommonOnBehalfOfRequest
+        request: OnBehalfOfRequest
     ): Promise<string> {
         const parameters = new Map<string, string>();
 

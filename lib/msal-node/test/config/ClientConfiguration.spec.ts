@@ -232,6 +232,7 @@ describe("ClientConfiguration tests", () => {
 
     test("client capabilities are handled as expected for OBO flow", async () => {
         const oboRequest: OnBehalfOfRequest = {
+            authority: TEST_CONSTANTS.AUTHORITY,
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             oboAssertion: "user_assertion_hash",
             skipCache: true,
