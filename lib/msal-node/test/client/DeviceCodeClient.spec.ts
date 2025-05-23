@@ -8,7 +8,6 @@ import {
     BaseClient,
     ClientAuthErrorCodes,
     ClientConfiguration,
-    CommonDeviceCodeRequest,
     Constants,
     GrantType,
     createAuthError,
@@ -29,7 +28,7 @@ import {
     checkMockedNetworkRequest,
     ClientTestUtils,
 } from "./ClientTestUtils.js";
-import { DeviceCodeClient } from "../../src/index.js";
+import { DeviceCodeClient, DeviceCodeRequest } from "../../src/index.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 
 describe("DeviceCodeClient unit tests", () => {
@@ -85,7 +84,7 @@ describe("DeviceCodeClient unit tests", () => {
 
     describe("Acquire a token", () => {
         it("Does not add headers that do not qualify for a simple request", async () => {
-            const request: CommonDeviceCodeRequest = {
+            const request: DeviceCodeRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: "test-correlationId",
                 scopes: [
@@ -111,7 +110,7 @@ describe("DeviceCodeClient unit tests", () => {
 
         it("Acquires a token successfully", async () => {
             let deviceCodeResponse = null;
-            const request: CommonDeviceCodeRequest = {
+            const request: DeviceCodeRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: "test-correlationId",
                 scopes: [
@@ -156,7 +155,7 @@ describe("DeviceCodeClient unit tests", () => {
         }, 6000);
 
         it("Adds extraQueryParameters to the /devicecode url", async () => {
-            const deviceCodeRequest: CommonDeviceCodeRequest = {
+            const deviceCodeRequest: DeviceCodeRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: "test-correlationId",
                 scopes: [
@@ -192,7 +191,7 @@ describe("DeviceCodeClient unit tests", () => {
 
         it("Adds claims to request", async () => {
             let deviceCodeResponse = null;
-            const request: CommonDeviceCodeRequest = {
+            const request: DeviceCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -240,7 +239,7 @@ describe("DeviceCodeClient unit tests", () => {
 
         it("Does not add claims to request if empty object passed", async () => {
             let deviceCodeResponse = null;
-            const request: CommonDeviceCodeRequest = {
+            const request: DeviceCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -291,7 +290,7 @@ describe("DeviceCodeClient unit tests", () => {
                 AUTHORIZATION_PENDING_RESPONSE
             );
 
-            const request: CommonDeviceCodeRequest = {
+            const request: DeviceCodeRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: "test-correlationId",
                 scopes: [
@@ -316,7 +315,7 @@ describe("DeviceCodeClient unit tests", () => {
 
     describe("Device code exceptions", () => {
         it("Throw device code flow cancelled exception if DeviceCodeRequest.cancel=true", async () => {
-            const request: CommonDeviceCodeRequest = {
+            const request: DeviceCodeRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: "test-correlationId",
                 scopes: [
@@ -344,7 +343,7 @@ describe("DeviceCodeClient unit tests", () => {
                 AUTHORIZATION_PENDING_RESPONSE
             );
 
-            const request: CommonDeviceCodeRequest = {
+            const request: DeviceCodeRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: "test-correlationId",
                 scopes: [
@@ -365,7 +364,7 @@ describe("DeviceCodeClient unit tests", () => {
                 AUTHORIZATION_PENDING_RESPONSE
             );
 
-            const request: CommonDeviceCodeRequest = {
+            const request: DeviceCodeRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: "test-correlationId",
                 scopes: [
@@ -389,7 +388,7 @@ describe("DeviceCodeClient unit tests", () => {
                 SERVER_UNEXPECTED_ERROR
             );
 
-            const request: CommonDeviceCodeRequest = {
+            const request: DeviceCodeRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: "test-correlationId",
                 scopes: [

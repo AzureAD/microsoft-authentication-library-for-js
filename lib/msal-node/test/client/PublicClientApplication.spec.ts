@@ -130,10 +130,12 @@ describe("PublicClientApplication", () => {
 
     test("acquireTokenByDeviceCode", async () => {
         const request: DeviceCodeRequest = {
+            authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
             deviceCodeCallback: (response) => {
                 console.log(response);
             },
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
         };
 
         const deviceCodeClientSpy = jest.spyOn(msalNode, "DeviceCodeClient");

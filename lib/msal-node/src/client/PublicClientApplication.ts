@@ -10,7 +10,6 @@ import {
 } from "../utils/Constants.js";
 import {
     AuthenticationResult,
-    CommonDeviceCodeRequest,
     AuthError,
     ResponseMode,
     OIDC_DEFAULT_SCOPES,
@@ -104,7 +103,7 @@ export class PublicClientApplication
             "acquireTokenByDeviceCode called",
             request.correlationId
         );
-        const validRequest: CommonDeviceCodeRequest = Object.assign(
+        const validRequest: DeviceCodeRequest = Object.assign(
             request,
             await this.initializeBaseRequest(request)
         );

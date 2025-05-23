@@ -9,7 +9,6 @@ import {
     BaseClient,
     ClientAuthErrorCodes,
     ClientConfiguration,
-    CommonDeviceCodeRequest,
     Constants,
     DeviceCodeResponse,
     GrantType,
@@ -25,6 +24,7 @@ import {
     createAuthError,
     createClientAuthError,
 } from "@azure/msal-common/node";
+import { DeviceCodeRequest } from "../request/DeviceCodeRequest.js";
 
 /**
  * OAuth2.0 Device code client
@@ -38,10 +38,10 @@ export class DeviceCodeClient extends BaseClient {
     /**
      * Gets device code from device code endpoint, calls back to with device code response, and
      * polls token endpoint to exchange device code for tokens
-     * @param request - developer provided CommonDeviceCodeRequest
+     * @param request - developer provided DeviceCodeRequest
      */
     public async acquireToken(
-        request: CommonDeviceCodeRequest
+        request: DeviceCodeRequest
     ): Promise<AuthenticationResult | null> {
         const deviceCodeResponse: DeviceCodeResponse = await this.getDeviceCode(
             request
@@ -72,10 +72,10 @@ export class DeviceCodeClient extends BaseClient {
 
     /**
      * Creates device code request and executes http GET
-     * @param request - developer provided CommonDeviceCodeRequest
+     * @param request - developer provided DeviceCodeRequest
      */
     private async getDeviceCode(
-        request: CommonDeviceCodeRequest
+        request: DeviceCodeRequest
     ): Promise<DeviceCodeResponse> {
         const queryParametersString = this.createExtraQueryParameters(request);
         const endpoint = UrlString.appendQueryString(
@@ -107,10 +107,10 @@ export class DeviceCodeClient extends BaseClient {
 
     /**
      * Creates query string for the device code request
-     * @param request - developer provided CommonDeviceCodeRequest
+     * @param request - developer provided DeviceCodeRequest
      */
     public createExtraQueryParameters(
-        request: CommonDeviceCodeRequest
+        request: DeviceCodeRequest
     ): string {
         const parameters = new Map<string, string>();
 
@@ -170,9 +170,9 @@ export class DeviceCodeClient extends BaseClient {
 
     /**
      * Create device code endpoint query parameters and returns string
-     * @param request - developer provided CommonDeviceCodeRequest
+     * @param request - developer provided DeviceCodeRequest
      */
-    private createQueryString(request: CommonDeviceCodeRequest): string {
+    private createQueryString(request: DeviceCodeRequest): string {
         const parameters = new Map<string, string>();
 
         RequestParameterBuilder.addScopes(parameters, request.scopes);
@@ -248,11 +248,11 @@ export class DeviceCodeClient extends BaseClient {
 
     /**
      * Creates token request with device code response and polls token endpoint at interval set by the device code response
-     * @param request - developer provided CommonDeviceCodeRequest
+     * @param request - developer provided DeviceCodeRequest
      * @param deviceCodeResponse - DeviceCodeResponse returned by the security token service device code endpoint
      */
     private async acquireTokenWithDeviceCode(
-        request: CommonDeviceCodeRequest,
+        request: DeviceCodeRequest,
         deviceCodeResponse: DeviceCodeResponse
     ): Promise<ServerAuthorizationTokenResponse> {
         const queryParametersString = this.createTokenQueryParameters(request);
@@ -341,11 +341,11 @@ export class DeviceCodeClient extends BaseClient {
 
     /**
      * Creates query parameters and converts to string.
-     * @param request - developer provided CommonDeviceCodeRequest
+     * @param request - developer provided DeviceCodeRequest
      * @param deviceCodeResponse - DeviceCodeResponse returned by the security token service device code endpoint
      */
     private createTokenRequestBody(
-        request: CommonDeviceCodeRequest,
+        request: DeviceCodeRequest,
         deviceCodeResponse: DeviceCodeResponse
     ): string {
         const parameters = new Map<string, string>();
