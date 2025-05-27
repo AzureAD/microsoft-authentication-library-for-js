@@ -122,7 +122,7 @@ export function isDomEnabledForPlatformAuth(): boolean {
  * @param platformAuthProvider
  * @param authenticationScheme
  */
-export function isBrokerAvailable(
+export function isPlatformAuthAllowed(
     config: BrowserConfiguration,
     logger: Logger,
     platformAuthProvider?: IPlatformAuthHandler,

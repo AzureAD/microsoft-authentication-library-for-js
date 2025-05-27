@@ -10,13 +10,12 @@ import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import {
-    API_VERSION_QUERY_PARAMETER_NAME,
     HttpMethod,
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentityIdType,
     ManagedIdentitySourceNames,
-    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
-    ML_AND_SF_SECRET_HEADER_NAME,
+    ManagedIdentityQueryParameters,
+    ManagedIdentityHeaders,
 } from "../../utils/Constants.js";
 
 // MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
@@ -131,11 +130,12 @@ export class ServiceFabric extends BaseManagedIdentitySource {
                 this.identityEndpoint
             );
 
-        request.headers[ML_AND_SF_SECRET_HEADER_NAME] = this.identityHeader;
+        request.headers[ManagedIdentityHeaders.ML_AND_SF_SECRET_HEADER_NAME] =
+            this.identityHeader;
 
-        request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.API_VERSION] =
             SERVICE_FABRIC_MSI_API_VERSION;
-        request.queryParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
         if (

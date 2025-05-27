@@ -181,6 +181,7 @@ export {
     HttpStatus,
     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     JsonWebTokenTypes,
+    EncodingTypes,
 } from "./utils/Constants.js";
 export { StringUtils } from "./utils/StringUtils.js";
 export { StringDict } from "./utils/MsalTypes.js";
