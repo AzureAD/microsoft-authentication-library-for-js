@@ -13,13 +13,7 @@ import { Authority } from "../authority/Authority.js";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
 import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js";
 import * as UrlUtils from "../utils/UrlUtils.js";
-import {
-    GrantType,
-    AuthenticationScheme,
-    HeaderNames,
-    INVALID_GRANT_ERROR,
-    CLIENT_MISMATCH_ERROR,
-} from "../utils/Constants.js";
+import * as Constants from "../utils/Constants.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import { ResponseHandler } from "../response/ResponseHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
@@ -79,7 +73,8 @@ export class RefreshTokenClient extends BaseClient {
         )(request, this.authority);
 
         // Retrieve requestId from response headers
-        const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
+        const requestId =
+            response.headers?.[Constants.HeaderNames.X_MS_REQUEST_ID];
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
@@ -151,8 +146,8 @@ export class RefreshTokenClient extends BaseClient {
                         InteractionRequiredAuthErrorCodes.noTokensFound;
                 const clientMismatchErrorWithFamilyRT =
                     e instanceof ServerError &&
-                    e.errorCode === INVALID_GRANT_ERROR &&
-                    e.subError === CLIENT_MISMATCH_ERROR;
+                    e.errorCode === Constants.INVALID_GRANT_ERROR &&
+                    e.subError === Constants.CLIENT_MISMATCH_ERROR;
 
                 // if family Refresh Token (FRT) cache acquisition fails or if client_mismatch error is seen with FRT, reattempt with application Refresh Token (ART)
                 if (noFamilyRTInCache || clientMismatchErrorWithFamilyRT) {
@@ -230,7 +225,8 @@ export class RefreshTokenClient extends BaseClient {
             ...request,
             refreshToken: refreshToken.secret,
             authenticationScheme:
-                request.authenticationScheme || AuthenticationScheme.BEARER,
+                request.authenticationScheme ||
+                Constants.AuthenticationScheme.BEARER,
             ccsCredential: {
                 credential: request.account.homeAccountId,
                 type: CcsCredentialType.HOME_ACCOUNT_ID,
@@ -339,7 +335,7 @@ export class RefreshTokenClient extends BaseClient {
 
         RequestParameterBuilder.addGrantType(
             parameters,
-            GrantType.REFRESH_TOKEN_GRANT
+            Constants.GrantType.REFRESH_TOKEN_GRANT
         );
 
         RequestParameterBuilder.addClientInfo(parameters);
@@ -391,7 +387,9 @@ export class RefreshTokenClient extends BaseClient {
             );
         }
 
-        if (request.authenticationScheme === AuthenticationScheme.POP) {
+        if (
+            request.authenticationScheme === Constants.AuthenticationScheme.POP
+        ) {
             const popTokenGenerator = new PopTokenGenerator(
                 this.cryptoUtils,
                 this.performanceClient
@@ -414,7 +412,9 @@ export class RefreshTokenClient extends BaseClient {
 
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             RequestParameterBuilder.addPopToken(parameters, reqCnfData);
-        } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
+        } else if (
+            request.authenticationScheme === Constants.AuthenticationScheme.SSH
+        ) {
             if (request.sshJwk) {
                 RequestParameterBuilder.addSshJwk(parameters, request.sshJwk);
             } else {

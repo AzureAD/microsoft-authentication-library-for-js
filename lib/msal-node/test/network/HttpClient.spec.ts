@@ -7,10 +7,7 @@ import { HttpClient } from "../../src/network/HttpClient.js";
 import {
     NetworkResponse,
     NetworkRequestOptions,
-    HTTP_SUCCESS,
-    HTTP_CLIENT_ERROR,
-    HTTP_SERVER_ERROR,
-    HTTP_MULTI_SIDED_ERROR,
+    Constants,
 } from "@azure/msal-common";
 import { MockedMetadataResponse } from "../utils/TestConstants.js";
 import { ProxyStatus } from "../../src/utils/Constants.js";
@@ -34,10 +31,10 @@ const httpsStatusServerErrorMessage = "Internal Server Error";
 const httpsStatusMultiSidedErrorMessage = "Unknown Error";
 
 const SocketStatus = {
-    SUCCESS: HTTP_SUCCESS,
-    CLIENT_ERROR: HTTP_CLIENT_ERROR,
-    SERVER_ERROR: HTTP_SERVER_ERROR,
-    MULTI_SIDED_ERROR: HTTP_MULTI_SIDED_ERROR,
+    SUCCESS: Constants.HTTP_SUCCESS,
+    CLIENT_ERROR: Constants.HTTP_CLIENT_ERROR,
+    SERVER_ERROR: Constants.HTTP_SERVER_ERROR,
+    MULTI_SIDED_ERROR: Constants.HTTP_MULTI_SIDED_ERROR,
 } as const;
 type SocketStatus = (typeof SocketStatus)[keyof typeof SocketStatus];
 
@@ -307,12 +304,12 @@ describe("HttpClient", () => {
         test("Via Https", async () => {
             const httpsNetworkResponse: NetworkResponse<T> = getNetworkResponse(
                 mockGetResponseBody,
-                HTTP_SUCCESS
+                Constants.HTTP_SUCCESS
             );
             (https.request as jest.Mock).mockImplementationOnce(
                 mockHttpsRequest(
                     mockGetResponseBodyBuffer,
-                    HTTP_SUCCESS,
+                    Constants.HTTP_SUCCESS,
                     httpsStatusSuccessMessage
                 )
             );
@@ -323,7 +320,7 @@ describe("HttpClient", () => {
 
         test("Via Proxy", async () => {
             const proxyThenSocketNetworkResponse: NetworkResponse<T> =
-                getNetworkResponse(mockGetResponseBody, HTTP_SUCCESS);
+                getNetworkResponse(mockGetResponseBody, Constants.HTTP_SUCCESS);
             (http.request as jest.Mock).mockImplementationOnce(
                 mockHttpRequest(
                     mockGetResponseBody,
@@ -341,12 +338,12 @@ describe("HttpClient", () => {
         test("Via Https", async () => {
             const httpsNetworkResponse: NetworkResponse<T> = getNetworkResponse(
                 mockPostResponseBody,
-                HTTP_SUCCESS
+                Constants.HTTP_SUCCESS
             );
             (https.request as jest.Mock).mockImplementationOnce(
                 mockHttpsRequest(
                     mockPostResponseBodyBuffer,
-                    HTTP_SUCCESS,
+                    Constants.HTTP_SUCCESS,
                     httpsStatusSuccessMessage
                 )
             );
@@ -360,7 +357,10 @@ describe("HttpClient", () => {
 
         test("Via Proxy", async () => {
             const proxyThenSocketNetworkResponse: NetworkResponse<T> =
-                getNetworkResponse(mockPostResponseBody, HTTP_SUCCESS);
+                getNetworkResponse(
+                    mockPostResponseBody,
+                    Constants.HTTP_SUCCESS
+                );
             (http.request as jest.Mock).mockImplementationOnce(
                 mockHttpRequest(
                     mockPostResponseBody,
@@ -385,7 +385,7 @@ describe("HttpClient", () => {
             (https.request as jest.Mock).mockImplementationOnce(
                 mockHttpsRequest(
                     mockGetResponseBodyBuffer,
-                    HTTP_SUCCESS,
+                    Constants.HTTP_SUCCESS,
                     httpsStatusSuccessMessage
                 )
             );
@@ -409,13 +409,15 @@ describe("HttpClient", () => {
                 test("Client Error 400", async () => {
                     const serverErrorNetworkResponse: NetworkResponse<MockedMetadataResponse> =
                         getNetworkResponse<MockedMetadataResponse>(
-                            getMockServerErrorResponse(HTTP_CLIENT_ERROR),
-                            HTTP_CLIENT_ERROR
+                            getMockServerErrorResponse(
+                                Constants.HTTP_CLIENT_ERROR
+                            ),
+                            Constants.HTTP_CLIENT_ERROR
                         );
                     (https.request as jest.Mock).mockImplementationOnce(
                         mockHttpsRequest(
                             mockServer400ErrorResponseBodyBuffer,
-                            HTTP_CLIENT_ERROR,
+                            Constants.HTTP_CLIENT_ERROR,
                             httpsStatusClientErrorMessage
                         )
                     );
@@ -427,13 +429,15 @@ describe("HttpClient", () => {
                 test("Server Error 500", async () => {
                     const serverErrorNetworkResponse: NetworkResponse<MockedMetadataResponse> =
                         getNetworkResponse<MockedMetadataResponse>(
-                            getMockServerErrorResponse(HTTP_SERVER_ERROR),
-                            HTTP_SERVER_ERROR
+                            getMockServerErrorResponse(
+                                Constants.HTTP_SERVER_ERROR
+                            ),
+                            Constants.HTTP_SERVER_ERROR
                         );
                     (https.request as jest.Mock).mockImplementationOnce(
                         mockHttpsRequest(
                             mockServer500ErrorResponseBodyBuffer,
-                            HTTP_SERVER_ERROR,
+                            Constants.HTTP_SERVER_ERROR,
                             httpsStatusServerErrorMessage
                         )
                     );
@@ -445,13 +449,15 @@ describe("HttpClient", () => {
                 test("Unknown Error 600", async () => {
                     const serverErrorNetworkResponse: NetworkResponse<MockedMetadataResponse> =
                         getNetworkResponse<MockedMetadataResponse>(
-                            getMockServerErrorResponse(HTTP_MULTI_SIDED_ERROR),
-                            HTTP_MULTI_SIDED_ERROR
+                            getMockServerErrorResponse(
+                                Constants.HTTP_MULTI_SIDED_ERROR
+                            ),
+                            Constants.HTTP_MULTI_SIDED_ERROR
                         );
                     (https.request as jest.Mock).mockImplementationOnce(
                         mockHttpsRequest(
                             mockServer600ErrorResponseBodyBuffer,
-                            HTTP_MULTI_SIDED_ERROR,
+                            Constants.HTTP_MULTI_SIDED_ERROR,
                             httpsStatusMultiSidedErrorMessage
                         )
                     );
@@ -467,7 +473,7 @@ describe("HttpClient", () => {
                         mockHttpRequest(
                             mockGetResponseBody,
                             ProxyStatus.SERVER_ERROR,
-                            HTTP_SERVER_ERROR
+                            Constants.HTTP_SERVER_ERROR
                         )
                     );
                     await expect(
@@ -544,13 +550,15 @@ describe("HttpClient", () => {
                 test("Client Error 400", async () => {
                     const serverErrorNetworkResponse: NetworkResponse<MockedMetadataResponse> =
                         getNetworkResponse<MockedMetadataResponse>(
-                            getMockServerErrorResponse(HTTP_CLIENT_ERROR),
-                            HTTP_CLIENT_ERROR
+                            getMockServerErrorResponse(
+                                Constants.HTTP_CLIENT_ERROR
+                            ),
+                            Constants.HTTP_CLIENT_ERROR
                         );
                     (https.request as jest.Mock).mockImplementationOnce(
                         mockHttpsRequest(
                             mockServer400ErrorResponseBodyBuffer,
-                            HTTP_CLIENT_ERROR,
+                            Constants.HTTP_CLIENT_ERROR,
                             httpsStatusClientErrorMessage
                         )
                     );
@@ -565,13 +573,15 @@ describe("HttpClient", () => {
                 test("Server Error 500", async () => {
                     const serverErrorNetworkResponse: NetworkResponse<MockedMetadataResponse> =
                         getNetworkResponse<MockedMetadataResponse>(
-                            getMockServerErrorResponse(HTTP_SERVER_ERROR),
-                            HTTP_SERVER_ERROR
+                            getMockServerErrorResponse(
+                                Constants.HTTP_SERVER_ERROR
+                            ),
+                            Constants.HTTP_SERVER_ERROR
                         );
                     (https.request as jest.Mock).mockImplementationOnce(
                         mockHttpsRequest(
                             mockServer500ErrorResponseBodyBuffer,
-                            HTTP_SERVER_ERROR,
+                            Constants.HTTP_SERVER_ERROR,
                             httpsStatusServerErrorMessage
                         )
                     );
@@ -586,13 +596,15 @@ describe("HttpClient", () => {
                 test("Unknown Error 600", async () => {
                     const serverErrorNetworkResponse: NetworkResponse<MockedMetadataResponse> =
                         getNetworkResponse<MockedMetadataResponse>(
-                            getMockServerErrorResponse(HTTP_MULTI_SIDED_ERROR),
-                            HTTP_MULTI_SIDED_ERROR
+                            getMockServerErrorResponse(
+                                Constants.HTTP_MULTI_SIDED_ERROR
+                            ),
+                            Constants.HTTP_MULTI_SIDED_ERROR
                         );
                     (https.request as jest.Mock).mockImplementationOnce(
                         mockHttpsRequest(
                             mockServer600ErrorResponseBodyBuffer,
-                            HTTP_MULTI_SIDED_ERROR,
+                            Constants.HTTP_MULTI_SIDED_ERROR,
                             httpsStatusMultiSidedErrorMessage
                         )
                     );
@@ -611,7 +623,7 @@ describe("HttpClient", () => {
                         mockHttpRequest(
                             mockPostResponseBody,
                             ProxyStatus.SERVER_ERROR,
-                            HTTP_SERVER_ERROR
+                            Constants.HTTP_SERVER_ERROR
                         )
                     );
                     await expect(

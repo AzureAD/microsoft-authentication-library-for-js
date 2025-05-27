@@ -12,11 +12,7 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../error/ClientAuthError.js";
-import {
-    EMPTY_STRING,
-    OFFLINE_ACCESS_SCOPE,
-    OIDC_SCOPES,
-} from "../utils/Constants.js";
+import { OFFLINE_ACCESS_SCOPE, OIDC_SCOPES } from "../utils/Constants.js";
 
 /**
  * The ScopeSet class creates a set of scopes. Scopes are case-insensitive, unique values, so the Set object in JS makes
@@ -54,7 +50,7 @@ export class ScopeSet {
      * @param scopesRequired
      */
     static fromString(inputScopeString: string): ScopeSet {
-        const scopeString = inputScopeString || EMPTY_STRING;
+        const scopeString = inputScopeString || "";
         const inputScopes: Array<string> = scopeString.split(" ");
         return new ScopeSet(inputScopes);
     }
@@ -228,7 +224,7 @@ export class ScopeSet {
             const scopeArr = this.asArray();
             return scopeArr.join(" ");
         }
-        return EMPTY_STRING;
+        return "";
     }
 
     /**

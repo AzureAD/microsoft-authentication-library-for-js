@@ -3,12 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    CACHE_ACCOUNT_TYPE_ADFS,
-    CACHE_ACCOUNT_TYPE_GENERIC,
-    CACHE_ACCOUNT_TYPE_MSSTS,
-    CACHE_KEY_SEPARATOR,
-} from "../../utils/Constants.js";
+import * as Constants from "../../utils/Constants.js";
 import { Authority } from "../../authority/Authority.js";
 import { ICrypto } from "../../crypto/ICrypto.js";
 import { ClientInfo, buildClientInfo } from "../../account/ClientInfo.js";
@@ -38,7 +33,7 @@ export function generateAccountId(accountEntity: AccountEntity): string {
         accountEntity.homeAccountId,
         accountEntity.environment,
     ];
-    return accountId.join(CACHE_KEY_SEPARATOR).toLowerCase();
+    return accountId.join(Constants.CACHE_KEY_SEPARATOR).toLowerCase();
 }
 
 /**
@@ -95,7 +90,7 @@ export function generateAccountCacheKey(accountInterface: AccountInfo): string {
         homeTenantId || accountInterface.tenantId || "",
     ];
 
-    return accountKey.join(CACHE_KEY_SEPARATOR).toLowerCase();
+    return accountKey.join(Constants.CACHE_KEY_SEPARATOR).toLowerCase();
 }
 
 /**
@@ -118,11 +113,11 @@ export function createAccountEntity(
 ): AccountEntity {
     let authorityType;
     if (authority.authorityType === AuthorityType.Adfs) {
-        authorityType = CACHE_ACCOUNT_TYPE_ADFS;
+        authorityType = Constants.CACHE_ACCOUNT_TYPE_ADFS;
     } else if (authority.protocolMode === ProtocolMode.OIDC) {
-        authorityType = CACHE_ACCOUNT_TYPE_GENERIC;
+        authorityType = Constants.CACHE_ACCOUNT_TYPE_GENERIC;
     } else {
-        authorityType = CACHE_ACCOUNT_TYPE_MSSTS;
+        authorityType = Constants.CACHE_ACCOUNT_TYPE_MSSTS;
     }
 
     let clientInfo: ClientInfo | undefined;
@@ -209,7 +204,8 @@ export function createAccountEntityFromAccountInfo(
     msGraphHost?: string
 ): AccountEntity {
     return {
-        authorityType: accountInfo.authorityType || CACHE_ACCOUNT_TYPE_GENERIC,
+        authorityType:
+            accountInfo.authorityType || Constants.CACHE_ACCOUNT_TYPE_GENERIC,
         homeAccountId: accountInfo.homeAccountId,
         localAccountId: accountInfo.localAccountId,
         nativeAccountId: accountInfo.nativeAccountId,

@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-export const LIBRARY_NAME = "MSAL.JS";
 export const SKU = "msal.js.common";
 // Prefix for all library cache entries
 export const CACHE_PREFIX = "msal";
@@ -21,10 +20,6 @@ export const CIAM_AUTH_URL = ".ciamlogin.com";
 export const AAD_TENANT_DOMAIN_SUFFIX = ".onmicrosoft.com";
 // Resource delimiter - used for certain cache entries
 export const RESOURCE_DELIM = "|";
-// Placeholder for non-existent account ids/objects
-export const NO_ACCOUNT = "NO_ACCOUNT";
-// Claims
-export const CLAIMS = "claims";
 // Consumer UTID
 export const CONSUMER_UTID = "9188040d-6c67-4c5b-b112-36a304b66dad";
 // Default scopes
@@ -33,13 +28,10 @@ export const PROFILE_SCOPE = "profile";
 export const OFFLINE_ACCESS_SCOPE = "offline_access";
 export const EMAIL_SCOPE = "email";
 export const CODE_GRANT_TYPE = "authorization_code";
-export const RT_GRANT_TYPE = "refresh_token";
 export const S256_CODE_CHALLENGE_METHOD = "S256";
 export const URL_FORM_CONTENT_TYPE =
     "application/x-www-form-urlencoded;charset=utf-8";
 export const AUTHORIZATION_PENDING = "authorization_pending";
-export const NOT_DEFINED = "not_defined";
-export const EMPTY_STRING = "";
 export const NOT_APPLICABLE = "N/A";
 export const NOT_AVAILABLE = "Not Available";
 export const FORWARD_SLASH = "/";
@@ -113,13 +105,12 @@ export type PersistentCacheKeys =
 /**
  * String constants related to AAD Authority
  */
-export const AADAuthorityConstants = {
+export const AADAuthority = {
     COMMON: "common",
     ORGANIZATIONS: "organizations",
     CONSUMERS: "consumers",
 } as const;
-export type AADAuthorityConstants =
-    (typeof AADAuthorityConstants)[keyof typeof AADAuthorityConstants];
+export type AADAuthority = (typeof AADAuthority)[keyof typeof AADAuthority];
 
 /**
  * Claims request keys

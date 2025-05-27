@@ -9,7 +9,6 @@ import { ILoggerCallback, Logger, LogLevel } from "../logger/Logger.js";
 import {
     DEFAULT_COMMON_TENANT,
     DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    EMPTY_STRING,
     SKU,
 } from "../utils/Constants.js";
 import { version } from "../packageMetadata.js";
@@ -164,7 +163,7 @@ const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,
-    correlationId: EMPTY_STRING,
+    correlationId: "",
 };
 
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
@@ -179,12 +178,12 @@ const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
 const DEFAULT_LIBRARY_INFO: LibraryInfo = {
     sku: SKU,
     version: version,
-    cpu: EMPTY_STRING,
-    os: EMPTY_STRING,
+    cpu: "",
+    os: "",
 };
 
 const DEFAULT_CLIENT_CREDENTIALS: ClientCredentials = {
-    clientSecret: EMPTY_STRING,
+    clientSecret: "",
     clientAssertion: undefined,
 };
 

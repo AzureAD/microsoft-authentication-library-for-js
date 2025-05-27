@@ -23,8 +23,7 @@ import {
 } from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
     AuthenticationResult,
-    HTTP_BAD_REQUEST,
-    HTTP_UNAUTHORIZED,
+    Constants,
     ServerError,
 } from "@azure/msal-common";
 import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient.js";
@@ -94,7 +93,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
             {
                 "www-authenticate": `Basic realm=${SUPPORTED_AZURE_ARC_PLATFORMS.linux}AzureArcSecret.key`,
             },
-            HTTP_UNAUTHORIZED
+            Constants.HTTP_UNAUTHORIZED
         );
 
     // Azure Arc Managed Identities can only be system assigned
@@ -288,7 +287,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                     {
                         "www-authenticate": `Basic realm=${SUPPORTED_AZURE_ARC_PLATFORMS.linux}AzureArcSecret.txt`, // Linux
                     },
-                    HTTP_UNAUTHORIZED
+                    Constants.HTTP_UNAUTHORIZED
                 );
 
             jest.spyOn(networkClient, <any>"sendGetRequestAsync")
@@ -343,7 +342,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                     {
                         "www-authenticate": `Basic realm=${SUPPORTED_AZURE_ARC_PLATFORMS.linux}this_will_throw_because_file_path_must_match_exactly/AzureArcSecret.key`, // Linux
                     },
-                    HTTP_UNAUTHORIZED
+                    Constants.HTTP_UNAUTHORIZED
                 );
 
             jest.spyOn(networkClient, <any>"sendGetRequestAsync")
@@ -392,7 +391,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 new ManagedIdentityNetworkErrorClient(
                     {}, // 401 error response. Will be ignored because only the www-authenticate header is relevant when Azure Arc returns a 401 error,
                     {}, // www-authenticate header missing
-                    HTTP_UNAUTHORIZED
+                    Constants.HTTP_UNAUTHORIZED
                 );
 
             jest.spyOn(networkClient, <any>"sendGetRequestAsync")
@@ -420,7 +419,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                     {
                         "www-authenticate": "unsupported_format",
                     },
-                    HTTP_UNAUTHORIZED
+                    Constants.HTTP_UNAUTHORIZED
                 );
 
             jest.spyOn(networkClient, <any>"sendGetRequestAsync")
@@ -494,7 +493,7 @@ describe("Acquires a token successfully via an Azure Arc Managed Identity", () =
                 new ManagedIdentityNetworkErrorClient(
                     MANAGED_IDENTITY_AZURE_ARC_NETWORK_REQUEST_400_ERROR,
                     undefined,
-                    HTTP_BAD_REQUEST
+                    Constants.HTTP_BAD_REQUEST
                 );
 
             jest.spyOn(networkClient, <any>"sendGetRequestAsync")

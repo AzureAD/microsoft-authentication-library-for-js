@@ -21,16 +21,7 @@ import {
     BAD_TOKEN_ERROR_RESPONSE,
 } from "../test_kit/StringConstants.js";
 import { BaseClient } from "../../src/client/BaseClient.js";
-import {
-    GrantType,
-    CredentialType,
-    AuthenticationScheme,
-    OPENID_SCOPE,
-    PROFILE_SCOPE,
-    SKU,
-    X_MS_LIB_CAPABILITY_VALUE,
-    EMPTY_STRING,
-} from "../../src/utils/Constants.js";
+import * as Constants from "../../src/utils/Constants.js";
 import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils.js";
 import { Authority } from "../../src/authority/Authority.js";
@@ -88,7 +79,7 @@ const testRefreshTokenEntity: RefreshTokenEntity = {
     environment: testAccountEntity.environment,
     realm: ID_TOKEN_CLAIMS.tid,
     secret: AUTHENTICATION_RESULT.body.refresh_token,
-    credentialType: CredentialType.REFRESH_TOKEN,
+    credentialType: Constants.CredentialType.REFRESH_TOKEN,
 };
 
 const testFamilyRefreshTokenEntity: RefreshTokenEntity = {
@@ -97,7 +88,7 @@ const testFamilyRefreshTokenEntity: RefreshTokenEntity = {
     environment: testAccountEntity.environment,
     realm: ID_TOKEN_CLAIMS.tid,
     secret: AUTHENTICATION_RESULT.body.refresh_token,
-    credentialType: CredentialType.REFRESH_TOKEN,
+    credentialType: Constants.CredentialType.REFRESH_TOKEN,
     familyId: TEST_CONFIG.THE_FAMILY_ID,
 };
 
@@ -139,7 +130,7 @@ describe("RefreshTokenClient unit tests", () => {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             authenticationScheme:
-                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
         };
 
         beforeEach(async () => {
@@ -177,7 +168,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
                 tokenQueryParameters: {
                     testParam: "testValue",
                 },
@@ -209,7 +200,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
                 tokenQueryParameters: {
                     testParam: "testValue",
                 },
@@ -239,7 +230,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
                 tokenBodyParameters: {
                     testParam: "testValue",
                 },
@@ -406,7 +397,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             client.acquireToken(refreshTokenRequest);
@@ -432,15 +423,15 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
                 refreshTokenRequest
             );
             const expectedScopes = [
-                OPENID_SCOPE,
-                PROFILE_SCOPE,
+                Constants.OPENID_SCOPE,
+                Constants.PROFILE_SCOPE,
                 TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0],
                 "email",
             ];
@@ -478,7 +469,7 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.GrantType.REFRESH_TOKEN_GRANT}`
                 )
             ).toBe(true);
             expect(
@@ -494,7 +485,9 @@ describe("RefreshTokenClient unit tests", () => {
                 )
             ).toBe(true);
             expect(
-                result.includes(`${AADServerParamKeys.X_CLIENT_SKU}=${SKU}`)
+                result.includes(
+                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
+                )
             ).toBe(true);
             expect(
                 result.includes(
@@ -525,7 +518,9 @@ describe("RefreshTokenClient unit tests", () => {
                 result.includes(
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
-                    }=${encodeURIComponent(X_MS_LIB_CAPABILITY_VALUE)}`
+                    }=${encodeURIComponent(
+                        Constants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
@@ -560,7 +555,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
                 tokenQueryParameters: {
                     testParam1: "testValue1",
                     testParam2: "",
@@ -589,7 +584,7 @@ describe("RefreshTokenClient unit tests", () => {
             const expectedRefreshRequest: CommonRefreshTokenRequest = {
                 ...silentFlowRequest,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
                 refreshToken: testRefreshTokenEntity.secret,
                 ccsCredential: {
                     credential: testAccount.homeAccountId,
@@ -618,7 +613,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
-                authenticationScheme: AuthenticationScheme.POP,
+                authenticationScheme: Constants.AuthenticationScheme.POP,
             };
 
             const expectedRefreshRequest: CommonRefreshTokenRequest = {
@@ -652,7 +647,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
-                authenticationScheme: AuthenticationScheme.SSH,
+                authenticationScheme: Constants.AuthenticationScheme.SSH,
                 sshJwk: TEST_SSH_VALUES.SSH_JWK,
             };
 
@@ -694,15 +689,15 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
                 refreshTokenRequest
             );
             const expectedScopes = [
-                OPENID_SCOPE,
-                PROFILE_SCOPE,
+                Constants.OPENID_SCOPE,
+                Constants.PROFILE_SCOPE,
                 TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0],
                 "email",
             ];
@@ -740,7 +735,7 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.GrantType.REFRESH_TOKEN_GRANT}`
                 )
             ).toBe(true);
             expect(
@@ -756,7 +751,9 @@ describe("RefreshTokenClient unit tests", () => {
                 )
             ).toBe(false);
             expect(
-                result.includes(`${AADServerParamKeys.X_CLIENT_SKU}=${SKU}`)
+                result.includes(
+                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
+                )
             ).toBe(true);
             expect(
                 result.includes(
@@ -787,7 +784,9 @@ describe("RefreshTokenClient unit tests", () => {
                 result.includes(
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
-                    }=${encodeURIComponent(X_MS_LIB_CAPABILITY_VALUE)}`
+                    }=${encodeURIComponent(
+                        Constants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
@@ -812,15 +811,15 @@ describe("RefreshTokenClient unit tests", () => {
                 claims: "{}",
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
                 refreshTokenRequest
             );
             const expectedScopes = [
-                OPENID_SCOPE,
-                PROFILE_SCOPE,
+                Constants.OPENID_SCOPE,
+                Constants.PROFILE_SCOPE,
                 TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0],
                 "email",
             ];
@@ -858,7 +857,7 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.GrantType.REFRESH_TOKEN_GRANT}`
                 )
             ).toBe(true);
             expect(
@@ -874,7 +873,9 @@ describe("RefreshTokenClient unit tests", () => {
                 )
             ).toBe(false);
             expect(
-                result.includes(`${AADServerParamKeys.X_CLIENT_SKU}=${SKU}`)
+                result.includes(
+                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
+                )
             ).toBe(true);
             expect(
                 result.includes(
@@ -905,7 +906,9 @@ describe("RefreshTokenClient unit tests", () => {
                 result.includes(
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
-                    }=${encodeURIComponent(X_MS_LIB_CAPABILITY_VALUE)}`
+                    }=${encodeURIComponent(
+                        Constants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
@@ -926,7 +929,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
@@ -955,7 +958,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
@@ -994,7 +997,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
             await client.acquireToken(refreshTokenRequest);
 
@@ -1038,7 +1041,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
             await client.acquireToken(refreshTokenRequest);
 
@@ -1117,15 +1120,15 @@ describe("RefreshTokenClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             const authResult: AuthenticationResult = await client.acquireToken(
                 refreshTokenRequest
             );
             const expectedScopes = [
-                OPENID_SCOPE,
-                PROFILE_SCOPE,
+                Constants.OPENID_SCOPE,
+                Constants.PROFILE_SCOPE,
                 TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0],
                 "email",
             ];
@@ -1166,7 +1169,7 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.GrantType.REFRESH_TOKEN_GRANT}`
                 )
             ).toBe(true);
             expect(
@@ -1196,7 +1199,7 @@ describe("RefreshTokenClient unit tests", () => {
                 ...silentFlowRequest,
                 refreshToken: testRefreshTokenEntity.secret,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
                 ccsCredential: {
                     credential: testAccount.homeAccountId,
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
@@ -1431,11 +1434,11 @@ describe("RefreshTokenClient unit tests", () => {
                 serverResponse.error,
                 serverResponse.error_description,
                 serverResponse.suberror,
-                serverResponse.timestamp || EMPTY_STRING,
-                serverResponse.trace_id || EMPTY_STRING,
-                serverResponse.correlation_id || EMPTY_STRING,
+                serverResponse.timestamp || "",
+                serverResponse.trace_id || "",
+                serverResponse.correlation_id || "",
                 // @ts-ignore
-                serverResponse.claims || EMPTY_STRING
+                serverResponse.claims || ""
             );
 
             const silentFlowRequest: CommonSilentFlowRequest = {
@@ -1477,7 +1480,7 @@ describe("RefreshTokenClient unit tests", () => {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             authenticationScheme:
-                TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
         };
         it("Adds telemetry headers to token request in AAD protocol mode", async () => {
             const createTokenRequestBodySpy = jest.spyOn(

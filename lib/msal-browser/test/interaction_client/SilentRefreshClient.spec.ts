@@ -16,12 +16,10 @@ import {
     AccountInfo,
     TokenClaims,
     AuthenticationResult,
-    AuthenticationScheme,
     RefreshTokenClient,
     CommonSilentFlowRequest,
-    CredentialType,
     AccountEntity,
-    DEFAULT_AUTHORITY,
+    Constants,
 } from "@azure/msal-common";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import {
@@ -122,7 +120,7 @@ describe("SilentRefreshClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const silentATStub = jest
                 .spyOn(
@@ -134,14 +132,14 @@ describe("SilentRefreshClient", () => {
                 scopes: ["scope1"],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
             };
             const expectedTokenRequest: CommonSilentFlowRequest = {
                 ...tokenRequest,
                 scopes: ["scope1"],
-                authority: `${DEFAULT_AUTHORITY}`,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
@@ -176,7 +174,7 @@ describe("SilentRefreshClient", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const silentATStub = jest
                 .spyOn(
@@ -188,7 +186,7 @@ describe("SilentRefreshClient", () => {
                 scopes: ["scope1"],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
                 redirectUri: "/", // relative redirectUri
@@ -196,7 +194,7 @@ describe("SilentRefreshClient", () => {
             const expectedTokenRequest: CommonSilentFlowRequest = {
                 ...tokenRequest,
                 scopes: ["scope1"],
-                authority: `${DEFAULT_AUTHORITY}`,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
                 redirectUri: "https://localhost:8081/", // absolute redirectUri
@@ -212,7 +210,7 @@ describe("SilentRefreshClient", () => {
             beforeEach(() => {
                 const rtEntity = {
                     secret: TEST_TOKENS.REFRESH_TOKEN,
-                    credentialType: CredentialType.REFRESH_TOKEN,
+                    credentialType: Constants.CredentialType.REFRESH_TOKEN,
                     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                     environment: "login.windows.net",
                     realm: testIdTokenClaims.tid || "",

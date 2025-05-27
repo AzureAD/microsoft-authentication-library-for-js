@@ -18,7 +18,6 @@ import {
     BaseAuthRequest,
     StringDict,
     CommonAuthorizationUrlRequest,
-    EMPTY_STRING,
 } from "@azure/msal-common/browser";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
 import {
@@ -262,8 +261,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             libraryInfo: {
                 sku: BrowserConstants.MSAL_SKU,
                 version: version,
-                cpu: EMPTY_STRING,
-                os: EMPTY_STRING,
+                cpu: "",
+                os: "",
             },
             telemetry: this.config.telemetry,
         };
@@ -284,7 +283,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         };
         const state = ProtocolUtils.setRequestState(
             this.browserCrypto,
-            (request && request.state) || EMPTY_STRING,
+            (request && request.state) || "",
             browserState
         );
 

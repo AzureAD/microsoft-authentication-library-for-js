@@ -15,19 +15,7 @@ import {
 } from "../test_kit/StringConstants.js";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration.js";
 import { BaseClient } from "../../src/client/BaseClient.js";
-import {
-    AuthenticationScheme,
-    HeaderNames,
-    ONE_DAY_IN_MS,
-    RESOURCE_DELIM,
-    DEFAULT_AUTHORITY,
-    OPENID_SCOPE,
-    PROFILE_SCOPE,
-    OFFLINE_ACCESS_SCOPE,
-    CODE_GRANT_TYPE,
-    SKU,
-    X_MS_LIB_CAPABILITY_VALUE,
-} from "../../src/utils/Constants.js";
+import * as Constants from "../../src/utils/Constants.js";
 import * as AADServerParamKeys from "../../src/constants/AADServerParamKeys.js";
 import { ClientTestUtils } from "./ClientTestUtils.js";
 import { TestError } from "../test_kit/TestErrors.js";
@@ -114,7 +102,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 scopes: ["scope"],
                 code: "",
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
             };
 
@@ -169,7 +157,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             config.systemOptions.preventCorsPreflight = true;
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -223,7 +211,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -233,7 +221,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 ccsCredential: {
                     credential: idTokenClaims.preferred_username,
                     type: CcsCredentialType.UPN,
@@ -257,7 +245,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const reqHeaders = [
                 ...CORS_SIMPLE_REQUEST_HEADERS,
-                HeaderNames.CCS_HEADER.toLowerCase(),
+                Constants.HeaderNames.CCS_HEADER.toLowerCase(),
             ];
             const executePostToTokenEndpointSpy: jest.SpyInstance = jest
                 .spyOn(
@@ -290,7 +278,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             config.systemOptions.preventCorsPreflight = false;
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -344,7 +332,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -354,7 +342,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 ccsCredential: {
                     credential: idTokenClaims.preferred_username,
                     type: CcsCredentialType.UPN,
@@ -406,7 +394,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             }
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -460,7 +448,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -470,7 +458,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
 
             await client.acquireToken(authCodeRequest, {
@@ -499,7 +487,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             }
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -547,14 +535,14 @@ describe("AuthorizationCodeClient unit tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
-                auth_time: Date.now() - ONE_DAY_IN_MS * 2,
+                auth_time: Date.now() - Constants.ONE_DAY_IN_MS * 2,
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -564,7 +552,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 maxAge: 0, // 0 indicates an immediate refresh
             };
 
@@ -596,7 +584,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             }
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -651,7 +639,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -661,8 +649,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
-                maxAge: ONE_DAY_IN_MS * 3,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                maxAge: Constants.ONE_DAY_IN_MS * 3,
             };
 
             await expect(
@@ -696,7 +684,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             }
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -750,7 +738,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -760,7 +748,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
 
             const authenticationResult = await client.acquireToken(
@@ -793,7 +781,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 .value) as string;
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${OPENID_SCOPE}%20${PROFILE_SCOPE}%20${OFFLINE_ACCESS_SCOPE}`
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
                 )
             ).toBe(true);
             expect(
@@ -815,7 +803,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${CODE_GRANT_TYPE}`
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`
                 )
             ).toBe(true);
             expect(
@@ -829,7 +817,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 )
             ).toBe(true);
             expect(
-                returnVal.includes(`${AADServerParamKeys.X_CLIENT_SKU}=${SKU}`)
+                returnVal.includes(
+                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
@@ -850,7 +840,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 returnVal.includes(
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
-                    }=${encodeURIComponent(X_MS_LIB_CAPABILITY_VALUE)}`
+                    }=${encodeURIComponent(
+                        Constants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
@@ -875,7 +867,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             }
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -923,14 +915,14 @@ describe("AuthorizationCodeClient unit tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
-                auth_time: Date.now() - ONE_DAY_IN_MS * 2,
+                auth_time: Date.now() - Constants.ONE_DAY_IN_MS * 2,
             };
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -940,8 +932,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
-                maxAge: ONE_DAY_IN_MS * 3,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                maxAge: Constants.ONE_DAY_IN_MS * 3,
             };
 
             const authenticationResult = await client.acquireToken(
@@ -974,7 +966,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 .value) as string;
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${OPENID_SCOPE}%20${PROFILE_SCOPE}%20${OFFLINE_ACCESS_SCOPE}`
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
                 )
             ).toBe(true);
             expect(
@@ -996,7 +988,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${CODE_GRANT_TYPE}`
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`
                 )
             ).toBe(true);
             expect(
@@ -1010,7 +1002,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 )
             ).toBe(true);
             expect(
-                returnVal.includes(`${AADServerParamKeys.X_CLIENT_SKU}=${SKU}`)
+                returnVal.includes(
+                    `${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`
+                )
             ).toBe(true);
             expect(
                 returnVal.includes(
@@ -1031,7 +1025,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 returnVal.includes(
                     `${
                         AADServerParamKeys.X_MS_LIB_CAPABILITY
-                    }=${encodeURIComponent(X_MS_LIB_CAPABILITY_VALUE)}`
+                    }=${encodeURIComponent(
+                        Constants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
@@ -1058,7 +1054,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const client = new AuthorizationCodeClient(config);
             const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1068,7 +1064,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
 
             client.acquireToken(authorizationCodeRequest).catch((error) => {
@@ -1101,7 +1097,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const client = new AuthorizationCodeClient(config);
             const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1111,7 +1107,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 tokenQueryParameters: {
                     testParam1: "testValue1",
                     testParam2: "",
@@ -1146,7 +1142,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const client = new AuthorizationCodeClient(config);
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1156,7 +1152,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 tokenBodyParameters: {
                     extra_body_parameter: "true",
                 },
@@ -1189,7 +1185,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const client = new AuthorizationCodeClient(config);
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1199,7 +1195,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 enableSpaAuthorizationCode: true,
             };
 
@@ -1236,7 +1232,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const client = new TestAuthorizationCodeClient(config);
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1246,7 +1242,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 tokenBodyParameters: {
                     extra_body_parameter: "true",
                 },
@@ -1277,7 +1273,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             }
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -1360,8 +1356,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authenticationScheme: AuthenticationScheme.POP,
-                authority: DEFAULT_AUTHORITY,
+                authenticationScheme: Constants.AuthenticationScheme.POP,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1398,7 +1394,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 .value) as string;
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${OPENID_SCOPE}%20${PROFILE_SCOPE}%20${OFFLINE_ACCESS_SCOPE}`
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
                 )
             ).toBe(true);
             expect(
@@ -1420,7 +1416,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${CODE_GRANT_TYPE}`
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`
                 )
             ).toBe(true);
             expect(
@@ -1435,7 +1431,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.POP}`
+                    `${AADServerParamKeys.TOKEN_TYPE}=${Constants.AuthenticationScheme.POP}`
                 )
             ).toBe(true);
             expect(
@@ -1472,7 +1468,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             }
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             config.cryptoInterface.base64Decode = (input: string): string => {
@@ -1549,8 +1545,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authenticationScheme: AuthenticationScheme.SSH,
-                authority: DEFAULT_AUTHORITY,
+                authenticationScheme: Constants.AuthenticationScheme.SSH,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1586,7 +1582,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 .value) as string;
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${OPENID_SCOPE}%20${PROFILE_SCOPE}%20${OFFLINE_ACCESS_SCOPE}`
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
                 )
             ).toBe(true);
             expect(
@@ -1608,7 +1604,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.GRANT_TYPE}=${CODE_GRANT_TYPE}`
+                    `${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`
                 )
             ).toBe(true);
             expect(
@@ -1623,7 +1619,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             ).toBe(true);
             expect(
                 returnVal.includes(
-                    `${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.SSH}`
+                    `${AADServerParamKeys.TOKEN_TYPE}=${Constants.AuthenticationScheme.SSH}`
                 )
             ).toBe(true);
             expect(
@@ -1657,7 +1653,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             }
 
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             config.cryptoInterface.base64Decode = (input: string): string => {
@@ -1733,8 +1729,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authenticationScheme: AuthenticationScheme.SSH,
-                authority: DEFAULT_AUTHORITY,
+                authenticationScheme: Constants.AuthenticationScheme.SSH,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1786,7 +1782,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 );
             }
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -1840,7 +1836,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1850,7 +1846,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
 
             const authenticationResult = await client.acquireToken(
@@ -1893,7 +1889,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 );
             }
             // Set up required objects and mocked return values
-            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${RESOURCE_DELIM}userState`;
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = '{ "id": "testid", "ts": 1592846482 }';
 
             jest.spyOn(
@@ -1947,7 +1943,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -1957,7 +1953,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
 
             const authenticationResult = await client.acquireToken(
@@ -2030,7 +2026,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -2040,7 +2036,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
 
             const authenticationResult = await client.acquireToken(
@@ -2094,7 +2090,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -2104,7 +2100,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
 
             const authenticationResult = await client.acquireToken(
@@ -2176,7 +2172,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -2186,7 +2182,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
             await client.acquireToken(authCodeRequest, {
                 code: authCodeRequest.code,
@@ -2256,7 +2252,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -2266,7 +2262,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
             await client.acquireToken(authCodeRequest, {
                 code: authCodeRequest.code,
@@ -2348,7 +2344,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 performanceClient
             );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -2358,7 +2354,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
             try {
                 await client.acquireToken(authCodeRequest, {
@@ -2442,7 +2438,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 performanceClient
             );
             const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -2452,7 +2448,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
             try {
                 await client.acquireToken(authCodeRequest, {

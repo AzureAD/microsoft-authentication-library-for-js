@@ -9,10 +9,9 @@ import {
     ClientAuthErrorCodes,
     ClientConfiguration,
     CommonDeviceCodeRequest,
-    GrantType,
     createAuthError,
     createClientAuthError,
-    DEFAULT_AUTHORITY,
+    Constants,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -141,7 +140,7 @@ describe("DeviceCodeClient unit tests", () => {
                 .results[0].value;
             const returnValChecks = {
                 clientId: true,
-                grantType: GrantType.DEVICE_CODE_GRANT,
+                grantType: Constants.GrantType.DEVICE_CODE_GRANT,
                 clientSku: true,
                 clientVersion: true,
                 clientOs: true,
@@ -193,7 +192,7 @@ describe("DeviceCodeClient unit tests", () => {
         it("Adds claims to request", async () => {
             let deviceCodeResponse = null;
             const request: CommonDeviceCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -223,7 +222,7 @@ describe("DeviceCodeClient unit tests", () => {
                 .results[0].value;
             const returnValChecks = {
                 clientId: true,
-                grantType: GrantType.DEVICE_CODE_GRANT,
+                grantType: Constants.GrantType.DEVICE_CODE_GRANT,
                 claims: true,
                 clientSku: true,
                 clientVersion: true,
@@ -241,7 +240,7 @@ describe("DeviceCodeClient unit tests", () => {
         it("Does not add claims to request if empty object passed", async () => {
             let deviceCodeResponse = null;
             const request: CommonDeviceCodeRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
                     ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                     ...TEST_CONFIG.DEFAULT_SCOPES,
@@ -271,7 +270,7 @@ describe("DeviceCodeClient unit tests", () => {
                 .results[0].value;
             const returnValChecks = {
                 clientId: true,
-                grantType: GrantType.DEVICE_CODE_GRANT,
+                grantType: Constants.GrantType.DEVICE_CODE_GRANT,
                 claims: false,
                 clientSku: true,
                 clientVersion: true,

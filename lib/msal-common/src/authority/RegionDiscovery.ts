@@ -6,14 +6,7 @@
 import { INetworkModule } from "../network/INetworkModule.js";
 import { NetworkResponse } from "../network/NetworkResponse.js";
 import { IMDSBadResponse } from "../response/IMDSBadResponse.js";
-import {
-    HTTP_BAD_REQUEST,
-    HTTP_SUCCESS,
-    IMDS_ENDPOINT,
-    IMDS_TIMEOUT,
-    IMDS_VERSION,
-    RegionDiscoverySources,
-} from "../utils/Constants.js";
+import * as Constants from "../utils/Constants.js";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata.js";
 import { ImdsOptions } from "./ImdsOptions.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
@@ -72,15 +65,20 @@ export class RegionDiscovery {
                     this.logger,
                     this.performanceClient,
                     this.correlationId
-                )(IMDS_VERSION, options);
-                if (localIMDSVersionResponse.status === HTTP_SUCCESS) {
+                )(Constants.IMDS_VERSION, options);
+                if (
+                    localIMDSVersionResponse.status === Constants.HTTP_SUCCESS
+                ) {
                     autodetectedRegionName = localIMDSVersionResponse.body;
                     regionDiscoveryMetadata.region_source =
-                        RegionDiscoverySources.IMDS;
+                        Constants.RegionDiscoverySources.IMDS;
                 }
 
                 // If the response using the local IMDS version failed, try to fetch the current version of IMDS and retry.
-                if (localIMDSVersionResponse.status === HTTP_BAD_REQUEST) {
+                if (
+                    localIMDSVersionResponse.status ===
+                    Constants.HTTP_BAD_REQUEST
+                ) {
                     const currentIMDSVersion = await invokeAsync(
                         this.getCurrentVersion.bind(this),
                         PerformanceEvents.RegionDiscoveryGetCurrentVersion,
@@ -90,7 +88,7 @@ export class RegionDiscovery {
                     )(options);
                     if (!currentIMDSVersion) {
                         regionDiscoveryMetadata.region_source =
-                            RegionDiscoverySources.FAILED_AUTO_DETECTION;
+                            Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION;
                         return null;
                     }
 
@@ -101,27 +99,30 @@ export class RegionDiscovery {
                         this.performanceClient,
                         this.correlationId
                     )(currentIMDSVersion, options);
-                    if (currentIMDSVersionResponse.status === HTTP_SUCCESS) {
+                    if (
+                        currentIMDSVersionResponse.status ===
+                        Constants.HTTP_SUCCESS
+                    ) {
                         autodetectedRegionName =
                             currentIMDSVersionResponse.body;
                         regionDiscoveryMetadata.region_source =
-                            RegionDiscoverySources.IMDS;
+                            Constants.RegionDiscoverySources.IMDS;
                     }
                 }
             } catch (e) {
                 regionDiscoveryMetadata.region_source =
-                    RegionDiscoverySources.FAILED_AUTO_DETECTION;
+                    Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION;
                 return null;
             }
         } else {
             regionDiscoveryMetadata.region_source =
-                RegionDiscoverySources.ENVIRONMENT_VARIABLE;
+                Constants.RegionDiscoverySources.ENVIRONMENT_VARIABLE;
         }
 
         // If no region was auto detected from the environment or from the IMDS endpoint, mark the attempt as a FAILED_AUTO_DETECTION
         if (!autodetectedRegionName) {
             regionDiscoveryMetadata.region_source =
-                RegionDiscoverySources.FAILED_AUTO_DETECTION;
+                Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION;
         }
 
         return autodetectedRegionName || null;
@@ -138,9 +139,9 @@ export class RegionDiscovery {
         options: ImdsOptions
     ): Promise<NetworkResponse<string>> {
         return this.networkInterface.sendGetRequestAsync<string>(
-            `${IMDS_ENDPOINT}?api-version=${version}&format=text`,
+            `${Constants.IMDS_ENDPOINT}?api-version=${version}&format=text`,
             options,
-            IMDS_TIMEOUT
+            Constants.IMDS_TIMEOUT
         );
     }
 
@@ -155,13 +156,13 @@ export class RegionDiscovery {
         try {
             const response =
                 await this.networkInterface.sendGetRequestAsync<IMDSBadResponse>(
-                    `${IMDS_ENDPOINT}?format=json`,
+                    `${Constants.IMDS_ENDPOINT}?format=json`,
                     options
                 );
 
             // When IMDS endpoint is called without the api version query param, bad request response comes back with latest version.
             if (
-                response.status === HTTP_BAD_REQUEST &&
+                response.status === Constants.HTTP_BAD_REQUEST &&
                 response.body &&
                 response.body["newest-versions"] &&
                 response.body["newest-versions"].length > 0

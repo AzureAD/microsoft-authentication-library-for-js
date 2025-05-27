@@ -6,7 +6,7 @@
 import {
     AuthorizationCodeClient,
     AuthenticationResult,
-    OIDC_DEFAULT_SCOPES,
+    Constants as CommonConstants,
     CommonClientCredentialRequest,
     createClientAuthError,
     ClientAuthErrorCodes,
@@ -467,7 +467,7 @@ describe("ConfidentialClientApplication", () => {
                 ClientCredentialClient.prototype,
                 "acquireToken"
             ).mockImplementation((request: CommonClientCredentialRequest) => {
-                OIDC_DEFAULT_SCOPES.forEach((scope: string) => {
+                CommonConstants.OIDC_DEFAULT_SCOPES.forEach((scope: string) => {
                     expect(request.scopes).not.toContain(scope);
                 });
                 return Promise.resolve(null);

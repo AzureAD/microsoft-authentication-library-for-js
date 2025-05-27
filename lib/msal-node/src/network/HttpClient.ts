@@ -4,12 +4,7 @@
  */
 
 import {
-    HTTP_CLIENT_ERROR_RANGE_END,
-    HTTP_CLIENT_ERROR_RANGE_START,
-    HTTP_SERVER_ERROR_RANGE_END,
-    HTTP_SERVER_ERROR_RANGE_START,
-    HTTP_SUCCESS_RANGE_END,
-    HTTP_SUCCESS_RANGE_START,
+    Constants as CommonConstants,
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
@@ -245,8 +240,10 @@ const networkRequestViaProxy = <T>(
                 );
 
                 if (
-                    (httpStatusCode < HTTP_SUCCESS_RANGE_START ||
-                        httpStatusCode > HTTP_SUCCESS_RANGE_END) &&
+                    (httpStatusCode <
+                        CommonConstants.HTTP_SUCCESS_RANGE_START ||
+                        httpStatusCode >
+                            CommonConstants.HTTP_SUCCESS_RANGE_END) &&
                     // do not destroy the request for the device code flow
                     networkResponse.body["error"] !==
                         Constants.AUTHORIZATION_PENDING
@@ -354,8 +351,8 @@ const networkRequestViaHttps = <T>(
                 );
 
                 if (
-                    (statusCode < HTTP_SUCCESS_RANGE_START ||
-                        statusCode > HTTP_SUCCESS_RANGE_END) &&
+                    (statusCode < CommonConstants.HTTP_SUCCESS_RANGE_START ||
+                        statusCode > CommonConstants.HTTP_SUCCESS_RANGE_END) &&
                     // do not destroy the request for the device code flow
                     networkResponse.body["error"] !==
                         Constants.AUTHORIZATION_PENDING
@@ -402,14 +399,14 @@ const parseBody = (
         let errorType;
         let errorDescriptionHelper;
         if (
-            statusCode >= HTTP_CLIENT_ERROR_RANGE_START &&
-            statusCode <= HTTP_CLIENT_ERROR_RANGE_END
+            statusCode >= CommonConstants.HTTP_CLIENT_ERROR_RANGE_START &&
+            statusCode <= CommonConstants.HTTP_CLIENT_ERROR_RANGE_END
         ) {
             errorType = "client_error";
             errorDescriptionHelper = "A client";
         } else if (
-            statusCode >= HTTP_SERVER_ERROR_RANGE_START &&
-            statusCode <= HTTP_SERVER_ERROR_RANGE_END
+            statusCode >= CommonConstants.HTTP_SERVER_ERROR_RANGE_START &&
+            statusCode <= CommonConstants.HTTP_SERVER_ERROR_RANGE_END
         ) {
             errorType = "server_error";
             errorDescriptionHelper = "A server";

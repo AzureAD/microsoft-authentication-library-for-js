@@ -8,12 +8,7 @@ import { CommonAuthorizationCodeRequest } from "../request/CommonAuthorizationCo
 import { Authority } from "../authority/Authority.js";
 import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js";
 import * as UrlUtils from "../utils/UrlUtils.js";
-import {
-    GrantType,
-    AuthenticationScheme,
-    HeaderNames,
-    CLIENT_INFO_SEPARATOR,
-} from "../utils/Constants.js";
+import * as Constants from "../utils/Constants.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import {
     ClientConfiguration,
@@ -93,7 +88,8 @@ export class AuthorizationCodeClient extends BaseClient {
         )(this.authority, request);
 
         // Retrieve requestId from response headers
-        const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
+        const requestId =
+            response.headers?.[Constants.HeaderNames.X_MS_REQUEST_ID];
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
@@ -178,7 +174,7 @@ export class AuthorizationCodeClient extends BaseClient {
                     this.cryptoUtils.base64Decode
                 );
                 ccsCredential = {
-                    credential: `${clientInfo.uid}${CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
+                    credential: `${clientInfo.uid}${Constants.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 };
             } catch (e) {
@@ -300,11 +296,13 @@ export class AuthorizationCodeClient extends BaseClient {
 
         RequestParameterBuilder.addGrantType(
             parameters,
-            GrantType.AUTHORIZATION_CODE_GRANT
+            Constants.GrantType.AUTHORIZATION_CODE_GRANT
         );
         RequestParameterBuilder.addClientInfo(parameters);
 
-        if (request.authenticationScheme === AuthenticationScheme.POP) {
+        if (
+            request.authenticationScheme === Constants.AuthenticationScheme.POP
+        ) {
             const popTokenGenerator = new PopTokenGenerator(
                 this.cryptoUtils,
                 this.performanceClient
@@ -326,7 +324,9 @@ export class AuthorizationCodeClient extends BaseClient {
 
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             RequestParameterBuilder.addPopToken(parameters, reqCnfData);
-        } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
+        } else if (
+            request.authenticationScheme === Constants.AuthenticationScheme.SSH
+        ) {
             if (request.sshJwk) {
                 RequestParameterBuilder.addSshJwk(parameters, request.sshJwk);
             } else {
@@ -356,7 +356,7 @@ export class AuthorizationCodeClient extends BaseClient {
                     this.cryptoUtils.base64Decode
                 );
                 ccsCred = {
-                    credential: `${clientInfo.uid}${CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
+                    credential: `${clientInfo.uid}${Constants.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
                     type: CcsCredentialType.HOME_ACCOUNT_ID,
                 };
             } catch (e) {

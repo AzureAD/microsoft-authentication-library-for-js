@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { EMPTY_STRING, RESOURCE_DELIM } from "./Constants.js";
+import { RESOURCE_DELIM } from "./Constants.js";
 import { ICrypto } from "../crypto/ICrypto.js";
 import {
     ClientAuthErrorCodes,
@@ -104,13 +104,13 @@ export class ProtocolUtils {
             const userState =
                 splitState.length > 1
                     ? splitState.slice(1).join(RESOURCE_DELIM)
-                    : EMPTY_STRING;
+                    : "";
             const libraryStateString = cryptoObj.base64Decode(libraryState);
             const libraryStateObj = JSON.parse(
                 libraryStateString
             ) as LibraryStateObject;
             return {
-                userRequestState: userState || EMPTY_STRING,
+                userRequestState: userState || "",
                 libraryState: libraryStateObj,
             };
         } catch (e) {

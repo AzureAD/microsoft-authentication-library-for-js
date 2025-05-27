@@ -10,7 +10,6 @@ import {
     DEFAULT_SYSTEM_OPTIONS,
     ProtocolMode,
     OIDCOptions,
-    ResponseMode,
     LogLevel,
     StubbedNetworkModule,
     AzureCloudInstance,
@@ -21,11 +20,7 @@ import {
     IPerformanceClient,
     StubPerformanceClient,
     Logger,
-    EMPTY_STRING,
-    DEFAULT_AUTHORITY,
-    OPENID_SCOPE,
-    PROFILE_SCOPE,
-    OFFLINE_ACCESS_SCOPE,
+    Constants,
 } from "@azure/msal-common/browser";
 import {
     BrowserCacheLocation,
@@ -238,23 +233,27 @@ export function buildConfiguration(
 ): BrowserConfiguration {
     // Default auth options for browser
     const DEFAULT_AUTH_OPTIONS: InternalAuthOptions = {
-        clientId: EMPTY_STRING,
-        authority: `${DEFAULT_AUTHORITY}`,
+        clientId: "",
+        authority: `${Constants.DEFAULT_AUTHORITY}`,
         knownAuthorities: [],
-        cloudDiscoveryMetadata: EMPTY_STRING,
-        authorityMetadata: EMPTY_STRING,
+        cloudDiscoveryMetadata: "",
+        authorityMetadata: "",
         redirectUri:
             typeof window !== "undefined" ? BrowserUtils.getCurrentUri() : "",
-        postLogoutRedirectUri: EMPTY_STRING,
+        postLogoutRedirectUri: "",
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
         OIDCOptions: {
-            responseMode: ResponseMode.FRAGMENT,
-            defaultScopes: [OPENID_SCOPE, PROFILE_SCOPE, OFFLINE_ACCESS_SCOPE],
+            responseMode: Constants.ResponseMode.FRAGMENT,
+            defaultScopes: [
+                Constants.OPENID_SCOPE,
+                Constants.PROFILE_SCOPE,
+                Constants.OFFLINE_ACCESS_SCOPE,
+            ],
         },
         azureCloudOptions: {
             azureCloudInstance: AzureCloudInstance.None,
-            tenant: EMPTY_STRING,
+            tenant: "",
         },
         instanceAware: false,
     };
@@ -307,8 +306,8 @@ export function buildConfiguration(
 
     const DEFAULT_TELEMETRY_OPTIONS: Required<BrowserTelemetryOptions> = {
         application: {
-            appName: EMPTY_STRING,
-            appVersion: EMPTY_STRING,
+            appName: "",
+            appVersion: "",
         },
         client: new StubPerformanceClient(),
     };

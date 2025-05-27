@@ -3,17 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    ResponseMode,
-    CLIENT_INFO,
-    AuthenticationScheme,
-    ClaimsRequestKeys,
-    PasswordGrantConstants,
-    OIDC_DEFAULT_SCOPES,
-    HeaderNames,
-    OAuthResponseType,
-    X_MS_LIB_CAPABILITY_VALUE,
-} from "../utils/Constants.js";
+import * as Constants from "../utils/Constants.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
 import { ScopeSet } from "./ScopeSet.js";
 import {
@@ -59,7 +49,7 @@ export function instrumentBrokerParams(
  */
 export function addResponseType(
     parameters: Map<string, string>,
-    responseType: OAuthResponseType
+    responseType: Constants.OAuthResponseType
 ): void {
     parameters.set(AADServerParamKeys.RESPONSE_TYPE, responseType);
 }
@@ -70,11 +60,11 @@ export function addResponseType(
  */
 export function addResponseMode(
     parameters: Map<string, string>,
-    responseMode?: ResponseMode
+    responseMode?: Constants.ResponseMode
 ): void {
     parameters.set(
         AADServerParamKeys.RESPONSE_MODE,
-        responseMode ? responseMode : ResponseMode.QUERY
+        responseMode ? responseMode : Constants.ResponseMode.QUERY
     );
 }
 
@@ -94,7 +84,7 @@ export function addScopes(
     parameters: Map<string, string>,
     scopes: string[],
     addOidcScopes: boolean = true,
-    defaultScopes: Array<string> = OIDC_DEFAULT_SCOPES
+    defaultScopes: Array<string> = Constants.OIDC_DEFAULT_SCOPES
 ): void {
     // Always add openid to the scopes when adding OIDC scopes
     if (
@@ -185,7 +175,7 @@ export function addCcsUpn(
     parameters: Map<string, string>,
     loginHint: string
 ): void {
-    parameters.set(HeaderNames.CCS_HEADER, `UPN:${loginHint}`);
+    parameters.set(Constants.HeaderNames.CCS_HEADER, `UPN:${loginHint}`);
 }
 
 /**
@@ -197,7 +187,7 @@ export function addCcsOid(
     clientInfo: ClientInfo
 ): void {
     parameters.set(
-        HeaderNames.CCS_HEADER,
+        Constants.HeaderNames.CCS_HEADER,
         `Oid:${clientInfo.uid}@${clientInfo.utid}`
     );
 }
@@ -455,7 +445,7 @@ export function addGrantType(
  *
  */
 export function addClientInfo(parameters: Map<string, string>): void {
-    parameters.set(CLIENT_INFO, "1");
+    parameters.set(Constants.CLIENT_INFO, "1");
 }
 
 export function addInstanceAware(parameters: Map<string, string>): void {
@@ -499,16 +489,21 @@ export function addClientCapabilitiesToClaims(
     }
 
     if (clientCapabilities && clientCapabilities.length > 0) {
-        if (!mergedClaims.hasOwnProperty(ClaimsRequestKeys.ACCESS_TOKEN)) {
+        if (
+            !mergedClaims.hasOwnProperty(
+                Constants.ClaimsRequestKeys.ACCESS_TOKEN
+            )
+        ) {
             // Add access_token key to claims object
-            mergedClaims[ClaimsRequestKeys.ACCESS_TOKEN] = {};
+            mergedClaims[Constants.ClaimsRequestKeys.ACCESS_TOKEN] = {};
         }
 
         // Add xms_cc claim with provided clientCapabilities to access_token key
-        mergedClaims[ClaimsRequestKeys.ACCESS_TOKEN][ClaimsRequestKeys.XMS_CC] =
-            {
-                values: clientCapabilities,
-            };
+        mergedClaims[Constants.ClaimsRequestKeys.ACCESS_TOKEN][
+            Constants.ClaimsRequestKeys.XMS_CC
+        ] = {
+            values: clientCapabilities,
+        };
     }
 
     return JSON.stringify(mergedClaims);
@@ -522,7 +517,7 @@ export function addUsername(
     parameters: Map<string, string>,
     username: string
 ): void {
-    parameters.set(PasswordGrantConstants.username, username);
+    parameters.set(Constants.PasswordGrantConstants.username, username);
 }
 
 /**
@@ -533,7 +528,7 @@ export function addPassword(
     parameters: Map<string, string>,
     password: string
 ): void {
-    parameters.set(PasswordGrantConstants.password, password);
+    parameters.set(Constants.PasswordGrantConstants.password, password);
 }
 
 /**
@@ -545,7 +540,10 @@ export function addPopToken(
     cnfString: string
 ): void {
     if (cnfString) {
-        parameters.set(AADServerParamKeys.TOKEN_TYPE, AuthenticationScheme.POP);
+        parameters.set(
+            AADServerParamKeys.TOKEN_TYPE,
+            Constants.AuthenticationScheme.POP
+        );
         parameters.set(AADServerParamKeys.REQ_CNF, cnfString);
     }
 }
@@ -558,7 +556,10 @@ export function addSshJwk(
     sshJwkString: string
 ): void {
     if (sshJwkString) {
-        parameters.set(AADServerParamKeys.TOKEN_TYPE, AuthenticationScheme.SSH);
+        parameters.set(
+            AADServerParamKeys.TOKEN_TYPE,
+            Constants.AuthenticationScheme.SSH
+        );
         parameters.set(AADServerParamKeys.REQ_CNF, sshJwkString);
     }
 }
@@ -587,7 +588,7 @@ export function addServerTelemetry(
 export function addThrottling(parameters: Map<string, string>): void {
     parameters.set(
         AADServerParamKeys.X_MS_LIB_CAPABILITY,
-        X_MS_LIB_CAPABILITY_VALUE
+        Constants.X_MS_LIB_CAPABILITY_VALUE
     );
 }
 

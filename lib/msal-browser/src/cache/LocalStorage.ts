@@ -10,7 +10,7 @@ import {
     PerformanceEvents,
     Logger,
     invoke,
-    CACHE_PREFIX,
+    Constants,
 } from "@azure/msal-common/browser";
 import {
     createNewGuid,
@@ -249,7 +249,7 @@ export class LocalStorage implements IWindowStorage<string> {
         // Clean up anything left
         this.getKeys().forEach((cacheKey: string) => {
             if (
-                cacheKey.startsWith(CACHE_PREFIX) ||
+                cacheKey.startsWith(Constants.CACHE_PREFIX) ||
                 cacheKey.indexOf(this.clientId) !== -1
             ) {
                 this.removeItem(cacheKey);

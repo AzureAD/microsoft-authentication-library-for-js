@@ -1,6 +1,6 @@
 import { ServerError } from "../../src/error/ServerError";
 import { AuthError } from "../../src/error/AuthError";
-import { EMPTY_STRING, HTTP_BAD_REQUEST } from "../../src/utils/Constants.js";
+import { HTTP_BAD_REQUEST } from "../../src/utils/Constants.js";
 
 describe("ServerError.ts Class Unit Tests", () => {
     it("ServerError object can be created", () => {
@@ -32,10 +32,10 @@ describe("ServerError.ts Class Unit Tests", () => {
         expect(err instanceof ServerError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
-        expect(err.errorCode).toBe(EMPTY_STRING);
-        expect(err.errorMessage).toBe(EMPTY_STRING);
+        expect(err.errorCode).toBe("");
+        expect(err.errorMessage).toBe("");
         expect(err.errorNo).toBeUndefined();
-        expect(err.message).toBe(EMPTY_STRING);
+        expect(err.message).toBe("");
         expect(err.name).toBe("ServerError");
         expect(err.stack?.includes("ServerError.spec.ts")).toBe(true);
         expect(err.status).toBeUndefined();

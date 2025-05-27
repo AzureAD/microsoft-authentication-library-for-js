@@ -1,12 +1,5 @@
 import { ScopeSet } from "../../src/request/ScopeSet.js";
-import {
-    EMAIL_SCOPE,
-    OFFLINE_ACCESS_SCOPE,
-    OIDC_DEFAULT_SCOPES,
-    OIDC_SCOPES,
-    OPENID_SCOPE,
-    PROFILE_SCOPE,
-} from "../../src/utils/Constants.js";
+import * as Constants from "../../src/utils/Constants.js";
 import {
     ClientConfigurationErrorCodes,
     ClientConfigurationError,
@@ -141,7 +134,7 @@ describe("ScopeSet.ts", () => {
         });
 
         it("containsScope() checks if a given scope is present in the set of scopes", () => {
-            expect(scopes.containsScope(OPENID_SCOPE)).toBe(false);
+            expect(scopes.containsScope(Constants.OPENID_SCOPE)).toBe(false);
             expect(scopes.containsScope("notinset")).toBe(false);
             expect(scopes.containsScope(testScope)).toBe(true);
         });
@@ -255,10 +248,13 @@ describe("ScopeSet.ts", () => {
         it("appendScopes() does not add duplicate scopes", () => {
             const unchangedScopes = new ScopeSet([
                 testScope,
-                OFFLINE_ACCESS_SCOPE,
+                Constants.OFFLINE_ACCESS_SCOPE,
             ]);
             const scopeArr = unchangedScopes.asArray();
-            unchangedScopes.appendScopes([testScope, OFFLINE_ACCESS_SCOPE]);
+            unchangedScopes.appendScopes([
+                testScope,
+                Constants.OFFLINE_ACCESS_SCOPE,
+            ]);
             expect(unchangedScopes.asArray()).toEqual(scopeArr);
         });
 
@@ -302,7 +298,7 @@ describe("ScopeSet.ts", () => {
             const testScope2 = "testScope2";
             const testScope3 = "testScope3";
             const newScopeSet = new ScopeSet([testScope2, testScope3]);
-            newScopeSet.removeScope(OFFLINE_ACCESS_SCOPE);
+            newScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
 
             const unionSet = newScopeSet.unionScopeSets(scopes);
             const unionArray = Array.from(unionSet);
@@ -340,31 +336,40 @@ describe("ScopeSet.ts", () => {
             const testScope2 = "testScope2";
             const testScope3 = "testScope3";
             const newScopeSet = new ScopeSet([testScope2, testScope3]);
-            newScopeSet.removeScope(OFFLINE_ACCESS_SCOPE);
+            newScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
 
             expect(newScopeSet.intersectingScopeSets(scopes)).toBe(false);
         });
 
         it("intersectingScopeSets() does not ignore OIDC scopes if they are only present", () => {
-            const scopeset1 = new ScopeSet([...OIDC_SCOPES]);
-            const scopeset2 = new ScopeSet([...OIDC_SCOPES]);
+            const scopeset1 = new ScopeSet([...Constants.OIDC_SCOPES]);
+            const scopeset2 = new ScopeSet([...Constants.OIDC_SCOPES]);
             expect(scopeset1.intersectingScopeSets(scopeset2)).toBe(true);
         });
 
         it("intersectingScopeSets() ignores OIDC scopes if other scopes are present", () => {
             const testScope = "testScope";
             const testScope2 = "testScope2";
-            const scopeset1 = new ScopeSet([...OIDC_SCOPES, testScope]);
-            const scopeset2 = new ScopeSet([...OIDC_SCOPES, testScope2]);
+            const scopeset1 = new ScopeSet([
+                ...Constants.OIDC_SCOPES,
+                testScope,
+            ]);
+            const scopeset2 = new ScopeSet([
+                ...Constants.OIDC_SCOPES,
+                testScope2,
+            ]);
             expect(scopeset1.intersectingScopeSets(scopeset2)).toBe(false);
 
             const scopeset3 = new ScopeSet([
-                OPENID_SCOPE,
-                PROFILE_SCOPE,
-                EMAIL_SCOPE,
+                Constants.OPENID_SCOPE,
+                Constants.PROFILE_SCOPE,
+                Constants.EMAIL_SCOPE,
                 testScope,
             ]);
-            const scopeset4 = new ScopeSet([...OIDC_DEFAULT_SCOPES, testScope]);
+            const scopeset4 = new ScopeSet([
+                ...Constants.OIDC_DEFAULT_SCOPES,
+                testScope,
+            ]);
             expect(scopeset3.intersectingScopeSets(scopeset4)).toBe(true);
         });
 
@@ -413,7 +418,7 @@ describe("ScopeSet.ts", () => {
 
         it("printScopes() prints empty string if ScopeSet is empty", () => {
             requiredScopeSet.removeScope(testScope);
-            requiredScopeSet.removeScope(OFFLINE_ACCESS_SCOPE);
+            requiredScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
             expect(requiredScopeSet.printScopes()).toBe("");
         });
 

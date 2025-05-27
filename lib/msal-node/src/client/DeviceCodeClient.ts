@@ -11,7 +11,6 @@ import {
     ClientConfiguration,
     CommonDeviceCodeRequest,
     DeviceCodeResponse,
-    GrantType,
     RequestParameterBuilder,
     RequestThumbprint,
     ResponseHandler,
@@ -23,7 +22,7 @@ import {
     UrlUtils,
     createAuthError,
     createClientAuthError,
-    AUTHORIZATION_PENDING,
+    Constants,
 } from "@azure/msal-common/node";
 
 /**
@@ -306,7 +305,7 @@ export class DeviceCodeClient extends BaseClient {
 
             if (response.body && response.body.error) {
                 // user authorization is pending. Sleep for polling interval and try again
-                if (response.body.error === AUTHORIZATION_PENDING) {
+                if (response.body.error === Constants.AUTHORIZATION_PENDING) {
                     this.logger.info(
                         "Authorization pending. Continue polling."
                     );
@@ -357,7 +356,7 @@ export class DeviceCodeClient extends BaseClient {
         );
         RequestParameterBuilder.addGrantType(
             parameters,
-            GrantType.DEVICE_CODE_GRANT
+            Constants.GrantType.DEVICE_CODE_GRANT
         );
         RequestParameterBuilder.addDeviceCode(
             parameters,

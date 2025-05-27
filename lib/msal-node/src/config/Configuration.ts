@@ -14,8 +14,7 @@ import {
     ApplicationTelemetry,
     INativeBrokerPlugin,
     ClientAssertionCallback,
-    EMPTY_STRING,
-    DEFAULT_AUTHORITY,
+    Constants,
 } from "@azure/msal-common/node";
 import { HttpClient } from "../network/HttpClient.js";
 import http from "http";
@@ -129,23 +128,23 @@ export type ManagedIdentityConfiguration = {
 };
 
 const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
-    clientId: EMPTY_STRING,
-    authority: DEFAULT_AUTHORITY,
-    clientSecret: EMPTY_STRING,
-    clientAssertion: EMPTY_STRING,
+    clientId: "",
+    authority: Constants.DEFAULT_AUTHORITY,
+    clientSecret: "",
+    clientAssertion: "",
     clientCertificate: {
-        thumbprint: EMPTY_STRING,
-        thumbprintSha256: EMPTY_STRING,
-        privateKey: EMPTY_STRING,
-        x5c: EMPTY_STRING,
+        thumbprint: "",
+        thumbprintSha256: "",
+        privateKey: "",
+        x5c: "",
     },
     knownAuthorities: [],
-    cloudDiscoveryMetadata: EMPTY_STRING,
-    authorityMetadata: EMPTY_STRING,
+    cloudDiscoveryMetadata: "",
+    authorityMetadata: "",
     clientCapabilities: [],
     azureCloudOptions: {
         azureCloudInstance: AzureCloudInstance.None,
-        tenant: EMPTY_STRING,
+        tenant: "",
     },
 };
 
@@ -160,7 +159,7 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
 const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: new HttpClient(),
-    proxyUrl: EMPTY_STRING,
+    proxyUrl: "",
     customAgentOptions: {} as http.AgentOptions | https.AgentOptions,
     disableInternalRetries: false,
     protocolMode: ProtocolMode.AAD,
@@ -168,8 +167,8 @@ const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
     application: {
-        appName: EMPTY_STRING,
-        appVersion: EMPTY_STRING,
+        appName: "",
+        appVersion: "",
     },
 };
 

@@ -3,14 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AuthenticationResult,
-    PasswordGrantConstants,
-    AuthenticationScheme,
-    ONE_DAY_IN_MS,
-    RESOURCE_DELIM,
-    DEFAULT_AUTHORITY_HOST,
-} from "@azure/msal-common";
+import { AuthenticationResult, Constants } from "@azure/msal-common";
 import {
     DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
     DEFAULT_MANAGED_IDENTITY_ID,
@@ -73,7 +66,7 @@ export const ID_TOKEN_CLAIMS = {
     tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
     nonce: "123523",
     aio: "Df2UVXL1ix!lMCWMSOJBcFatzcGfvFGhjKv8q5g0x732dR5MB5BisvGQO7YWByjd8iQDLq!eGbIDakyp5mnOrcdqHeYSnltepQmRp6AIZ8jY",
-    auth_time: Date.now() - ONE_DAY_IN_MS * 2,
+    auth_time: Date.now() - Constants.ONE_DAY_IN_MS * 2,
 };
 
 // Test Expiration Vals
@@ -258,7 +251,7 @@ export const TEST_STATE_VALUES = {
         "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ==",
     URI_ENCODED_LIB_STATE:
         "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ%3D%3D",
-    TEST_STATE: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ==${RESOURCE_DELIM}userState`,
+    TEST_STATE: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ==${Constants.RESOURCE_DELIM}userState`,
 };
 export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
     body: {
@@ -348,7 +341,7 @@ export const DEFAULT_OPENID_CONFIG_RESPONSE = {
 export const AUTHENTICATION_RESULT = {
     status: 200,
     body: {
-        token_type: AuthenticationScheme.BEARER,
+        token_type: Constants.AuthenticationScheme.BEARER,
         scope: "openid profile User.Read email",
         expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
@@ -363,7 +356,7 @@ export const AUTHENTICATION_RESULT = {
 export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
     status: 200,
     body: {
-        token_type: AuthenticationScheme.BEARER,
+        token_type: Constants.AuthenticationScheme.BEARER,
         scope: "openid profile offline_access User.Read",
         expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
@@ -444,7 +437,7 @@ export const MANAGED_IDENTITY_RESOURCE_ID_2: string =
 
 export const getCacheKey = (resource?: string): string => {
     const resourceHelper = resource || DEFAULT_MANAGED_IDENTITY_ID;
-    return `-${DEFAULT_AUTHORITY_HOST}-accesstoken-${resourceHelper}-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}--`;
+    return `-${Constants.DEFAULT_AUTHORITY_HOST}-accesstoken-${resourceHelper}-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}--`;
 };
 
 export const DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT: Omit<
@@ -469,7 +462,7 @@ export const DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT: Omit<
     scopes: [MANAGED_IDENTITY_RESOURCE],
     state: "",
     tenantId: "",
-    tokenType: AuthenticationScheme.BEARER,
+    tokenType: Constants.AuthenticationScheme.BEARER,
     uniqueId: "",
 };
 
@@ -487,7 +480,7 @@ export const DEFAULT_USER_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT
 export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
     status: 200,
     body: {
-        token_type: AuthenticationScheme.BEARER,
+        token_type: Constants.AuthenticationScheme.BEARER,
         expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
         access_token: "thisIs.an.accessT0ken",
@@ -497,7 +490,7 @@ export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
 export const DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
     status: 200,
     body: {
-        token_type: AuthenticationScheme.BEARER,
+        token_type: Constants.AuthenticationScheme.BEARER,
         expires_in: 86396,
         ext_expires_in: 86396,
         refresh_in: 43198,
@@ -575,5 +568,5 @@ export const IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_IN_MS = 7000; // 1 second -> 
 
 export const IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_NUM_REQUESTS = 4; // initial request -> 1 second -> 2 seconds -> 4 seconds
 
-export const MOCK_USERNAME = `mock_${PasswordGrantConstants.username}`;
-export const MOCK_PASSWORD = `mock_${PasswordGrantConstants.password}`;
+export const MOCK_USERNAME = `mock_${Constants.PasswordGrantConstants.username}`;
+export const MOCK_PASSWORD = `mock_${Constants.PasswordGrantConstants.password}`;

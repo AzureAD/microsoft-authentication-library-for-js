@@ -21,9 +21,8 @@ import {
     AzureRegionConfiguration,
     AuthError,
     IAppTokenProvider,
-    OIDC_DEFAULT_SCOPES,
+    Constants,
     UrlString,
-    AADAuthorityConstants,
     createClientAuthError,
     ClientAuthErrorCodes,
     ClientAssertion as ClientAssertionType,
@@ -168,7 +167,8 @@ export class ConfidentialClientApplication
         const validBaseRequest = {
             ...baseRequest,
             scopes: baseRequest.scopes.filter(
-                (scope: string) => !OIDC_DEFAULT_SCOPES.includes(scope)
+                (scope: string) =>
+                    !Constants.OIDC_DEFAULT_SCOPES.includes(scope)
             ),
         };
 
@@ -185,8 +185,8 @@ export class ConfidentialClientApplication
         const authority = new UrlString(validRequest.authority);
         const tenantId = authority.getUrlComponents().PathSegments[0];
         if (
-            Object.values(AADAuthorityConstants).includes(
-                tenantId as AADAuthorityConstants
+            Object.values(Constants.AADAuthority).includes(
+                tenantId as Constants.AADAuthority
             )
         ) {
             throw createClientAuthError(

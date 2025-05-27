@@ -18,12 +18,10 @@ import {
     CommonAuthorizationCodeRequest as AuthorizationCodeRequest,
     Logger,
     LogLevel,
-    AuthenticationScheme,
     AuthorityMetadataEntity,
     Authority,
     StubbedNetworkModule,
     AuthToken,
-    CredentialType,
     ProtocolMode,
     CacheHelpers,
     CacheError,
@@ -32,13 +30,8 @@ import {
     PerformanceEvent,
     StubPerformanceClient,
     CommonAuthorizationUrlRequest,
-    ResponseMode,
     AccountEntityUtils,
-    DEFAULT_AUTHORITY_HOST,
-    CACHE_PREFIX,
-    OPENID_SCOPE,
-    PROFILE_SCOPE,
-    DEFAULT_AUTHORITY,
+    Constants,
 } from "@azure/msal-common";
 import {
     BrowserCacheLocation,
@@ -574,7 +567,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             browserCrypto.base64Decode,
                             500,
-                            AuthenticationScheme.BEARER,
+                            Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
                         );
 
@@ -612,7 +605,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             browserCrypto.base64Decode,
                             500,
-                            AuthenticationScheme.BEARER,
+                            Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
                         );
                     const testAccessTokenWithAuthScheme =
@@ -627,7 +620,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             browserCrypto.base64Decode,
                             500,
-                            AuthenticationScheme.POP,
+                            Constants.AuthenticationScheme.POP,
                             "oboAssertion"
                         );
                     // Cache bearer token
@@ -654,7 +647,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             browserCrypto.base64Decode,
                             500,
-                            AuthenticationScheme.BEARER,
+                            Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
                         );
                     const testAccessTokenWithAuthScheme =
@@ -669,7 +662,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             browserCrypto.base64Decode,
                             500,
-                            AuthenticationScheme.POP,
+                            Constants.AuthenticationScheme.POP,
                             "oboAssertion"
                         );
                     // Cache bearer token
@@ -705,7 +698,7 @@ describe("BrowserCacheManager tests", () => {
                                 testAccessTokenWithoutAuthScheme
                             )
                         )?.credentialType
-                    ).toBe(CredentialType.ACCESS_TOKEN);
+                    ).toBe(Constants.CredentialType.ACCESS_TOKEN);
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
@@ -719,7 +712,7 @@ describe("BrowserCacheManager tests", () => {
                                 testAccessTokenWithoutAuthScheme
                             )
                         )?.credentialType
-                    ).toBe(CredentialType.ACCESS_TOKEN);
+                    ).toBe(Constants.CredentialType.ACCESS_TOKEN);
                 });
 
                 it("getAccessTokenCredential returns PoP access token when authentication scheme is set to pop and both a Bearer and pop token are in the cache", async () => {
@@ -735,7 +728,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             browserCrypto.base64Decode,
                             500,
-                            AuthenticationScheme.BEARER,
+                            Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
                         );
                     const testAccessTokenWithAuthScheme =
@@ -750,7 +743,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             browserCrypto.base64Decode,
                             500,
-                            AuthenticationScheme.POP,
+                            Constants.AuthenticationScheme.POP,
                             "oboAssertion"
                         );
                     // Cache bearer token
@@ -786,7 +779,9 @@ describe("BrowserCacheManager tests", () => {
                                 testAccessTokenWithAuthScheme
                             )
                         )?.credentialType
-                    ).toBe(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
+                    ).toBe(
+                        Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
+                    );
                     expect(
                         browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
@@ -800,7 +795,9 @@ describe("BrowserCacheManager tests", () => {
                                 testAccessTokenWithAuthScheme
                             )
                         )?.credentialType
-                    ).toBe(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
+                    ).toBe(
+                        Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
+                    );
                 });
 
                 it("clearTokensAndKeysWithClaims clears all access tokens with claims in tokenKeys", async () => {
@@ -815,7 +812,7 @@ describe("BrowserCacheManager tests", () => {
                         1000,
                         browserCrypto.base64Decode,
                         500,
-                        AuthenticationScheme.BEARER,
+                        Constants.AuthenticationScheme.BEARER,
                         "oboAssertion"
                     );
                     const testAT2 = CacheHelpers.createAccessTokenEntity(
@@ -829,7 +826,7 @@ describe("BrowserCacheManager tests", () => {
                         1000,
                         browserCrypto.base64Decode,
                         500,
-                        AuthenticationScheme.BEARER,
+                        Constants.AuthenticationScheme.BEARER,
                         "oboAssertion",
                         undefined,
                         "claims",
@@ -846,7 +843,7 @@ describe("BrowserCacheManager tests", () => {
                         1000,
                         browserCrypto.base64Decode,
                         500,
-                        AuthenticationScheme.BEARER,
+                        Constants.AuthenticationScheme.BEARER,
                         "oboAssertion",
                         undefined,
                         "claims"
@@ -862,7 +859,7 @@ describe("BrowserCacheManager tests", () => {
                         1000,
                         browserCrypto.base64Decode,
                         500,
-                        AuthenticationScheme.BEARER,
+                        Constants.AuthenticationScheme.BEARER,
                         "oboAssertion",
                         undefined,
                         "claims",
@@ -1273,12 +1270,12 @@ describe("BrowserCacheManager tests", () => {
             });
 
             describe("AuthorityMetadata", () => {
-                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${DEFAULT_AUTHORITY_HOST}`;
+                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
                 const testObj: AuthorityMetadataEntity = {
-                    aliases: [DEFAULT_AUTHORITY_HOST],
-                    preferred_cache: DEFAULT_AUTHORITY_HOST,
-                    preferred_network: DEFAULT_AUTHORITY_HOST,
-                    canonical_authority: DEFAULT_AUTHORITY_HOST,
+                    aliases: [Constants.DEFAULT_AUTHORITY_HOST],
+                    preferred_cache: Constants.DEFAULT_AUTHORITY_HOST,
+                    preferred_network: Constants.DEFAULT_AUTHORITY_HOST,
+                    canonical_authority: Constants.DEFAULT_AUTHORITY_HOST,
                     authorization_endpoint:
                         //@ts-ignore
                         DEFAULT_OPENID_CONFIG_RESPONSE.body
@@ -1478,7 +1475,7 @@ describe("BrowserCacheManager tests", () => {
                             1000,
                             browserCrypto.base64Decode,
                             500,
-                            AuthenticationScheme.BEARER,
+                            Constants.AuthenticationScheme.BEARER,
                             "oboAssertion"
                         );
 
@@ -1591,7 +1588,7 @@ describe("BrowserCacheManager tests", () => {
                     );
 
                     cacheManager.setTemporaryCache(
-                        `${CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                        `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                         TEST_CONFIG.MSAL_CLIENT_ID
                     );
                     expect(cacheManager.getInteractionInProgress()).toBeNull();
@@ -1613,7 +1610,7 @@ describe("BrowserCacheManager tests", () => {
                     );
 
                     cacheManager.setTemporaryCache(
-                        `${CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                        `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                         TEST_CONFIG.MSAL_CLIENT_ID
                     );
                     // @ts-ignore
@@ -1646,12 +1643,12 @@ describe("BrowserCacheManager tests", () => {
                 new StubPerformanceClient(),
                 new EventHandler()
             );
-            const requestParamsKey = `${CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`;
+            const requestParamsKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`;
             window.sessionStorage.setItem(
                 requestParamsKey,
                 "TestRequestParams"
             );
-            const originUriKey = `${CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`;
+            const originUriKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`;
             window.sessionStorage.setItem(
                 originUriKey,
                 TEST_URIS.TEST_REDIR_URI
@@ -1681,11 +1678,11 @@ describe("BrowserCacheManager tests", () => {
             );
             const tokenRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
-                scopes: [OPENID_SCOPE, PROFILE_SCOPE],
-                authority: `${DEFAULT_AUTHORITY}/`,
+                scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
                 correlationId: `${RANDOM_TEST_GUID}`,
-                authenticationScheme: AuthenticationScheme.BEARER,
-                responseMode: ResponseMode.FRAGMENT,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                responseMode: Constants.ResponseMode.FRAGMENT,
                 state: TEST_CONFIG.STATE,
                 nonce: RANDOM_TEST_GUID,
             };
@@ -1735,12 +1732,12 @@ describe("BrowserCacheManager tests", () => {
             );
             const tokenRequest: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
-                scopes: [OPENID_SCOPE, PROFILE_SCOPE],
+                scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
                 code: "thisIsAnAuthCode",
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${DEFAULT_AUTHORITY}/`,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
                 correlationId: `${RANDOM_TEST_GUID}`,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
             const stringifiedRequest = JSON.stringify(tokenRequest);
             browserStorage.setTemporaryCache(
@@ -1773,8 +1770,14 @@ describe("BrowserCacheManager tests", () => {
                 refreshToken: [],
             });
 
-            browserStorage.addTokenKey("idToken1", CredentialType.ID_TOKEN);
-            browserStorage.addTokenKey("idToken2", CredentialType.ID_TOKEN);
+            browserStorage.addTokenKey(
+                "idToken1",
+                Constants.CredentialType.ID_TOKEN
+            );
+            browserStorage.addTokenKey(
+                "idToken2",
+                Constants.CredentialType.ID_TOKEN
+            );
             expect(browserStorage.getTokenKeys()).toStrictEqual({
                 idToken: ["idToken1", "idToken2"],
                 accessToken: [],
@@ -1783,11 +1786,11 @@ describe("BrowserCacheManager tests", () => {
 
             browserStorage.addTokenKey(
                 "accessToken1",
-                CredentialType.ACCESS_TOKEN
+                Constants.CredentialType.ACCESS_TOKEN
             );
             browserStorage.addTokenKey(
                 "accessToken2",
-                CredentialType.ACCESS_TOKEN
+                Constants.CredentialType.ACCESS_TOKEN
             );
             expect(browserStorage.getTokenKeys()).toStrictEqual({
                 idToken: ["idToken1", "idToken2"],
@@ -1797,11 +1800,11 @@ describe("BrowserCacheManager tests", () => {
 
             browserStorage.addTokenKey(
                 "refreshToken1",
-                CredentialType.REFRESH_TOKEN
+                Constants.CredentialType.REFRESH_TOKEN
             );
             browserStorage.addTokenKey(
                 "refreshToken2",
-                CredentialType.REFRESH_TOKEN
+                Constants.CredentialType.REFRESH_TOKEN
             );
             expect(browserStorage.getTokenKeys()).toStrictEqual({
                 idToken: ["idToken1", "idToken2"],
@@ -1809,7 +1812,10 @@ describe("BrowserCacheManager tests", () => {
                 refreshToken: ["refreshToken1", "refreshToken2"],
             });
 
-            browserStorage.removeTokenKey("idToken1", CredentialType.ID_TOKEN);
+            browserStorage.removeTokenKey(
+                "idToken1",
+                Constants.CredentialType.ID_TOKEN
+            );
             expect(browserStorage.getTokenKeys()).toStrictEqual({
                 idToken: ["idToken2"],
                 accessToken: ["accessToken1", "accessToken2"],
@@ -1818,7 +1824,7 @@ describe("BrowserCacheManager tests", () => {
 
             browserStorage.removeTokenKey(
                 "accessToken2",
-                CredentialType.ACCESS_TOKEN
+                Constants.CredentialType.ACCESS_TOKEN
             );
             expect(browserStorage.getTokenKeys()).toStrictEqual({
                 idToken: ["idToken2"],
@@ -1828,7 +1834,7 @@ describe("BrowserCacheManager tests", () => {
 
             browserStorage.removeTokenKey(
                 "refreshToken1",
-                CredentialType.REFRESH_TOKEN
+                Constants.CredentialType.REFRESH_TOKEN
             );
             expect(browserStorage.getTokenKeys()).toStrictEqual({
                 idToken: ["idToken2"],
@@ -1839,27 +1845,27 @@ describe("BrowserCacheManager tests", () => {
             // Attempting to remove keys which exist as a different credential type results in a no-op
             browserStorage.removeTokenKey(
                 "idToken2",
-                CredentialType.ACCESS_TOKEN
+                Constants.CredentialType.ACCESS_TOKEN
             );
             browserStorage.removeTokenKey(
                 "idToken2",
-                CredentialType.REFRESH_TOKEN
+                Constants.CredentialType.REFRESH_TOKEN
             );
             browserStorage.removeTokenKey(
                 "accessToken1",
-                CredentialType.ID_TOKEN
+                Constants.CredentialType.ID_TOKEN
             );
             browserStorage.removeTokenKey(
                 "accessToken1",
-                CredentialType.REFRESH_TOKEN
+                Constants.CredentialType.REFRESH_TOKEN
             );
             browserStorage.removeTokenKey(
                 "refreshToken2",
-                CredentialType.ID_TOKEN
+                Constants.CredentialType.ID_TOKEN
             );
             browserStorage.removeTokenKey(
                 "refreshToken2",
-                CredentialType.ACCESS_TOKEN
+                Constants.CredentialType.ACCESS_TOKEN
             );
             expect(browserStorage.getTokenKeys()).toStrictEqual({
                 idToken: ["idToken2"],

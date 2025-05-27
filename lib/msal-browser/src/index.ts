@@ -9,6 +9,7 @@
  */
 
 import * as BrowserUtils from "./utils/BrowserUtils.js";
+import { Constants } from "@azure/msal-common/browser";
 export { BrowserUtils };
 
 export {
@@ -100,9 +101,24 @@ export {
 export { BrowserPerformanceClient } from "./telemetry/BrowserPerformanceClient.js";
 export { BrowserPerformanceMeasurement } from "./telemetry/BrowserPerformanceMeasurement.js";
 
-// Common Object Formats
+// Common constants
+const {
+    AuthenticationScheme,
+    ResponseMode,
+    PromptValue,
+    JsonWebTokenTypes,
+    OIDC_DEFAULT_SCOPES,
+} = Constants;
 export {
     AuthenticationScheme,
+    ResponseMode,
+    PromptValue,
+    JsonWebTokenTypes,
+    OIDC_DEFAULT_SCOPES,
+};
+
+// Common Object Formats
+export {
     // Account
     AccountInfo,
     AccountEntity,
@@ -128,19 +144,15 @@ export {
     LogLevel,
     // Protocol Mode
     ProtocolMode,
-    ResponseMode,
-    PromptValue,
     // Server Response
     ExternalTokenResponse,
     // Utils
     StringUtils,
     UrlString,
-    JsonWebTokenTypes,
     // AzureCloudInstance enum
     AzureCloudInstance,
     AzureCloudOptions,
     AuthenticationHeaderParser,
-    OIDC_DEFAULT_SCOPES,
     PerformanceCallbackFunction,
     PerformanceEvent,
     PerformanceEvents,

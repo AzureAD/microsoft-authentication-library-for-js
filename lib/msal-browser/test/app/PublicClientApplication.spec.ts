@@ -23,7 +23,6 @@ import {
 import {
     AccountEntity,
     AccountInfo,
-    AuthenticationScheme,
     AuthError,
     AuthorityMetadataEntity,
     AuthorizationCodeClient,
@@ -45,14 +44,12 @@ import {
     ProtocolMode,
     ProtocolUtils,
     RefreshTokenClient,
-    ResponseMode,
     ServerError,
     ServerTelemetryEntity,
     TokenClaims,
     StubPerformanceClient,
     AccountEntityUtils,
-    DEFAULT_AUTHORITY,
-    CACHE_PREFIX,
+    Constants,
 } from "@azure/msal-common/browser";
 import {
     ApiId,
@@ -180,10 +177,11 @@ function stubDOMProvider(config: Configuration) {
 const testRequest: CommonAuthorizationUrlRequest = {
     redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
     scopes: TEST_CONFIG.DEFAULT_SCOPES,
-    authority: `${DEFAULT_AUTHORITY}`,
+    authority: `${Constants.DEFAULT_AUTHORITY}`,
     correlationId: RANDOM_TEST_GUID,
-    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-    responseMode: ResponseMode.FRAGMENT,
+    authenticationScheme:
+        TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
+    responseMode: Constants.ResponseMode.FRAGMENT,
     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
     nonce: ID_TOKEN_CLAIMS.nonce,
 };
@@ -717,7 +715,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             jest.spyOn(
@@ -772,7 +770,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             jest.spyOn(
@@ -872,7 +870,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
                 fromNativeBroker: true,
             };
 
@@ -988,7 +986,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     correlationId: RANDOM_TEST_GUID,
                     expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                     account: testAccount,
-                    tokenType: AuthenticationScheme.BEARER,
+                    tokenType: Constants.AuthenticationScheme.BEARER,
                     fromNativeBroker: true,
                 };
                 jest.spyOn(
@@ -1098,7 +1096,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 BrowserCacheManager.prototype,
@@ -1194,15 +1192,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
             window.sessionStorage.setItem(
-                `${CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
                 TEST_URIS.TEST_REDIR_URI
             );
             window.sessionStorage.setItem(
-                `${CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
+                `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
             );
             window.sessionStorage.setItem(
-                `${CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 JSON.stringify({
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     type: INTERACTION_TYPE.SIGNIN,
@@ -1252,7 +1250,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const postMock = jest
                 .spyOn(FetchClient.prototype, "sendPostRequestAsync")
@@ -1360,7 +1358,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             window.sessionStorage.setItem(
-                `${CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 JSON.stringify({
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     type: INTERACTION_TYPE.SIGNIN,
@@ -1404,7 +1402,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             window.sessionStorage.setItem(
-                `${CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 JSON.stringify({
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     type: INTERACTION_TYPE.SIGNOUT,
@@ -1427,7 +1425,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
 
             window.sessionStorage.setItem(
-                `${CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
                 JSON.stringify({
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     type: INTERACTION_TYPE.SIGNIN,
@@ -1452,7 +1450,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     OIDCOptions: {
-                        responseMode: ResponseMode.QUERY,
+                        responseMode: Constants.ResponseMode.QUERY,
                     },
                 },
                 telemetry: {
@@ -1479,11 +1477,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const request: CommonAuthorizationUrlRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                authority: `${DEFAULT_AUTHORITY}`,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-                responseMode: ResponseMode.QUERY,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
+                responseMode: Constants.ResponseMode.QUERY,
                 state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 nonce: RANDOM_TEST_GUID,
             };
@@ -2472,7 +2470,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
                 RANDOM_TEST_GUID
@@ -2605,7 +2603,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
@@ -2665,7 +2663,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest.spyOn(
@@ -2723,7 +2721,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
@@ -2781,7 +2779,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
@@ -2931,7 +2929,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const popupClientSpy: jest.SpyInstance = jest
                 .spyOn(PopupClient.prototype, "acquireToken")
@@ -2965,7 +2963,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const popupClientSpy: jest.SpyInstance = jest
                 .spyOn(PopupClient.prototype, "acquireToken")
@@ -3017,7 +3015,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 StandardController.prototype,
@@ -3162,7 +3160,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const popupClientSpy: jest.SpyInstance = jest
                 .spyOn(PopupClient.prototype, "acquireToken")
@@ -3218,10 +3216,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 state: TEST_STATE_VALUES.USER_STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                responseMode:
+                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
                 nonce: "",
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             jest.spyOn(
@@ -3278,10 +3277,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 state: TEST_STATE_VALUES.USER_STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                responseMode:
+                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
                 nonce: "",
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
             };
 
             jest.spyOn(
@@ -3394,7 +3394,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
@@ -3451,7 +3451,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
@@ -3565,7 +3565,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             let ssoSilentFired = false;
@@ -3610,7 +3610,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const silentClientSpy: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, "acquireToken")
@@ -3652,7 +3652,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const silentClientSpy: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, "acquireToken")
@@ -3800,7 +3800,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
@@ -3936,7 +3936,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const silentClientSpy: jest.SpyInstance = jest
                 .spyOn(SilentAuthCodeClient.prototype, "acquireToken")
@@ -3974,7 +3974,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const silentClientSpy: jest.SpyInstance = jest
                 .spyOn(SilentAuthCodeClient.prototype, "acquireToken")
@@ -4020,7 +4020,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const silentClientSpy: jest.SpyInstance = jest
                 .spyOn(SilentAuthCodeClient.prototype, "acquireToken")
@@ -4076,7 +4076,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const silentClientSpy: jest.SpyInstance = jest
                 .spyOn(SilentAuthCodeClient.prototype, "acquireToken")
@@ -4120,7 +4120,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const silentClientSpy: jest.SpyInstance = jest
                 .spyOn(SilentAuthCodeClient.prototype, "acquireToken")
@@ -4173,7 +4173,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const silentClientSpy: jest.SpyInstance = jest
                 .spyOn(SilentAuthCodeClient.prototype, "acquireToken")
@@ -4297,7 +4297,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
@@ -4354,7 +4354,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             const nativeAcquireTokenSpy: jest.SpyInstance = jest
@@ -4454,7 +4454,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
                 state: "test-state",
             };
             const silentCacheSpy: jest.SpyInstance = jest
@@ -4545,7 +4545,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
                 state: "test-state",
             };
             const silentCacheSpy: jest.SpyInstance = jest
@@ -4591,7 +4591,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
                 state: "test-state",
             };
             const silentCacheSpy: jest.SpyInstance = jest
@@ -4641,7 +4641,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
                 state: "test-state",
             };
             const silentCacheSpy: jest.SpyInstance = jest
@@ -4711,7 +4711,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
                 RANDOM_TEST_GUID
@@ -4733,14 +4733,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["User.Read"],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
             };
             const expectedTokenRequest: CommonSilentFlowRequest = {
                 ...tokenRequest,
                 scopes: ["User.Read"],
-                authority: `${DEFAULT_AUTHORITY}`,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
@@ -4816,7 +4816,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
                 RANDOM_TEST_GUID
@@ -4835,14 +4835,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["User.Read"],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
             };
             const expectedTokenRequest1: CommonSilentFlowRequest = {
                 ...tokenRequest1,
                 scopes: ["User.Read"],
-                authority: `${DEFAULT_AUTHORITY}`,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
@@ -4850,14 +4850,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["Mail.Read"],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
             };
             const expectedTokenRequest2: CommonSilentFlowRequest = {
                 ...tokenRequest1,
                 scopes: ["Mail.Read"],
-                authority: `${DEFAULT_AUTHORITY}`,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
@@ -4867,7 +4867,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["User.Read"],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.POP,
+                authenticationScheme: Constants.AuthenticationScheme.POP,
                 resourceRequestMethod: "GET",
                 resourceRequestUri: "https://testUri.com/user.read",
                 correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -4878,7 +4878,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["Mail.Read"],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.POP,
+                authenticationScheme: Constants.AuthenticationScheme.POP,
                 resourceRequestMethod: "GET",
                 resourceRequestUri: "https://testUri.com/mail.read",
                 correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -4887,7 +4887,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const expectedPopTokenRequest1: CommonSilentFlowRequest = {
                 ...popTokenRequest1,
                 scopes: ["User.Read"],
-                authority: `${DEFAULT_AUTHORITY}`,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
@@ -4895,7 +4895,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const expectedPopTokenRequest2: CommonSilentFlowRequest = {
                 ...popTokenRequest2,
                 scopes: ["Mail.Read"],
-                authority: `${DEFAULT_AUTHORITY}`,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
@@ -4905,7 +4905,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["User.Read"],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.SSH,
+                authenticationScheme: Constants.AuthenticationScheme.SSH,
                 sshJwk: TEST_SSH_VALUES.ENCODED_SSH_JWK,
                 sshKid: TEST_SSH_VALUES.SSH_KID,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -4916,7 +4916,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["Mail.Read"],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.SSH,
+                authenticationScheme: Constants.AuthenticationScheme.SSH,
                 sshJwk: TEST_SSH_VALUES.ALTERNATE_ENCODED_SSH_JWK,
                 sshKid: TEST_SSH_VALUES.ALTERNATE_SSH_KID,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -4926,7 +4926,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const expectedSshCertificateRequest1: CommonSilentFlowRequest = {
                 ...sshCertRequest1,
                 scopes: ["User.Read"],
-                authority: `${DEFAULT_AUTHORITY}`,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
@@ -4934,7 +4934,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const expectedSshCertificateRequest2: CommonSilentFlowRequest = {
                 ...sshCertRequest2,
                 scopes: ["Mail.Read"],
-                authority: `${DEFAULT_AUTHORITY}`,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false,
             };
@@ -5017,7 +5017,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     Date.now() + testServerTokenResponse.expires_in * 1000
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
                 RANDOM_TEST_GUID
@@ -5035,7 +5035,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const baseRequest = {
                 scopes: ["User.Read"],
                 account: testAccount,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: "test-correlationId1",
                 forceRefresh: false,
@@ -5184,7 +5184,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             const rtMockFirst = jest
@@ -5277,7 +5277,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             const rtMockFirst = jest
@@ -5459,7 +5459,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     testServerTokenResponse.expires_in
                 ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const silentTokenHelperStub: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, <any>"silentTokenHelper")
@@ -5486,14 +5486,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 ...CommonSilentFlowRequest,
                 scopes: ["User.Read"],
                 authenticationScheme:
-                    TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
                 correlationId: RANDOM_TEST_GUID,
-                authority: `${DEFAULT_AUTHORITY}`,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
                 prompt: "none",
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 state: TEST_STATE_VALUES.TEST_STATE_SILENT,
                 nonce: RANDOM_TEST_GUID,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
             };
             const tokenResp = await pca.acquireTokenSilent(
                 CommonSilentFlowRequest
@@ -5598,7 +5598,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const silentCacheSpy: jest.SpyInstance = jest
                 .spyOn(SilentCacheClient.prototype, "acquireToken")
@@ -5656,7 +5656,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             const silentCacheSpy: jest.SpyInstance = jest
                 .spyOn(SilentCacheClient.prototype, "acquireToken")
@@ -5770,7 +5770,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: TestTimeUtils.nowDateWithOffset(3600),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
 
             const refreshRequiredCacheError = createClientAuthError(
@@ -6763,7 +6763,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             correlationId: RANDOM_TEST_GUID,
             expiresOn: TestTimeUtils.nowDateWithOffset(3600),
             account: testAccount,
-            tokenType: AuthenticationScheme.BEARER,
+            tokenType: Constants.AuthenticationScheme.BEARER,
         };
 
         const request: SilentRequest = {

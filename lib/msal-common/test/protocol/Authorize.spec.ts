@@ -1,17 +1,7 @@
 import { Authority } from "../../src/authority/Authority.js";
 import { AuthOptions } from "../../src/config/ClientConfiguration.js";
 import { CommonAuthorizationUrlRequest } from "../../src/request/CommonAuthorizationUrlRequest.js";
-import {
-    AuthenticationScheme,
-    DEFAULT_AUTHORITY,
-    HeaderNames,
-    OFFLINE_ACCESS_SCOPE,
-    OPENID_SCOPE,
-    PROFILE_SCOPE,
-    PromptValue,
-    ResponseMode,
-    S256_CODE_CHALLENGE_METHOD,
-} from "../../src/utils/Constants.js";
+import * as Constants from "../../src/utils/Constants.js";
 import { getDiscoveredAuthority } from "../client/ClientTestUtils.js";
 import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
@@ -62,15 +52,15 @@ describe("Authorize Protocol Tests", () => {
         it("Creates an authorization url with default parameters", async () => {
             const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.QUERY,
+                responseMode: Constants.ResponseMode.QUERY,
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 nonce: RANDOM_TEST_GUID,
                 state: TEST_CONFIG.STATE,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: S256_CODE_CHALLENGE_METHOD,
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
             const params =
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
@@ -82,7 +72,7 @@ describe("Authorize Protocol Tests", () => {
                 authority,
                 params
             );
-            expect(loginUrl.includes(DEFAULT_AUTHORITY)).toBe(true);
+            expect(loginUrl.includes(Constants.DEFAULT_AUTHORITY)).toBe(true);
             expect(
                 loginUrl.includes(
                     DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
@@ -93,7 +83,7 @@ describe("Authorize Protocol Tests", () => {
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.SCOPE}=${OPENID_SCOPE}%20${PROFILE_SCOPE}%20${OFFLINE_ACCESS_SCOPE}`
+                    `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
                 )
             ).toBe(true);
             expect(
@@ -111,7 +101,7 @@ describe("Authorize Protocol Tests", () => {
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(
-                        ResponseMode.QUERY
+                        Constants.ResponseMode.QUERY
                     )}`
                 )
             ).toBe(true);
@@ -125,17 +115,17 @@ describe("Authorize Protocol Tests", () => {
                     ...TEST_CONFIG.DEFAULT_SCOPES,
                 ],
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FORM_POST,
+                responseMode: Constants.ResponseMode.FORM_POST,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
                 codeChallengeMethod: TEST_CONFIG.CODE_CHALLENGE_METHOD,
                 state: TEST_CONFIG.STATE,
-                prompt: PromptValue.LOGIN,
+                prompt: Constants.PromptValue.LOGIN,
                 loginHint: TEST_CONFIG.LOGIN_HINT,
                 domainHint: TEST_CONFIG.DOMAIN_HINT,
                 claims: TEST_CONFIG.CLAIMS,
                 nonce: TEST_CONFIG.NONCE,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
             };
             const params =
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
@@ -158,7 +148,7 @@ describe("Authorize Protocol Tests", () => {
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${OPENID_SCOPE}%20${PROFILE_SCOPE}%20${OFFLINE_ACCESS_SCOPE}`
+                    `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
                 )
             ).toBe(true);
             expect(
@@ -176,7 +166,7 @@ describe("Authorize Protocol Tests", () => {
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(
-                        ResponseMode.FORM_POST
+                        Constants.ResponseMode.FORM_POST
                     )}`
                 )
             ).toBe(true);
@@ -189,7 +179,7 @@ describe("Authorize Protocol Tests", () => {
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${AADServerParamKeys.PROMPT}=${PromptValue.LOGIN}`
+                    `${AADServerParamKeys.PROMPT}=${Constants.PromptValue.LOGIN}`
                 )
             ).toBe(true);
             expect(
@@ -238,11 +228,11 @@ describe("Authorize Protocol Tests", () => {
                 nonce: RANDOM_TEST_GUID,
                 state: TEST_CONFIG.STATE,
                 loginHint: TEST_CONFIG.LOGIN_HINT,
-                prompt: PromptValue.LOGIN,
+                prompt: Constants.PromptValue.LOGIN,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
             };
             const rootMeasurement = mockPerfClient.startMeasurement(
                 "root-measurement",
@@ -268,7 +258,7 @@ describe("Authorize Protocol Tests", () => {
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${HeaderNames.CCS_HEADER}=${encodeURIComponent(
+                    `${Constants.HeaderNames.CCS_HEADER}=${encodeURIComponent(
                         `UPN:${TEST_CONFIG.LOGIN_HINT}`
                     )}`
                 )
@@ -319,11 +309,11 @@ describe("Authorize Protocol Tests", () => {
                 },
                 nonce: RANDOM_TEST_GUID,
                 state: TEST_CONFIG.STATE,
-                prompt: PromptValue.NONE,
+                prompt: Constants.PromptValue.NONE,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
             };
             const params =
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
@@ -344,7 +334,7 @@ describe("Authorize Protocol Tests", () => {
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${HeaderNames.CCS_HEADER}=${encodeURIComponent(
+                    `${Constants.HeaderNames.CCS_HEADER}=${encodeURIComponent(
                         `Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`
                     )}`
                 )
@@ -394,11 +384,11 @@ describe("Authorize Protocol Tests", () => {
                 },
                 nonce: RANDOM_TEST_GUID,
                 state: TEST_CONFIG.STATE,
-                prompt: PromptValue.NONE,
+                prompt: Constants.PromptValue.NONE,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
             };
             const rootMeasurement = mockPerfClient.startMeasurement(
                 "root-measurement",
@@ -431,7 +421,7 @@ describe("Authorize Protocol Tests", () => {
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${HeaderNames.CCS_HEADER}=${encodeURIComponent(
+                    `${Constants.HeaderNames.CCS_HEADER}=${encodeURIComponent(
                         `Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`
                     )}`
                 )
@@ -492,9 +482,9 @@ describe("Authorize Protocol Tests", () => {
                 nonce: RANDOM_TEST_GUID,
                 state: TEST_CONFIG.STATE,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
                 domainHint: TEST_CONFIG.DOMAIN_HINT,
             };
             const rootMeasurement = mockPerfClient.startMeasurement(
@@ -535,7 +525,7 @@ describe("Authorize Protocol Tests", () => {
             ).toBe(true);
             expect(
                 loginUrl.includes(
-                    `${HeaderNames.CCS_HEADER}=${encodeURIComponent(
+                    `${Constants.HeaderNames.CCS_HEADER}=${encodeURIComponent(
                         `Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`
                     )}`
                 )
@@ -591,9 +581,9 @@ describe("Authorize Protocol Tests", () => {
                 nonce: RANDOM_TEST_GUID,
                 state: TEST_CONFIG.STATE,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
                 domainHint: TEST_CONFIG.DOMAIN_HINT,
                 loginHint: TEST_CONFIG.LOGIN_HINT,
             };
@@ -646,12 +636,12 @@ describe("Authorize Protocol Tests", () => {
                 nonce: RANDOM_TEST_GUID,
                 state: TEST_CONFIG.STATE,
                 loginHint: TEST_CONFIG.LOGIN_HINT,
-                prompt: PromptValue.NONE,
+                prompt: Constants.PromptValue.NONE,
                 sid: TEST_CONFIG.SID,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
             };
             const rootMeasurement = mockPerfClient.startMeasurement(
                 "root-measurement",
@@ -689,7 +679,7 @@ describe("Authorize Protocol Tests", () => {
             expect(event.loginHintFromUpn).toBeFalsy();
             expect(event.domainHintFromRequest).toBeFalsy();
             expect(event.sidFromRequest).toBeTruthy();
-            expect(event.prompt).toEqual(PromptValue.NONE);
+            expect(event.prompt).toEqual(Constants.PromptValue.NONE);
         });
 
         it("Prefers loginHint over sid if both provided and prompt!=None", async () => {
@@ -702,12 +692,12 @@ describe("Authorize Protocol Tests", () => {
                 nonce: RANDOM_TEST_GUID,
                 state: TEST_CONFIG.STATE,
                 loginHint: TEST_CONFIG.LOGIN_HINT,
-                prompt: PromptValue.LOGIN,
+                prompt: Constants.PromptValue.LOGIN,
                 sid: TEST_CONFIG.SID,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
             };
             const params =
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
@@ -744,12 +734,12 @@ describe("Authorize Protocol Tests", () => {
                 ],
                 nonce: RANDOM_TEST_GUID,
                 state: TEST_CONFIG.STATE,
-                prompt: PromptValue.LOGIN,
+                prompt: Constants.PromptValue.LOGIN,
                 sid: TEST_CONFIG.SID,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
             };
             const rootMeasurement = mockPerfClient.startMeasurement(
                 "root-measurement",
@@ -780,7 +770,7 @@ describe("Authorize Protocol Tests", () => {
             expect(event.domainHintFromRequest).toBeFalsy();
             expect(event.sidFromClaim).toBeFalsy();
             expect(event.sidFromRequest).toBeFalsy();
-            expect(event.prompt).toEqual(PromptValue.LOGIN);
+            expect(event.prompt).toEqual(Constants.PromptValue.LOGIN);
         });
 
         it("Prefers loginHint over Account if both provided and account does not have token claims", async () => {
@@ -795,9 +785,9 @@ describe("Authorize Protocol Tests", () => {
                 loginHint: TEST_CONFIG.LOGIN_HINT,
                 account: TEST_ACCOUNT_INFO,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
             };
             const params =
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
@@ -864,11 +854,11 @@ describe("Authorize Protocol Tests", () => {
                 nonce: RANDOM_TEST_GUID,
                 state: TEST_CONFIG.STATE,
                 loginHint: TEST_CONFIG.LOGIN_HINT,
-                prompt: PromptValue.NONE,
+                prompt: Constants.PromptValue.NONE,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
             };
             const params =
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
@@ -947,11 +937,11 @@ describe("Authorize Protocol Tests", () => {
                 nonce: RANDOM_TEST_GUID,
                 state: TEST_CONFIG.STATE,
                 loginHint: TEST_CONFIG.LOGIN_HINT,
-                prompt: PromptValue.LOGIN,
+                prompt: Constants.PromptValue.LOGIN,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
             };
             const params =
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
@@ -1029,9 +1019,9 @@ describe("Authorize Protocol Tests", () => {
                 state: TEST_CONFIG.STATE,
                 loginHint: TEST_CONFIG.LOGIN_HINT,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
             };
             const params =
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
@@ -1064,9 +1054,9 @@ describe("Authorize Protocol Tests", () => {
                 state: TEST_CONFIG.STATE,
                 account: TEST_ACCOUNT_INFO,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
             };
             const params =
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
@@ -1100,9 +1090,9 @@ describe("Authorize Protocol Tests", () => {
                 account: TEST_ACCOUNT_INFO,
                 prompt: "select_account",
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
             };
             const params =
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
@@ -1132,9 +1122,9 @@ describe("Authorize Protocol Tests", () => {
                 loginHint: "testaccount@microsoft.com",
                 prompt: "select_account",
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
             };
             const params =
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
@@ -1164,9 +1154,9 @@ describe("Authorize Protocol Tests", () => {
                 sid: "testsid",
                 prompt: "select_account",
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
             };
             const params =
                 AuthorizeProtocol.getStandardAuthorizeRequestParameters(
@@ -1193,11 +1183,11 @@ describe("Authorize Protocol Tests", () => {
                 nonce: RANDOM_TEST_GUID,
                 state: TEST_CONFIG.STATE,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: S256_CODE_CHALLENGE_METHOD,
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
             };
 
             const params =
@@ -1228,8 +1218,8 @@ describe("Authorize Protocol Tests", () => {
                 state: TEST_CONFIG.STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: RANDOM_TEST_GUID,
-                responseMode: ResponseMode.FRAGMENT,
-                prompt: PromptValue.LOGIN,
+                responseMode: Constants.ResponseMode.FRAGMENT,
+                prompt: Constants.PromptValue.LOGIN,
                 redirectUri: "localhost",
             };
 
@@ -1253,8 +1243,8 @@ describe("Authorize Protocol Tests", () => {
                 state: TEST_CONFIG.STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: RANDOM_TEST_GUID,
-                responseMode: ResponseMode.FRAGMENT,
-                prompt: PromptValue.LOGIN,
+                responseMode: Constants.ResponseMode.FRAGMENT,
+                prompt: Constants.PromptValue.LOGIN,
                 redirectUri: "localhost",
                 extraQueryParameters: {
                     client_id: "child_client_id",
@@ -1280,8 +1270,8 @@ describe("Authorize Protocol Tests", () => {
                 state: TEST_CONFIG.STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: RANDOM_TEST_GUID,
-                responseMode: ResponseMode.FRAGMENT,
-                prompt: PromptValue.LOGIN,
+                responseMode: Constants.ResponseMode.FRAGMENT,
+                prompt: Constants.PromptValue.LOGIN,
                 redirectUri: "localhost",
             };
 
@@ -1305,8 +1295,8 @@ describe("Authorize Protocol Tests", () => {
                 state: TEST_CONFIG.STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: RANDOM_TEST_GUID,
-                responseMode: ResponseMode.FRAGMENT,
-                prompt: PromptValue.LOGIN,
+                responseMode: Constants.ResponseMode.FRAGMENT,
+                prompt: Constants.PromptValue.LOGIN,
                 redirectUri: "localhost",
             };
             const params =
@@ -1329,8 +1319,8 @@ describe("Authorize Protocol Tests", () => {
                 state: TEST_CONFIG.STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: RANDOM_TEST_GUID,
-                responseMode: ResponseMode.FRAGMENT,
-                prompt: PromptValue.LOGIN,
+                responseMode: Constants.ResponseMode.FRAGMENT,
+                prompt: Constants.PromptValue.LOGIN,
                 redirectUri: "localhost",
                 extraQueryParameters: {
                     instance_aware: "true",
@@ -1360,8 +1350,8 @@ describe("Authorize Protocol Tests", () => {
                 state: TEST_CONFIG.STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: RANDOM_TEST_GUID,
-                responseMode: ResponseMode.FRAGMENT,
-                prompt: PromptValue.LOGIN,
+                responseMode: Constants.ResponseMode.FRAGMENT,
+                prompt: Constants.PromptValue.LOGIN,
                 redirectUri: "localhost",
                 extraQueryParameters: {
                     instance_aware: "false",
@@ -1390,7 +1380,7 @@ describe("Authorize Protocol Tests", () => {
                 state: TEST_CONFIG.STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: RANDOM_TEST_GUID,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
                 redirectUri: "localhost",
                 embeddedClientId: "child_client_id_1",
             };
@@ -1418,7 +1408,7 @@ describe("Authorize Protocol Tests", () => {
                 state: TEST_CONFIG.STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: RANDOM_TEST_GUID,
-                responseMode: ResponseMode.FRAGMENT,
+                responseMode: Constants.ResponseMode.FRAGMENT,
                 redirectUri: "localhost",
                 embeddedClientId: "child_client_id_1",
                 extraQueryParameters: {

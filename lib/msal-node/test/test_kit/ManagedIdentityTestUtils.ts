@@ -4,9 +4,7 @@
  */
 
 import {
-    AuthenticationScheme,
-    HTTP_SERVER_ERROR,
-    HTTP_SUCCESS,
+    Constants,
     INetworkModule,
     NetworkResponse,
     TimeUtils,
@@ -39,7 +37,7 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
     getSuccessResponse<T>(iso8601Date?: string): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, _reject) => {
             resolve({
-                status: HTTP_SUCCESS,
+                status: Constants.HTTP_SUCCESS,
                 body: {
                     access_token: TEST_TOKENS.ACCESS_TOKEN,
                     client_id: this.clientId,
@@ -51,7 +49,7 @@ export class ManagedIdentityNetworkClient implements INetworkModule {
                         "/.default",
                         ""
                     ),
-                    token_type: AuthenticationScheme.BEARER,
+                    token_type: Constants.AuthenticationScheme.BEARER,
                 } as ManagedIdentityTokenResponse,
                 headers: EMPTY_HEADERS,
             } as NetworkResponse<T>);
@@ -83,7 +81,7 @@ export class ManagedIdentityNetworkErrorClient implements INetworkModule {
         this.errorResponse =
             errorResponse || MANAGED_IDENTITY_NETWORK_REQUEST_500_ERROR;
         this.headers = headers || EMPTY_HEADERS;
-        this.status = status || HTTP_SERVER_ERROR;
+        this.status = status || Constants.HTTP_SERVER_ERROR;
     }
 
     /**

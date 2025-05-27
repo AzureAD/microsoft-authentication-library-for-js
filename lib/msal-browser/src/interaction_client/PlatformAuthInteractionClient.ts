@@ -6,15 +6,12 @@
 import {
     Logger,
     ICrypto,
-    PromptValue,
     AuthToken,
     AccountEntity,
     AuthorityType,
     ScopeSet,
     TimeUtils,
-    AuthenticationScheme,
     UrlString,
-    OIDC_DEFAULT_SCOPES,
     PopTokenGenerator,
     SignedHttpRequestParameters,
     IPerformanceClient,
@@ -35,8 +32,7 @@ import {
     InProgressPerformanceEvent,
     ServerTelemetryManager,
     AccountEntityUtils,
-    EMPTY_STRING,
-    SHR_NONCE_VALIDITY,
+    Constants,
 } from "@azure/msal-common/browser";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -539,7 +535,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     ): string {
         // Save account in browser storage
         const homeAccountIdentifier = AccountEntityUtils.generateHomeAccountId(
-            response.client_info || EMPTY_STRING,
+            response.client_info || "",
             AuthorityType.Default,
             this.logger,
             this.browserCrypto,
@@ -571,7 +567,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         request: PlatformBrokerRequest
     ): Promise<string> {
         if (
-            request.tokenType === AuthenticationScheme.POP &&
+            request.tokenType === Constants.AuthenticationScheme.POP &&
             request.signPopToken
         ) {
             /**
@@ -649,9 +645,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             accountProperties["UID"] ||
             idTokenClaims.oid ||
             idTokenClaims.sub ||
-            EMPTY_STRING;
-        const tid =
-            accountProperties["TenantId"] || idTokenClaims.tid || EMPTY_STRING;
+            "";
+        const tid = accountProperties["TenantId"] || idTokenClaims.tid || "";
 
         const accountInfo: AccountInfo | null = updateAccountTenantProfileData(
             AccountEntityUtils.getAccountInfo(accountEntity),
@@ -674,9 +669,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             request
         );
         const tokenType =
-            request.tokenType === AuthenticationScheme.POP
-                ? AuthenticationScheme.POP
-                : AuthenticationScheme.BEARER;
+            request.tokenType === Constants.AuthenticationScheme.POP
+                ? Constants.AuthenticationScheme.POP
+                : Constants.AuthenticationScheme.BEARER;
 
         const result: AuthenticationResult = {
             authority: authority,
@@ -747,8 +742,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         // cache accessToken in inmemory storage
         const expiresIn: number =
-            request.tokenType === AuthenticationScheme.POP
-                ? SHR_NONCE_VALIDITY
+            request.tokenType === Constants.AuthenticationScheme.POP
+                ? Constants.SHR_NONCE_VALIDITY
                 : (typeof response.expires_in === "string"
                       ? parseInt(response.expires_in, 10)
                       : response.expires_in) || 0;
@@ -770,7 +765,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 0,
                 base64Decode,
                 undefined,
-                request.tokenType as AuthenticationScheme,
+                request.tokenType as Constants.AuthenticationScheme,
                 undefined,
                 request.keyId
             );
@@ -791,8 +786,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         tokenType: string,
         expiresIn: string | number | undefined
     ): number {
-        return tokenType === AuthenticationScheme.POP
-            ? SHR_NONCE_VALIDITY
+        return tokenType === Constants.AuthenticationScheme.POP
+            ? Constants.SHR_NONCE_VALIDITY
             : (typeof expiresIn === "string"
                   ? parseInt(expiresIn, 10)
                   : expiresIn) || 0;
@@ -883,7 +878,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         // scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
         const { scopes, ...remainingProperties } = request;
         const scopeSet = new ScopeSet(scopes || []);
-        scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
+        scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
 
         const validatedRequest: PlatformBrokerRequest = {
             ...remainingProperties,
@@ -917,7 +912,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         validatedRequest.extraParameters.telemetry =
             PlatformAuthConstants.MATS_TELEMETRY;
 
-        if (request.authenticationScheme === AuthenticationScheme.POP) {
+        if (
+            request.authenticationScheme === Constants.AuthenticationScheme.POP
+        ) {
             // add POP request type
             const shrParameters: SignedHttpRequestParameters = {
                 resourceRequestUri: request.resourceRequestUri,
@@ -984,7 +981,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.logger.trace(
                     "initializeNativeRequest: silent request sets prompt to none"
                 );
-                return PromptValue.NONE;
+                return Constants.PromptValue.NONE;
             default:
                 break;
         }
@@ -999,9 +996,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         // If request is interactive, check if prompt provided is allowed to go directly to native broker
         switch (prompt) {
-            case PromptValue.NONE:
-            case PromptValue.CONSENT:
-            case PromptValue.LOGIN:
+            case Constants.PromptValue.NONE:
+            case Constants.PromptValue.CONSENT:
+            case Constants.PromptValue.LOGIN:
                 this.logger.trace(
                     "initializeNativeRequest: prompt is compatible with native flow"
                 );

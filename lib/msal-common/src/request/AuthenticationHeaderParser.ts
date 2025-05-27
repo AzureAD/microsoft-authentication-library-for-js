@@ -7,7 +7,7 @@ import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
 } from "../error/ClientConfigurationError.js";
-import { EMPTY_STRING, HeaderNames } from "../utils/Constants.js";
+import { HeaderNames } from "../utils/Constants.js";
 
 type WWWAuthenticateChallenges = {
     nonce?: string;
@@ -82,7 +82,7 @@ export class AuthenticationHeaderParser {
         challenges.forEach((challenge: string) => {
             const [key, value] = challenge.split("=");
             // Remove escaped quotation marks (', ") from challenge string to keep only the challenge value
-            challengeMap[key] = unescape(value.replace(/['"]+/g, EMPTY_STRING));
+            challengeMap[key] = unescape(value.replace(/['"]+/g, ""));
         });
 
         return challengeMap;

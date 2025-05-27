@@ -8,7 +8,6 @@ import {
     TimeUtils,
     createClientAuthError,
     ClientAuthErrorCodes,
-    EMPTY_STRING,
 } from "@azure/msal-common/node";
 import { CryptoProvider } from "../crypto/CryptoProvider.js";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
@@ -194,7 +193,7 @@ export class ClientAssertion {
         let matches;
         while ((matches = regexToFindCerts.exec(publicCertificate)) !== null) {
             // matches[1] represents the first parens capture group in the regex.
-            certs.push(matches[1].replace(/\r*\n/g, EMPTY_STRING));
+            certs.push(matches[1].replace(/\r*\n/g, ""));
         }
 
         return certs;

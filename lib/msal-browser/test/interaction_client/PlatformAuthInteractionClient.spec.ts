@@ -4,19 +4,17 @@
  */
 
 import {
-    AuthenticationScheme,
     AccountInfo,
-    PromptValue,
     AuthenticationResult,
     AccountEntity,
     IdTokenEntity,
     AccessTokenEntity,
-    CredentialType,
     TimeUtils,
     CacheManager,
     IPerformanceClient,
     InProgressPerformanceEvent,
     AccountEntityUtils,
+    Constants,
 } from "@azure/msal-common";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { ApiId } from "../../src/utils/BrowserConstants.js";
@@ -107,8 +105,8 @@ const testAccessTokenEntity: AccessTokenEntity = {
     realm: ID_TOKEN_CLAIMS.tid,
     secret: TEST_TOKENS.ACCESS_TOKEN,
     target: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
-    credentialType: CredentialType.ACCESS_TOKEN,
-    tokenType: AuthenticationScheme.BEARER,
+    credentialType: Constants.CredentialType.ACCESS_TOKEN,
+    tokenType: Constants.AuthenticationScheme.BEARER,
     expiresOn: `${TimeUtils.nowSeconds() + TEST_CONFIG.TOKEN_EXPIRY}`,
     cachedAt: `${TimeUtils.nowSeconds()}`,
 };
@@ -237,7 +235,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.scopes).toEqual(TEST_CONFIG.DEFAULT_SCOPES);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
     });
 
@@ -263,7 +263,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
 
         it("acquires token successfully with string expires_in", async () => {
@@ -291,7 +293,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
             expect(response.expiresOn).toBeDefined();
         });
 
@@ -299,7 +303,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             nativeInteractionClient
                 .acquireToken({
                     scopes: ["User.Read"],
-                    prompt: PromptValue.SELECT_ACCOUNT,
+                    prompt: Constants.PromptValue.SELECT_ACCOUNT,
                 })
                 .catch((e) => {
                     expect(e.errorCode).toBe(
@@ -318,7 +322,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             nativeInteractionClient
                 .acquireToken({
                     scopes: ["User.Read"],
-                    prompt: PromptValue.CREATE,
+                    prompt: Constants.PromptValue.CREATE,
                 })
                 .catch((e) => {
                     expect(e.errorCode).toBe(
@@ -342,7 +346,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             });
             const response = await nativeInteractionClient.acquireToken({
                 scopes: ["User.Read"],
-                prompt: PromptValue.NONE,
+                prompt: Constants.PromptValue.NONE,
             });
             expect(response.accessToken).toEqual(
                 MOCK_WAM_RESPONSE.access_token
@@ -355,7 +359,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
 
         it("prompt: consent succeeds", async () => {
@@ -367,7 +373,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             });
             const response = await nativeInteractionClient.acquireToken({
                 scopes: ["User.Read"],
-                prompt: PromptValue.CONSENT,
+                prompt: Constants.PromptValue.CONSENT,
             });
             expect(response.accessToken).toEqual(
                 MOCK_WAM_RESPONSE.access_token
@@ -380,7 +386,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
 
         it("prompt: login succeeds", async () => {
@@ -392,7 +400,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             });
             const response = await nativeInteractionClient.acquireToken({
                 scopes: ["User.Read"],
-                prompt: PromptValue.LOGIN,
+                prompt: Constants.PromptValue.LOGIN,
             });
             expect(response.accessToken).toEqual(
                 MOCK_WAM_RESPONSE.access_token
@@ -405,7 +413,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
 
         it("does not throw account switch error when homeaccountid is same", (done) => {
@@ -563,7 +573,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).mockImplementation(
                 (nativeRequest): Promise<PlatformBrokerResponse> => {
                     expect(nativeRequest && nativeRequest.prompt).toBe(
-                        PromptValue.NONE
+                        Constants.PromptValue.NONE
                     );
                     return Promise.resolve(MOCK_WAM_RESPONSE);
                 }
@@ -593,7 +603,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
             const response = await nativeInteractionClient.acquireToken({
                 scopes: ["User.Read"],
-                prompt: PromptValue.SELECT_ACCOUNT,
+                prompt: Constants.PromptValue.SELECT_ACCOUNT,
             });
             expect(response.accessToken).toEqual(
                 MOCK_WAM_RESPONSE.access_token
@@ -606,7 +616,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
 
         it("acquireTokenSilent overwrites prompt to be 'none' and succeeds", async () => {
@@ -616,7 +628,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).mockImplementation(
                 (nativeRequest): Promise<PlatformBrokerResponse> => {
                     expect(nativeRequest && nativeRequest.prompt).toBe(
-                        PromptValue.NONE
+                        Constants.PromptValue.NONE
                     );
                     return Promise.resolve(MOCK_WAM_RESPONSE);
                 }
@@ -646,7 +658,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
             const response = await nativeInteractionClient.acquireToken({
                 scopes: ["User.Read"],
-                prompt: PromptValue.SELECT_ACCOUNT,
+                prompt: Constants.PromptValue.SELECT_ACCOUNT,
             });
             expect(response.accessToken).toEqual(
                 MOCK_WAM_RESPONSE.access_token
@@ -659,7 +671,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
 
         it("adds MSAL.js SKU to request extra query parameters", async () => {
@@ -1220,7 +1234,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: response && response.expiresOn, // Steal the expires on from the response as this is variable
                 account: TEST_ACCOUNT_INFO,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
                 fromNativeBroker: true,
             };
             expect(response).toEqual(testTokenResponse);
@@ -1272,7 +1286,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 expiresOn: response && response.expiresOn, // Steal the expires on from the response as this is variable
                 account: TEST_ACCOUNT_INFO,
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
                 fromNativeBroker: true,
             };
             expect(response).toEqual(testTokenResponse);
@@ -1320,7 +1334,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 // @ts-ignore
                 await nativeInteractionClient.initializeNativeRequest({
                     scopes: ["User.Read"],
-                    prompt: PromptValue.LOGIN,
+                    prompt: Constants.PromptValue.LOGIN,
                 });
 
             expect(nativeRequest.clientId).toEqual(TEST_CONFIG.MSAL_CLIENT_ID);
@@ -1332,7 +1346,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 // @ts-ignore
                 await nativeInteractionClient.initializeNativeRequest({
                     scopes: ["User.Read"],
-                    prompt: PromptValue.LOGIN,
+                    prompt: Constants.PromptValue.LOGIN,
                     redirectUri: "localhost",
                     extraQueryParameters: {
                         brk_client_id: "broker_client_id",

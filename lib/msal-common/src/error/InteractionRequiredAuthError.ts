@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { EMPTY_STRING } from "../utils/Constants.js";
 import { AuthError } from "./AuthError.js";
 import * as InteractionRequiredAuthErrorCodes from "./InteractionRequiredAuthErrorCodes.js";
 export { InteractionRequiredAuthErrorCodes };
@@ -70,10 +69,10 @@ export class InteractionRequiredAuthError extends AuthError {
         super(errorCode, errorMessage, subError);
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
 
-        this.timestamp = timestamp || EMPTY_STRING;
-        this.traceId = traceId || EMPTY_STRING;
-        this.correlationId = correlationId || EMPTY_STRING;
-        this.claims = claims || EMPTY_STRING;
+        this.timestamp = timestamp || "";
+        this.traceId = traceId || "";
+        this.correlationId = correlationId || "";
+        this.claims = claims || "";
         this.name = "InteractionRequiredAuthError";
         this.errorNo = errorNo;
     }

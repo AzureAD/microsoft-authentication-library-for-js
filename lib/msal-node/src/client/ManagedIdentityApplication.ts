@@ -7,7 +7,6 @@ import {
     AuthOptions,
     Authority,
     AuthorityOptions,
-    CacheOutcome,
     ClientConfiguration,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     INetworkModule,
@@ -17,7 +16,7 @@ import {
     AuthenticationResult,
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
-    DEFAULT_AUTHORITY,
+    Constants,
 } from "@azure/msal-common/node";
 import {
     ManagedIdentityConfiguration,
@@ -67,7 +66,7 @@ export class ManagedIdentityApplication {
         );
 
         const fakeStatusAuthorityOptions: StaticAuthorityOptions = {
-            canonicalAuthority: DEFAULT_AUTHORITY,
+            canonicalAuthority: Constants.DEFAULT_AUTHORITY,
         };
 
         if (!ManagedIdentityApplication.nodeStorage) {
@@ -166,7 +165,10 @@ export class ManagedIdentityApplication {
 
         if (cachedAuthenticationResult) {
             // if the token is not expired but must be refreshed; get a new one in the background
-            if (lastCacheOutcome === CacheOutcome.PROACTIVELY_REFRESHED) {
+            if (
+                lastCacheOutcome ===
+                Constants.CacheOutcome.PROACTIVELY_REFRESHED
+            ) {
                 this.logger.info(
                     "ClientCredentialClient:getCachedAuthenticationResult - Cached access token's refreshOn property has been exceeded'. It's not expired, but must be refreshed."
                 );

@@ -7,7 +7,6 @@ import {
     AuthError,
     Authority,
     ClientAuthErrorCodes,
-    HeaderNames,
     INetworkModule,
     Logger,
     NetworkRequestOptions,
@@ -18,7 +17,7 @@ import {
     createClientAuthError,
     AuthenticationResult,
     UrlString,
-    URL_FORM_CONTENT_TYPE,
+    Constants,
 } from "@azure/msal-common/node";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
@@ -147,7 +146,8 @@ export abstract class BaseManagedIdentitySource {
             );
 
         const headers: Record<string, string> = networkRequest.headers;
-        headers[HeaderNames.CONTENT_TYPE] = URL_FORM_CONTENT_TYPE;
+        headers[Constants.HeaderNames.CONTENT_TYPE] =
+            Constants.URL_FORM_CONTENT_TYPE;
 
         const networkRequestOptions: NetworkRequestOptions = { headers };
 

@@ -16,8 +16,7 @@ import {
     IdTokenEntity,
     AccountEntity,
     AccessTokenEntity,
-    CredentialType,
-    AuthenticationScheme,
+    Constants,
     RefreshTokenEntity,
     TimeUtils,
     AuthenticationResult,
@@ -53,10 +52,10 @@ const testAccessTokenEntity: AccessTokenEntity = {
     realm: ID_TOKEN_CLAIMS.tid,
     secret: TEST_TOKENS.ACCESS_TOKEN,
     target: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
-    credentialType: CredentialType.ACCESS_TOKEN,
+    credentialType: Constants.CredentialType.ACCESS_TOKEN,
     expiresOn: `${TimeUtils.nowSeconds() + 3600}`,
     cachedAt: `${TimeUtils.nowSeconds()}`,
-    tokenType: AuthenticationScheme.BEARER,
+    tokenType: Constants.AuthenticationScheme.BEARER,
 };
 
 const testRefreshTokenEntity: RefreshTokenEntity = {
@@ -65,7 +64,7 @@ const testRefreshTokenEntity: RefreshTokenEntity = {
     environment: testAccountEntity.environment,
     realm: ID_TOKEN_CLAIMS.tid,
     secret: TEST_TOKENS.REFRESH_TOKEN,
-    credentialType: CredentialType.REFRESH_TOKEN,
+    credentialType: Constants.CredentialType.REFRESH_TOKEN,
 };
 
 describe("SilentCacheClient", () => {
@@ -121,7 +120,7 @@ describe("SilentCacheClient", () => {
                 expiresOn: TimeUtils.toDateFromSeconds(
                     testAccessTokenEntity.expiresOn
                 ),
-                tokenType: AuthenticationScheme.BEARER,
+                tokenType: Constants.AuthenticationScheme.BEARER,
             };
             jest.spyOn(
                 CacheManager.prototype,

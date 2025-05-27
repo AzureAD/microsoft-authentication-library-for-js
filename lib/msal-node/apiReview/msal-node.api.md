@@ -29,7 +29,6 @@ import { AzureRegionConfiguration } from '@azure/msal-common/node';
 import { BaseAuthRequest } from '@azure/msal-common/node';
 import { BaseClient } from '@azure/msal-common/node';
 import { CacheManager } from '@azure/msal-common/node';
-import { CacheOutcome } from '@azure/msal-common/node';
 import { ClientAssertionCallback } from '@azure/msal-common/node';
 import { ClientAuthError } from '@azure/msal-common/node';
 import { ClientAuthErrorCodes } from '@azure/msal-common/node';
@@ -44,6 +43,7 @@ import { CommonOnBehalfOfRequest } from '@azure/msal-common/node';
 import { CommonRefreshTokenRequest } from '@azure/msal-common/node';
 import { CommonSilentFlowRequest } from '@azure/msal-common/node';
 import { CommonUsernamePasswordRequest } from '@azure/msal-common/node';
+import { Constants } from '@azure/msal-common/node';
 import { DeviceCodeResponse } from '@azure/msal-common/node';
 import http from 'http';
 import https from 'https';
@@ -64,11 +64,9 @@ import { LogLevel } from '@azure/msal-common/node';
 import { NetworkRequestOptions } from '@azure/msal-common/node';
 import { NetworkResponse } from '@azure/msal-common/node';
 import { PkceCodes } from '@azure/msal-common/node';
-import { PromptValue } from '@azure/msal-common/node';
 import { ProtocolMode } from '@azure/msal-common/node';
 import { RefreshTokenCache } from '@azure/msal-common/node';
 import { RefreshTokenEntity } from '@azure/msal-common/node';
-import { ResponseMode } from '@azure/msal-common/node';
 import { ServerError } from '@azure/msal-common/node';
 import { ServerTelemetryEntity } from '@azure/msal-common/node';
 import { ServerTelemetryManager } from '@azure/msal-common/node';
@@ -181,7 +179,7 @@ export { ClientConfigurationErrorCodes }
 export class ClientCredentialClient extends BaseClient {
     constructor(configuration: ClientConfiguration, appTokenProvider?: IAppTokenProvider);
     acquireToken(request: CommonClientCredentialRequest): Promise<AuthenticationResult | null>;
-    getCachedAuthenticationResult(request: CommonClientCredentialRequest, config: ClientConfiguration | ManagedIdentityConfiguration, cryptoUtils: ICrypto, authority: Authority, cacheManager: CacheManager, serverTelemetryManager?: ServerTelemetryManager | null): Promise<[AuthenticationResult | null, CacheOutcome]>;
+    getCachedAuthenticationResult(request: CommonClientCredentialRequest, config: ClientConfiguration | ManagedIdentityConfiguration, cryptoUtils: ICrypto, authority: Authority, cacheManager: CacheManager, serverTelemetryManager?: ServerTelemetryManager | null): Promise<[AuthenticationResult | null, Constants.CacheOutcome]>;
 }
 
 // @public
@@ -465,7 +463,17 @@ export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssert
     scopes: Array<string>;
 };
 
-export { PromptValue }
+// Warning: (ae-missing-release-tag) "PromptValue" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export const PromptValue: {
+    LOGIN: string;
+    SELECT_ACCOUNT: string;
+    CONSENT: string;
+    NONE: string;
+    CREATE: string;
+    NO_SESSION: string;
+};
 
 export { ProtocolMode }
 
@@ -486,7 +494,14 @@ export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scope
     forceCache?: boolean;
 };
 
-export { ResponseMode }
+// Warning: (ae-missing-release-tag) "ResponseMode" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export const ResponseMode: {
+    readonly QUERY: "query";
+    readonly FRAGMENT: "fragment";
+    readonly FORM_POST: "form_post";
+};
 
 // @public
 export type SerializedAccessTokenEntity = {

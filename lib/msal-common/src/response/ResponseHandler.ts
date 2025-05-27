@@ -25,16 +25,7 @@ import {
 import { CacheRecord } from "../cache/entities/CacheRecord.js";
 import { CacheManager } from "../cache/CacheManager.js";
 import { ProtocolUtils, RequestStateObject } from "../utils/ProtocolUtils.js";
-import {
-    AuthenticationScheme,
-    THE_FAMILY_ID,
-    NOT_AVAILABLE,
-    EMPTY_STRING,
-    HTTP_SERVER_ERROR_RANGE_START,
-    HTTP_SERVER_ERROR_RANGE_END,
-    HTTP_CLIENT_ERROR_RANGE_START,
-    HTTP_CLIENT_ERROR_RANGE_END,
-} from "../utils/Constants.js";
+import * as Constants from "../utils/Constants.js";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator.js";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity.js";
 import { ICachePlugin } from "../cache/interface/ICachePlugin.js";
@@ -101,14 +92,16 @@ export class ResponseHandler {
             serverResponse.suberror
         ) {
             const errString = `Error(s): ${
-                serverResponse.error_codes || NOT_AVAILABLE
+                serverResponse.error_codes || Constants.NOT_AVAILABLE
             } - Timestamp: ${
-                serverResponse.timestamp || NOT_AVAILABLE
+                serverResponse.timestamp || Constants.NOT_AVAILABLE
             } - Description: ${
-                serverResponse.error_description || NOT_AVAILABLE
+                serverResponse.error_description || Constants.NOT_AVAILABLE
             } - Correlation ID: ${
-                serverResponse.correlation_id || NOT_AVAILABLE
-            } - Trace ID: ${serverResponse.trace_id || NOT_AVAILABLE}`;
+                serverResponse.correlation_id || Constants.NOT_AVAILABLE
+            } - Trace ID: ${
+                serverResponse.trace_id || Constants.NOT_AVAILABLE
+            }`;
             const serverErrorNo = serverResponse.error_codes?.length
                 ? serverResponse.error_codes[0]
                 : undefined;
@@ -124,8 +117,9 @@ export class ResponseHandler {
             if (
                 refreshAccessToken &&
                 serverResponse.status &&
-                serverResponse.status >= HTTP_SERVER_ERROR_RANGE_START &&
-                serverResponse.status <= HTTP_SERVER_ERROR_RANGE_END
+                serverResponse.status >=
+                    Constants.HTTP_SERVER_ERROR_RANGE_START &&
+                serverResponse.status <= Constants.HTTP_SERVER_ERROR_RANGE_END
             ) {
                 this.logger.warning(
                     `executeTokenRequest:validateTokenResponse - AAD is currently unavailable and the access token is unable to be refreshed.\n${serverError}`
@@ -137,8 +131,9 @@ export class ResponseHandler {
             } else if (
                 refreshAccessToken &&
                 serverResponse.status &&
-                serverResponse.status >= HTTP_CLIENT_ERROR_RANGE_START &&
-                serverResponse.status <= HTTP_CLIENT_ERROR_RANGE_END
+                serverResponse.status >=
+                    Constants.HTTP_CLIENT_ERROR_RANGE_START &&
+                serverResponse.status <= Constants.HTTP_CLIENT_ERROR_RANGE_END
             ) {
                 this.logger.warning(
                     `executeTokenRequest:validateTokenResponse - AAD is currently available but is unable to refresh the access token.\n${serverError}`
@@ -159,10 +154,10 @@ export class ResponseHandler {
                     serverResponse.error,
                     serverResponse.error_description,
                     serverResponse.suberror,
-                    serverResponse.timestamp || EMPTY_STRING,
-                    serverResponse.trace_id || EMPTY_STRING,
-                    serverResponse.correlation_id || EMPTY_STRING,
-                    serverResponse.claims || EMPTY_STRING,
+                    serverResponse.timestamp || "",
+                    serverResponse.trace_id || "",
+                    serverResponse.correlation_id || "",
+                    serverResponse.claims || "",
                     serverErrorNo
                 );
             }
@@ -191,7 +186,7 @@ export class ResponseHandler {
         let idTokenClaims: TokenClaims | undefined;
         if (serverTokenResponse.id_token) {
             idTokenClaims = extractTokenClaims(
-                serverTokenResponse.id_token || EMPTY_STRING,
+                serverTokenResponse.id_token || "",
                 this.cryptoObj.base64Decode
             );
 
@@ -219,7 +214,7 @@ export class ResponseHandler {
 
         // generate homeAccountId
         this.homeAccountIdentifier = AccountEntityUtils.generateHomeAccountId(
-            serverTokenResponse.client_info || EMPTY_STRING,
+            serverTokenResponse.client_info || "",
             authority.authorityType,
             this.logger,
             this.cryptoObj,
@@ -492,12 +487,12 @@ export class ResponseHandler {
         serverTokenResponse?: ServerAuthorizationTokenResponse,
         requestId?: string
     ): Promise<AuthenticationResult> {
-        let accessToken: string = EMPTY_STRING;
+        let accessToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
         let extExpiresOn: Date | undefined;
         let refreshOn: Date | undefined;
-        let familyId: string = EMPTY_STRING;
+        let familyId: string = "";
 
         if (cacheRecord.accessToken) {
             /*
@@ -506,7 +501,7 @@ export class ResponseHandler {
              */
             if (
                 cacheRecord.accessToken.tokenType ===
-                    AuthenticationScheme.POP &&
+                    Constants.AuthenticationScheme.POP &&
                 !request.popKid
             ) {
                 const popTokenGenerator: PopTokenGenerator =
@@ -546,8 +541,8 @@ export class ResponseHandler {
 
         if (cacheRecord.appMetadata) {
             familyId =
-                cacheRecord.appMetadata.familyId === THE_FAMILY_ID
-                    ? THE_FAMILY_ID
+                cacheRecord.appMetadata.familyId === Constants.THE_FAMILY_ID
+                    ? Constants.THE_FAMILY_ID
                     : "";
         }
         const uid = idTokenClaims?.oid || idTokenClaims?.sub || "";
@@ -582,13 +577,12 @@ export class ResponseHandler {
             extExpiresOn: extExpiresOn,
             refreshOn: refreshOn,
             correlationId: request.correlationId,
-            requestId: requestId || EMPTY_STRING,
+            requestId: requestId || "",
             familyId: familyId,
-            tokenType: cacheRecord.accessToken?.tokenType || EMPTY_STRING,
-            state: requestState ? requestState.userRequestState : EMPTY_STRING,
-            cloudGraphHostName:
-                cacheRecord.account?.cloudGraphHostName || EMPTY_STRING,
-            msGraphHost: cacheRecord.account?.msGraphHost || EMPTY_STRING,
+            tokenType: cacheRecord.accessToken?.tokenType || "",
+            state: requestState ? requestState.userRequestState : "",
+            cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || "",
+            msGraphHost: cacheRecord.account?.msGraphHost || "",
             code: serverTokenResponse?.spa_code,
             fromNativeBroker: false,
         };

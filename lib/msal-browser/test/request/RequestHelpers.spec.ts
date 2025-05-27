@@ -4,7 +4,7 @@
  */
 
 import {
-    AuthenticationScheme,
+    Constants,
     BaseAuthRequest,
     ClientConfigurationError,
     ClientConfigurationErrorCodes,
@@ -58,7 +58,7 @@ describe("RequestHelpers tests", () => {
                 "https://login.microsoftonline.com/common"
             );
             expect(result.authenticationScheme).toBe(
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
         });
 
@@ -67,7 +67,7 @@ describe("RequestHelpers tests", () => {
                 correlationId: string;
             } = {
                 correlationId: "test-correlation-id",
-                authenticationScheme: AuthenticationScheme.SSH,
+                authenticationScheme: Constants.AuthenticationScheme.SSH,
             };
 
             await expect(

@@ -21,7 +21,7 @@ import {
 } from "../../test_kit/ManagedIdentityTestUtils.js";
 import {
     AuthenticationResult,
-    HTTP_BAD_REQUEST,
+    Constants,
     ServerError,
 } from "@azure/msal-common";
 import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient.js";
@@ -121,7 +121,7 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
                 new ManagedIdentityNetworkErrorClient(
                     MANAGED_IDENTITY_CLOUD_SHELL_NETWORK_REQUEST_400_ERROR,
                     undefined,
-                    HTTP_BAD_REQUEST
+                    Constants.HTTP_BAD_REQUEST
                 );
 
             jest.spyOn(networkClient, <any>"sendPostRequestAsync")

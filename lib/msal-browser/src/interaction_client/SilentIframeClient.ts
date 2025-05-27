@@ -6,7 +6,7 @@
 import {
     ICrypto,
     Logger,
-    PromptValue,
+    Constants,
     AuthorizationCodeClient,
     AuthError,
     IPerformanceClient,
@@ -99,16 +99,16 @@ export class SilentIframeClient extends StandardInteractionClient {
         const inputRequest = { ...request };
         if (inputRequest.prompt) {
             if (
-                inputRequest.prompt !== PromptValue.NONE &&
-                inputRequest.prompt !== PromptValue.NO_SESSION
+                inputRequest.prompt !== Constants.PromptValue.NONE &&
+                inputRequest.prompt !== Constants.PromptValue.NO_SESSION
             ) {
                 this.logger.warning(
-                    `SilentIframeClient. Replacing invalid prompt ${inputRequest.prompt} with ${PromptValue.NONE}`
+                    `SilentIframeClient. Replacing invalid prompt ${inputRequest.prompt} with ${Constants.PromptValue.NONE}`
                 );
-                inputRequest.prompt = PromptValue.NONE;
+                inputRequest.prompt = Constants.PromptValue.NONE;
             }
         } else {
-            inputRequest.prompt = PromptValue.NONE;
+            inputRequest.prompt = Constants.PromptValue.NONE;
         }
 
         // Create silent request

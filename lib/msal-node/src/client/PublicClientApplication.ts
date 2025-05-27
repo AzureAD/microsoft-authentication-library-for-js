@@ -12,9 +12,7 @@ import {
     AuthenticationResult,
     CommonDeviceCodeRequest,
     AuthError,
-    ResponseMode,
-    OIDC_DEFAULT_SCOPES,
-    CodeChallengeMethodValues,
+    Constants as CommonConstants,
     ServerError,
     NativeRequest,
     NativeSignOutRequest,
@@ -23,7 +21,6 @@ import {
     AuthorizeResponse,
     AADServerParamKeys,
     ServerTelemetryManager,
-    EMPTY_STRING,
 } from "@azure/msal-common/node";
 import { Configuration } from "../config/Configuration.js";
 import { ClientApplication } from "./ClientApplication.js";
@@ -162,7 +159,7 @@ export class PublicClientApplication
             const brokerRequest: NativeRequest = {
                 ...remainingProperties,
                 clientId: this.config.auth.clientId,
-                scopes: request.scopes || OIDC_DEFAULT_SCOPES,
+                scopes: request.scopes || CommonConstants.OIDC_DEFAULT_SCOPES,
                 redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`,
                 authority: request.authority || this.config.auth.authority,
                 correlationId: correlationId,
@@ -204,11 +201,12 @@ export class PublicClientApplication
             const validRequest: AuthorizationUrlRequest = {
                 ...remainingProperties,
                 correlationId: correlationId,
-                scopes: request.scopes || OIDC_DEFAULT_SCOPES,
+                scopes: request.scopes || CommonConstants.OIDC_DEFAULT_SCOPES,
                 redirectUri: redirectUri,
-                responseMode: ResponseMode.QUERY,
+                responseMode: CommonConstants.ResponseMode.QUERY,
                 codeChallenge: challenge,
-                codeChallengeMethod: CodeChallengeMethodValues.S256,
+                codeChallengeMethod:
+                    CommonConstants.CodeChallengeMethodValues.S256,
             };
 
             const authCodeUrl = await this.getAuthCodeUrl(validRequest);
@@ -232,7 +230,7 @@ export class PublicClientApplication
             const tokenRequest: AuthorizationCodeRequest = {
                 code: authCodeResponse.code,
                 codeVerifier: verifier,
-                clientInfo: clientInfo || EMPTY_STRING,
+                clientInfo: clientInfo || "",
                 ...validRequest,
             };
             return await this.acquireTokenByCode(tokenRequest); // Await this so the server doesn't close prematurely
@@ -257,7 +255,7 @@ export class PublicClientApplication
             const brokerRequest: NativeRequest = {
                 ...request,
                 clientId: this.config.auth.clientId,
-                scopes: request.scopes || OIDC_DEFAULT_SCOPES,
+                scopes: request.scopes || CommonConstants.OIDC_DEFAULT_SCOPES,
                 redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`,
                 authority: request.authority || this.config.auth.authority,
                 correlationId: correlationId,

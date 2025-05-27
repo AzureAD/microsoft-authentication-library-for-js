@@ -11,16 +11,7 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../../error/ClientAuthError.js";
-import {
-    APP_METADATA,
-    AuthenticationScheme,
-    AUTHORITY_METADATA_CACHE_KEY,
-    AUTHORITY_METADATA_REFRESH_TIME_SECONDS,
-    CACHE_KEY_SEPARATOR,
-    CredentialType,
-    SERVER_TELEM_CACHE_KEY,
-    THROTTLING_PREFIX,
-} from "../../utils/Constants.js";
+import * as Constants from "../../utils/Constants.js";
 import * as TimeUtils from "../../utils/TimeUtils.js";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity.js";
 import { AppMetadataEntity } from "../entities/AppMetadataEntity.js";
@@ -48,7 +39,7 @@ export function generateCredentialKey(
         generateScheme(credentialEntity),
     ];
 
-    return credentialKey.join(CACHE_KEY_SEPARATOR).toLowerCase();
+    return credentialKey.join(Constants.CACHE_KEY_SEPARATOR).toLowerCase();
 }
 
 /**
@@ -66,7 +57,7 @@ export function createIdTokenEntity(
     tenantId: string
 ): IdTokenEntity {
     const idTokenEntity: IdTokenEntity = {
-        credentialType: CredentialType.ID_TOKEN,
+        credentialType: Constants.CredentialType.ID_TOKEN,
         homeAccountId: homeAccountId,
         environment: environment,
         clientId: clientId,
@@ -99,7 +90,7 @@ export function createAccessTokenEntity(
     extExpiresOn: number,
     base64Decode: (input: string) => string,
     refreshOn?: number,
-    tokenType?: AuthenticationScheme,
+    tokenType?: Constants.AuthenticationScheme,
     userAssertionHash?: string,
     keyId?: string,
     requestedClaims?: string,
@@ -107,7 +98,7 @@ export function createAccessTokenEntity(
 ): AccessTokenEntity {
     const atEntity: AccessTokenEntity = {
         homeAccountId: homeAccountId,
-        credentialType: CredentialType.ACCESS_TOKEN,
+        credentialType: Constants.CredentialType.ACCESS_TOKEN,
         secret: accessToken,
         cachedAt: TimeUtils.nowSeconds().toString(),
         expiresOn: expiresOn.toString(),
@@ -116,7 +107,7 @@ export function createAccessTokenEntity(
         clientId: clientId,
         realm: tenantId,
         target: scopes,
-        tokenType: tokenType || AuthenticationScheme.BEARER,
+        tokenType: tokenType || Constants.AuthenticationScheme.BEARER,
     };
 
     if (userAssertionHash) {
@@ -138,11 +129,12 @@ export function createAccessTokenEntity(
      */
     if (
         atEntity.tokenType?.toLowerCase() !==
-        AuthenticationScheme.BEARER.toLowerCase()
+        Constants.AuthenticationScheme.BEARER.toLowerCase()
     ) {
-        atEntity.credentialType = CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
+        atEntity.credentialType =
+            Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
         switch (atEntity.tokenType) {
-            case AuthenticationScheme.POP:
+            case Constants.AuthenticationScheme.POP:
                 // Make sure keyId is present and add it to credential
                 const tokenClaims: TokenClaims | null = extractTokenClaims(
                     accessToken,
@@ -155,7 +147,7 @@ export function createAccessTokenEntity(
                 }
                 atEntity.keyId = tokenClaims.cnf.kid;
                 break;
-            case AuthenticationScheme.SSH:
+            case Constants.AuthenticationScheme.SSH:
                 atEntity.keyId = keyId;
         }
     }
@@ -180,7 +172,7 @@ export function createRefreshTokenEntity(
     expiresOn?: number
 ): RefreshTokenEntity {
     const rtEntity: RefreshTokenEntity = {
-        credentialType: CredentialType.REFRESH_TOKEN,
+        credentialType: Constants.CredentialType.REFRESH_TOKEN,
         homeAccountId: homeAccountId,
         environment: environment,
         clientId: clientId,
@@ -225,9 +217,9 @@ export function isAccessTokenEntity(entity: object): boolean {
         isCredentialEntity(entity) &&
         entity.hasOwnProperty("realm") &&
         entity.hasOwnProperty("target") &&
-        (entity["credentialType"] === CredentialType.ACCESS_TOKEN ||
+        (entity["credentialType"] === Constants.CredentialType.ACCESS_TOKEN ||
             entity["credentialType"] ===
-                CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME)
+                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME)
     );
 }
 
@@ -243,7 +235,7 @@ export function isIdTokenEntity(entity: object): boolean {
     return (
         isCredentialEntity(entity) &&
         entity.hasOwnProperty("realm") &&
-        entity["credentialType"] === CredentialType.ID_TOKEN
+        entity["credentialType"] === Constants.CredentialType.ID_TOKEN
     );
 }
 
@@ -258,7 +250,7 @@ export function isRefreshTokenEntity(entity: object): boolean {
 
     return (
         isCredentialEntity(entity) &&
-        entity["credentialType"] === CredentialType.REFRESH_TOKEN
+        entity["credentialType"] === Constants.CredentialType.REFRESH_TOKEN
     );
 }
 
@@ -270,7 +262,7 @@ function generateAccountId(credentialEntity: CredentialEntity): string {
         credentialEntity.homeAccountId,
         credentialEntity.environment,
     ];
-    return accountId.join(CACHE_KEY_SEPARATOR).toLowerCase();
+    return accountId.join(Constants.CACHE_KEY_SEPARATOR).toLowerCase();
 }
 
 /**
@@ -278,7 +270,8 @@ function generateAccountId(credentialEntity: CredentialEntity): string {
  */
 function generateCredentialId(credentialEntity: CredentialEntity): string {
     const clientOrFamilyId =
-        credentialEntity.credentialType === CredentialType.REFRESH_TOKEN
+        credentialEntity.credentialType ===
+        Constants.CredentialType.REFRESH_TOKEN
             ? credentialEntity.familyId || credentialEntity.clientId
             : credentialEntity.clientId;
     const credentialId: Array<string> = [
@@ -287,7 +280,7 @@ function generateCredentialId(credentialEntity: CredentialEntity): string {
         credentialEntity.realm || "",
     ];
 
-    return credentialId.join(CACHE_KEY_SEPARATOR).toLowerCase();
+    return credentialId.join(Constants.CACHE_KEY_SEPARATOR).toLowerCase();
 }
 
 /**
@@ -314,7 +307,7 @@ function generateScheme(credentialEntity: CredentialEntity): string {
      */
     return credentialEntity.tokenType &&
         credentialEntity.tokenType.toLowerCase() !==
-            AuthenticationScheme.BEARER.toLowerCase()
+            Constants.AuthenticationScheme.BEARER.toLowerCase()
         ? credentialEntity.tokenType.toLowerCase()
         : "";
 }
@@ -325,7 +318,8 @@ function generateScheme(credentialEntity: CredentialEntity): string {
  * @param entity
  */
 export function isServerTelemetryEntity(key: string, entity?: object): boolean {
-    const validateKey: boolean = key.indexOf(SERVER_TELEM_CACHE_KEY) === 0;
+    const validateKey: boolean =
+        key.indexOf(Constants.SERVER_TELEM_CACHE_KEY) === 0;
     let validateEntity: boolean = true;
 
     if (entity) {
@@ -346,7 +340,7 @@ export function isServerTelemetryEntity(key: string, entity?: object): boolean {
 export function isThrottlingEntity(key: string, entity?: object): boolean {
     let validateKey: boolean = false;
     if (key) {
-        validateKey = key.indexOf(THROTTLING_PREFIX) === 0;
+        validateKey = key.indexOf(Constants.THROTTLING_PREFIX) === 0;
     }
 
     let validateEntity: boolean = true;
@@ -365,11 +359,13 @@ export function generateAppMetadataKey({
     clientId,
 }: AppMetadataEntity): string {
     const appMetaDataKeyArray: Array<string> = [
-        APP_METADATA,
+        Constants.APP_METADATA,
         environment,
         clientId,
     ];
-    return appMetaDataKeyArray.join(CACHE_KEY_SEPARATOR).toLowerCase();
+    return appMetaDataKeyArray
+        .join(Constants.CACHE_KEY_SEPARATOR)
+        .toLowerCase();
 }
 
 /*
@@ -382,7 +378,7 @@ export function isAppMetadataEntity(key: string, entity: object): boolean {
     }
 
     return (
-        key.indexOf(APP_METADATA) === 0 &&
+        key.indexOf(Constants.APP_METADATA) === 0 &&
         entity.hasOwnProperty("clientId") &&
         entity.hasOwnProperty("environment")
     );
@@ -401,7 +397,7 @@ export function isAuthorityMetadataEntity(
     }
 
     return (
-        key.indexOf(AUTHORITY_METADATA_CACHE_KEY) === 0 &&
+        key.indexOf(Constants.AUTHORITY_METADATA_CACHE_KEY) === 0 &&
         entity.hasOwnProperty("aliases") &&
         entity.hasOwnProperty("preferred_cache") &&
         entity.hasOwnProperty("preferred_network") &&
@@ -420,7 +416,10 @@ export function isAuthorityMetadataEntity(
  * Reset the exiresAt value
  */
 export function generateAuthorityMetadataExpiresAt(): number {
-    return TimeUtils.nowSeconds() + AUTHORITY_METADATA_REFRESH_TIME_SECONDS;
+    return (
+        TimeUtils.nowSeconds() +
+        Constants.AUTHORITY_METADATA_REFRESH_TIME_SECONDS
+    );
 }
 
 export function updateAuthorityEndpointMetadata(

@@ -8,11 +8,7 @@ import {
     BaseClient,
     ClientConfiguration,
     CommonUsernamePasswordRequest,
-    DEFAULT_AUTHORITY,
-    GrantType,
-    OFFLINE_ACCESS_SCOPE,
-    OPENID_SCOPE,
-    PROFILE_SCOPE,
+    Constants,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
@@ -68,7 +64,7 @@ describe("Username Password unit tests", () => {
         const client = new UsernamePasswordClient(config);
 
         const usernamePasswordRequest: CommonUsernamePasswordRequest = {
-            authority: DEFAULT_AUTHORITY,
+            authority: Constants.DEFAULT_AUTHORITY,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             username: MOCK_USERNAME,
             password: MOCK_PASSWORD,
@@ -80,9 +76,9 @@ describe("Username Password unit tests", () => {
             usernamePasswordRequest
         )) as AuthenticationResult;
         const expectedScopes = [
-            OPENID_SCOPE,
-            PROFILE_SCOPE,
-            OFFLINE_ACCESS_SCOPE,
+            Constants.OPENID_SCOPE,
+            Constants.PROFILE_SCOPE,
+            Constants.OFFLINE_ACCESS_SCOPE,
             TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0],
         ];
         expect(authResult.scopes).toEqual(expectedScopes);
@@ -103,7 +99,7 @@ describe("Username Password unit tests", () => {
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
+            grantType: Constants.GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -134,7 +130,7 @@ describe("Username Password unit tests", () => {
         );
 
         const usernamePasswordRequest: CommonUsernamePasswordRequest = {
-            authority: DEFAULT_AUTHORITY,
+            authority: Constants.DEFAULT_AUTHORITY,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             username: MOCK_USERNAME,
             password: MOCK_PASSWORD,
@@ -166,7 +162,7 @@ describe("Username Password unit tests", () => {
         const client = new UsernamePasswordClient(config);
 
         const usernamePasswordRequest: CommonUsernamePasswordRequest = {
-            authority: DEFAULT_AUTHORITY,
+            authority: Constants.DEFAULT_AUTHORITY,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             username: `${MOCK_USERNAME}&+`,
             password: MOCK_PASSWORD,
@@ -178,9 +174,9 @@ describe("Username Password unit tests", () => {
             usernamePasswordRequest
         )) as AuthenticationResult;
         const expectedScopes = [
-            OPENID_SCOPE,
-            PROFILE_SCOPE,
-            OFFLINE_ACCESS_SCOPE,
+            Constants.OPENID_SCOPE,
+            Constants.PROFILE_SCOPE,
+            Constants.OFFLINE_ACCESS_SCOPE,
             TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0],
         ];
         expect(authResult.scopes).toEqual(expectedScopes);
@@ -201,7 +197,7 @@ describe("Username Password unit tests", () => {
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
+            grantType: Constants.GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -222,7 +218,7 @@ describe("Username Password unit tests", () => {
         const client = new UsernamePasswordClient(config);
 
         const usernamePasswordRequest: CommonUsernamePasswordRequest = {
-            authority: DEFAULT_AUTHORITY,
+            authority: Constants.DEFAULT_AUTHORITY,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             username: MOCK_USERNAME,
             password: `${MOCK_PASSWORD}&+`,
@@ -234,9 +230,9 @@ describe("Username Password unit tests", () => {
             usernamePasswordRequest
         )) as AuthenticationResult;
         const expectedScopes = [
-            OPENID_SCOPE,
-            PROFILE_SCOPE,
-            OFFLINE_ACCESS_SCOPE,
+            Constants.OPENID_SCOPE,
+            Constants.PROFILE_SCOPE,
+            Constants.OFFLINE_ACCESS_SCOPE,
             TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0],
         ];
         expect(authResult.scopes).toEqual(expectedScopes);
@@ -257,7 +253,7 @@ describe("Username Password unit tests", () => {
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
+            grantType: Constants.GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -278,7 +274,7 @@ describe("Username Password unit tests", () => {
         const client = new UsernamePasswordClient(config);
 
         const usernamePasswordRequest: CommonUsernamePasswordRequest = {
-            authority: DEFAULT_AUTHORITY,
+            authority: Constants.DEFAULT_AUTHORITY,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             username: MOCK_USERNAME,
             password: MOCK_PASSWORD,
@@ -290,9 +286,9 @@ describe("Username Password unit tests", () => {
             usernamePasswordRequest
         )) as AuthenticationResult;
         const expectedScopes = [
-            OPENID_SCOPE,
-            PROFILE_SCOPE,
-            OFFLINE_ACCESS_SCOPE,
+            Constants.OPENID_SCOPE,
+            Constants.PROFILE_SCOPE,
+            Constants.OFFLINE_ACCESS_SCOPE,
             TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0],
         ];
         expect(authResult.scopes).toEqual(expectedScopes);
@@ -313,7 +309,7 @@ describe("Username Password unit tests", () => {
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
+            grantType: Constants.GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -348,7 +344,7 @@ describe("Username Password unit tests", () => {
             );
 
             const usernamePasswordRequest: CommonUsernamePasswordRequest = {
-                authority: DEFAULT_AUTHORITY,
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 username: MOCK_USERNAME,
                 password: MOCK_PASSWORD,
@@ -359,9 +355,9 @@ describe("Username Password unit tests", () => {
                 usernamePasswordRequest
             )) as AuthenticationResult;
             const expectedScopes = [
-                OPENID_SCOPE,
-                PROFILE_SCOPE,
-                OFFLINE_ACCESS_SCOPE,
+                Constants.OPENID_SCOPE,
+                Constants.PROFILE_SCOPE,
+                Constants.OFFLINE_ACCESS_SCOPE,
                 TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0],
             ];
             expect(authResult.scopes).toEqual(expectedScopes);
@@ -382,7 +378,7 @@ describe("Username Password unit tests", () => {
             const checks = {
                 graphScope: true,
                 clientId: true,
-                grantType: GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
+                grantType: Constants.GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
                 clientSecret: true,
                 clientSku: true,
                 clientVersion: true,
