@@ -80,6 +80,7 @@ export {
     EventCallbackFunction,
     EventMessageUtils,
     PopupEvent,
+    BrokerConnectionEvent,
 } from "./event/EventMessage.js";
 export { EventType } from "./event/EventType.js";
 export { EventHandler } from "./event/EventHandler.js";
