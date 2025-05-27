@@ -28,6 +28,16 @@ export type PopupEvent = {
     popupWindow: Window;
 };
 
+/**
+ * Payload for the BrokerConnectionEstablished event
+ */
+export type BrokerConnectionEvent = {
+    /**
+     * The origin of the broker that is connected to the client
+     */
+    pairwiseBrokerOrigin: string;
+};
+
 export type EventPayload =
     | AccountInfo
     | PopupRequest
@@ -37,6 +47,7 @@ export type EventPayload =
     | EndSessionRequest
     | AuthenticationResult
     | PopupEvent
+    | BrokerConnectionEvent
     | null;
 
 export type EventError = AuthError | Error | null;
