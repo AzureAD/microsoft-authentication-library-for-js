@@ -181,67 +181,83 @@ describe("Acquires a token successfully via an App Service Managed Identity", ()
     });
 
     describe("Miscellaneous", () => {
-        test("ignores a cached token when claims are provided and the Managed Identity does support token revocation, and ensures the token revocation query parameter token_sha256_to_refresh was included in the network request to the Managed Identity", async () => {
-            const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
-                networkClient,
-                <any>"sendGetRequestAsync"
-            );
+        it.each([
+            [
+                CAE_CONSTANTS.CLIENT_CAPABILITIES,
+                CAE_CONSTANTS.CLIENT_CAPABILITIES.toString(),
+            ],
+            [undefined, null],
+        ])(
+            "ignores a cached token when claims are provided (regardless of if client capabilities are provided or not) and the Managed Identity does support token revocation, and ensures the token revocation query parameter token_sha256_to_refresh is included in the network request to the Managed Identity",
+            async (providedCapabilities, capabilitiesOnNetworkRequest) => {
+                const sendGetRequestAsyncSpy: jest.SpyInstance = jest.spyOn(
+                    networkClient,
+                    <any>"sendGetRequestAsync"
+                );
 
-            const managedIdentityApplication: ManagedIdentityApplication =
-                new ManagedIdentityApplication({
-                    ...systemAssignedConfig,
-                    clientCapabilities: CAE_CONSTANTS.CLIENT_CAPABILITIES,
-                });
+                const managedIdentityApplication: ManagedIdentityApplication =
+                    new ManagedIdentityApplication({
+                        ...systemAssignedConfig,
+                        clientCapabilities: providedCapabilities,
+                    });
+                expect(
+                    managedIdentityApplication.getManagedIdentitySource()
+                ).toBe(ManagedIdentitySourceNames.APP_SERVICE);
 
-            let networkManagedIdentityResult: AuthenticationResult =
-                await managedIdentityApplication.acquireToken({
-                    resource: MANAGED_IDENTITY_RESOURCE,
-                });
-            expect(networkManagedIdentityResult.fromCache).toBe(false);
-            expect(networkManagedIdentityResult.accessToken).toEqual(
-                DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
-            );
+                let networkManagedIdentityResult: AuthenticationResult =
+                    await managedIdentityApplication.acquireToken({
+                        resource: MANAGED_IDENTITY_RESOURCE,
+                    });
+                expect(networkManagedIdentityResult.fromCache).toBe(false);
+                expect(networkManagedIdentityResult.accessToken).toEqual(
+                    DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                );
 
-            expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(1);
-            const firstNetworkRequestUrlParams: URLSearchParams =
-                new URLSearchParams(sendGetRequestAsyncSpy.mock.lastCall[0]);
-            expect(
-                firstNetworkRequestUrlParams.get(
-                    ManagedIdentityQueryParameters.XMS_CC
-                )
-            ).toEqual(CAE_CONSTANTS.CLIENT_CAPABILITIES.toString());
+                expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(1);
+                const firstNetworkRequestUrlParams: URLSearchParams =
+                    new URLSearchParams(
+                        sendGetRequestAsyncSpy.mock.lastCall[0]
+                    );
+                expect(
+                    firstNetworkRequestUrlParams.get(
+                        ManagedIdentityQueryParameters.XMS_CC
+                    )
+                ).toEqual(capabilitiesOnNetworkRequest);
 
-            const cachedManagedIdentityResult: AuthenticationResult =
-                await managedIdentityApplication.acquireToken({
-                    resource: MANAGED_IDENTITY_RESOURCE,
-                });
-            expect(cachedManagedIdentityResult.fromCache).toBe(true);
-            expect(cachedManagedIdentityResult.accessToken).toEqual(
-                DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
-            );
-            expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(1);
+                const cachedManagedIdentityResult: AuthenticationResult =
+                    await managedIdentityApplication.acquireToken({
+                        resource: MANAGED_IDENTITY_RESOURCE,
+                    });
+                expect(cachedManagedIdentityResult.fromCache).toBe(true);
+                expect(cachedManagedIdentityResult.accessToken).toEqual(
+                    DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                );
+                expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(1);
 
-            networkManagedIdentityResult =
-                await managedIdentityApplication.acquireToken({
-                    claims: TEST_CONFIG.CLAIMS,
-                    resource: MANAGED_IDENTITY_RESOURCE,
-                });
-            expect(networkManagedIdentityResult.fromCache).toBe(false);
-            expect(networkManagedIdentityResult.accessToken).toEqual(
-                DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
-            );
+                networkManagedIdentityResult =
+                    await managedIdentityApplication.acquireToken({
+                        claims: TEST_CONFIG.CLAIMS,
+                        resource: MANAGED_IDENTITY_RESOURCE,
+                    });
+                expect(networkManagedIdentityResult.fromCache).toBe(false);
+                expect(networkManagedIdentityResult.accessToken).toEqual(
+                    DEFAULT_SYSTEM_ASSIGNED_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+                );
 
-            expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(2);
-            const secondNetworkRequestUrlParams: URLSearchParams =
-                new URLSearchParams(sendGetRequestAsyncSpy.mock.lastCall[0]);
-            expect(
-                secondNetworkRequestUrlParams.get(
-                    ManagedIdentityQueryParameters.SHA256_TOKEN_TO_REFRESH
-                )
-            ).toEqual(
-                DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT_ACCESS_TOKEN_SHA256_HASH_IN_HEX
-            );
-        });
+                expect(sendGetRequestAsyncSpy.mock.calls.length).toEqual(2);
+                const secondNetworkRequestUrlParams: URLSearchParams =
+                    new URLSearchParams(
+                        sendGetRequestAsyncSpy.mock.lastCall[0]
+                    );
+                expect(
+                    secondNetworkRequestUrlParams.get(
+                        ManagedIdentityQueryParameters.SHA256_TOKEN_TO_REFRESH
+                    )
+                ).toEqual(
+                    DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT_ACCESS_TOKEN_SHA256_HASH_IN_HEX
+                );
+            }
+        );
     });
 
     describe("Errors", () => {
