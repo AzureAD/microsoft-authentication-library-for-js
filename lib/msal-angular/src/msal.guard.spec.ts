@@ -47,7 +47,6 @@ function MSALInstanceFactory(): IPublicClientApplication {
   });
 }
 
-// test comment
 function MSALGuardConfigFactory(): MsalGuardConfiguration {
   return {
     //@ts-ignore

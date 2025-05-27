@@ -39,10 +39,9 @@ export class SilentFlowClient extends BaseClient {
     async acquireCachedToken(
         request: CommonSilentFlowRequest
     ): Promise<[AuthenticationResult, CacheOutcome]> {
-        const request2 = request;
         this.performanceClient?.addQueueMeasurement(
             PerformanceEvents.SilentFlowClientAcquireCachedToken,
-            request2.correlationId
+            request.correlationId
         );
         let lastCacheOutcome: CacheOutcome = CacheOutcome.NOT_APPLICABLE;
 
