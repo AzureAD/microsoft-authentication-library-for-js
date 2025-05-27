@@ -704,6 +704,11 @@ export type PerformanceEvent = {
     libraryVersion: string;
 
     /**
+     * Version of the library used last. Used to track upgrades and downgrades
+     */
+    previousLibraryVersion?: string;
+
+    /**
      * Whether the response is from a native component (e.g., WAM)
      *
      * @type {?boolean}
@@ -731,13 +736,6 @@ export type PerformanceEvent = {
     cacheOutcome?: number;
 
     /**
-     * Amount of time spent in the JS queue in milliseconds.
-     *
-     * @type {?number}
-     */
-    queuedTimeMs?: number;
-
-    /**
      * Sub-measurements for internal use. To be deleted before flushing.
      */
     incompleteSubMeasurements?: Map<string, SubMeasurement>;
@@ -749,18 +747,6 @@ export type PerformanceEvent = {
      * CorrelationId of the in progress iframe request that was awaited
      */
     awaitIframeCorrelationId?: string;
-    /**
-     * Amount of times queued in the JS event queue.
-     *
-     * @type {?number}
-     */
-    queuedCount?: number;
-    /**
-     * Amount of manually completed queue events.
-     *
-     * @type {?number}
-     */
-    queuedManuallyCompletedCount?: number;
 
     /**
      * Size of the id token
@@ -914,7 +900,6 @@ export const IntFields: ReadonlySet<string> = new Set([
     "matsSilentStatus",
     "matsHttpStatus",
     "refreshTokenSize",
-    "queuedTimeMs",
     "startTimeMs",
     "status",
     "multiMatchedAT",

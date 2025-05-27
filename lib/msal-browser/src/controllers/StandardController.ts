@@ -261,10 +261,6 @@ export class StandardController implements IController {
         // initialize in memory storage for native flows
         const nativeCacheOptions: Required<CacheOptions> = {
             cacheLocation: BrowserCacheLocation.MemoryStorage,
-            temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
-            storeAuthStateInCookie: false,
-            cacheMigrationEnabled: false,
-            claimsBasedCachingEnabled: false,
         };
         this.nativeInternalStorage = new BrowserCacheManager(
             this.config.auth.clientId,
@@ -374,21 +370,15 @@ export class StandardController implements IController {
             }
         }
 
-        if (!this.config.cache.claimsBasedCachingEnabled) {
-            this.logger.verbose(
-                "Claims-based caching is disabled. Clearing the previous cache with claims"
-            );
-
-            await invokeAsync(
-                this.browserStorage.clearTokensAndKeysWithClaims.bind(
-                    this.browserStorage
-                ),
-                PerformanceEvents.ClearTokensAndKeysWithClaims,
-                this.logger,
-                this.performanceClient,
-                initCorrelationId
-            )(this.performanceClient, initCorrelationId);
-        }
+        await invokeAsync(
+            this.browserStorage.clearTokensAndKeysWithClaims.bind(
+                this.browserStorage
+            ),
+            PerformanceEvents.ClearTokensAndKeysWithClaims,
+            this.logger,
+            this.performanceClient,
+            initCorrelationId
+        )();
 
         if (
             this.config.cache.cacheLocation ===
@@ -1253,10 +1243,6 @@ export class StandardController implements IController {
         commonRequest: CommonSilentFlowRequest,
         cacheLookupPolicy: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.AcquireTokenFromCache,
-            commonRequest.correlationId
-        );
         switch (cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessToken:
@@ -1288,10 +1274,6 @@ export class StandardController implements IController {
         commonRequest: CommonSilentFlowRequest,
         cacheLookupPolicy: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.AcquireTokenByRefreshToken,
-            commonRequest.correlationId
-        );
         switch (cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessTokenAndRefreshToken:
@@ -1323,11 +1305,6 @@ export class StandardController implements IController {
     protected async acquireTokenBySilentIframe(
         request: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.AcquireTokenBySilentIframe,
-            request.correlationId
-        );
-
         const silentIframeClient = this.createSilentIframeClient(
             request.correlationId
         );
@@ -2057,11 +2034,6 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         const trackPageVisibility = () =>
             this.trackPageVisibility(request.correlationId);
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.AcquireTokenSilentAsync,
-            request.correlationId
-        );
-
         this.eventHandler.emitEvent(
             EventType.ACQUIRE_TOKEN_START,
             InteractionType.Silent,

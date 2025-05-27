@@ -183,10 +183,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         requestExtraQueryParameters?: StringDict;
         account?: AccountInfo;
     }): Promise<AuthorizationCodeClient> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
-            this.correlationId
-        );
         // Create auth module.
         const clientConfig = await invokeAsync(
             this.getClientConfiguration.bind(this),
@@ -227,10 +223,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             account,
         } = params;
 
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.StandardInteractionClientGetClientConfiguration,
-            this.correlationId
-        );
         const discoveredAuthority = await invokeAsync(
             this.getDiscoveredAuthority.bind(this),
             PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
@@ -263,10 +255,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 logLevel: logger.logLevel,
                 correlationId: this.correlationId,
             },
-            cacheOptions: {
-                claimsBasedCachingEnabled:
-                    this.config.cache.claimsBasedCachingEnabled,
-            },
             cryptoInterface: this.browserCrypto,
             networkInterface: this.networkClient,
             storageInterface: this.browserStorage,
@@ -290,11 +278,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         request: RedirectRequest | PopupRequest | SsoSilentRequest,
         interactionType: InteractionType
     ): Promise<CommonAuthorizationUrlRequest> {
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
-            this.correlationId
-        );
-
         const redirectUri = this.getRedirectUri(request.redirectUri);
         const browserState: BrowserStateObject = {
             interactionType: interactionType,

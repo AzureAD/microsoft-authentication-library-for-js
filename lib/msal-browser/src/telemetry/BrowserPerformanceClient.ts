@@ -10,8 +10,6 @@ import {
     Logger,
     PerformanceClient,
     PerformanceEvent,
-    PerformanceEvents,
-    PreQueueEvent,
     SubMeasurement,
 } from "@azure/msal-common/browser";
 import { Configuration } from "../config/Configuration.js";
@@ -191,99 +189,5 @@ export class BrowserPerformanceClient
                 this.deleteIncompleteSubMeasurements(inProgressEvent);
             },
         };
-    }
-
-    /**
-     * Adds pre-queue time to preQueueTimeByCorrelationId map.
-     * @param {PerformanceEvents} eventName
-     * @param {?string} correlationId
-     * @returns
-     */
-    setPreQueueTime(
-        eventName: PerformanceEvents,
-        correlationId?: string
-    ): void {
-        if (!supportsBrowserPerformanceNow()) {
-            this.logger.trace(
-                `BrowserPerformanceClient: window performance API not available, unable to set telemetry queue time for ${eventName}`
-            );
-            return;
-        }
-
-        if (!correlationId) {
-            this.logger.trace(
-                `BrowserPerformanceClient: correlationId for ${eventName} not provided, unable to set telemetry queue time`
-            );
-            return;
-        }
-
-        const preQueueEvent: PreQueueEvent | undefined =
-            this.preQueueTimeByCorrelationId.get(correlationId);
-        /**
-         * Manually complete queue measurement if there is an incomplete pre-queue event.
-         * Incomplete pre-queue events are instrumentation bugs that should be fixed.
-         */
-        if (preQueueEvent) {
-            this.logger.trace(
-                `BrowserPerformanceClient: Incomplete pre-queue ${preQueueEvent.name} found`,
-                correlationId
-            );
-            this.addQueueMeasurement(
-                preQueueEvent.name,
-                correlationId,
-                undefined,
-                true
-            );
-        }
-        this.preQueueTimeByCorrelationId.set(correlationId, {
-            name: eventName,
-            time: window.performance.now(),
-        });
-    }
-
-    /**
-     * Calculates and adds queue time measurement for given performance event.
-     *
-     * @param {PerformanceEvents} eventName
-     * @param {?string} correlationId
-     * @param {?number} queueTime
-     * @param {?boolean} manuallyCompleted - indicator for manually completed queue measurements
-     * @returns
-     */
-    addQueueMeasurement(
-        eventName: string,
-        correlationId?: string,
-        queueTime?: number,
-        manuallyCompleted?: boolean
-    ): void {
-        if (!supportsBrowserPerformanceNow()) {
-            this.logger.trace(
-                `BrowserPerformanceClient: window performance API not available, unable to add queue measurement for ${eventName}`
-            );
-            return;
-        }
-
-        if (!correlationId) {
-            this.logger.trace(
-                `BrowserPerformanceClient: correlationId for ${eventName} not provided, unable to add queue measurement`
-            );
-            return;
-        }
-
-        const preQueueTime = super.getPreQueueTime(eventName, correlationId);
-        if (!preQueueTime) {
-            return;
-        }
-
-        const currentTime = window.performance.now();
-        const resQueueTime =
-            queueTime || super.calculateQueuedTime(preQueueTime, currentTime);
-
-        return super.addQueueMeasurement(
-            eventName,
-            correlationId,
-            resQueueTime,
-            manuallyCompleted
-        );
     }
 }

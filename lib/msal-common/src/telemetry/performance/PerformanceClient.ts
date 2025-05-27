@@ -9,14 +9,12 @@ import {
     InProgressPerformanceEvent,
     IPerformanceClient,
     PerformanceCallbackFunction,
-    QueueMeasurement,
 } from "./IPerformanceClient.js";
 import {
     IntFields,
     PerformanceEvent,
     PerformanceEventAbbreviations,
     PerformanceEventContext,
-    PerformanceEvents,
     PerformanceEventStackedContext,
     PerformanceEventStatus,
 } from "./PerformanceEvent.js";
@@ -24,11 +22,6 @@ import { AuthError } from "../../error/AuthError.js";
 import { CacheError } from "../../error/CacheError.js";
 import { ServerError } from "../../error/ServerError.js";
 import { InteractionRequiredAuthError } from "../../error/InteractionRequiredAuthError.js";
-
-export interface PreQueueEvent {
-    name: PerformanceEvents;
-    time: number;
-}
 
 /**
  * Starts context by adding payload to the stack
@@ -278,22 +271,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     protected eventsByCorrelationId: Map<string, PerformanceEvent>;
 
-    /**
-     * Map of pre-queue times by correlation Id
-     *
-     * @protected
-     * @type {Map<string, PreQueueEvent>}
-     */
-    protected preQueueTimeByCorrelationId: Map<string, PreQueueEvent>;
-
-    /**
-     * Map of queue measurements by correlation Id
-     *
-     * @protected
-     * @type {Map<string, Array<QueueMeasurement>>}
-     */
-    protected queueMeasurements: Map<string, Array<QueueMeasurement>>;
-
     protected intFields: Set<string>;
 
     /**
@@ -343,8 +320,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.callbacks = new Map();
         this.eventsByCorrelationId = new Map();
         this.eventStack = new Map();
-        this.queueMeasurements = new Map();
-        this.preQueueTimeByCorrelationId = new Map();
         this.intFields = intFields || new Set();
         for (const item of IntFields) {
             this.intFields.add(item);
@@ -362,136 +337,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @returns {string}
      */
     abstract generateId(): string;
-
-    /**
-     * Sets pre-queue time by correlation Id
-     *
-     * @abstract
-     * @param {PerformanceEvents} eventName
-     * @param {string} correlationId
-     * @returns
-     */
-    abstract setPreQueueTime(
-        eventName: PerformanceEvents,
-        correlationId?: string
-    ): void;
-
-    /**
-     * Gets map of pre-queue times by correlation Id
-     *
-     * @param {PerformanceEvents} eventName
-     * @param {string} correlationId
-     * @returns {number}
-     */
-    getPreQueueTime(eventName: string, correlationId: string): number | void {
-        const preQueueEvent: PreQueueEvent | undefined =
-            this.preQueueTimeByCorrelationId.get(correlationId);
-
-        if (!preQueueEvent) {
-            this.logger.trace(
-                `PerformanceClient.getPreQueueTime: no pre-queue times found for correlationId: ${correlationId}, unable to add queue measurement`
-            );
-            return;
-        } else if (preQueueEvent.name !== eventName) {
-            this.logger.trace(
-                `PerformanceClient.getPreQueueTime: no pre-queue time found for ${eventName}, unable to add queue measurement`
-            );
-            return;
-        }
-
-        return preQueueEvent.time;
-    }
-
-    /**
-     * Calculates the difference between current time and time when function was queued.
-     * Note: It is possible to have 0 as the queue time if the current time and the queued time was the same.
-     *
-     * @param {number} preQueueTime
-     * @param {number} currentTime
-     * @returns {number}
-     */
-    calculateQueuedTime(preQueueTime: number, currentTime: number): number {
-        if (preQueueTime < 1) {
-            this.logger.trace(
-                `PerformanceClient: preQueueTime should be a positive integer and not ${preQueueTime}`
-            );
-            return 0;
-        }
-
-        if (currentTime < 1) {
-            this.logger.trace(
-                `PerformanceClient: currentTime should be a positive integer and not ${currentTime}`
-            );
-            return 0;
-        }
-
-        if (currentTime < preQueueTime) {
-            this.logger.trace(
-                "PerformanceClient: currentTime is less than preQueueTime, check how time is being retrieved"
-            );
-            return 0;
-        }
-
-        return currentTime - preQueueTime;
-    }
-
-    /**
-     * Adds queue measurement time to QueueMeasurements array for given correlation ID.
-     *
-     * @param {PerformanceEvents} eventName
-     * @param {?string} correlationId
-     * @param {?number} queueTime
-     * @param {?boolean} manuallyCompleted - indicator for manually completed queue measurements
-     * @returns
-     */
-    addQueueMeasurement(
-        eventName: string,
-        correlationId?: string,
-        queueTime?: number,
-        manuallyCompleted?: boolean
-    ): void {
-        if (!correlationId) {
-            this.logger.trace(
-                `PerformanceClient.addQueueMeasurement: correlationId not provided for ${eventName}, cannot add queue measurement`
-            );
-            return;
-        }
-
-        if (queueTime === 0) {
-            // Possible for there to be no queue time after calculation
-            this.logger.trace(
-                `PerformanceClient.addQueueMeasurement: queue time provided for ${eventName} is ${queueTime}`
-            );
-        } else if (!queueTime) {
-            this.logger.trace(
-                `PerformanceClient.addQueueMeasurement: no queue time provided for ${eventName}`
-            );
-            return;
-        }
-
-        const queueMeasurement: QueueMeasurement = {
-            eventName,
-            // Always default queue time to 0 for manually completed (improperly instrumented)
-            queueTime: manuallyCompleted ? 0 : queueTime,
-            manuallyCompleted,
-        };
-
-        // Adds to existing correlation Id if present in queueMeasurements
-        const existingMeasurements = this.queueMeasurements.get(correlationId);
-        if (existingMeasurements) {
-            existingMeasurements.push(queueMeasurement);
-            this.queueMeasurements.set(correlationId, existingMeasurements);
-        } else {
-            // Sets new correlation Id if not present in queueMeasurements
-            this.logger.trace(
-                `PerformanceClient.addQueueMeasurement: adding correlationId ${correlationId} to queue measurements`
-            );
-            const measurementArray = [queueMeasurement];
-            this.queueMeasurements.set(correlationId, measurementArray);
-        }
-        // Delete processed pre-queue event.
-        this.preQueueTimeByCorrelationId.delete(correlationId);
-    }
 
     /**
      * Starts measuring performance for a given operation. Returns a function that should be used to end the measurement.
@@ -597,11 +442,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
         }
 
         const isRoot = event.eventId === rootEvent.eventId;
-        let queueInfo = {
-            totalQueueTime: 0,
-            totalQueueCount: 0,
-            manuallyCompletedCount: 0,
-        };
 
         event.durationMs = Math.round(
             event.durationMs || this.getDurationMs(event.startTimeMs)
@@ -617,7 +457,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
         );
 
         if (isRoot) {
-            queueInfo = this.getQueueInfo(event.correlationId);
             this.discardMeasurements(rootEvent.correlationId);
         } else {
             rootEvent.incompleteSubMeasurements?.delete(event.eventId);
@@ -665,9 +504,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         finalEvent = {
             ...finalEvent,
-            queuedTimeMs: queueInfo.totalQueueTime,
-            queuedCount: queueInfo.totalQueueCount,
-            queuedManuallyCompletedCount: queueInfo.manuallyCompletedCount,
             status: PerformanceEventStatus.Completed,
             incompleteSubsCount,
             context,
@@ -762,35 +598,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
         }
     }
 
-    private getQueueInfo(correlationId: string): {
-        totalQueueTime: number;
-        totalQueueCount: number;
-        manuallyCompletedCount: number;
-    } {
-        const queueMeasurementForCorrelationId =
-            this.queueMeasurements.get(correlationId);
-        if (!queueMeasurementForCorrelationId) {
-            this.logger.trace(
-                `PerformanceClient: no queue measurements found for for correlationId: ${correlationId}`
-            );
-        }
-
-        let totalQueueTime = 0;
-        let totalQueueCount = 0;
-        let manuallyCompletedCount = 0;
-        queueMeasurementForCorrelationId?.forEach((measurement) => {
-            totalQueueTime += measurement.queueTime;
-            totalQueueCount++;
-            manuallyCompletedCount += measurement.manuallyCompleted ? 1 : 0;
-        });
-
-        return {
-            totalQueueTime,
-            totalQueueCount,
-            manuallyCompletedCount,
-        };
-    }
-
     /**
      * Removes measurements and aux data for a given correlation id.
      *
@@ -802,18 +609,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
             correlationId
         );
         this.eventsByCorrelationId.delete(correlationId);
-
-        this.logger.trace(
-            "PerformanceClient: QueueMeasurements discarded",
-            correlationId
-        );
-        this.queueMeasurements.delete(correlationId);
-
-        this.logger.trace(
-            "PerformanceClient: Pre-queue times discarded",
-            correlationId
-        );
-        this.preQueueTimeByCorrelationId.delete(correlationId);
 
         this.logger.trace(
             "PerformanceClient: Event stack discarded",

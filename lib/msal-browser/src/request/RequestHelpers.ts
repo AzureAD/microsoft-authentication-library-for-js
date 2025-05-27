@@ -12,13 +12,11 @@ import {
     IPerformanceClient,
     Logger,
     PerformanceEvents,
-    StringUtils,
     createClientConfigurationError,
     invokeAsync,
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { SilentRequest } from "./SilentRequest.js";
-import { hashString } from "../crypto/BrowserCrypto.js";
 
 /**
  * Initializer function for all request APIs
@@ -30,10 +28,6 @@ export async function initializeBaseRequest(
     performanceClient: IPerformanceClient,
     logger: Logger
 ): Promise<BaseAuthRequest> {
-    performanceClient.addQueueMeasurement(
-        PerformanceEvents.InitializeBaseRequest,
-        request.correlationId
-    );
     const authority = request.authority || config.auth.authority;
 
     const scopes = [...((request && request.scopes) || [])];
@@ -71,16 +65,6 @@ export async function initializeBaseRequest(
         );
     }
 
-    // Set requested claims hash if claims-based caching is enabled and claims were requested
-    if (
-        config.cache.claimsBasedCachingEnabled &&
-        request.claims &&
-        // Checks for empty stringified object "{}" which doesn't qualify as requested claims
-        !StringUtils.isEmptyObj(request.claims)
-    ) {
-        validatedRequest.requestedClaimsHash = await hashString(request.claims);
-    }
-
     return validatedRequest;
 }
 
@@ -91,11 +75,6 @@ export async function initializeSilentRequest(
     performanceClient: IPerformanceClient,
     logger: Logger
 ): Promise<CommonSilentFlowRequest> {
-    performanceClient.addQueueMeasurement(
-        PerformanceEvents.InitializeSilentRequest,
-        request.correlationId
-    );
-
     const baseRequest = await invokeAsync(
         initializeBaseRequest,
         PerformanceEvents.InitializeBaseRequest,

@@ -169,6 +169,13 @@ function blockRedirectInIframe(allowRedirectInIframe: boolean): void;
 // @public
 function blockReloadInHiddenIframes(): void;
 
+// Warning: (ae-missing-release-tag) "BrokerConnectionEvent" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export type BrokerConnectionEvent = {
+    pairwiseBrokerOrigin: string;
+};
+
 // Warning: (ae-missing-release-tag) "BrowserAuthError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -286,21 +293,8 @@ export class BrowserConfigurationAuthError extends AuthError {
 // @public (undocumented)
 export class BrowserPerformanceClient extends PerformanceClient implements IPerformanceClient {
     constructor(configuration: Configuration, intFields?: Set<string>, abbreviations?: Map<string, string>);
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    addQueueMeasurement(eventName: string, correlationId?: string, queueTime?: number, manuallyCompleted?: boolean): void;
     // (undocumented)
     generateId(): string;
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-    // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
-    setPreQueueTime(eventName: PerformanceEvents, correlationId?: string): void;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-with-invalid-type) The @param block should not include a JSDoc-style '{type}'
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -403,10 +397,6 @@ export type CacheLookupPolicy = (typeof CacheLookupPolicy)[keyof typeof CacheLoo
 // @public
 export type CacheOptions = {
     cacheLocation?: BrowserCacheLocation | string;
-    temporaryCacheLocation?: BrowserCacheLocation | string;
-    storeAuthStateInCookie?: boolean;
-    cacheMigrationEnabled?: boolean;
-    claimsBasedCachingEnabled?: boolean;
 };
 
 // Warning: (ae-missing-release-tag) "ClearCacheRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -572,7 +562,7 @@ export class EventMessageUtils {
 // Warning: (ae-missing-release-tag) "EventPayload" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export type EventPayload = AccountInfo | PopupRequest | RedirectRequest | SilentRequest | SsoSilentRequest | EndSessionRequest | AuthenticationResult | PopupEvent | null;
+export type EventPayload = AccountInfo | PopupRequest | RedirectRequest | SilentRequest | SsoSilentRequest | EndSessionRequest | AuthenticationResult | PopupEvent | BrokerConnectionEvent | null;
 
 // Warning: (ae-missing-release-tag) "EventType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "EventType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -605,6 +595,7 @@ export const EventType: {
     readonly LOGOUT_FAILURE: "msal:logoutFailure";
     readonly LOGOUT_END: "msal:logoutEnd";
     readonly RESTORE_FROM_BFCACHE: "msal:restoreFromBFCache";
+    readonly BROKER_CONNECTION_ESTABLISHED: "msal:brokerConnectionEstablished";
 };
 
 // @public (undocumented)
@@ -1491,7 +1482,7 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/cache/LocalStorage.ts:296:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:354:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:385:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/config/Configuration.ts:231:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
+// src/config/Configuration.ts:211:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
 // src/event/EventHandler.ts:113:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/event/EventHandler.ts:139:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"

@@ -195,10 +195,6 @@ export abstract class BaseInteractionClient {
                 ? params.requestExtraQueryParameters["instance_aware"]
                 : undefined;
 
-        this.performanceClient.addQueueMeasurement(
-            PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
-            this.correlationId
-        );
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.system.protocolMode,
             OIDCOptions: this.config.auth.OIDCOptions,

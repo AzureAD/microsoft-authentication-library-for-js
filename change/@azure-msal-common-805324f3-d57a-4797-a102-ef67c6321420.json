@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Remove queue time instrumentation #7747",
+  "packageName": "@azure/msal-common",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}

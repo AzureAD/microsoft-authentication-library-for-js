@@ -398,11 +398,6 @@ export class Authority {
      * and the /authorize, /token and logout endpoints.
      */
     public async resolveEndpointsAsync(): Promise<void> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthorityResolveEndpointsAsync,
-            this.correlationId
-        );
-
         const metadataEntity = this.getCurrentMetadataEntity();
 
         const cloudDiscoverySource = await invokeAsync(
@@ -502,11 +497,6 @@ export class Authority {
     private async updateEndpointMetadata(
         metadataEntity: AuthorityMetadataEntity
     ): Promise<AuthorityMetadataSource> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthorityUpdateEndpointMetadata,
-            this.correlationId
-        );
-
         const localMetadata =
             this.updateEndpointMetadataFromLocalSources(metadataEntity);
 
@@ -692,11 +682,6 @@ export class Authority {
      * @param hasHardcodedMetadata boolean
      */
     private async getEndpointMetadataFromNetwork(): Promise<OpenIdConfigResponse | null> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthorityGetEndpointMetadataFromNetwork,
-            this.correlationId
-        );
-
         const options: ImdsOptions = {};
 
         /*
@@ -751,11 +736,6 @@ export class Authority {
     private async updateMetadataWithRegionalInformation(
         metadata: OpenIdConfigResponse
     ): Promise<OpenIdConfigResponse> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation,
-            this.correlationId
-        );
-
         const userConfiguredAzureRegion =
             this.authorityOptions.azureRegionConfiguration?.azureRegion;
 
@@ -813,10 +793,6 @@ export class Authority {
     private async updateCloudDiscoveryMetadata(
         metadataEntity: AuthorityMetadataEntity
     ): Promise<AuthorityMetadataSource> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthorityUpdateCloudDiscoveryMetadata,
-            this.correlationId
-        );
         const localMetadataSource =
             this.updateCloudDiscoveryMetadataFromLocalSources(metadataEntity);
         if (localMetadataSource) {
@@ -994,10 +970,6 @@ export class Authority {
      * @param hasHardcodedMetadata boolean
      */
     private async getCloudDiscoveryMetadataFromNetwork(): Promise<CloudDiscoveryMetadata | null> {
-        this.performanceClient?.addQueueMeasurement(
-            PerformanceEvents.AuthorityGetCloudDiscoveryMetadataFromNetwork,
-            this.correlationId
-        );
         const instanceDiscoveryEndpoint = `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
         const options: ImdsOptions = {};
 

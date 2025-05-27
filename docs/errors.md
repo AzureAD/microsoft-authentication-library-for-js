@@ -13,12 +13,11 @@
 ### `cache_quota_exceeded`
 - Exceeded cache storage capacity.
 
-This error occurs when MSAL.js surpasses the allotted storage limit when attempting to save token information in the [configured cache storage](./caching.md#cache-storage). See [here](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria#web_storage) for web storage limits.
+This error occurs when MSAL.js surpasses the allotted storage limit when attempting to save token information in the [configured cache storage](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs/caching.md#cache-storage). See [here](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria#web_storage) for web storage limits.
 
 **Mitigation**:
 
 1. Make sure the configured cache storage has enough capacity to allow MSAL.js to persist token payload. The amount of cache storage required depends on the number of [cached artifacts](./caching.md#cached-artifacts).
-2. Disable [claimsBasedCachingEnabled](./configuration.md#cache-config-options) cache config option. When enabled, it caches access tokens under a key containing the hash of the requested claims. Depending on the MSAL.js API usage, it may result in the vast number of access tokens persisted in the cache storage.
 
 ### `cache_error_unknown`
 - An unknown error occurred while accessing the browser cache.
@@ -62,7 +61,7 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 - Nonce mismatch error.
 
 ### `auth_time_not_found`
-- Max Age was requested and the ID token is missing the auth_time variable auth_time is an optional claim and is not enabled by default - it must be enabled. See https://aka.ms/msaljs/optional-claims for more information.
+- Max Age was requested and the ID token is missing the auth_time variable. auth_time is an optional claim and is not enabled by default - it must be enabled. See https://aka.ms/msaljs/optional-claims for more information.
 
 ### `max_age_transpired`
 - Max Age is set to 0, or too much time has elapsed since the last end-user authentication.
@@ -119,7 +118,7 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 - The provided authority does not support logout.
 
 ### `key_id_missing`
-- A keyId value is missing from the requested bound token's cache record and is required to match the token to it's stored binding key.
+- A keyId value is missing from the requested bound token's cache record and is required to match the token to its stored binding key.
 
 ### `no_network_connectivity`
 - No network connectivity. Check your internet connection.
@@ -136,7 +135,7 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 ## Client configuration errors
 
 ### `redirect_uri_empty`
-- A redirect URI is required for all calls, and none has been set.
+- A redirect URI is required for all calls and none has been set.
 
 ### `claims_request_parsing_error`
 - Could not parse the given claims request object.
@@ -175,7 +174,7 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 - Invalid cloudDiscoveryMetadata provided. Must be a stringified JSON object containing tenant_discovery_endpoint and metadata fields.
 
 ### `invalid_authority_metadata`
-- Invalid authorityMetadata provided. Must by a stringified JSON object containing authorization_endpoint, token_endpoint, issuer fields.
+- Invalid authorityMetadata provided. Must by a stringified JSON object containing authorization_endpoint, token_endpoint, and issuer fields.
 
 ### `untrusted_authority`
 - The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter.
@@ -257,7 +256,7 @@ This error occurs when the page you use as your redirectUri is removing the hash
 To resolve this error we recommend using a dedicated redirectUri page which is not subject to the router. For silent and popup calls it's best to use a blank page. If this is not possible please make sure the router does not navigate while MSAL token acquisition is in progress. You can do this by detecting if your application is loaded in an iframe for silent calls, in a popup for popup calls or by awaiting `handleRedirectPromise` for redirect calls.
 
 ### `no_state_in_hash`
-- Hash does not contain state. Please verify that the request originated from msal
+- Hash does not contain state. Please verify that the request originated from MSAL.
 
 ### `hash_does_not_contain_known_properties`
 - Hash does not contain known properties. Please verify that your redirectUri is not changing the hash.
@@ -265,7 +264,7 @@ To resolve this error we recommend using a dedicated redirectUri page which is n
 Please see explanation for [hash_empty_error](#hash_empty_error) above. The root cause for this error is similar, the difference being the hash has been changed, rather than dropped.
 
 ### `unable_to_parse_state`
-- Unable to parse state. Please verify that the request originated from msal.
+- Unable to parse state. Please verify that the request originated from MSAL.
 
 ### `state_interaction_type_mismatch`
 - Hash contains state but the interaction type does not match the caller.
@@ -354,7 +353,7 @@ If you are using one of our wrapper libraries (React or Angular), please see the
 -   [msal-react errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react/docs/errors.md#interaction_in_progress)
 -   [msal-angular errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/errors.md#interaction_in_progress)
 
-If you are not using any of the wrapper libraries but concerned that your application might trigger concurrent interactive requests, you should check if any other interaction is in progress prior to invoking an interaction in your token acquisition method. You can achieve this by implementing a global application state or a broadcast service etc. that emits the current MSAL interaction status via [MSAL Events API](./events.md).
+If you are not using any of the wrapper libraries but concerned that your application might trigger concurrent interactive requests, you should check if any other interaction is in progress prior to invoking an interaction in your token acquisition method. You can achieve this by implementing a global application state or a broadcast service etc. that emits the current MSAL interaction status via [MSAL Events API](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs/events.md).
 
 ❌ The following example will throw this error because the `acquireTokenPopup` in the **catch** block does not check if there is another interaction taking place at the moment:
 
@@ -480,10 +479,10 @@ If you are unable to figure out why this error is being thrown please [open an i
 - User cancelled the flow.
 
 ### `monitor_popup_timeout`
-- Token acquisition in popup failed due to timeout. For more visit: https://aka.ms/msaljs/browser-errors#monitor_popup_timeout
+- Token acquisition in popup failed due to timeout.
 
 ### `monitor_window_timeout`
-- Token acquisition in iframe failed due to timeout. For more visit: https://aka.ms/msaljs/browser-errors#monitor_window_timeout
+- Token acquisition in iframe failed due to timeout.
 
 **Error Messages**:
 
@@ -570,7 +569,7 @@ const msalConfig = {
 - Redirects are not supported for iframed or brokered applications. Please ensure you are using MSAL.js in a top frame of the window if using the redirect APIs, or use the popup APIs.
 
 ### `block_iframe_reload`
-- Request was blocked inside an iframe because MSAL detected an authentication response. For more visit: https://aka.ms/msaljs/browser-errors#block_iframe_reload
+- Request was blocked inside an iframe because MSAL detected an authentication response.
 
 This error is thrown when calling `ssoSilent` or `acquireTokenSilent` and the page used as your `redirectUri` is attempting to invoke a login or acquireToken function.
 Our recommended mitigation for this is to set your `redirectUri` to a blank page that does not implement MSAL when invoking silent APIs. This will also have the added benefit of improving performance as the hidden iframe doesn't need to render your page.

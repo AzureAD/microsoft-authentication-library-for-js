@@ -33,10 +33,6 @@ export async function generatePkceCodes(
     logger: Logger,
     correlationId: string
 ): Promise<PkceCodes> {
-    performanceClient.addQueueMeasurement(
-        PerformanceEvents.GeneratePkceCodes,
-        correlationId
-    );
     const codeVerifier = invoke(
         generateCodeVerifier,
         PerformanceEvents.GenerateCodeVerifier,
@@ -94,10 +90,6 @@ async function generateCodeChallengeFromVerifier(
     logger: Logger,
     correlationId: string
 ): Promise<string> {
-    performanceClient.addQueueMeasurement(
-        PerformanceEvents.GenerateCodeChallengeFromVerifier,
-        correlationId
-    );
     try {
         // hashed verifier
         const pkceHashedCodeVerifier = await invokeAsync(
@@ -106,7 +98,7 @@ async function generateCodeChallengeFromVerifier(
             logger,
             performanceClient,
             correlationId
-        )(pkceCodeVerifier, performanceClient, correlationId);
+        )(pkceCodeVerifier);
         // encode hash as base64
         return urlEncodeArr(new Uint8Array(pkceHashedCodeVerifier));
     } catch (e) {

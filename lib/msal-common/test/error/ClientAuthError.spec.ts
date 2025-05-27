@@ -3,8 +3,7 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../../src/error/ClientAuthError";
-import { AuthError } from "../../src/error/AuthError";
-import { getDefaultErrorMessage } from "../../src/error/AuthError.js";
+import { AuthError, getDefaultErrorMessage } from "../../src/error/AuthError";
 
 describe("ClientAuthError.ts Class Unit Tests", () => {
     for (const key in ClientAuthErrorCodes) {

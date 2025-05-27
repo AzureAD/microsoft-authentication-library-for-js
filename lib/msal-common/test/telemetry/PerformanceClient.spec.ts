@@ -68,16 +68,6 @@ export class MockPerformanceClient
         return this.guidGenerator.generateGuid();
     }
 
-    setPreQueueTime(
-        eventName: PerformanceEvents,
-        correlationId?: string | undefined
-    ): void {
-        this.preQueueTimeByCorrelationId.set(correlationId || "", {
-            name: eventName,
-            time: 12345,
-        });
-    }
-
     getDurationMs(startTimeMs: number): number {
         return samplePerfDuration;
     }
@@ -518,54 +508,6 @@ describe("PerformanceClient.spec.ts", () => {
         });
     });
 
-    it("captures total count of manually completed queue events", (done) => {
-        const mockPerfClient = new MockPerformanceClient();
-        const correlationId = "test-correlation-id";
-
-        mockPerfClient.addPerformanceCallback((events) => {
-            expect(events.length).toEqual(1);
-            const event = events[0];
-            expect(event.queuedCount).toEqual(4);
-            expect(event.queuedManuallyCompletedCount).toEqual(2);
-            expect(event.queuedTimeMs).toEqual(3);
-            done();
-        });
-
-        const topLevelEvent = mockPerfClient.startMeasurement(
-            PerformanceEvents.AcquireTokenSilent,
-            correlationId
-        );
-
-        mockPerfClient.addQueueMeasurement(
-            PerformanceEvents.SilentCacheClientAcquireToken,
-            topLevelEvent.event.correlationId,
-            1,
-            false
-        );
-        mockPerfClient.addQueueMeasurement(
-            PerformanceEvents.AcquireTokenSilent,
-            topLevelEvent.event.correlationId,
-            2,
-            false
-        );
-        mockPerfClient.addQueueMeasurement(
-            PerformanceEvents.AcquireTokenByRefreshToken,
-            topLevelEvent.event.correlationId,
-            3,
-            true
-        );
-        mockPerfClient.addQueueMeasurement(
-            PerformanceEvents.GetAuthCodeUrl,
-            topLevelEvent.event.correlationId,
-            4,
-            true
-        );
-
-        topLevelEvent.end({
-            success: true,
-        });
-    });
-
     describe("addError", () => {
         it("adds error", (done) => {
             const mockPerfClient = new MockPerformanceClient();
@@ -834,32 +776,6 @@ describe("PerformanceClient.spec.ts", () => {
                     "testFunction at (testMinified.jsbundle:1234:56)"
                 )
             ).toEqual("testFunction at (testMinified.jsbundle:1234:56)");
-        });
-    });
-
-    describe("calculateQueuedTime", () => {
-        it("returns the queuedTime calculation", () => {
-            const mockPerfClient = new MockPerformanceClient();
-            const result = mockPerfClient.calculateQueuedTime(1, 2);
-            expect(result).toBe(1);
-        });
-
-        it("returns 0 if preQueueTime is not positive integer", () => {
-            const mockPerfClient = new MockPerformanceClient();
-            const result = mockPerfClient.calculateQueuedTime(-1, 1);
-            expect(result).toBe(0);
-        });
-
-        it("returns 0 if currentTime is not positive integer", () => {
-            const mockPerfClient = new MockPerformanceClient();
-            const result = mockPerfClient.calculateQueuedTime(1, -1);
-            expect(result).toBe(0);
-        });
-
-        it("returns 0 if preQueueTime is greater than currentTime", () => {
-            const mockPerfClient = new MockPerformanceClient();
-            const result = mockPerfClient.calculateQueuedTime(2, 1);
-            expect(result).toBe(0);
         });
     });
 
@@ -1322,15 +1238,7 @@ describe("PerformanceClient.spec.ts", () => {
                 PerformanceEvents.AcquireTokenSilentAsync,
                 correlationId
             );
-            mockPerfClient.setPreQueueTime(
-                PerformanceEvents.AcquireTokenSilentAsync,
-                correlationId
-            );
             const secondEvent = mockPerfClient.startMeasurement(
-                PerformanceEvents.AcquireTokenFromCache,
-                correlationId
-            );
-            mockPerfClient.setPreQueueTime(
                 PerformanceEvents.AcquireTokenFromCache,
                 correlationId
             );
@@ -1342,22 +1250,10 @@ describe("PerformanceClient.spec.ts", () => {
                 PerformanceEvents.AcquireTokenSilent,
                 dummyCorrelationId
             );
-            mockPerfClient.setPreQueueTime(
-                PerformanceEvents.AcquireTokenSilent,
-                dummyCorrelationId
-            );
 
             expect(
                 // @ts-ignore
                 mockPerfClient.eventsByCorrelationId.has(correlationId)
-            ).toBeFalsy();
-            expect(
-                // @ts-ignore
-                mockPerfClient.preQueueTimeByCorrelationId.has(correlationId)
-            ).toBeFalsy();
-            expect(
-                // @ts-ignore
-                mockPerfClient.queueMeasurements.has(correlationId)
             ).toBeFalsy();
             // @ts-ignore
             expect(mockPerfClient.eventStack.has(correlationId)).toBeFalsy();
@@ -1365,12 +1261,6 @@ describe("PerformanceClient.spec.ts", () => {
             expect(
                 // @ts-ignore
                 mockPerfClient.eventsByCorrelationId.has(dummyCorrelationId)
-            ).toBeTruthy();
-            expect(
-                // @ts-ignore
-                mockPerfClient.preQueueTimeByCorrelationId.has(
-                    dummyCorrelationId
-                )
             ).toBeTruthy();
             expect(
                 // @ts-ignore

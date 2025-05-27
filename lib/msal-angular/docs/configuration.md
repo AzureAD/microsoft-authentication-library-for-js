@@ -58,7 +58,6 @@ import { PublicClientApplication, InteractionType, BrowserCacheLocation } from "
         },
         cache: {
           cacheLocation: BrowserCacheLocation.LocalStorage,
-          storeAuthStateInCookie: true, // Deprecated, will be removed in the next major version
         },
         system: {
           loggerOptions: {
@@ -261,7 +260,6 @@ fetch("/assets/configuration.json")
     },
     "cache": {
       "cacheLocation": "localStorage",
-      "storeAuthStateInCookie": true
     }
   },
   "guard": {
@@ -471,7 +469,6 @@ export class AppModule {}
     },
     "cache": {
       "cacheLocation": "localStorage",
-      "storeAuthStateInCookie": true
     }
   },
   "guard": {

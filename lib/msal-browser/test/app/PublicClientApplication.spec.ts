@@ -30,7 +30,6 @@ import {
     CacheHelpers,
     CacheManager,
     ClientAuthErrorCodes,
-    CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
     CommonSilentFlowRequest,
     Constants,
@@ -60,6 +59,7 @@ import {
     BrowserConstants,
     CacheLookupPolicy,
     InteractionType,
+    StaticCacheKeys,
     PlatformAuthConstants,
     TemporaryCacheKeys,
     WrapperSKU,
@@ -76,22 +76,18 @@ import { NavigationOptions } from "../../src/navigation/NavigationOptions.js";
 import { EventMessage } from "../../src/event/EventMessage.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient.js";
-import { base64Encode } from "../../src/encode/Base64Encode.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import {
     BrowserAuthError,
     BrowserAuthErrorCodes,
     createBrowserAuthError,
+    getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError.js";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient.js";
 import { PopupClient } from "../../src/interaction_client/PopupClient.js";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient.js";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient.js";
-import {
-    AuthorizationCodeRequest,
-    EndSessionRequest,
-} from "../../src/index.js";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
@@ -116,17 +112,15 @@ import {
     TestTimeUtils,
 } from "msal-test-utils";
 import { INTERACTION_TYPE } from "../../src/utils/BrowserConstants.js";
+import { version } from "../../src/packageMetadata.js";
+import { AuthorizationCodeRequest } from "../../src/request/AuthorizationCodeRequest.js";
+import { EndSessionRequest } from "../../src/request/EndSessionRequest.js";
 import { BaseOperatingContext } from "../../src/operatingcontext/BaseOperatingContext.js";
 import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
 import { config } from "process";
-import { getDefaultErrorMessage } from "../../src/error/BrowserAuthError.js";
 
 const cacheConfig = {
-    temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
     cacheLocation: BrowserCacheLocation.SessionStorage,
-    storeAuthStateInCookie: false,
-    cacheMigrationEnabled: false,
-    claimsBasedCachingEnabled: false,
 };
 
 let testAppConfig = {
@@ -831,7 +825,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.handleRedirectPromise().catch((e) => {
                 expect(e).toMatchObject(testError);
                 expect(window.localStorage.length).toEqual(0);
-                expect(window.sessionStorage.length).toEqual(0);
+                expect(window.sessionStorage.length).toEqual(1);
+                expect(
+                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                 done();
             });
         });
@@ -2047,14 +2044,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }
         });
 
-        it("throws error if cacheLocation is Memory Storage and storeAuthStateInCookie is false", async () => {
+        it("throws error if cacheLocation is Memory Storage", async () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 },
                 cache: {
                     cacheLocation: BrowserCacheLocation.MemoryStorage,
-                    storeAuthStateInCookie: false,
                 },
                 system: {
                     allowPlatformBroker: false,
@@ -2101,7 +2097,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(redirectClientSpy).toHaveBeenCalledTimes(1);
                 expect(browserStorage.isInteractionInProgress()).toBe(false);
                 expect(window.localStorage.length).toBe(0);
-                expect(window.sessionStorage.length).toBe(0);
+                expect(window.sessionStorage.length).toBe(1);
+                expect(
+                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                 done();
             });
         });
@@ -4775,127 +4774,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(parallelResponse).toHaveLength(3);
         });
 
-        it("makes one network request with multiple parallel silent requests with same request including claims when claimsBasedCaching is enabled", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-                system: {
-                    allowPlatformBroker: false,
-                },
-                cache: {
-                    claimsBasedCachingEnabled: true,
-                },
-            });
-
-            await pca.initialize();
-            const testServerTokenResponse = {
-                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
-                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                access_token: TEST_TOKENS.ACCESS_TOKEN,
-                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-                id_token: TEST_TOKENS.IDTOKEN_V2,
-            };
-            const testIdTokenClaims: TokenClaims = {
-                ver: "2.0",
-                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-            };
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || "",
-            };
-            const testTokenResponse: AuthenticationResult = {
-                authority: TEST_CONFIG.validAuthority,
-                uniqueId: testIdTokenClaims.oid || "",
-                tenantId: testIdTokenClaims.tid || "",
-                scopes: [...TEST_CONFIG.DEFAULT_SCOPES, "User.Read"],
-                idToken: testServerTokenResponse.id_token,
-                idTokenClaims: testIdTokenClaims,
-                accessToken: testServerTokenResponse.access_token,
-                fromCache: false,
-                correlationId: RANDOM_TEST_GUID,
-                expiresOn: TestTimeUtils.nowDateWithOffset(
-                    testServerTokenResponse.expires_in
-                ),
-                account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
-            };
-            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
-            );
-            jest.spyOn(CryptoOps.prototype, "hashString").mockResolvedValue(
-                TEST_CRYPTO_VALUES.TEST_SHA256_HASH
-            );
-            const atsSpy: jest.SpyInstance = jest.spyOn(
-                StandardController.prototype,
-                <any>"acquireTokenSilentAsync"
-            );
-            const silentATStub: jest.SpyInstance = jest
-                .spyOn(
-                    RefreshTokenClient.prototype,
-                    "acquireTokenByRefreshToken"
-                )
-                .mockResolvedValue(testTokenResponse);
-            const tokenRequest: CommonSilentFlowRequest = {
-                scopes: ["User.Read"],
-                account: testAccount,
-                authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.BEARER,
-                claims: JSON.stringify({ claim: "claim" }),
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                forceRefresh: false,
-            };
-            const expectedTokenRequest: CommonSilentFlowRequest = {
-                ...tokenRequest,
-                scopes: ["User.Read"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
-                correlationId: RANDOM_TEST_GUID,
-                claims: JSON.stringify({ claim: "claim" }),
-                requestedClaimsHash: TEST_CRYPTO_VALUES.TEST_SHA256_HASH,
-                forceRefresh: false,
-            };
-
-            const silentRequest1 = pca.acquireTokenSilent(tokenRequest);
-            const silentRequest2 = pca.acquireTokenSilent({
-                ...tokenRequest,
-                correlationId: "test-correlationId2",
-            });
-            const silentRequest3 = pca.acquireTokenSilent({
-                ...tokenRequest,
-                correlationId: "test-correlationId3",
-            });
-            const parallelResponse = await Promise.all([
-                silentRequest1,
-                silentRequest2,
-                silentRequest3,
-            ]);
-
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest);
-            expect(atsSpy).toHaveBeenCalledTimes(1);
-            expect(silentATStub).toHaveBeenCalledTimes(1);
-            expect(parallelResponse[0]).toEqual(testTokenResponse);
-            expect(parallelResponse[1]).toEqual({
-                ...testTokenResponse,
-                correlationId: "test-correlationId2",
-            });
-            expect(parallelResponse[2]).toEqual({
-                ...testTokenResponse,
-                correlationId: "test-correlationId3",
-            });
-            expect(parallelResponse).toHaveLength(3);
-        });
-
         it("makes network requests for each distinct request when acquireTokenSilent is called in parallel", async () => {
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
@@ -5097,270 +4975,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentATStub).toHaveBeenCalledTimes(6);
         });
 
-        it("makes network requests for each distinct request including claims when acquireTokenSilent is called in parallel with claimsBasedCaching is enabled", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-                system: {
-                    allowPlatformBroker: false,
-                },
-                cache: {
-                    claimsBasedCachingEnabled: true,
-                },
-            });
-
-            await pca.initialize();
-            const testServerTokenResponse = {
-                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
-                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                access_token: TEST_TOKENS.ACCESS_TOKEN,
-                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-                id_token: TEST_TOKENS.IDTOKEN_V2,
-            };
-            const testIdTokenClaims: TokenClaims = {
-                ver: "2.0",
-                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-            };
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || "",
-            };
-            const testTokenResponse: AuthenticationResult = {
-                authority: TEST_CONFIG.validAuthority,
-                uniqueId: testIdTokenClaims.oid || "",
-                tenantId: testIdTokenClaims.tid || "",
-                scopes: [...TEST_CONFIG.DEFAULT_SCOPES, "User.Read"],
-                idToken: testServerTokenResponse.id_token,
-                idTokenClaims: testIdTokenClaims,
-                accessToken: testServerTokenResponse.access_token,
-                fromCache: false,
-                correlationId: RANDOM_TEST_GUID,
-                expiresOn: TestTimeUtils.nowDateWithOffset(
-                    testServerTokenResponse.expires_in
-                ),
-                account: testAccount,
-                tokenType: AuthenticationScheme.BEARER,
-            };
-            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
-                RANDOM_TEST_GUID
-            );
-            jest.spyOn(BrowserCrypto, "hashString").mockResolvedValue(
-                TEST_CRYPTO_VALUES.TEST_SHA256_HASH
-            );
-            const silentATStub: jest.SpyInstance = jest
-                .spyOn(
-                    RefreshTokenClient.prototype,
-                    "acquireTokenByRefreshToken"
-                )
-                .mockResolvedValue(testTokenResponse);
-            // Beaerer requests
-            const tokenRequest1: CommonSilentFlowRequest = {
-                scopes: ["User.Read"],
-                account: testAccount,
-                authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.BEARER,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                forceRefresh: false,
-            };
-            const expectedTokenRequest1: CommonSilentFlowRequest = {
-                ...tokenRequest1,
-                scopes: ["User.Read"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
-                correlationId: RANDOM_TEST_GUID,
-                forceRefresh: false,
-            };
-            const tokenRequest2: CommonSilentFlowRequest = {
-                scopes: ["Mail.Read"],
-                account: testAccount,
-                authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.BEARER,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                forceRefresh: false,
-            };
-            const expectedTokenRequest2: CommonSilentFlowRequest = {
-                ...tokenRequest1,
-                scopes: ["Mail.Read"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
-                correlationId: RANDOM_TEST_GUID,
-                forceRefresh: false,
-            };
-
-            // PoP requests
-            const popTokenRequest1: CommonSilentFlowRequest = {
-                scopes: ["User.Read"],
-                account: testAccount,
-                authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.POP,
-                resourceRequestMethod: "GET",
-                resourceRequestUri: "https://testUri.com/user.read",
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                forceRefresh: false,
-            };
-
-            const popTokenRequest2: CommonSilentFlowRequest = {
-                scopes: ["Mail.Read"],
-                account: testAccount,
-                authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.POP,
-                resourceRequestMethod: "GET",
-                resourceRequestUri: "https://testUri.com/mail.read",
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                forceRefresh: false,
-            };
-            const expectedPopTokenRequest1: CommonSilentFlowRequest = {
-                ...popTokenRequest1,
-                scopes: ["User.Read"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
-                correlationId: RANDOM_TEST_GUID,
-                forceRefresh: false,
-            };
-
-            const expectedPopTokenRequest2: CommonSilentFlowRequest = {
-                ...popTokenRequest2,
-                scopes: ["Mail.Read"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
-                correlationId: RANDOM_TEST_GUID,
-                forceRefresh: false,
-            };
-
-            // SSH Certificate requests
-            const sshCertRequest1: CommonSilentFlowRequest = {
-                scopes: ["User.Read"],
-                account: testAccount,
-                authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.SSH,
-                sshJwk: TEST_SSH_VALUES.ENCODED_SSH_JWK,
-                sshKid: TEST_SSH_VALUES.SSH_KID,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                forceRefresh: false,
-            };
-
-            const sshCertRequest2: CommonSilentFlowRequest = {
-                scopes: ["Mail.Read"],
-                account: testAccount,
-                authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.SSH,
-                sshJwk: TEST_SSH_VALUES.ALTERNATE_ENCODED_SSH_JWK,
-                sshKid: TEST_SSH_VALUES.ALTERNATE_SSH_KID,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                forceRefresh: false,
-            };
-
-            const expectedSshCertificateRequest1: CommonSilentFlowRequest = {
-                ...sshCertRequest1,
-                scopes: ["User.Read"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
-                correlationId: RANDOM_TEST_GUID,
-                forceRefresh: false,
-            };
-
-            const expectedSshCertificateRequest2: CommonSilentFlowRequest = {
-                ...sshCertRequest2,
-                scopes: ["Mail.Read"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
-                correlationId: RANDOM_TEST_GUID,
-                forceRefresh: false,
-            };
-
-            // Requests with claims
-            const claimsRequest1: CommonSilentFlowRequest = {
-                scopes: ["User.Read"],
-                account: testAccount,
-                authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.BEARER,
-                claims: JSON.stringify({ claim1: "claim1" }),
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                forceRefresh: false,
-            };
-
-            const claimsRequest2: CommonSilentFlowRequest = {
-                scopes: ["User.Read"],
-                account: testAccount,
-                authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: AuthenticationScheme.BEARER,
-                claims: JSON.stringify({ claim2: "claim2" }),
-                requestedClaimsHash: TEST_CRYPTO_VALUES.TEST_SHA256_HASH,
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                forceRefresh: false,
-            };
-
-            const expectedClaimsRequest1: CommonSilentFlowRequest = {
-                ...claimsRequest1,
-                scopes: ["User.Read"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
-                correlationId: RANDOM_TEST_GUID,
-                claims: JSON.stringify({ claim1: "claim1" }),
-                requestedClaimsHash: TEST_CRYPTO_VALUES.TEST_SHA256_HASH,
-                forceRefresh: false,
-            };
-
-            const expectedClaimsRequest2: CommonSilentFlowRequest = {
-                ...claimsRequest2,
-                scopes: ["User.Read"],
-                authority: `${Constants.DEFAULT_AUTHORITY}`,
-                correlationId: RANDOM_TEST_GUID,
-                claims: JSON.stringify({ claim2: "claim2" }),
-                requestedClaimsHash: TEST_CRYPTO_VALUES.TEST_SHA256_HASH,
-                forceRefresh: false,
-            };
-
-            const silentRequest1 = pca.acquireTokenSilent(tokenRequest1);
-            const silentRequest2 = pca.acquireTokenSilent(tokenRequest1);
-            const silentRequest3 = pca.acquireTokenSilent(tokenRequest2);
-            const popSilentRequest1 = pca.acquireTokenSilent(popTokenRequest1);
-            const popSilentRequest2 = pca.acquireTokenSilent(popTokenRequest1);
-            const popSilentRequest3 = pca.acquireTokenSilent(popTokenRequest2);
-            const sshCertSilentRequest1 =
-                pca.acquireTokenSilent(sshCertRequest1);
-            const sshCertSilentRequest2 =
-                pca.acquireTokenSilent(sshCertRequest1);
-            const sshCertSilentRequest3 =
-                pca.acquireTokenSilent(sshCertRequest2);
-            const claimsSilentRequest1 = pca.acquireTokenSilent(claimsRequest1);
-            const claimsSilentRequest2 = pca.acquireTokenSilent(claimsRequest1);
-            const claimsSilentRequest3 = pca.acquireTokenSilent(claimsRequest2);
-            await Promise.all([
-                silentRequest1,
-                silentRequest2,
-                silentRequest3,
-                popSilentRequest1,
-                popSilentRequest2,
-                popSilentRequest3,
-                sshCertSilentRequest1,
-                sshCertSilentRequest2,
-                sshCertSilentRequest3,
-                claimsSilentRequest1,
-                claimsSilentRequest2,
-                claimsSilentRequest3,
-            ]);
-
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest1);
-            expect(silentATStub).toHaveBeenCalledWith(expectedTokenRequest2);
-            expect(silentATStub).toHaveBeenCalledWith(expectedPopTokenRequest1);
-            expect(silentATStub).toHaveBeenCalledWith(expectedPopTokenRequest2);
-            expect(silentATStub).toHaveBeenCalledWith(
-                expectedSshCertificateRequest1
-            );
-            expect(silentATStub).toHaveBeenCalledWith(
-                expectedSshCertificateRequest2
-            );
-            expect(silentATStub).toHaveBeenCalledWith(expectedClaimsRequest1);
-            expect(silentATStub).toHaveBeenCalledWith(expectedClaimsRequest2);
-            expect(silentATStub).toHaveBeenCalledTimes(8);
-        });
-
         it("makes network requests for identical requests for different embedded apps when acquireTokenSilent is called in parallel", async () => {
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
@@ -5469,7 +5083,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
             } catch (e) {
                 // Test that error was cached for telemetry purposes and then thrown
-                expect(window.sessionStorage).toHaveLength(1);
+                expect(window.sessionStorage).toHaveLength(2);
+                expect(
+                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                ).toEqual(version);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
                 );
@@ -5525,7 +5142,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await silentRequest3.catch(() => {});
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(atsSpy).toHaveBeenCalledTimes(1);
-                expect(window.sessionStorage).toHaveLength(1);
+                expect(window.sessionStorage).toHaveLength(2);
+                expect(
+                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                ).toEqual(version);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
                 );
@@ -7501,10 +7121,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
-                    temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
-                    storeAuthStateInCookie: false,
-                    cacheMigrationEnabled: false,
-                    claimsBasedCachingEnabled: false,
                 },
                 new CryptoOps(new Logger({})),
                 new Logger({}),
