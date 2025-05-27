@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Added token revocation functionality to Managed Identity's App Service source #7772",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
