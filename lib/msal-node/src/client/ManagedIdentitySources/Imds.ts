@@ -26,8 +26,7 @@ const DEFAULT_IMDS_ENDPOINT: string = `http://169.254.169.254${IMDS_TOKEN_PATH}`
 const IMDS_API_VERSION: string = "2018-02-01";
 
 /**
- * Imds class implements the logic for acquiring tokens from the Azure Instance Metadata Service (IMDS).
- * IMDS is used for managed identities on Azure VMs and other compute resources.
+ * Imds class implements the logic for acquiring tokens from an Azure Instance Metadata Service (IMDS).
  */
 export class Imds extends BaseManagedIdentitySource {
     private identityEndpoint: string;
@@ -169,7 +168,7 @@ export class Imds extends BaseManagedIdentitySource {
             ] = managedIdentityId.id;
         }
 
-        // The bodyParameters are calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity.
+        // Note: bodyParameters are calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
 
         // Attach the IMDS-specific retry policy.
         request.retryPolicy = new ImdsRetryPolicy();
