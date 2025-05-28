@@ -25,11 +25,14 @@ import { AuthorizationCodePayload } from '@azure/msal-common/node';
 import { AuthorizeResponse } from '@azure/msal-common/node';
 import { AzureCloudInstance } from '@azure/msal-common/node';
 import { AzureCloudOptions } from '@azure/msal-common/node';
+import { AzureRegion } from '@azure/msal-common';
 import { AzureRegionConfiguration } from '@azure/msal-common/node';
-import { BaseAuthRequest } from '@azure/msal-common/node';
+import { BaseAuthRequest } from '@azure/msal-common';
+import { BaseAuthRequest as BaseAuthRequest_2 } from '@azure/msal-common/node';
 import { BaseClient } from '@azure/msal-common/node';
 import { CacheManager } from '@azure/msal-common/node';
 import { CacheOutcome } from '@azure/msal-common/node';
+import { ClientAssertion as ClientAssertion_2 } from '@azure/msal-common';
 import { ClientAssertionCallback } from '@azure/msal-common/node';
 import { ClientAuthError } from '@azure/msal-common/node';
 import { ClientAuthErrorCodes } from '@azure/msal-common/node';
@@ -38,13 +41,10 @@ import { ClientConfigurationError } from '@azure/msal-common/node';
 import { ClientConfigurationErrorCodes } from '@azure/msal-common/node';
 import { CommonAuthorizationCodeRequest } from '@azure/msal-common/node';
 import { CommonAuthorizationUrlRequest } from '@azure/msal-common/node';
-import { CommonClientCredentialRequest } from '@azure/msal-common/node';
-import { CommonDeviceCodeRequest } from '@azure/msal-common/node';
-import { CommonOnBehalfOfRequest } from '@azure/msal-common/node';
 import { CommonRefreshTokenRequest } from '@azure/msal-common/node';
 import { CommonSilentFlowRequest } from '@azure/msal-common/node';
-import { CommonUsernamePasswordRequest } from '@azure/msal-common/node';
-import { DeviceCodeResponse } from '@azure/msal-common/node';
+import { DeviceCodeResponse } from '@azure/msal-common';
+import { DeviceCodeResponse as DeviceCodeResponse_2 } from '@azure/msal-common/node';
 import http from 'http';
 import https from 'https';
 import { IAppTokenProvider } from '@azure/msal-common/node';
@@ -73,6 +73,7 @@ import { ServerError } from '@azure/msal-common/node';
 import { ServerTelemetryEntity } from '@azure/msal-common/node';
 import { ServerTelemetryManager } from '@azure/msal-common/node';
 import { StaticAuthorityOptions } from '@azure/msal-common/node';
+import { StringDict } from '@azure/msal-common';
 import { ThrottlingEntity } from '@azure/msal-common/node';
 import { TokenCacheContext } from '@azure/msal-common/node';
 import { TokenKeys } from '@azure/msal-common/node';
@@ -148,7 +149,7 @@ export abstract class ClientApplication {
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
     getLogger(): Logger;
     getTokenCache(): TokenCache;
-    protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest>): Promise<BaseAuthRequest>;
+    protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest_2>): Promise<BaseAuthRequest_2>;
     protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager;
     protected logger: Logger;
     setLogger(logger: Logger): void;
@@ -180,6 +181,7 @@ export { ClientConfigurationErrorCodes }
 // @public
 export class ClientCredentialClient extends BaseClient {
     constructor(configuration: ClientConfiguration, appTokenProvider?: IAppTokenProvider);
+    // Warning: (ae-forgotten-export) The symbol "CommonClientCredentialRequest" needs to be exported by the entry point index.d.ts
     acquireToken(request: CommonClientCredentialRequest): Promise<AuthenticationResult | null>;
     getCachedAuthenticationResult(request: CommonClientCredentialRequest, config: ClientConfiguration | ManagedIdentityConfiguration, cryptoUtils: ICrypto, authority: Authority, cacheManager: CacheManager, serverTelemetryManager?: ServerTelemetryManager | null): Promise<[AuthenticationResult | null, CacheOutcome]>;
 }
@@ -236,6 +238,7 @@ class Deserializer {
 // @public
 export class DeviceCodeClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
+    // Warning: (ae-forgotten-export) The symbol "CommonDeviceCodeRequest" needs to be exported by the entry point index.d.ts
     acquireToken(request: CommonDeviceCodeRequest): Promise<AuthenticationResult | null>;
     createExtraQueryParameters(request: CommonDeviceCodeRequest): string;
 }
@@ -243,7 +246,7 @@ export class DeviceCodeClient extends BaseClient {
 // @public
 export type DeviceCodeRequest = Partial<Omit<CommonDeviceCodeRequest, "scopes" | "deviceCodeCallback" | "resourceRequestMethod" | "resourceRequestUri" | "requestedClaimsHash" | "storeInCache">> & {
     scopes: Array<string>;
-    deviceCodeCallback: (response: DeviceCodeResponse) => void;
+    deviceCodeCallback: (response: DeviceCodeResponse_2) => void;
 };
 
 // @public
@@ -456,6 +459,7 @@ export type NodeTelemetryOptions = {
 // @public
 export class OnBehalfOfClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
+    // Warning: (ae-forgotten-export) The symbol "CommonOnBehalfOfRequest" needs to be exported by the entry point index.d.ts
     acquireToken(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult | null>;
 }
 
@@ -599,6 +603,7 @@ export { TokenCacheContext }
 // @public @deprecated
 export class UsernamePasswordClient extends BaseClient {
     constructor(configuration: ClientConfiguration);
+    // Warning: (ae-forgotten-export) The symbol "CommonUsernamePasswordRequest" needs to be exported by the entry point index.d.ts
     acquireToken(request: CommonUsernamePasswordRequest): Promise<AuthenticationResult | null>;
 }
 
