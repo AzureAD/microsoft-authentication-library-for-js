@@ -2221,7 +2221,9 @@ const emptyInputScopeSet = "empty_input_scopeset";
 //
 // @public (undocumented)
 export const EncodingTypes: {
+    readonly BASE64: "base64";
     readonly HEX: "hex";
+    readonly UTF8: "utf-8";
 };
 
 // @public (undocumented)
