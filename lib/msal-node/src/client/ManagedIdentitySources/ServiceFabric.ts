@@ -21,7 +21,7 @@ import {
 const SERVICE_FABRIC_MSI_API_VERSION: string = "2019-07-01-preview";
 
 /**
- * Original source code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/ServiceFabricManagedIdentitySource.cs
+ * Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/ServiceFabricManagedIdentitySource.cs
  */
 export class ServiceFabric extends BaseManagedIdentitySource {
     private identityEndpoint: string;
@@ -173,7 +173,7 @@ export class ServiceFabric extends BaseManagedIdentitySource {
             ] = managedIdentityId.id;
         }
 
-        // Note: bodyParameters are calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
+        // The bodyParameters are calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity.
 
         return request;
     }
