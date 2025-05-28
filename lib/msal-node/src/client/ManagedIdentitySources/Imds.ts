@@ -19,16 +19,28 @@ import {
 import { NodeStorage } from "../../cache/NodeStorage.js";
 import { ImdsRetryPolicy } from "../../retry/ImdsRetryPolicy.js";
 
-// IMDS constants. Docs for IMDS are available here https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http
+// Documentation for IMDS is available at https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http
+
 const IMDS_TOKEN_PATH: string = "/metadata/identity/oauth2/token";
 const DEFAULT_IMDS_ENDPOINT: string = `http://169.254.169.254${IMDS_TOKEN_PATH}`;
-
 const IMDS_API_VERSION: string = "2018-02-01";
 
-// Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/ImdsManagedIdentitySource.cs
+/**
+ * Imds class implements the logic for acquiring tokens from the Azure Instance Metadata Service (IMDS).
+ * IMDS is used for managed identities on Azure VMs and other compute resources.
+ */
 export class Imds extends BaseManagedIdentitySource {
     private identityEndpoint: string;
 
+    /**
+     * Constructs an Imds instance.
+     * @param logger - Logger instance for logging.
+     * @param nodeStorage - NodeStorage instance for caching.
+     * @param networkClient - Network client for HTTP requests.
+     * @param cryptoProvider - CryptoProvider for cryptographic operations.
+     * @param disableInternalRetries - Whether to disable internal retry logic.
+     * @param identityEndpoint - The IMDS endpoint to use.
+     */
     constructor(
         logger: Logger,
         nodeStorage: NodeStorage,
@@ -48,6 +60,18 @@ export class Imds extends BaseManagedIdentitySource {
         this.identityEndpoint = identityEndpoint;
     }
 
+    /**
+     * Attempts to create an Imds instance by determining the correct endpoint.
+     * If the AZURE_POD_IDENTITY_AUTHORITY_HOST environment variable is set, it uses that as the endpoint.
+     * Otherwise, it falls back to the default IMDS endpoint.
+     *
+     * @param logger - Logger instance for logging.
+     * @param nodeStorage - NodeStorage instance for caching.
+     * @param networkClient - Network client for HTTP requests.
+     * @param cryptoProvider - CryptoProvider for cryptographic operations.
+     * @param disableInternalRetries - Whether to disable internal retry logic.
+     * @returns An instance of Imds configured with the appropriate endpoint.
+     */
     public static tryCreate(
         logger: Logger,
         nodeStorage: NodeStorage,
@@ -57,6 +81,7 @@ export class Imds extends BaseManagedIdentitySource {
     ): Imds {
         let validatedIdentityEndpoint: string;
 
+        // Check if the environment variable for pod identity is set.
         if (
             process.env[
                 ManagedIdentityEnvironmentVariableNames
@@ -73,6 +98,7 @@ export class Imds extends BaseManagedIdentitySource {
                     ]
                 }`
             );
+            // Validate and construct the endpoint URL from the environment variable.
             validatedIdentityEndpoint = Imds.getValidatedEnvVariableUrlString(
                 ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST,
                 `${
@@ -85,12 +111,14 @@ export class Imds extends BaseManagedIdentitySource {
                 logger
             );
         } else {
+            // Use the default IMDS endpoint if no environment variable is set.
             logger.info(
                 `[Managed Identity] Unable to find ${ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST} environment variable for ${ManagedIdentitySourceNames.IMDS}, using the default endpoint.`
             );
             validatedIdentityEndpoint = DEFAULT_IMDS_ENDPOINT;
         }
 
+        // Return a new Imds instance with the validated endpoint.
         return new Imds(
             logger,
             nodeStorage,
@@ -101,23 +129,35 @@ export class Imds extends BaseManagedIdentitySource {
         );
     }
 
+    /**
+     * Creates a ManagedIdentityRequestParameters object for acquiring a token from IMDS.
+     * Sets the required headers and query parameters for the IMDS token request.
+     *
+     * @param resource - The resource URI for which the token is requested.
+     * @param managedIdentityId - The managed identity ID (system-assigned or user-assigned).
+     * @returns A ManagedIdentityRequestParameters object configured for IMDS.
+     */
     public createRequest(
         resource: string,
         managedIdentityId: ManagedIdentityId
     ): ManagedIdentityRequestParameters {
+        // Initialize the request with HTTP GET and the IMDS endpoint.
         const request: ManagedIdentityRequestParameters =
             new ManagedIdentityRequestParameters(
                 HttpMethod.GET,
                 this.identityEndpoint
             );
 
+        // IMDS requires the Metadata header to be set to "true".
         request.headers[ManagedIdentityHeaders.METADATA_HEADER_NAME] = "true";
 
+        // Set the API version and resource as query parameters.
         request.queryParameters[ManagedIdentityQueryParameters.API_VERSION] =
             IMDS_API_VERSION;
         request.queryParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
+        // If using a user-assigned managed identity, add the appropriate query parameter.
         if (
             managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
         ) {
@@ -129,8 +169,9 @@ export class Imds extends BaseManagedIdentitySource {
             ] = managedIdentityId.id;
         }
 
-        // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
+        // The bodyParameters are calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity.
 
+        // Attach the IMDS-specific retry policy.
         request.retryPolicy = new ImdsRetryPolicy();
 
         return request;
