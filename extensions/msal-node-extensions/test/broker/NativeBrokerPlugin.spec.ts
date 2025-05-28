@@ -23,7 +23,7 @@ import {
     NativeSignOutRequest,
     ServerError,
     TimeUtils,
-    Constants
+    Constants,
 } from "@azure/msal-common";
 import { randomUUID } from "crypto";
 import { NativeAuthError } from "../../src/error/NativeAuthError";
