@@ -100,14 +100,9 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         disableInternalRetries: boolean,
         managedIdentityId: ManagedIdentityId
     ): ServiceFabric | null {
-        // Retrieve required environment variables
         const [identityEndpoint, identityHeader, identityServerThumbprint] =
             ServiceFabric.getEnvironmentVariables();
 
-        /*
-         * If either the identity endpoint, identity header, or identity server thumbprint
-         * environment variables are undefined, this MSI provider is unavailable.
-         */
         if (!identityEndpoint || !identityHeader || !identityServerThumbprint) {
             logger.info(
                 `[Managed Identity] ${ManagedIdentitySourceNames.SERVICE_FABRIC} managed identity is unavailable because one or all of the '${ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER}', '${ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT}' or '${ManagedIdentityEnvironmentVariableNames.IDENTITY_SERVER_THUMBPRINT}' environment variables are not defined.`
@@ -115,7 +110,6 @@ export class ServiceFabric extends BaseManagedIdentitySource {
             return null;
         }
 
-        // Validate the identity endpoint URL
         const validatedIdentityEndpoint: string =
             ServiceFabric.getValidatedEnvVariableUrlString(
                 ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT,
@@ -128,7 +122,6 @@ export class ServiceFabric extends BaseManagedIdentitySource {
             `[Managed Identity] Environment variables validation passed for ${ManagedIdentitySourceNames.SERVICE_FABRIC} managed identity. Endpoint URI: ${validatedIdentityEndpoint}. Creating ${ManagedIdentitySourceNames.SERVICE_FABRIC} managed identity.`
         );
 
-        // Warn if user-assigned managed identity is configured, as it's not supported at runtime
         if (
             managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
         ) {
@@ -137,7 +130,6 @@ export class ServiceFabric extends BaseManagedIdentitySource {
             );
         }
 
-        // Return a new ServiceFabric instance with the validated endpoint.
         return new ServiceFabric(
             logger,
             nodeStorage,
@@ -159,24 +151,20 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         resource: string,
         managedIdentityId: ManagedIdentityId
     ): ManagedIdentityRequestParameters {
-        // Initialize request with HTTP GET and the Service Fabric endpoint
         const request: ManagedIdentityRequestParameters =
             new ManagedIdentityRequestParameters(
                 HttpMethod.GET,
                 this.identityEndpoint
             );
 
-        // Add the required Service Fabric secret header
         request.headers[ManagedIdentityHeaders.ML_AND_SF_SECRET_HEADER_NAME] =
             this.identityHeader;
 
-        // Set the API version and resource in the query parameters
         request.queryParameters[ManagedIdentityQueryParameters.API_VERSION] =
             SERVICE_FABRIC_MSI_API_VERSION;
         request.queryParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
-        // If using a user-assigned managed identity, add the appropriate query parameter
         if (
             managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
         ) {
