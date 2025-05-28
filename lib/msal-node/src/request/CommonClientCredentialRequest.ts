@@ -3,9 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest } from "./BaseAuthRequest.js";
-import { AzureRegion } from "../authority/AzureRegion.js";
-import { ClientAssertion } from "../account/ClientCredentials.js";
+import {
+    BaseAuthRequest,
+    AzureRegion,
+    ClientAssertion,
+} from "@azure/msal-common";
 
 /**
  * CommonClientCredentialRequest
