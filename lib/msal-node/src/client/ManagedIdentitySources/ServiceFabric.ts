@@ -173,7 +173,7 @@ export class ServiceFabric extends BaseManagedIdentitySource {
             ] = managedIdentityId.id;
         }
 
-        // The bodyParameters are calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity.
+        // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
 
         return request;
     }
