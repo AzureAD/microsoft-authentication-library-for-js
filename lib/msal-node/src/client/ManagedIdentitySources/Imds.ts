@@ -26,8 +26,7 @@ const DEFAULT_IMDS_ENDPOINT: string = `http://169.254.169.254${IMDS_TOKEN_PATH}`
 const IMDS_API_VERSION: string = "2018-02-01";
 
 /**
- * Imds class implements the logic for acquiring tokens from the Azure Instance Metadata Service (IMDS).
- * IMDS is used for managed identities on Azure VMs and other compute resources.
+ * Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/ImdsManagedIdentitySource.cs
  */
 export class Imds extends BaseManagedIdentitySource {
     private identityEndpoint: string;
@@ -81,7 +80,6 @@ export class Imds extends BaseManagedIdentitySource {
     ): Imds {
         let validatedIdentityEndpoint: string;
 
-        // Check if the environment variable for pod identity is set.
         if (
             process.env[
                 ManagedIdentityEnvironmentVariableNames
@@ -98,7 +96,6 @@ export class Imds extends BaseManagedIdentitySource {
                     ]
                 }`
             );
-            // Validate and construct the endpoint URL from the environment variable.
             validatedIdentityEndpoint = Imds.getValidatedEnvVariableUrlString(
                 ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST,
                 `${
@@ -111,14 +108,12 @@ export class Imds extends BaseManagedIdentitySource {
                 logger
             );
         } else {
-            // Use the default IMDS endpoint if no environment variable is set.
             logger.info(
                 `[Managed Identity] Unable to find ${ManagedIdentityEnvironmentVariableNames.AZURE_POD_IDENTITY_AUTHORITY_HOST} environment variable for ${ManagedIdentitySourceNames.IMDS}, using the default endpoint.`
             );
             validatedIdentityEndpoint = DEFAULT_IMDS_ENDPOINT;
         }
 
-        // Return a new Imds instance with the validated endpoint.
         return new Imds(
             logger,
             nodeStorage,
@@ -141,23 +136,19 @@ export class Imds extends BaseManagedIdentitySource {
         resource: string,
         managedIdentityId: ManagedIdentityId
     ): ManagedIdentityRequestParameters {
-        // Initialize the request with HTTP GET and the IMDS endpoint.
         const request: ManagedIdentityRequestParameters =
             new ManagedIdentityRequestParameters(
                 HttpMethod.GET,
                 this.identityEndpoint
             );
 
-        // IMDS requires the Metadata header to be set to "true".
         request.headers[ManagedIdentityHeaders.METADATA_HEADER_NAME] = "true";
 
-        // Set the API version and resource as query parameters.
         request.queryParameters[ManagedIdentityQueryParameters.API_VERSION] =
             IMDS_API_VERSION;
         request.queryParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
-        // If using a user-assigned managed identity, add the appropriate query parameter.
         if (
             managedIdentityId.idType !== ManagedIdentityIdType.SYSTEM_ASSIGNED
         ) {
@@ -171,7 +162,6 @@ export class Imds extends BaseManagedIdentitySource {
 
         // The bodyParameters are calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity.
 
-        // Attach the IMDS-specific retry policy.
         request.retryPolicy = new ImdsRetryPolicy();
 
         return request;
