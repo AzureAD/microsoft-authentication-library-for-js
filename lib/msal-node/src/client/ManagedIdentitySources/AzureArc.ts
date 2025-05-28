@@ -13,6 +13,7 @@ import {
     NetworkRequestOptions,
     Logger,
     ServerAuthorizationTokenResponse,
+    EncodingTypes,
 } from "@azure/msal-common/node";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
@@ -290,7 +291,7 @@ export class AzureArc extends BaseManagedIdentitySource {
             // attempt to read the contents of the secret file
             let secret;
             try {
-                secret = readFileSync(secretFilePath, "utf-8");
+                secret = readFileSync(secretFilePath, EncodingTypes.UTF8);
             } catch (e) {
                 throw createManagedIdentityError(
                     ManagedIdentityErrorCodes.unableToReadSecretFile
