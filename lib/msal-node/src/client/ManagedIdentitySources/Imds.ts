@@ -26,7 +26,6 @@ const DEFAULT_IMDS_ENDPOINT: string = `http://169.254.169.254${IMDS_TOKEN_PATH}`
 const IMDS_API_VERSION: string = "2018-02-01";
 
 /**
- * Imds class implements the logic for acquiring tokens from an Azure Instance Metadata Service (IMDS).
  * Original source code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/ImdsManagedIdentitySource.cs
  */
 export class Imds extends BaseManagedIdentitySource {
