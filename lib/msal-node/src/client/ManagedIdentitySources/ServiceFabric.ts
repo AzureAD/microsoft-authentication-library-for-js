@@ -24,6 +24,7 @@ const SERVICE_FABRIC_MSI_API_VERSION: string = "2019-07-01-preview";
 
 /**
  * ServiceFabric class implements the logic for acquiring tokens from an Azure Service Fabric cluster.
+ * Original source code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/ServiceFabricManagedIdentitySource.cs
  */
 export class ServiceFabric extends BaseManagedIdentitySource {
     private identityEndpoint: string;

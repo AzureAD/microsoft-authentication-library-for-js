@@ -27,6 +27,7 @@ const IMDS_API_VERSION: string = "2018-02-01";
 
 /**
  * Imds class implements the logic for acquiring tokens from an Azure Instance Metadata Service (IMDS).
+ * Original source code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/ImdsManagedIdentitySource.cs
  */
 export class Imds extends BaseManagedIdentitySource {
     private identityEndpoint: string;
