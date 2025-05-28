@@ -3,9 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { DeviceCodeResponse } from "../response/DeviceCodeResponse.js";
-import { StringDict } from "../utils/MsalTypes.js";
-import { BaseAuthRequest } from "./BaseAuthRequest.js";
+import {
+    DeviceCodeResponse,
+    StringDict,
+    BaseAuthRequest,
+} from "@azure/msal-common";
 
 /**
  * Parameters for Oauth2 device code flow.
