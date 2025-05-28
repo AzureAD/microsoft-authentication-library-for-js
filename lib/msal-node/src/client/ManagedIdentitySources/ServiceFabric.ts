@@ -18,7 +18,6 @@ import {
     ManagedIdentityHeaders,
 } from "../../utils/Constants.js";
 
-// MSI Constants. Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
 const SERVICE_FABRIC_MSI_API_VERSION: string = "2019-07-01-preview";
 
 /**
@@ -28,6 +27,16 @@ export class ServiceFabric extends BaseManagedIdentitySource {
     private identityEndpoint: string;
     private identityHeader: string;
 
+    /**
+     * Constructs a new ServiceFabric managed identity source.
+     * @param logger Logger instance for logging
+     * @param nodeStorage NodeStorage instance for caching
+     * @param networkClient Network client for HTTP requests
+     * @param cryptoProvider Crypto provider for cryptographic operations
+     * @param disableInternalRetries Whether to disable internal retry logic
+     * @param identityEndpoint The Service Fabric managed identity endpoint
+     * @param identityHeader The Service Fabric managed identity secret header
+     */
     constructor(
         logger: Logger,
         nodeStorage: NodeStorage,
@@ -49,6 +58,10 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         this.identityHeader = identityHeader;
     }
 
+    /**
+     * Retrieves the environment variables required for Service Fabric managed identity.
+     * @returns An array containing the identity endpoint, identity header, and identity server thumbprint.
+     */
     public static getEnvironmentVariables(): Array<string | undefined> {
         const identityEndpoint: string | undefined =
             process.env[
@@ -67,6 +80,16 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         return [identityEndpoint, identityHeader, identityServerThumbprint];
     }
 
+    /**
+     * Attempts to create a ServiceFabric managed identity source if all required environment variables are present.
+     * @param logger Logger instance for logging
+     * @param nodeStorage NodeStorage instance for caching
+     * @param networkClient Network client for HTTP requests
+     * @param cryptoProvider Crypto provider for cryptographic operations
+     * @param disableInternalRetries Whether to disable internal retry logic
+     * @param managedIdentityId Managed identity identifier
+     * @returns A ServiceFabric instance if environment variables are set, otherwise null
+     */
     public static tryCreate(
         logger: Logger,
         nodeStorage: NodeStorage,
@@ -78,10 +101,6 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         const [identityEndpoint, identityHeader, identityServerThumbprint] =
             ServiceFabric.getEnvironmentVariables();
 
-        /*
-         * if either of the identity endpoint, identity header, or identity server thumbprint
-         * environment variables are undefined, this MSI provider is unavailable.
-         */
         if (!identityEndpoint || !identityHeader || !identityServerThumbprint) {
             logger.info(
                 `[Managed Identity] ${ManagedIdentitySourceNames.SERVICE_FABRIC} managed identity is unavailable because one or all of the '${ManagedIdentityEnvironmentVariableNames.IDENTITY_HEADER}', '${ManagedIdentityEnvironmentVariableNames.IDENTITY_ENDPOINT}' or '${ManagedIdentityEnvironmentVariableNames.IDENTITY_SERVER_THUMBPRINT}' environment variables are not defined.`
@@ -120,6 +139,12 @@ export class ServiceFabric extends BaseManagedIdentitySource {
         );
     }
 
+    /**
+     * Creates the request parameters for acquiring a token from the Service Fabric cluster.
+     * @param resource - The resource URI for which the token is requested.
+     * @param managedIdentityId - The managed identity ID (system-assigned or user-assigned).
+     * @returns A ManagedIdentityRequestParameters object configured for Service Fabric.
+     */
     public createRequest(
         resource: string,
         managedIdentityId: ManagedIdentityId
