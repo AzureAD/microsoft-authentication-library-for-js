@@ -16,7 +16,6 @@ import {
     CacheOutcome,
     ClientAuthErrorCodes,
     ClientConfiguration,
-    CommonOnBehalfOfRequest,
     Constants,
     createClientAuthError,
     CredentialFilter,
@@ -35,6 +34,7 @@ import {
     UrlUtils,
 } from "@azure/msal-common/node";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
+import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest.js";
 
 /**
  * On-Behalf-Of client
