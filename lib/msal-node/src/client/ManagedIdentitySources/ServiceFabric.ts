@@ -18,8 +18,6 @@ import {
     ManagedIdentityHeaders,
 } from "../../utils/Constants.js";
 
-// Docs for MSI are available here https://docs.microsoft.com/azure/app-service/overview-managed-identity
-
 const SERVICE_FABRIC_MSI_API_VERSION: string = "2019-07-01-preview";
 
 /**
