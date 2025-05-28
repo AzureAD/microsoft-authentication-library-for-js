@@ -19,7 +19,6 @@ import {
     CommonRefreshTokenRequest,
     CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
-    CommonUsernamePasswordRequest,
     AuthenticationScheme,
     ResponseMode,
     AuthorityOptions,
@@ -54,6 +53,7 @@ import { RefreshTokenRequest } from "../request/RefreshTokenRequest.js";
 import { SilentFlowRequest } from "../request/SilentFlowRequest.js";
 import { version, name } from "../packageMetadata.js";
 import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest.js";
+import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePasswordRequest.js";
 import { NodeAuthError } from "../error/NodeAuthError.js";
 import { UsernamePasswordClient } from "./UsernamePasswordClient.js";
 import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
