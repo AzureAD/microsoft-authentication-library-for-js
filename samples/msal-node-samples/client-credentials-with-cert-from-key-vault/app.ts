@@ -9,7 +9,10 @@ import {
     Configuration,
     LogLevel,
 } from "@azure/msal-node";
-import argv from "../cliArgs"; // command line arguments - see samples/msal-node-samples/cliArgs.ts
+import argv from "./cliArgs.js"; // command line arguments - see samples/msal-node-samples/cliArgs.ts
+import * as dotenv from "dotenv";
+
+dotenv.config();
 
 const getClientCredentialsToken = async (
     cca: ConfidentialClientApplication,
@@ -38,18 +41,18 @@ const getClientCredentialsToken = async (
  * If the script was executed manually, it will initialize a ConfidentialClientApplication object
  * and execute the sample client credentials application.
  */
+// @ts-ignore
 if (argv.$0 === "dist/client-credentials-with-cert-from-key-vault/app.js") {
     (async () => {
         const clientConfig: Configuration = {
             auth: {
-                clientId: "<ENTER_CLIENT_ID>",
-                authority:
-                    "https://login.microsoftonline.com/<ENTER_TENANT_ID>",
+                clientId: process.env.CLIENT_ID,
+                authority: `https://login.microsoftonline.com/${process.env.TENANT_ID}`,
                 clientCertificate: {
                     thumbprintSha256:
-                        "<ENTER_CLIENT_CERTIFICATE_THUMBPRINT_SHA_256>",
-                    privateKey: "ENTER_CLIENT_CERTIFICATE_PRIVATE_KEY",
-                    x5c: "ENTER_CLIENT_CERTIFICATE_X5C",
+                        process.env.CLIENT_CERTIFICATE_THUMBPRINT_SHA_256,
+                    privateKey: process.env.CLIENT_CERTIFICATE_PRIVATE_KEY,
+                    x5c: process.env.CLIENT_CERTIFICATE_X5C,
                 },
             },
             system: {
@@ -69,6 +72,7 @@ if (argv.$0 === "dist/client-credentials-with-cert-from-key-vault/app.js") {
         await getClientCredentialsToken(
             confidentialClientApplication,
             ["https://graph.microsoft.com/.default"],
+            // @ts-ignore
             argv.r
         );
     })();

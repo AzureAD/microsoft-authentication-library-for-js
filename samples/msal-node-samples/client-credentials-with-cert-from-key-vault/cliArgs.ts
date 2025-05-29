@@ -1,19 +1,20 @@
-import yargs from "yargs";
+import yargs, { ArgumentsCamelCase } from "yargs";
 
-interface Arguments {
-    c: string;
-    p: number;
-    r: string | undefined;
-    s: string;
+interface CliArgs {
+    c?: string;
+    p?: number;
+    r?: string;
+    s?: string;
+    ro?: string;
     $0: string;
 }
 
-const argv: Arguments = yargs(process.argv.slice(2))
+const argv = yargs(process.argv.slice(2))
     .usage("Usage: $0 -p [PORT]")
     .options({
         c: {
             type: "string",
-            alias: "cache location",
+            alias: "cache",
             default: "data/cache.json",
             description:
                 "(Optional) Cache location - default is data/cache.json",
@@ -25,6 +26,7 @@ const argv: Arguments = yargs(process.argv.slice(2))
             description: "(Optional) Port Number - default is 3000",
         },
         r: {
+            type: "string",
             alias: "region",
             default: undefined,
             description: "(Optional) Region - default is undefined",
@@ -35,7 +37,14 @@ const argv: Arguments = yargs(process.argv.slice(2))
             default: "AAD",
             description: "(Optional) Scenario name - default is AAD",
         },
+        ro: {
+            type: "string",
+            alias: "runtime-options",
+            default: null,
+            description:
+                "(Optional) Runtime options to inject into the application - default is null",
+        },
     })
-    .parseSync();
+    .parseSync() as ArgumentsCamelCase<CliArgs>;
 
 export default argv;
