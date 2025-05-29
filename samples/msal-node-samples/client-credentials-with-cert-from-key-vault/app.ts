@@ -41,7 +41,6 @@ const getClientCredentialsToken = async (
  * If the script was executed manually, it will initialize a ConfidentialClientApplication object
  * and execute the sample client credentials application.
  */
-// @ts-ignore
 if (argv.$0 === "dist/client-credentials-with-cert-from-key-vault/app.js") {
     (async () => {
         const clientConfig: Configuration = {
@@ -72,7 +71,6 @@ if (argv.$0 === "dist/client-credentials-with-cert-from-key-vault/app.js") {
         await getClientCredentialsToken(
             confidentialClientApplication,
             ["https://graph.microsoft.com/.default"],
-            // @ts-ignore
             argv.r
         );
     })();

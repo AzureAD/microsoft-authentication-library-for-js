@@ -37,7 +37,7 @@ Locate the folder where `package.json` resides in your terminal. Then type:
     - Select the **Add permissions** button at the bottom.
     - Finally, grant **admin consent** for this scope.
 
-Before running the sample, you will need to replace the values in retrieve-cert-from-key-vault code as well as the .env file:
+Before running the sample, you will need to replace the values in retrieve-cert-from-key-vault code as well as create a .env file:
 
 ```typescript
 const keyVaultSecretClient = await getKeyVaultSecretClient(
