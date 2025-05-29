@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CommonOnBehalfOfRequest } from "@azure/msal-common/node";
+import { CommonOnBehalfOfRequest } from "./CommonOnBehalfOfRequest.js";
 
 /**
  * - scopes                  - Array of scopes the application is requesting access to.

@@ -10,7 +10,6 @@ import {
     CcsCredentialType,
     ClientAssertion,
     ClientConfiguration,
-    CommonUsernamePasswordRequest,
     GrantType,
     NetworkResponse,
     OAuthResponseType,
@@ -24,6 +23,7 @@ import {
     UrlUtils,
     getClientAssertion,
 } from "@azure/msal-common/node";
+import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePasswordRequest.js";
 
 /**
  * Oauth2.0 Password grant client

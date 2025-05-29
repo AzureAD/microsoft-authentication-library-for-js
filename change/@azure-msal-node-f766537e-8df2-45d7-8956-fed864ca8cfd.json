@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Move requests from MSAL Common to MSAL Node #7790",
+  "packageName": "@azure/msal-node",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}
