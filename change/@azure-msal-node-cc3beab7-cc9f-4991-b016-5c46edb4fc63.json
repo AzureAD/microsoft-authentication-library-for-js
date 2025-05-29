@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Overhauled the comments in ServiceFabric.ts to make the code easier to read #7789",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "none"
-}

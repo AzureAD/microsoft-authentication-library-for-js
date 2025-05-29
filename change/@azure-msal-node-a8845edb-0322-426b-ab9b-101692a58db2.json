@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Overhauled the comments in Imds.ts to make the code easier to read #7787",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "none"
-}

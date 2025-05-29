@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 06 May 2025 22:47:43 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 28 May 2025 23:56:34 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 3.6.0
+
+Wed, 28 May 2025 23:56:34 GMT
+
+### Minor changes
+
+- Added token revocation functionality to Managed Identity's App Service and Service Fabric Sources #7679 (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v15.7.0
+- Bump eslint-config-msal to v0.0.0
+- Bump rollup-msal to v0.0.0
 
 ## 3.5.3
 
