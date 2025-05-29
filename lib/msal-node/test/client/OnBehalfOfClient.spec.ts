@@ -11,7 +11,6 @@ import {
     BaseClient,
     CacheManager,
     ClientConfiguration,
-    CommonOnBehalfOfRequest,
     AccountEntityUtils,
     IdTokenEntity,
     ScopeSet,
@@ -32,6 +31,7 @@ import {
 } from "./ClientTestUtils.js";
 import { EncodingUtils } from "../../src/utils/EncodingUtils.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
+import { CommonOnBehalfOfRequest } from "../../src/request/CommonOnBehalfOfRequest.js";
 
 describe("OnBehalfOf unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;

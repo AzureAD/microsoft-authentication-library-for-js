@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CommonUsernamePasswordRequest } from "@azure/msal-common/node";
+import { CommonUsernamePasswordRequest } from "./CommonUsernamePasswordRequest.js";
 
 /**
  * UsernamePassword parameters passed by the user to retrieve credentials

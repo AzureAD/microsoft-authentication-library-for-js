@@ -11,8 +11,6 @@ import {
     BaseClient,
     CacheManager,
     ClientConfiguration,
-    CommonClientCredentialRequest,
-    CommonUsernamePasswordRequest,
     IAppTokenProvider,
     InteractionRequiredAuthError,
     TimeUtils,
@@ -43,6 +41,8 @@ import {
     mockCrypto,
 } from "./ClientTestUtils.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
+import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest.js";
+import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernamePasswordRequest.js";
 
 describe("ClientCredentialClient unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;

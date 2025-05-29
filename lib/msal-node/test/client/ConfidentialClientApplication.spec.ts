@@ -50,6 +50,7 @@ import { Constants, MSAL_FORCE_REGION } from "../../src/utils/Constants.js";
 import jwt from "jsonwebtoken";
 import { NodeAuthError } from "../../src/error/NodeAuthError.js";
 import { INetworkModule } from "../../../msal-common/lib/types/exports-common.js";
+import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest.js";
 
 jest.mock("jsonwebtoken");
 

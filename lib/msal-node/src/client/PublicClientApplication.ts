@@ -10,7 +10,6 @@ import {
 } from "../utils/Constants.js";
 import {
     AuthenticationResult,
-    CommonDeviceCodeRequest,
     AuthError,
     Constants as CommonConstants,
     ServerError,
@@ -26,6 +25,7 @@ import { Configuration } from "../config/Configuration.js";
 import { ClientApplication } from "./ClientApplication.js";
 import { IPublicClientApplication } from "./IPublicClientApplication.js";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest.js";
+import { CommonDeviceCodeRequest } from "../request/CommonDeviceCodeRequest.js";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { InteractiveRequest } from "../request/InteractiveRequest.js";

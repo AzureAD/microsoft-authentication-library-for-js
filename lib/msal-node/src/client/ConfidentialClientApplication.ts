@@ -15,8 +15,6 @@ import {
     MSAL_FORCE_REGION,
 } from "../utils/Constants.js";
 import {
-    CommonClientCredentialRequest,
-    CommonOnBehalfOfRequest,
     AuthenticationResult,
     AzureRegionConfiguration,
     AuthError,
@@ -31,6 +29,8 @@ import {
 } from "@azure/msal-common/node";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication.js";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest.js";
+import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest.js";
+import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest.js";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest.js";
 import { ClientCredentialClient } from "./ClientCredentialClient.js";
 import { OnBehalfOfClient } from "./OnBehalfOfClient.js";

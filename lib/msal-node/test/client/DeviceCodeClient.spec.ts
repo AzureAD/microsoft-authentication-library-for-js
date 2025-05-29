@@ -30,6 +30,7 @@ import {
 } from "./ClientTestUtils.js";
 import { DeviceCodeClient } from "../../src/index.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
+import { CommonDeviceCodeRequest } from "../../src/request/CommonDeviceCodeRequest.js";
 
 describe("DeviceCodeClient unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;

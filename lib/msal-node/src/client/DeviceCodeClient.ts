@@ -24,6 +24,7 @@ import {
     createClientAuthError,
     Constants,
 } from "@azure/msal-common/node";
+import { CommonDeviceCodeRequest } from "../request/CommonDeviceCodeRequest.js";
 
 /**
  * OAuth2.0 Device code client

@@ -11,7 +11,6 @@ import {
     CacheManager,
     ClientAuthErrorCodes,
     ClientConfiguration,
-    CommonClientCredentialRequest,
     Constants,
     CredentialFilter,
     IAppTokenProvider,
@@ -35,6 +34,7 @@ import {
     ManagedIdentityConfiguration,
     ManagedIdentityNodeConfiguration,
 } from "../config/Configuration.js";
+import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest.js";
 
 /**
  * OAuth2.0 client credential grant

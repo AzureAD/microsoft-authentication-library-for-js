@@ -7,7 +7,6 @@ import {
     AuthenticationResult,
     BaseClient,
     ClientConfiguration,
-    CommonUsernamePasswordRequest,
     Constants,
 } from "@azure/msal-common";
 import {
@@ -25,6 +24,7 @@ import {
     getClientAssertionCallback,
 } from "./ClientTestUtils.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
+import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernamePasswordRequest.js";
 
 describe("Username Password unit tests", () => {
     let createTokenRequestBodySpy: jest.SpyInstance;
