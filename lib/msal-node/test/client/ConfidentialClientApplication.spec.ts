@@ -7,7 +7,6 @@ import {
     AuthorizationCodeClient,
     AuthenticationResult,
     Constants as CommonConstants,
-    CommonClientCredentialRequest,
     createClientAuthError,
     ClientAuthErrorCodes,
     AccountEntity,

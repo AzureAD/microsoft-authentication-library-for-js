@@ -19,7 +19,6 @@ import {
     CommonRefreshTokenRequest,
     CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
-    CommonUsernamePasswordRequest,
     AuthorityOptions,
     AzureRegionConfiguration,
     AuthError,

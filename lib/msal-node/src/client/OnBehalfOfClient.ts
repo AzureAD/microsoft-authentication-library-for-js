@@ -14,7 +14,6 @@ import {
     BaseClient,
     ClientAuthErrorCodes,
     ClientConfiguration,
-    CommonOnBehalfOfRequest,
     createClientAuthError,
     CredentialFilter,
     Constants,

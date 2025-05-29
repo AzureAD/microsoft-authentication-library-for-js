@@ -8,7 +8,6 @@ import {
     BaseClient,
     ClientAuthErrorCodes,
     ClientConfiguration,
-    CommonDeviceCodeRequest,
     createAuthError,
     createClientAuthError,
     Constants,

@@ -79,7 +79,8 @@ export type { InteractiveRequest } from "./request/InteractiveRequest.js";
 export type { SignOutRequest } from "./request/SignOutRequest.js";
 export type { ManagedIdentityRequestParams } from "./request/ManagedIdentityRequestParams.js";
 
-const { PromptValue, ResponseMode } = CommonConstants;
+const PromptValue = CommonConstants.PromptValue;
+const ResponseMode = CommonConstants.ResponseMode;
 export { PromptValue, ResponseMode };
 
 // Common Object Formats

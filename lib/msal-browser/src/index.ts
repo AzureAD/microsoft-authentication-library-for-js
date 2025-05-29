@@ -102,13 +102,11 @@ export { BrowserPerformanceClient } from "./telemetry/BrowserPerformanceClient.j
 export { BrowserPerformanceMeasurement } from "./telemetry/BrowserPerformanceMeasurement.js";
 
 // Common constants
-const {
-    AuthenticationScheme,
-    ResponseMode,
-    PromptValue,
-    JsonWebTokenTypes,
-    OIDC_DEFAULT_SCOPES,
-} = Constants;
+const AuthenticationScheme = Constants.AuthenticationScheme;
+const ResponseMode = Constants.ResponseMode;
+const PromptValue = Constants.PromptValue;
+const JsonWebTokenTypes = Constants.JsonWebTokenTypes;
+const OIDC_DEFAULT_SCOPES = Constants.OIDC_DEFAULT_SCOPES;
 export {
     AuthenticationScheme,
     ResponseMode,

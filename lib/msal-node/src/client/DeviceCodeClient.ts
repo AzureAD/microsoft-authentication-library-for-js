@@ -9,7 +9,6 @@ import {
     BaseClient,
     ClientAuthErrorCodes,
     ClientConfiguration,
-    CommonDeviceCodeRequest,
     DeviceCodeResponse,
     RequestParameterBuilder,
     RequestThumbprint,
