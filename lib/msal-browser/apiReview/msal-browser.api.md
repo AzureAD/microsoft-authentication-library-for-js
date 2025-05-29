@@ -23,6 +23,7 @@ import { CommonAuthorizationCodeRequest } from '@azure/msal-common/browser';
 import { CommonAuthorizationUrlRequest } from '@azure/msal-common/browser';
 import { CommonEndSessionRequest } from '@azure/msal-common/browser';
 import { CommonSilentFlowRequest } from '@azure/msal-common/browser';
+import { Constants } from '@azure/msal-common/browser';
 import { ExternalTokenResponse } from '@azure/msal-common/browser';
 import { IdTokenClaims } from '@azure/msal-common/browser';
 import { ILoggerCallback } from '@azure/msal-common/browser';
@@ -100,6 +101,7 @@ export type AuthenticationResult = AuthenticationResult_2 & {
 };
 
 // Warning: (ae-missing-release-tag) "AuthenticationScheme" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "AuthenticationScheme" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
 export const AuthenticationScheme: {
@@ -107,6 +109,9 @@ export const AuthenticationScheme: {
     readonly POP: "pop";
     readonly SSH: "ssh-cert";
 };
+
+// @public (undocumented)
+export type AuthenticationScheme = Constants.AuthenticationScheme;
 
 export { AuthError }
 
@@ -915,6 +920,7 @@ export interface IWindowStorage<T> {
 }
 
 // Warning: (ae-missing-release-tag) "JsonWebTokenTypes" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "JsonWebTokenTypes" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
 export const JsonWebTokenTypes: {
@@ -922,6 +928,9 @@ export const JsonWebTokenTypes: {
     readonly Jwk: "JWK";
     readonly Pop: "pop";
 };
+
+// @public (undocumented)
+export type JsonWebTokenTypes = Constants.JsonWebTokenTypes;
 
 // Warning: (ae-missing-release-tag) "LoadTokenOptions" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1341,6 +1350,7 @@ export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "respo
 function replaceHash(url: string): void;
 
 // Warning: (ae-missing-release-tag) "ResponseMode" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "ResponseMode" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
 export const ResponseMode: {
@@ -1348,6 +1358,9 @@ export const ResponseMode: {
     readonly FRAGMENT: "fragment";
     readonly FORM_POST: "form_post";
 };
+
+// @public (undocumented)
+export type ResponseMode = Constants.ResponseMode;
 
 export { ServerError }
 
