@@ -2,6 +2,59 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Thu, 29 May 2025 21:41:01 GMT",
+      "version": "3.6.0",
+      "tag": "@azure/msal-node_v3.6.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "6a76a6af5bb7cf1739338b81079187b1dfe820d0",
+            "comment": "Added token revocation functionality to Managed Identity's App Service and Service Fabric Sources #7679"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v15.7.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ],
+        "none": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "6a76a6af5bb7cf1739338b81079187b1dfe820d0",
+            "comment": "Overhauled the comments in Imds.ts to make the code easier to read #7787"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "6a76a6af5bb7cf1739338b81079187b1dfe820d0",
+            "comment": "Overhauled the comments in ServiceFabric.ts to make the code easier to read #7789"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "6a76a6af5bb7cf1739338b81079187b1dfe820d0",
+            "comment": "Added Constants for Encoding Types #7766"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 06 May 2025 22:47:43 GMT",
       "version": "3.5.3",
       "tag": "@azure/msal-node_v3.5.3",
