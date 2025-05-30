@@ -1251,17 +1251,17 @@ describe("BrowserCacheManager tests", () => {
                     browserLocalStorage.setRefreshTokenCredential(
                         testRefreshToken
                     );
-                    browserSessionStorage.setRefreshTokenCredential(
-                        testRefreshToken
-                    );
-
                     expect(
-                        browserSessionStorage.getRefreshTokenCredential(
+                        browserLocalStorage.getRefreshTokenCredential(
                             CacheHelpers.generateCredentialKey(testRefreshToken)
                         )
                     ).toEqual(testRefreshToken);
+
+                    browserSessionStorage.setRefreshTokenCredential(
+                        testRefreshToken
+                    );
                     expect(
-                        browserLocalStorage.getRefreshTokenCredential(
+                        browserSessionStorage.getRefreshTokenCredential(
                             CacheHelpers.generateCredentialKey(testRefreshToken)
                         )
                     ).toEqual(testRefreshToken);
@@ -1981,17 +1981,18 @@ describe("BrowserCacheManager tests", () => {
                     browserLocalStorage.setAccessTokenCredential(
                         testAccessToken
                     );
+                    expect(
+                        browserLocalStorage.getAccessTokenCredential(
+                            CacheHelpers.generateCredentialKey(testAccessToken)
+                        )
+                    ).toEqual(testAccessToken);
+
                     browserSessionStorage.setAccessTokenCredential(
                         testAccessToken
                     );
 
                     expect(
                         browserSessionStorage.getAccessTokenCredential(
-                            CacheHelpers.generateCredentialKey(testAccessToken)
-                        )
-                    ).toEqual(testAccessToken);
-                    expect(
-                        browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(testAccessToken)
                         )
                     ).toEqual(testAccessToken);
@@ -2028,45 +2029,44 @@ describe("BrowserCacheManager tests", () => {
                             AuthenticationScheme.POP,
                             "oboAssertion"
                         );
-                    // Cache bearer token
+                        
                     browserLocalStorage.setAccessTokenCredential(
                         testAccessTokenWithoutAuthScheme
                     );
-                    browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme
-                    );
-
-                    // Cache pop token
                     browserLocalStorage.setAccessTokenCredential(
                         testAccessTokenWithAuthScheme
                     );
-                    browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithAuthScheme
-                    );
-
                     expect(
-                        browserSessionStorage.getAccessTokenCredential(
+                        browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithoutAuthScheme
                             )
                         )
                     ).toEqual(testAccessTokenWithoutAuthScheme);
                     expect(
-                        browserSessionStorage.getAccessTokenCredential(
+                        browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithoutAuthScheme
                             )
                         )?.credentialType
                     ).toBe(CredentialType.ACCESS_TOKEN);
+
+                    browserSessionStorage.setAccessTokenCredential(
+                        testAccessTokenWithoutAuthScheme
+                    );
+                    browserSessionStorage.setAccessTokenCredential(
+                        testAccessTokenWithAuthScheme
+                    );
+
                     expect(
-                        browserLocalStorage.getAccessTokenCredential(
+                        browserSessionStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithoutAuthScheme
                             )
                         )
                     ).toEqual(testAccessTokenWithoutAuthScheme);
                     expect(
-                        browserLocalStorage.getAccessTokenCredential(
+                        browserSessionStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithoutAuthScheme
                             )
@@ -2105,45 +2105,44 @@ describe("BrowserCacheManager tests", () => {
                             AuthenticationScheme.POP,
                             "oboAssertion"
                         );
-                    // Cache bearer token
+
                     browserLocalStorage.setAccessTokenCredential(
                         testAccessTokenWithoutAuthScheme
                     );
-                    browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithoutAuthScheme
-                    );
-
-                    // Cache pop token
                     browserLocalStorage.setAccessTokenCredential(
                         testAccessTokenWithAuthScheme
                     );
-                    browserSessionStorage.setAccessTokenCredential(
-                        testAccessTokenWithAuthScheme
-                    );
-
                     expect(
-                        browserSessionStorage.getAccessTokenCredential(
+                        browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithAuthScheme
                             )
                         )
                     ).toEqual(testAccessTokenWithAuthScheme);
                     expect(
-                        browserSessionStorage.getAccessTokenCredential(
+                        browserLocalStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithAuthScheme
                             )
                         )?.credentialType
                     ).toBe(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
+
+                    browserSessionStorage.setAccessTokenCredential(
+                        testAccessTokenWithoutAuthScheme
+                    );
+                    browserSessionStorage.setAccessTokenCredential(
+                        testAccessTokenWithAuthScheme
+                    );
+
                     expect(
-                        browserLocalStorage.getAccessTokenCredential(
+                        browserSessionStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithAuthScheme
                             )
                         )
                     ).toEqual(testAccessTokenWithAuthScheme);
                     expect(
-                        browserLocalStorage.getAccessTokenCredential(
+                        browserSessionStorage.getAccessTokenCredential(
                             CacheHelpers.generateCredentialKey(
                                 testAccessTokenWithAuthScheme
                             )
