@@ -3,11 +3,6 @@
     "compilerOptions": {
         "moduleResolution": "node16",
         "module": "node16",
-        "outDir": "./dist",
-        "declaration": true
-    },
-    "include": [
-        "app.ts",
-        "cliArgs.ts"
-    ]
+        "outDir": "./dist"
+    }
 }

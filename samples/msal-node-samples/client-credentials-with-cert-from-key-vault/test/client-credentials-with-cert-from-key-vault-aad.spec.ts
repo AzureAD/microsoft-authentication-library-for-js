@@ -8,14 +8,14 @@ import {
     ConfidentialClientApplication,
     Configuration,
 } from "@azure/msal-node";
-import { getKeyVaultSecretClient } from "../../../e2eTestUtils/src/KeyVaultUtils";
-import { getCertificateInfo } from "../../../e2eTestUtils/src/CertificateUtils";
+import { getKeyVaultSecretClient } from "../../../e2eTestUtils/src/KeyVaultUtils.js";
+import { getCertificateInfo } from "../../../e2eTestUtils/src/CertificateUtils.js";
 import {
     ENV_VARIABLES,
     LAB_CERT_NAME,
     LAB_KEY_VAULT_URL,
-} from "../../../e2eTestUtils/src/Constants";
-import getClientCredentialsToken from "../dist/app.js";
+} from "../../../e2eTestUtils/src/Constants.js";
+import getClientCredentialsToken from "../app.js";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
 const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
