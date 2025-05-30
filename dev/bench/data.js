@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1748630968274,
+  "lastUpdate": 1748644282812,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15336,6 +15336,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.79%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8323e24e3b5b09124bfb83c0e4bbec013a2b7a0c",
+          "message": "Improvements to client-credentials-with-cert-from-key-vault sample (#7792)\n\n- Moved user input to .env file and updated README\n- Improved cliArgs.ts",
+          "timestamp": "2025-05-30T18:25:01-04:00",
+          "tree_id": "8ae62a3e0e977f5eff19baea26bc87642b74a8fc",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8323e24e3b5b09124bfb83c0e4bbec013a2b7a0c"
+        },
+        "date": 1748644281181,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 252841,
+            "range": "±0.75%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 252194,
+            "range": "±0.66%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
           }
         ]
       }
