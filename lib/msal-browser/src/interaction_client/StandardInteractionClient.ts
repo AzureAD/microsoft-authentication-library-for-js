@@ -5,7 +5,6 @@
 
 import {
     ServerTelemetryManager,
-    Constants,
     AuthorizationCodeClient,
     ClientConfiguration,
     UrlString,
@@ -262,8 +261,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             libraryInfo: {
                 sku: BrowserConstants.MSAL_SKU,
                 version: version,
-                cpu: Constants.EMPTY_STRING,
-                os: Constants.EMPTY_STRING,
+                cpu: "",
+                os: "",
             },
             telemetry: this.config.telemetry,
         };
@@ -284,7 +283,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         };
         const state = ProtocolUtils.setRequestState(
             this.browserCrypto,
-            (request && request.state) || Constants.EMPTY_STRING,
+            (request && request.state) || "",
             browserState
         );
 

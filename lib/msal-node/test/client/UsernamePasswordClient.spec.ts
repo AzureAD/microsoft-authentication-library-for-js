@@ -8,7 +8,6 @@ import {
     BaseClient,
     ClientConfiguration,
     Constants,
-    GrantType,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
@@ -100,7 +99,7 @@ describe("Username Password unit tests", () => {
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
+            grantType: Constants.GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -198,7 +197,7 @@ describe("Username Password unit tests", () => {
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
+            grantType: Constants.GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -254,7 +253,7 @@ describe("Username Password unit tests", () => {
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
+            grantType: Constants.GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -310,7 +309,7 @@ describe("Username Password unit tests", () => {
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
+            grantType: Constants.GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -379,7 +378,7 @@ describe("Username Password unit tests", () => {
             const checks = {
                 graphScope: true,
                 clientId: true,
-                grantType: GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
+                grantType: Constants.GrantType.RESOURCE_OWNER_PASSWORD_GRANT,
                 clientSecret: true,
                 clientSku: true,
                 clientVersion: true,

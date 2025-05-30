@@ -4,13 +4,13 @@
  */
 
 import {
-    Constants,
     TokenKeys,
     IPerformanceClient,
     invokeAsync,
     PerformanceEvents,
     Logger,
     invoke,
+    Constants,
 } from "@azure/msal-common/browser";
 import {
     createNewGuid,

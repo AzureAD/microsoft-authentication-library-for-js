@@ -8,7 +8,6 @@ import {
     UrlString,
     AuthError,
     ServerTelemetryManager,
-    Constants,
     AuthorizeResponse,
     ICrypto,
     Logger,
@@ -16,7 +15,7 @@ import {
     PerformanceEvents,
     ProtocolMode,
     invokeAsync,
-    ResponseMode,
+    Constants,
     UrlUtils,
     InProgressPerformanceEvent,
     CommonAuthorizationUrlRequest,
@@ -321,7 +320,7 @@ export class RedirectClient extends StandardInteractionClient {
                 this.browserStorage.getTemporaryCache(
                     TemporaryCacheKeys.ORIGIN_URI,
                     true
-                ) || Constants.EMPTY_STRING;
+                ) || "";
             const loginRequestUrlNormalized =
                 UrlString.removeHashFromUrl(loginRequestUrl);
             const currentUrlNormalized = UrlString.removeHashFromUrl(
@@ -447,7 +446,8 @@ export class RedirectClient extends StandardInteractionClient {
         let responseString = userProvidedResponse;
         if (!responseString) {
             if (
-                this.config.auth.OIDCOptions.responseMode === ResponseMode.QUERY
+                this.config.auth.OIDCOptions.responseMode ===
+                Constants.ResponseMode.QUERY
             ) {
                 responseString = window.location.search;
             } else {

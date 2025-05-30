@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { HttpStatus } from "@azure/msal-common/node";
+import { Constants as CommonConstants } from "@azure/msal-common/node";
 import { DefaultManagedIdentityRetryPolicy } from "../retry/DefaultManagedIdentityRetryPolicy.js";
 import { ImdsRetryPolicy } from "../retry/ImdsRetryPolicy.js";
 
@@ -75,10 +75,10 @@ export const HttpMethod = {
 export type HttpMethod = (typeof HttpMethod)[keyof typeof HttpMethod];
 
 export const ProxyStatus = {
-    SUCCESS: HttpStatus.SUCCESS,
-    SUCCESS_RANGE_START: HttpStatus.SUCCESS_RANGE_START,
-    SUCCESS_RANGE_END: HttpStatus.SUCCESS_RANGE_END,
-    SERVER_ERROR: HttpStatus.SERVER_ERROR,
+    SUCCESS: CommonConstants.HTTP_SUCCESS,
+    SUCCESS_RANGE_START: CommonConstants.HTTP_SUCCESS_RANGE_START,
+    SUCCESS_RANGE_END: CommonConstants.HTTP_SUCCESS_RANGE_END,
+    SERVER_ERROR: CommonConstants.HTTP_SERVER_ERROR,
 } as const;
 export type ProxyStatus = (typeof ProxyStatus)[keyof typeof ProxyStatus];
 

@@ -8,13 +8,12 @@ import {
     CommonEndSessionRequest,
     UrlString,
     AuthError,
-    OIDC_DEFAULT_SCOPES,
     PerformanceEvents,
     IPerformanceClient,
     Logger,
     ICrypto,
     ProtocolMode,
-    ResponseMode,
+    Constants,
     invokeAsync,
     invoke,
     PkceCodes,
@@ -100,7 +99,7 @@ export class PopupClient extends StandardInteractionClient {
     ): Promise<AuthenticationResult> {
         try {
             const popupName = this.generatePopupName(
-                request.scopes || OIDC_DEFAULT_SCOPES,
+                request.scopes || Constants.OIDC_DEFAULT_SCOPES,
                 request.authority || this.config.auth.authority
             );
             const popupParams: PopupParams = {
@@ -679,7 +678,7 @@ export class PopupClient extends StandardInteractionClient {
                 let responseString = "";
                 const responseType = this.config.auth.OIDCOptions.responseMode;
                 if (popupWindow) {
-                    if (responseType === ResponseMode.QUERY) {
+                    if (responseType === Constants.ResponseMode.QUERY) {
                         responseString = popupWindow.location.search;
                     } else {
                         responseString = popupWindow.location.hash;

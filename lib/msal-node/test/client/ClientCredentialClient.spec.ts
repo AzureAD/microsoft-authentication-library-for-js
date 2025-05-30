@@ -7,7 +7,6 @@ import {
     AccessTokenEntity,
     AppTokenProviderResult,
     AuthenticationResult,
-    AuthenticationScheme,
     Authority,
     BaseClient,
     CacheManager,
@@ -18,7 +17,7 @@ import {
     createClientAuthError,
     ClientAuthErrorCodes,
     CacheHelpers,
-    GrantType,
+    Constants,
 } from "@azure/msal-common";
 import {
     ClientCredentialClient,
@@ -108,7 +107,7 @@ describe("ClientCredentialClient unit tests", () => {
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
+            grantType: Constants.GrantType.CLIENT_CREDENTIALS_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -291,7 +290,7 @@ describe("ClientCredentialClient unit tests", () => {
         const checks = {
             dstsScope: true,
             clientId: true,
-            grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
+            grantType: Constants.GrantType.CLIENT_CREDENTIALS_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -373,7 +372,7 @@ describe("ClientCredentialClient unit tests", () => {
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
+            grantType: Constants.GrantType.CLIENT_CREDENTIALS_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -536,7 +535,7 @@ describe("ClientCredentialClient unit tests", () => {
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
+            grantType: Constants.GrantType.CLIENT_CREDENTIALS_GRANT,
             clientSecret: true,
             clientSku: true,
             clientVersion: true,
@@ -592,7 +591,7 @@ describe("ClientCredentialClient unit tests", () => {
             const checks = {
                 graphScope: true,
                 clientId: true,
-                grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
+                grantType: Constants.GrantType.CLIENT_CREDENTIALS_GRANT,
                 clientSecret: true,
                 clientSku: true,
                 clientVersion: true,
@@ -655,7 +654,7 @@ describe("ClientCredentialClient unit tests", () => {
             const checks = {
                 graphScope: true,
                 clientId: true,
-                grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
+                grantType: Constants.GrantType.CLIENT_CREDENTIALS_GRANT,
                 clientSecret: true,
                 clientSku: true,
                 clientVersion: true,
@@ -717,7 +716,7 @@ describe("ClientCredentialClient unit tests", () => {
                 Date.now() + 60 * 30 * 1000,
                 mockCrypto.base64Decode,
                 undefined,
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
 
         jest.spyOn(
@@ -764,7 +763,7 @@ describe("ClientCredentialClient unit tests", () => {
                 TimeUtils.nowSeconds() + 4600,
                 mockCrypto.base64Decode,
                 TimeUtils.nowSeconds() - 4600, // expired refreshOn value
-                AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER
             );
 
         jest.spyOn(
@@ -859,7 +858,7 @@ describe("ClientCredentialClient unit tests", () => {
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
+            grantType: Constants.GrantType.CLIENT_CREDENTIALS_GRANT,
             clientSecret: true,
         };
         checkMockedNetworkRequest(returnVal, checks);
@@ -896,7 +895,7 @@ describe("ClientCredentialClient unit tests", () => {
         const checks = {
             graphScope: true,
             clientId: true,
-            grantType: GrantType.CLIENT_CREDENTIALS_GRANT,
+            grantType: Constants.GrantType.CLIENT_CREDENTIALS_GRANT,
             clientSecret: true,
         };
         checkMockedNetworkRequest(returnVal, checks);
@@ -916,7 +915,7 @@ describe("ClientCredentialClient unit tests", () => {
                 4600,
                 mockCrypto.base64Decode,
                 undefined,
-                AuthenticationScheme.BEARER,
+                Constants.AuthenticationScheme.BEARER,
                 TEST_TOKENS.ACCESS_TOKEN
             );
 
@@ -932,7 +931,7 @@ describe("ClientCredentialClient unit tests", () => {
                 4600,
                 mockCrypto.base64Decode,
                 undefined,
-                AuthenticationScheme.BEARER,
+                Constants.AuthenticationScheme.BEARER,
                 TEST_TOKENS.ACCESS_TOKEN
             );
 

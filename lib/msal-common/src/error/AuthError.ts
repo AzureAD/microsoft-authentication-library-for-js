@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "../utils/Constants.js";
 import * as AuthErrorCodes from "./AuthErrorCodes.js";
 export { AuthErrorCodes };
 
@@ -43,9 +42,9 @@ export class AuthError extends Error {
         super(errorString);
         Object.setPrototypeOf(this, AuthError.prototype);
 
-        this.errorCode = errorCode || Constants.EMPTY_STRING;
-        this.errorMessage = message || Constants.EMPTY_STRING;
-        this.subError = suberror || Constants.EMPTY_STRING;
+        this.errorCode = errorCode || "";
+        this.errorMessage = message || "";
+        this.subError = suberror || "";
         this.name = "AuthError";
     }
 

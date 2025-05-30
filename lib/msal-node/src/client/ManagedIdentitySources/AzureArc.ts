@@ -7,12 +7,12 @@ import {
     AuthError,
     ClientAuthErrorCodes,
     createClientAuthError,
-    HttpStatus,
     INetworkModule,
     NetworkResponse,
     NetworkRequestOptions,
     Logger,
     ServerAuthorizationTokenResponse,
+    Constants,
 } from "@azure/msal-common/node";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
@@ -223,7 +223,7 @@ export class AzureArc extends BaseManagedIdentitySource {
             | NetworkResponse<ManagedIdentityTokenResponse>
             | undefined;
 
-        if (originalResponse.status === HttpStatus.UNAUTHORIZED) {
+        if (originalResponse.status === Constants.HTTP_UNAUTHORIZED) {
             const wwwAuthHeader: string =
                 originalResponse.headers["www-authenticate"];
             if (!wwwAuthHeader) {

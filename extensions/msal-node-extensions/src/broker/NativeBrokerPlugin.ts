@@ -7,10 +7,8 @@ import {
     AADServerParamKeys,
     AccountInfo,
     AuthenticationResult,
-    AuthenticationScheme,
     ClientAuthErrorCodes,
     ClientConfigurationErrorCodes,
-    Constants,
     createClientAuthError,
     createClientConfigurationError,
     IdTokenClaims,
@@ -20,7 +18,7 @@ import {
     LoggerOptions,
     NativeRequest,
     NativeSignOutRequest,
-    PromptValue,
+    Constants,
     ServerError,
     ServerTelemetryManager,
     TimeUtils,
@@ -272,15 +270,14 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
                 try {
                     switch (request.prompt) {
-                        case PromptValue.LOGIN:
-                        case PromptValue.SELECT_ACCOUNT:
-                        case PromptValue.CREATE:
+                        case Constants.PromptValue.LOGIN:
+                        case Constants.PromptValue.SELECT_ACCOUNT:
+                        case Constants.PromptValue.CREATE:
                             this.logger.info(
                                 "Calling native interop SignInInteractively API",
                                 request.correlationId
                             );
-                            const loginHint =
-                                request.loginHint || Constants.EMPTY_STRING;
+                            const loginHint = request.loginHint || "";
                             msalNodeRuntime.SignInInteractivelyAsync(
                                 windowHandle,
                                 authParams,
@@ -289,7 +286,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                                 resultCallback
                             );
                             break;
-                        case PromptValue.NONE:
+                        case Constants.PromptValue.NONE:
                             if (account) {
                                 this.logger.info(
                                     "Calling native interop AcquireTokenSilently API",
@@ -331,8 +328,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                                     "Calling native interop SignIn API",
                                     request.correlationId
                                 );
-                                const loginHint =
-                                    request.loginHint || Constants.EMPTY_STRING;
+                                const loginHint = request.loginHint || "";
                                 msalNodeRuntime.SignInAsync(
                                     windowHandle,
                                     authParams,
@@ -464,7 +460,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 authParams.SetDecodedClaims(request.claims);
             }
 
-            if (request.authenticationScheme === AuthenticationScheme.POP) {
+            if (
+                request.authenticationScheme ===
+                Constants.AuthenticationScheme.POP
+            ) {
                 if (
                     !request.resourceRequestMethod ||
                     !request.resourceRequestUri
@@ -553,10 +552,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         if (authResult.isPopAuthorization) {
             // Header includes 'pop ' prefix
             accessToken = authResult.authorizationHeader.split(" ")[1];
-            tokenType = AuthenticationScheme.POP;
+            tokenType = Constants.AuthenticationScheme.POP;
         } else {
             accessToken = authResult.accessToken;
-            tokenType = AuthenticationScheme.BEARER;
+            tokenType = Constants.AuthenticationScheme.BEARER;
         }
 
         const result: AuthenticationResult = {

@@ -10,9 +10,8 @@ import {
     CcsCredentialType,
     ClientAssertion,
     ClientConfiguration,
-    GrantType,
     NetworkResponse,
-    OAuthResponseType,
+    Constants,
     RequestParameterBuilder,
     RequestThumbprint,
     ResponseHandler,
@@ -133,12 +132,12 @@ export class UsernamePasswordClient extends BaseClient {
 
         RequestParameterBuilder.addResponseType(
             parameters,
-            OAuthResponseType.IDTOKEN_TOKEN
+            Constants.OAuthResponseType.IDTOKEN_TOKEN
         );
 
         RequestParameterBuilder.addGrantType(
             parameters,
-            GrantType.RESOURCE_OWNER_PASSWORD_GRANT
+            Constants.GrantType.RESOURCE_OWNER_PASSWORD_GRANT
         );
         RequestParameterBuilder.addClientInfo(parameters);
 

@@ -16,7 +16,7 @@ import { NetworkResponse } from "../network/NetworkResponse.js";
 import { ICrypto } from "../crypto/ICrypto.js";
 import { Authority } from "../authority/Authority.js";
 import { Logger } from "../logger/Logger.js";
-import { Constants, HeaderNames } from "../utils/Constants.js";
+import { HeaderNames, URL_FORM_CONTENT_TYPE } from "../utils/Constants.js";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse.js";
 import { CacheManager } from "../cache/CacheManager.js";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
@@ -104,7 +104,7 @@ export abstract class BaseClient {
         ccsCred?: CcsCredential
     ): Record<string, string> {
         const headers: Record<string, string> = {};
-        headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
+        headers[HeaderNames.CONTENT_TYPE] = URL_FORM_CONTENT_TYPE;
         if (!this.config.systemOptions.preventCorsPreflight && ccsCred) {
             switch (ccsCred.type) {
                 case CcsCredentialType.HOME_ACCOUNT_ID:

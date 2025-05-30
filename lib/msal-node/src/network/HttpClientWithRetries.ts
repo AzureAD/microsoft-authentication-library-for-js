@@ -4,7 +4,7 @@
  */
 
 import {
-    HeaderNames,
+    Constants,
     INetworkModule,
     Logger,
     NetworkRequestOptions,
@@ -59,7 +59,7 @@ export class HttpClientWithRetries implements INetworkModule {
                 response.status,
                 currentRetry,
                 this.logger,
-                response.headers[HeaderNames.RETRY_AFTER]
+                response.headers[Constants.HeaderNames.RETRY_AFTER]
             )
         ) {
             response = await this.sendNetworkRequestAsyncHelper(

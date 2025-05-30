@@ -3,92 +3,80 @@
  * Licensed under the MIT License.
  */
 
-export const Constants = {
-    LIBRARY_NAME: "MSAL.JS",
-    SKU: "msal.js.common",
-    // Prefix for all library cache entries
-    CACHE_PREFIX: "msal",
-    // default authority
-    DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
-    DEFAULT_AUTHORITY_HOST: "login.microsoftonline.com",
-    DEFAULT_COMMON_TENANT: "common",
-    // ADFS String
-    ADFS: "adfs",
-    DSTS: "dstsv2",
-    // Default AAD Instance Discovery Endpoint
-    AAD_INSTANCE_DISCOVERY_ENDPT:
-        "https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=",
-    // CIAM URL
-    CIAM_AUTH_URL: ".ciamlogin.com",
-    AAD_TENANT_DOMAIN_SUFFIX: ".onmicrosoft.com",
-    // Resource delimiter - used for certain cache entries
-    RESOURCE_DELIM: "|",
-    // Placeholder for non-existent account ids/objects
-    NO_ACCOUNT: "NO_ACCOUNT",
-    // Claims
-    CLAIMS: "claims",
-    // Consumer UTID
-    CONSUMER_UTID: "9188040d-6c67-4c5b-b112-36a304b66dad",
-    // Default scopes
-    OPENID_SCOPE: "openid",
-    PROFILE_SCOPE: "profile",
-    OFFLINE_ACCESS_SCOPE: "offline_access",
-    EMAIL_SCOPE: "email",
-    CODE_GRANT_TYPE: "authorization_code",
-    RT_GRANT_TYPE: "refresh_token",
-    S256_CODE_CHALLENGE_METHOD: "S256",
-    URL_FORM_CONTENT_TYPE: "application/x-www-form-urlencoded;charset=utf-8",
-    AUTHORIZATION_PENDING: "authorization_pending",
-    NOT_DEFINED: "not_defined",
-    EMPTY_STRING: "",
-    NOT_APPLICABLE: "N/A",
-    NOT_AVAILABLE: "Not Available",
-    FORWARD_SLASH: "/",
-    IMDS_ENDPOINT: "http://169.254.169.254/metadata/instance/compute/location",
-    IMDS_VERSION: "2020-06-01",
-    IMDS_TIMEOUT: 2000,
-    AZURE_REGION_AUTO_DISCOVER_FLAG: "TryAutoDetect",
-    REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX: "login.microsoft.com",
-    KNOWN_PUBLIC_CLOUDS: [
-        "login.microsoftonline.com",
-        "login.windows.net",
-        "login.microsoft.com",
-        "sts.windows.net",
-    ],
-    SHR_NONCE_VALIDITY: 240,
-    INVALID_INSTANCE: "invalid_instance",
-};
+export const SKU = "msal.js.common";
+// Prefix for all library cache entries
+export const CACHE_PREFIX = "msal";
+// default authority
+export const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common/";
+export const DEFAULT_AUTHORITY_HOST = "login.microsoftonline.com";
+export const DEFAULT_COMMON_TENANT = "common";
+// ADFS String
+export const ADFS = "adfs";
+export const DSTS = "dstsv2";
+// Default AAD Instance Discovery Endpoint
+export const AAD_INSTANCE_DISCOVERY_ENDPT = `${DEFAULT_AUTHORITY}discovery/instance?api-version=1.1&authorization_endpoint=`;
+// CIAM URL
+export const CIAM_AUTH_URL = ".ciamlogin.com";
+export const AAD_TENANT_DOMAIN_SUFFIX = ".onmicrosoft.com";
+// Resource delimiter - used for certain cache entries
+export const RESOURCE_DELIM = "|";
+// Consumer UTID
+export const CONSUMER_UTID = "9188040d-6c67-4c5b-b112-36a304b66dad";
+// Default scopes
+export const OPENID_SCOPE = "openid";
+export const PROFILE_SCOPE = "profile";
+export const OFFLINE_ACCESS_SCOPE = "offline_access";
+export const EMAIL_SCOPE = "email";
+export const CODE_GRANT_TYPE = "authorization_code";
+export const S256_CODE_CHALLENGE_METHOD = "S256";
+export const URL_FORM_CONTENT_TYPE =
+    "application/x-www-form-urlencoded;charset=utf-8";
+export const AUTHORIZATION_PENDING = "authorization_pending";
+export const NOT_APPLICABLE = "N/A";
+export const NOT_AVAILABLE = "Not Available";
+export const FORWARD_SLASH = "/";
+export const IMDS_ENDPOINT =
+    "http://169.254.169.254/metadata/instance/compute/location";
+export const IMDS_VERSION = "2020-06-01";
+export const IMDS_TIMEOUT = 2000;
+export const AZURE_REGION_AUTO_DISCOVER_FLAG = "TryAutoDetect";
+export const REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX = "login.microsoft.com";
+export const KNOWN_PUBLIC_CLOUDS = [
+    "login.microsoftonline.com",
+    "login.windows.net",
+    "login.microsoft.com",
+    "sts.windows.net",
+];
+export const SHR_NONCE_VALIDITY = 240;
+export const INVALID_INSTANCE = "invalid_instance";
 
-export const HttpStatus = {
-    SUCCESS: 200,
-    SUCCESS_RANGE_START: 200,
-    SUCCESS_RANGE_END: 299,
-    REDIRECT: 302,
-    CLIENT_ERROR: 400,
-    CLIENT_ERROR_RANGE_START: 400,
-    BAD_REQUEST: 400,
-    UNAUTHORIZED: 401,
-    NOT_FOUND: 404,
-    REQUEST_TIMEOUT: 408,
-    GONE: 410,
-    TOO_MANY_REQUESTS: 429,
-    CLIENT_ERROR_RANGE_END: 499,
-    SERVER_ERROR: 500,
-    SERVER_ERROR_RANGE_START: 500,
-    SERVICE_UNAVAILABLE: 503,
-    GATEWAY_TIMEOUT: 504,
-    SERVER_ERROR_RANGE_END: 599,
-    MULTI_SIDED_ERROR: 600,
-} as const;
-export type HttpStatus = (typeof HttpStatus)[keyof typeof HttpStatus];
+export const HTTP_SUCCESS: number = 200;
+export const HTTP_SUCCESS_RANGE_START: number = 200;
+export const HTTP_SUCCESS_RANGE_END: number = 299;
+export const HTTP_REDIRECT: number = 302;
+export const HTTP_CLIENT_ERROR: number = 400;
+export const HTTP_CLIENT_ERROR_RANGE_START: number = 400;
+export const HTTP_BAD_REQUEST: number = 400;
+export const HTTP_UNAUTHORIZED: number = 401;
+export const HTTP_NOT_FOUND: number = 404;
+export const HTTP_REQUEST_TIMEOUT: number = 408;
+export const HTTP_GONE: number = 410;
+export const HTTP_TOO_MANY_REQUESTS: number = 429;
+export const HTTP_CLIENT_ERROR_RANGE_END: number = 499;
+export const HTTP_SERVER_ERROR: number = 500;
+export const HTTP_SERVER_ERROR_RANGE_START: number = 500;
+export const HTTP_SERVICE_UNAVAILABLE: number = 503;
+export const HTTP_GATEWAY_TIMEOUT: number = 504;
+export const HTTP_SERVER_ERROR_RANGE_END: number = 599;
+export const HTTP_MULTI_SIDED_ERROR: number = 600;
 
 export const OIDC_DEFAULT_SCOPES = [
-    Constants.OPENID_SCOPE,
-    Constants.PROFILE_SCOPE,
-    Constants.OFFLINE_ACCESS_SCOPE,
+    OPENID_SCOPE,
+    PROFILE_SCOPE,
+    OFFLINE_ACCESS_SCOPE,
 ];
 
-export const OIDC_SCOPES = [...OIDC_DEFAULT_SCOPES, Constants.EMAIL_SCOPE];
+export const OIDC_SCOPES = [...OIDC_DEFAULT_SCOPES, EMAIL_SCOPE];
 
 /**
  * Request header names
@@ -117,13 +105,12 @@ export type PersistentCacheKeys =
 /**
  * String constants related to AAD Authority
  */
-export const AADAuthorityConstants = {
+export const AADAuthority = {
     COMMON: "common",
     ORGANIZATIONS: "organizations",
     CONSUMERS: "consumers",
 } as const;
-export type AADAuthorityConstants =
-    (typeof AADAuthorityConstants)[keyof typeof AADAuthorityConstants];
+export type AADAuthority = (typeof AADAuthority)[keyof typeof AADAuthority];
 
 /**
  * Claims request keys
@@ -195,23 +182,16 @@ export type GrantType = (typeof GrantType)[keyof typeof GrantType];
 /**
  * Account types in Cache
  */
-export const CacheAccountType = {
-    MSSTS_ACCOUNT_TYPE: "MSSTS",
-    ADFS_ACCOUNT_TYPE: "ADFS",
-    MSAV1_ACCOUNT_TYPE: "MSA",
-    GENERIC_ACCOUNT_TYPE: "Generic", // NTLM, Kerberos, FBA, Basic etc
-} as const;
-export type CacheAccountType =
-    (typeof CacheAccountType)[keyof typeof CacheAccountType];
+export const CACHE_ACCOUNT_TYPE_MSSTS: string = "MSSTS";
+export const CACHE_ACCOUNT_TYPE_ADFS: string = "ADFS";
+export const CACHE_ACCOUNT_TYPE_MSAV1: string = "MSA";
+export const CACHE_ACCOUNT_TYPE_GENERIC: string = "Generic";
 
 /**
  * Separators used in cache
  */
-export const Separators = {
-    CACHE_KEY_SEPARATOR: "-",
-    CLIENT_INFO_SEPARATOR: ".",
-} as const;
-export type Separators = (typeof Separators)[keyof typeof Separators];
+export const CACHE_KEY_SEPARATOR: string = "-";
+export const CLIENT_INFO_SEPARATOR: string = ".";
 
 /**
  * Credential Type stored in the cache
@@ -244,14 +224,12 @@ export type CacheType = (typeof CacheType)[keyof typeof CacheType];
 /**
  * More Cache related constants
  */
-export const APP_METADATA = "appmetadata";
-export const CLIENT_INFO = "client_info";
-export const THE_FAMILY_ID = "1";
+export const APP_METADATA: string = "appmetadata";
+export const CLIENT_INFO: string = "client_info";
+export const THE_FAMILY_ID: string = "1";
 
-export const AUTHORITY_METADATA_CONSTANTS = {
-    CACHE_KEY: "authority-metadata",
-    REFRESH_TIME_SECONDS: 3600 * 24, // 24 Hours
-};
+export const AUTHORITY_METADATA_CACHE_KEY: string = "authority-metadata";
+export const AUTHORITY_METADATA_REFRESH_TIME_SECONDS: number = 3600 * 24; // 24 Hours
 
 export const AuthorityMetadataSource = {
     CONFIG: "config",
@@ -262,18 +240,16 @@ export const AuthorityMetadataSource = {
 export type AuthorityMetadataSource =
     (typeof AuthorityMetadataSource)[keyof typeof AuthorityMetadataSource];
 
-export const SERVER_TELEM_CONSTANTS = {
-    SCHEMA_VERSION: 5,
-    MAX_CUR_HEADER_BYTES: 80, // ESTS limit is 100B, set to 80 to provide a 20B buffer
-    MAX_LAST_HEADER_BYTES: 330, // ESTS limit is 350B, set to 330 to provide a 20B buffer,
-    MAX_CACHED_ERRORS: 50, // Limit the number of errors that can be stored to prevent uncontrolled size gains
-    CACHE_KEY: "server-telemetry",
-    CATEGORY_SEPARATOR: "|",
-    VALUE_SEPARATOR: ",",
-    OVERFLOW_TRUE: "1",
-    OVERFLOW_FALSE: "0",
-    UNKNOWN_ERROR: "unknown_error",
-};
+export const SERVER_TELEM_SCHEMA_VERSION: number = 5;
+export const SERVER_TELEM_MAX_CUR_HEADER_BYTES: number = 80; // ESTS limit is 100B, set to 80 to provide a 20B buffer
+export const SERVER_TELEM_MAX_LAST_HEADER_BYTES: number = 330; // ESTS limit is 350B, set to 330 to provide a 20B buffer,
+export const SERVER_TELEM_MAX_CACHED_ERRORS: number = 50; // Limit the number of errors that can be stored to prevent uncontrolled size gains
+export const SERVER_TELEM_CACHE_KEY: string = "server-telemetry";
+export const SERVER_TELEM_CATEGORY_SEPARATOR: string = "|";
+export const SERVER_TELEM_VALUE_SEPARATOR: string = ",";
+export const SERVER_TELEM_OVERFLOW_TRUE: string = "1";
+export const SERVER_TELEM_OVERFLOW_FALSE: string = "0";
+export const SERVER_TELEM_UNKNOWN_ERROR: string = "unknown_error";
 
 /**
  * Type of the authentication request
@@ -289,21 +265,19 @@ export type AuthenticationScheme =
 /**
  * Constants related to throttling
  */
-export const ThrottlingConstants = {
-    // Default time to throttle RequestThumbprint in seconds
-    DEFAULT_THROTTLE_TIME_SECONDS: 60,
-    // Default maximum time to throttle in seconds, overrides what the server sends back
-    DEFAULT_MAX_THROTTLE_TIME_SECONDS: 3600,
-    // Prefix for storing throttling entries
-    THROTTLING_PREFIX: "throttling",
-    // Value assigned to the x-ms-lib-capability header to indicate to the server the library supports throttling
-    X_MS_LIB_CAPABILITY_VALUE: "retry-after, h429",
-};
+export const DEFAULT_THROTTLE_TIME_SECONDS: number = 60;
+// Default maximum time to throttle in seconds, overrides what the server sends back
+export const DEFAULT_MAX_THROTTLE_TIME_SECONDS: number = 3600;
+// Prefix for storing throttling entries
+export const THROTTLING_PREFIX: string = "throttling";
+// Value assigned to the x-ms-lib-capability header to indicate to the server the library supports throttling
+export const X_MS_LIB_CAPABILITY_VALUE: string = "retry-after, h429";
 
-export const Errors = {
-    INVALID_GRANT_ERROR: "invalid_grant",
-    CLIENT_MISMATCH_ERROR: "client_mismatch",
-};
+/**
+ * Errors
+ */
+export const INVALID_GRANT_ERROR: string = "invalid_grant";
+export const CLIENT_MISMATCH_ERROR: string = "client_mismatch";
 
 /**
  * Password grant parameters
@@ -314,15 +288,6 @@ export const PasswordGrantConstants = {
 } as const;
 export type PasswordGrantConstants =
     (typeof PasswordGrantConstants)[keyof typeof PasswordGrantConstants];
-
-/**
- * Response codes
- */
-export const ResponseCodes = {
-    httpSuccess: 200,
-    httpBadRequest: 400,
-} as const;
-export type ResponseCodes = (typeof ResponseCodes)[keyof typeof ResponseCodes];
 
 /**
  * Region Discovery Sources

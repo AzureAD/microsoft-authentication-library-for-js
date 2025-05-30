@@ -42,8 +42,7 @@ import {
     CacheHelpers,
     ClientConfigurationErrorCodes,
     createClientConfigurationError,
-    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    HttpStatus,
+    Constants,
     ServerError,
     TimeUtils,
 } from "@azure/msal-common";
@@ -76,7 +75,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
         new ManagedIdentityNetworkErrorClient(
             MANAGED_IDENTITY_IMDS_NETWORK_REQUEST_400_ERROR,
             undefined,
-            HttpStatus.BAD_REQUEST
+            Constants.HTTP_BAD_REQUEST
         );
 
     const userAssignedObjectIdConfig: ManagedIdentityConfiguration = {
@@ -293,7 +292,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     new ManagedIdentityNetworkErrorClient(
                         MANAGED_IDENTITY_IMDS_NETWORK_REQUEST_400_ERROR,
                         undefined,
-                        HttpStatus.NOT_FOUND
+                        Constants.HTTP_NOT_FOUND
                     );
 
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
@@ -344,7 +343,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     new ManagedIdentityNetworkErrorClient(
                         MANAGED_IDENTITY_IMDS_NETWORK_REQUEST_400_ERROR,
                         undefined,
-                        HttpStatus.GONE
+                        Constants.HTTP_GONE
                     );
 
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
@@ -404,7 +403,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     new ManagedIdentityNetworkErrorClient(
                         MANAGED_IDENTITY_IMDS_NETWORK_REQUEST_400_ERROR,
                         undefined,
-                        HttpStatus.GONE
+                        Constants.HTTP_GONE
                     );
 
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
@@ -458,7 +457,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                     new ManagedIdentityNetworkErrorClient(
                         MANAGED_IDENTITY_NETWORK_REQUEST_500_ERROR,
                         undefined,
-                        HttpStatus.GATEWAY_TIMEOUT
+                        Constants.HTTP_GATEWAY_TIMEOUT
                     );
 
                 const sendGetRequestAsyncSpy: jest.SpyInstance = jest
@@ -773,7 +772,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         cachedManagedIdentityResult.refreshOn !== undefined &&
                         cachedManagedIdentityResult.refreshOn.getTime() / 1000
                     ).toString(),
-                    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
+                    Constants.DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
                 )
             ).toBe(true);
 
@@ -796,7 +795,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                         cachedManagedIdentityResult.refreshOn !== undefined &&
                         cachedManagedIdentityResult.refreshOn.getTime() / 1000
                     ).toString(),
-                    DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
+                    Constants.DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
                 )
             ).toBe(false);
         }, 10000); // double the timeout value for this test because it waits two seconds in between the acquireToken call and the cache lookup

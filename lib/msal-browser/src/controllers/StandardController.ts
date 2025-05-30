@@ -7,7 +7,6 @@ import { CryptoOps } from "../crypto/CryptoOps.js";
 import {
     InteractionRequiredAuthError,
     AccountInfo,
-    Constants,
     INetworkModule,
     Logger,
     CommonSilentFlowRequest,
@@ -18,7 +17,6 @@ import {
     PerformanceCallbackFunction,
     IPerformanceClient,
     BaseAuthRequest,
-    PromptValue,
     InProgressPerformanceEvent,
     getRequestThumbprint,
     invokeAsync,
@@ -29,6 +27,7 @@ import {
     InteractionRequiredAuthErrorCodes,
     PkceCodes,
     AccountEntityUtils,
+    Constants,
 } from "@azure/msal-common/browser";
 import {
     BrowserCacheManager,
@@ -1578,9 +1577,9 @@ export class StandardController implements IController {
 
         if (request.prompt) {
             switch (request.prompt) {
-                case PromptValue.NONE:
-                case PromptValue.CONSENT:
-                case PromptValue.LOGIN:
+                case Constants.PromptValue.NONE:
+                case Constants.PromptValue.CONSENT:
+                case Constants.PromptValue.LOGIN:
                     this.logger.trace(
                         "canUsePlatformBroker: prompt is compatible with platform broker flow"
                     );
@@ -1863,7 +1862,7 @@ export class StandardController implements IController {
          * Included for fallback for non-browser environments,
          * and to ensure this method always returns a string.
          */
-        return Constants.EMPTY_STRING;
+        return "";
     }
 
     // #endregion

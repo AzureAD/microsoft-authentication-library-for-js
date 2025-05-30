@@ -13,14 +13,7 @@ import {
     TenantProfileFilter,
 } from "./utils/CacheTypes.js";
 import { CacheRecord } from "./entities/CacheRecord.js";
-import {
-    CredentialType,
-    APP_METADATA,
-    THE_FAMILY_ID,
-    AUTHORITY_METADATA_CONSTANTS,
-    AuthenticationScheme,
-    Separators,
-} from "../utils/Constants.js";
+import * as Constants from "../utils/Constants.js";
 import { CredentialEntity } from "./entities/CredentialEntity.js";
 import { generateCredentialKey } from "./utils/CacheHelpers.js";
 import { ScopeSet } from "../request/ScopeSet.js";
@@ -721,7 +714,7 @@ export abstract class CacheManager implements ICacheManager {
         homeAccountId?: string,
         tenantId?: string
     ): boolean {
-        if (key.split(Separators.CACHE_KEY_SEPARATOR).length < 3) {
+        if (key.split(Constants.CACHE_KEY_SEPARATOR).length < 3) {
             // Account cache keys contain 3 items separated by '-' (each item may also contain '-')
             return false;
         }
@@ -747,7 +740,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param key
      */
     isCredentialKey(key: string): boolean {
-        if (key.split(Separators.CACHE_KEY_SEPARATOR).length < 6) {
+        if (key.split(Constants.CACHE_KEY_SEPARATOR).length < 6) {
             // Credential cache keys contain 6 items separated by '-' (each item may also contain '-')
             return false;
         }
@@ -755,26 +748,30 @@ export abstract class CacheManager implements ICacheManager {
         const lowerCaseKey = key.toLowerCase();
         // Credential keys must indicate what credential type they represent
         if (
-            lowerCaseKey.indexOf(CredentialType.ID_TOKEN.toLowerCase()) ===
-                -1 &&
-            lowerCaseKey.indexOf(CredentialType.ACCESS_TOKEN.toLowerCase()) ===
-                -1 &&
             lowerCaseKey.indexOf(
-                CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()
+                Constants.CredentialType.ID_TOKEN.toLowerCase()
             ) === -1 &&
-            lowerCaseKey.indexOf(CredentialType.REFRESH_TOKEN.toLowerCase()) ===
-                -1
+            lowerCaseKey.indexOf(
+                Constants.CredentialType.ACCESS_TOKEN.toLowerCase()
+            ) === -1 &&
+            lowerCaseKey.indexOf(
+                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()
+            ) === -1 &&
+            lowerCaseKey.indexOf(
+                Constants.CredentialType.REFRESH_TOKEN.toLowerCase()
+            ) === -1
         ) {
             return false;
         }
 
         if (
-            lowerCaseKey.indexOf(CredentialType.REFRESH_TOKEN.toLowerCase()) >
-            -1
+            lowerCaseKey.indexOf(
+                Constants.CredentialType.REFRESH_TOKEN.toLowerCase()
+            ) > -1
         ) {
             // Refresh tokens must contain the client id or family id
-            const clientIdValidation = `${CredentialType.REFRESH_TOKEN}${Separators.CACHE_KEY_SEPARATOR}${this.clientId}${Separators.CACHE_KEY_SEPARATOR}`;
-            const familyIdValidation = `${CredentialType.REFRESH_TOKEN}${Separators.CACHE_KEY_SEPARATOR}${THE_FAMILY_ID}${Separators.CACHE_KEY_SEPARATOR}`;
+            const clientIdValidation = `${Constants.CredentialType.REFRESH_TOKEN}${Constants.CACHE_KEY_SEPARATOR}${this.clientId}${Constants.CACHE_KEY_SEPARATOR}`;
+            const familyIdValidation = `${Constants.CredentialType.REFRESH_TOKEN}${Constants.CACHE_KEY_SEPARATOR}${Constants.THE_FAMILY_ID}${Constants.CACHE_KEY_SEPARATOR}`;
             if (
                 lowerCaseKey.indexOf(clientIdValidation.toLowerCase()) === -1 &&
                 lowerCaseKey.indexOf(familyIdValidation.toLowerCase()) === -1
@@ -862,7 +859,7 @@ export abstract class CacheManager implements ICacheManager {
         // Access Token with Auth Scheme specific matching
         if (
             entity.credentialType ===
-            CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
+            Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
         ) {
             if (
                 !!filter.tokenType &&
@@ -872,7 +869,7 @@ export abstract class CacheManager implements ICacheManager {
             }
 
             // KeyId (sshKid) in request must match cached SSH certificate keyId because SSH cert is bound to a specific key
-            if (filter.tokenType === AuthenticationScheme.SSH) {
+            if (filter.tokenType === Constants.AuthenticationScheme.SSH) {
                 if (filter.keyId && !this.matchKeyId(entity, filter.keyId)) {
                     return false;
                 }
@@ -1027,9 +1024,9 @@ export abstract class CacheManager implements ICacheManager {
         // Remove Token Binding Key from key store for PoP Tokens Credentials
         if (
             credential.credentialType.toLowerCase() ===
-            CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()
+            Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()
         ) {
-            if (credential.tokenType === AuthenticationScheme.POP) {
+            if (credential.tokenType === Constants.AuthenticationScheme.POP) {
                 const accessTokenWithAuthSchemeEntity =
                     credential as AccessTokenEntity;
                 const kid = accessTokenWithAuthSchemeEntity.keyId;
@@ -1092,7 +1089,7 @@ export abstract class CacheManager implements ICacheManager {
         const idTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
             environment: account.environment,
-            credentialType: CredentialType.ID_TOKEN,
+            credentialType: Constants.CredentialType.ID_TOKEN,
             clientId: this.clientId,
             realm: targetRealm,
         };
@@ -1253,7 +1250,8 @@ export abstract class CacheManager implements ICacheManager {
         this.commonLogger.trace("CacheManager - getAccessToken called");
         const scopes = ScopeSet.createSearchScopes(request.scopes);
         const authScheme =
-            request.authenticationScheme || AuthenticationScheme.BEARER;
+            request.authenticationScheme ||
+            Constants.AuthenticationScheme.BEARER;
         /*
          * Distinguish between Bearer and PoP/SSH token cache types
          * Cast to lowercase to handle "bearer" from ADFS
@@ -1261,9 +1259,9 @@ export abstract class CacheManager implements ICacheManager {
         const credentialType =
             authScheme &&
             authScheme.toLowerCase() !==
-                AuthenticationScheme.BEARER.toLowerCase()
-                ? CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
-                : CredentialType.ACCESS_TOKEN;
+                Constants.AuthenticationScheme.BEARER.toLowerCase()
+                ? Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
+                : Constants.CredentialType.ACCESS_TOKEN;
 
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
@@ -1429,11 +1427,11 @@ export abstract class CacheManager implements ICacheManager {
         correlationId?: string
     ): RefreshTokenEntity | null {
         this.commonLogger.trace("CacheManager - getRefreshToken called");
-        const id = familyRT ? THE_FAMILY_ID : undefined;
+        const id = familyRT ? Constants.THE_FAMILY_ID : undefined;
         const refreshTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
             environment: account.environment,
-            credentialType: CredentialType.REFRESH_TOKEN,
+            credentialType: Constants.CredentialType.REFRESH_TOKEN,
             clientId: this.clientId,
             familyId: id,
         };
@@ -1552,7 +1550,9 @@ export abstract class CacheManager implements ICacheManager {
      */
     isAppMetadataFOCI(environment: string): boolean {
         const appMetadata = this.readAppMetadataFromCache(environment);
-        return !!(appMetadata && appMetadata.familyId === THE_FAMILY_ID);
+        return !!(
+            appMetadata && appMetadata.familyId === Constants.THE_FAMILY_ID
+        );
     }
 
     /**
@@ -1788,9 +1788,9 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchTarget(entity: CredentialEntity, target: ScopeSet): boolean {
         const isNotAccessTokenCredential =
-            entity.credentialType !== CredentialType.ACCESS_TOKEN &&
+            entity.credentialType !== Constants.CredentialType.ACCESS_TOKEN &&
             entity.credentialType !==
-                CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
+                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
 
         if (isNotAccessTokenCredential || !entity.target) {
             return false;
@@ -1808,7 +1808,7 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchTokenType(
         entity: CredentialEntity,
-        tokenType: AuthenticationScheme
+        tokenType: Constants.AuthenticationScheme
     ): boolean {
         return !!(entity.tokenType && entity.tokenType === tokenType);
     }
@@ -1827,7 +1827,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param key
      */
     private isAppMetadata(key: string): boolean {
-        return key.indexOf(APP_METADATA) !== -1;
+        return key.indexOf(Constants.APP_METADATA) !== -1;
     }
 
     /**
@@ -1835,14 +1835,14 @@ export abstract class CacheManager implements ICacheManager {
      * @param key
      */
     protected isAuthorityMetadata(key: string): boolean {
-        return key.indexOf(AUTHORITY_METADATA_CONSTANTS.CACHE_KEY) !== -1;
+        return key.indexOf(Constants.AUTHORITY_METADATA_CACHE_KEY) !== -1;
     }
 
     /**
      * returns cache key used for cloud instance metadata
      */
     generateAuthorityMetadataCacheKey(authority: string): string {
-        return `${AUTHORITY_METADATA_CONSTANTS.CACHE_KEY}-${this.clientId}-${authority}`;
+        return `${Constants.AUTHORITY_METADATA_CACHE_KEY}-${this.clientId}-${authority}`;
     }
 
     /**

@@ -4,7 +4,6 @@
  */
 
 import {
-    AuthenticationScheme,
     Authority,
     AuthorizeProtocol,
     ClientConfigurationErrorCodes,
@@ -17,8 +16,6 @@ import {
     PopTokenGenerator,
     ProtocolMode,
     RequestParameterBuilder,
-    OAuthResponseType,
-    Constants,
     CommonAuthorizationCodeRequest,
     AuthorizationCodeClient,
     ProtocolUtils,
@@ -28,6 +25,7 @@ import {
     TimeUtils,
     AuthorizationCodePayload,
     ServerAuthorizationTokenResponse,
+    Constants,
 } from "@azure/msal-common/browser";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { ApiId, BrowserConstants } from "../utils/BrowserConstants.js";
@@ -85,7 +83,9 @@ async function getStandardParameters(
         RequestParameterBuilder.addNativeBroker(parameters);
 
         // pass the req_cnf for POP
-        if (request.authenticationScheme === AuthenticationScheme.POP) {
+        if (
+            request.authenticationScheme === Constants.AuthenticationScheme.POP
+        ) {
             const cryptoOps = new CryptoOps(logger, performanceClient);
             const popTokenGenerator = new PopTokenGenerator(cryptoOps);
 
@@ -145,7 +145,10 @@ export async function getAuthCodeRequestUrl(
         performanceClient,
         request.correlationId
     )(config, authority, request, logger, performanceClient);
-    RequestParameterBuilder.addResponseType(parameters, OAuthResponseType.CODE);
+    RequestParameterBuilder.addResponseType(
+        parameters,
+        Constants.OAuthResponseType.CODE
+    );
 
     RequestParameterBuilder.addCodeChallengeParams(
         parameters,
@@ -186,7 +189,7 @@ export async function getEARForm(
 
     RequestParameterBuilder.addResponseType(
         parameters,
-        OAuthResponseType.IDTOKEN_TOKEN_REFRESHTOKEN
+        Constants.OAuthResponseType.IDTOKEN_TOKEN_REFRESHTOKEN
     );
     RequestParameterBuilder.addEARParameters(parameters, request.earJwk);
 

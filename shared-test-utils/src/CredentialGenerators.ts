@@ -1,7 +1,7 @@
 import {
     AccountEntity,
     AccountInfo,
-    CredentialType,
+    Constants,
     IdTokenEntity,
     TenantProfile,
     TokenClaims,
@@ -65,7 +65,7 @@ export function buildIdToken(
     const idToken = {
         realm: tid || "",
         environment: "login.microsoftonline.com",
-        credentialType: CredentialType.ID_TOKEN,
+        credentialType: Constants.CredentialType.ID_TOKEN,
         secret: idTokenSecret,
         clientId: "mock_client_id",
         homeAccountId: homeAccountId,

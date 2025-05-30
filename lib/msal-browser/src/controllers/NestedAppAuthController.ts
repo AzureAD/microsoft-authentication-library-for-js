@@ -15,7 +15,7 @@ import {
     PerformanceEvents,
     TimeUtils,
     buildStaticAuthorityOptions,
-    OIDC_DEFAULT_SCOPES,
+    Constants,
     BaseAuthRequest,
     AccountFilter,
     AuthError,
@@ -496,7 +496,7 @@ export class NestedAppAuthController implements IController {
             authority: request.authority || currentAccount.environment,
             scopes: request.scopes?.length
                 ? request.scopes
-                : [...OIDC_DEFAULT_SCOPES],
+                : [...Constants.OIDC_DEFAULT_SCOPES],
         };
 
         // fetch access token and check for expiry

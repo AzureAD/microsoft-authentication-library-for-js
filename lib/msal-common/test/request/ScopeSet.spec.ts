@@ -1,9 +1,5 @@
 import { ScopeSet } from "../../src/request/ScopeSet.js";
-import {
-    OIDC_DEFAULT_SCOPES,
-    OIDC_SCOPES,
-    Constants,
-} from "../../src/utils/Constants.js";
+import * as Constants from "../../src/utils/Constants.js";
 import {
     ClientConfigurationErrorCodes,
     ClientConfigurationError,
@@ -346,16 +342,22 @@ describe("ScopeSet.ts", () => {
         });
 
         it("intersectingScopeSets() does not ignore OIDC scopes if they are only present", () => {
-            const scopeset1 = new ScopeSet([...OIDC_SCOPES]);
-            const scopeset2 = new ScopeSet([...OIDC_SCOPES]);
+            const scopeset1 = new ScopeSet([...Constants.OIDC_SCOPES]);
+            const scopeset2 = new ScopeSet([...Constants.OIDC_SCOPES]);
             expect(scopeset1.intersectingScopeSets(scopeset2)).toBe(true);
         });
 
         it("intersectingScopeSets() ignores OIDC scopes if other scopes are present", () => {
             const testScope = "testScope";
             const testScope2 = "testScope2";
-            const scopeset1 = new ScopeSet([...OIDC_SCOPES, testScope]);
-            const scopeset2 = new ScopeSet([...OIDC_SCOPES, testScope2]);
+            const scopeset1 = new ScopeSet([
+                ...Constants.OIDC_SCOPES,
+                testScope,
+            ]);
+            const scopeset2 = new ScopeSet([
+                ...Constants.OIDC_SCOPES,
+                testScope2,
+            ]);
             expect(scopeset1.intersectingScopeSets(scopeset2)).toBe(false);
 
             const scopeset3 = new ScopeSet([
@@ -364,7 +366,10 @@ describe("ScopeSet.ts", () => {
                 Constants.EMAIL_SCOPE,
                 testScope,
             ]);
-            const scopeset4 = new ScopeSet([...OIDC_DEFAULT_SCOPES, testScope]);
+            const scopeset4 = new ScopeSet([
+                ...Constants.OIDC_DEFAULT_SCOPES,
+                testScope,
+            ]);
             expect(scopeset3.intersectingScopeSets(scopeset4)).toBe(true);
         });
 

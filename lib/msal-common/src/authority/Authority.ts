@@ -15,12 +15,7 @@ import {
     ClientAuthErrorCodes,
 } from "../error/ClientAuthError.js";
 import { INetworkModule } from "../network/INetworkModule.js";
-import {
-    AADAuthorityConstants,
-    AuthorityMetadataSource,
-    Constants,
-    RegionDiscoveryOutcomes,
-} from "../utils/Constants.js";
+import * as Constants from "../utils/Constants.js";
 import {
     EndpointMetadata,
     getCloudDiscoveryMetadataFromHardcodedValues,
@@ -93,9 +88,9 @@ export class Authority {
     private static reservedTenantDomains: Set<string> = new Set([
         "{tenant}",
         "{tenantid}",
-        AADAuthorityConstants.COMMON,
-        AADAuthorityConstants.CONSUMERS,
-        AADAuthorityConstants.ORGANIZATIONS,
+        Constants.AADAuthority.COMMON,
+        Constants.AADAuthority.CONSUMERS,
+        Constants.AADAuthority.ORGANIZATIONS,
     ]);
 
     constructor(
@@ -467,15 +462,16 @@ export class Authority {
      */
     private updateCachedMetadata(
         metadataEntity: AuthorityMetadataEntity,
-        cloudDiscoverySource: AuthorityMetadataSource | null,
+        cloudDiscoverySource: Constants.AuthorityMetadataSource | null,
         endpointMetadataResult: {
-            source: AuthorityMetadataSource;
+            source: Constants.AuthorityMetadataSource;
             metadata?: OpenIdConfigResponse;
         } | null
     ): void {
         if (
-            cloudDiscoverySource !== AuthorityMetadataSource.CACHE &&
-            endpointMetadataResult?.source !== AuthorityMetadataSource.CACHE
+            cloudDiscoverySource !== Constants.AuthorityMetadataSource.CACHE &&
+            endpointMetadataResult?.source !==
+                Constants.AuthorityMetadataSource.CACHE
         ) {
             // Reset the expiration time unless both values came from a successful cache lookup
             metadataEntity.expiresAt =
@@ -496,7 +492,7 @@ export class Authority {
      */
     private async updateEndpointMetadata(
         metadataEntity: AuthorityMetadataEntity
-    ): Promise<AuthorityMetadataSource> {
+    ): Promise<Constants.AuthorityMetadataSource> {
         const localMetadata =
             this.updateEndpointMetadataFromLocalSources(metadataEntity);
 
@@ -504,7 +500,7 @@ export class Authority {
         if (localMetadata) {
             if (
                 localMetadata.source ===
-                AuthorityMetadataSource.HARDCODED_VALUES
+                Constants.AuthorityMetadataSource.HARDCODED_VALUES
             ) {
                 // If the user prefers to use an azure region replace the global endpoints with regional information.
                 if (
@@ -558,7 +554,7 @@ export class Authority {
                 metadata,
                 true
             );
-            return AuthorityMetadataSource.NETWORK;
+            return Constants.AuthorityMetadataSource.NETWORK;
         } else {
             // Metadata could not be obtained from the config, cache, network or hardcoded values
             throw createClientAuthError(
@@ -577,7 +573,7 @@ export class Authority {
     private updateEndpointMetadataFromLocalSources(
         metadataEntity: AuthorityMetadataEntity
     ): {
-        source: AuthorityMetadataSource;
+        source: Constants.AuthorityMetadataSource;
         metadata?: OpenIdConfigResponse;
     } | null {
         this.logger.verbose(
@@ -594,7 +590,7 @@ export class Authority {
                 false
             );
             return {
-                source: AuthorityMetadataSource.CONFIG,
+                source: Constants.AuthorityMetadataSource.CONFIG,
             };
         }
 
@@ -610,7 +606,7 @@ export class Authority {
                 false
             );
             return {
-                source: AuthorityMetadataSource.HARDCODED_VALUES,
+                source: Constants.AuthorityMetadataSource.HARDCODED_VALUES,
                 metadata: hardcodedMetadata,
             };
         } else {
@@ -629,7 +625,7 @@ export class Authority {
         ) {
             // No need to update
             this.logger.verbose("Found endpoint metadata in the cache.");
-            return { source: AuthorityMetadataSource.CACHE };
+            return { source: Constants.AuthorityMetadataSource.CACHE };
         } else if (metadataEntityExpired) {
             this.logger.verbose("The metadata entity is expired.");
         }
@@ -745,7 +741,7 @@ export class Authority {
                 Constants.AZURE_REGION_AUTO_DISCOVER_FLAG
             ) {
                 this.regionDiscoveryMetadata.region_outcome =
-                    RegionDiscoveryOutcomes.CONFIGURED_NO_AUTO_DETECTION;
+                    Constants.RegionDiscoveryOutcomes.CONFIGURED_NO_AUTO_DETECTION;
                 this.regionDiscoveryMetadata.region_used =
                     userConfiguredAzureRegion;
                 return Authority.replaceWithRegionalInformation(
@@ -768,7 +764,7 @@ export class Authority {
 
             if (autodetectedRegionName) {
                 this.regionDiscoveryMetadata.region_outcome =
-                    RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_SUCCESSFUL;
+                    Constants.RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_SUCCESSFUL;
                 this.regionDiscoveryMetadata.region_used =
                     autodetectedRegionName;
                 return Authority.replaceWithRegionalInformation(
@@ -778,7 +774,7 @@ export class Authority {
             }
 
             this.regionDiscoveryMetadata.region_outcome =
-                RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_FAILED;
+                Constants.RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_FAILED;
         }
 
         return metadata;
@@ -792,7 +788,7 @@ export class Authority {
      */
     private async updateCloudDiscoveryMetadata(
         metadataEntity: AuthorityMetadataEntity
-    ): Promise<AuthorityMetadataSource> {
+    ): Promise<Constants.AuthorityMetadataSource> {
         const localMetadataSource =
             this.updateCloudDiscoveryMetadataFromLocalSources(metadataEntity);
         if (localMetadataSource) {
@@ -814,7 +810,7 @@ export class Authority {
                 metadata,
                 true
             );
-            return AuthorityMetadataSource.NETWORK;
+            return Constants.AuthorityMetadataSource.NETWORK;
         }
 
         // Metadata could not be obtained from the config, cache, network or hardcoded values
@@ -825,7 +821,7 @@ export class Authority {
 
     private updateCloudDiscoveryMetadataFromLocalSources(
         metadataEntity: AuthorityMetadataEntity
-    ): AuthorityMetadataSource | null {
+    ): Constants.AuthorityMetadataSource | null {
         this.logger.verbose(
             "Attempting to get cloud discovery metadata  from authority configuration"
         );
@@ -856,7 +852,7 @@ export class Authority {
                 metadata,
                 false
             );
-            return AuthorityMetadataSource.CONFIG;
+            return Constants.AuthorityMetadataSource.CONFIG;
         }
 
         // If the cached metadata came from config but that config was not passed to this instance, we must go to hardcoded values
@@ -876,7 +872,7 @@ export class Authority {
                 hardcodedMetadata,
                 false
             );
-            return AuthorityMetadataSource.HARDCODED_VALUES;
+            return Constants.AuthorityMetadataSource.HARDCODED_VALUES;
         }
 
         this.logger.verbose(
@@ -892,7 +888,7 @@ export class Authority {
         ) {
             this.logger.verbose("Found cloud discovery metadata in the cache.");
             // No need to update
-            return AuthorityMetadataSource.CACHE;
+            return Constants.AuthorityMetadataSource.CACHE;
         } else if (metadataEntityExpired) {
             this.logger.verbose("The metadata entity is expired.");
         }
@@ -1282,9 +1278,9 @@ export function getTenantFromAuthorityString(
         authorityUrlComponents.PathSegments.slice(-1)[0]?.toLowerCase();
 
     switch (tenantId) {
-        case AADAuthorityConstants.COMMON:
-        case AADAuthorityConstants.ORGANIZATIONS:
-        case AADAuthorityConstants.CONSUMERS:
+        case Constants.AADAuthority.COMMON:
+        case Constants.AADAuthority.ORGANIZATIONS:
+        case Constants.AADAuthority.CONSUMERS:
             return undefined;
         default:
             return tenantId;

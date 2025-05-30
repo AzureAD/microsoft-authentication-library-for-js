@@ -6,11 +6,7 @@
 import { INetworkModule } from "../network/INetworkModule.js";
 import { NetworkResponse } from "../network/NetworkResponse.js";
 import { IMDSBadResponse } from "../response/IMDSBadResponse.js";
-import {
-    Constants,
-    RegionDiscoverySources,
-    ResponseCodes,
-} from "../utils/Constants.js";
+import * as Constants from "../utils/Constants.js";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata.js";
 import { ImdsOptions } from "./ImdsOptions.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
@@ -71,18 +67,17 @@ export class RegionDiscovery {
                     this.correlationId
                 )(Constants.IMDS_VERSION, options);
                 if (
-                    localIMDSVersionResponse.status ===
-                    ResponseCodes.httpSuccess
+                    localIMDSVersionResponse.status === Constants.HTTP_SUCCESS
                 ) {
                     autodetectedRegionName = localIMDSVersionResponse.body;
                     regionDiscoveryMetadata.region_source =
-                        RegionDiscoverySources.IMDS;
+                        Constants.RegionDiscoverySources.IMDS;
                 }
 
                 // If the response using the local IMDS version failed, try to fetch the current version of IMDS and retry.
                 if (
                     localIMDSVersionResponse.status ===
-                    ResponseCodes.httpBadRequest
+                    Constants.HTTP_BAD_REQUEST
                 ) {
                     const currentIMDSVersion = await invokeAsync(
                         this.getCurrentVersion.bind(this),
@@ -93,7 +88,7 @@ export class RegionDiscovery {
                     )(options);
                     if (!currentIMDSVersion) {
                         regionDiscoveryMetadata.region_source =
-                            RegionDiscoverySources.FAILED_AUTO_DETECTION;
+                            Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION;
                         return null;
                     }
 
@@ -106,28 +101,28 @@ export class RegionDiscovery {
                     )(currentIMDSVersion, options);
                     if (
                         currentIMDSVersionResponse.status ===
-                        ResponseCodes.httpSuccess
+                        Constants.HTTP_SUCCESS
                     ) {
                         autodetectedRegionName =
                             currentIMDSVersionResponse.body;
                         regionDiscoveryMetadata.region_source =
-                            RegionDiscoverySources.IMDS;
+                            Constants.RegionDiscoverySources.IMDS;
                     }
                 }
             } catch (e) {
                 regionDiscoveryMetadata.region_source =
-                    RegionDiscoverySources.FAILED_AUTO_DETECTION;
+                    Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION;
                 return null;
             }
         } else {
             regionDiscoveryMetadata.region_source =
-                RegionDiscoverySources.ENVIRONMENT_VARIABLE;
+                Constants.RegionDiscoverySources.ENVIRONMENT_VARIABLE;
         }
 
         // If no region was auto detected from the environment or from the IMDS endpoint, mark the attempt as a FAILED_AUTO_DETECTION
         if (!autodetectedRegionName) {
             regionDiscoveryMetadata.region_source =
-                RegionDiscoverySources.FAILED_AUTO_DETECTION;
+                Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION;
         }
 
         return autodetectedRegionName || null;
@@ -167,7 +162,7 @@ export class RegionDiscovery {
 
             // When IMDS endpoint is called without the api version query param, bad request response comes back with latest version.
             if (
-                response.status === ResponseCodes.httpBadRequest &&
+                response.status === Constants.HTTP_BAD_REQUEST &&
                 response.body &&
                 response.body["newest-versions"] &&
                 response.body["newest-versions"].length > 0

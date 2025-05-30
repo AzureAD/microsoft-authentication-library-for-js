@@ -5,7 +5,7 @@
 
 import {
     AccountInfo,
-    AuthenticationScheme,
+    Constants,
     BaseAuthRequest,
     ClientConfigurationErrorCodes,
     CommonSilentFlowRequest,
@@ -41,13 +41,15 @@ export async function initializeBaseRequest(
 
     // Set authenticationScheme to BEARER if not explicitly set in the request
     if (!validatedRequest.authenticationScheme) {
-        validatedRequest.authenticationScheme = AuthenticationScheme.BEARER;
+        validatedRequest.authenticationScheme =
+            Constants.AuthenticationScheme.BEARER;
         logger.verbose(
             'Authentication Scheme wasn\'t explicitly set in request, defaulting to "Bearer" request'
         );
     } else {
         if (
-            validatedRequest.authenticationScheme === AuthenticationScheme.SSH
+            validatedRequest.authenticationScheme ===
+            Constants.AuthenticationScheme.SSH
         ) {
             if (!request.sshJwk) {
                 throw createClientConfigurationError(
