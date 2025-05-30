@@ -64,7 +64,6 @@ extends:
               jobs:
                   - job: compile_client_credentials_with_cert_from_key_vault
                     displayName: "Compile TypeScript for client-credentials-with-cert-from-key-vault"
-                    poolType: ${{ parameters.poolType }}
                     steps:
                         - script: |
                               cd samples/msal-node-samples/client-credentials-with-cert-from-key-vault
