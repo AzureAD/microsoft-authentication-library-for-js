@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Removed duplicate http status enum #7767",
-  "packageName": "@azure/msal-common",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "none"
-}
