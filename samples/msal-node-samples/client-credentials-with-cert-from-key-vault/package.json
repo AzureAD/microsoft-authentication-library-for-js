@@ -5,7 +5,7 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "test:e2e": "npm run build && jest",
+    "test:e2e": "jest",
     "build": "npx tsc",
     "start": "npm run build && node dist/app.js",
     "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-node"
