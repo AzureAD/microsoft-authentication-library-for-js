@@ -9,7 +9,7 @@ import {
     Configuration,
     LogLevel,
 } from "@azure/msal-node";
-import argv from "./cliArgs.js"; // command line arguments - see samples/msal-node-samples/cliArgs.ts
+import argv from "./cliArgs.js";
 import * as dotenv from "dotenv";
 
 dotenv.config();
