@@ -147,9 +147,13 @@ export class BrowserCacheManager extends CacheManager {
      * @param storeAuthStateInCookie
      */
     protected migrateCacheEntries(): void {
-        const previousVersion = this.browserStorage.getItem(StaticCacheKeys.VERSION);
+        const previousVersion = this.browserStorage.getItem(
+            StaticCacheKeys.VERSION
+        );
         if (previousVersion) {
-            this.logger.info(`MSAL.js was last initialized with version ${previousVersion}`);
+            this.logger.info(
+                `MSAL.js was last initialized with version ${previousVersion}`
+            );
         }
 
         if (previousVersion !== version) {
