@@ -15,7 +15,7 @@ import {
     LAB_CERT_NAME,
     LAB_KEY_VAULT_URL,
 } from "../../../e2eTestUtils/src/Constants";
-import getClientCredentialsToken from "../dist/app.js";
+import getClientCredentialsToken from "../app";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
 const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];

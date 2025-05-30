@@ -9,7 +9,7 @@ import {
     Configuration,
     LogLevel,
 } from "@azure/msal-node";
-import argv from "./cliArgs.js";
+import argv from "../cliArgs.js";
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -41,7 +41,7 @@ const getClientCredentialsToken = async (
  * If the script was executed manually, it will initialize a ConfidentialClientApplication object
  * and execute the sample client credentials application.
  */
-if (argv.$0 === "dist/app.js") {
+if (argv.$0 === "dist/client-credentials-with-cert-from-key-vault/app.js") {
     (async () => {
         const clientConfig: Configuration = {
             auth: {

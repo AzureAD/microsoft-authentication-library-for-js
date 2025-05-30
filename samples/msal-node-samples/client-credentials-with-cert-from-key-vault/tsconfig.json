@@ -1,8 +1,7 @@
 {
     "extends": "../tsconfig.json",
-    "compilerOptions": {
-        "moduleResolution": "node16",
-        "module": "node16",
-        "outDir": "./dist"
-    }
+    "files": [
+        "app.ts",
+        "../cliArgs.ts"
+    ],
 }

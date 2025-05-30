@@ -25,8 +25,7 @@
         "outDir": "dist",
     },
     "include": [
-        "**/test/*.spec.ts",
-        "client-credentials-with-cert-from-key-vault/*.ts"
+        "**/test/*.spec.ts"
     ],
     "exclude": [
         "node_modules"

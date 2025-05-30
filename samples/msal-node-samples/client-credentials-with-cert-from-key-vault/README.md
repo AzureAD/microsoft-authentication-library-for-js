@@ -70,7 +70,7 @@ This will compile the TypeScript into JavaScript, and put the compiled files in 
 The sample can now be run by typing:
 
 ```console
-    node dist/app.js
+    node dist/client-credentials-with-cert-from-key-vault/app.js
 ```
 
 An npm script, which will run the above npx and node command, has been configured in package.json. To compile and start the sample, type:
