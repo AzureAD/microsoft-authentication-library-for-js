@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1746563065583,
+  "lastUpdate": 1748630968274,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15298,6 +15298,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.88%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shylasummers@users.noreply.github.com",
+            "name": "shylasummers",
+            "username": "shylasummers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "306258d6ec1ba46250da5bd27e7067768f9a3d75",
+          "message": "Bump common to 15.7.0 (#7795)\n\nManually publish msal-common to 15.7.0",
+          "timestamp": "2025-05-30T14:42:59-04:00",
+          "tree_id": "20b2a41647d80a64d4fcf68db58e4a1ec1de7a76",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/306258d6ec1ba46250da5bd27e7067768f9a3d75"
+        },
+        "date": 1748630966629,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 251059,
+            "range": "±0.83%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 249228,
+            "range": "±0.79%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
