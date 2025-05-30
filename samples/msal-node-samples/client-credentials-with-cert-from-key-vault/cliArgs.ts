@@ -14,7 +14,7 @@ const argv = yargs(process.argv.slice(2))
     .options({
         c: {
             type: "string",
-            alias: "cache",
+            alias: "cache-location",
             default: "data/cache.json",
             description:
                 "(Optional) Cache location - default is data/cache.json",

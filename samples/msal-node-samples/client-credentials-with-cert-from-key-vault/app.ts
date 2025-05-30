@@ -41,7 +41,7 @@ const getClientCredentialsToken = async (
  * If the script was executed manually, it will initialize a ConfidentialClientApplication object
  * and execute the sample client credentials application.
  */
-if (argv.$0 === "dist/client-credentials-with-cert-from-key-vault/app.js") {
+if (argv.$0 === "dist/app.js") {
     (async () => {
         const clientConfig: Configuration = {
             auth: {
