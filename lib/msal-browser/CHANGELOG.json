@@ -2,6 +2,65 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Fri, 30 May 2025 21:38:52 GMT",
+      "version": "4.13.0",
+      "tag": "@azure/msal-browser_v4.13.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ffa09a4e551c553e32d9dd818efe26fa07ef24ef",
+            "comment": "updated naming for PlatformAuth request and response objects and added new type for DOM extraParameters #7759"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "8f6c61c7efe9204d3b73e9f67b707ba39611b105",
+            "comment": "Upgrade/rollback telemetry #7738"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "00c783912d8b18b84ce8ea2eb437ffbfda1f21d6",
+            "comment": "Add BrokerConnectionEvent to exports"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "306258d6ec1ba46250da5bd27e7067768f9a3d75",
+            "comment": "update common version"
+          }
+        ],
+        "minor": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "79cb28291311fd8707c8259d7294c0692081990d",
+            "comment": "Add support for new platform broker flow via DOM API #7632"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 06 May 2025 22:47:42 GMT",
       "version": "4.12.0",
       "tag": "@azure/msal-browser_v4.12.0",
