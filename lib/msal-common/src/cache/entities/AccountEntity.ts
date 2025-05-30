@@ -62,6 +62,7 @@ export class AccountEntity {
     msGraphHost?: string;
     nativeAccountId?: string;
     tenantProfiles?: Array<TenantProfile>;
+    lastUpdatedAt?: string;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
