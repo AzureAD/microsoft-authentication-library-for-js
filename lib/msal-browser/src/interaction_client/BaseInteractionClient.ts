@@ -133,22 +133,6 @@ export abstract class BaseInteractionClient {
 
     /**
      *
-     * Use to get the redirect uri configured in MSAL or null.
-     * @param requestRedirectUri
-     * @returns Redirect URL
-     *
-     */
-    getRedirectUri(requestRedirectUri?: string): string {
-        this.logger.verbose("getRedirectUri called");
-        const redirectUri = requestRedirectUri || this.config.auth.redirectUri;
-        return UrlString.getAbsoluteUrl(
-            redirectUri,
-            BrowserUtils.getCurrentUri()
-        );
-    }
-
-    /**
-     *
      * @param apiId
      * @param correlationId
      * @param forceRefresh
@@ -248,4 +232,20 @@ export abstract class BaseInteractionClient {
 
         return discoveredAuthority;
     }
+}
+
+/**
+ *
+ * Use to get the redirect uri configured in MSAL or null.
+ * @param requestRedirectUri
+ * @returns Redirect URL
+ *
+ */
+export function getRedirectUri(requestRedirectUri?: string, clientConfig?: BrowserConfiguration, logger?: Logger): string {
+    logger?.verbose("getRedirectUri called");
+    const redirectUri = requestRedirectUri || clientConfig?.auth.redirectUri || "";
+    return UrlString.getAbsoluteUrl(
+        redirectUri,
+        BrowserUtils.getCurrentUri()
+    );
 }
