@@ -22,7 +22,7 @@ import {
 } from "../error/BrowserAuthError.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { initializeBaseRequest } from "../request/RequestHelpers.js";
-import { getRedirectUri } from "./BaseInteractionClient.js";
+import { getRedirectUri, initializeServerTelemetryManager } from "./BaseInteractionClient.js";
 
 export class SilentRefreshClient extends StandardInteractionClient {
     /**
@@ -53,8 +53,12 @@ export class SilentRefreshClient extends StandardInteractionClient {
             );
         }
 
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.acquireTokenSilent_silentFlow
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            ApiId.acquireTokenSilent_silentFlow,
+            this.config,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         const refreshTokenClient = await this.createRefreshTokenClient({

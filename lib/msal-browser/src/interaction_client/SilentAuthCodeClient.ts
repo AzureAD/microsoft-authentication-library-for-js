@@ -28,6 +28,7 @@ import { HybridSpaAuthorizationCodeClient } from "./HybridSpaAuthorizationCodeCl
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { InteractionHandler } from "../interaction_handler/InteractionHandler.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
+import { initializeServerTelemetryManager } from "./BaseInteractionClient.js";
 
 export class SilentAuthCodeClient extends StandardInteractionClient {
     private apiId: ApiId;
@@ -81,8 +82,12 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             request.correlationId
         )(request, InteractionType.Silent);
 
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            this.apiId
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            this.apiId,
+            this.config,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         try {

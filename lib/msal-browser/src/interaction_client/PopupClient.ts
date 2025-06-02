@@ -47,6 +47,7 @@ import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
+import { initializeServerTelemetryManager } from "./BaseInteractionClient.js";
 
 export type PopupParams = {
     popup?: Window | null;
@@ -250,8 +251,12 @@ export class PopupClient extends StandardInteractionClient {
         pkceCodes?: PkceCodes
     ): Promise<AuthenticationResult> {
         const correlationId = request.correlationId;
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.acquireTokenPopup
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            ApiId.acquireTokenPopup,
+            this.config,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         const pkce =
@@ -473,8 +478,12 @@ export class PopupClient extends StandardInteractionClient {
             validRequest
         );
 
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.logoutPopup
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            ApiId.logoutPopup,
+            this.config,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         try {

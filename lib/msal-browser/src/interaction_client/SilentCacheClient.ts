@@ -17,6 +17,7 @@ import {
 } from "../error/BrowserAuthError.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
+import { initializeServerTelemetryManager } from "./BaseInteractionClient.js";
 
 export class SilentCacheClient extends StandardInteractionClient {
     /**
@@ -27,8 +28,12 @@ export class SilentCacheClient extends StandardInteractionClient {
         silentRequest: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
         // Telemetry manager only used to increment cacheHits here
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.acquireTokenSilent_silentFlow
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            ApiId.acquireTokenSilent_silentFlow,
+            this.config,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         const clientConfig = await invokeAsync(
