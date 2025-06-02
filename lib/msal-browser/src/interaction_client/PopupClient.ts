@@ -47,7 +47,7 @@ import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isBrokerAvailable } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
-import { initializeServerTelemetryManager } from "./BaseInteractionClient.js";
+import { getDiscoveredAuthority, initializeServerTelemetryManager } from "./BaseInteractionClient.js";
 
 export type PopupParams = {
     popup?: Window | null;
@@ -378,7 +378,7 @@ export class PopupClient extends StandardInteractionClient {
         const correlationId = request.correlationId;
         // Get the frame handle for the silent request
         const discoveredAuthority = await invokeAsync(
-            this.getDiscoveredAuthority.bind(this),
+            getDiscoveredAuthority,
             PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
             this.logger,
             this.performanceClient,
@@ -388,7 +388,7 @@ export class PopupClient extends StandardInteractionClient {
             requestAzureCloudOptions: request.azureCloudOptions,
             requestExtraQueryParameters: request.extraQueryParameters,
             account: request.account,
-        });
+        }, this.config, this.correlationId, this.performanceClient, this.browserStorage, this.logger);
 
         const earJwk = await invokeAsync(
             generateEarKey,

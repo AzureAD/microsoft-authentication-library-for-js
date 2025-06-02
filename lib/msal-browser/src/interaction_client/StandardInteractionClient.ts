@@ -19,7 +19,7 @@ import {
     StringDict,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
-import { BaseInteractionClient, getRedirectUri } from "./BaseInteractionClient.js";
+import { BaseInteractionClient, getDiscoveredAuthority, getRedirectUri } from "./BaseInteractionClient.js";
 import {
     BrowserConstants,
     InteractionType,
@@ -223,7 +223,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         } = params;
 
         const discoveredAuthority = await invokeAsync(
-            this.getDiscoveredAuthority.bind(this),
+            getDiscoveredAuthority,
             PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
             this.logger,
             this.performanceClient,
@@ -233,7 +233,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             requestAzureCloudOptions,
             requestExtraQueryParameters,
             account,
-        });
+        }, this.config, this.correlationId, this.performanceClient, this.browserStorage, this.logger);
         const logger = this.config.system.loggerOptions;
 
         return {

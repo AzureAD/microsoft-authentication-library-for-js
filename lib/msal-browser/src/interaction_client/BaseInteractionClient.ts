@@ -130,82 +130,6 @@ export abstract class BaseInteractionClient {
             }
         }
     }
-
-    /**
-     * Used to get a discovered version of the default authority.
-     * @param params {
-     *         requestAuthority?: string;
-     *         requestAzureCloudOptions?: AzureCloudOptions;
-     *         requestExtraQueryParameters?: StringDict;
-     *         account?: AccountInfo;
-     *        }
-     */
-    protected async getDiscoveredAuthority(params: {
-        requestAuthority?: string;
-        requestAzureCloudOptions?: AzureCloudOptions;
-        requestExtraQueryParameters?: StringDict;
-        account?: AccountInfo;
-    }): Promise<Authority> {
-        const { account } = params;
-        const instanceAwareEQ =
-            params.requestExtraQueryParameters &&
-            params.requestExtraQueryParameters.hasOwnProperty("instance_aware")
-                ? params.requestExtraQueryParameters["instance_aware"]
-                : undefined;
-
-        const authorityOptions: AuthorityOptions = {
-            protocolMode: this.config.system.protocolMode,
-            OIDCOptions: this.config.auth.OIDCOptions,
-            knownAuthorities: this.config.auth.knownAuthorities,
-            cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
-            authorityMetadata: this.config.auth.authorityMetadata,
-        };
-
-        // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority
-        const resolvedAuthority =
-            params.requestAuthority || this.config.auth.authority;
-        const resolvedInstanceAware = instanceAwareEQ?.length
-            ? instanceAwareEQ === "true"
-            : this.config.auth.instanceAware;
-
-        const userAuthority =
-            account && resolvedInstanceAware
-                ? this.config.auth.authority.replace(
-                      UrlString.getDomainFromUrl(resolvedAuthority),
-                      account.environment
-                  )
-                : resolvedAuthority;
-
-        // fall back to the authority from config
-        const builtAuthority = Authority.generateAuthority(
-            userAuthority,
-            params.requestAzureCloudOptions ||
-                this.config.auth.azureCloudOptions
-        );
-        const discoveredAuthority = await invokeAsync(
-            AuthorityFactory.createDiscoveredInstance,
-            PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
-        )(
-            builtAuthority,
-            this.config.system.networkClient,
-            this.browserStorage,
-            authorityOptions,
-            this.logger,
-            this.correlationId,
-            this.performanceClient
-        );
-
-        if (account && !discoveredAuthority.isAlias(account.environment)) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.authorityMismatch
-            );
-        }
-
-        return discoveredAuthority;
-    }
 }
 
 /**
@@ -224,32 +148,113 @@ export function getRedirectUri(requestRedirectUri?: string, clientConfig?: Brows
     );
 }
 
-    /**
-     *
-     * @param apiId
-     * @param correlationId
-     * @param forceRefresh
-     */
-    export function initializeServerTelemetryManager(
-        apiId: number,
-        config: BrowserConfiguration,
-        correlationId: string,
-        browserStorage: BrowserCacheManager,
-        logger?: Logger,
-        forceRefresh?: boolean
-    ): ServerTelemetryManager {
-        logger?.verbose("initializeServerTelemetryManager called");
-        const telemetryPayload: ServerTelemetryRequest = {
-            clientId: config.auth.clientId,
-            correlationId: correlationId,
-            apiId: apiId,
-            forceRefresh: forceRefresh || false,
-            wrapperSKU: browserStorage.getWrapperMetadata()[0],
-            wrapperVer: browserStorage.getWrapperMetadata()[1],
-        };
+/**
+ *
+ * @param apiId
+ * @param correlationId
+ * @param forceRefresh
+ */
+export function initializeServerTelemetryManager(
+    apiId: number,
+    config: BrowserConfiguration,
+    correlationId: string,
+    browserStorage: BrowserCacheManager,
+    logger?: Logger,
+    forceRefresh?: boolean
+): ServerTelemetryManager {
+    logger?.verbose("initializeServerTelemetryManager called");
+    const telemetryPayload: ServerTelemetryRequest = {
+        clientId: config.auth.clientId,
+        correlationId: correlationId,
+        apiId: apiId,
+        forceRefresh: forceRefresh || false,
+        wrapperSKU: browserStorage.getWrapperMetadata()[0],
+        wrapperVer: browserStorage.getWrapperMetadata()[1],
+    };
 
-        return new ServerTelemetryManager(
-            telemetryPayload,
-            browserStorage
+    return new ServerTelemetryManager(
+        telemetryPayload,
+        browserStorage
+    );
+}
+
+/**
+ * Used to get a discovered version of the default authority.
+ * @param params {
+ *         requestAuthority?: string;
+ *         requestAzureCloudOptions?: AzureCloudOptions;
+ *         requestExtraQueryParameters?: StringDict;
+ *         account?: AccountInfo;
+ *        }
+ */
+export async function getDiscoveredAuthority(params: {
+        requestAuthority?: string;
+        requestAzureCloudOptions?: AzureCloudOptions;
+        requestExtraQueryParameters?: StringDict;
+        account?: AccountInfo;
+    },
+    config: BrowserConfiguration,
+    correlationId: string,
+    performanceClient: IPerformanceClient,
+    browserStorage: BrowserCacheManager,
+    logger: Logger): Promise<Authority> {
+    const { account } = params;
+    const instanceAwareEQ =
+        params.requestExtraQueryParameters &&
+        params.requestExtraQueryParameters.hasOwnProperty("instance_aware")
+            ? params.requestExtraQueryParameters["instance_aware"]
+            : undefined;
+
+    const authorityOptions: AuthorityOptions = {
+        protocolMode: config.system.protocolMode,
+        OIDCOptions: config.auth.OIDCOptions,
+        knownAuthorities: config.auth.knownAuthorities,
+        cloudDiscoveryMetadata: config.auth.cloudDiscoveryMetadata,
+        authorityMetadata: config.auth.authorityMetadata,
+    };
+
+    // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority
+    const resolvedAuthority =
+        params.requestAuthority || config.auth.authority;
+    const resolvedInstanceAware = instanceAwareEQ?.length
+        ? instanceAwareEQ === "true"
+        : config.auth.instanceAware;
+
+    const userAuthority =
+        account && resolvedInstanceAware
+            ? config.auth.authority.replace(
+                    UrlString.getDomainFromUrl(resolvedAuthority),
+                    account.environment
+                )
+            : resolvedAuthority;
+
+    // fall back to the authority from config
+    const builtAuthority = Authority.generateAuthority(
+        userAuthority,
+        params.requestAzureCloudOptions ||
+            config.auth.azureCloudOptions
+    );
+    const discoveredAuthority = await invokeAsync(
+        AuthorityFactory.createDiscoveredInstance,
+        PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
+        logger,
+        performanceClient,
+        correlationId
+    )(
+        builtAuthority,
+        config.system.networkClient,
+        browserStorage,
+        authorityOptions,
+        logger,
+        correlationId,
+        performanceClient
+    );
+
+    if (account && !discoveredAuthority.isAlias(account.environment)) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.authorityMismatch
         );
     }
+
+    return discoveredAuthority;
+}

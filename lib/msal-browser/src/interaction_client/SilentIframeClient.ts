@@ -44,7 +44,7 @@ import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isBrokerAvailable } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
-import { initializeServerTelemetryManager } from "./BaseInteractionClient.js";
+import { getDiscoveredAuthority, initializeServerTelemetryManager } from "./BaseInteractionClient.js";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
@@ -215,7 +215,7 @@ export class SilentIframeClient extends StandardInteractionClient {
     ): Promise<AuthenticationResult> {
         const correlationId = request.correlationId;
         const discoveredAuthority = await invokeAsync(
-            this.getDiscoveredAuthority.bind(this),
+            getDiscoveredAuthority,
             PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
             this.logger,
             this.performanceClient,
@@ -225,7 +225,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             requestAzureCloudOptions: request.azureCloudOptions,
             requestExtraQueryParameters: request.extraQueryParameters,
             account: request.account,
-        });
+        }, this.config, this.correlationId, this.performanceClient, this.browserStorage, this.logger);
 
         const earJwk = await invokeAsync(
             generateEarKey,

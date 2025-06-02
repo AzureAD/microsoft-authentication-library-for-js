@@ -34,7 +34,7 @@ import {
     AccountEntityUtils,
     Constants,
 } from "@azure/msal-common/browser";
-import { BaseInteractionClient, getRedirectUri, initializeServerTelemetryManager } from "./BaseInteractionClient.js";
+import { BaseInteractionClient, getDiscoveredAuthority, getRedirectUri, initializeServerTelemetryManager } from "./BaseInteractionClient.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -481,9 +481,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         }
 
         // Get the preferred_cache domain for the given authority
-        const authority = await this.getDiscoveredAuthority({
+        const authority = await getDiscoveredAuthority({
             requestAuthority: request.authority,
-        });
+        }, this.config, this.correlationId, this.performanceClient, this.browserStorage, this.logger);
 
         const baseAccount = buildAccountToCache(
             this.browserStorage,
@@ -965,11 +965,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         if (request.account) {
             // validate authority
-            await this.getDiscoveredAuthority({
+            await getDiscoveredAuthority({
                 requestAuthority,
                 requestAzureCloudOptions: request.azureCloudOptions,
                 account: request.account,
-            });
+            }, this.config, this.correlationId, this.performanceClient, this.browserStorage, this.logger);
         }
 
         const canonicalAuthority = new UrlString(requestAuthority);

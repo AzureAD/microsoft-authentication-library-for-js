@@ -48,7 +48,7 @@ import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isBrokerAvailable } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
-import { initializeServerTelemetryManager } from "./BaseInteractionClient.js";
+import { getDiscoveredAuthority, initializeServerTelemetryManager } from "./BaseInteractionClient.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -245,7 +245,7 @@ export class RedirectClient extends StandardInteractionClient {
         const correlationId = request.correlationId;
         // Get the frame handle for the silent request
         const discoveredAuthority = await invokeAsync(
-            this.getDiscoveredAuthority.bind(this),
+            getDiscoveredAuthority,
             PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
             this.logger,
             this.performanceClient,
@@ -255,7 +255,7 @@ export class RedirectClient extends StandardInteractionClient {
             requestAzureCloudOptions: request.azureCloudOptions,
             requestExtraQueryParameters: request.extraQueryParameters,
             account: request.account,
-        });
+        }, this.config, this.correlationId, this.performanceClient, this.browserStorage, this.logger);
 
         const earJwk = await invokeAsync(
             generateEarKey,
@@ -527,7 +527,7 @@ export class RedirectClient extends StandardInteractionClient {
 
         if (serverParams.ear_jwe) {
             const discoveredAuthority = await invokeAsync(
-                this.getDiscoveredAuthority.bind(this),
+                getDiscoveredAuthority,
                 PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
                 this.logger,
                 this.performanceClient,
@@ -537,7 +537,7 @@ export class RedirectClient extends StandardInteractionClient {
                 requestAzureCloudOptions: request.azureCloudOptions,
                 requestExtraQueryParameters: request.extraQueryParameters,
                 account: request.account,
-            });
+            }, this.config, this.correlationId, this.performanceClient, this.browserStorage, this.logger);
             return invokeAsync(
                 Authorize.handleResponseEAR,
                 PerformanceEvents.HandleResponseEar,
