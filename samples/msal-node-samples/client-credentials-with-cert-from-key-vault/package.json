@@ -7,7 +7,7 @@
   "scripts": {
     "test:e2e": "jest",
     "build": "npx tsc",
-    "start": "npm run build && node dist/client-credentials-with-cert-from-key-vault/app.js",
+    "start": "npm run build && node dist/app.js",
     "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-node"
   },
   "type": "module",
