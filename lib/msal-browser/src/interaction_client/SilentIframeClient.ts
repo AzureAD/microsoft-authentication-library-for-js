@@ -44,6 +44,7 @@ import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isBrokerAvailable } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
+import { initializeServerTelemetryManager } from "./BaseInteractionClient.js";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
@@ -143,8 +144,12 @@ export class SilentIframeClient extends StandardInteractionClient {
         request: CommonAuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
         let authClient: AuthorizationCodeClient | undefined;
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            this.apiId
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            this.apiId,
+            this.config,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         try {

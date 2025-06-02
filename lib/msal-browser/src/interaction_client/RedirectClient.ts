@@ -48,6 +48,7 @@ import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isBrokerAvailable } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
+import { initializeServerTelemetryManager } from "./BaseInteractionClient.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -166,8 +167,12 @@ export class RedirectClient extends StandardInteractionClient {
         request: CommonAuthorizationUrlRequest
     ): Promise<void> {
         const correlationId = request.correlationId;
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.acquireTokenRedirect
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            ApiId.acquireTokenRedirect,
+            this.config, 
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         const pkceCodes = await invokeAsync(
@@ -289,8 +294,12 @@ export class RedirectClient extends StandardInteractionClient {
         pkceVerifier: string,
         parentMeasurement: InProgressPerformanceEvent
     ): Promise<AuthenticationResult | null> {
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.handleRedirectPromise
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            ApiId.handleRedirectPromise,
+            this.config,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         try {
@@ -652,8 +661,12 @@ export class RedirectClient extends StandardInteractionClient {
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
         this.logger.verbose("logoutRedirect called");
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            ApiId.logout
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            ApiId.logout,
+            this.config,
+            this.correlationId,
+            this.browserStorage,
+            this.logger
         );
 
         try {

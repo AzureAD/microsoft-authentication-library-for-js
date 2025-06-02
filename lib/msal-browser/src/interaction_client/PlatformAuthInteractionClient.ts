@@ -34,7 +34,7 @@ import {
     AccountEntityUtils,
     Constants,
 } from "@azure/msal-common/browser";
-import { BaseInteractionClient, getRedirectUri } from "./BaseInteractionClient.js";
+import { BaseInteractionClient, getRedirectUri, initializeServerTelemetryManager } from "./BaseInteractionClient.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -165,8 +165,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
         const reqTimestamp = TimeUtils.nowSeconds();
 
-        const serverTelemetryManager = this.initializeServerTelemetryManager(
-            this.apiId
+        const serverTelemetryManager = initializeServerTelemetryManager(
+            this.apiId,
+            this.config,
+            this.correlationId ,
+            this.browserStorage,
+            this.logger
         );
 
         try {
@@ -322,7 +326,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
             if (e instanceof NativeAuthError) {
                 const serverTelemetryManager =
-                    this.initializeServerTelemetryManager(this.apiId);
+                    initializeServerTelemetryManager(this.apiId, this.config, this.correlationId, this.browserStorage, this.logger);
                 serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
                 if (isFatalNativeAuthError(e)) {
                     throw e;
@@ -412,7 +416,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             );
 
             const serverTelemetryManager =
-                this.initializeServerTelemetryManager(this.apiId);
+                initializeServerTelemetryManager(this.apiId, this.config, this.correlationId, this.browserStorage, this.logger);
             serverTelemetryManager.clearNativeBrokerErrorCode();
             return authResult;
         } catch (e) {
