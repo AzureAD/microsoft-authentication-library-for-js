@@ -34,7 +34,7 @@ import {
     AccountEntityUtils,
     Constants,
 } from "@azure/msal-common/browser";
-import { BaseInteractionClient } from "./BaseInteractionClient.js";
+import { BaseInteractionClient, getRedirectUri } from "./BaseInteractionClient.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -337,7 +337,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         };
         const redirectUri = this.config.auth.navigateToLoginRequestUrl
             ? window.location.href
-            : this.getRedirectUri(request.redirectUri);
+            : getRedirectUri(request.redirectUri, this.config, this.logger);
         rootMeasurement.end({ success: true });
         await this.navigationClient.navigateExternal(
             redirectUri,
@@ -881,7 +881,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             clientId: this.config.auth.clientId,
             authority: canonicalAuthority.urlString,
             scope: scopeSet.printScopes(),
-            redirectUri: this.getRedirectUri(request.redirectUri),
+            redirectUri: getRedirectUri(request.redirectUri, this.config, this.logger),
             prompt: this.getPrompt(request.prompt),
             correlationId: this.correlationId,
             tokenType: request.authenticationScheme,

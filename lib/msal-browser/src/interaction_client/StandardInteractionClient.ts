@@ -19,7 +19,7 @@ import {
     StringDict,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
-import { BaseInteractionClient } from "./BaseInteractionClient.js";
+import { BaseInteractionClient, getRedirectUri } from "./BaseInteractionClient.js";
 import {
     BrowserConstants,
     InteractionType,
@@ -277,7 +277,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         request: RedirectRequest | PopupRequest | SsoSilentRequest,
         interactionType: InteractionType
     ): Promise<CommonAuthorizationUrlRequest> {
-        const redirectUri = this.getRedirectUri(request.redirectUri);
+        const redirectUri = getRedirectUri(request.redirectUri, this.config, this.logger);
         const browserState: BrowserStateObject = {
             interactionType: interactionType,
         };
