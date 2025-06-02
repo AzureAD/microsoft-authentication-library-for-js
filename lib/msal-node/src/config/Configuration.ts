@@ -17,8 +17,8 @@ import {
     ClientAssertionCallback,
 } from "@azure/msal-common/node";
 import { HttpClient } from "../network/HttpClient.js";
-import http from "http";
-import https from "https";
+import * as http from "http";
+import * as https from "https";
 import { ManagedIdentityId } from "./ManagedIdentityId.js";
 import { NodeAuthError } from "../error/NodeAuthError.js";
 
