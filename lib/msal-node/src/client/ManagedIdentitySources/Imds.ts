@@ -9,27 +9,37 @@ import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRe
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import {
-    API_VERSION_QUERY_PARAMETER_NAME,
     HttpMethod,
-    METADATA_HEADER_NAME,
     ManagedIdentityEnvironmentVariableNames,
+    ManagedIdentityHeaders,
     ManagedIdentityIdType,
+    ManagedIdentityQueryParameters,
     ManagedIdentitySourceNames,
-    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
 } from "../../utils/Constants.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
 import { ImdsRetryPolicy } from "../../retry/ImdsRetryPolicy.js";
 
-// IMDS constants. Docs for IMDS are available here https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http
+// Documentation for IMDS is available at https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-to-use-vm-token#get-a-token-using-http
+
 const IMDS_TOKEN_PATH: string = "/metadata/identity/oauth2/token";
 const DEFAULT_IMDS_ENDPOINT: string = `http://169.254.169.254${IMDS_TOKEN_PATH}`;
-
 const IMDS_API_VERSION: string = "2018-02-01";
 
-// Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/ImdsManagedIdentitySource.cs
+/**
+ * Original source of code: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/identity/Azure.Identity/src/ImdsManagedIdentitySource.cs
+ */
 export class Imds extends BaseManagedIdentitySource {
     private identityEndpoint: string;
 
+    /**
+     * Constructs an Imds instance.
+     * @param logger - Logger instance for logging.
+     * @param nodeStorage - NodeStorage instance for caching.
+     * @param networkClient - Network client for HTTP requests.
+     * @param cryptoProvider - CryptoProvider for cryptographic operations.
+     * @param disableInternalRetries - Whether to disable internal retry logic.
+     * @param identityEndpoint - The IMDS endpoint to use.
+     */
     constructor(
         logger: Logger,
         nodeStorage: NodeStorage,
@@ -49,6 +59,18 @@ export class Imds extends BaseManagedIdentitySource {
         this.identityEndpoint = identityEndpoint;
     }
 
+    /**
+     * Attempts to create an Imds instance by determining the correct endpoint.
+     * If the AZURE_POD_IDENTITY_AUTHORITY_HOST environment variable is set, it uses that as the endpoint.
+     * Otherwise, it falls back to the default IMDS endpoint.
+     *
+     * @param logger - Logger instance for logging.
+     * @param nodeStorage - NodeStorage instance for caching.
+     * @param networkClient - Network client for HTTP requests.
+     * @param cryptoProvider - CryptoProvider for cryptographic operations.
+     * @param disableInternalRetries - Whether to disable internal retry logic.
+     * @returns An instance of Imds configured with the appropriate endpoint.
+     */
     public static tryCreate(
         logger: Logger,
         nodeStorage: NodeStorage,
@@ -102,6 +124,14 @@ export class Imds extends BaseManagedIdentitySource {
         );
     }
 
+    /**
+     * Creates a ManagedIdentityRequestParameters object for acquiring a token from IMDS.
+     * Sets the required headers and query parameters for the IMDS token request.
+     *
+     * @param resource - The resource URI for which the token is requested.
+     * @param managedIdentityId - The managed identity ID (system-assigned or user-assigned).
+     * @returns A ManagedIdentityRequestParameters object configured for IMDS.
+     */
     public createRequest(
         resource: string,
         managedIdentityId: ManagedIdentityId
@@ -112,11 +142,11 @@ export class Imds extends BaseManagedIdentitySource {
                 this.identityEndpoint
             );
 
-        request.headers[METADATA_HEADER_NAME] = "true";
+        request.headers[ManagedIdentityHeaders.METADATA_HEADER_NAME] = "true";
 
-        request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.API_VERSION] =
             IMDS_API_VERSION;
-        request.queryParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
         if (
@@ -130,7 +160,7 @@ export class Imds extends BaseManagedIdentitySource {
             ] = managedIdentityId.id;
         }
 
-        // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
+        // The bodyParameters are calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity.
 
         request.retryPolicy = new ImdsRetryPolicy();
 

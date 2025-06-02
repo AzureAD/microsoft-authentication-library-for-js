@@ -2,15 +2,41 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
-      "date": "Fri, 16 May 2025 16:04:49 GMT",
+      "date": "Fri, 30 May 2025 22:36:44 GMT",
       "version": "4.13.0",
       "tag": "@azure/msal-browser_v4.13.0",
       "comments": {
+        "patch": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "8323e24e3b5b09124bfb83c0e4bbec013a2b7a0c",
+            "comment": "update common version"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "8323e24e3b5b09124bfb83c0e4bbec013a2b7a0c",
+            "comment": "Add BrokerConnectionEvent to exports"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "8323e24e3b5b09124bfb83c0e4bbec013a2b7a0c",
+            "comment": "Upgrade/rollback telemetry #7738"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "8323e24e3b5b09124bfb83c0e4bbec013a2b7a0c",
+            "comment": "updated naming for PlatformAuth request and response objects and added new type for DOM extraParameters #7759"
+          }
+        ],
         "minor": [
           {
             "author": "lalimasharda@microsoft.com",
             "package": "@azure/msal-browser",
-            "commit": "8e80655ac9a6dba79ef5d1ddce82bae0f1fdb1be",
+            "commit": "8323e24e3b5b09124bfb83c0e4bbec013a2b7a0c",
             "comment": "Add support for new platform broker flow via DOM API #7632"
           },
           {

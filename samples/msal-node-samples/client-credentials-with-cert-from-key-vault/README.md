@@ -37,28 +37,24 @@ Locate the folder where `package.json` resides in your terminal. Then type:
     - Select the **Add permissions** button at the bottom.
     - Finally, grant **admin consent** for this scope.
 
-Before running the sample, you will need to replace the values in retrieve-cert-from-key-vault code as well as the configuration object:
+Before running the sample, you will need to replace the values in retrieve-cert-from-key-vault code as well as create a .env file:
 
 ```typescript
 const keyVaultSecretClient = await getKeyVaultSecretClient(
-    "ENTER_KEY_VAULT_URL" // optional, the "KEY_VAULT_URL" environment variable can be set instead
+    "KEY_VAULT_URL" // optional, the "KEY_VAULT_URL" environment variable can be set instead
 );
 [thumbprint, privateKey, x5c] = await getCertificateInfo(
     keyVaultSecretClient,
-    "ENTER_CERT_NAME"
+    "CERT_NAME" // optional, the "CERT_NAME" environment variable can be set instead
 );
+```
 
-config = {
-    auth: {
-        clientId: "ENTER_CLIENT_ID",
-        authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
-        clientCertificate: {
-            thumbprintSha256: thumbprint,
-            privateKey: privateKey,
-            x5c: x5c,
-        },
-    },
-};
+```
+CLIENT_ID=YOUR_CLIENT_ID_HERE
+TENANT_ID=YOUR_TENANT_ID_HERE
+CLIENT_CERTIFICATE_THUMBPRINT_SHA_256=YOUR_CLIENT_CERTIFICATE_THUMBPRINT_SHA_256_HERE
+CLIENT_CERTIFICATE_PRIVATE_KEY=YOUR_CLIENT_CERTIFICATE_PRIVATE_KEY_HERE
+CLIENT_CERTIFICATE_X5C=YOUR_CLIENT_CERTIFICATE_X5C_HERE
 ```
 
 ## Run the app

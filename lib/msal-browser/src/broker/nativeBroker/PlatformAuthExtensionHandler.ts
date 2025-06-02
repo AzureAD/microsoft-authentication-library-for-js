@@ -19,15 +19,15 @@ import {
 import {
     NativeExtensionRequest,
     NativeExtensionRequestBody,
-    PlatformBrokerRequest,
-} from "./PlatformBrokerRequest.js";
+    PlatformAuthRequest,
+} from "./PlatformAuthRequest.js";
 import { createNativeAuthError } from "../../error/NativeAuthError.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../../error/BrowserAuthError.js";
 import { createNewGuid } from "../../crypto/BrowserCrypto.js";
-import { PlatformBrokerResponse } from "./PlatformBrokerResponse.js";
+import { PlatformAuthResponse } from "./PlatformAuthResponse.js";
 import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 
 type ResponseResolvers<T> = {
@@ -77,8 +77,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      * @param request
      */
     async sendMessage(
-        request: PlatformBrokerRequest
-    ): Promise<PlatformBrokerResponse> {
+        request: PlatformAuthRequest
+    ): Promise<PlatformAuthResponse> {
         this.logger.trace(this.platformAuthType + " - sendMessage called.");
 
         // fall back to native calls
@@ -109,7 +109,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             this.resolvers.set(req.responseId, { resolve, reject });
         });
 
-        const validatedResponse: PlatformBrokerResponse =
+        const validatedResponse: PlatformAuthResponse =
             this.validatePlatformBrokerResponse(response);
 
         return validatedResponse;
@@ -382,7 +382,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      */
     private validatePlatformBrokerResponse(
         response: object
-    ): PlatformBrokerResponse {
+    ): PlatformAuthResponse {
         if (
             response.hasOwnProperty("access_token") &&
             response.hasOwnProperty("id_token") &&
@@ -391,7 +391,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             response.hasOwnProperty("scope") &&
             response.hasOwnProperty("expires_in")
         ) {
-            return response as PlatformBrokerResponse;
+            return response as PlatformAuthResponse;
         } else {
             throw createAuthError(
                 AuthErrorCodes.unexpectedError,

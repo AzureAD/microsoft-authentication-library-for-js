@@ -57,6 +57,7 @@ import {
     ApiId,
     BrowserCacheLocation,
     InteractionType,
+    StaticCacheKeys,
 } from "../../src/utils/BrowserConstants.js";
 import { base64Encode } from "../../src/encode/Base64Encode.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
@@ -87,6 +88,7 @@ import {
     TestTimeUtils,
 } from "msal-test-utils";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
+import { version } from "../../src/packageMetadata.js";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -205,7 +207,10 @@ describe("RedirectClient", () => {
                 .then((response) => {
                     expect(response).toBe(null);
                     expect(window.localStorage.length).toEqual(0);
-                    expect(window.sessionStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(1);
+                    expect(
+                        window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                     done();
                 });
         });
@@ -223,7 +228,10 @@ describe("RedirectClient", () => {
                 .then((response) => {
                     expect(response).toBe(null);
                     expect(window.localStorage.length).toEqual(0);
-                    expect(window.sessionStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(1);
+                    expect(
+                        window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                     done();
                 });
         });
@@ -241,7 +249,10 @@ describe("RedirectClient", () => {
                 .then((response) => {
                     expect(response).toBe(null);
                     expect(window.localStorage.length).toEqual(0);
-                    expect(window.sessionStorage.length).toEqual(0);
+                    expect(window.sessionStorage.length).toEqual(1);
+                    expect(
+                        window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                    ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
                     expect(window.location.hash).toEqual(
                         TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
                     );

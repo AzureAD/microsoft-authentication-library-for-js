@@ -1,12 +1,12 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Fri, 16 May 2025 16:04:49 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 30 May 2025 22:36:44 GMT and should not be manually modified. -->
 
 <!-- Start content -->
 
 ## 4.13.0
 
-Fri, 16 May 2025 16:04:49 GMT
+Fri, 30 May 2025 22:36:44 GMT
 
 ### Minor changes
 
@@ -14,6 +14,13 @@ Fri, 16 May 2025 16:04:49 GMT
 - Bump eslint-config-msal to v0.0.0
 - Bump msal-test-utils to v0.0.1
 - Bump rollup-msal to v0.0.0
+
+### Patches
+
+- update common version (shylasummers@microsoft.com)
+- Add BrokerConnectionEvent to exports (thomas.norling@microsoft.com)
+- Upgrade/rollback telemetry #7738 (thomas.norling@microsoft.com)
+- updated naming for PlatformAuth request and response objects and added new type for DOM extraParameters #7759 (lalimasharda@microsoft.com)
 
 ## 4.12.0
 

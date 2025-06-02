@@ -14,9 +14,11 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "^3.0.0"
+    "@azure/msal-node": "^3.0.0",
+    "dotenv": "^16.5.0"
   },
   "devDependencies": {
+    "@types/dotenv": "^6.1.1",
     "@types/jest": "^29.5.0",
     "e2e-test-utils": "^0.0.1",
     "jest": "^29.5.0",
