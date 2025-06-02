@@ -22,7 +22,7 @@ import {
     ID_TOKEN_CLAIMS,
     ID_TOKEN_ALT_CLAIMS,
 } from "../utils/StringConstants.js";
-import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient.js";
+import { BaseInteractionClient, getDiscoveredAuthority } from "../../src/interaction_client/BaseInteractionClient.js";
 import {
     EndSessionRequest,
     PublicClientApplication,
@@ -244,13 +244,13 @@ describe("BaseInteractionClient", () => {
                 username: "AbeLi@microsoft.com",
             };
 
-            await testClient
-                // @ts-ignore
-                .getDiscoveredAuthority({
+            let clientInst = testClient as any;
+
+            await getDiscoveredAuthority({
                     requestAuthority:
                         "https://login.microsoftonline.com/common",
                     account: testAccount,
-                })
+                }, clientInst.config, clientInst.correlationId, clientInst.performanceClient, clientInst.browserStorage, clientInst.logger)
                 .then(() => {
                     throw "This is unexpected. This call should have failed.";
                 })
@@ -272,13 +272,13 @@ describe("BaseInteractionClient", () => {
                 username: "AbeLi@microsoft.com",
             };
 
-            testClient
-                // @ts-ignore
-                .getDiscoveredAuthority({
+            const clientInst = testClient as any;
+
+            getDiscoveredAuthority({
                     requestAuthority:
                         "https://login.microsoftonline.com/common",
                     account: testAccount,
-                })
+                }, clientInst.config, clientInst.correlationId, clientInst.performanceClient, clientInst.browserStorage, clientInst.logger)
                 .then(() => {
                     done();
                 })
@@ -316,11 +316,10 @@ describe("BaseInteractionClient", () => {
                 pca.performanceClient
             );
 
-            interactionClient
-                // @ts-ignore
-                .getDiscoveredAuthority({
+            const clientInst = interactionClient as any;
+            getDiscoveredAuthority({
                     account: testAccount,
-                })
+                }, clientInst.config, clientInst.correlationId, clientInst.performanceClient, clientInst.browserStorage, clientInst.logger)
                 .then(() => {
                     done();
                 })
@@ -358,13 +357,12 @@ describe("BaseInteractionClient", () => {
                 pca.performanceClient
             );
 
-            interactionClient
-                // @ts-ignore
-                .getDiscoveredAuthority({
+            const clientInst = interactionClient as any;
+            getDiscoveredAuthority({
                     account: testAccount,
                     requestAuthority:
                         "https://login.microsoftonline.com/common",
-                })
+                }, clientInst.config, clientInst.correlationId, clientInst.performanceClient, clientInst.browserStorage, clientInst.logger)
                 .then(() => {
                     done();
                 })
