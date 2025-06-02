@@ -132,32 +132,6 @@ export abstract class BaseInteractionClient {
     }
 
     /**
-     *
-     * @param apiId
-     * @param correlationId
-     * @param forceRefresh
-     */
-    protected initializeServerTelemetryManager(
-        apiId: number,
-        forceRefresh?: boolean
-    ): ServerTelemetryManager {
-        this.logger.verbose("initializeServerTelemetryManager called");
-        const telemetryPayload: ServerTelemetryRequest = {
-            clientId: this.config.auth.clientId,
-            correlationId: this.correlationId,
-            apiId: apiId,
-            forceRefresh: forceRefresh || false,
-            wrapperSKU: this.browserStorage.getWrapperMetadata()[0],
-            wrapperVer: this.browserStorage.getWrapperMetadata()[1],
-        };
-
-        return new ServerTelemetryManager(
-            telemetryPayload,
-            this.browserStorage
-        );
-    }
-
-    /**
      * Used to get a discovered version of the default authority.
      * @param params {
      *         requestAuthority?: string;
@@ -249,3 +223,33 @@ export function getRedirectUri(requestRedirectUri?: string, clientConfig?: Brows
         BrowserUtils.getCurrentUri()
     );
 }
+
+    /**
+     *
+     * @param apiId
+     * @param correlationId
+     * @param forceRefresh
+     */
+    export function initializeServerTelemetryManager(
+        apiId: number,
+        config: BrowserConfiguration,
+        correlationId: string,
+        browserStorage: BrowserCacheManager,
+        logger?: Logger,
+        forceRefresh?: boolean
+    ): ServerTelemetryManager {
+        logger?.verbose("initializeServerTelemetryManager called");
+        const telemetryPayload: ServerTelemetryRequest = {
+            clientId: config.auth.clientId,
+            correlationId: correlationId,
+            apiId: apiId,
+            forceRefresh: forceRefresh || false,
+            wrapperSKU: browserStorage.getWrapperMetadata()[0],
+            wrapperVer: browserStorage.getWrapperMetadata()[1],
+        };
+
+        return new ServerTelemetryManager(
+            telemetryPayload,
+            browserStorage
+        );
+    }
