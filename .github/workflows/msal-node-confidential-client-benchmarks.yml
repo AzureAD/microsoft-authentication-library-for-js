@@ -2,7 +2,7 @@
 on:
   push:
     branches:
-      - dev
+      - v3-lts
 
 permissions:
   # deployments permission to deploy GitHub pages website

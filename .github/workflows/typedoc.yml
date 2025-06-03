@@ -6,7 +6,7 @@ on:
   pull_request:
     types: [closed]
     branches:
-      - dev
+      - v3-lts
 
 jobs:
   deploy:

@@ -9,7 +9,7 @@ name: Metadata Checker
 on:
   pull_request:
     branches: 
-      - dev
+      - v3-lts
   merge_group:
     types: [checks_requested]
 

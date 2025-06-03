@@ -298,7 +298,6 @@ describe("AAD-Prod Tests", () => {
                     )
             ).toBeTruthy();
             expect(popupWindow.url()).toContain("logout");
-            await popupWindow.waitForNavigation();
             const tokenStore = await BrowserCache.getTokens();
 
             expect(tokenStore.idTokens.length).toEqual(0);
