@@ -54,11 +54,13 @@ import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
 import { SsoSilentRequest } from "../../src/index.js";
+import * as StandardInteractionClientExports from "../../src/interaction_client/StandardInteractionClient.js";
 
 describe("SilentIframeClient", () => {
     let silentIframeClient: SilentIframeClient;
     let pca: PublicClientApplication;
     let browserCacheManager: BrowserCacheManager;
+    let clientProperties: SilentIframeClient;
 
     beforeEach(() => {
         pca = new PublicClientApplication({
@@ -95,6 +97,8 @@ describe("SilentIframeClient", () => {
             undefined,
             TEST_CONFIG.CORRELATION_ID
         );
+
+        clientProperties = silentIframeClient as any;
     });
 
     afterEach(() => {
@@ -167,24 +171,32 @@ describe("SilentIframeClient", () => {
                 RANDOM_TEST_GUID
             );
 
-            const initializeAuthorizationRequestSpy = jest.spyOn(
-                SilentIframeClient.prototype,
-                // @ts-ignore
-                "initializeAuthorizationRequest"
-            );
+            const initializeAuthorizationRequestSpy = jest.spyOn(StandardInteractionClientExports, "initializeAuthorizationRequest");
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
                 prompt: Constants.PromptValue.SELECT_ACCOUNT,
             });
             expect(tokenResp).toEqual(testTokenResponse);
-            expect(initializeAuthorizationRequestSpy).toBeCalledWith(
+            expect(initializeAuthorizationRequestSpy).toHaveBeenCalledWith(
                 {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     loginHint: "testLoginHint",
                     prompt: Constants.PromptValue.NONE,
                 },
-                InteractionType.Silent
+                InteractionType.Silent,
+                // @ts-ignore
+                clientProperties.config,
+                //@ts-ignore
+                clientProperties.browserCrypto,
+                //@ts-ignore
+                clientProperties.browserStorage,
+                //@ts-ignore
+                clientProperties.logger,
+                //@ts-ignore
+                clientProperties.performanceClient,
+                //@ts-ignore
+                clientProperties.correlationId
             );
         });
 
@@ -906,11 +918,6 @@ describe("SilentIframeClient", () => {
                 "generateAuthority"
             );
 
-            const initializeAuthorizationRequestSpy = jest.spyOn(
-                SilentIframeClient.prototype,
-                // @ts-ignore
-                "initializeAuthorizationRequest"
-            );
             const tokenResp = await testClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
@@ -1013,11 +1020,6 @@ describe("SilentIframeClient", () => {
                 "generateAuthority"
             );
 
-            const initializeAuthorizationRequestSpy = jest.spyOn(
-                SilentIframeClient.prototype,
-                // @ts-ignore
-                "initializeAuthorizationRequest"
-            );
             const tokenResp = await testClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
@@ -1123,12 +1125,7 @@ describe("SilentIframeClient", () => {
                 Authority,
                 "generateAuthority"
             );
-
-            const initializeAuthorizationRequestSpy = jest.spyOn(
-                SilentIframeClient.prototype,
-                // @ts-ignore
-                "initializeAuthorizationRequest"
-            );
+            
             const tokenResp = await testClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
