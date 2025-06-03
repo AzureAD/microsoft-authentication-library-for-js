@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1748983479183,
+  "lastUpdate": 1748983894525,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15412,6 +15412,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.05%",
             "unit": "ops/sec",
             "extra": "232 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "152663010+msal-js-release-automation[bot]@users.noreply.github.com",
+            "name": "msal-js-release-automation[bot]",
+            "username": "msal-js-release-automation[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ac886309aa079bb762699d803d3b21de40befcac",
+          "message": "Release PR: official (#7798)\n\nThis PR contains the changelogs and version bumps for the MSAL.js 3P\nreleases.\n\n---------\n\nCo-authored-by: MSAL.js Release Automation <msaljsbuilds@microsoft.com>\nCo-authored-by: Shyla Summers <shylasummers@microsoft.com>",
+          "timestamp": "2025-06-03T13:44:57-07:00",
+          "tree_id": "f8bbb2c3f4cbeeda52be61e69201e30e7aac163c",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/ac886309aa079bb762699d803d3b21de40befcac"
+        },
+        "date": 1748983892855,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 246291,
+            "range": "±0.74%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 243534,
+            "range": "±0.74%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
