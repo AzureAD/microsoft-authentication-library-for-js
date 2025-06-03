@@ -22,7 +22,10 @@ import {
 } from "../error/BrowserAuthError.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { initializeBaseRequest } from "../request/RequestHelpers.js";
-import { getRedirectUri, initializeServerTelemetryManager } from "./BaseInteractionClient.js";
+import {
+    getRedirectUri,
+    initializeServerTelemetryManager,
+} from "./BaseInteractionClient.js";
 
 export class SilentRefreshClient extends StandardInteractionClient {
     /**

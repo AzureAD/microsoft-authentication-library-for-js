@@ -19,7 +19,10 @@ import {
     PkceCodes,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
-import { initializeAuthorizationRequest, StandardInteractionClient } from "./StandardInteractionClient.js";
+import {
+    initializeAuthorizationRequest,
+    StandardInteractionClient,
+} from "./StandardInteractionClient.js";
 import { EventType } from "../event/EventType.js";
 import {
     InteractionType,
@@ -47,7 +50,10 @@ import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isBrokerAvailable } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
-import { getDiscoveredAuthority, initializeServerTelemetryManager } from "./BaseInteractionClient.js";
+import {
+    getDiscoveredAuthority,
+    initializeServerTelemetryManager,
+} from "./BaseInteractionClient.js";
 
 export type PopupParams = {
     popup?: Window | null;
@@ -213,7 +219,16 @@ export class PopupClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(request, InteractionType.Popup, this.config, this.browserCrypto, this.browserStorage, this.logger, this.performanceClient, this.correlationId);
+        )(
+            request,
+            InteractionType.Popup,
+            this.config,
+            this.browserCrypto,
+            this.browserStorage,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        );
 
         /*
          * Skip pre-connect for async popups to reduce time between user interaction and popup window creation to avoid
@@ -383,12 +398,19 @@ export class PopupClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             correlationId
-        )({
-            requestAuthority: request.authority,
-            requestAzureCloudOptions: request.azureCloudOptions,
-            requestExtraQueryParameters: request.extraQueryParameters,
-            account: request.account,
-        }, this.config, this.correlationId, this.performanceClient, this.browserStorage, this.logger);
+        )(
+            {
+                requestAuthority: request.authority,
+                requestAzureCloudOptions: request.azureCloudOptions,
+                requestExtraQueryParameters: request.extraQueryParameters,
+                account: request.account,
+            },
+            this.config,
+            this.correlationId,
+            this.performanceClient,
+            this.browserStorage,
+            this.logger
+        );
 
         const earJwk = await invokeAsync(
             generateEarKey,
