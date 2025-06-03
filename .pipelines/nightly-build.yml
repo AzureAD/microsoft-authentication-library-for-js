@@ -9,7 +9,7 @@ schedules:
       displayName: Nightly Build
       branches:
           include:
-              - dev
+              - v3-lts
 
 jobs:
     - job: Build
