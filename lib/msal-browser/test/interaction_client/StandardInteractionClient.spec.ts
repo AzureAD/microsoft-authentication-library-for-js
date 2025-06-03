@@ -15,7 +15,7 @@ import {
     AccountEntityUtils,
 } from "@azure/msal-common";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
-import { StandardInteractionClient } from "../../src/interaction_client/StandardInteractionClient.js";
+import { initializeAuthorizationRequest, StandardInteractionClient } from "../../src/interaction_client/StandardInteractionClient.js";
 import { EndSessionRequest } from "../../src/request/EndSessionRequest.js";
 import {
     TEST_CONFIG,
@@ -43,7 +43,7 @@ class testStandardInteractionClient extends StandardInteractionClient {
         request: RedirectRequest,
         interactionType: InteractionType
     ) {
-        return super.initializeAuthorizationRequest(request, interactionType);
+        return initializeAuthorizationRequest(request, interactionType, this.config, this.browserCrypto, this.browserStorage, this.logger, this.performanceClient, this.correlationId);
     }
 
     async getDiscoveredAuthority(params: {
