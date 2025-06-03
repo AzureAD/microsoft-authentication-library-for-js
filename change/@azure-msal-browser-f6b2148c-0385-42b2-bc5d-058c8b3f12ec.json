@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "updated naming for PlatformAuth request and response objects and added new type for DOM extraParameters #7759",
-  "packageName": "@azure/msal-browser",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "patch"
-}
