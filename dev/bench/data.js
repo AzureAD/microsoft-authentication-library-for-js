@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1748644282812,
+  "lastUpdate": 1748983479183,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15374,6 +15374,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.66%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2b47dcb2f87aea6daec52a8db4b7373edad54f26",
+          "message": "Fix v3 pipeline definitions (#7799)\n\nUpdates v3-lts branch pipeline definitions to reference the v3-lts\npipelines, not the v4 pipelines which are incompatible",
+          "timestamp": "2025-06-03T13:38:55-07:00",
+          "tree_id": "d53b6827e3ac8978201d918cb56430a630eebc80",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/2b47dcb2f87aea6daec52a8db4b7373edad54f26"
+        },
+        "date": 1748983477546,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 250705,
+            "range": "±0.94%",
+            "unit": "ops/sec",
+            "extra": "212 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 245680,
+            "range": "±1.05%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
           }
         ]
       }
