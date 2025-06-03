@@ -19,7 +19,7 @@ import {
     PkceCodes,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
-import { StandardInteractionClient } from "./StandardInteractionClient.js";
+import { initializeAuthorizationRequest, StandardInteractionClient } from "./StandardInteractionClient.js";
 import { EventType } from "../event/EventType.js";
 import {
     InteractionType,
@@ -208,12 +208,12 @@ export class PopupClient extends StandardInteractionClient {
         this.logger.verbose("acquireTokenPopupAsync called");
 
         const validRequest = await invokeAsync(
-            this.initializeAuthorizationRequest.bind(this),
+            initializeAuthorizationRequest,
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(request, InteractionType.Popup);
+        )(request, InteractionType.Popup, this.config, this.browserCrypto, this.browserStorage, this.logger, this.performanceClient, this.correlationId);
 
         /*
          * Skip pre-connect for async popups to reduce time between user interaction and popup window creation to avoid

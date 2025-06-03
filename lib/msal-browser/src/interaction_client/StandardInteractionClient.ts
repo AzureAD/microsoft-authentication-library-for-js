@@ -18,6 +18,9 @@ import {
     BaseAuthRequest,
     StringDict,
     CommonAuthorizationUrlRequest,
+    ICrypto,
+    Logger,
+    IPerformanceClient,
 } from "@azure/msal-common/browser";
 import { BaseInteractionClient, getDiscoveredAuthority, getRedirectUri } from "./BaseInteractionClient.js";
 import {
@@ -33,6 +36,8 @@ import { PopupRequest } from "../request/PopupRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { initializeBaseRequest } from "../request/RequestHelpers.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
@@ -267,66 +272,72 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             telemetry: this.config.telemetry,
         };
     }
+}
 
-    /**
-     * Helper to initialize required request parameters for interactive APIs and ssoSilent()
-     * @param request
-     * @param interactionType
-     */
-    protected async initializeAuthorizationRequest(
-        request: RedirectRequest | PopupRequest | SsoSilentRequest,
-        interactionType: InteractionType
-    ): Promise<CommonAuthorizationUrlRequest> {
-        const redirectUri = getRedirectUri(request.redirectUri, this.config, this.logger);
-        const browserState: BrowserStateObject = {
-            interactionType: interactionType,
-        };
-        const state = ProtocolUtils.setRequestState(
-            this.browserCrypto,
-            (request && request.state) || "",
-            browserState
-        );
+/**
+ * Helper to initialize required request parameters for interactive APIs and ssoSilent()
+ * @param request
+ * @param interactionType
+ */
+export async function initializeAuthorizationRequest(
+    request: RedirectRequest | PopupRequest | SsoSilentRequest,
+    interactionType: InteractionType,
+    config: BrowserConfiguration,
+    browserCrypto:  ICrypto,
+    browserStorage: BrowserCacheManager,
+    logger: Logger,
+    performanceClient: IPerformanceClient,
+    correlationId: string
+): Promise<CommonAuthorizationUrlRequest> {
+    const redirectUri = getRedirectUri(request.redirectUri, config, logger);
+    const browserState: BrowserStateObject = {
+        interactionType: interactionType,
+    };
+    const state = ProtocolUtils.setRequestState(
+        browserCrypto,
+        (request && request.state) || "",
+        browserState
+    );
 
-        const baseRequest: BaseAuthRequest = await invokeAsync(
-            initializeBaseRequest,
-            PerformanceEvents.InitializeBaseRequest,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
-        )(
-            { ...request, correlationId: this.correlationId },
-            this.config,
-            this.performanceClient,
-            this.logger
-        );
+    const baseRequest: BaseAuthRequest = await invokeAsync(
+        initializeBaseRequest,
+        PerformanceEvents.InitializeBaseRequest,
+        logger,
+        performanceClient,
+        correlationId
+    )(
+        { ...request, correlationId: correlationId },
+        config,
+        performanceClient,
+        logger
+    );
 
-        const validatedRequest: CommonAuthorizationUrlRequest = {
-            ...baseRequest,
-            redirectUri: redirectUri,
-            state: state,
-            nonce: request.nonce || createNewGuid(),
-            responseMode: this.config.auth.OIDCOptions.responseMode,
-        };
+    const validatedRequest: CommonAuthorizationUrlRequest = {
+        ...baseRequest,
+        redirectUri: redirectUri,
+        state: state,
+        nonce: request.nonce || createNewGuid(),
+        responseMode: config.auth.OIDCOptions.responseMode,
+    };
 
-        // Skip active account lookup if either login hint or session id is set
-        if (request.loginHint || request.sid) {
-            return validatedRequest;
-        }
-
-        const account =
-            request.account || this.browserStorage.getActiveAccount();
-        if (account) {
-            this.logger.verbose(
-                "Setting validated request account",
-                this.correlationId
-            );
-            this.logger.verbosePii(
-                `Setting validated request account: ${account.homeAccountId}`,
-                this.correlationId
-            );
-            validatedRequest.account = account;
-        }
-
+    // Skip active account lookup if either login hint or session id is set
+    if (request.loginHint || request.sid) {
         return validatedRequest;
     }
+
+    const account =
+        request.account || browserStorage.getActiveAccount();
+    if (account) {
+        logger.verbose(
+            "Setting validated request account",
+            correlationId
+        );
+        logger.verbosePii(
+            `Setting validated request account: ${account.homeAccountId}`,
+            correlationId
+        );
+        validatedRequest.account = account;
+    }
+
+    return validatedRequest;
 }
