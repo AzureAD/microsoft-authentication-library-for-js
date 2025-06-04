@@ -106,7 +106,9 @@ export class CryptoProvider implements ICrypto {
      */
     async hashString(plainText: string): Promise<string> {
         return EncodingUtils.base64EncodeUrl(
-            this.hashUtils.sha256(plainText).toString(Constants.EncodingTypes.BASE64),
+            this.hashUtils
+                .sha256(plainText)
+                .toString(Constants.EncodingTypes.BASE64),
             Constants.EncodingTypes.BASE64
         );
     }

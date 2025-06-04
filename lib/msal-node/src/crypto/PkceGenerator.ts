@@ -56,7 +56,9 @@ export class PkceGenerator {
      */
     private generateCodeChallengeFromVerifier(codeVerifier: string): string {
         return EncodingUtils.base64EncodeUrl(
-            this.hashUtils.sha256(codeVerifier).toString(Constants.EncodingTypes.BASE64),
+            this.hashUtils
+                .sha256(codeVerifier)
+                .toString(Constants.EncodingTypes.BASE64),
             Constants.EncodingTypes.BASE64
         );
     }

@@ -290,7 +290,10 @@ export class AzureArc extends BaseManagedIdentitySource {
             // attempt to read the contents of the secret file
             let secret;
             try {
-                secret = readFileSync(secretFilePath, Constants.EncodingTypes.UTF8);
+                secret = readFileSync(
+                    secretFilePath,
+                    Constants.EncodingTypes.UTF8
+                );
             } catch (e) {
                 throw createManagedIdentityError(
                     ManagedIdentityErrorCodes.unableToReadSecretFile

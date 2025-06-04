@@ -306,7 +306,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
 
         it("DOM API: acquires token successfully", async () => {
@@ -370,7 +372,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
 
         it("Extension: token request contains user input extra params", async () => {
@@ -408,7 +412,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
 
         it("DOM API: acquires token successfully", async () => {
@@ -472,7 +478,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.scopes).toContain(MOCK_WAM_RESPONSE.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+            expect(response.tokenType).toEqual(
+                Constants.AuthenticationScheme.BEARER
+            );
         });
 
         it("acquires token successfully with string expires_in", async () => {
@@ -1582,7 +1590,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 // @ts-ignore
                 await platformAuthInteractionClient.initializeNativeRequest({
                     scopes: ["User.Read"],
-                    prompt: PromptValue.LOGIN,
+                    prompt: Constants.PromptValue.LOGIN,
                     redirectUri: "localhost",
                     extraQueryParameters: {
                         userEQP1: "customUserParam1",

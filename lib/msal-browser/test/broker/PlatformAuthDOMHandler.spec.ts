@@ -3,7 +3,7 @@ import {
     AuthErrorCodes,
     IPerformanceClient,
     Logger,
-    PromptValue,
+    Constants,
 } from "@azure/msal-common/browser";
 import { PlatformAuthConstants } from "../../src/utils/BrowserConstants.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
@@ -529,7 +529,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 "test-correlation-id"
             );
         const testExtraParameters = {
-            prompt: PromptValue.NONE,
+            prompt: Constants.PromptValue.NONE,
             nonce: "test-nonce",
             claims: "test-claims",
             instanceAware: true,
