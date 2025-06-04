@@ -29,7 +29,7 @@ import {
     createClientAuthError,
 } from "../../src/error/ClientAuthError.js";
 import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemetryManager.js";
-import { Constants } from "../../src/utils/Constants.js";
+import { Constants, EncodingTypes } from "../../src/utils/Constants.js";
 import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
 import { TokenKeys } from "../../src/cache/utils/CacheTypes.js";
 
@@ -196,18 +196,21 @@ export const mockCrypto = {
         return RANDOM_TEST_GUID;
     },
     base64Decode(input: string): string {
-        return Buffer.from(input, "base64").toString("utf8");
+        return Buffer.from(input, EncodingTypes.BASE64).toString("utf8");
     },
     base64Encode(input: string): string {
-        return Buffer.from(input, "utf-8").toString("base64");
+        return Buffer.from(input, EncodingTypes.UTF8).toString(
+            EncodingTypes.BASE64
+        );
     },
     base64UrlEncode(input: string): string {
-        return Buffer.from(input, "utf-8").toString("base64url");
+        return Buffer.from(input, EncodingTypes.UTF8).toString("base64url");
     },
     encodeKid(input: string): string {
-        return Buffer.from(JSON.stringify({ kid: input }), "utf-8").toString(
-            "base64url"
-        );
+        return Buffer.from(
+            JSON.stringify({ kid: input }),
+            EncodingTypes.UTF8
+        ).toString("base64url");
     },
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
@@ -253,34 +256,10 @@ export class ClientTestUtils {
             },
         };
 
-        const authorityOptions: AuthorityOptions = {
-            protocolMode: protocolMode,
-            knownAuthorities: [TEST_CONFIG.validAuthority],
-            cloudDiscoveryMetadata: "",
-            authorityMetadata: "",
-        };
-
-        const loggerOptions = {
-            loggerCallback: (): void => {},
-            piiLoggingEnabled: true,
-            logLevel: LogLevel.Verbose,
-        };
-        const logger = new Logger(loggerOptions);
-
-        const authority = new Authority(
-            TEST_CONFIG.validAuthority,
-            mockHttpClient,
-            mockStorage,
-            authorityOptions,
-            logger,
-            TEST_CONFIG.CORRELATION_ID
+        const authority = await getDiscoveredAuthority(
+            protocolMode,
+            mockStorage
         );
-
-        await authority.resolveEndpointsAsync().catch((error) => {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError
-            );
-        });
 
         let serverTelemetryManager = null;
 
@@ -329,4 +308,56 @@ export class ClientTestUtils {
             serverTelemetryManager: serverTelemetryManager,
         };
     }
+}
+
+export async function getDiscoveredAuthority(
+    protocolMode: ProtocolMode = ProtocolMode.AAD,
+    mockStorage: MockStorageClass = new MockStorageClass(
+        TEST_CONFIG.MSAL_CLIENT_ID,
+        mockCrypto,
+        new Logger({}),
+        {
+            canonicalAuthority: TEST_CONFIG.validAuthority,
+        }
+    )
+): Promise<Authority> {
+    const mockHttpClient = {
+        sendGetRequestAsync<T>(): T {
+            return {} as T;
+        },
+        sendPostRequestAsync<T>(): T {
+            return {} as T;
+        },
+    };
+
+    const authorityOptions: AuthorityOptions = {
+        protocolMode: protocolMode,
+        knownAuthorities: [TEST_CONFIG.validAuthority],
+        cloudDiscoveryMetadata: "",
+        authorityMetadata: "",
+    };
+
+    const loggerOptions = {
+        loggerCallback: (): void => {},
+        piiLoggingEnabled: true,
+        logLevel: LogLevel.Verbose,
+    };
+    const logger = new Logger(loggerOptions);
+
+    const authority = new Authority(
+        TEST_CONFIG.validAuthority,
+        mockHttpClient,
+        mockStorage,
+        authorityOptions,
+        logger,
+        TEST_CONFIG.CORRELATION_ID
+    );
+
+    await authority.resolveEndpointsAsync().catch((error) => {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.endpointResolutionError
+        );
+    });
+
+    return authority;
 }

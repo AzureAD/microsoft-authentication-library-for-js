@@ -126,11 +126,8 @@ export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeReque
 
 // Warning: (ae-missing-release-tag) "AuthorizationUrlRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
-// @public
-export type AuthorizationUrlRequest = Omit<CommonAuthorizationUrlRequest, "state" | "nonce" | "requestedClaimsHash" | "platformBroker"> & {
-    state: string;
-    nonce: string;
-};
+// @public @deprecated
+export type AuthorizationUrlRequest = Omit<CommonAuthorizationUrlRequest, "requestedClaimsHash" | "platformBroker">;
 
 // Warning: (ae-missing-release-tag) "authRequestNotSetError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -180,6 +177,13 @@ function blockRedirectInIframe(allowRedirectInIframe: boolean): void;
 // @public
 function blockReloadInHiddenIframes(): void;
 
+// Warning: (ae-missing-release-tag) "BrokerConnectionEvent" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export type BrokerConnectionEvent = {
+    pairwiseBrokerOrigin: string;
+};
+
 // Warning: (ae-missing-release-tag) "BrowserAuthError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -190,6 +194,8 @@ export class BrowserAuthError extends AuthError {
 declare namespace BrowserAuthErrorCodes {
     export {
         pkceNotCreated,
+        earJwkEmpty,
+        earJweEmpty,
         cryptoNonExistent,
         emptyNavigateUri,
         hashEmptyError,
@@ -212,7 +218,6 @@ declare namespace BrowserAuthErrorCodes {
         silentPromptValueError,
         noTokenRequestCacheError,
         unableToParseTokenRequestCacheError,
-        noCachedAuthorityError,
         authRequestNotSetError,
         invalidCacheType,
         nonBrowserEnvironment,
@@ -236,7 +241,8 @@ declare namespace BrowserAuthErrorCodes {
         invalidBase64String,
         invalidPopTokenRequest,
         failedToBuildHeaders,
-        failedToParseHeaders
+        failedToParseHeaders,
+        failedToDecryptEarResponse
     }
 }
 export { BrowserAuthErrorCodes }
@@ -334,10 +340,6 @@ export const BrowserAuthErrorMessage: {
         desc: string;
     };
     unableToParseTokenRequestCacheError: {
-        code: string;
-        desc: string;
-    };
-    noCachedAuthorityError: {
         code: string;
         desc: string;
     };
@@ -451,6 +453,7 @@ export type BrowserAuthOptions = {
     supportsNestedAppAuth?: boolean;
     onRedirectNavigate?: (url: string) => boolean | void;
     instanceAware?: boolean;
+    encodeExtraQueryParams?: boolean;
 };
 
 // Warning: (ae-missing-release-tag) "BrowserCacheLocation" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -718,6 +721,16 @@ const databaseUnavailable = "database_unavailable";
 // @public (undocumented)
 export const DEFAULT_IFRAME_TIMEOUT_MS = 10000;
 
+// Warning: (ae-missing-release-tag) "earJweEmpty" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const earJweEmpty = "ear_jwe_empty";
+
+// Warning: (ae-missing-release-tag) "earJwkEmpty" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const earJwkEmpty = "ear_jwk_empty";
+
 // Warning: (ae-missing-release-tag) "emptyNavigateUri" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -796,7 +809,7 @@ export class EventMessageUtils {
 // Warning: (ae-missing-release-tag) "EventPayload" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export type EventPayload = AccountInfo | PopupRequest | RedirectRequest | SilentRequest | SsoSilentRequest | EndSessionRequest | AuthenticationResult | PopupEvent | null;
+export type EventPayload = AccountInfo | PopupRequest | RedirectRequest | SilentRequest | SsoSilentRequest | EndSessionRequest | AuthenticationResult | PopupEvent | BrokerConnectionEvent | null;
 
 // Warning: (ae-missing-release-tag) "EventType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "EventType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -829,6 +842,7 @@ export const EventType: {
     readonly LOGOUT_FAILURE: "msal:logoutFailure";
     readonly LOGOUT_END: "msal:logoutEnd";
     readonly RESTORE_FROM_BFCACHE: "msal:restoreFromBFCache";
+    readonly BROKER_CONNECTION_ESTABLISHED: "msal:brokerConnectionEstablished";
 };
 
 // @public (undocumented)
@@ -840,6 +854,11 @@ export { ExternalTokenResponse }
 //
 // @public (undocumented)
 const failedToBuildHeaders = "failed_to_build_headers";
+
+// Warning: (ae-missing-release-tag) "failedToDecryptEarResponse" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const failedToDecryptEarResponse = "failed_to_decrypt_ear_response";
 
 // Warning: (ae-missing-release-tag) "failedToParseHeaders" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -925,7 +944,7 @@ export interface IController {
     // (undocumented)
     hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
     // (undocumented)
-    initialize(request?: InitializeApplicationRequest): Promise<void>;
+    initialize(request?: InitializeApplicationRequest, isBroker?: boolean): Promise<void>;
     // (undocumented)
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
     // @internal (undocumented)
@@ -1132,6 +1151,13 @@ function isInIframe(): boolean;
 // @public
 function isInPopup(): boolean;
 
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (ae-missing-release-tag) "isPlatformBrokerAvailable" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export function isPlatformBrokerAvailable(loggerOptions?: LoggerOptions, perfClient?: IPerformanceClient, correlationId?: string): Promise<boolean>;
+
 // Warning: (ae-missing-release-tag) "ITokenCache" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -1282,11 +1308,6 @@ export { NetworkResponse }
 // @public (undocumented)
 const noAccountError = "no_account_error";
 
-// Warning: (ae-missing-release-tag) "noCachedAuthorityError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-const noCachedAuthorityError = "no_cached_authority_error";
-
 // Warning: (ae-missing-release-tag) "nonBrowserEnvironment" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -1338,10 +1359,9 @@ export type PopupPosition = {
 // Warning: (ae-missing-release-tag) "PopupRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">> & {
+export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">> & {
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
-    tokenBodyParameters?: StringDict;
     popupWindowParent?: Window;
 };
 
@@ -1460,6 +1480,8 @@ export class PublicClientApplication implements IPublicClientApplication {
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
+    // (undocumented)
+    protected isBroker: boolean;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
     loginPopup(request?: PopupRequest | undefined): Promise<AuthenticationResult>;
     // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -1596,11 +1618,10 @@ function redirectPreflightCheck(initialized: boolean, config: BrowserConfigurati
 // Warning: (ae-missing-release-tag) "RedirectRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">> & {
+export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">> & {
     scopes: Array<string>;
     redirectStartPage?: string;
     onRedirectNavigate?: (url: string) => boolean | void;
-    tokenBodyParameters?: StringDict;
 };
 
 // Warning: (ae-missing-release-tag) "replaceHash" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1679,7 +1700,6 @@ export type SilentRequest = Omit<CommonSilentFlowRequest, "authority" | "correla
     cacheLookupPolicy?: CacheLookupPolicy;
     prompt?: string;
     state?: string;
-    tokenBodyParameters?: StringDict;
 };
 
 // Warning: (ae-missing-release-tag) "spaCodeAndNativeAccountIdPresent" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1690,9 +1710,7 @@ const spaCodeAndNativeAccountIdPresent = "spa_code_and_nativeAccountId_present";
 // Warning: (ae-missing-release-tag) "SsoSilentRequest" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
-export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">> & {
-    tokenBodyParameters?: StringDict;
-};
+export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "requestedClaimsHash" | "platformBroker">>;
 
 // Warning: (ae-missing-release-tag) "stateInteractionTypeMismatch" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -1755,7 +1773,7 @@ const userCancelled = "user_cancelled";
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "4.5.1";
+export const version = "4.13.0";
 
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "WrapperSKU" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -1785,9 +1803,9 @@ export type WrapperSKU = (typeof WrapperSKU)[keyof typeof WrapperSKU];
 // src/cache/LocalStorage.ts:296:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:354:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/cache/LocalStorage.ts:385:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/config/Configuration.ts:247:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
-// src/event/EventHandler.ts:109:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
-// src/event/EventHandler.ts:135:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/config/Configuration.ts:256:5 - (ae-forgotten-export) The symbol "InternalAuthOptions" needs to be exported by the entry point index.d.ts
+// src/event/EventHandler.ts:113:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// src/event/EventHandler.ts:139:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // src/index.ts:8:12 - (tsdoc-characters-after-block-tag) The token "@azure" looks like a TSDoc tag but contains an invalid character "/"; if it is not a tag, use a backslash to escape the "@"
 // src/index.ts:8:4 - (tsdoc-undefined-tag) The TSDoc tag "@module" is not defined in this configuration
 // src/navigation/NavigationClient.ts:36:8 - (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

@@ -6,7 +6,7 @@
 import {
     ICrypto,
     Logger,
-    ServerAuthorizationCodeResponse,
+    AuthorizeResponse,
     UrlUtils,
 } from "@azure/msal-common/browser";
 import {
@@ -20,7 +20,7 @@ export function deserializeResponse(
     responseString: string,
     responseLocation: string,
     logger: Logger
-): ServerAuthorizationCodeResponse {
+): AuthorizeResponse {
     // Deserialize hash fragment response parameters.
     const serverParams = UrlUtils.getDeserializedResponse(responseString);
     if (!serverParams) {
@@ -49,7 +49,7 @@ export function deserializeResponse(
  * Returns the interaction type that the response object belongs to
  */
 export function validateInteractionType(
-    response: ServerAuthorizationCodeResponse,
+    response: AuthorizeResponse,
     browserCrypto: ICrypto,
     interactionType: InteractionType
 ): void {

@@ -10,11 +10,11 @@ import { NodeStorage } from "../../cache/NodeStorage.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import {
     HttpMethod,
-    METADATA_HEADER_NAME,
     ManagedIdentityEnvironmentVariableNames,
+    ManagedIdentityHeaders,
     ManagedIdentityIdType,
+    ManagedIdentityQueryParameters,
     ManagedIdentitySourceNames,
-    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
 } from "../../utils/Constants.js";
 import {
     ManagedIdentityErrorCodes,
@@ -33,9 +33,16 @@ export class CloudShell extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         msiEndpoint: string
     ) {
-        super(logger, nodeStorage, networkClient, cryptoProvider);
+        super(
+            logger,
+            nodeStorage,
+            networkClient,
+            cryptoProvider,
+            disableInternalRetries
+        );
 
         this.msiEndpoint = msiEndpoint;
     }
@@ -52,6 +59,7 @@ export class CloudShell extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         managedIdentityId: ManagedIdentityId
     ): CloudShell | null {
         const [msiEndpoint] = CloudShell.getEnvironmentVariables();
@@ -89,6 +97,7 @@ export class CloudShell extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
+            disableInternalRetries,
             msiEndpoint
         );
     }
@@ -100,9 +109,9 @@ export class CloudShell extends BaseManagedIdentitySource {
                 this.msiEndpoint
             );
 
-        request.headers[METADATA_HEADER_NAME] = "true";
+        request.headers[ManagedIdentityHeaders.METADATA_HEADER_NAME] = "true";
 
-        request.bodyParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+        request.bodyParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
         return request;

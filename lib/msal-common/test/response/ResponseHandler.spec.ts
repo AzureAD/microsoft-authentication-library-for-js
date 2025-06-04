@@ -9,7 +9,6 @@ import {
     TEST_CRYPTO_VALUES,
     TEST_DATA_CLIENT_INFO,
     TEST_POP_VALUES,
-    TEST_STATE_VALUES,
     TEST_TOKEN_LIFETIMES,
     TEST_TOKENS,
     TEST_URIS,
@@ -20,7 +19,6 @@ import {
     NetworkRequestOptions,
 } from "../../src/network/INetworkModule.js";
 import { ICrypto } from "../../src/crypto/ICrypto.js";
-import { ServerAuthorizationCodeResponse } from "../../src/response/ServerAuthorizationCodeResponse.js";
 import { MockStorageClass } from "../client/ClientTestUtils.js";
 import { TokenClaims } from "../../src/account/TokenClaims.js";
 import { AccountInfo } from "../../src/account/AccountInfo.js";
@@ -47,6 +45,7 @@ import {
 } from "../../src/error/CacheError.js";
 import { CacheManager } from "../../src/cache/CacheManager.js";
 import { cacheQuotaExceededErrorCode } from "../../src/error/CacheErrorCodes.js";
+import { TestTimeUtils } from "msal-test-utils";
 
 const networkInterface: INetworkModule = {
     sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
@@ -274,8 +273,8 @@ describe("ResponseHandler.ts", () => {
                 accessToken: "",
                 fromCache: false,
                 correlationId: "CORRELATION_ID",
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -341,8 +340,8 @@ describe("ResponseHandler.ts", () => {
                 accessToken: testResponse.access_token || "",
                 fromCache: false,
                 correlationId: "CORRELATION_ID",
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -407,8 +406,8 @@ describe("ResponseHandler.ts", () => {
                 accessToken: testResponse.access_token || "",
                 fromCache: false,
                 correlationId: "CORRELATION_ID",
-                expiresOn: new Date(
-                    Date.now() + testServerTokenResponse.body.expires_in * 1000
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    testServerTokenResponse.body.expires_in
                 ),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
@@ -721,396 +720,6 @@ describe("ResponseHandler.ts", () => {
             );
 
             expect(result.requestId).toBe("");
-        });
-    });
-
-    describe("validateServerAuthorizationCodeResponse", () => {
-        it("throws state mismatch error", (done) => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-            };
-
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-
-            try {
-                responseHandler.validateServerAuthorizationCodeResponse(
-                    testServerCodeResponse,
-                    "differentState"
-                );
-            } catch (e) {
-                expect(e).toBeInstanceOf(ClientAuthError);
-                // @ts-ignore
-                expect(e.errorCode).toBe(ClientAuthErrorCodes.stateMismatch);
-                done();
-            }
-        });
-
-        it("Does not throw state mismatch error when states match", () => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-            };
-
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-            responseHandler.validateServerAuthorizationCodeResponse(
-                testServerCodeResponse,
-                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
-            );
-        });
-
-        it("Does not throw state mismatch error when Uri encoded characters have different casing", () => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-            };
-
-            const testAltState =
-                "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ%3d%3d";
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-            responseHandler.validateServerAuthorizationCodeResponse(
-                testServerCodeResponse,
-                testAltState
-            );
-        });
-
-        it("throws interactionRequiredError", (done) => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                error: "interaction_required",
-            };
-
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-            try {
-                responseHandler.validateServerAuthorizationCodeResponse(
-                    testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
-                );
-            } catch (e) {
-                expect(e).toBeInstanceOf(InteractionRequiredAuthError);
-                done();
-            }
-        });
-
-        it("thows ServerError if error in response", (done) => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                error: "test_error",
-            };
-
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-            try {
-                responseHandler.validateServerAuthorizationCodeResponse(
-                    testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
-                );
-            } catch (e) {
-                expect(e).toBeInstanceOf(ServerError);
-                done();
-            }
-        });
-
-        it("throws ServerError if error_description in response", (done) => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                error_description: "test_error",
-            };
-
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-            try {
-                responseHandler.validateServerAuthorizationCodeResponse(
-                    testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
-                );
-            } catch (e) {
-                expect(e).toBeInstanceOf(ServerError);
-                done();
-            }
-        });
-
-        it("throws ServerError if suberror in response", (done) => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                suberror: "test_error",
-            };
-
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-            try {
-                responseHandler.validateServerAuthorizationCodeResponse(
-                    testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
-                );
-            } catch (e) {
-                expect(e).toBeInstanceOf(ServerError);
-                done();
-            }
-        });
-
-        it("does not call buildClientInfo if clientInfo not in response", () => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-            };
-            // Can't spy on buildClientInfo, spy on one of its function calls instead
-            const buildClientInfoSpy = jest.spyOn(
-                cryptoInterface,
-                "base64Decode"
-            );
-
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-            responseHandler.validateServerAuthorizationCodeResponse(
-                testServerCodeResponse,
-                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
-            );
-            expect(buildClientInfoSpy).not.toHaveBeenCalled();
-        });
-
-        it("throws invalid state error", (done) => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-            };
-
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-
-            try {
-                responseHandler.validateServerAuthorizationCodeResponse(
-                    testServerCodeResponse,
-                    "dummy-state-%20%%%30%%%%%40"
-                );
-            } catch (e) {
-                expect(e).toBeInstanceOf(ClientAuthError);
-                const err = e as ClientAuthError;
-                expect(err.errorCode).toBe(ClientAuthErrorCodes.invalidState);
-                done();
-            }
-        });
-
-        it("throws ServerError and parser error no", (done) => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                error: "test_error",
-                error_uri:
-                    "https://login.microsoftonline.com/error_code=500011",
-            };
-
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-            try {
-                responseHandler.validateServerAuthorizationCodeResponse(
-                    testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
-                );
-            } catch (e) {
-                expect(e).toBeInstanceOf(ServerError);
-                const serverError = e as ServerError;
-                expect(serverError.errorNo).toEqual("500011");
-                done();
-            }
-        });
-
-        it("throws InteractionRequiredAuthError and parser error no", (done) => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                error: "interaction_required",
-                error_uri:
-                    "https://login.microsoftonline.com/error_code=500011",
-            };
-
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-            try {
-                responseHandler.validateServerAuthorizationCodeResponse(
-                    testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
-                );
-            } catch (e) {
-                expect(e).toBeInstanceOf(InteractionRequiredAuthError);
-                const serverError = e as InteractionRequiredAuthError;
-                expect(serverError.errorNo).toEqual("500011");
-                done();
-            }
-        });
-
-        it("throws ServerError and skips invalid error uri", (done) => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                error: "test_error",
-                error_uri: "https://login.microsoftonline.com/500011",
-            };
-
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-            try {
-                responseHandler.validateServerAuthorizationCodeResponse(
-                    testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
-                );
-            } catch (e) {
-                expect(e).toBeInstanceOf(ServerError);
-                const serverError = e as ServerError;
-                expect(serverError.errorNo).toBeUndefined();
-                done();
-            }
-        });
-
-        it("throws ServerError and skips undefined error uri", (done) => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                error: "test_error",
-                error_uri: undefined,
-            };
-
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-            try {
-                responseHandler.validateServerAuthorizationCodeResponse(
-                    testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
-                );
-            } catch (e) {
-                expect(e).toBeInstanceOf(ServerError);
-                const serverError = e as ServerError;
-                expect(serverError.errorNo).toBeUndefined();
-                done();
-            }
-        });
-
-        it("throws ServerError and skips empty error uri", (done) => {
-            const testServerCodeResponse: ServerAuthorizationCodeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-                error: "test_error",
-                error_uri: "",
-            };
-
-            const responseHandler = new ResponseHandler(
-                "this-is-a-client-id",
-                testCacheManager,
-                cryptoInterface,
-                logger,
-                null,
-                null
-            );
-            try {
-                responseHandler.validateServerAuthorizationCodeResponse(
-                    testServerCodeResponse,
-                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE
-                );
-            } catch (e) {
-                expect(e).toBeInstanceOf(ServerError);
-                const serverError = e as ServerError;
-                expect(serverError.errorNo).toBeUndefined();
-                done();
-            }
         });
     });
 

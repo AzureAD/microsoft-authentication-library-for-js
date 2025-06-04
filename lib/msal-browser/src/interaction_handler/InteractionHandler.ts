@@ -14,7 +14,9 @@ import {
     PerformanceEvents,
     invokeAsync,
     CcsCredentialType,
-    ServerAuthorizationCodeResponse,
+    AuthorizeResponse,
+    AuthorizeProtocol,
+    CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
 
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
@@ -23,7 +25,6 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
 
 /**
  * Abstract class which defines operations for a browser interaction handling class.
@@ -54,8 +55,8 @@ export class InteractionHandler {
      * @param locationHash
      */
     async handleCodeResponse(
-        response: ServerAuthorizationCodeResponse,
-        request: AuthorizationUrlRequest
+        response: AuthorizeResponse,
+        request: CommonAuthorizationUrlRequest
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
             PerformanceEvents.HandleCodeResponse,
@@ -64,7 +65,7 @@ export class InteractionHandler {
 
         let authCodeResponse;
         try {
-            authCodeResponse = this.authModule.handleFragmentResponse(
+            authCodeResponse = AuthorizeProtocol.getAuthorizationCodePayload(
                 response,
                 request.state
             );
@@ -101,7 +102,7 @@ export class InteractionHandler {
      */
     async handleCodeResponseFromServer(
         authCodeResponse: AuthorizationCodePayload,
-        request: AuthorizationUrlRequest,
+        request: CommonAuthorizationUrlRequest,
         validateNonce: boolean = true
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(
@@ -159,7 +160,7 @@ export class InteractionHandler {
      * Build ccs creds if available
      */
     protected createCcsCredentials(
-        request: AuthorizationUrlRequest
+        request: CommonAuthorizationUrlRequest
     ): CcsCredential | null {
         if (request.account) {
             return {

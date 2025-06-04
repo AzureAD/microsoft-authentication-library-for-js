@@ -446,6 +446,10 @@ export const getCacheKey = (resource?: string): string => {
     return `-${Constants.DEFAULT_AUTHORITY_HOST}-accesstoken-${resourceHelper}-managed_identity-${MANAGED_IDENTITY_RESOURCE_BASE}--`;
 };
 
+// SHA256 hash of the DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT.accessToken
+export const DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT_ACCESS_TOKEN_SHA256_HASH_IN_HEX =
+    "d9678c32c96e9d358c4e61d5b230074c04f037405411740d4e8d9123066341af";
+
 export const DEFAULT_MANAGED_IDENTITY_AUTHENTICATION_RESULT: Omit<
     AuthenticationResult,
     "correlationId"
@@ -567,7 +571,12 @@ export const CORS_SIMPLE_REQUEST_HEADERS = [
     "content-type",
 ];
 
-export const THREE_SECONDS_IN_MILLI = 3000;
+export const ONE_HUNDRED_TIMES_FASTER: number = 0.01;
+
+export const IMDS_EXPONENTIAL_STRATEGY_TWO_RETRIES_IN_MS = 3000; // 1 second -> 2 seconds
+export const IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_IN_MS = 7000; // 1 second -> 2 seconds -> 4 seconds
+
+export const IMDS_EXPONENTIAL_STRATEGY_MAX_RETRIES_NUM_REQUESTS = 4; // initial request -> 1 second -> 2 seconds -> 4 seconds
 
 export const MOCK_USERNAME = `mock_${PasswordGrantConstants.username}`;
 export const MOCK_PASSWORD = `mock_${PasswordGrantConstants.password}`;

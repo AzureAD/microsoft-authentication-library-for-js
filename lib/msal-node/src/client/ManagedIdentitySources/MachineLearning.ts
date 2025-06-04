@@ -10,13 +10,11 @@ import {
 } from "./BaseManagedIdentitySource.js";
 import {
     HttpMethod,
-    API_VERSION_QUERY_PARAMETER_NAME,
-    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentitySourceNames,
     ManagedIdentityIdType,
-    METADATA_HEADER_NAME,
-    ML_AND_SF_SECRET_HEADER_NAME,
+    ManagedIdentityQueryParameters,
+    ManagedIdentityHeaders,
 } from "../../utils/Constants.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
@@ -36,10 +34,17 @@ export class MachineLearning extends BaseManagedIdentitySource {
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
         defaultIdentityClientId: string,
+        disableInternalRetries: boolean,
         msiEndpoint: string,
         secret: string
     ) {
-        super(logger, nodeStorage, networkClient, cryptoProvider);
+        super(
+            logger,
+            nodeStorage,
+            networkClient,
+            cryptoProvider,
+            disableInternalRetries
+        );
 
         this.defaultIdentityClientId = defaultIdentityClientId;
         this.msiEndpoint = msiEndpoint;
@@ -66,7 +71,8 @@ export class MachineLearning extends BaseManagedIdentitySource {
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
-        cryptoProvider: CryptoProvider
+        cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean
     ): MachineLearning | null {
         const [defaultIdentityClientId, msiEndpoint, secret] =
             MachineLearning.getEnvironmentVariables();
@@ -97,6 +103,7 @@ export class MachineLearning extends BaseManagedIdentitySource {
             networkClient,
             cryptoProvider,
             defaultIdentityClientId,
+            disableInternalRetries,
             msiEndpoint,
             secret
         );
@@ -112,12 +119,13 @@ export class MachineLearning extends BaseManagedIdentitySource {
                 this.msiEndpoint
             );
 
-        request.headers[METADATA_HEADER_NAME] = "true";
-        request.headers[ML_AND_SF_SECRET_HEADER_NAME] = this.secret;
+        request.headers[ManagedIdentityHeaders.METADATA_HEADER_NAME] = "true";
+        request.headers[ManagedIdentityHeaders.ML_AND_SF_SECRET_HEADER_NAME] =
+            this.secret;
 
-        request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.API_VERSION] =
             MACHINE_LEARNING_MSI_API_VERSION;
-        request.queryParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
         if (
@@ -129,7 +137,9 @@ export class MachineLearning extends BaseManagedIdentitySource {
         } else {
             request.queryParameters[
                 this.getManagedIdentityUserAssignedIdQueryParameterKey(
-                    managedIdentityId.idType
+                    managedIdentityId.idType,
+                    false, // isIMDS
+                    true // uses2017API
                 )
             ] = managedIdentityId.id;
         }

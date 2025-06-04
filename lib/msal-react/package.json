@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-react",
-  "version": "3.0.5",
+  "version": "3.0.12",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -56,25 +56,27 @@
     "apiExtractor": "api-extractor run"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^4.3.0",
-    "react": "^16.8.0 || ^17 || ^18"
+    "@azure/msal-browser": "^4.12.0",
+    "react": "^16.8.0 || ^17 || ^18 || ^19"
   },
   "devDependencies": {
-    "@azure/msal-browser": "^4.3.0",
+    "@azure/msal-browser": "^4.12.0",
     "@microsoft/api-extractor": "^7.43.4",
     "@rollup/plugin-typescript": "^11.1.5",
     "@testing-library/jest-dom": "^5.11.5",
-    "@testing-library/react": "^13.4.0",
+    "@testing-library/react": "^16.3.0",
     "@types/jest": "^29.5.0",
     "@types/node": "^20.5.1",
-    "@types/react": "^18.2.13",
-    "@types/react-dom": "^18.2.6",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
     "eslint-config-msal": "file:../../shared-configs/eslint-config-msal",
     "jest": "^29.5.0",
     "jest-environment-jsdom": "^29.5.0",
+    "jest-junit": "^16.0.0",
+    "msal-test-utils": "file:../../shared-test-utils",
     "prettier": "2.8.7",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "rollup": "^4.22.4",
     "ts-jest": "^29.1.0",
     "ts-jest-resolver": "^2.0.1",

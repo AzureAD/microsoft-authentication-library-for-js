@@ -3,10 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    CommonAuthorizationUrlRequest,
-    StringDict,
-} from "@azure/msal-common/browser";
+import { CommonAuthorizationUrlRequest } from "@azure/msal-common/browser";
 import { PopupWindowAttributes } from "./PopupWindowAttributes.js";
 
 /**
@@ -43,6 +40,7 @@ export type PopupRequest = Partial<
         CommonAuthorizationUrlRequest,
         | "responseMode"
         | "scopes"
+        | "earJwk"
         | "codeChallenge"
         | "codeChallengeMethod"
         | "requestedClaimsHash"
@@ -51,6 +49,5 @@ export type PopupRequest = Partial<
 > & {
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
-    tokenBodyParameters?: StringDict;
     popupWindowParent?: Window;
 };

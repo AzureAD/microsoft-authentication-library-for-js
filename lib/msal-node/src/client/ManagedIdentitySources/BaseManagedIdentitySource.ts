@@ -24,7 +24,11 @@ import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import { ManagedIdentityRequest } from "../../request/ManagedIdentityRequest.js";
-import { HttpMethod, ManagedIdentityIdType } from "../../utils/Constants.js";
+import {
+    HttpMethod,
+    ManagedIdentityIdType,
+    ManagedIdentityQueryParameters,
+} from "../../utils/Constants.js";
 import { ManagedIdentityTokenResponse } from "../../response/ManagedIdentityTokenResponse.js";
 import { NodeStorage } from "../../cache/NodeStorage.js";
 import {
@@ -32,12 +36,14 @@ import {
     createManagedIdentityError,
 } from "../../error/ManagedIdentityError.js";
 import { isIso8601 } from "../../utils/TimeUtils.js";
+import { HttpClientWithRetries } from "../../network/HttpClientWithRetries.js";
 
 /**
  * Managed Identity User Assigned Id Query Parameter Names
  */
 export const ManagedIdentityUserAssignedIdQueryParameterNames = {
-    MANAGED_IDENTITY_CLIENT_ID: "client_id",
+    MANAGED_IDENTITY_CLIENT_ID_2017: "clientid", // 2017-09-01 API version
+    MANAGED_IDENTITY_CLIENT_ID: "client_id", // 2019+ API versions
     MANAGED_IDENTITY_OBJECT_ID: "object_id",
     MANAGED_IDENTITY_RESOURCE_ID_IMDS: "msi_res_id",
     MANAGED_IDENTITY_RESOURCE_ID_NON_IMDS: "mi_res_id",
@@ -50,17 +56,20 @@ export abstract class BaseManagedIdentitySource {
     private nodeStorage: NodeStorage;
     private networkClient: INetworkModule;
     private cryptoProvider: CryptoProvider;
+    private disableInternalRetries: boolean;
 
     constructor(
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
-        cryptoProvider: CryptoProvider
+        cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean
     ) {
         this.logger = logger;
         this.nodeStorage = nodeStorage;
         this.networkClient = networkClient;
         this.cryptoProvider = cryptoProvider;
+        this.disableInternalRetries = disableInternalRetries;
     }
 
     abstract createRequest(
@@ -141,6 +150,29 @@ export abstract class BaseManagedIdentitySource {
                 managedIdentityId
             );
 
+        if (managedIdentityRequest.revokedTokenSha256Hash) {
+            this.logger.info(
+                `[Managed Identity] The following claims are present in the request: ${managedIdentityRequest.claims}`
+            );
+
+            networkRequest.queryParameters[
+                ManagedIdentityQueryParameters.SHA256_TOKEN_TO_REFRESH
+            ] = managedIdentityRequest.revokedTokenSha256Hash;
+        }
+
+        if (managedIdentityRequest.clientCapabilities?.length) {
+            const clientCapabilities: string =
+                managedIdentityRequest.clientCapabilities.toString();
+
+            this.logger.info(
+                `[Managed Identity] The following client capabilities are present in the request: ${clientCapabilities}`
+            );
+
+            networkRequest.queryParameters[
+                ManagedIdentityQueryParameters.XMS_CC
+            ] = clientCapabilities;
+        }
+
         const headers: Record<string, string> = networkRequest.headers;
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
 
@@ -151,20 +183,33 @@ export abstract class BaseManagedIdentitySource {
                 networkRequest.computeParametersBodyString();
         }
 
+        /**
+         * Initializes the network client helper based on the retry policy configuration.
+         * If internal retries are disabled, it uses the provided network client directly.
+         * Otherwise, it wraps the network client with an HTTP client that supports retries.
+         */
+        const networkClientHelper: INetworkModule = this.disableInternalRetries
+            ? this.networkClient
+            : new HttpClientWithRetries(
+                  this.networkClient,
+                  networkRequest.retryPolicy,
+                  this.logger
+              );
+
         const reqTimestamp = TimeUtils.nowSeconds();
         let response: NetworkResponse<ManagedIdentityTokenResponse>;
         try {
             // Sources that send POST requests: Cloud Shell
             if (networkRequest.httpMethod === HttpMethod.POST) {
                 response =
-                    await this.networkClient.sendPostRequestAsync<ManagedIdentityTokenResponse>(
+                    await networkClientHelper.sendPostRequestAsync<ManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
                         networkRequestOptions
                     );
                 // Sources that send GET requests: App Service, Azure Arc, IMDS, Service Fabric
             } else {
                 response =
-                    await this.networkClient.sendGetRequestAsync<ManagedIdentityTokenResponse>(
+                    await networkClientHelper.sendGetRequestAsync<ManagedIdentityTokenResponse>(
                         networkRequest.computeUri(),
                         networkRequestOptions
                     );
@@ -189,7 +234,7 @@ export abstract class BaseManagedIdentitySource {
         const serverTokenResponse: ServerAuthorizationTokenResponse =
             await this.getServerTokenResponseAsync(
                 response,
-                this.networkClient,
+                networkClientHelper,
                 networkRequest,
                 networkRequestOptions
             );
@@ -210,20 +255,26 @@ export abstract class BaseManagedIdentitySource {
 
     public getManagedIdentityUserAssignedIdQueryParameterKey(
         managedIdentityIdType: ManagedIdentityIdType,
-        imds?: boolean
+        isImds?: boolean,
+        usesApi2017?: boolean
     ): string {
         switch (managedIdentityIdType) {
             case ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID:
                 this.logger.info(
-                    "[Managed Identity] Adding user assigned client id to the request."
+                    `[Managed Identity] [API version ${
+                        usesApi2017 ? "2017+" : "2019+"
+                    }] Adding user assigned client id to the request.`
                 );
-                return ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID;
+                // The Machine Learning source uses the 2017-09-01 API version, which uses "clientid" instead of "client_id"
+                return usesApi2017
+                    ? ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2017
+                    : ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID;
 
             case ManagedIdentityIdType.USER_ASSIGNED_RESOURCE_ID:
                 this.logger.info(
                     "[Managed Identity] Adding user assigned resource id to the request."
                 );
-                return imds
+                return isImds
                     ? ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID_IMDS
                     : ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_RESOURCE_ID_NON_IMDS;
 

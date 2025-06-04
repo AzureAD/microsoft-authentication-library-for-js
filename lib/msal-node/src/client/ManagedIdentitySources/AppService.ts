@@ -7,12 +7,11 @@ import { INetworkModule, Logger } from "@azure/msal-common/node";
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
 import {
     HttpMethod,
-    APP_SERVICE_SECRET_HEADER_NAME,
-    API_VERSION_QUERY_PARAMETER_NAME,
-    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentitySourceNames,
     ManagedIdentityIdType,
+    ManagedIdentityQueryParameters,
+    ManagedIdentityHeaders,
 } from "../../utils/Constants.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
@@ -34,10 +33,17 @@ export class AppService extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean,
         identityEndpoint: string,
         identityHeader: string
     ) {
-        super(logger, nodeStorage, networkClient, cryptoProvider);
+        super(
+            logger,
+            nodeStorage,
+            networkClient,
+            cryptoProvider,
+            disableInternalRetries
+        );
 
         this.identityEndpoint = identityEndpoint;
         this.identityHeader = identityHeader;
@@ -60,7 +66,8 @@ export class AppService extends BaseManagedIdentitySource {
         logger: Logger,
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
-        cryptoProvider: CryptoProvider
+        cryptoProvider: CryptoProvider,
+        disableInternalRetries: boolean
     ): AppService | null {
         const [identityEndpoint, identityHeader] =
             AppService.getEnvironmentVariables();
@@ -90,6 +97,7 @@ export class AppService extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
+            disableInternalRetries,
             identityEndpoint,
             identityHeader
         );
@@ -105,11 +113,12 @@ export class AppService extends BaseManagedIdentitySource {
                 this.identityEndpoint
             );
 
-        request.headers[APP_SERVICE_SECRET_HEADER_NAME] = this.identityHeader;
+        request.headers[ManagedIdentityHeaders.APP_SERVICE_SECRET_HEADER_NAME] =
+            this.identityHeader;
 
-        request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.API_VERSION] =
             APP_SERVICE_MSI_API_VERSION;
-        request.queryParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
         if (

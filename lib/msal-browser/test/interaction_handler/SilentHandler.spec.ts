@@ -9,13 +9,13 @@ import {
     IPerformanceClient,
     ServerResponseType,
 } from "@azure/msal-common";
-import * as SilentHandler from "../../src/interaction_handler/SilentHandler";
-import { testNavUrl, RANDOM_TEST_GUID } from "../utils/StringConstants";
+import * as SilentHandler from "../../src/interaction_handler/SilentHandler.js";
+import { testNavUrl, RANDOM_TEST_GUID } from "../utils/StringConstants.js";
 import {
     BrowserAuthError,
     createBrowserAuthError,
     BrowserAuthErrorCodes,
-} from "../../src/error/BrowserAuthError";
+} from "../../src/error/BrowserAuthError.js";
 
 const DEFAULT_IFRAME_TIMEOUT_MS = 6000;
 const DEFAULT_POLL_INTERVAL_MS = 30;
@@ -54,7 +54,7 @@ describe("SilentHandler.ts Unit Tests", () => {
     describe("initiateAuthRequest()", () => {
         it("throws error if requestUrl is empty", async () => {
             await expect(
-                SilentHandler.initiateAuthRequest(
+                SilentHandler.initiateCodeRequest(
                     "",
                     performanceClient,
                     browserRequestLogger,
@@ -69,7 +69,7 @@ describe("SilentHandler.ts Unit Tests", () => {
             "Creates a frame asynchronously when created with default timeout",
             async () => {
                 const startTime = Date.now();
-                const authFrame = await SilentHandler.initiateAuthRequest(
+                const authFrame = await SilentHandler.initiateCodeRequest(
                     testNavUrl,
                     performanceClient,
                     browserRequestLogger,
@@ -87,7 +87,7 @@ describe("SilentHandler.ts Unit Tests", () => {
 
         it("Creates a frame synchronously when created with a timeout of 0", async () => {
             const startTime = Date.now();
-            const authFrame = await SilentHandler.initiateAuthRequest(
+            const authFrame = await SilentHandler.initiateCodeRequest(
                 testNavUrl,
                 performanceClient,
                 browserRequestLogger,

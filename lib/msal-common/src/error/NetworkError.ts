@@ -38,7 +38,9 @@ export class NetworkError extends AuthError {
 export function createNetworkError(
     error: AuthError,
     httpStatus?: number,
-    responseHeaders?: Record<string, string>
+    responseHeaders?: Record<string, string>,
+    additionalError?: Error
 ): NetworkError {
+    error.errorMessage = `${error.errorMessage}, additionalErrorInfo: error.name:${additionalError?.name}, error.message:${additionalError?.message}`;
     return new NetworkError(error, httpStatus, responseHeaders);
 }

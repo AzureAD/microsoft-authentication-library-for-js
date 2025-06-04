@@ -4,7 +4,7 @@
  */
 
 import {
-    NativeConstants,
+    PlatformAuthConstants,
     NativeExtensionMethod,
 } from "../../utils/BrowserConstants.js";
 import {
@@ -12,7 +12,6 @@ import {
     AuthError,
     createAuthError,
     AuthErrorCodes,
-    AuthenticationScheme,
     InProgressPerformanceEvent,
     PerformanceEvents,
     IPerformanceClient,
@@ -20,14 +19,16 @@ import {
 import {
     NativeExtensionRequest,
     NativeExtensionRequestBody,
-} from "./NativeRequest.js";
+    PlatformAuthRequest,
+} from "./PlatformAuthRequest.js";
 import { createNativeAuthError } from "../../error/NativeAuthError.js";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../../error/BrowserAuthError.js";
-import { BrowserConfiguration } from "../../config/Configuration.js";
 import { createNewGuid } from "../../crypto/BrowserCrypto.js";
+import { PlatformAuthResponse } from "./PlatformAuthResponse.js";
+import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 
 type ResponseResolvers<T> = {
     resolve: (value: T | PromiseLike<T>) => void;
@@ -36,7 +37,7 @@ type ResponseResolvers<T> = {
     ) => void;
 };
 
-export class NativeMessageHandler {
+export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
     private extensionId: string | undefined;
     private extensionVersion: string | undefined;
     private logger: Logger;
@@ -48,6 +49,7 @@ export class NativeMessageHandler {
     private readonly windowListener: (event: MessageEvent) => void;
     private readonly performanceClient: IPerformanceClient;
     private readonly handshakeEvent: InProgressPerformanceEvent;
+    platformAuthType: string;
 
     constructor(
         logger: Logger,
@@ -66,34 +68,51 @@ export class NativeMessageHandler {
         this.handshakeEvent = performanceClient.startMeasurement(
             PerformanceEvents.NativeMessageHandlerHandshake
         );
+        this.platformAuthType =
+            PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER;
     }
 
     /**
      * Sends a given message to the extension and resolves with the extension response
-     * @param body
+     * @param request
      */
-    async sendMessage(body: NativeExtensionRequestBody): Promise<object> {
-        this.logger.trace("NativeMessageHandler - sendMessage called.");
+    async sendMessage(
+        request: PlatformAuthRequest
+    ): Promise<PlatformAuthResponse> {
+        this.logger.trace(this.platformAuthType + " - sendMessage called.");
+
+        // fall back to native calls
+        const messageBody: NativeExtensionRequestBody = {
+            method: NativeExtensionMethod.GetToken,
+            request: request,
+        };
+
         const req: NativeExtensionRequest = {
-            channel: NativeConstants.CHANNEL_ID,
+            channel: PlatformAuthConstants.CHANNEL_ID,
             extensionId: this.extensionId,
             responseId: createNewGuid(),
-            body: body,
+            body: messageBody,
         };
 
         this.logger.trace(
-            "NativeMessageHandler - Sending request to browser extension"
+            this.platformAuthType + " - Sending request to browser extension"
         );
         this.logger.tracePii(
-            `NativeMessageHandler - Sending request to browser extension: ${JSON.stringify(
-                req
-            )}`
+            this.platformAuthType +
+                ` - Sending request to browser extension: ${JSON.stringify(
+                    req
+                )}`
         );
         this.messageChannel.port1.postMessage(req);
 
-        return new Promise((resolve, reject) => {
+        const response: object = await new Promise((resolve, reject) => {
             this.resolvers.set(req.responseId, { resolve, reject });
         });
+
+        const validatedResponse: PlatformAuthResponse =
+            this.validatePlatformBrokerResponse(response);
+
+        return validatedResponse;
     }
 
     /**
@@ -107,20 +126,21 @@ export class NativeMessageHandler {
         logger: Logger,
         handshakeTimeoutMs: number,
         performanceClient: IPerformanceClient
-    ): Promise<NativeMessageHandler> {
-        logger.trace("NativeMessageHandler - createProvider called.");
+    ): Promise<PlatformAuthExtensionHandler> {
+        logger.trace("PlatformAuthExtensionHandler - createProvider called.");
+
         try {
-            const preferredProvider = new NativeMessageHandler(
+            const preferredProvider = new PlatformAuthExtensionHandler(
                 logger,
                 handshakeTimeoutMs,
                 performanceClient,
-                NativeConstants.PREFERRED_EXTENSION_ID
+                PlatformAuthConstants.PREFERRED_EXTENSION_ID
             );
             await preferredProvider.sendHandshakeRequest();
             return preferredProvider;
         } catch (e) {
             // If preferred extension fails for whatever reason, fallback to using any installed extension
-            const backupProvider = new NativeMessageHandler(
+            const backupProvider = new PlatformAuthExtensionHandler(
                 logger,
                 handshakeTimeoutMs,
                 performanceClient
@@ -135,13 +155,13 @@ export class NativeMessageHandler {
      */
     private async sendHandshakeRequest(): Promise<void> {
         this.logger.trace(
-            "NativeMessageHandler - sendHandshakeRequest called."
+            this.platformAuthType + " - sendHandshakeRequest called."
         );
         // Register this event listener before sending handshake
         window.addEventListener("message", this.windowListener, false); // false is important, because content script message processing should work first
 
         const req: NativeExtensionRequest = {
-            channel: NativeConstants.CHANNEL_ID,
+            channel: PlatformAuthConstants.CHANNEL_ID,
             extensionId: this.extensionId,
             responseId: createNewGuid(),
             body: {
@@ -192,7 +212,7 @@ export class NativeMessageHandler {
      * @param event
      */
     private onWindowMessage(event: MessageEvent): void {
-        this.logger.trace("NativeMessageHandler - onWindowMessage called");
+        this.logger.trace(this.platformAuthType + " - onWindowMessage called");
         // We only accept messages from ourselves
         if (event.source !== window) {
             return;
@@ -202,7 +222,7 @@ export class NativeMessageHandler {
 
         if (
             !request.channel ||
-            request.channel !== NativeConstants.CHANNEL_ID
+            request.channel !== PlatformAuthConstants.CHANNEL_ID
         ) {
             return;
         }
@@ -221,7 +241,8 @@ export class NativeMessageHandler {
              */
             if (!handshakeResolver) {
                 this.logger.trace(
-                    `NativeMessageHandler.onWindowMessage - resolver can't be found for request ${request.responseId}`
+                    this.platformAuthType +
+                        `.onWindowMessage - resolver can't be found for request ${request.responseId}`
                 );
                 return;
             }
@@ -253,7 +274,9 @@ export class NativeMessageHandler {
      * @param event
      */
     private onChannelMessage(event: MessageEvent): void {
-        this.logger.trace("NativeMessageHandler - onChannelMessage called.");
+        this.logger.trace(
+            this.platformAuthType + " - onChannelMessage called."
+        );
         const request = event.data;
 
         const resolver = this.resolvers.get(request.responseId);
@@ -270,12 +293,14 @@ export class NativeMessageHandler {
                 }
                 const response = request.body.response;
                 this.logger.trace(
-                    "NativeMessageHandler - Received response from browser extension"
+                    this.platformAuthType +
+                        " - Received response from browser extension"
                 );
                 this.logger.tracePii(
-                    `NativeMessageHandler - Received response from browser extension: ${JSON.stringify(
-                        response
-                    )}`
+                    this.platformAuthType +
+                        ` - Received response from browser extension: ${JSON.stringify(
+                            response
+                        )}`
                 );
                 if (response.status !== "Success") {
                     resolver.reject(
@@ -310,7 +335,8 @@ export class NativeMessageHandler {
             } else if (method === NativeExtensionMethod.HandshakeResponse) {
                 if (!handshakeResolver) {
                     this.logger.trace(
-                        `NativeMessageHandler.onChannelMessage - resolver can't be found for request ${request.responseId}`
+                        this.platformAuthType +
+                            `.onChannelMessage - resolver can't be found for request ${request.responseId}`
                     );
                     return;
                 }
@@ -323,7 +349,8 @@ export class NativeMessageHandler {
                 this.extensionId = request.extensionId;
                 this.extensionVersion = request.body.version;
                 this.logger.verbose(
-                    `NativeMessageHandler - Received HandshakeResponse from extension: ${this.extensionId}`
+                    this.platformAuthType +
+                        ` - Received HandshakeResponse from extension: ${this.extensionId}`
                 );
                 this.handshakeEvent.end({
                     extensionInstalled: true,
@@ -350,6 +377,30 @@ export class NativeMessageHandler {
     }
 
     /**
+     * Validates native platform response before processing
+     * @param response
+     */
+    private validatePlatformBrokerResponse(
+        response: object
+    ): PlatformAuthResponse {
+        if (
+            response.hasOwnProperty("access_token") &&
+            response.hasOwnProperty("id_token") &&
+            response.hasOwnProperty("client_info") &&
+            response.hasOwnProperty("account") &&
+            response.hasOwnProperty("scope") &&
+            response.hasOwnProperty("expires_in")
+        ) {
+            return response as PlatformAuthResponse;
+        } else {
+            throw createAuthError(
+                AuthErrorCodes.unexpectedError,
+                "Response missing expected properties."
+            );
+        }
+    }
+
+    /**
      * Returns the Id for the browser extension this handler is communicating with
      * @returns
      */
@@ -365,52 +416,12 @@ export class NativeMessageHandler {
         return this.extensionVersion;
     }
 
-    /**
-     * Returns boolean indicating whether or not the request should attempt to use native broker
-     * @param logger
-     * @param config
-     * @param nativeExtensionProvider
-     * @param authenticationScheme
-     */
-    static isPlatformBrokerAvailable(
-        config: BrowserConfiguration,
-        logger: Logger,
-        nativeExtensionProvider?: NativeMessageHandler,
-        authenticationScheme?: AuthenticationScheme
-    ): boolean {
-        logger.trace("isPlatformBrokerAvailable called");
-        if (!config.system.allowPlatformBroker) {
-            logger.trace(
-                "isPlatformBrokerAvailable: allowPlatformBroker is not enabled, returning false"
-            );
-            // Developer disabled WAM
-            return false;
-        }
-
-        if (!nativeExtensionProvider) {
-            logger.trace(
-                "isPlatformBrokerAvailable: Platform extension provider is not initialized, returning false"
-            );
-            // Extension is not available
-            return false;
-        }
-
-        if (authenticationScheme) {
-            switch (authenticationScheme) {
-                case AuthenticationScheme.BEARER:
-                case AuthenticationScheme.POP:
-                    logger.trace(
-                        "isPlatformBrokerAvailable: authenticationScheme is supported, returning true"
-                    );
-                    return true;
-                default:
-                    logger.trace(
-                        "isPlatformBrokerAvailable: authenticationScheme is not supported, returning false"
-                    );
-                    return false;
-            }
-        }
-
-        return true;
+    getExtensionName(): string | undefined {
+        return this.getExtensionId() ===
+            PlatformAuthConstants.PREFERRED_EXTENSION_ID
+            ? "chrome"
+            : this.getExtensionId()?.length
+            ? "unknown"
+            : undefined;
     }
 }

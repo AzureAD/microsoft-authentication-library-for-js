@@ -519,7 +519,11 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                    `${
+                        AADServerParamKeys.X_MS_LIB_CAPABILITY
+                    }=${encodeURIComponent(
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
@@ -781,7 +785,11 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                    `${
+                        AADServerParamKeys.X_MS_LIB_CAPABILITY
+                    }=${encodeURIComponent(
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
@@ -899,7 +907,11 @@ describe("RefreshTokenClient unit tests", () => {
             ).toBe(true);
             expect(
                 result.includes(
-                    `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+                    `${
+                        AADServerParamKeys.X_MS_LIB_CAPABILITY
+                    }=${encodeURIComponent(
+                        ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE
+                    )}`
                 )
             ).toBe(true);
         });
@@ -1549,7 +1561,9 @@ describe("RefreshTokenClient unit tests", () => {
             expect(queryString).toContain(
                 `brk_client_id=${config.authOptions.clientId}`
             );
-            expect(queryString).toContain(`brk_redirect_uri=https://localhost`);
+            expect(queryString).toContain(
+                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`
+            );
         });
 
         it("broker params take precedence over token body params", async () => {
@@ -1574,7 +1588,9 @@ describe("RefreshTokenClient unit tests", () => {
             expect(queryString).toContain(
                 `brk_client_id=${config.authOptions.clientId}`
             );
-            expect(queryString).toContain(`brk_redirect_uri=https://localhost`);
+            expect(queryString).toContain(
+                `brk_redirect_uri=${encodeURIComponent("https://localhost")}`
+            );
         });
     });
 });

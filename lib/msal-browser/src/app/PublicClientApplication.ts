@@ -42,6 +42,7 @@ import { EventType } from "../event/EventType.js";
  */
 export class PublicClientApplication implements IPublicClientApplication {
     protected controller: IController;
+    protected isBroker: boolean = false;
 
     /**
      * Creates StandardController and passes it to the PublicClientApplication
@@ -92,7 +93,7 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param request {?InitializeApplicationRequest}
      */
     async initialize(request?: InitializeApplicationRequest): Promise<void> {
-        return this.controller.initialize(request);
+        return this.controller.initialize(request, this.isBroker);
     }
 
     /**

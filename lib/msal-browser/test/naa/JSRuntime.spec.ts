@@ -12,7 +12,10 @@ import { PublicClientNext } from "../../src/app/PublicClientNext.js";
 import { TEST_CONFIG, TEST_TOKENS } from "../utils/StringConstants.js";
 import { randomFillSync } from "crypto";
 import { TokenClaims } from "@azure/msal-common";
-import { CacheLookupPolicy } from "../../src/index.js";
+import {
+    CacheLookupPolicy,
+    createNestablePublicClientApplication,
+} from "../../src/index.js";
 import { InteractionRequiredAuthError } from "@azure/msal-common";
 
 /**
@@ -39,6 +42,7 @@ describe("JS Runtime Nested App Auth", () => {
         // Remove global properties that can be reset after test that don't have full implementations in JS Runtime
         deleteGlobalProperty("crypto");
         deleteGlobalProperty("TextEncoder");
+        deleteGlobalProperty("BroadcastChannel");
         deleteGlobalProperty("btoa");
 
         // Add platform API Nested App Auth depends on
@@ -61,10 +65,9 @@ describe("JS Runtime Nested App Auth", () => {
             INIT_CONTEXT_RESPONSE
         );
 
-        const pca = await PublicClientNext.createPublicClientApplication({
+        const pca = await createNestablePublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                supportsNestedAppAuth: true,
             },
         });
 
