@@ -75,6 +75,17 @@ describe("SignInError", () => {
         expect(signInError.isUnsupportedChallengeType()).toBe(false);
         expect(signInError.isRedirectRequired()).toBe(false);
     });
+
+    it("should return true for isTokenExpired when error matches token expired types", () => {
+        const errorData = new CustomAuthApiError(
+            "expired_token",
+            "expired token",
+            "correlation-id",
+            []
+        );
+        const signInError = new SignInError(errorData as any);
+        expect(signInError.isTokenExpired()).toBe(true);
+    });
 });
 
 describe("SignInSubmitPasswordError", () => {

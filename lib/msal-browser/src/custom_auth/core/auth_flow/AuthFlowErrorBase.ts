@@ -17,7 +17,7 @@ import {
 /**
  * Base class for all auth flow errors.
  */
-export class AuthFlowErrorBase {
+export abstract class AuthFlowErrorBase {
     constructor(public errorData: CustomAuthError) {}
 
     protected isUserNotFoundError(): boolean {
@@ -119,5 +119,22 @@ export class AuthFlowErrorBase {
 
     protected isNoCachedAccountFoundError(): boolean {
         return this.errorData instanceof NoCachedAccountFoundError;
+    }
+
+    protected isTokenExpiredError(): boolean {
+        return (
+            this.errorData instanceof CustomAuthApiError &&
+            this.errorData.error === CustomAuthApiErrorCode.EXPIRED_TOKEN
+        );
+    }
+}
+
+export abstract class AuthActionErrorBase extends AuthFlowErrorBase {
+    /**
+     * Checks if the error is due to the expired continuation token.
+     * @returns {boolean} True if the error is due to the expired continuation token, false otherwise.
+     */
+    isTokenExpired(): boolean {
+        return this.isTokenExpiredError();
     }
 }

@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowErrorBase } from "../../../core/auth_flow/AuthFlowErrorBase.js";
+import { AuthActionErrorBase } from "../../../core/auth_flow/AuthFlowErrorBase.js";
 import { CustomAuthApiErrorCode } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 
-export class SignInError extends AuthFlowErrorBase {
+export class SignInError extends AuthActionErrorBase {
     /**
      * Checks if the error is due to the user not being found.
      * @returns true if the error is due to the user not being found, false otherwise.
@@ -48,7 +48,7 @@ export class SignInError extends AuthFlowErrorBase {
     }
 }
 
-export class SignInSubmitPasswordError extends AuthFlowErrorBase {
+export class SignInSubmitPasswordError extends AuthActionErrorBase {
     /**
      * Checks if the password submitted during sign-in is incorrect.
      * @returns {boolean} True if the error is due to the password being invalid, false otherwise.
@@ -58,7 +58,7 @@ export class SignInSubmitPasswordError extends AuthFlowErrorBase {
     }
 }
 
-export class SignInSubmitCodeError extends AuthFlowErrorBase {
+export class SignInSubmitCodeError extends AuthActionErrorBase {
     /**
      * Checks if the code submitted during sign-in is invalid.
      * @returns {boolean} True if the error is due to the code being invalid, false otherwise.
@@ -68,7 +68,7 @@ export class SignInSubmitCodeError extends AuthFlowErrorBase {
     }
 }
 
-export class SignInResendCodeError extends AuthFlowErrorBase {
+export class SignInResendCodeError extends AuthActionErrorBase {
     /**
      * Check if client app supports the challenge type configured in Entra.
      * @returns {boolean} True if "loginPopup" function is required to continue sthe operation.

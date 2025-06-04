@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowErrorBase } from "../../../core/auth_flow/AuthFlowErrorBase.js";
+import { AuthActionErrorBase } from "../../../core/auth_flow/AuthFlowErrorBase.js";
 import { CustomAuthApiError } from "../../../core/error/CustomAuthApiError.js";
 import { CustomAuthApiErrorCode } from "../../../core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 
-export class ResetPasswordError extends AuthFlowErrorBase {
+export class ResetPasswordError extends AuthActionErrorBase {
     /**
      * Checks if the error is due to the user not being found.
      * @returns true if the error is due to the user not being found, false otherwise.
@@ -41,7 +41,7 @@ export class ResetPasswordError extends AuthFlowErrorBase {
     }
 }
 
-export class ResetPasswordSubmitPasswordError extends AuthFlowErrorBase {
+export class ResetPasswordSubmitPasswordError extends AuthActionErrorBase {
     /**
      * Checks if the new password is invalid or incorrect.
      * @returns {boolean} True if the new password is invalid, false otherwise.
@@ -67,7 +67,7 @@ export class ResetPasswordSubmitPasswordError extends AuthFlowErrorBase {
     }
 }
 
-export class ResetPasswordSubmitCodeError extends AuthFlowErrorBase {
+export class ResetPasswordSubmitCodeError extends AuthActionErrorBase {
     /**
      * Checks if the provided code is invalid.
      * @returns {boolean} True if the provided code is invalid, false otherwise.
@@ -85,7 +85,7 @@ export class ResetPasswordSubmitCodeError extends AuthFlowErrorBase {
     }
 }
 
-export class ResetPasswordResendCodeError extends AuthFlowErrorBase {
+export class ResetPasswordResendCodeError extends AuthActionErrorBase {
     /**
      * Check if client app supports the challenge type configured in Entra.
      * @returns {boolean} True if client app doesn't support the challenge type configured in Entra, "loginPopup" function is required to continue the operation.

@@ -24,6 +24,7 @@ export const CustomAuthApiErrorCode = {
     PASSWORD_CHANGE_FAILED: "password_change_failed",
     PASSWORD_RESET_TIMEOUT: "password_reset_timeout",
     CLIENT_INFO_MISSING: "client_info_missing",
+    EXPIRED_TOKEN: "expired_token",
 };
 
 export const CustomAuthApiSuberror = {

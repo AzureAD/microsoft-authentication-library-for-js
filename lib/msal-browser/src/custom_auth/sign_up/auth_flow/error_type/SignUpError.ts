@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowErrorBase } from "../../../core/auth_flow/AuthFlowErrorBase.js";
+import { AuthActionErrorBase } from "../../../core/auth_flow/AuthFlowErrorBase.js";
 
-export class SignUpError extends AuthFlowErrorBase {
+export class SignUpError extends AuthActionErrorBase {
     /**
      * Checks if the error is due to the user already exists.
      * @returns {boolean} True if the error is due to the user already exists, false otherwise.
@@ -63,7 +63,7 @@ export class SignUpError extends AuthFlowErrorBase {
     }
 }
 
-export class SignUpSubmitPasswordError extends AuthFlowErrorBase {
+export class SignUpSubmitPasswordError extends AuthActionErrorBase {
     /**
      * Checks if the error is due to the password being invalid or incorrect.
      * @returns {boolean} True if the error is due to the password being invalid, false otherwise.
@@ -83,7 +83,7 @@ export class SignUpSubmitPasswordError extends AuthFlowErrorBase {
     }
 }
 
-export class SignUpSubmitCodeError extends AuthFlowErrorBase {
+export class SignUpSubmitCodeError extends AuthActionErrorBase {
     /**
      * Checks if the provided code is invalid.
      * @returns {boolean} True if the provided code is invalid, false otherwise.
@@ -101,7 +101,7 @@ export class SignUpSubmitCodeError extends AuthFlowErrorBase {
     }
 }
 
-export class SignUpSubmitAttributesError extends AuthFlowErrorBase {
+export class SignUpSubmitAttributesError extends AuthActionErrorBase {
     /**
      * Checks if the error is due to the required attributes are missing.
      * @returns {boolean} True if the error is due to the required attributes are missing, false otherwise.
@@ -127,7 +127,7 @@ export class SignUpSubmitAttributesError extends AuthFlowErrorBase {
     }
 }
 
-export class SignUpResendCodeError extends AuthFlowErrorBase {
+export class SignUpResendCodeError extends AuthActionErrorBase {
     /**
      * Check if client app supports the challenge type configured in Entra.
      * @returns {boolean} True if "loginPopup" function is required to continue sthe operation.
