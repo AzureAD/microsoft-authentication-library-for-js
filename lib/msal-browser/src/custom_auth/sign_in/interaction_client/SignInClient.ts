@@ -36,7 +36,10 @@ import {
     SignInPasswordTokenRequest,
 } from "../../core/network_client/custom_auth_api/types/ApiRequestTypes.js";
 import { SignInTokenResponse } from "../../core/network_client/custom_auth_api/types/ApiResponseTypes.js";
-import { SignInScenario } from "../auth_flow/SignInScenario.js";
+import {
+    SignInScenario,
+    SignInScenarioType,
+} from "../auth_flow/SignInScenario.js";
 import { UnexpectedError } from "../../core/error/UnexpectedError.js";
 import { ICustomAuthApiClient } from "../../core/network_client/custom_auth_api/ICustomAuthApiClient.js";
 import { CustomAuthAuthority } from "../../core/CustomAuthAuthority.js";
@@ -406,7 +409,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
     }
 
     private getPublicApiIdBySignInScenario(
-        scenario: SignInScenario,
+        scenario: SignInScenarioType,
         correlationId: string
     ): number {
         switch (scenario) {
@@ -416,7 +419,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 return PublicApiId.SIGN_IN_AFTER_PASSWORD_RESET;
             default:
                 throw new UnexpectedError(
-                    `nsupported sign-in scenario '${scenario}'.`,
+                    `Unsupported sign-in scenario '${scenario}'.`,
                     correlationId
                 );
         }

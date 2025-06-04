@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-export enum SignInScenario {
-    SignInAfterSignUp,
-    SignInAfterPasswordReset,
-}
+export const SignInScenario = {
+    SignInAfterSignUp: "SignInAfterSignUp",
+    SignInAfterPasswordReset: "SignInAfterPasswordReset",
+} as const;
+
+export type SignInScenarioType =
+    (typeof SignInScenario)[keyof typeof SignInScenario];
