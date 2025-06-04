@@ -177,6 +177,13 @@ function blockRedirectInIframe(allowRedirectInIframe: boolean): void;
 // @public
 function blockReloadInHiddenIframes(): void;
 
+// Warning: (ae-missing-release-tag) "BrokerConnectionEvent" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export type BrokerConnectionEvent = {
+    pairwiseBrokerOrigin: string;
+};
+
 // Warning: (ae-missing-release-tag) "BrowserAuthError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -802,7 +809,7 @@ export class EventMessageUtils {
 // Warning: (ae-missing-release-tag) "EventPayload" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export type EventPayload = AccountInfo | PopupRequest | RedirectRequest | SilentRequest | SsoSilentRequest | EndSessionRequest | AuthenticationResult | PopupEvent | null;
+export type EventPayload = AccountInfo | PopupRequest | RedirectRequest | SilentRequest | SsoSilentRequest | EndSessionRequest | AuthenticationResult | PopupEvent | BrokerConnectionEvent | null;
 
 // Warning: (ae-missing-release-tag) "EventType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 // Warning: (ae-missing-release-tag) "EventType" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -835,6 +842,7 @@ export const EventType: {
     readonly LOGOUT_FAILURE: "msal:logoutFailure";
     readonly LOGOUT_END: "msal:logoutEnd";
     readonly RESTORE_FROM_BFCACHE: "msal:restoreFromBFCache";
+    readonly BROKER_CONNECTION_ESTABLISHED: "msal:brokerConnectionEstablished";
 };
 
 // @public (undocumented)
@@ -1142,6 +1150,13 @@ function isInIframe(): boolean;
 //
 // @public
 function isInPopup(): boolean;
+
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
+// Warning: (ae-missing-release-tag) "isPlatformBrokerAvailable" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public
+export function isPlatformBrokerAvailable(loggerOptions?: LoggerOptions, perfClient?: IPerformanceClient, correlationId?: string): Promise<boolean>;
 
 // Warning: (ae-missing-release-tag) "ITokenCache" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

@@ -53,7 +53,7 @@ import { LocalStorage } from "./LocalStorage.js";
 import { SessionStorage } from "./SessionStorage.js";
 import { MemoryStorage } from "./MemoryStorage.js";
 import { IWindowStorage } from "./IWindowStorage.js";
-import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest.js";
+import { PlatformAuthRequest } from "../broker/nativeBroker/PlatformAuthRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
@@ -66,6 +66,7 @@ import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
 import { EventType } from "../event/EventType.js";
 import { EventHandler } from "../event/EventHandler.js";
 import { clearHash } from "../utils/BrowserUtils.js";
+import { version } from "../packageMetadata.js";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -123,6 +124,29 @@ export class BrowserCacheManager extends CacheManager {
 
     async initialize(correlationId: string): Promise<void> {
         await this.browserStorage.initialize(correlationId);
+        this.trackVersionChanges(correlationId);
+    }
+
+    /**
+     * Tracks upgrades and downgrades for telemetry and debugging purposes
+     */
+    private trackVersionChanges(correlationId: string): void {
+        const previousVersion = this.browserStorage.getItem(
+            StaticCacheKeys.VERSION
+        );
+        if (previousVersion) {
+            this.logger.info(
+                `MSAL.js was last initialized by version: ${previousVersion}`
+            );
+            this.performanceClient.addFields(
+                { previousLibraryVersion: previousVersion },
+                correlationId
+            );
+        }
+
+        if (previousVersion !== version) {
+            this.browserStorage.setItem(StaticCacheKeys.VERSION, version);
+        }
     }
 
     /**
@@ -1162,7 +1186,7 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Gets cached native request for redirect flows
      */
-    getCachedNativeRequest(): NativeTokenRequest | null {
+    getCachedNativeRequest(): PlatformAuthRequest | null {
         this.logger.trace("BrowserCacheManager.getCachedNativeRequest called");
         const cachedRequest = this.getTemporaryCache(
             TemporaryCacheKeys.NATIVE_REQUEST,
@@ -1177,7 +1201,7 @@ export class BrowserCacheManager extends CacheManager {
 
         const parsedRequest = this.validateAndParseJson(
             cachedRequest
-        ) as NativeTokenRequest;
+        ) as PlatformAuthRequest;
         if (!parsedRequest) {
             this.logger.error(
                 "BrowserCacheManager.getCachedNativeRequest: Unable to parse native request"

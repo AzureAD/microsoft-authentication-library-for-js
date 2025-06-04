@@ -37,7 +37,6 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -47,7 +46,9 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
+import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
+import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -77,7 +78,7 @@ export class RedirectClient extends StandardInteractionClient {
         navigationClient: INavigationClient,
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
-        nativeMessageHandler?: NativeMessageHandler,
+        platformAuthHandler?: IPlatformAuthHandler,
         correlationId?: string
     ) {
         super(
@@ -88,7 +89,7 @@ export class RedirectClient extends StandardInteractionClient {
             eventHandler,
             navigationClient,
             performanceClient,
-            nativeMessageHandler,
+            platformAuthHandler,
             correlationId
         );
         this.nativeStorage = nativeStorageImpl;
@@ -107,13 +108,12 @@ export class RedirectClient extends StandardInteractionClient {
             this.correlationId
         )(request, InteractionType.Redirect);
 
-        validRequest.platformBroker =
-            NativeMessageHandler.isPlatformBrokerAvailable(
-                this.config,
-                this.logger,
-                this.nativeMessageHandler,
-                request.authenticationScheme
-            );
+        validRequest.platformBroker = isPlatformAuthAllowed(
+            this.config,
+            this.logger,
+            this.platformAuthProvider,
+            request.authenticationScheme
+        );
 
         const handleBackButton = (event: PageTransitionEvent) => {
             // Clear temporary cache if the back button is clicked during the redirect flow.
@@ -554,7 +554,7 @@ export class RedirectClient extends StandardInteractionClient {
                 this.eventHandler,
                 this.logger,
                 this.performanceClient,
-                this.nativeMessageHandler
+                this.platformAuthProvider
             );
         }
 
@@ -583,7 +583,7 @@ export class RedirectClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.nativeMessageHandler
+            this.platformAuthProvider
         );
     }
 

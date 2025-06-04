@@ -2,6 +2,61 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Fri, 30 May 2025 17:59:15 GMT",
+      "version": "15.7.0",
+      "tag": "@azure/msal-common_v15.7.0",
+      "comments": {
+        "none": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "2a979a886ff80b97e35e36fc8cd27eafdf3752ea",
+            "comment": "Added Constants for Encoding Types #7766"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "fdb4b18bd1f024b77faa5bd1ccee53b49b3a7551",
+            "comment": "Removed duplicate http status enum #7767"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "8f6c61c7efe9204d3b73e9f67b707ba39611b105",
+            "comment": "Upgrade/rollback telemetry #7738"
+          }
+        ],
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4abedb3d38ec7d9f3c9937476dd1ccc9fcaf5c0a",
+            "comment": "Added token revocation functionality to Managed Identity's App Service and Service Fabric Sources #7679"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump eslint-config-msal to v0.0.0",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump msal-test-utils to v0.0.1",
+            "commit": "not available"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-common",
+            "comment": "Bump rollup-msal to v0.0.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 06 May 2025 22:47:43 GMT",
       "version": "15.6.0",
       "tag": "@azure/msal-common_v15.6.0",

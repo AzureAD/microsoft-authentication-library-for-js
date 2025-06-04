@@ -36,13 +36,14 @@ import {
     monitorIframeForHash,
 } from "../interaction_handler/SilentHandler.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
+import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
+import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
@@ -58,7 +59,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         apiId: ApiId,
         performanceClient: IPerformanceClient,
         nativeStorageImpl: BrowserCacheManager,
-        nativeMessageHandler?: NativeMessageHandler,
+        platformAuthProvider?: IPlatformAuthHandler,
         correlationId?: string
     ) {
         super(
@@ -69,7 +70,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             eventHandler,
             navigationClient,
             performanceClient,
-            nativeMessageHandler,
+            platformAuthProvider,
             correlationId
         );
         this.apiId = apiId;
@@ -122,13 +123,12 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.performanceClient,
             request.correlationId
         )(inputRequest, InteractionType.Silent);
-        silentRequest.platformBroker =
-            NativeMessageHandler.isPlatformBrokerAvailable(
-                this.config,
-                this.logger,
-                this.nativeMessageHandler,
-                silentRequest.authenticationScheme
-            );
+        silentRequest.platformBroker = isPlatformAuthAllowed(
+            this.config,
+            this.logger,
+            this.platformAuthProvider,
+            silentRequest.authenticationScheme
+        );
         BrowserUtils.preconnect(silentRequest.authority);
 
         if (this.config.auth.protocolMode === ProtocolMode.EAR) {
@@ -294,7 +294,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.nativeMessageHandler
+            this.platformAuthProvider
         );
     }
 
@@ -410,7 +410,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.nativeMessageHandler
+            this.platformAuthProvider
         );
     }
 }

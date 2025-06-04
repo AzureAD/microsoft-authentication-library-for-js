@@ -43,6 +43,7 @@ import {
     TemporaryCacheKeys,
     ApiId,
     BrowserConstants,
+    StaticCacheKeys,
 } from "../../src/utils/BrowserConstants.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
@@ -50,8 +51,8 @@ import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { NavigationClient } from "../../src/navigation/NavigationClient.js";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest.js";
 import { PopupClient } from "../../src/interaction_client/PopupClient.js";
-import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient.js";
-import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler.js";
+import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
+import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import {
     BrowserAuthError,
     createBrowserAuthError,
@@ -66,6 +67,7 @@ import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
 import { PopupRequest } from "../../src/request/PopupRequest.js";
+import { version } from "../../src/packageMetadata.js";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
@@ -391,7 +393,7 @@ describe("PopupClient", () => {
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP
             );
             jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -401,7 +403,7 @@ describe("PopupClient", () => {
             jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
                 RANDOM_TEST_GUID
             );
-            const nativeMessageHandler = new NativeMessageHandler(
+            const nativeMessageHandler = new PlatformAuthExtensionHandler(
                 //@ts-ignore
                 pca.logger,
                 2000,
@@ -518,7 +520,7 @@ describe("PopupClient", () => {
                 TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP
             );
             jest.spyOn(
-                NativeInteractionClient.prototype,
+                PlatformAuthInteractionClient.prototype,
                 "acquireToken"
             ).mockResolvedValue(testTokenResponse);
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
@@ -814,7 +816,10 @@ describe("PopupClient", () => {
                 });
             } catch (e) {
                 // Test that error was cached for telemetry purposes and then thrown
-                expect(window.sessionStorage).toHaveLength(1);
+                expect(window.sessionStorage).toHaveLength(2);
+                expect(
+                    window.sessionStorage.getItem(StaticCacheKeys.VERSION)
+                ).toEqual(version);
                 const failures = window.sessionStorage.getItem(
                     `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
                 );
