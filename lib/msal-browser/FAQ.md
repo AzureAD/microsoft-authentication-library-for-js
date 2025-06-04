@@ -61,7 +61,6 @@
 
 1. [How do I specify which B2C policy/user flow I would like to use?](#how-do-i-specify-which-b2c-policyuser-flow-i-would-like-to-use)
 1. [How do I handle the password-reset user-flow?](#how-do-i-handle-the-password-reset-user-flow)
-1. [Why is getAccountByUsername returning null, even though I'm signed in?](#why-is-getaccountbyusername-returning-null-even-though-im-signed-in)
 1. [I logged out of my application. Why am I not asked for credentials when I try to log back in?](#i-logged-out-of-my-application-why-am-i-not-asked-for-credentials-when-i-try-to-log-back-in)
 1. [Why am I not signed in when returning from an invite link?](#why-am-i-not-signed-in-when-returning-from-an-invite-link)
 1. [Why is there no access token returned from acquireTokenSilent?](#why-is-there-no-access-token-returned-from-acquiretokensilent)
@@ -427,12 +426,6 @@ pca.loginPopup()
 ```
 
 For a full implementation, see the sample: [MSAL.js v2 B2C sample](https://github.com/Azure-Samples/ms-identity-javascript-tutorial/tree/main/1-Authentication/2-sign-in-b2c)
-
-## Why is `getAccountByUsername()` returning null, even though I'm signed in?
-
-In order to use `getAccountByUsername()` in B2C scenarios you must enable your `idTokens` to return the `emails` claim in your B2C tenant. MSAL will fill the `username` field on the `AccountInfo` object with the first element of the array returned on the `emails` claim. In most cases this array will only have one element, however, if you notice that your idTokens are returning more than one email on this claim, ensure you are calling `getAccountByUsername` with the first email.
-
-To enable this claim open up your User Flow configuration in the Azure Portal. Click the `User Attributes` tab and make sure `Email Address` is checked. Then click the `Application Claims` tab and make sure `Email Addresses` is checked. You can verify that the `emails` claim is now being returned by acquiring an `idToken` and inspecting its contents.
 
 ## I logged out of my application. Why am I not asked for credentials when I try to log back in?
 

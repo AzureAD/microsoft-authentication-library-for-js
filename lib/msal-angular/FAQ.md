@@ -147,7 +147,7 @@ Please see our [MsalGuard doc](https://github.com/AzureAD/microsoft-authenticati
 
 ### How do I get accounts?
 
-The `@azure/msal-browser` instance used by `@azure/msal-angular` exposes multiple methods for getting account information. We recommend using `getAllAccounts()` to get all accounts, and `getAccountByHomeId()` and `getAccountByLocalId()` to get specific accounts. Note that while `getAccountByUsername()` is available, it should be a secondary choice, as it may be less reliable and is for convenience only. See the [`@azure/msal-browser` docs](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_browser.publicclientapplication.html) for more details on account methods.
+The `@azure/msal-browser` instance used by `@azure/msal-angular` exposes multiple methods for getting account information. We recommend using `getAllAccounts()` to get all accounts, and `getAccount()` to get specific, filtered accounts. See the [`@azure/msal-browser` docs](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_browser.publicclientapplication.html) for more details on account methods.
 
 We recommend subscribing to the `inProgress$` observable of `MsalBroadcastService` and filtering for `InteractionStatus.None` before retrieving account information. This ensures that all interactions have completed before getting account information. See [our sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-samples/angular-modules-sample/src/app/app.component.ts#L45) for an example of this use.
 
