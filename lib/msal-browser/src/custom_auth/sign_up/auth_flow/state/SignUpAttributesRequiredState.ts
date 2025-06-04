@@ -6,7 +6,7 @@
 import { InvalidArgumentError } from "../../../core/error/InvalidArgumentError.js";
 import { UnexpectedError } from "../../../core/error/UnexpectedError.js";
 import { UserAccountAttributes } from "../../../UserAccountAttributes.js";
-import { SignUpCompletedResult } from "../../interaction_client/result/SignUpActionResult.js";
+import { SIGN_UP_COMPLETED_RESULT_TYPE } from "../../interaction_client/result/SignUpActionResult.js";
 import { SignUpSubmitAttributesResult } from "../result/SignUpSubmitAttributesResult.js";
 import { SignUpState } from "./SignUpState.js";
 import { SignUpAttributesRequiredStateParameters } from "./SignUpStateParameters.js";
@@ -68,7 +68,7 @@ export class SignUpAttributesRequiredState extends SignUpState<SignUpAttributesR
                 this.stateParameters.correlationId
             );
 
-            if (result instanceof SignUpCompletedResult) {
+            if (result.type === SIGN_UP_COMPLETED_RESULT_TYPE) {
                 // Sign-up completed
                 this.stateParameters.logger.verbose(
                     "Sign-up completed.",

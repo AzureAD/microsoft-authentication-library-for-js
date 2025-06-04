@@ -6,8 +6,8 @@
 import { UnexpectedError } from "../../../core/error/UnexpectedError.js";
 import { SignInScenario } from "../../../sign_in/auth_flow/SignInScenario.js";
 import {
-    SignUpAttributesRequiredResult,
-    SignUpCompletedResult,
+    SIGN_UP_ATTRIBUTES_REQUIRED_RESULT_TYPE,
+    SIGN_UP_COMPLETED_RESULT_TYPE,
 } from "../../interaction_client/result/SignUpActionResult.js";
 import { SignUpSubmitPasswordResult } from "../result/SignUpSubmitPasswordResult.js";
 import { SignUpAttributesRequiredState } from "./SignUpAttributesRequiredState.js";
@@ -53,7 +53,7 @@ export class SignUpPasswordRequiredState extends SignUpState<SignUpPasswordRequi
                 this.stateParameters.correlationId
             );
 
-            if (result instanceof SignUpAttributesRequiredResult) {
+            if (result.type === SIGN_UP_ATTRIBUTES_REQUIRED_RESULT_TYPE) {
                 // Attributes required
                 this.stateParameters.logger.verbose(
                     "Attributes required for sign-up.",
@@ -73,7 +73,7 @@ export class SignUpPasswordRequiredState extends SignUpState<SignUpPasswordRequi
                         requiredAttributes: result.requiredAttributes,
                     })
                 );
-            } else if (result instanceof SignUpCompletedResult) {
+            } else if (result.type === SIGN_UP_COMPLETED_RESULT_TYPE) {
                 // Sign-up completed
                 this.stateParameters.logger.verbose(
                     "Sign-up completed.",

@@ -3,26 +3,19 @@
  * Licensed under the MIT License.
  */
 
-class ResetPasswordResultBase {
-    constructor(
-        public correlationId: string,
-        public continuationToken: string
-    ) {}
+interface ResetPasswordActionResult {
+    correlationId: string;
+    continuationToken: string;
 }
 
-export class ResetPasswordCodeRequiredResult extends ResetPasswordResultBase {
-    constructor(
-        correlationId: string,
-        continuationToken: string,
-        public challengeChannel: string,
-        public challengeTargetLabel: string,
-        public codeLength: number,
-        public bindingMethod: string
-    ) {
-        super(correlationId, continuationToken);
-    }
+export interface ResetPasswordCodeRequiredResult
+    extends ResetPasswordActionResult {
+    challengeChannel: string;
+    challengeTargetLabel: string;
+    codeLength: number;
+    bindingMethod: string;
 }
 
-export class ResetPasswordPasswordRequiredResult extends ResetPasswordResultBase {}
+export type ResetPasswordPasswordRequiredResult = ResetPasswordActionResult;
 
-export class ResetPasswordCompletedResult extends ResetPasswordResultBase {}
+export type ResetPasswordCompletedResult = ResetPasswordActionResult;

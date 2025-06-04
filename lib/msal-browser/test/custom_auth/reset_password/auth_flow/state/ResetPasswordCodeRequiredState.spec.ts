@@ -4,10 +4,6 @@ import { ResetPasswordSubmitCodeError } from "../../../../../src/custom_auth/res
 import { ResetPasswordResendCodeResult } from "../../../../../src/custom_auth/reset_password/auth_flow/result/ResetPasswordResendCodeResult.js";
 import { ResetPasswordSubmitCodeResult } from "../../../../../src/custom_auth/reset_password/auth_flow/result/ResetPasswordSubmitCodeResult.js";
 import { ResetPasswordCodeRequiredState } from "../../../../../src/custom_auth/reset_password/auth_flow/state/ResetPasswordCodeRequiredState.js";
-import {
-    ResetPasswordCodeRequiredResult,
-    ResetPasswordPasswordRequiredResult,
-} from "../../../../../src/custom_auth/reset_password/interaction_client/result/ResetPasswordActionResult.js";
 import { ResetPasswordClient } from "../../../../../src/custom_auth/reset_password/interaction_client/ResetPasswordClient.js";
 import { Logger } from "@azure/msal-browser";
 import { SignInClient } from "../../../../../src/custom_auth/sign_in/interaction_client/SignInClient.js";
@@ -72,12 +68,10 @@ describe("ResetPasswordCodeRequiredState", () => {
         });
 
         it("should successfully submit a code and return password required state", async () => {
-            mockResetPasswordClient.submitCode.mockResolvedValue(
-                new ResetPasswordPasswordRequiredResult(
-                    correlationId,
-                    "continuation-token"
-                )
-            );
+            mockResetPasswordClient.submitCode.mockResolvedValue({
+                correlationId: correlationId,
+                continuationToken: "continuation-token",
+            });
 
             const result = await state.submitCode("12345678");
 
@@ -95,12 +89,10 @@ describe("ResetPasswordCodeRequiredState", () => {
         });
 
         it("should successfully submit a code and return password-required state if password is required", async () => {
-            mockResetPasswordClient.submitCode.mockResolvedValue(
-                new ResetPasswordPasswordRequiredResult(
-                    correlationId,
-                    "new-continuation-token"
-                )
-            );
+            mockResetPasswordClient.submitCode.mockResolvedValue({
+                correlationId: correlationId,
+                continuationToken: "new-continuation-token",
+            });
 
             const result = await state.submitCode("12345678");
 
@@ -120,16 +112,14 @@ describe("ResetPasswordCodeRequiredState", () => {
 
     describe("resendCode", () => {
         it("should successfully resend a code and return a code required state", async () => {
-            mockResetPasswordClient.resendCode.mockResolvedValue(
-                new ResetPasswordCodeRequiredResult(
-                    correlationId,
-                    "new-continuation-token",
-                    "code",
-                    "email",
-                    6,
-                    "email-otp"
-                )
-            );
+            mockResetPasswordClient.resendCode.mockResolvedValue({
+                correlationId: correlationId,
+                continuationToken: "new-continuation-token",
+                challengeChannel: "code",
+                challengeTargetLabel: "email",
+                codeLength: 6,
+                bindingMethod: "email-otp",
+            });
 
             const result = await state.resendCode();
 

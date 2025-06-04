@@ -4,9 +4,8 @@ import { SignUpSubmitPasswordError } from "../../../../../src/custom_auth/sign_u
 import { SignUpSubmitPasswordResult } from "../../../../../src/custom_auth/sign_up/auth_flow/result/SignUpSubmitPasswordResult.js";
 import { SignUpPasswordRequiredState } from "../../../../../src/custom_auth/sign_up/auth_flow/state/SignUpPasswordRequiredState.js";
 import {
-    SignUpAttributesRequiredResult,
-    SignUpCodeRequiredResult,
-    SignUpCompletedResult,
+    createSignUpAttributesRequiredResult,
+    createSignUpCompletedResult,
 } from "../../../../../src/custom_auth/sign_up/interaction_client/result/SignUpActionResult.js";
 import { SignUpClient } from "../../../../../src/custom_auth/sign_up/interaction_client/SignUpClient.js";
 import { Logger } from "@azure/msal-browser";
@@ -73,7 +72,10 @@ describe("SignUpPasswordRequiredState", () => {
 
         it("should successfully submit a password and return completed state if no credentail required", async () => {
             mockSignUpClient.submitPassword.mockResolvedValue(
-                new SignUpCompletedResult(correlationId, "continuation-token")
+                createSignUpCompletedResult({
+                    correlationId: correlationId,
+                    continuationToken: "continuation-token",
+                })
             );
 
             const result = await state.submitPassword("valid-password");
@@ -93,16 +95,16 @@ describe("SignUpPasswordRequiredState", () => {
 
         it("should successfully submit a password and return attributes-required state if attributes are required", async () => {
             mockSignUpClient.submitPassword.mockResolvedValue(
-                new SignUpAttributesRequiredResult(
-                    correlationId,
-                    "continuation-token",
-                    [
+                createSignUpAttributesRequiredResult({
+                    correlationId: correlationId,
+                    continuationToken: "continuation-token",
+                    requiredAttributes: [
                         {
                             name: "name",
                             type: "string",
                         },
-                    ]
-                )
+                    ],
+                })
             );
 
             const result = await state.submitPassword("valid-password");

@@ -3,9 +3,10 @@ import { customAuthConfig } from "../../test_resources/CustomAuthConfig.js";
 import { CustomAuthAuthority } from "../../../../src/custom_auth/core/CustomAuthAuthority.js";
 import { ChallengeType } from "../../../../src/custom_auth/CustomAuthConstants.js";
 import {
+    SIGN_IN_CODE_SEND_RESULT_TYPE,
+    SIGN_IN_COMPLETED_RESULT_TYPE,
+    SIGN_IN_PASSWORD_REQUIRED_RESULT_TYPE,
     SignInCodeSendResult,
-    SignInCompletedResult,
-    SignInPasswordRequiredResult,
 } from "../../../../src/custom_auth/sign_in/interaction_client/result/SignInActionResult.js";
 import { SignInScenario } from "../../../../src/custom_auth/sign_in/auth_flow/SignInScenario.js";
 import {
@@ -200,7 +201,7 @@ describe("SignInClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(SignInCodeSendResult);
+            expect(result.type === SIGN_IN_CODE_SEND_RESULT_TYPE).toBeTruthy();
 
             const codeSendResult = result as SignInCodeSendResult;
             expect(codeSendResult.correlationId).toBe("corr123");
@@ -233,7 +234,9 @@ describe("SignInClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(SignInPasswordRequiredResult);
+            expect(result.type).toStrictEqual(
+                SIGN_IN_PASSWORD_REQUIRED_RESULT_TYPE
+            );
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
         });
@@ -264,7 +267,7 @@ describe("SignInClient", () => {
                 scopes: [],
             });
 
-            expect(result).toBeInstanceOf(SignInCompletedResult);
+            expect(result.type).toStrictEqual(SIGN_IN_COMPLETED_RESULT_TYPE);
             expect(result.correlationId).toBe("test-correlation-id");
             expect(result.authenticationResult).toBeDefined();
             expect(result.authenticationResult.accessToken).toBe(
@@ -309,7 +312,7 @@ describe("SignInClient", () => {
                 scopes: [],
             });
 
-            expect(result).toBeInstanceOf(SignInCompletedResult);
+            expect(result.type).toStrictEqual(SIGN_IN_COMPLETED_RESULT_TYPE);
             expect(result.correlationId).toBe("test-correlation-id");
             expect(result.authenticationResult).toBeDefined();
             expect(result.authenticationResult.accessToken).toBe(
@@ -352,7 +355,6 @@ describe("SignInClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(SignInCodeSendResult);
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
             expect(result.codeLength).toBe(6);
@@ -388,7 +390,6 @@ describe("SignInClient", () => {
                 signInScenario: SignInScenario.SignInAfterSignUp,
             });
 
-            expect(result).toBeInstanceOf(SignInCompletedResult);
             expect(result.correlationId).toBe("test-correlation-id");
             expect(result.authenticationResult).toBeDefined();
             expect(result.authenticationResult.accessToken).toBe(

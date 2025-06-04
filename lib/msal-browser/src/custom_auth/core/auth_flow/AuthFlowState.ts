@@ -3,10 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { ArgumentValidator } from "../utils/ArgumentValidator.js";
 import { InvalidArgumentError } from "../error/InvalidArgumentError.js";
 import { CustomAuthBrowserConfiguration } from "../../configuration/CustomAuthConfiguration.js";
 import { Logger } from "@azure/msal-common/browser";
+import {
+    ensureArgumentIsNotEmptyString,
+    ensureArgumentIsNotNullOrUndefined,
+} from "../utils/ArgumentValidator.js";
 
 export interface AuthFlowActionRequiredStateParameters {
     correlationId: string;
@@ -31,16 +34,16 @@ export abstract class AuthFlowActionRequiredStateBase<
      * @param stateParameters The parameters for the auth state.
      */
     protected constructor(protected readonly stateParameters: TParameter) {
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
+        ensureArgumentIsNotEmptyString(
             "correlationId",
             stateParameters.correlationId
         );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "logger",
             stateParameters.logger,
             stateParameters.correlationId
         );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "config",
             stateParameters.config,
             stateParameters.correlationId

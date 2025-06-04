@@ -27,21 +27,24 @@ import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/Res
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import {
-    SignInCodeSendResult,
-    SignInPasswordRequiredResult,
+    SIGN_IN_CODE_SEND_RESULT_TYPE,
+    SIGN_IN_PASSWORD_REQUIRED_RESULT_TYPE,
 } from "../sign_in/interaction_client/result/SignInActionResult.js";
 import { SignUpClient } from "../sign_up/interaction_client/SignUpClient.js";
 import { CustomAuthInterationClientFactory } from "../core/interaction_client/CustomAuthInterationClientFactory.js";
 import {
-    SignUpCodeRequiredResult,
-    SignUpPasswordRequiredResult,
+    SIGN_UP_CODE_REQUIRED_RESULT_TYPE,
+    SIGN_UP_PASSWORD_REQUIRED_RESULT_TYPE,
 } from "../sign_up/interaction_client/result/SignUpActionResult.js";
 import { ICustomAuthApiClient } from "../core/network_client/custom_auth_api/ICustomAuthApiClient.js";
 import { CustomAuthApiClient } from "../core/network_client/custom_auth_api/CustomAuthApiClient.js";
 import { FetchHttpClient } from "../core/network_client/http_client/FetchHttpClient.js";
 import { ResetPasswordClient } from "../reset_password/interaction_client/ResetPasswordClient.js";
 import { NoCachedAccountFoundError } from "../core/error/NoCachedAccountFoundError.js";
-import { ArgumentValidator } from "../core/utils/ArgumentValidator.js";
+import {
+    ensureArgumentIsNotEmptyString,
+    ensureArgumentIsNotNullOrUndefined,
+} from "../core/utils/ArgumentValidator.js";
 import { UserAlreadySignedInError } from "../core/error/UserAlreadySignedInError.js";
 import { CustomAuthSilentCacheClient } from "../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { UnsupportedEnvironmentError } from "../core/error/UnsupportedEnvironmentError.js";
@@ -174,13 +177,13 @@ export class CustomAuthStandardController
         const correlationId = this.getCorrelationId(signInInputs);
 
         try {
-            ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            ensureArgumentIsNotNullOrUndefined(
                 "signInInputs",
                 signInInputs,
                 correlationId
             );
 
-            ArgumentValidator.ensureArgumentIsNotEmptyString(
+            ensureArgumentIsNotEmptyString(
                 "signInInputs.username",
                 signInInputs.username,
                 correlationId
@@ -210,7 +213,7 @@ export class CustomAuthStandardController
 
             this.logger.verbose("Sign-in flow started.", correlationId);
 
-            if (startResult instanceof SignInCodeSendResult) {
+            if (startResult.type === SIGN_IN_CODE_SEND_RESULT_TYPE) {
                 // require code
                 this.logger.verbose(
                     "Code required for sign-in.",
@@ -230,7 +233,9 @@ export class CustomAuthStandardController
                         scopes: signInInputs.scopes ?? [],
                     })
                 );
-            } else if (startResult instanceof SignInPasswordRequiredResult) {
+            } else if (
+                startResult.type === SIGN_IN_PASSWORD_REQUIRED_RESULT_TYPE
+            ) {
                 // require password
                 this.logger.verbose(
                     "Password required for sign-in.",
@@ -322,13 +327,13 @@ export class CustomAuthStandardController
         const correlationId = this.getCorrelationId(signUpInputs);
 
         try {
-            ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            ensureArgumentIsNotNullOrUndefined(
                 "signUpInputs",
                 signUpInputs,
                 correlationId
             );
 
-            ArgumentValidator.ensureArgumentIsNotEmptyString(
+            ensureArgumentIsNotEmptyString(
                 "signUpInputs.username",
                 signUpInputs.username,
                 correlationId
@@ -360,7 +365,7 @@ export class CustomAuthStandardController
 
             this.logger.verbose("Sign-up flow started.", correlationId);
 
-            if (startResult instanceof SignUpCodeRequiredResult) {
+            if (startResult.type === SIGN_UP_CODE_REQUIRED_RESULT_TYPE) {
                 // Code required
                 this.logger.verbose(
                     "Code required for sign-up.",
@@ -381,7 +386,9 @@ export class CustomAuthStandardController
                         codeResendInterval: startResult.interval,
                     })
                 );
-            } else if (startResult instanceof SignUpPasswordRequiredResult) {
+            } else if (
+                startResult.type === SIGN_UP_PASSWORD_REQUIRED_RESULT_TYPE
+            ) {
                 // Password required
                 this.logger.verbose(
                     "Password required for sign-up.",
@@ -432,13 +439,13 @@ export class CustomAuthStandardController
         const correlationId = this.getCorrelationId(resetPasswordInputs);
 
         try {
-            ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            ensureArgumentIsNotNullOrUndefined(
                 "resetPasswordInputs",
                 resetPasswordInputs,
                 correlationId
             );
 
-            ArgumentValidator.ensureArgumentIsNotEmptyString(
+            ensureArgumentIsNotEmptyString(
                 "resetPasswordInputs.username",
                 resetPasswordInputs.username,
                 correlationId

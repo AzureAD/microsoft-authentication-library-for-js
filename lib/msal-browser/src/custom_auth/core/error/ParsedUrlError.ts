@@ -12,5 +12,4 @@ export class ParsedUrlError extends CustomAuthError {
     }
 }
 
-export const UnsecureUrl = "unsecure_url";
 export const InvalidUrl = "invalid_url";

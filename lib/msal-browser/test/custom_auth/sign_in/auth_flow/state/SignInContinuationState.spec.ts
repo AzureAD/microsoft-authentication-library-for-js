@@ -4,7 +4,7 @@ import { CustomAuthBrowserConfiguration } from "../../../../../src/custom_auth/c
 import { SignInError } from "../../../../../src/custom_auth/sign_in/auth_flow/error_type/SignInError.js";
 import { SignInResult } from "../../../../../src/custom_auth/sign_in/auth_flow/result/SignInResult.js";
 import { SignInContinuationState } from "../../../../../src/custom_auth/sign_in/auth_flow/state/SignInContinuationState.js";
-import { SignInCompletedResult } from "../../../../../src/custom_auth/sign_in/interaction_client/result/SignInActionResult.js";
+import { createSignInCompleteResult } from "../../../../../src/custom_auth/sign_in/interaction_client/result/SignInActionResult.js";
 import { SignInClient } from "../../../../../src/custom_auth/sign_in/interaction_client/SignInClient.js";
 import { SignInScenario } from "../../../../../src/custom_auth/sign_in/auth_flow/SignInScenario.js";
 import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
@@ -54,26 +54,29 @@ describe("SignInContinuationState", () => {
 
     it("should successfully sign in and return a result", async () => {
         mockSignInClient.signInWithContinuationToken.mockResolvedValue(
-            new SignInCompletedResult(correlationId, {
-                accessToken: "test-access-token",
-                idToken: "test-id-token",
-                expiresOn: new Date(Date.now() + 3600 * 1000),
-                tokenType: "Bearer",
+            createSignInCompleteResult({
                 correlationId: correlationId,
-                authority: "https://test-authority.com",
-                tenantId: "test-tenant-id",
-                scopes: [],
-                account: {
-                    homeAccountId: "",
-                    environment: "",
-                    tenantId: "test-tenant-id",
-                    username: username,
-                    localAccountId: "",
+                authenticationResult: {
+                    accessToken: "test-access-token",
                     idToken: "test-id-token",
+                    expiresOn: new Date(Date.now() + 3600 * 1000),
+                    tokenType: "Bearer",
+                    correlationId: correlationId,
+                    authority: "https://test-authority.com",
+                    tenantId: "test-tenant-id",
+                    scopes: [],
+                    account: {
+                        homeAccountId: "",
+                        environment: "",
+                        tenantId: "test-tenant-id",
+                        username: username,
+                        localAccountId: "",
+                        idToken: "test-id-token",
+                    },
+                    idTokenClaims: {},
+                    fromCache: false,
+                    uniqueId: "test-unique-id",
                 },
-                idTokenClaims: {},
-                fromCache: false,
-                uniqueId: "test-unique-id",
             })
         );
 

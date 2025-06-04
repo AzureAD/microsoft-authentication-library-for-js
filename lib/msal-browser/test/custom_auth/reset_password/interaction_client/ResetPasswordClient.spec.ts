@@ -17,11 +17,6 @@ import { ResetPasswordClient } from "../../../../src/custom_auth/reset_password/
 import { customAuthConfig } from "../../test_resources/CustomAuthConfig.js";
 import { CustomAuthAuthority } from "../../../../src/custom_auth/core/CustomAuthAuthority.js";
 import { ChallengeType } from "../../../../src/custom_auth/CustomAuthConstants.js";
-import {
-    ResetPasswordCodeRequiredResult,
-    ResetPasswordCompletedResult,
-    ResetPasswordPasswordRequiredResult,
-} from "../../../../src/custom_auth/reset_password/interaction_client/result/ResetPasswordActionResult.js";
 import { CustomAuthApiErrorCode } from "../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
 import { BrowserConfiguration } from "../../../../src/config/Configuration.js";
 import {
@@ -193,16 +188,12 @@ describe("ResetPasswordClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(ResetPasswordCodeRequiredResult);
-            const codeSendResult = result as ResetPasswordCodeRequiredResult;
-            expect(codeSendResult.correlationId).toBe("corr123");
-            expect(codeSendResult.continuationToken).toBe(
-                "continuation_token_2"
-            );
-            expect(codeSendResult.codeLength).toBe(6);
-            expect(codeSendResult.challengeChannel).toBe("email");
-            expect(codeSendResult.challengeTargetLabel).toBe("email");
-            expect(codeSendResult.bindingMethod).toBe("email");
+            expect(result.correlationId).toBe("corr123");
+            expect(result.continuationToken).toBe("continuation_token_2");
+            expect(result.codeLength).toBe(6);
+            expect(result.challengeChannel).toBe("email");
+            expect(result.challengeTargetLabel).toBe("email");
+            expect(result.bindingMethod).toBe("email");
         });
 
         it("should return ResetPasswordPasswordRequiredResult with error when challenge type is not OOB", async () => {
@@ -255,7 +246,6 @@ describe("ResetPasswordClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(ResetPasswordPasswordRequiredResult);
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
         });
@@ -297,7 +287,6 @@ describe("ResetPasswordClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(ResetPasswordCompletedResult);
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_3");
             expect(resetPasswordApiClient.pollCompletion).toHaveBeenCalledTimes(
@@ -394,7 +383,6 @@ describe("ResetPasswordClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(ResetPasswordCodeRequiredResult);
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
             expect(result.codeLength).toBe(6);

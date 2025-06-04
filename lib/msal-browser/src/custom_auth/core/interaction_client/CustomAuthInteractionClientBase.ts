@@ -4,7 +4,6 @@
  */
 
 import { ICustomAuthApiClient } from "../network_client/custom_auth_api/ICustomAuthApiClient.js";
-import { ArgumentValidator } from "../utils/ArgumentValidator.js";
 import { MethodNotImplementedError } from "../error/MethodNotImplementedError.js";
 import { CustomAuthAuthority } from "../CustomAuthAuthority.js";
 import { ChallengeType } from "../../CustomAuthConstants.js";
@@ -25,6 +24,7 @@ import { SsoSilentRequest } from "../../../request/SsoSilentRequest.js";
 import { EndSessionRequest } from "../../../request/EndSessionRequest.js";
 import { ClearCacheRequest } from "../../../request/ClearCacheRequest.js";
 import { AuthenticationResult } from "../../../response/AuthenticationResult.js";
+import { ensureArgumentIsNotNullOrUndefined } from "../utils/ArgumentValidator.js";
 
 export abstract class CustomAuthInteractionClientBase extends StandardInteractionClient {
     constructor(
@@ -48,13 +48,13 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
             performanceClient
         );
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "customAuthApiClient",
             customAuthApiClient,
             this.correlationId
         );
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "customAuthAuthority",
             customAuthAuthority,
             this.correlationId

@@ -2,7 +2,7 @@ import { CustomAuthBrowserConfiguration } from "../../../../../src/custom_auth/c
 import { SignUpSubmitAttributesError } from "../../../../../src/custom_auth/sign_up/auth_flow/error_type/SignUpError.js";
 import { SignUpSubmitAttributesResult } from "../../../../../src/custom_auth/sign_up/auth_flow/result/SignUpSubmitAttributesResult.js";
 import { SignUpAttributesRequiredState } from "../../../../../src/custom_auth/sign_up/auth_flow/state/SignUpAttributesRequiredState.js";
-import { SignUpCompletedResult } from "../../../../../src/custom_auth/sign_up/interaction_client/result/SignUpActionResult.js";
+import { createSignUpCompletedResult } from "../../../../../src/custom_auth/sign_up/interaction_client/result/SignUpActionResult.js";
 import { SignUpClient } from "../../../../../src/custom_auth/sign_up/interaction_client/SignUpClient.js";
 import { Logger } from "@azure/msal-browser";
 import { SignInClient } from "../../../../../src/custom_auth/sign_in/interaction_client/SignInClient.js";
@@ -81,7 +81,10 @@ describe("SignUpAttributesRequiredState", () => {
 
         it("should successfully submit a attributes and return completed state if no credentail required", async () => {
             mockSignUpClient.submitAttributes.mockResolvedValue(
-                new SignUpCompletedResult(correlationId, "continuation-token")
+                createSignUpCompletedResult({
+                    correlationId: correlationId,
+                    continuationToken: "continuation-token",
+                })
             );
 
             const result = await state.submitAttributes(requiredAttributes);

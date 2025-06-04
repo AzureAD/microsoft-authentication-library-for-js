@@ -5,10 +5,10 @@ import { SignUpResendCodeResult } from "../../../../../src/custom_auth/sign_up/a
 import { SignUpSubmitCodeResult } from "../../../../../src/custom_auth/sign_up/auth_flow/result/SignUpSubmitCodeResult.js";
 import { SignUpCodeRequiredState } from "../../../../../src/custom_auth/sign_up/auth_flow/state/SignUpCodeRequiredState.js";
 import {
-    SignUpAttributesRequiredResult,
-    SignUpCodeRequiredResult,
-    SignUpCompletedResult,
-    SignUpPasswordRequiredResult,
+    createSignUpAttributesRequiredResult,
+    createSignUpCodeRequiredResult,
+    createSignUpCompletedResult,
+    createSignUpPasswordRequiredResult,
 } from "../../../../../src/custom_auth/sign_up/interaction_client/result/SignUpActionResult.js";
 import { SignUpClient } from "../../../../../src/custom_auth/sign_up/interaction_client/SignUpClient.js";
 import { Logger } from "@azure/msal-browser";
@@ -76,7 +76,10 @@ describe("SignUpCodeRequiredState", () => {
 
         it("should successfully submit a code and return completed state if no credentail required", async () => {
             mockSignUpClient.submitCode.mockResolvedValue(
-                new SignUpCompletedResult(correlationId, "continuation-token")
+                createSignUpCompletedResult({
+                    correlationId: correlationId,
+                    continuationToken: "continuation-token",
+                })
             );
 
             const result = await state.submitCode("12345678");
@@ -96,10 +99,10 @@ describe("SignUpCodeRequiredState", () => {
 
         it("should successfully submit a code and return password-required state if password is required", async () => {
             mockSignUpClient.submitCode.mockResolvedValue(
-                new SignUpPasswordRequiredResult(
-                    correlationId,
-                    "continuation-token"
-                )
+                createSignUpPasswordRequiredResult({
+                    correlationId: correlationId,
+                    continuationToken: "continuation-token",
+                })
             );
 
             const result = await state.submitCode("12345678");
@@ -119,16 +122,16 @@ describe("SignUpCodeRequiredState", () => {
 
         it("should successfully submit a code and return attributes-required state if attributes are required", async () => {
             mockSignUpClient.submitCode.mockResolvedValue(
-                new SignUpAttributesRequiredResult(
-                    correlationId,
-                    "continuation-token",
-                    [
+                createSignUpAttributesRequiredResult({
+                    correlationId: correlationId,
+                    continuationToken: "continuation-token",
+                    requiredAttributes: [
                         {
                             name: "name",
                             type: "string",
                         },
-                    ]
-                )
+                    ],
+                })
             );
 
             const result = await state.submitCode("12345678");
@@ -150,15 +153,15 @@ describe("SignUpCodeRequiredState", () => {
     describe("resendCode", () => {
         it("should successfully resend a code and return a code required state", async () => {
             mockSignUpClient.resendCode.mockResolvedValue(
-                new SignUpCodeRequiredResult(
-                    correlationId,
-                    "new-continuation-token",
-                    "code",
-                    "email",
-                    6,
-                    60,
-                    "email-otp"
-                )
+                createSignUpCodeRequiredResult({
+                    correlationId: correlationId,
+                    continuationToken: "new-continuation-token",
+                    challengeChannel: "code",
+                    challengeTargetLabel: "email",
+                    codeLength: 6,
+                    interval: 60,
+                    bindingMethod: "email-otp",
+                })
             );
 
             const result = await state.resendCode();

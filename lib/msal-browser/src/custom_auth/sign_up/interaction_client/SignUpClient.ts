@@ -8,7 +8,6 @@ import { CustomAuthApiErrorCode } from "../../core/network_client/custom_auth_ap
 import { UnexpectedError } from "../../core/error/UnexpectedError.js";
 import { CustomAuthInteractionClientBase } from "../../core/interaction_client/CustomAuthInteractionClientBase.js";
 import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
-import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
 import {
     ChallengeType,
     DefaultCustomAuthApiCodeLength,
@@ -23,6 +22,13 @@ import {
     SignUpSubmitUserAttributesParams,
 } from "./parameter/SignUpParams.js";
 import {
+    createSignUpAttributesRequiredResult,
+    createSignUpCodeRequiredResult,
+    createSignUpCompletedResult,
+    createSignUpPasswordRequiredResult,
+    SIGN_UP_ATTRIBUTES_REQUIRED_RESULT_TYPE,
+    SIGN_UP_CODE_REQUIRED_RESULT_TYPE,
+    SIGN_UP_PASSWORD_REQUIRED_RESULT_TYPE,
     SignUpAttributesRequiredResult,
     SignUpCodeRequiredResult,
     SignUpCompletedResult,
@@ -37,6 +43,7 @@ import {
 } from "../../core/network_client/custom_auth_api/types/ApiRequestTypes.js";
 import { SignUpContinueResponse } from "../../core/network_client/custom_auth_api/types/ApiResponseTypes.js";
 import { ServerTelemetryManager } from "@azure/msal-common/browser";
+import { ensureArgumentIsNotNullOrUndefined } from "../../core/utils/ArgumentValidator.js";
 
 export class SignUpClient extends CustomAuthInteractionClientBase {
     /**
@@ -47,7 +54,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
     async start(
         parameters: SignUpStartParams
     ): Promise<SignUpPasswordRequiredResult | SignUpCodeRequiredResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
             parameters.correlationId
@@ -103,7 +110,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         | SignUpPasswordRequiredResult
         | SignUpAttributesRequiredResult
     > {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
             parameters.correlationId
@@ -130,7 +137,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             parameters.correlationId
         );
 
-        if (result instanceof SignUpCodeRequiredResult) {
+        if (result.type === SIGN_UP_CODE_REQUIRED_RESULT_TYPE) {
             throw new CustomAuthApiError(
                 CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
                 "The challenge type 'oob' is invalid after submtting code for sign up.",
@@ -153,7 +160,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         | SignUpCodeRequiredResult
         | SignUpAttributesRequiredResult
     > {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "parameter",
             parameter,
             parameter.correlationId
@@ -180,7 +187,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             parameter.correlationId
         );
 
-        if (result instanceof SignUpPasswordRequiredResult) {
+        if (result.type === SIGN_UP_PASSWORD_REQUIRED_RESULT_TYPE) {
             throw new CustomAuthApiError(
                 CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
                 "The challenge type 'password' is invalid after submtting password for sign up.",
@@ -203,7 +210,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
         | SignUpPasswordRequiredResult
         | SignUpCodeRequiredResult
     > {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "parameter",
             parameter,
             parameter.correlationId
@@ -229,7 +236,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             parameter.correlationId
         );
 
-        if (result instanceof SignUpAttributesRequiredResult) {
+        if (result.type === SIGN_UP_ATTRIBUTES_REQUIRED_RESULT_TYPE) {
             throw new CustomAuthApiError(
                 CustomAuthApiErrorCode.ATTRIBUTES_REQUIRED,
                 "User attributes required",
@@ -252,7 +259,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
     async resendCode(
         parameters: SignUpResendCodeParams
     ): Promise<SignUpCodeRequiredResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
             parameters.correlationId
@@ -270,7 +277,7 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
 
         const result = await this.performChallengeRequest(challengeRequest);
 
-        if (result instanceof SignUpPasswordRequiredResult) {
+        if (result.type === SIGN_UP_PASSWORD_REQUIRED_RESULT_TYPE) {
             throw new CustomAuthApiError(
                 CustomAuthApiErrorCode.UNSUPPORTED_CHALLENGE_TYPE,
                 "The challenge type 'password' is invalid after resending code for sign up.",
@@ -304,16 +311,20 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
                 request.correlationId
             );
 
-            return new SignUpCodeRequiredResult(
-                challengeResponse.correlation_id,
-                challengeResponse.continuation_token ?? "",
-                challengeResponse.challenge_channel ?? "",
-                challengeResponse.challenge_target_label ?? "",
-                challengeResponse.code_length ?? DefaultCustomAuthApiCodeLength,
-                challengeResponse.interval ??
+            return createSignUpCodeRequiredResult({
+                correlationId: challengeResponse.correlation_id,
+                continuationToken: challengeResponse.continuation_token ?? "",
+                challengeChannel: challengeResponse.challenge_channel ?? "",
+                challengeTargetLabel:
+                    challengeResponse.challenge_target_label ?? "",
+                codeLength:
+                    challengeResponse.code_length ??
+                    DefaultCustomAuthApiCodeLength,
+                interval:
+                    challengeResponse.interval ??
                     DefaultCustomAuthApiCodeResendIntervalInSec,
-                challengeResponse.binding_method ?? ""
-            );
+                bindingMethod: challengeResponse.binding_method ?? "",
+            });
         }
 
         if (challengeResponse.challenge_type === ChallengeType.PASSWORD) {
@@ -323,10 +334,10 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
                 request.correlationId
             );
 
-            return new SignUpPasswordRequiredResult(
-                challengeResponse.correlation_id,
-                challengeResponse.continuation_token ?? ""
-            );
+            return createSignUpPasswordRequiredResult({
+                correlationId: challengeResponse.correlation_id,
+                continuationToken: challengeResponse.continuation_token ?? "",
+            });
         }
 
         this.logger.error(
@@ -366,10 +377,10 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
                 requestCorrelationId
             );
 
-            return new SignUpCompletedResult(
-                requestCorrelationId,
-                response.continuation_token ?? ""
-            );
+            return createSignUpCompletedResult({
+                correlationId: requestCorrelationId,
+                continuationToken: response.continuation_token ?? "",
+            });
         } catch (error) {
             if (error instanceof CustomAuthApiError) {
                 return this.handleContinueResponseError(
@@ -428,23 +439,25 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
                 challengeRequest
             );
 
-            if (challengeResult instanceof SignUpPasswordRequiredResult) {
-                return new SignUpPasswordRequiredResult(
-                    correlationId,
-                    challengeResult.continuationToken
-                );
+            if (
+                challengeResult.type === SIGN_UP_PASSWORD_REQUIRED_RESULT_TYPE
+            ) {
+                return createSignUpPasswordRequiredResult({
+                    correlationId: correlationId,
+                    continuationToken: challengeResult.continuationToken,
+                });
             }
 
-            if (challengeResult instanceof SignUpCodeRequiredResult) {
-                return new SignUpCodeRequiredResult(
-                    challengeResult.correlationId,
-                    challengeResult.continuationToken,
-                    challengeResult.challengeChannel,
-                    challengeResult.challengeTargetLabel,
-                    challengeResult.codeLength,
-                    challengeResult.interval,
-                    challengeResult.bindingMethod
-                );
+            if (challengeResult.type === SIGN_UP_CODE_REQUIRED_RESULT_TYPE) {
+                return createSignUpCodeRequiredResult({
+                    correlationId: challengeResult.correlationId,
+                    continuationToken: challengeResult.continuationToken,
+                    challengeChannel: challengeResult.challengeChannel,
+                    challengeTargetLabel: challengeResult.challengeTargetLabel,
+                    codeLength: challengeResult.codeLength,
+                    interval: challengeResult.interval,
+                    bindingMethod: challengeResult.bindingMethod,
+                });
             }
 
             throw new CustomAuthApiError(
@@ -464,11 +477,11 @@ export class SignUpClient extends CustomAuthInteractionClientBase {
             const continuationToken =
                 this.readContinuationTokenFromResponeError(responseError);
 
-            return new SignUpAttributesRequiredResult(
-                correlationId,
-                continuationToken,
-                responseError.attributes ?? []
-            );
+            return createSignUpAttributesRequiredResult({
+                correlationId: correlationId,
+                continuationToken: continuationToken,
+                requiredAttributes: responseError.attributes ?? [],
+            });
         }
 
         throw responseError;

@@ -15,7 +15,6 @@ import {
     ResetPasswordSubmitRequest,
 } from "../../core/network_client/custom_auth_api/types/ApiRequestTypes.js";
 import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
-import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
 import {
     ChallengeType,
     DefaultCustomAuthApiCodeLength,
@@ -33,6 +32,10 @@ import {
     ResetPasswordCompletedResult,
     ResetPasswordPasswordRequiredResult,
 } from "./result/ResetPasswordActionResult.js";
+import {
+    ensureArgumentIsNotEmptyString,
+    ensureArgumentIsNotNullOrUndefined,
+} from "../../core/utils/ArgumentValidator.js";
 
 export class ResetPasswordClient extends CustomAuthInteractionClientBase {
     /**
@@ -44,7 +47,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         parameters: ResetPasswordStartParams
     ): Promise<ResetPasswordCodeRequiredResult> {
         const correlationId = parameters.correlationId;
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
             correlationId
@@ -92,12 +95,12 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
         parameters: ResetPasswordSubmitCodeParams
     ): Promise<ResetPasswordPasswordRequiredResult> {
         const correlationId = parameters.correlationId;
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
             correlationId
         );
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
+        ensureArgumentIsNotEmptyString(
             "parameters.code",
             parameters.code,
             correlationId
@@ -128,10 +131,10 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
             response.correlation_id
         );
 
-        return new ResetPasswordPasswordRequiredResult(
-            response.correlation_id,
-            response.continuation_token ?? ""
-        );
+        return {
+            correlationId: response.correlation_id,
+            continuationToken: response.continuation_token ?? "",
+        };
     }
 
     /**
@@ -142,7 +145,7 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
     async resendCode(
         parameters: ResetPasswordResendCodeParams
     ): Promise<ResetPasswordCodeRequiredResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
             parameters.correlationId
@@ -171,12 +174,12 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
     ): Promise<ResetPasswordCompletedResult> {
         const correlationId = parameters.correlationId;
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
             correlationId
         );
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
+        ensureArgumentIsNotEmptyString(
             "parameters.newPassword",
             parameters.newPassword,
             correlationId
@@ -241,14 +244,15 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
                 correlationId
             );
 
-            return new ResetPasswordCodeRequiredResult(
-                response.correlation_id,
-                response.continuation_token ?? "",
-                response.challenge_channel ?? "",
-                response.challenge_target_label ?? "",
-                response.code_length ?? DefaultCustomAuthApiCodeLength,
-                response.binding_method ?? ""
-            );
+            return {
+                correlationId: response.correlation_id,
+                continuationToken: response.continuation_token ?? "",
+                challengeChannel: response.challenge_channel ?? "",
+                challengeTargetLabel: response.challenge_target_label ?? "",
+                codeLength:
+                    response.code_length ?? DefaultCustomAuthApiCodeLength,
+                bindingMethod: response.binding_method ?? "",
+            };
         }
 
         this.logger.error(
@@ -297,10 +301,10 @@ export class ResetPasswordClient extends CustomAuthInteractionClientBase {
             );
 
             if (pollResponse.status === ResetPasswordPollStatus.SUCCEEDED) {
-                return new ResetPasswordCompletedResult(
-                    pollResponse.correlation_id,
-                    pollResponse.continuation_token ?? ""
-                );
+                return {
+                    correlationId: pollResponse.correlation_id,
+                    continuationToken: pollResponse.continuation_token ?? "",
+                };
             } else if (pollResponse.status === ResetPasswordPollStatus.FAILED) {
                 throw new CustomAuthApiError(
                     CustomAuthApiErrorCode.PASSWORD_CHANGE_FAILED,

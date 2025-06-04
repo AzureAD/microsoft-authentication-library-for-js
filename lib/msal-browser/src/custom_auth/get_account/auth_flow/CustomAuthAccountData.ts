@@ -6,7 +6,6 @@
 import { CustomAuthBrowserConfiguration } from "../../configuration/CustomAuthConfiguration.js";
 import { SignOutResult } from "./result/SignOutResult.js";
 import { GetAccessTokenResult } from "./result/GetAccessTokenResult.js";
-import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
 import { CustomAuthSilentCacheClient } from "../interaction_client/CustomAuthSilentCacheClient.js";
 import { NoCachedAccountFoundError } from "../../core/error/NoCachedAccountFoundError.js";
 import { DefaultScopes } from "../../CustomAuthConstants.js";
@@ -19,6 +18,10 @@ import {
     TokenClaims,
 } from "@azure/msal-common/browser";
 import { SilentRequest } from "../../../request/SilentRequest.js";
+import {
+    ensureArgumentIsNotEmptyString,
+    ensureArgumentIsNotNullOrUndefined,
+} from "../../core/utils/ArgumentValidator.js";
 
 /*
  * Account information.
@@ -31,30 +34,15 @@ export class CustomAuthAccountData {
         private readonly logger: Logger,
         private readonly correlationId: string
     ) {
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
-            "correlationId",
-            correlationId
-        );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "account",
-            account,
-            correlationId
-        );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "config",
-            config,
-            correlationId
-        );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotEmptyString("correlationId", correlationId);
+        ensureArgumentIsNotNullOrUndefined("account", account, correlationId);
+        ensureArgumentIsNotNullOrUndefined("config", config, correlationId);
+        ensureArgumentIsNotNullOrUndefined(
             "cacheClient",
             cacheClient,
             correlationId
         );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "logger",
-            logger,
-            correlationId
-        );
+        ensureArgumentIsNotNullOrUndefined("logger", logger, correlationId);
     }
 
     /**
@@ -126,7 +114,7 @@ export class CustomAuthAccountData {
         accessTokenRetrievalInputs: AccessTokenRetrievalInputs
     ): Promise<GetAccessTokenResult> {
         try {
-            ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+            ensureArgumentIsNotNullOrUndefined(
                 "accessTokenRetrievalInputs",
                 accessTokenRetrievalInputs,
                 this.correlationId

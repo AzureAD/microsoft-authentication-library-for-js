@@ -3,10 +3,11 @@ import { customAuthConfig } from "../../test_resources/CustomAuthConfig.js";
 import { CustomAuthAuthority } from "../../../../src/custom_auth/core/CustomAuthAuthority.js";
 import { ChallengeType } from "../../../../src/custom_auth/CustomAuthConstants.js";
 import {
-    SignUpAttributesRequiredResult,
+    SIGN_UP_ATTRIBUTES_REQUIRED_RESULT_TYPE,
+    SIGN_UP_CODE_REQUIRED_RESULT_TYPE,
+    SIGN_UP_COMPLETED_RESULT_TYPE,
+    SIGN_UP_PASSWORD_REQUIRED_RESULT_TYPE,
     SignUpCodeRequiredResult,
-    SignUpCompletedResult,
-    SignUpPasswordRequiredResult,
 } from "../../../../src/custom_auth/sign_up/interaction_client/result/SignUpActionResult.js";
 import { CustomAuthApiError } from "../../../../src/custom_auth/index.js";
 import { CustomAuthApiErrorCode } from "../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiErrorResponseTypes.js";
@@ -178,7 +179,9 @@ describe("SignUpClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(SignUpCodeRequiredResult);
+            expect(result.type).toStrictEqual(
+                SIGN_UP_CODE_REQUIRED_RESULT_TYPE
+            );
             const codeSendResult = result as SignUpCodeRequiredResult;
             expect(codeSendResult.correlationId).toBe("corr123");
             expect(codeSendResult.continuationToken).toBe(
@@ -210,7 +213,9 @@ describe("SignUpClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(SignUpPasswordRequiredResult);
+            expect(result.type).toStrictEqual(
+                SIGN_UP_PASSWORD_REQUIRED_RESULT_TYPE
+            );
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
         });
@@ -235,7 +240,7 @@ describe("SignUpClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(SignUpCompletedResult);
+            expect(result.type).toStrictEqual(SIGN_UP_COMPLETED_RESULT_TYPE);
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
         });
@@ -272,7 +277,9 @@ describe("SignUpClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(SignUpPasswordRequiredResult);
+            expect(result.type).toStrictEqual(
+                SIGN_UP_PASSWORD_REQUIRED_RESULT_TYPE
+            );
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
 
@@ -361,7 +368,9 @@ describe("SignUpClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(SignUpAttributesRequiredResult);
+            expect(result.type).toStrictEqual(
+                SIGN_UP_ATTRIBUTES_REQUIRED_RESULT_TYPE
+            );
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_1");
         });
@@ -386,7 +395,7 @@ describe("SignUpClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(SignUpCompletedResult);
+            expect(result.type).toStrictEqual(SIGN_UP_COMPLETED_RESULT_TYPE);
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
         });
@@ -426,7 +435,9 @@ describe("SignUpClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(SignUpCodeRequiredResult);
+            expect(result.type).toStrictEqual(
+                SIGN_UP_CODE_REQUIRED_RESULT_TYPE
+            );
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
 
@@ -469,7 +480,9 @@ describe("SignUpClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(SignUpAttributesRequiredResult);
+            expect(result.type).toStrictEqual(
+                SIGN_UP_ATTRIBUTES_REQUIRED_RESULT_TYPE
+            );
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_1");
         });
@@ -494,7 +507,7 @@ describe("SignUpClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(SignUpCompletedResult);
+            expect(result.type).toStrictEqual(SIGN_UP_COMPLETED_RESULT_TYPE);
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
         });
@@ -534,7 +547,9 @@ describe("SignUpClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(SignUpCodeRequiredResult);
+            expect(result.type).toStrictEqual(
+                SIGN_UP_CODE_REQUIRED_RESULT_TYPE
+            );
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
 
@@ -578,7 +593,9 @@ describe("SignUpClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(SignUpPasswordRequiredResult);
+            expect(result.type).toStrictEqual(
+                SIGN_UP_PASSWORD_REQUIRED_RESULT_TYPE
+            );
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
 
@@ -661,7 +678,9 @@ describe("SignUpClient", () => {
                 correlationId: "corr123",
             });
 
-            expect(result).toBeInstanceOf(SignUpCodeRequiredResult);
+            expect(result.type).toStrictEqual(
+                SIGN_UP_CODE_REQUIRED_RESULT_TYPE
+            );
             expect(result.correlationId).toBe("corr123");
             expect(result.continuationToken).toBe("continuation_token_2");
             expect(result.codeLength).toBe(6);

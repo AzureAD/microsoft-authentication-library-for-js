@@ -5,9 +5,9 @@
 
 import { UnexpectedError } from "../../../core/error/UnexpectedError.js";
 import {
-    SignUpAttributesRequiredResult,
-    SignUpCompletedResult,
-    SignUpPasswordRequiredResult,
+    SIGN_UP_ATTRIBUTES_REQUIRED_RESULT_TYPE,
+    SIGN_UP_COMPLETED_RESULT_TYPE,
+    SIGN_UP_PASSWORD_REQUIRED_RESULT_TYPE,
 } from "../../interaction_client/result/SignUpActionResult.js";
 import { SignUpResendCodeResult } from "../result/SignUpResendCodeResult.js";
 import { SignUpSubmitCodeResult } from "../result/SignUpSubmitCodeResult.js";
@@ -51,7 +51,7 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
                 this.stateParameters.correlationId
             );
 
-            if (result instanceof SignUpPasswordRequiredResult) {
+            if (result.type === SIGN_UP_PASSWORD_REQUIRED_RESULT_TYPE) {
                 // Password required
                 this.stateParameters.logger.verbose(
                     "Password required for sign-up.",
@@ -70,7 +70,9 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
                         username: this.stateParameters.username,
                     })
                 );
-            } else if (result instanceof SignUpAttributesRequiredResult) {
+            } else if (
+                result.type === SIGN_UP_ATTRIBUTES_REQUIRED_RESULT_TYPE
+            ) {
                 // Attributes required
                 this.stateParameters.logger.verbose(
                     "Attributes required for sign-up.",
@@ -90,7 +92,7 @@ export class SignUpCodeRequiredState extends SignUpState<SignUpCodeRequiredState
                         requiredAttributes: result.requiredAttributes,
                     })
                 );
-            } else if (result instanceof SignUpCompletedResult) {
+            } else if (result.type === SIGN_UP_COMPLETED_RESULT_TYPE) {
                 // Sign-up completed
                 this.stateParameters.logger.verbose(
                     "Sign-up completed.",

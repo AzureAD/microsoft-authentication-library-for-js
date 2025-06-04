@@ -2,7 +2,6 @@ import { CustomAuthBrowserConfiguration } from "../../../../../src/custom_auth/c
 import { InvalidArgumentError } from "../../../../../src/custom_auth/core/error/InvalidArgumentError.js";
 import { ResetPasswordSubmitPasswordError } from "../../../../../src/custom_auth/reset_password/auth_flow/error_type/ResetPasswordError.js";
 import { ResetPasswordSubmitPasswordResult } from "../../../../../src/custom_auth/reset_password/auth_flow/result/ResetPasswordSubmitPasswordResult.js";
-import { ResetPasswordCompletedResult } from "../../../../../src/custom_auth/reset_password/interaction_client/result/ResetPasswordActionResult.js";
 import { ResetPasswordClient } from "../../../../../src/custom_auth/reset_password/interaction_client/ResetPasswordClient.js";
 import { Logger } from "@azure/msal-browser";
 import { SignInClient } from "../../../../../src/custom_auth/sign_in/interaction_client/SignInClient.js";
@@ -71,12 +70,10 @@ describe("ResetPasswordPasswordRequiredState", () => {
         });
 
         it("should successfully submit a password and return completed state", async () => {
-            mockResetPasswordClient.submitNewPassword.mockResolvedValue(
-                new ResetPasswordCompletedResult(
-                    correlationId,
-                    "new-continuation-token"
-                )
-            );
+            mockResetPasswordClient.submitNewPassword.mockResolvedValue({
+                correlationId: correlationId,
+                continuationToken: "new-continuation-token",
+            });
 
             const result = await state.submitNewPassword("valid-password");
 

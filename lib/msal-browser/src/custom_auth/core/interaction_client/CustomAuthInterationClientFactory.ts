@@ -5,7 +5,6 @@
 
 import { ICustomAuthApiClient } from "../network_client/custom_auth_api/ICustomAuthApiClient.js";
 import { CustomAuthAuthority } from "../CustomAuthAuthority.js";
-import { ArgumentValidator } from "../utils/ArgumentValidator.js";
 import { CustomAuthInteractionClientBase } from "./CustomAuthInteractionClientBase.js";
 import { BrowserConfiguration } from "../../../config/Configuration.js";
 import { BrowserCacheManager } from "../../../cache/BrowserCacheManager.js";
@@ -16,6 +15,7 @@ import {
 } from "@azure/msal-common/browser";
 import { EventHandler } from "../../../event/EventHandler.js";
 import { INavigationClient } from "../../../navigation/INavigationClient.js";
+import { ensureArgumentIsNotNullOrUndefined } from "../utils/ArgumentValidator.js";
 
 export class CustomAuthInterationClientFactory {
     constructor(
@@ -29,33 +29,24 @@ export class CustomAuthInterationClientFactory {
         private customAuthApiClient: ICustomAuthApiClient,
         private customAuthAuthority: CustomAuthAuthority
     ) {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("config", config);
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "storageImpl",
-            storageImpl
-        );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "browserCrypto",
-            browserCrypto
-        );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined("logger", logger);
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-            "eventHandler",
-            eventHandler
-        );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined("config", config);
+        ensureArgumentIsNotNullOrUndefined("storageImpl", storageImpl);
+        ensureArgumentIsNotNullOrUndefined("browserCrypto", browserCrypto);
+        ensureArgumentIsNotNullOrUndefined("logger", logger);
+        ensureArgumentIsNotNullOrUndefined("eventHandler", eventHandler);
+        ensureArgumentIsNotNullOrUndefined(
             "navigationClient",
             navigationClient
         );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "performanceClient",
             performanceClient
         );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "customAuthApiClient",
             customAuthApiClient
         );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "customAuthAuthority",
             customAuthAuthority
         );

@@ -8,8 +8,8 @@ import {
 import { SignInResendCodeResult } from "../../../../../src/custom_auth/sign_in/auth_flow/result/SignInResendCodeResult.js";
 import { SignInSubmitCodeResult } from "../../../../../src/custom_auth/sign_in/auth_flow/result/SignInSubmitCodeResult.js";
 import {
-    SignInCodeSendResult,
-    SignInCompletedResult,
+    createSignInCodeSendResult,
+    createSignInCompleteResult,
 } from "../../../../../src/custom_auth/sign_in/interaction_client/result/SignInActionResult.js";
 import { SignInClient } from "../../../../../src/custom_auth/sign_in/interaction_client/SignInClient.js";
 import { Logger } from "@azure/msal-browser";
@@ -76,26 +76,29 @@ describe("SignInCodeRequiredState", () => {
 
         it("should successfully submit a code and return a result", async () => {
             mockSignInClient.submitCode.mockResolvedValue(
-                new SignInCompletedResult(correlationId, {
-                    accessToken: "test-access-token",
-                    idToken: "test-id-token",
-                    expiresOn: new Date(Date.now() + 3600 * 1000),
-                    tokenType: "Bearer",
+                createSignInCompleteResult({
                     correlationId: correlationId,
-                    authority: "https://test-authority.com",
-                    tenantId: "test-tenant-id",
-                    scopes: [],
-                    account: {
-                        homeAccountId: "",
-                        environment: "",
-                        tenantId: "test-tenant-id",
-                        username: username,
-                        localAccountId: "",
+                    authenticationResult: {
+                        accessToken: "test-access-token",
                         idToken: "test-id-token",
+                        expiresOn: new Date(Date.now() + 3600 * 1000),
+                        tokenType: "Bearer",
+                        correlationId: correlationId,
+                        authority: "https://test-authority.com",
+                        tenantId: "test-tenant-id",
+                        scopes: [],
+                        account: {
+                            homeAccountId: "",
+                            environment: "",
+                            tenantId: "test-tenant-id",
+                            username: username,
+                            localAccountId: "",
+                            idToken: "test-id-token",
+                        },
+                        idTokenClaims: {},
+                        fromCache: false,
+                        uniqueId: "test-unique-id",
                     },
-                    idTokenClaims: {},
-                    fromCache: false,
-                    uniqueId: "test-unique-id",
                 })
             );
 
@@ -131,14 +134,14 @@ describe("SignInCodeRequiredState", () => {
     describe("resendCode", () => {
         it("should successfully resend a code and return a result", async () => {
             mockSignInClient.resendCode.mockResolvedValue(
-                new SignInCodeSendResult(
-                    correlationId,
-                    "new-continuation-token",
-                    "code",
-                    "email",
-                    6,
-                    "email-otp"
-                )
+                createSignInCodeSendResult({
+                    correlationId: correlationId,
+                    continuationToken: "new-continuation-token",
+                    challengeChannel: "code",
+                    challengeTargetLabel: "email",
+                    codeLength: 6,
+                    bindingMethod: "email-otp",
+                })
             );
 
             const result = await state.resendCode();

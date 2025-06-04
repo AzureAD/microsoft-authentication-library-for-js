@@ -19,12 +19,15 @@ import {
     SignInContinuationTokenParams,
 } from "./parameter/SignInParams.js";
 import {
+    createSignInCodeSendResult,
+    createSignInCompleteResult,
+    createSignInPasswordRequiredResult,
+    SIGN_IN_PASSWORD_REQUIRED_RESULT_TYPE,
     SignInCodeSendResult,
     SignInCompletedResult,
     SignInPasswordRequiredResult,
 } from "./result/SignInActionResult.js";
 import { PublicApiId } from "../../core/telemetry/PublicApiId.js";
-import { ArgumentValidator } from "../../core/utils/ArgumentValidator.js";
 import {
     SignInChallengeRequest,
     SignInContinuationTokenRequest,
@@ -48,6 +51,10 @@ import { BrowserCacheManager } from "../../../cache/BrowserCacheManager.js";
 import { EventHandler } from "../../../event/EventHandler.js";
 import { INavigationClient } from "../../../navigation/INavigationClient.js";
 import { AuthenticationResult } from "../../../response/AuthenticationResult.js";
+import {
+    ensureArgumentIsNotEmptyString,
+    ensureArgumentIsNotNullOrUndefined,
+} from "../../core/utils/ArgumentValidator.js";
 
 export class SignInClient extends CustomAuthInteractionClientBase {
     private readonly tokenResponseHandler: ResponseHandler;
@@ -93,7 +100,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
     async start(
         parameters: SignInStartParams
     ): Promise<SignInPasswordRequiredResult | SignInCodeSendResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
             parameters.correlationId
@@ -142,7 +149,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
     async resendCode(
         parameters: SignInResendCodeParams
     ): Promise<SignInCodeSendResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
             parameters.correlationId
@@ -160,7 +167,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
 
         const result = await this.performChallengeRequest(challengeReq);
 
-        if (result instanceof SignInPasswordRequiredResult) {
+        if (result.type === SIGN_IN_PASSWORD_REQUIRED_RESULT_TYPE) {
             this.logger.error(
                 "Resend code operation failed due to the challenge type 'password' is not supported.",
                 parameters.correlationId
@@ -184,12 +191,12 @@ export class SignInClient extends CustomAuthInteractionClientBase {
     async submitCode(
         parameters: SignInSubmitCodeParams
     ): Promise<SignInCompletedResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
             parameters.correlationId
         );
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
+        ensureArgumentIsNotEmptyString(
             "parameters.code",
             parameters.code,
             parameters.correlationId
@@ -224,12 +231,12 @@ export class SignInClient extends CustomAuthInteractionClientBase {
     async submitPassword(
         parameters: SignInSubmitPasswordParams
     ): Promise<SignInCompletedResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
             parameters.correlationId
         );
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
+        ensureArgumentIsNotEmptyString(
             "parameters.password",
             parameters.password,
             parameters.correlationId
@@ -264,7 +271,7 @@ export class SignInClient extends CustomAuthInteractionClientBase {
     async signInWithContinuationToken(
         parameters: SignInContinuationTokenParams
     ): Promise<SignInCompletedResult> {
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "parameters",
             parameters,
             parameters.correlationId
@@ -331,10 +338,10 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 }
             );
 
-        return new SignInCompletedResult(
-            tokenResponse.correlation_id ?? "",
-            result as AuthenticationResult
-        );
+        return createSignInCompleteResult({
+            correlationId: tokenResponse.correlation_id ?? "",
+            authenticationResult: result as AuthenticationResult,
+        });
     }
 
     private async performChallengeRequest(
@@ -360,14 +367,17 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 request.correlationId
             );
 
-            return new SignInCodeSendResult(
-                challengeResponse.correlation_id,
-                challengeResponse.continuation_token ?? "",
-                challengeResponse.challenge_channel ?? "",
-                challengeResponse.challenge_target_label ?? "",
-                challengeResponse.code_length ?? DefaultCustomAuthApiCodeLength,
-                challengeResponse.binding_method ?? ""
-            );
+            return createSignInCodeSendResult({
+                correlationId: challengeResponse.correlation_id,
+                continuationToken: challengeResponse.continuation_token ?? "",
+                challengeChannel: challengeResponse.challenge_channel ?? "",
+                challengeTargetLabel:
+                    challengeResponse.challenge_target_label ?? "",
+                codeLength:
+                    challengeResponse.code_length ??
+                    DefaultCustomAuthApiCodeLength,
+                bindingMethod: challengeResponse.binding_method ?? "",
+            });
         }
 
         if (challengeResponse.challenge_type === ChallengeType.PASSWORD) {
@@ -377,10 +387,10 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 request.correlationId
             );
 
-            return new SignInPasswordRequiredResult(
-                challengeResponse.correlation_id,
-                challengeResponse.continuation_token ?? ""
-            );
+            return createSignInPasswordRequiredResult({
+                correlationId: challengeResponse.correlation_id,
+                continuationToken: challengeResponse.continuation_token ?? "",
+            });
         }
 
         this.logger.error(

@@ -13,7 +13,7 @@ import {
     ApiErrorResponse,
     CustomAuthApiErrorCode,
 } from "./types/ApiErrorResponseTypes.js";
-import { UrlUtils } from "../../utils/UrlUtils.js";
+import { buildUrl, parseUrl } from "../../utils/UrlUtils.js";
 import {
     CustomAuthApiError,
     RedirectError,
@@ -31,7 +31,7 @@ export abstract class BaseApiClient {
         private readonly clientId: string,
         private httpClient: IHttpClient
     ) {
-        this.baseRequestUrl = UrlUtils.parseUrl(
+        this.baseRequestUrl = parseUrl(
             !baseUrl.endsWith("/") ? `${baseUrl}/` : baseUrl
         );
     }
@@ -47,7 +47,7 @@ export abstract class BaseApiClient {
             ...data,
         });
         const headers = this.getCommonHeaders(correlationId, telemetryManager);
-        const url = UrlUtils.buildUrl(this.baseRequestUrl.href, endpoint);
+        const url = buildUrl(this.baseRequestUrl.href, endpoint);
 
         let response: Response;
 

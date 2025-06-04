@@ -3,8 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
 import { AuthFlowActionRequiredStateBase } from "../../../core/auth_flow/AuthFlowState.js";
+import {
+    ensureArgumentIsNotEmptyString,
+    ensureArgumentIsNotNullOrUndefined,
+} from "../../../core/utils/ArgumentValidator.js";
 import { SignUpStateParameters } from "./SignUpStateParameters.js";
 
 /*
@@ -20,32 +23,32 @@ export abstract class SignUpState<
     constructor(stateParameters: TParameters) {
         super(stateParameters);
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "config",
             stateParameters.config,
             stateParameters.correlationId
         );
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
+        ensureArgumentIsNotEmptyString(
             "username",
             stateParameters.username,
             stateParameters.correlationId
         );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "signUpClient",
             stateParameters.signUpClient,
             stateParameters.correlationId
         );
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
+        ensureArgumentIsNotEmptyString(
             "continuationToken",
             stateParameters.continuationToken,
             stateParameters.correlationId
         );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "signInClient",
             stateParameters.signInClient,
             stateParameters.correlationId
         );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "cacheClient",
             stateParameters.cacheClient,
             stateParameters.correlationId

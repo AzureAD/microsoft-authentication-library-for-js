@@ -4,7 +4,10 @@
  */
 
 import { AuthFlowActionRequiredStateBase } from "../../../core/auth_flow/AuthFlowState.js";
-import { ArgumentValidator } from "../../../core/utils/ArgumentValidator.js";
+import {
+    ensureArgumentIsNotEmptyString,
+    ensureArgumentIsNotNullOrUndefined,
+} from "../../../core/utils/ArgumentValidator.js";
 import { ResetPasswordStateParameters } from "./ResetPasswordStateParameters.js";
 
 /*
@@ -20,27 +23,27 @@ export abstract class ResetPasswordState<
     constructor(stateParameters: TParameters) {
         super(stateParameters);
 
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "config",
             this.stateParameters.config,
             this.stateParameters.correlationId
         );
-        ArgumentValidator.ensureArgumentIsNotEmptyString(
+        ensureArgumentIsNotEmptyString(
             "username",
             this.stateParameters.username,
             this.stateParameters.correlationId
         );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "resetPasswordClient",
             this.stateParameters.resetPasswordClient,
             this.stateParameters.correlationId
         );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "signInClient",
             this.stateParameters.signInClient,
             this.stateParameters.correlationId
         );
-        ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
+        ensureArgumentIsNotNullOrUndefined(
             "cacheClient",
             this.stateParameters.cacheClient,
             this.stateParameters.correlationId
