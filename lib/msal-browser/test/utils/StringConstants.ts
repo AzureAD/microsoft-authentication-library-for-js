@@ -14,7 +14,6 @@ import { version } from "../../src/packageMetadata.js";
 import { base64Decode, base64DecToArr } from "../../src/encode/Base64Decode.js";
 import { urlEncodeArr } from "../../src/encode/Base64Encode.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
-import { PlatformDOMTokenResponse } from "../../src/broker/nativeBroker/PlatformBrokerResponse.js";
 
 /**
  * This file contains the string constants used by the test classes.

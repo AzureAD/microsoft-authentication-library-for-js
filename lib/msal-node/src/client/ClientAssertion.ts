@@ -8,6 +8,7 @@ import {
     TimeUtils,
     createClientAuthError,
     ClientAuthErrorCodes,
+    EncodingTypes,
 } from "@azure/msal-common/node";
 import { CryptoProvider } from "../crypto/CryptoProvider.js";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
@@ -144,7 +145,7 @@ export class ClientAssertion {
         Object.assign(header, {
             [thumbprintHeader]: EncodingUtils.base64EncodeUrl(
                 this.thumbprint,
-                "hex"
+                EncodingTypes.HEX
             ),
         } as Partial<jwt.JwtHeader>);
 

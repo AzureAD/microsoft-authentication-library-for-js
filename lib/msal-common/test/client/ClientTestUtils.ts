@@ -197,18 +197,21 @@ export const mockCrypto = {
         return RANDOM_TEST_GUID;
     },
     base64Decode(input: string): string {
-        return Buffer.from(input, "base64").toString("utf8");
+        return Buffer.from(input, EncodingTypes.BASE64).toString("utf8");
     },
     base64Encode(input: string): string {
-        return Buffer.from(input, "utf-8").toString("base64");
+        return Buffer.from(input, EncodingTypes.UTF8).toString(
+            EncodingTypes.BASE64
+        );
     },
     base64UrlEncode(input: string): string {
-        return Buffer.from(input, "utf-8").toString("base64url");
+        return Buffer.from(input, EncodingTypes.UTF8).toString("base64url");
     },
     encodeKid(input: string): string {
-        return Buffer.from(JSON.stringify({ kid: input }), "utf-8").toString(
-            "base64url"
-        );
+        return Buffer.from(
+            JSON.stringify({ kid: input }),
+            EncodingTypes.UTF8
+        ).toString("base64url");
     },
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
