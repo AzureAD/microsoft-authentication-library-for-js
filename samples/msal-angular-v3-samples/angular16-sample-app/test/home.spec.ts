@@ -31,7 +31,7 @@ async function verifyTokenStore(
     )
   ).toBeTruthy;
   const storage = await BrowserCache.getWindowStorage();
-  expect(Object.keys(storage).length).toBe(8);
+  expect(Object.keys(storage).length).toBe(9);
 }
 
 describe('/ (Home Page)', () => {
