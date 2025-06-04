@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1748983894525,
+  "lastUpdate": 1749067465411,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15450,6 +15450,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.74%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "87724641+Robbie-Microsoft@users.noreply.github.com",
+            "name": "Robbie-Microsoft",
+            "username": "Robbie-Microsoft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3bd31ddaa8cfea54b1be579ed847e0a49afc2b13",
+          "message": "TypeScript sample compiles again (#7801)\n\nUpdated the sample's TypeScript build files to ensure it can be run\nstandalone as well as supporting it's existing E2E test.",
+          "timestamp": "2025-06-04T15:58:26-04:00",
+          "tree_id": "871f1b969f25f3e7e06ff2cc867c85a14140a0ae",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/3bd31ddaa8cfea54b1be579ed847e0a49afc2b13"
+        },
+        "date": 1749067463913,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 244106,
+            "range": "±0.61%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 211443,
+            "range": "±1.17%",
+            "unit": "ops/sec",
+            "extra": "193 samples"
           }
         ]
       }
