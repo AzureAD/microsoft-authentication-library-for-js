@@ -2029,7 +2029,7 @@ describe("BrowserCacheManager tests", () => {
                             AuthenticationScheme.POP,
                             "oboAssertion"
                         );
-                        
+
                     browserLocalStorage.setAccessTokenCredential(
                         testAccessTokenWithoutAuthScheme
                     );
