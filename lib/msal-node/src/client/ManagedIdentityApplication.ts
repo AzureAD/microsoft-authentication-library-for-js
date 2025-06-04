@@ -188,7 +188,7 @@ export class ManagedIdentityApplication {
             ) {
                 const revokedTokenSha256Hash: string = this.hashUtils
                     .sha256(cachedAuthenticationResult.accessToken)
-                    .toString(EncodingTypes.HEX);
+                    .toString(Constants.EncodingTypes.HEX);
                 managedIdentityRequest.revokedTokenSha256Hash =
                     revokedTokenSha256Hash;
             }

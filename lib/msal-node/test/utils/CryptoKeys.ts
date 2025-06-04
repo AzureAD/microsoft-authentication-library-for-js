@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { EncodingTypes } from "@azure/msal-common";
+import { Constants } from "@azure/msal-common";
 import crypto from "crypto";
 
 export class CryptoKeys {
@@ -29,6 +29,6 @@ export class CryptoKeys {
         this._thumbprint = crypto
             .createHash("sha512")
             .update(publicKey)
-            .digest(EncodingTypes.HEX);
+            .digest(Constants.EncodingTypes.HEX);
     }
 }

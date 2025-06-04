@@ -9,7 +9,7 @@ import {
     TokenCacheContext,
     ICachePlugin,
     buildStaticAuthorityOptions,
-    EncodingTypes,
+    Constants,
 } from "@azure/msal-common";
 import { NodeStorage } from "../../src/cache/NodeStorage.js";
 import { TokenCache } from "../../src/cache/TokenCache.js";
@@ -130,7 +130,7 @@ describe("TokenCache tests", () => {
             context.tokenCache.deserialize(
                 await promises.readFile(
                     "./test/cache/cache-test-files/cache-unrecognized-entities.json",
-                    EncodingTypes.UTF8
+                    Constants.EncodingTypes.UTF8
                 )
             );
         };
@@ -196,7 +196,7 @@ describe("TokenCache tests", () => {
                     throw new Error("hasChanged should be false");
                 }
                 return promises
-                    .readFile(cachePath, EncodingTypes.UTF8)
+                    .readFile(cachePath, Constants.EncodingTypes.UTF8)
                     .then((data) => {
                         context.tokenCache.deserialize(data);
                     });
@@ -254,7 +254,7 @@ describe("TokenCache tests", () => {
         const cachePath = "./test/cache/cache-test-files/default-cache.json";
         const beforeCacheAccess = async (context: TokenCacheContext) => {
             context.tokenCache.deserialize(
-                await promises.readFile(cachePath, EncodingTypes.UTF8)
+                await promises.readFile(cachePath, Constants.EncodingTypes.UTF8)
             );
         };
         const afterCacheAccess = async (context: TokenCacheContext) => {

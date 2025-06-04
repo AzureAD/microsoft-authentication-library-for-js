@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+import { Constants } from "@azure/msal-common/node";
 
 export class EncodingUtils {
     /**
@@ -11,7 +12,7 @@ export class EncodingUtils {
      * @param str text
      */
     static base64Encode(str: string, encoding?: BufferEncoding): string {
-        return Buffer.from(str, encoding).toString(EncodingTypes.BASE64);
+        return Buffer.from(str, encoding).toString(Constants.EncodingTypes.BASE64);
     }
 
     /**
@@ -32,7 +33,7 @@ export class EncodingUtils {
      * @param base64Str Base64 encoded text
      */
     static base64Decode(base64Str: string): string {
-        return Buffer.from(base64Str, EncodingTypes.BASE64).toString("utf8");
+        return Buffer.from(base64Str, Constants.EncodingTypes.BASE64).toString("utf8");
     }
 
     /**

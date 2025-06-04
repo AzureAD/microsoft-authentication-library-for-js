@@ -33,6 +33,7 @@ import { SKU } from "../../src/utils/Constants.js";
 import { AuthorityOptions } from "../../src/authority/AuthorityOptions.js";
 import { TokenKeys } from "../../src/cache/utils/CacheTypes.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
+import { EncodingTypes } from "../../src/utils/Constants.js";
 
 const ACCOUNT_KEYS = "ACCOUNT_KEYS";
 const TOKEN_KEYS = "TOKEN_KEYS";
