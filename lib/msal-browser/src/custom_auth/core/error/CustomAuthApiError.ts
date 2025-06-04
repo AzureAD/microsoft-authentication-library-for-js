@@ -28,17 +28,14 @@ export class CustomAuthApiError extends CustomAuthError {
         error: string,
         errorDescription: string,
         correlationId?: string,
-        public errorCodes?: Array<number>,
-        public subError?: string,
+        errorCodes?: Array<number>,
+        subError?: string,
         public attributes?: Array<UserAttribute>,
         public continuationToken?: string,
         public traceId?: string,
         public timestamp?: string
     ) {
-        super(error, errorDescription, correlationId);
+        super(error, errorDescription, correlationId, errorCodes, subError);
         Object.setPrototypeOf(this, CustomAuthApiError.prototype);
-
-        this.errorCodes = errorCodes ?? [];
-        this.subError = subError ?? "";
     }
 }
