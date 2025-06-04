@@ -1,5 +1,5 @@
 {
-  "type": "patch",
+  "type": "major",
   "comment": "Remove getAccountBy APIs at controller level #7807",
   "packageName": "@azure/msal-browser",
   "email": "hemoral@microsoft.com",

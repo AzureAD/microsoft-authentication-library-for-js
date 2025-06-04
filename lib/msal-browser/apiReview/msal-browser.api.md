@@ -678,12 +678,6 @@ export interface IController {
     // (undocumented)
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
     // (undocumented)
-    getAccountByHomeId(homeAccountId: string): AccountInfo | null;
-    // (undocumented)
-    getAccountByLocalId(localId: string): AccountInfo | null;
-    // (undocumented)
-    getAccountByUsername(userName: string): AccountInfo | null;
-    // (undocumented)
     getActiveAccount(): AccountInfo | null;
     // (undocumented)
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
