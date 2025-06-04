@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "moduleResolution": "node16",
-    "module": "NodeNext",
+    "moduleResolution": "node",
+    "module": "commonjs",
     "target": "ES2020",
     "lib": [
       "ES2021",
@@ -18,9 +18,10 @@
     "noImplicitAny": true,
     "downlevelIteration": true,
     "types": [
-      "node"
+      "node",
+      "jest"
     ],
-    "outDir": "dist",
+    "outDir": "./dist",
     "strict": true,
     "skipLibCheck": true
   },

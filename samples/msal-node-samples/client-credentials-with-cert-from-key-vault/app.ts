@@ -9,10 +9,8 @@ import {
     Configuration,
     LogLevel,
 } from "@azure/msal-node";
-import argv from "./cliArgs.js";
-import * as dotenv from "dotenv";
-
-dotenv.config();
+const argv = require("./cliArgs").default;
+require("dotenv").config();
 
 const getClientCredentialsToken = async (
     cca: ConfidentialClientApplication,
