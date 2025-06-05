@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Added support for default client id for MSI Machine Learning #7616",
+  "comment": "Added support for DEFAULT_IDENTITY_CLIENT_ID environment variable in Machine Learning Managed Identity #7616",
   "packageName": "@azure/msal-node",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
