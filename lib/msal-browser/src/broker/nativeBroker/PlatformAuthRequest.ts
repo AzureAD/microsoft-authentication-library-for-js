@@ -9,7 +9,7 @@ import { StoreInCache, StringDict } from "@azure/msal-common/browser";
 /**
  * Token request which native broker will use to acquire tokens
  */
-export type PlatformBrokerRequest = {
+export type PlatformAuthRequest = {
     accountId: string; // WAM specific account id used for identification of WAM account. This can be any broker-id eventually
     clientId: string;
     authority: string;
@@ -40,7 +40,7 @@ export type PlatformBrokerRequest = {
  */
 export type NativeExtensionRequestBody = {
     method: NativeExtensionMethod;
-    request?: PlatformBrokerRequest;
+    request?: PlatformAuthRequest;
 };
 
 /**
@@ -69,7 +69,25 @@ export type PlatformDOMTokenRequest = {
      * "prompt", "nonce", "claims", "loginHint", "instanceAware", "windowTitleSubstring", "extendedExpiryToken", "storeInCache",
      * ProofOfPossessionParams: "reqCnf", "keyId", "tokenType", "shrClaims", "shrNonce", "resourceRequestMethod", "resourceRequestUri", "signPopToken"
      */
-    extraParameters?: StringDict;
+    extraParameters?: DOMExtraParameters;
     embeddedClientId?: string;
     storeInCache?: StoreInCache; // Object of booleans indicating whether to store tokens in the cache or not (default is true)
+};
+
+export type DOMExtraParameters = StringDict & {
+    prompt?: string;
+    nonce?: string;
+    claims?: string;
+    loginHint?: string;
+    instanceAware?: string;
+    windowTitleSubstring?: string;
+    extendedExpiryToken?: string;
+    reqCnf?: string;
+    keyId?: string;
+    tokenType?: string;
+    shrClaims?: string;
+    shrNonce?: string;
+    resourceRequestMethod?: string;
+    resourceRequestUri?: string;
+    signPopToken?: string; // Set to true only if token request deos not contain a PoP keyId
 };

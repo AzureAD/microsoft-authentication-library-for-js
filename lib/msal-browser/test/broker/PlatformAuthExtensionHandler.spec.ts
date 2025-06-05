@@ -14,7 +14,7 @@ import { NativeExtensionMethod } from "../../src/utils/BrowserConstants.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
-import { PlatformBrokerRequest } from "../../src/broker/nativeBroker/PlatformBrokerRequest.js";
+import { PlatformAuthRequest } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants.js";
 import {
     getDefaultErrorMessage,
@@ -24,7 +24,7 @@ import {
 
 let performanceClient: IPerformanceClient;
 
-const TEST_REQUEST: PlatformBrokerRequest = {
+const TEST_REQUEST: PlatformAuthRequest = {
     accountId: "test-account-id",
     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
     authority: TEST_CONFIG.validAuthority,

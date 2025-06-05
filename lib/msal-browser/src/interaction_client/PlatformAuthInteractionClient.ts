@@ -48,14 +48,11 @@ import {
     BrowserConstants,
     CacheLookupPolicy,
 } from "../utils/BrowserConstants.js";
-import {
-    PlatformBrokerRequest,
-    PlatformDOMTokenRequest,
-} from "../broker/nativeBroker/PlatformBrokerRequest.js";
+import { PlatformAuthRequest } from "../broker/nativeBroker/PlatformAuthRequest.js";
 import {
     MATS,
-    PlatformBrokerResponse,
-} from "../broker/nativeBroker/PlatformBrokerResponse.js";
+    PlatformAuthResponse,
+} from "../broker/nativeBroker/PlatformAuthResponse.js";
 import {
     NativeAuthError,
     NativeAuthErrorCodes,
@@ -136,12 +133,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
     /**
      * Adds SKUs to request extra query parameters
-     * @param request {PlatformBrokerRequest}
+     * @param request {PlatformAuthRequest}
      * @private
      */
-    private addRequestSKUs(
-        request: PlatformBrokerRequest | PlatformDOMTokenRequest
-    ): void {
+    private addRequestSKUs(request: PlatformAuthRequest): void {
         request.extraParameters = {
             ...request.extraParameters,
             [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
@@ -198,7 +193,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 );
             }
 
-            const validatedResponse: PlatformBrokerResponse =
+            const validatedResponse: PlatformAuthResponse =
                 await this.platformAuthProvider.sendMessage(nativeRequest);
 
             return await this.handleNativeResponse(
@@ -239,7 +234,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @returns CommonSilentFlowRequest
      */
     private createSilentCacheRequest(
-        request: PlatformBrokerRequest,
+        request: PlatformAuthRequest,
         cachedAccount: AccountInfo
     ): CommonSilentFlowRequest {
         return {
@@ -259,7 +254,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      */
     protected async acquireTokensFromCache(
         nativeAccountId: string,
-        request: PlatformBrokerRequest
+        request: PlatformAuthRequest
     ): Promise<AuthenticationResult> {
         if (!nativeAccountId) {
             this.logger.warning(
@@ -403,7 +398,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.logger.verbose(
                 "NativeInteractionClient - handleRedirectPromise sending message to native broker."
             );
-            const response: PlatformBrokerResponse =
+            const response: PlatformAuthResponse =
                 await this.platformAuthProvider.sendMessage(request);
             const authResult = await this.handleNativeResponse(
                 response,
@@ -436,8 +431,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @param reqTimestamp
      */
     protected async handleNativeResponse(
-        response: PlatformBrokerResponse,
-        request: PlatformBrokerRequest,
+        response: PlatformAuthResponse,
+        request: PlatformAuthRequest,
         reqTimestamp: number
     ): Promise<AuthenticationResult> {
         this.logger.trace(
@@ -530,7 +525,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @returns
      */
     protected createHomeAccountIdentifier(
-        response: PlatformBrokerResponse,
+        response: PlatformAuthResponse,
         idTokenClaims: TokenClaims
     ): string {
         // Save account in browser storage
@@ -563,8 +558,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @param response
      */
     async generatePopAccessToken(
-        response: PlatformBrokerResponse,
-        request: PlatformBrokerRequest
+        response: PlatformAuthResponse,
+        request: PlatformAuthRequest
     ): Promise<string> {
         if (
             request.tokenType === Constants.AuthenticationScheme.POP &&
@@ -622,8 +617,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @returns
      */
     protected async generateAuthenticationResult(
-        response: PlatformBrokerResponse,
-        request: PlatformBrokerRequest,
+        response: PlatformAuthResponse,
+        request: PlatformAuthRequest,
         idTokenClaims: TokenClaims,
         accountEntity: AccountEntity,
         authority: string,
@@ -723,8 +718,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @param reqTimestamp
      */
     cacheNativeTokens(
-        response: PlatformBrokerResponse,
-        request: PlatformBrokerRequest,
+        response: PlatformAuthResponse,
+        request: PlatformAuthRequest,
         homeAccountIdentifier: string,
         idTokenClaims: TokenClaims,
         responseAccessToken: string,
@@ -868,7 +863,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      */
     protected async initializeNativeRequest(
         request: PopupRequest | SsoSilentRequest
-    ): Promise<PlatformBrokerRequest> {
+    ): Promise<PlatformAuthRequest> {
         this.logger.trace(
             "NativeInteractionClient - initializeNativeRequest called"
         );
@@ -880,7 +875,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const scopeSet = new ScopeSet(scopes || []);
         scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
 
-        const validatedRequest: PlatformBrokerRequest = {
+        const validatedRequest: PlatformAuthRequest = {
             ...remainingProperties,
             accountId: this.accountId,
             clientId: this.config.auth.clientId,
@@ -1015,12 +1010,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
     /**
      * Handles extra broker request parameters
-     * @param request {PlatformBrokerRequest}
+     * @param request {PlatformAuthRequest}
      * @private
      */
-    private handleExtraBrokerParams(
-        request: PlatformBrokerRequest | PlatformDOMTokenRequest
-    ): void {
+    private handleExtraBrokerParams(request: PlatformAuthRequest): void {
         const hasExtraBrokerParams =
             request.extraParameters &&
             request.extraParameters.hasOwnProperty(

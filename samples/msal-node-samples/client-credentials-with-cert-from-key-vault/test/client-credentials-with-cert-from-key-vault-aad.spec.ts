@@ -2,13 +2,13 @@ import {
     RETRY_TIMES,
     validateCacheLocation,
     NodeCacheTestUtils,
-} from "e2e-test-utils";
+    getKeyVaultSecretClient,
+} from "../../../e2eTestUtils/src";
 import {
     AuthenticationResult,
     ConfidentialClientApplication,
     Configuration,
 } from "@azure/msal-node";
-import { getKeyVaultSecretClient } from "../../../e2eTestUtils/src/KeyVaultUtils";
 import { getCertificateInfo } from "../../../e2eTestUtils/src/CertificateUtils";
 import {
     ENV_VARIABLES,
@@ -70,12 +70,12 @@ describe("Client Credentials AAD Prod Tests", () => {
                 config
             );
 
-            const authenticationResult: AuthenticationResult =
+            const authenticationResult: AuthenticationResult | null =
                 await getClientCredentialsToken(
                     confidentialClientApplication,
                     clientCredentialRequestScopes
                 );
-            expect(authenticationResult.accessToken).toBeTruthy();
+            expect(authenticationResult?.accessToken).toBeTruthy();
         });
     });
 });
