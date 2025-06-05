@@ -24,7 +24,6 @@ import { NodeStorage } from "../../cache/NodeStorage.js";
 const MACHINE_LEARNING_MSI_API_VERSION: string = "2017-09-01";
 
 export class MachineLearning extends BaseManagedIdentitySource {
-    private defaultIdentityClientId: string;
     private msiEndpoint: string;
     private secret: string;
 
@@ -33,7 +32,6 @@ export class MachineLearning extends BaseManagedIdentitySource {
         nodeStorage: NodeStorage,
         networkClient: INetworkModule,
         cryptoProvider: CryptoProvider,
-        defaultIdentityClientId: string,
         disableInternalRetries: boolean,
         msiEndpoint: string,
         secret: string
@@ -46,25 +44,18 @@ export class MachineLearning extends BaseManagedIdentitySource {
             disableInternalRetries
         );
 
-        this.defaultIdentityClientId = defaultIdentityClientId;
         this.msiEndpoint = msiEndpoint;
         this.secret = secret;
     }
 
     public static getEnvironmentVariables(): Array<string | undefined> {
-        const defaultIdentityClientId: string | undefined =
-            process.env[
-                ManagedIdentityEnvironmentVariableNames
-                    .DEFAULT_IDENTITY_CLIENT_ID
-            ];
-
         const msiEndpoint: string | undefined =
             process.env[ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT];
 
         const secret: string | undefined =
             process.env[ManagedIdentityEnvironmentVariableNames.MSI_SECRET];
 
-        return [defaultIdentityClientId, msiEndpoint, secret];
+        return [msiEndpoint, secret];
     }
 
     public static tryCreate(
@@ -74,11 +65,10 @@ export class MachineLearning extends BaseManagedIdentitySource {
         cryptoProvider: CryptoProvider,
         disableInternalRetries: boolean
     ): MachineLearning | null {
-        const [defaultIdentityClientId, msiEndpoint, secret] =
-            MachineLearning.getEnvironmentVariables();
+        const [msiEndpoint, secret] = MachineLearning.getEnvironmentVariables();
 
         // if either of the MSI endpoint or MSI secret variables are undefined, this MSI provider is unavailable.
-        if (!defaultIdentityClientId || !msiEndpoint || !secret) {
+        if (!msiEndpoint || !secret) {
             logger.info(
                 `[Managed Identity] ${ManagedIdentitySourceNames.MACHINE_LEARNING} managed identity is unavailable because one or both of the '${ManagedIdentityEnvironmentVariableNames.MSI_ENDPOINT}' and '${ManagedIdentityEnvironmentVariableNames.MSI_SECRET}' environment variables are not defined.`
             );
@@ -102,7 +92,6 @@ export class MachineLearning extends BaseManagedIdentitySource {
             nodeStorage,
             networkClient,
             cryptoProvider,
-            defaultIdentityClientId,
             disableInternalRetries,
             msiEndpoint,
             secret
@@ -132,8 +121,11 @@ export class MachineLearning extends BaseManagedIdentitySource {
             managedIdentityId.idType === ManagedIdentityIdType.SYSTEM_ASSIGNED
         ) {
             request.queryParameters[
-                ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID
-            ] = this.defaultIdentityClientId;
+                ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2017
+            ] = process.env[
+                ManagedIdentityEnvironmentVariableNames
+                    .DEFAULT_IDENTITY_CLIENT_ID
+            ] as string; // this is always set in the environment variable for Machine Learning MSI
         } else {
             request.queryParameters[
                 this.getManagedIdentityUserAssignedIdQueryParameterKey(

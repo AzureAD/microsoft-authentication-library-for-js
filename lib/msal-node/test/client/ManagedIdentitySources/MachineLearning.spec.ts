@@ -189,12 +189,12 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
             );
             expect(
                 url.has(
-                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2017
                 )
             ).toBe(true);
             expect(
                 url.get(
-                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2017
                 )
             ).toEqual(
                 process.env[
