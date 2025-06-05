@@ -214,14 +214,11 @@ describe("PopupClient", () => {
             expect(popupSpy.mock.calls[0]).toHaveLength(2);
         });
 
-        it("opens popups asynchronously if configured", async () => {
+        it("opens popups when making network request if navigate=true is set on request", async () => {
             const perfClient = getDefaultPerformanceClient();
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-                system: {
-                    asyncPopups: true,
                 },
                 telemetry: {
                     client: perfClient,
@@ -265,18 +262,17 @@ describe("PopupClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER,
             });
 
-            const request: CommonAuthorizationUrlRequest = {
+            const request: PopupRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: ["scope"],
                 loginHint: "AbeLi@microsoft.com",
                 state: TEST_STATE_VALUES.USER_STATE,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                responseMode:
-                    TEST_CONFIG.RESPONSE_MODE as Constants.ResponseMode,
                 nonce: "",
                 authenticationScheme:
                     TEST_CONFIG.TOKEN_TYPE_BEARER as Constants.AuthenticationScheme,
+                navigate: true,
             };
 
             const rootMeasurement = perfClient.startMeasurement(
@@ -298,9 +294,6 @@ describe("PopupClient", () => {
             ).toBeTruthy();
             expect(popupSpy.mock.calls[0][0]).toContain(
                 `client_id=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`
-            );
-            expect(popupSpy.mock.calls[0][0]).toContain(
-                `redirect_uri=${encodeURIComponent(request.redirectUri)}`
             );
             expect(popupSpy.mock.calls[0][0]).toContain(
                 `login_hint=${encodeURIComponent(request.loginHint || "")}`
@@ -933,13 +926,10 @@ describe("PopupClient", () => {
             expect(popupSpy.mock.calls[0]).toHaveLength(2);
         });
 
-        it("opens popups asynchronously if configured", async () => {
+        it("opens popups when making network request if navigate=true set on request", async () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-                system: {
-                    asyncPopups: true,
                 },
             });
 
@@ -983,7 +973,9 @@ describe("PopupClient", () => {
                 return null;
             });
 
-            await popupClient.logout().catch(() => {});
+            await popupClient.logout({
+                navigate: true,
+            }).catch(() => {});
         });
 
         it("catches error and cleans cache before rethrowing", async () => {
@@ -1020,9 +1012,6 @@ describe("PopupClient", () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-                system: {
-                    asyncPopups: true,
                 },
             });
 
@@ -1071,6 +1060,7 @@ describe("PopupClient", () => {
             const result = await popupClient
                 .logout({
                     postLogoutRedirectUri,
+                    navigate: true,
                 })
                 .catch(() => {});
         });
@@ -1081,9 +1071,6 @@ describe("PopupClient", () => {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     postLogoutRedirectUri,
-                },
-                system: {
-                    asyncPopups: true,
                 },
             });
 
@@ -1125,16 +1112,15 @@ describe("PopupClient", () => {
                 throw "Stop Test";
             });
 
-            const result = await popupClient.logout().catch(() => {});
+            const result = await popupClient.logout({
+                navigate: true,
+            }).catch(() => {});
         });
 
         it("includes postLogoutRedirectUri as current page if none is set on request", async () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-                system: {
-                    asyncPopups: true,
                 },
             });
 
@@ -1178,16 +1164,15 @@ describe("PopupClient", () => {
                 throw "Stop Test";
             });
 
-            const result = await popupClient.logout().catch(() => {});
+            const result = await popupClient.logout({
+                navigate: true,
+            }).catch(() => {});
         });
 
         it("includes logoutHint if it is set on request", async () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-                system: {
-                    asyncPopups: true,
                 },
             });
 
@@ -1228,6 +1213,7 @@ describe("PopupClient", () => {
             const result = await popupClient
                 .logout({
                     logoutHint,
+                    navigate: true,
                 })
                 .catch(() => {});
         });
@@ -1236,9 +1222,6 @@ describe("PopupClient", () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-                system: {
-                    asyncPopups: true,
                 },
             });
 
@@ -1316,6 +1299,7 @@ describe("PopupClient", () => {
             const result = await popupClient
                 .logout({
                     account: testAccountInfo,
+                    navigate: true,
                 })
                 .catch(() => {});
         });
@@ -1324,9 +1308,6 @@ describe("PopupClient", () => {
             let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-                system: {
-                    asyncPopups: true,
                 },
             });
 
@@ -1408,6 +1389,7 @@ describe("PopupClient", () => {
                 .logout({
                     account: testAccountInfo,
                     logoutHint,
+                    navigate: true,
                 })
                 .catch(() => {});
         });

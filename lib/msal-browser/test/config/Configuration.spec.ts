@@ -68,7 +68,6 @@ describe("Configuration.ts Class Unit Tests", () => {
             DEFAULT_IFRAME_TIMEOUT_MS
         );
         expect(emptyConfig.system?.tokenRenewalOffsetSeconds).toBe(300);
-        expect(emptyConfig.system?.asyncPopups).toBe(false);
         expect(emptyConfig.system?.allowPlatformBroker).toBe(false);
     });
 
@@ -246,7 +245,6 @@ describe("Configuration.ts Class Unit Tests", () => {
                         loggerCallback: testLoggerCallback,
                         piiLoggingEnabled: true,
                     },
-                    asyncPopups: true,
                 },
             },
             true
@@ -275,7 +273,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.system?.loggerOptions).not.toBeNull();
         expect(newConfig.system?.loggerOptions?.loggerCallback).not.toBeNull();
         expect(newConfig.system?.loggerOptions?.piiLoggingEnabled).toBe(true);
-        expect(newConfig.system?.asyncPopups).toBe(true);
     });
     it("Setting OIDCOptions when in AAD protocol mode logs a warning", async () => {
         const loggerSpy = jest

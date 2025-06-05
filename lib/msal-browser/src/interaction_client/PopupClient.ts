@@ -109,13 +109,14 @@ export class PopupClient extends StandardInteractionClient {
             };
 
             this.performanceClient.addFields(
-                { isAsyncPopup: this.config.system.asyncPopups },
+                { isAsyncPopup: request.navigate },
                 this.correlationId
             );
 
-            // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
-            if (this.config.system.asyncPopups) {
-                this.logger.verbose("asyncPopups set to true, acquiring token");
+            // navigate on request is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
+            if (request.navigate) {
+
+                this.logger.verbose("request.navigate set to true, generating PkceCodes and acquiring token");
                 // Passes on popup position and dimensions if in request
                 return this.acquireTokenPopupAsync(
                     request,
@@ -123,9 +124,9 @@ export class PopupClient extends StandardInteractionClient {
                     pkceCodes
                 );
             } else {
-                // asyncPopups flag is set to false. Opens popup before acquiring token.
+                // navigate on request is set to false. Opens popup before acquiring token.
                 this.logger.verbose(
-                    "asyncPopup set to false, opening popup before acquiring token"
+                    "request.navigate set to false, opening popup before acquiring token"
                 );
                 popupParams.popup = this.openSizedPopup(
                     "about:blank",
@@ -161,9 +162,9 @@ export class PopupClient extends StandardInteractionClient {
             const mainWindowRedirectUri =
                 logoutRequest && logoutRequest.mainWindowRedirectUri;
 
-            // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
-            if (this.config.system.asyncPopups) {
-                this.logger.verbose("asyncPopups set to true");
+            // navigate on request is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
+            if (logoutRequest && logoutRequest.navigate) {
+                this.logger.verbose("request.navigate set to true");
                 // Passes on popup position and dimensions if in request
                 return this.logoutPopupAsync(
                     validLogoutRequest,
@@ -172,8 +173,8 @@ export class PopupClient extends StandardInteractionClient {
                     mainWindowRedirectUri
                 );
             } else {
-                // asyncPopups flag is set to false. Opens popup before logging out.
-                this.logger.verbose("asyncPopup set to false, opening popup");
+                // navigate on request is set to false. Opens popup before logging out.
+                this.logger.verbose("request.navigate set to false, opening popup");
                 popupParams.popup = this.openSizedPopup(
                     "about:blank",
                     popupParams

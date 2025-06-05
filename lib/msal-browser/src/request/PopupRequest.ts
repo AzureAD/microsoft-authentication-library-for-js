@@ -33,6 +33,7 @@ import { PopupWindowAttributes } from "./PopupWindowAttributes.js";
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  * - popupWindowAttributes      - Optional popup window attributes. popupSize with height and width, and popupPosition with top and left can be set.
  * - popupWindowParent          - Optional window object to use as the parent when opening popup windows. Uses global `window` if not given.
+ * - navigate                   - Optional boolean that sets whether popups are opened asynchronously. By default, this flag is set to false. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request and navigation occurs immediately.
  */
 
 export type PopupRequest = Partial<
@@ -50,4 +51,5 @@ export type PopupRequest = Partial<
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
     popupWindowParent?: Window;
+    navigate?: boolean;
 };
