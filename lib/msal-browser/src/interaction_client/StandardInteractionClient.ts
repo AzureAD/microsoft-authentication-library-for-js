@@ -22,7 +22,11 @@ import {
     Logger,
     IPerformanceClient,
 } from "@azure/msal-common/browser";
-import { BaseInteractionClient, getDiscoveredAuthority, getRedirectUri } from "./BaseInteractionClient.js";
+import {
+    BaseInteractionClient,
+    getDiscoveredAuthority,
+    getRedirectUri,
+} from "./BaseInteractionClient.js";
 import {
     BrowserConstants,
     InteractionType,
@@ -233,12 +237,19 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )({
-            requestAuthority,
-            requestAzureCloudOptions,
-            requestExtraQueryParameters,
-            account,
-        }, this.config, this.correlationId, this.performanceClient, this.browserStorage, this.logger);
+        )(
+            {
+                requestAuthority,
+                requestAzureCloudOptions,
+                requestExtraQueryParameters,
+                account,
+            },
+            this.config,
+            this.correlationId,
+            this.performanceClient,
+            this.browserStorage,
+            this.logger
+        );
         const logger = this.config.system.loggerOptions;
 
         return {
@@ -283,7 +294,7 @@ export async function initializeAuthorizationRequest(
     request: RedirectRequest | PopupRequest | SsoSilentRequest,
     interactionType: InteractionType,
     config: BrowserConfiguration,
-    browserCrypto:  ICrypto,
+    browserCrypto: ICrypto,
     browserStorage: BrowserCacheManager,
     logger: Logger,
     performanceClient: IPerformanceClient,
@@ -325,13 +336,9 @@ export async function initializeAuthorizationRequest(
         return validatedRequest;
     }
 
-    const account =
-        request.account || browserStorage.getActiveAccount();
+    const account = request.account || browserStorage.getActiveAccount();
     if (account) {
-        logger.verbose(
-            "Setting validated request account",
-            correlationId
-        );
+        logger.verbose("Setting validated request account", correlationId);
         logger.verbosePii(
             `Setting validated request account: ${account.homeAccountId}`,
             correlationId

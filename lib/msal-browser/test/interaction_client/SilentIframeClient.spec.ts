@@ -171,7 +171,10 @@ describe("SilentIframeClient", () => {
                 RANDOM_TEST_GUID
             );
 
-            const initializeAuthorizationRequestSpy = jest.spyOn(StandardInteractionClientExports, "initializeAuthorizationRequest");
+            const initializeAuthorizationRequestSpy = jest.spyOn(
+                StandardInteractionClientExports,
+                "initializeAuthorizationRequest"
+            );
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",
@@ -1125,7 +1128,7 @@ describe("SilentIframeClient", () => {
                 Authority,
                 "generateAuthority"
             );
-            
+
             const tokenResp = await testClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint",

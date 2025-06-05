@@ -20,7 +20,10 @@ import {
     InProgressPerformanceEvent,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
-import { initializeAuthorizationRequest, StandardInteractionClient } from "./StandardInteractionClient.js";
+import {
+    initializeAuthorizationRequest,
+    StandardInteractionClient,
+} from "./StandardInteractionClient.js";
 import {
     ApiId,
     INTERACTION_TYPE,
@@ -48,7 +51,10 @@ import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
-import { getDiscoveredAuthority, initializeServerTelemetryManager } from "./BaseInteractionClient.js";
+import {
+    getDiscoveredAuthority,
+    initializeServerTelemetryManager,
+} from "./BaseInteractionClient.js";
 
 function getNavigationType(): NavigationTimingType | undefined {
     if (
@@ -106,7 +112,16 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(request, InteractionType.Redirect, this.config, this.browserCrypto, this.browserStorage, this.logger, this.performanceClient, this.correlationId);
+        )(
+            request,
+            InteractionType.Redirect,
+            this.config,
+            this.browserCrypto,
+            this.browserStorage,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        );
 
         validRequest.platformBroker = isPlatformAuthAllowed(
             this.config,
@@ -169,7 +184,7 @@ export class RedirectClient extends StandardInteractionClient {
         const correlationId = request.correlationId;
         const serverTelemetryManager = initializeServerTelemetryManager(
             ApiId.acquireTokenRedirect,
-            this.config, 
+            this.config,
             this.correlationId,
             this.browserStorage,
             this.logger
@@ -250,12 +265,19 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             correlationId
-        )({
-            requestAuthority: request.authority,
-            requestAzureCloudOptions: request.azureCloudOptions,
-            requestExtraQueryParameters: request.extraQueryParameters,
-            account: request.account,
-        }, this.config, this.correlationId, this.performanceClient, this.browserStorage, this.logger);
+        )(
+            {
+                requestAuthority: request.authority,
+                requestAzureCloudOptions: request.azureCloudOptions,
+                requestExtraQueryParameters: request.extraQueryParameters,
+                account: request.account,
+            },
+            this.config,
+            this.correlationId,
+            this.performanceClient,
+            this.browserStorage,
+            this.logger
+        );
 
         const earJwk = await invokeAsync(
             generateEarKey,
@@ -532,12 +554,19 @@ export class RedirectClient extends StandardInteractionClient {
                 this.logger,
                 this.performanceClient,
                 request.correlationId
-            )({
-                requestAuthority: request.authority,
-                requestAzureCloudOptions: request.azureCloudOptions,
-                requestExtraQueryParameters: request.extraQueryParameters,
-                account: request.account,
-            }, this.config, this.correlationId, this.performanceClient, this.browserStorage, this.logger);
+            )(
+                {
+                    requestAuthority: request.authority,
+                    requestAzureCloudOptions: request.azureCloudOptions,
+                    requestExtraQueryParameters: request.extraQueryParameters,
+                    account: request.account,
+                },
+                this.config,
+                this.correlationId,
+                this.performanceClient,
+                this.browserStorage,
+                this.logger
+            );
             return invokeAsync(
                 Authorize.handleResponseEAR,
                 PerformanceEvents.HandleResponseEar,

@@ -34,7 +34,12 @@ import {
     AccountEntityUtils,
     Constants,
 } from "@azure/msal-common/browser";
-import { BaseInteractionClient, getDiscoveredAuthority, getRedirectUri, initializeServerTelemetryManager } from "./BaseInteractionClient.js";
+import {
+    BaseInteractionClient,
+    getDiscoveredAuthority,
+    getRedirectUri,
+    initializeServerTelemetryManager,
+} from "./BaseInteractionClient.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -163,7 +168,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const serverTelemetryManager = initializeServerTelemetryManager(
             this.apiId,
             this.config,
-            this.correlationId ,
+            this.correlationId,
             this.browserStorage,
             this.logger
         );
@@ -320,8 +325,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
             if (e instanceof NativeAuthError) {
-                const serverTelemetryManager =
-                    initializeServerTelemetryManager(this.apiId, this.config, this.correlationId, this.browserStorage, this.logger);
+                const serverTelemetryManager = initializeServerTelemetryManager(
+                    this.apiId,
+                    this.config,
+                    this.correlationId,
+                    this.browserStorage,
+                    this.logger
+                );
                 serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
                 if (isFatalNativeAuthError(e)) {
                     throw e;
@@ -410,8 +420,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 reqTimestamp
             );
 
-            const serverTelemetryManager =
-                initializeServerTelemetryManager(this.apiId, this.config, this.correlationId, this.browserStorage, this.logger);
+            const serverTelemetryManager = initializeServerTelemetryManager(
+                this.apiId,
+                this.config,
+                this.correlationId,
+                this.browserStorage,
+                this.logger
+            );
             serverTelemetryManager.clearNativeBrokerErrorCode();
             return authResult;
         } catch (e) {
@@ -476,9 +491,16 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         }
 
         // Get the preferred_cache domain for the given authority
-        const authority = await getDiscoveredAuthority({
-            requestAuthority: request.authority,
-        }, this.config, this.correlationId, this.performanceClient, this.browserStorage, this.logger);
+        const authority = await getDiscoveredAuthority(
+            {
+                requestAuthority: request.authority,
+            },
+            this.config,
+            this.correlationId,
+            this.performanceClient,
+            this.browserStorage,
+            this.logger
+        );
 
         const baseAccount = buildAccountToCache(
             this.browserStorage,
@@ -885,7 +907,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             clientId: this.config.auth.clientId,
             authority: canonicalAuthority.urlString,
             scope: scopeSet.printScopes(),
-            redirectUri: getRedirectUri(request.redirectUri, this.config, this.logger),
+            redirectUri: getRedirectUri(
+                request.redirectUri,
+                this.config,
+                this.logger
+            ),
             prompt: this.getPrompt(request.prompt),
             correlationId: this.correlationId,
             tokenType: request.authenticationScheme,
@@ -960,11 +986,18 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         if (request.account) {
             // validate authority
-            await getDiscoveredAuthority({
-                requestAuthority,
-                requestAzureCloudOptions: request.azureCloudOptions,
-                account: request.account,
-            }, this.config, this.correlationId, this.performanceClient, this.browserStorage, this.logger);
+            await getDiscoveredAuthority(
+                {
+                    requestAuthority,
+                    requestAzureCloudOptions: request.azureCloudOptions,
+                    account: request.account,
+                },
+                this.config,
+                this.correlationId,
+                this.performanceClient,
+                this.browserStorage,
+                this.logger
+            );
         }
 
         const canonicalAuthority = new UrlString(requestAuthority);
