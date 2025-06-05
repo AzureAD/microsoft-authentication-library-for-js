@@ -20,7 +20,7 @@ import {
     InProgressPerformanceEvent,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
-import { StandardInteractionClient } from "./StandardInteractionClient.js";
+import { initializeAuthorizationRequest, StandardInteractionClient } from "./StandardInteractionClient.js";
 import {
     ApiId,
     INTERACTION_TYPE,
@@ -101,12 +101,12 @@ export class RedirectClient extends StandardInteractionClient {
      */
     async acquireToken(request: RedirectRequest): Promise<void> {
         const validRequest = await invokeAsync(
-            this.initializeAuthorizationRequest.bind(this),
+            initializeAuthorizationRequest,
             PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(request, InteractionType.Redirect);
+        )(request, InteractionType.Redirect, this.config, this.browserCrypto, this.browserStorage, this.logger, this.performanceClient, this.correlationId);
 
         validRequest.platformBroker = isPlatformAuthAllowed(
             this.config,
