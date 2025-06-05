@@ -1760,7 +1760,8 @@ declare namespace Constants {
         CacheOutcome,
         JsonWebTokenTypes,
         ONE_DAY_IN_MS,
-        DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
+        DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
+        EncodingTypes
     }
 }
 
@@ -2083,6 +2084,19 @@ const emptyInputScopesError = "empty_input_scopes_error";
 //
 // @public (undocumented)
 const emptyInputScopeSet = "empty_input_scopeset";
+
+// Warning: (ae-missing-release-tag) "EncodingTypes" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+// Warning: (ae-missing-release-tag) "EncodingTypes" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+const EncodingTypes: {
+    readonly BASE64: "base64";
+    readonly HEX: "hex";
+    readonly UTF8: "utf-8";
+};
+
+// @public (undocumented)
+type EncodingTypes = (typeof EncodingTypes)[keyof typeof EncodingTypes];
 
 // Warning: (ae-missing-release-tag) "endpointResolutionError" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -4513,7 +4527,7 @@ export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTok
 // Warning: (ae-missing-release-tag) "version" is part of the package's API, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export const version = "15.6.0";
+export const version = "15.7.0";
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen

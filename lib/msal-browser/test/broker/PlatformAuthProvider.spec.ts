@@ -204,7 +204,7 @@ describe("PlatformAuthProvider tests", () => {
         });
     });
 
-    describe("isBrokerAvailable", () => {
+    describe("isPlatformAuthAllowed", () => {
         let config: BrowserConfiguration;
         beforeEach(() => {
             config = buildConfiguration(
@@ -224,7 +224,7 @@ describe("PlatformAuthProvider tests", () => {
 
         it("returns false when config is not set to enable paltform broker", () => {
             config.system.allowPlatformBroker = false;
-            const result = PlatformAuthProvider.isBrokerAvailable(
+            const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
                 logger,
                 new PlatformAuthDOMHandler(
@@ -238,7 +238,7 @@ describe("PlatformAuthProvider tests", () => {
         });
 
         it("returns false when platform auth provider is not initialized", () => {
-            const result = PlatformAuthProvider.isBrokerAvailable(
+            const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
                 logger,
                 undefined,
@@ -247,7 +247,7 @@ describe("PlatformAuthProvider tests", () => {
             expect(result).toBe(false);
         });
         it("returns false when authentication scheme is not supported", () => {
-            const result = PlatformAuthProvider.isBrokerAvailable(
+            const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
                 logger,
                 new PlatformAuthDOMHandler(
@@ -261,7 +261,7 @@ describe("PlatformAuthProvider tests", () => {
         });
 
         it("returns true when platform auth provider is initialized and authentication scheme is supported", () => {
-            const result = PlatformAuthProvider.isBrokerAvailable(
+            const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
                 logger,
                 new PlatformAuthDOMHandler(
