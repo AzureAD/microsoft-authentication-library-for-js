@@ -7,13 +7,11 @@ import { INetworkModule, Logger } from "@azure/msal-common/node";
 import { BaseManagedIdentitySource } from "./BaseManagedIdentitySource.js";
 import {
     HttpMethod,
-    API_VERSION_QUERY_PARAMETER_NAME,
-    RESOURCE_BODY_OR_QUERY_PARAMETER_NAME,
     ManagedIdentityEnvironmentVariableNames,
     ManagedIdentitySourceNames,
     ManagedIdentityIdType,
-    METADATA_HEADER_NAME,
-    ML_AND_SF_SECRET_HEADER_NAME,
+    ManagedIdentityQueryParameters,
+    ManagedIdentityHeaders,
 } from "../../utils/Constants.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
@@ -107,12 +105,13 @@ export class MachineLearning extends BaseManagedIdentitySource {
                 this.msiEndpoint
             );
 
-        request.headers[METADATA_HEADER_NAME] = "true";
-        request.headers[ML_AND_SF_SECRET_HEADER_NAME] = this.secret;
+        request.headers[ManagedIdentityHeaders.METADATA_HEADER_NAME] = "true";
+        request.headers[ManagedIdentityHeaders.ML_AND_SF_SECRET_HEADER_NAME] =
+            this.secret;
 
-        request.queryParameters[API_VERSION_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.API_VERSION] =
             MACHINE_LEARNING_MSI_API_VERSION;
-        request.queryParameters[RESOURCE_BODY_OR_QUERY_PARAMETER_NAME] =
+        request.queryParameters[ManagedIdentityQueryParameters.RESOURCE] =
             resource;
 
         if (

@@ -44,7 +44,7 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
-import { isBrokerAvailable } from "../broker/nativeBroker/PlatformAuthProvider.js";
+import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 
@@ -222,7 +222,7 @@ export class PopupClient extends StandardInteractionClient {
             BrowserUtils.preconnect(validRequest.authority);
         }
 
-        const isPlatformBroker = isBrokerAvailable(
+        const isPlatformBroker = isPlatformAuthAllowed(
             this.config,
             this.logger,
             this.platformAuthProvider,
