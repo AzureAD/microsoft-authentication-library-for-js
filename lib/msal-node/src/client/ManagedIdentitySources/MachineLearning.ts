@@ -125,7 +125,7 @@ export class MachineLearning extends BaseManagedIdentitySource {
             ] = process.env[
                 ManagedIdentityEnvironmentVariableNames
                     .DEFAULT_IDENTITY_CLIENT_ID
-            ] as string; // this is always set in the environment variable for Machine Learning MSI
+            ] as string; // this environment variable is always set in an Azure Machine Learning source
         } else {
             request.queryParameters[
                 this.getManagedIdentityUserAssignedIdQueryParameterKey(

@@ -88,14 +88,22 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
             );
             expect(
                 url.has(
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID
+                )
+            ).toBe(false);
+            expect(
+                url.has(
                     ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2017
                 )
             ).toBe(true);
             expect(
-                url.has(
-                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID
+                url.get(
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2017
                 )
-            ).toBe(false);
+            ).toEqual(
+                userAssignedClientIdConfig.managedIdentityIdParams
+                    ?.userAssignedClientId
+            );
         });
 
         test("acquires a User Assigned Resource Id token", async () => {
@@ -187,6 +195,11 @@ describe("Acquires a token successfully via an Machine Learning Managed Identity
             const url: URLSearchParams = new URLSearchParams(
                 sendGetRequestAsyncSpy.mock.lastCall[0]
             );
+            expect(
+                url.has(
+                    ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID
+                )
+            ).toBe(false);
             expect(
                 url.has(
                     ManagedIdentityUserAssignedIdQueryParameterNames.MANAGED_IDENTITY_CLIENT_ID_2017
