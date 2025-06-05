@@ -56,6 +56,7 @@ export type ActiveAccountFilters = {
     homeAccountId: string;
     localAccountId: string;
     tenantId?: string;
+    lastUpdatedAt?: string;
 };
 
 /**
