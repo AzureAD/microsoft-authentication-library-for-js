@@ -139,13 +139,15 @@ export abstract class BaseInteractionClient {
  * @returns Redirect URL
  *
  */
-export function getRedirectUri(requestRedirectUri?: string, clientConfig?: BrowserConfiguration, logger?: Logger): string {
+export function getRedirectUri(
+    requestRedirectUri?: string,
+    clientConfig?: BrowserConfiguration,
+    logger?: Logger
+): string {
     logger?.verbose("getRedirectUri called");
-    const redirectUri = requestRedirectUri || clientConfig?.auth.redirectUri || "";
-    return UrlString.getAbsoluteUrl(
-        redirectUri,
-        BrowserUtils.getCurrentUri()
-    );
+    const redirectUri =
+        requestRedirectUri || clientConfig?.auth.redirectUri || "";
+    return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
 }
 
 /**
@@ -172,10 +174,7 @@ export function initializeServerTelemetryManager(
         wrapperVer: browserStorage.getWrapperMetadata()[1],
     };
 
-    return new ServerTelemetryManager(
-        telemetryPayload,
-        browserStorage
-    );
+    return new ServerTelemetryManager(telemetryPayload, browserStorage);
 }
 
 /**
@@ -187,7 +186,8 @@ export function initializeServerTelemetryManager(
  *         account?: AccountInfo;
  *        }
  */
-export async function getDiscoveredAuthority(params: {
+export async function getDiscoveredAuthority(
+    params: {
         requestAuthority?: string;
         requestAzureCloudOptions?: AzureCloudOptions;
         requestExtraQueryParameters?: StringDict;
@@ -197,7 +197,8 @@ export async function getDiscoveredAuthority(params: {
     correlationId: string,
     performanceClient: IPerformanceClient,
     browserStorage: BrowserCacheManager,
-    logger: Logger): Promise<Authority> {
+    logger: Logger
+): Promise<Authority> {
     const { account } = params;
     const instanceAwareEQ =
         params.requestExtraQueryParameters &&
@@ -214,8 +215,7 @@ export async function getDiscoveredAuthority(params: {
     };
 
     // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority
-    const resolvedAuthority =
-        params.requestAuthority || config.auth.authority;
+    const resolvedAuthority = params.requestAuthority || config.auth.authority;
     const resolvedInstanceAware = instanceAwareEQ?.length
         ? instanceAwareEQ === "true"
         : config.auth.instanceAware;
@@ -223,16 +223,15 @@ export async function getDiscoveredAuthority(params: {
     const userAuthority =
         account && resolvedInstanceAware
             ? config.auth.authority.replace(
-                    UrlString.getDomainFromUrl(resolvedAuthority),
-                    account.environment
-                )
+                  UrlString.getDomainFromUrl(resolvedAuthority),
+                  account.environment
+              )
             : resolvedAuthority;
 
     // fall back to the authority from config
     const builtAuthority = Authority.generateAuthority(
         userAuthority,
-        params.requestAzureCloudOptions ||
-            config.auth.azureCloudOptions
+        params.requestAzureCloudOptions || config.auth.azureCloudOptions
     );
     const discoveredAuthority = await invokeAsync(
         AuthorityFactory.createDiscoveredInstance,

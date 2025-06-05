@@ -13,7 +13,10 @@ import {
     invokeAsync,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
-import { initializeAuthorizationRequest, StandardInteractionClient } from "./StandardInteractionClient.js";
+import {
+    initializeAuthorizationRequest,
+    StandardInteractionClient,
+} from "./StandardInteractionClient.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -80,7 +83,16 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(request, InteractionType.Silent, this.config, this.browserCrypto, this.browserStorage, this.logger, this.performanceClient, this.correlationId);
+        )(
+            request,
+            InteractionType.Silent,
+            this.config,
+            this.browserCrypto,
+            this.browserStorage,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        );
 
         const serverTelemetryManager = initializeServerTelemetryManager(
             this.apiId,
