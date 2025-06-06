@@ -10,7 +10,6 @@ import {
     RefreshTokenClient,
     AuthError,
     AzureCloudOptions,
-    PerformanceEvents,
     invokeAsync,
     AccountInfo,
     StringDict,
