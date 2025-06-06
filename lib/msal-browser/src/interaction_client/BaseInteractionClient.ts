@@ -87,23 +87,25 @@ export abstract class BaseInteractionClient {
     ): Promise<void>;
 
     protected async clearCacheOnLogout(
+        correlationId: string,
         account?: AccountInfo | null
     ): Promise<void> {
         if (account) {
             if (
                 AccountEntity.accountInfoIsEqual(
                     account,
-                    this.browserStorage.getActiveAccount(),
+                    this.browserStorage.getActiveAccount(correlationId),
                     false
                 )
             ) {
                 this.logger.verbose("Setting active account to null");
-                this.browserStorage.setActiveAccount(null);
+                this.browserStorage.setActiveAccount(null, correlationId);
             }
             // Clear given account.
             try {
                 await this.browserStorage.removeAccount(
-                    AccountEntity.generateAccountCacheKey(account)
+                    AccountEntity.generateAccountCacheKey(account),
+                    correlationId
                 );
                 this.logger.verbose(
                     "Cleared cache items belonging to the account provided in the logout request."
@@ -120,7 +122,7 @@ export abstract class BaseInteractionClient {
                     this.correlationId
                 );
                 // Clear all accounts and tokens
-                await this.browserStorage.clear();
+                await this.browserStorage.clear(correlationId);
                 // Clear any stray keys from IndexedDB
                 await this.browserCrypto.clearKeystore();
             } catch (e) {

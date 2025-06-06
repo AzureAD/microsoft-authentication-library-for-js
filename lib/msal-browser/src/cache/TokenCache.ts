@@ -210,6 +210,7 @@ export class TokenCache implements ITokenCache {
             authority,
             homeAccountId,
             base64Decode,
+            correlationId,
             idTokenClaims,
             clientInfo,
             authority.hostnameAndPort,

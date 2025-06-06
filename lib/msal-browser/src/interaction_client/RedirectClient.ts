@@ -677,7 +677,10 @@ export class RedirectClient extends StandardInteractionClient {
             );
 
             // Clear cache on logout
-            await this.clearCacheOnLogout(validLogoutRequest.account);
+            await this.clearCacheOnLogout(
+                this.correlationId,
+                validLogoutRequest.account
+            );
 
             const navigationOptions: NavigationOptions = {
                 apiId: ApiId.logout,
@@ -705,7 +708,8 @@ export class RedirectClient extends StandardInteractionClient {
                 } catch {
                     if (validLogoutRequest.account?.homeAccountId) {
                         void this.browserStorage.removeAccount(
-                            validLogoutRequest.account?.homeAccountId
+                            validLogoutRequest.account?.homeAccountId,
+                            this.correlationId
                         );
 
                         this.eventHandler.emitEvent(
