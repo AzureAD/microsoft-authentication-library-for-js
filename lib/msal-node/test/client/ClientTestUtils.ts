@@ -78,7 +78,7 @@ export class MockStorageClass extends CacheManager {
     }
 
     async removeAccount(key: string): Promise<void> {
-        await super.removeAccount(key);
+        await super.removeAccount(key, RANDOM_TEST_GUID);
         const currentAccounts = this.getAccountKeys();
         const removalIndex = currentAccounts.indexOf(key);
         if (removalIndex > -1) {
