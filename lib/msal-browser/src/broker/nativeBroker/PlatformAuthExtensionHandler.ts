@@ -13,9 +13,9 @@ import {
     createAuthError,
     AuthErrorCodes,
     InProgressPerformanceEvent,
-    PerformanceEvents,
     IPerformanceClient,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEvents.js";
 import {
     NativeExtensionRequest,
     NativeExtensionRequestBody,
@@ -66,7 +66,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         this.windowListener = this.onWindowMessage.bind(this); // Window event callback doesn't have access to 'this' unless it's bound
         this.performanceClient = performanceClient;
         this.handshakeEvent = performanceClient.startMeasurement(
-            PerformanceEvents.NativeMessageHandlerHandshake
+            BrowserPerformanceEvents.NativeMessageHandlerHandshake
         );
         this.platformAuthType =
             PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER;

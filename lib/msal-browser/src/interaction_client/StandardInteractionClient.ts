@@ -13,12 +13,12 @@ import {
     IdTokenClaims,
     AccountInfo,
     AzureCloudOptions,
-    PerformanceEvents,
     invokeAsync,
     BaseAuthRequest,
     StringDict,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BaseInteractionClient } from "./BaseInteractionClient.js";
 import {
     BrowserConstants,
@@ -185,7 +185,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         // Create auth module.
         const clientConfig = await invokeAsync(
             this.getClientConfiguration.bind(this),
-            PerformanceEvents.StandardInteractionClientGetClientConfiguration,
+            BrowserPerformanceEvents.StandardInteractionClientGetClientConfiguration,
             this.logger,
             this.performanceClient,
             this.correlationId
@@ -224,7 +224,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
         const discoveredAuthority = await invokeAsync(
             this.getDiscoveredAuthority.bind(this),
-            PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+            BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
             this.logger,
             this.performanceClient,
             this.correlationId
@@ -289,7 +289,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
         const baseRequest: BaseAuthRequest = await invokeAsync(
             initializeBaseRequest,
-            PerformanceEvents.InitializeBaseRequest,
+            BrowserPerformanceEvents.InitializeBaseRequest,
             this.logger,
             this.performanceClient,
             this.correlationId

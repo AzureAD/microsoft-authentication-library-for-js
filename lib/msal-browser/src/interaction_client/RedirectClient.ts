@@ -20,6 +20,7 @@ import {
     InProgressPerformanceEvent,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import {
     ApiId,
@@ -101,7 +102,7 @@ export class RedirectClient extends StandardInteractionClient {
     async acquireToken(request: RedirectRequest): Promise<void> {
         const validRequest = await invokeAsync(
             this.initializeAuthorizationRequest.bind(this),
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
+            BrowserPerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
             this.performanceClient,
             this.correlationId
@@ -172,7 +173,7 @@ export class RedirectClient extends StandardInteractionClient {
 
         const pkceCodes = await invokeAsync(
             generatePkceCodes,
-            PerformanceEvents.GeneratePkceCodes,
+            BrowserPerformanceEvents.GeneratePkceCodes,
             this.logger,
             this.performanceClient,
             correlationId
@@ -192,7 +193,7 @@ export class RedirectClient extends StandardInteractionClient {
             // Initialize the client
             const authClient: AuthorizationCodeClient = await invokeAsync(
                 this.createAuthCodeClient.bind(this),
-                PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+                BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
                 this.logger,
                 this.performanceClient,
                 this.correlationId
@@ -241,7 +242,7 @@ export class RedirectClient extends StandardInteractionClient {
         // Get the frame handle for the silent request
         const discoveredAuthority = await invokeAsync(
             this.getDiscoveredAuthority.bind(this),
-            PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+            BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
             this.logger,
             this.performanceClient,
             correlationId
@@ -254,7 +255,7 @@ export class RedirectClient extends StandardInteractionClient {
 
         const earJwk = await invokeAsync(
             generateEarKey,
-            PerformanceEvents.GenerateEarKey,
+            BrowserPerformanceEvents.GenerateEarKey,
             this.logger,
             this.performanceClient,
             correlationId
@@ -519,7 +520,7 @@ export class RedirectClient extends StandardInteractionClient {
         if (serverParams.ear_jwe) {
             const discoveredAuthority = await invokeAsync(
                 this.getDiscoveredAuthority.bind(this),
-                PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+                BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
                 this.logger,
                 this.performanceClient,
                 request.correlationId
@@ -531,7 +532,7 @@ export class RedirectClient extends StandardInteractionClient {
             });
             return invokeAsync(
                 Authorize.handleResponseEAR,
-                PerformanceEvents.HandleResponseEar,
+                BrowserPerformanceEvents.HandleResponseEar,
                 this.logger,
                 this.performanceClient,
                 request.correlationId
@@ -552,14 +553,14 @@ export class RedirectClient extends StandardInteractionClient {
 
         const authClient = await invokeAsync(
             this.createAuthCodeClient.bind(this),
-            PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+            BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
             this.logger,
             this.performanceClient,
             this.correlationId
         )({ serverTelemetryManager, requestAuthority: request.authority });
         return invokeAsync(
             Authorize.handleResponseCode,
-            PerformanceEvents.HandleResponseCode,
+            BrowserPerformanceEvents.HandleResponseCode,
             this.logger,
             this.performanceClient,
             request.correlationId
@@ -674,7 +675,7 @@ export class RedirectClient extends StandardInteractionClient {
 
             const authClient = await invokeAsync(
                 this.createAuthCodeClient.bind(this),
-                PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+                BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
                 this.logger,
                 this.performanceClient,
                 this.correlationId

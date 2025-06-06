@@ -11,10 +11,10 @@ import {
     CommonSilentFlowRequest,
     IPerformanceClient,
     Logger,
-    PerformanceEvents,
     createClientConfigurationError,
     invokeAsync,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { SilentRequest } from "./SilentRequest.js";
 
@@ -79,7 +79,7 @@ export async function initializeSilentRequest(
 ): Promise<CommonSilentFlowRequest> {
     const baseRequest = await invokeAsync(
         initializeBaseRequest,
-        PerformanceEvents.InitializeBaseRequest,
+        BrowserPerformanceEvents.InitializeBaseRequest,
         logger,
         performanceClient,
         request.correlationId

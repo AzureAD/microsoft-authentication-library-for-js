@@ -40,7 +40,6 @@ import {
     LogLevel,
     PerformanceClient,
     PerformanceEvent,
-    PerformanceEvents,
     ProtocolMode,
     ProtocolUtils,
     RefreshTokenClient,
@@ -51,6 +50,7 @@ import {
     AccountEntityUtils,
     Constants,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents.js";
 import {
     ApiId,
     BrowserCacheLocation,
@@ -114,6 +114,7 @@ import { version } from "../../src/packageMetadata.js";
 import { AuthorizationCodeRequest } from "../../src/request/AuthorizationCodeRequest.js";
 import { EndSessionRequest } from "../../src/request/EndSessionRequest.js";
 import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
+import * as BrowserRootPerformanceEvents from "../../src/telemetry/BrowserRootPerformanceEvents.js";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -606,7 +607,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].name).toEqual(
-                    PerformanceEvents.InitializeClientApplication
+                    BrowserRootPerformanceEvents.InitializeClientApplication
                 );
                 expect(events[0].correlationId).toEqual("test-correlation-id");
                 expect(
@@ -789,7 +790,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events.length).toEqual(1);
                 const event = events[0];
-                expect(event.name).toBe(PerformanceEvents.AcquireTokenRedirect);
+                expect(event.name).toBe(
+                    BrowserRootPerformanceEvents.AcquireTokenRedirect
+                );
                 expect(event.correlationId).toBeDefined();
                 expect(event.success).toBeTruthy();
                 expect(
@@ -942,7 +945,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(events.length).toEqual(1);
                     const event = events[0];
                     expect(event.name).toBe(
-                        PerformanceEvents.AcquireTokenRedirect
+                        BrowserRootPerformanceEvents.AcquireTokenRedirect
                     );
                     expect(event.correlationId).toBeDefined();
                     expect(event.success).toBeTruthy();
@@ -1696,14 +1699,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 for (const event of events) {
                     if (
                         event.name ===
-                        PerformanceEvents.ClearTokensAndKeysWithClaims
+                        BrowserPerformanceEvents.ClearTokensAndKeysWithClaims
                     ) {
                         expect(event.success).toBeTruthy();
                     }
 
                     if (
                         event.name ===
-                        PerformanceEvents.InitializeClientApplication
+                        BrowserRootPerformanceEvents.InitializeClientApplication
                     ) {
                         expect(event.success).toBeTruthy();
                         expect(event.allowPlatformBroker).toBeTruthy();
@@ -2190,7 +2193,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(events[0].correlationId).toBe(RANDOM_TEST_GUID);
                     expect(events[0].success).toBe(false);
                     expect(events[0].name).toBe(
-                        PerformanceEvents.AcquireTokenPreRedirect
+                        BrowserRootPerformanceEvents.AcquireTokenPreRedirect
                     );
                     expect(events[0].errorCode).toBe("test error code");
                     pca.removePerformanceCallback(callbackId);
@@ -2225,7 +2228,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].success).toBe(true);
                 expect(events[0].name).toBe(
-                    PerformanceEvents.AcquireTokenPreRedirect
+                    BrowserRootPerformanceEvents.AcquireTokenPreRedirect
                 );
                 pca.removePerformanceCallback(callbackId);
                 done();
@@ -2272,7 +2275,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].success).toBe(true);
                 expect(events[0].name).toBe(
-                    PerformanceEvents.AcquireTokenPreRedirect
+                    BrowserRootPerformanceEvents.AcquireTokenPreRedirect
                 );
                 pca.removePerformanceCallback(callbackId);
             });
@@ -2318,7 +2321,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const callbackId = pca.addPerformanceCallback((events) => {
                 expect(events[0].success).toBe(true);
                 expect(events[0].name).toBe(
-                    PerformanceEvents.AcquireTokenPreRedirect
+                    BrowserRootPerformanceEvents.AcquireTokenPreRedirect
                 );
                 pca.removePerformanceCallback(callbackId);
             });
@@ -4500,7 +4503,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         expect(events.length).toEqual(1);
                         const event = events[0];
                         expect(event.name).toBe(
-                            PerformanceEvents.AcquireTokenSilent
+                            BrowserRootPerformanceEvents.AcquireTokenSilent
                         );
                         expect(event.correlationId).toBeDefined();
                         expect(event.success).toBeFalsy();
@@ -7344,7 +7347,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(events.length).toEqual(1);
                     const event = events[0];
                     expect(event.name).toBe(
-                        PerformanceEvents.InitializeClientApplication
+                        BrowserRootPerformanceEvents.InitializeClientApplication
                     );
                     expect(event.msalInstanceCount).toEqual(2);
                     expect(event.sameClientIdInstanceCount).toEqual(1);
@@ -7367,7 +7370,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(events.length).toEqual(1);
                     const event = events[0];
                     expect(event.name).toBe(
-                        PerformanceEvents.InitializeClientApplication
+                        BrowserRootPerformanceEvents.InitializeClientApplication
                     );
                     expect(event.msalInstanceCount).toEqual(2);
                     expect(event.sameClientIdInstanceCount).toEqual(2);
