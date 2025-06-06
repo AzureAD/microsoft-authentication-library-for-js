@@ -50,7 +50,7 @@ import type { AzureCloudOptions } from "../config/ClientConfiguration.js";
 import { Logger } from "../logger/Logger.js";
 import { AuthError } from "../error/AuthError.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent.js";
+import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 

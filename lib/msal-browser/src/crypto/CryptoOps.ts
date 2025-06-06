@@ -8,11 +8,11 @@ import {
     IPerformanceClient,
     JoseHeader,
     Logger,
-    PerformanceEvents,
     ShrOptions,
     SignedHttpRequest,
     SignedHttpRequestParameters,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
     base64Encode,
     urlEncode,
@@ -114,7 +114,7 @@ export class CryptoOps implements ICrypto {
     ): Promise<string> {
         const publicKeyThumbMeasurement =
             this.performanceClient?.startMeasurement(
-                PerformanceEvents.CryptoOptsGetPublicKeyThumbprint,
+                BrowserPerformanceEvents.CryptoOptsGetPublicKeyThumbprint,
                 request.correlationId
             );
 
@@ -215,7 +215,7 @@ export class CryptoOps implements ICrypto {
         correlationId?: string
     ): Promise<string> {
         const signJwtMeasurement = this.performanceClient?.startMeasurement(
-            PerformanceEvents.CryptoOptsSignJwt,
+            BrowserPerformanceEvents.CryptoOptsSignJwt,
             correlationId
         );
         const cachedKeyPair = await this.cache.getItem(kid);

@@ -7,11 +7,12 @@ import {
     TokenKeys,
     IPerformanceClient,
     invokeAsync,
-    PerformanceEvents,
     Logger,
     invoke,
     Constants,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
+import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import {
     createNewGuid,
     decrypt,
@@ -89,7 +90,7 @@ export class LocalStorage implements IWindowStorage<string> {
             // Encryption key already exists, import
             const baseKey = invoke(
                 base64DecToArr,
-                PerformanceEvents.Base64Decode,
+                BrowserPerformanceEvents.Base64Decode,
                 this.logger,
                 this.performanceClient,
                 correlationId
@@ -98,7 +99,7 @@ export class LocalStorage implements IWindowStorage<string> {
                 id: parsedCookie.id,
                 key: await invokeAsync(
                     generateHKDF,
-                    PerformanceEvents.GenerateHKDF,
+                    BrowserPerformanceEvents.GenerateHKDF,
                     this.logger,
                     this.performanceClient,
                     correlationId
@@ -106,7 +107,7 @@ export class LocalStorage implements IWindowStorage<string> {
             };
             await invokeAsync(
                 this.importExistingCache.bind(this),
-                PerformanceEvents.ImportExistingCache,
+                BrowserPerformanceEvents.ImportExistingCache,
                 this.logger,
                 this.performanceClient,
                 correlationId
@@ -117,14 +118,14 @@ export class LocalStorage implements IWindowStorage<string> {
             const id = createNewGuid();
             const baseKey = await invokeAsync(
                 generateBaseKey,
-                PerformanceEvents.GenerateBaseKey,
+                BrowserPerformanceEvents.GenerateBaseKey,
                 this.logger,
                 this.performanceClient,
                 correlationId
             )();
             const keyStr = invoke(
                 urlEncodeArr,
-                PerformanceEvents.UrlEncodeArr,
+                BrowserPerformanceEvents.UrlEncodeArr,
                 this.logger,
                 this.performanceClient,
                 correlationId
@@ -133,7 +134,7 @@ export class LocalStorage implements IWindowStorage<string> {
                 id: id,
                 key: await invokeAsync(
                     generateHKDF,
-                    PerformanceEvents.GenerateHKDF,
+                    BrowserPerformanceEvents.GenerateHKDF,
                     this.logger,
                     this.performanceClient,
                     correlationId
@@ -190,7 +191,7 @@ export class LocalStorage implements IWindowStorage<string> {
 
         const { data, nonce } = await invokeAsync(
             encrypt,
-            PerformanceEvents.Encrypt,
+            BrowserPerformanceEvents.Encrypt,
             this.logger,
             this.performanceClient,
             correlationId
@@ -337,7 +338,7 @@ export class LocalStorage implements IWindowStorage<string> {
 
         return invokeAsync(
             decrypt,
-            PerformanceEvents.Decrypt,
+            BrowserPerformanceEvents.Decrypt,
             this.logger,
             this.performanceClient,
             correlationId
@@ -397,7 +398,7 @@ export class LocalStorage implements IWindowStorage<string> {
     private updateCache(event: MessageEvent): void {
         this.logger.trace("Updating internal cache from broadcast event");
         const perfMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.LocalStorageUpdated
+            BrowserRootPerformanceEvents.LocalStorageUpdated
         );
         perfMeasurement.add({ isBackground: true });
 

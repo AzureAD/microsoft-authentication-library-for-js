@@ -42,9 +42,9 @@ import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js
 import {
     CacheHelpers,
     CommonSilentFlowRequest,
-    PerformanceEvents,
     ScopeSet,
 } from "../../src/index.js";
+import * as PerformanceEvents from "../../src/telemetry/performance/PerformanceEvents.js";
 import * as authorityMetadata from "../../src/authority/AuthorityMetadata.js";
 import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 
@@ -274,7 +274,7 @@ describe("CacheManager.ts test cases", () => {
                 });
 
                 const measurement = mockPerfClient.startMeasurement(
-                    PerformanceEvents.AcquireTokenSilent,
+                    PerformanceEvents.RefreshTokenClientAcquireToken,
                     correlationId
                 );
 
@@ -1788,7 +1788,7 @@ describe("CacheManager.ts test cases", () => {
             });
 
             const measurement = mockPerfClient.startMeasurement(
-                PerformanceEvents.AcquireTokenSilent,
+                PerformanceEvents.RefreshTokenClientAcquireToken,
                 correlationId
             );
 

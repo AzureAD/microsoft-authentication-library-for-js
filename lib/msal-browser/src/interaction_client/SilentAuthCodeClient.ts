@@ -13,6 +13,7 @@ import {
     invokeAsync,
     CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { StandardInteractionClient } from "./StandardInteractionClient.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
@@ -75,7 +76,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         // Create silent request
         const silentRequest: CommonAuthorizationUrlRequest = await invokeAsync(
             this.initializeAuthorizationRequest.bind(this),
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
+            BrowserPerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
             this.performanceClient,
             request.correlationId
@@ -95,7 +96,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             // Initialize the client
             const clientConfig = await invokeAsync(
                 this.getClientConfiguration.bind(this),
-                PerformanceEvents.StandardInteractionClientGetClientConfiguration,
+                BrowserPerformanceEvents.StandardInteractionClientGetClientConfiguration,
                 this.logger,
                 this.performanceClient,
                 request.correlationId
