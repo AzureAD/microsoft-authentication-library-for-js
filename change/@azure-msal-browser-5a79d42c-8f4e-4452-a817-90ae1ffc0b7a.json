@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Decompose nested telemetry events #7817",
+  "comment": "Decompose nested telemetry events #7818",
   "packageName": "@azure/msal-browser",
   "email": "kshabelko@microsoft.com",
   "dependentChangeType": "patch"
