@@ -7,6 +7,7 @@ import { NetworkRequestOptions } from "../../src/network/INetworkModule.js";
 import { Logger, LogLevel } from "../../src/logger/Logger.js";
 import { version } from "../../src/packageMetadata.js";
 import {
+    RANDOM_TEST_GUID,
     TEST_CONFIG,
     TEST_CRYPTO_VALUES,
     TEST_POP_VALUES,
@@ -51,12 +52,12 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(emptyConfig.storageInterface).not.toBeNull();
         expect(emptyConfig.storageInterface.getAccount).not.toBeNull();
         expect(() =>
-            emptyConfig.storageInterface.getAccount("testKey")
+            emptyConfig.storageInterface.getAccount("testKey", RANDOM_TEST_GUID)
         ).toThrowError(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
-            emptyConfig.storageInterface.getAccount("testKey")
+            emptyConfig.storageInterface.getAccount("testKey", RANDOM_TEST_GUID)
         ).toThrowError(AuthError);
         expect(emptyConfig.storageInterface.getKeys).not.toBeNull();
         expect(() => emptyConfig.storageInterface.getKeys()).toThrowError(
@@ -67,12 +68,12 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         );
         expect(emptyConfig.storageInterface.removeItem).not.toBeNull();
         expect(() =>
-            emptyConfig.storageInterface.removeItem("testKey")
+            emptyConfig.storageInterface.removeItem("testKey", RANDOM_TEST_GUID)
         ).toThrowError(
             createClientAuthError(ClientAuthErrorCodes.methodNotImplemented)
         );
         expect(() =>
-            emptyConfig.storageInterface.removeItem("testKey")
+            emptyConfig.storageInterface.removeItem("testKey", RANDOM_TEST_GUID)
         ).toThrowError(AuthError);
         expect(emptyConfig.storageInterface.setAccount).not.toBeNull();
         expect(() =>
@@ -238,7 +239,8 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.storageInterface.getAccount).not.toBeNull();
         expect(
             newConfig.storageInterface.getAccount(
-                MockCache.acc.generateAccountKey()
+                MockCache.acc.generateAccountKey(),
+                RANDOM_TEST_GUID
             )
         ).toBe(MockCache.acc);
         expect(newConfig.storageInterface.getKeys).not.toBeNull();
