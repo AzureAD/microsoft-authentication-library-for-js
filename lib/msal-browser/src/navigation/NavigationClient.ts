@@ -43,7 +43,7 @@ export class NavigationClient implements INavigationClient {
         if (options.noHistory) {
             window.location.replace(url); // CodeQL [SM03712] Application owner controls the URL. User can't change it.
         } else {
-            window.location.assign(url);
+            window.location.assign(url); // CodeQL [SM03712] Application owner controls the URL. User can't change it.
         }
 
         return new Promise((resolve) => {
