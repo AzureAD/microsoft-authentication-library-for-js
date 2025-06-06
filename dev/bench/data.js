@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1749078325493,
+  "lastUpdate": 1749229984033,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -15526,6 +15526,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.95%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "75f62379475a5084ddc9dfe1efa436ad3a78024b",
+          "message": "Suppress false-positive CodeQL finding in NavigationClient (#7814)\n\n- Suppress false-positive CodeQL finding in NavigationClient",
+          "timestamp": "2025-06-06T13:06:31-04:00",
+          "tree_id": "0a80f2d21b21dcb9451fd08f6e3ffea8f5dbc0af",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/75f62379475a5084ddc9dfe1efa436ad3a78024b"
+        },
+        "date": 1749229982299,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 247990,
+            "range": "±0.83%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 245836,
+            "range": "±0.85%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
