@@ -173,6 +173,8 @@ export class AccountEntity {
     // (undocumented)
     lastModificationTime?: string;
     // (undocumented)
+    lastUpdatedAt?: string;
+    // (undocumented)
     localAccountId: string;
     // (undocumented)
     msGraphHost?: string;
@@ -228,6 +230,7 @@ export type ActiveAccountFilters = {
     homeAccountId: string;
     localAccountId: string;
     tenantId?: string;
+    lastUpdatedAt?: string;
 };
 
 // Warning: (tsdoc-param-tag-missing-hyphen) The @param block should be followed by a parameter name and then a hyphen
@@ -2044,6 +2047,7 @@ export type CredentialEntity = {
     tokenType?: AuthenticationScheme;
     keyId?: string;
     requestedClaimsHash?: string;
+    lastUpdatedAt?: string;
 };
 
 // Warning: (tsdoc-escape-greater-than) The ">" character should be escaped using a backslash to avoid confusion with an HTML tag
