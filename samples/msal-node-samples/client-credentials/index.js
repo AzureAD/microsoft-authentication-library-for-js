@@ -16,6 +16,8 @@ const argv = require("../cliArgs");
 const cacheLocation = argv.c || "./data/cache.json";
 const cachePlugin = require('../cachePlugin')(cacheLocation);
 
+require('dotenv').config();
+
 /**
  * The scenario string is the name of a .json file which contains the MSAL client configuration
  * For an example of what a configuration file should look like, check out the customConfig.json file in the
@@ -55,7 +57,11 @@ if(argv.$0 === "index.js") {
     
     // Build MSAL ClientApplication Configuration object
     const clientConfig = {
-        auth: config.authOptions,
+        auth: {
+            clientId: "ENTER_CLIENT_ID",
+            authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
+            clientSecret: process.env.AZURE_CLIENT_SECRET,
+        },
         cache: {
             cachePlugin
         },
