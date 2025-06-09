@@ -17,6 +17,7 @@ import {
     initializeAuthorizationRequest,
     StandardInteractionClient,
 } from "./StandardInteractionClient.js";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -79,7 +80,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         // Create silent request
         const silentRequest: CommonAuthorizationUrlRequest = await invokeAsync(
             initializeAuthorizationRequest,
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
+            BrowserPerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
             this.performanceClient,
             request.correlationId
@@ -112,7 +113,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             // Initialize the client
             const clientConfig = await invokeAsync(
                 this.getClientConfiguration.bind(this),
-                PerformanceEvents.StandardInteractionClientGetClientConfiguration,
+                BrowserPerformanceEvents.StandardInteractionClientGetClientConfiguration,
                 this.logger,
                 this.performanceClient,
                 request.correlationId

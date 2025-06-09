@@ -17,12 +17,12 @@ import {
     AuthorityOptions,
     AuthorityFactory,
     IPerformanceClient,
-    PerformanceEvents,
     AzureCloudOptions,
     invokeAsync,
     StringDict,
     AccountEntityUtils,
 } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -235,7 +235,7 @@ export async function getDiscoveredAuthority(
     );
     const discoveredAuthority = await invokeAsync(
         AuthorityFactory.createDiscoveredInstance,
-        PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
+        BrowserPerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
         logger,
         performanceClient,
         correlationId

@@ -20,6 +20,7 @@ import {
     initializeAuthorizationRequest,
     StandardInteractionClient,
 } from "./StandardInteractionClient.js";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -121,7 +122,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         // Create silent request
         const silentRequest: CommonAuthorizationUrlRequest = await invokeAsync(
             initializeAuthorizationRequest,
-            PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
+            BrowserPerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
             this.logger,
             this.performanceClient,
             request.correlationId
@@ -171,7 +172,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             // Initialize the client
             authClient = await invokeAsync(
                 this.createAuthCodeClient.bind(this),
-                PerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+                BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
                 this.logger,
                 this.performanceClient,
                 request.correlationId
@@ -185,7 +186,7 @@ export class SilentIframeClient extends StandardInteractionClient {
 
             return await invokeAsync(
                 this.silentTokenHelper.bind(this),
-                PerformanceEvents.SilentIframeClientTokenHelper,
+                BrowserPerformanceEvents.SilentIframeClientTokenHelper,
                 this.logger,
                 this.performanceClient,
                 request.correlationId
@@ -213,7 +214,7 @@ export class SilentIframeClient extends StandardInteractionClient {
 
             return await invokeAsync(
                 this.silentTokenHelper.bind(this),
-                PerformanceEvents.SilentIframeClientTokenHelper,
+                BrowserPerformanceEvents.SilentIframeClientTokenHelper,
                 this.logger,
                 this.performanceClient,
                 this.correlationId
@@ -231,7 +232,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         const correlationId = request.correlationId;
         const discoveredAuthority = await invokeAsync(
             getDiscoveredAuthority,
-            PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
+            BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
             this.logger,
             this.performanceClient,
             correlationId
@@ -251,7 +252,7 @@ export class SilentIframeClient extends StandardInteractionClient {
 
         const earJwk = await invokeAsync(
             generateEarKey,
-            PerformanceEvents.GenerateEarKey,
+            BrowserPerformanceEvents.GenerateEarKey,
             this.logger,
             this.performanceClient,
             correlationId
@@ -262,7 +263,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         };
         const msalFrame = await invokeAsync(
             initiateEarRequest,
-            PerformanceEvents.SilentHandlerInitiateAuthRequest,
+            BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
             this.logger,
             this.performanceClient,
             correlationId
@@ -278,7 +279,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
             monitorIframeForHash,
-            PerformanceEvents.SilentHandlerMonitorIframeForHash,
+            BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
             correlationId
@@ -294,7 +295,7 @@ export class SilentIframeClient extends StandardInteractionClient {
 
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
-            PerformanceEvents.DeserializeResponse,
+            BrowserPerformanceEvents.DeserializeResponse,
             this.logger,
             this.performanceClient,
             correlationId
@@ -302,7 +303,7 @@ export class SilentIframeClient extends StandardInteractionClient {
 
         return invokeAsync(
             Authorize.handleResponseEAR,
-            PerformanceEvents.HandleResponseEar,
+            BrowserPerformanceEvents.HandleResponseEar,
             this.logger,
             this.performanceClient,
             correlationId
@@ -346,7 +347,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         const correlationId = request.correlationId;
         const pkceCodes = await invokeAsync(
             generatePkceCodes,
-            PerformanceEvents.GeneratePkceCodes,
+            BrowserPerformanceEvents.GeneratePkceCodes,
             this.logger,
             this.performanceClient,
             correlationId
@@ -374,7 +375,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         // Get the frame handle for the silent request
         const msalFrame = await invokeAsync(
             initiateCodeRequest,
-            PerformanceEvents.SilentHandlerInitiateAuthRequest,
+            BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
             this.logger,
             this.performanceClient,
             correlationId
@@ -384,7 +385,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const responseString = await invokeAsync(
             monitorIframeForHash,
-            PerformanceEvents.SilentHandlerMonitorIframeForHash,
+            BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
             this.logger,
             this.performanceClient,
             correlationId
@@ -399,7 +400,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         );
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
-            PerformanceEvents.DeserializeResponse,
+            BrowserPerformanceEvents.DeserializeResponse,
             this.logger,
             this.performanceClient,
             correlationId
@@ -407,7 +408,7 @@ export class SilentIframeClient extends StandardInteractionClient {
 
         return invokeAsync(
             Authorize.handleResponseCode,
-            PerformanceEvents.HandleResponseCode,
+            BrowserPerformanceEvents.HandleResponseCode,
             this.logger,
             this.performanceClient,
             correlationId

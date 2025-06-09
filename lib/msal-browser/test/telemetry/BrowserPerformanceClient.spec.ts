@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { PerformanceEvents } from "@azure/msal-common";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
 import { TEST_CONFIG } from "../utils/StringConstants.js";
+import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserRootPerformanceEvents.js";
 
 const correlationId = "correlation-id";
 const perfTimeNow = 1234567890;
@@ -42,7 +42,7 @@ describe("BrowserPerformanceClient.ts", () => {
                 .mockReturnValue(perfTimeNow + 50);
 
             const measurement = browserPerfClient.startMeasurement(
-                PerformanceEvents.AcquireTokenSilent,
+                BrowserPerformanceEvents.AcquireTokenSilent,
                 correlationId
             );
 
@@ -65,7 +65,7 @@ describe("BrowserPerformanceClient.ts", () => {
             );
 
             const measurement = browserPerfClient.startMeasurement(
-                PerformanceEvents.AcquireTokenSilent,
+                BrowserPerformanceEvents.AcquireTokenSilent,
                 correlationId
             );
 

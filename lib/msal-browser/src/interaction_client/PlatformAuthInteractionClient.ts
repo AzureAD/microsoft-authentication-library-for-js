@@ -15,7 +15,6 @@ import {
     PopTokenGenerator,
     SignedHttpRequestParameters,
     IPerformanceClient,
-    PerformanceEvents,
     IdTokenEntity,
     AccessTokenEntity,
     AuthError,
@@ -33,6 +32,7 @@ import {
     ServerTelemetryManager,
     AccountEntityUtils,
     Constants,
+    PerformanceEvents,
 } from "@azure/msal-common/browser";
 import {
     BaseInteractionClient,
@@ -40,6 +40,7 @@ import {
     getRedirectUri,
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { EventHandler } from "../event/EventHandler.js";
@@ -160,7 +161,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         // start the perf measurement
         const nativeATMeasurement = this.performanceClient.startMeasurement(
-            PerformanceEvents.NativeInteractionClientAcquireToken,
+            BrowserPerformanceEvents.NativeInteractionClientAcquireToken,
             request.correlationId
         );
         const reqTimestamp = TimeUtils.nowSeconds();
