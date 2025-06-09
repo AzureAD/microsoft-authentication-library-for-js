@@ -72,7 +72,7 @@ export class ResetPasswordService {
             if (result.error) {
                 Utilities.logMessage(`Error details: ${JSON.stringify(result.error, null, 2)}`, "error");
             }
-            return { success: false, result: result, error: result.error };
+            return { success: false, result: result, error: result.error.errorData, state: 'failed'};
         }
         
         // 2. Check if CODE is REQUIRED (Email verification)

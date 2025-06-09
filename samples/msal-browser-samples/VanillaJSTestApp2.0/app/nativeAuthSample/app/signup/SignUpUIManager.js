@@ -264,6 +264,10 @@ export class SignUpUIManager {
                 // Show additional attributes form (if needed)
                 this.showAttributesForm(result.result);
                 
+            } else if (result.state === 'failed') {
+                // Handle sign-up failure
+                console.error(`Sign-up failed: ${result.error || 'Unknown error'}`);
+                this.showSignUpError(result.error || 'Sign-up failed. Please try again.');
             } else {
                 // Handle other failure cases
                 console.error(`Sign-up failed`);
@@ -562,17 +566,6 @@ export class SignUpUIManager {
             this.signUpService.clearPendingOperation();
         }
     }
-
-    // showSignUpForm() {
-    //     const signUpCard = document.getElementById('signUpCard');
-    //     const signUpPasswordCard = document.getElementById('signUpPasswordCard');
-    //     const codeVerificationCard = document.getElementById('codeVerificationCard');
-
-    //     // Show sign-up form, hide other forms
-    //     if (signUpCard) signUpCard.style.display = 'block';
-    //     if (signUpPasswordCard) signUpPasswordCard.style.display = 'none';
-    //     if (codeVerificationCard) codeVerificationCard.style.display = 'none';
-    // }
 
     showSignUpSuccess(username) {
         // You can customize this to show a success message in the UI

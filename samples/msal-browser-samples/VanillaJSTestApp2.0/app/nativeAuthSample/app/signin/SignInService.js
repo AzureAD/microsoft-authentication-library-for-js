@@ -31,13 +31,11 @@ export class SignInService {
                 throw new Error("MSAL not initialized. Cannot perform sign-in.");
             }
 
-            // Prepare sign-in inputs with only username (passwordless flow)
             const signInInputs = { username: username };
 
             const result = await this.msalInstance.signIn(signInInputs);
             return this.handleSignInResult(result);
         } catch (error) {
-            Utilities.logMessage(`Sign-in failed`, "error");
             console.error("Sign-in error:", error);
             throw error;
         }
@@ -61,7 +59,7 @@ export class SignInService {
             if (result.error) {
                 Utilities.logMessage(`Error occurred during sign-in`, "error");
             }
-            return { success: false, result: result, error: result.error };
+            return { success: false, result: result, error: result.error.errorData, state: 'failed' };
         }
         
         // 3. Check if CODE is REQUIRED (OOB Challenge - Email/SMS verification)

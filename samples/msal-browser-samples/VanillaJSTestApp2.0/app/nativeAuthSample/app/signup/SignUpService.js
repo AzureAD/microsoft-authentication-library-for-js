@@ -95,7 +95,7 @@ export class SignUpService {
             if (result.error) {
                 Utilities.logMessage(`Error occurred during sign-up`, "error");
             }
-            return { success: false, result: result, error: result.error };
+            return { success: false, result: result, error: result.error.errorData, state: 'failed'};
         }
         
         // 2. Check if CODE is REQUIRED (Email verification)
@@ -293,7 +293,7 @@ export class SignUpService {
         } catch (error) {
             Utilities.logMessage(`Failed to resend code`, "error");
             console.error("Resend code error:", error);
-            return { success: false, error: error.message };
+            return { success: false, error: error.message, state: 'resend_failed' };
         }
     }
 
