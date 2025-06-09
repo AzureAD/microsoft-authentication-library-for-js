@@ -60,7 +60,7 @@ if(argv.$0 === "index.js") {
         auth: {
             clientId: "ENTER_CLIENT_ID",
             authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
-            clientSecret: process.env.AZURE_CLIENT_SECRET,
+            clientSecret: process.env.CLIENT_SECRET,
         },
         cache: {
             cachePlugin
