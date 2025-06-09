@@ -75,8 +75,7 @@ export class SilentFlowClient extends BaseClient {
             request.account,
             request,
             tokenKeys,
-            requestTenantId,
-            this.performanceClient
+            requestTenantId
         );
 
         if (!cachedAccessToken) {

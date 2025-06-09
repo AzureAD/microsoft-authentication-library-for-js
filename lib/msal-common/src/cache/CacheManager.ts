@@ -71,7 +71,7 @@ export abstract class CacheManager implements ICacheManager {
         cryptoImpl: ICrypto,
         logger: Logger,
         performanceClient: IPerformanceClient,
-        staticAuthorityOptions?: StaticAuthorityOptions,
+        staticAuthorityOptions?: StaticAuthorityOptions
     ) {
         this.clientId = clientId;
         this.cryptoImpl = cryptoImpl;
@@ -1031,16 +1031,18 @@ export abstract class CacheManager implements ICacheManager {
                 const kid = accessTokenWithAuthSchemeEntity.keyId;
 
                 if (kid) {
-                    void this.cryptoImpl.removeTokenBindingKey(kid).catch((e) => {
-                        this.commonLogger.error(
-                            `Failed to remove token binding key ${kid}`,
-                            correlationId
-                        );
-                        this.performanceClient?.incrementFields(
-                            { removeTokenBindingKeyError: 1 },
-                            correlationId
-                        );
-                    });
+                    void this.cryptoImpl
+                        .removeTokenBindingKey(kid)
+                        .catch((e) => {
+                            this.commonLogger.error(
+                                `Failed to remove token binding key ${kid}`,
+                                correlationId
+                            );
+                            this.performanceClient?.incrementFields(
+                                { removeTokenBindingKeyError: 1 },
+                                correlationId
+                            );
+                        });
                 }
             }
         }
@@ -1242,11 +1244,13 @@ export abstract class CacheManager implements ICacheManager {
         account: AccountInfo,
         request: BaseAuthRequest,
         tokenKeys?: TokenKeys,
-        targetRealm?: string,
-        performanceClient?: IPerformanceClient,
+        targetRealm?: string
     ): AccessTokenEntity | null {
         const correlationId = request.correlationId;
-        this.commonLogger.trace("CacheManager - getAccessToken called", correlationId);
+        this.commonLogger.trace(
+            "CacheManager - getAccessToken called",
+            correlationId
+        );
         const scopes = ScopeSet.createSearchScopes(request.scopes);
         const authScheme =
             request.authenticationScheme || AuthenticationScheme.BEARER;
@@ -1308,14 +1312,15 @@ export abstract class CacheManager implements ICacheManager {
                 correlationId
             );
             accessTokens.forEach((accessToken) => {
-                this.removeAccessToken(generateCredentialKey(accessToken), correlationId);
-            });
-            if (performanceClient && correlationId) {
-                performanceClient.addFields(
-                    { multiMatchedAT: accessTokens.length },
+                this.removeAccessToken(
+                    generateCredentialKey(accessToken),
                     correlationId
                 );
-            }
+            });
+            this.performanceClient.addFields(
+                { multiMatchedAT: accessTokens.length },
+                correlationId
+            );
             return null;
         }
 
