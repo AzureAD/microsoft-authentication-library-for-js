@@ -9,8 +9,6 @@ import { version } from "../../src/packageMetadata.js";
 import {
     RANDOM_TEST_GUID,
     TEST_CONFIG,
-    TEST_CRYPTO_VALUES,
-    TEST_POP_VALUES,
 } from "../test_kit/StringConstants.js";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils.js";
 import { MockCache } from "../cache/entities/cacheConstants.js";
@@ -138,48 +136,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
-            cryptoInterface: {
-                createNewGuid: (): string => {
-                    return "newGuid";
-                },
-                base64Decode: (input: string): string => {
-                    return "testDecodedString";
-                },
-                base64Encode: (input: string): string => {
-                    return "testEncodedString";
-                },
-                base64UrlEncode(input: string): string {
-                    switch (input) {
-                        case '{"kid": "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc"}':
-                            return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-                        default:
-                            return input;
-                    }
-                },
-                encodeKid(input: string): string {
-                    switch (input) {
-                        case "XnsuAvttTPp0nn1K_YMLePLDbp7syCKhNHt7HjYHJYc":
-                            return "eyJraWQiOiAiWG5zdUF2dHRUUHAwbm4xS19ZTUxlUExEYnA3c3lDS2hOSHQ3SGpZSEpZYyJ9";
-                        default:
-                            return input;
-                    }
-                },
-                async getPublicKeyThumbprint(): Promise<string> {
-                    return TEST_POP_VALUES.KID;
-                },
-                async signJwt(): Promise<string> {
-                    return "signedJwt";
-                },
-                async removeTokenBindingKey(): Promise<boolean> {
-                    return Promise.resolve(true);
-                },
-                async clearKeystore(): Promise<boolean> {
-                    return Promise.resolve(true);
-                },
-                async hashString(): Promise<string> {
-                    return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-                },
-            },
+            cryptoInterface: mockCrypto,
             storageInterface: cacheStorageMock,
             networkInterface: {
                 sendGetRequestAsync: async (

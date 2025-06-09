@@ -26,6 +26,7 @@ import {
     RANDOM_TEST_GUID,
 } from "../test_kit/StringConstants.js";
 import {
+    ClientAuthError,
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../../src/error/ClientAuthError.js";
@@ -1816,38 +1817,6 @@ describe("CacheManager.ts test cases", () => {
         const atKey = CacheHelpers.generateCredentialKey(atWithAuthScheme);
         expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
         expect(removeTokenBindingKeySpy).toHaveBeenCalledTimes(0);
-    });
-
-    it("throws bindingKeyNotRemoved error when key is not deleted from storage", async () => {
-        const atWithAuthScheme = {
-            environment: "login.microsoftonline.com",
-            credentialType: CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
-            secret: "an access token",
-            realm: "microsoft",
-            target: "scope1 scope2 scope3",
-            clientId: "mock_client_id",
-            cachedAt: "1000",
-            homeAccountId: "uid.utid",
-            extendedExpiresOn: "4600",
-            expiresOn: "4600",
-            keyId: "V6N_HMPagNpYS_wxM14X73q3eWzbTr9Z31RyHkIcN0Y",
-            tokenType: AuthenticationScheme.POP,
-        };
-
-        jest.spyOn(mockCrypto, "removeTokenBindingKey").mockImplementation(
-            (keyId: string): Promise<boolean> => {
-                return Promise.reject();
-            }
-        );
-
-        return await expect(
-            mockCache.cacheManager.removeAccessToken(
-                CacheHelpers.generateCredentialKey(atWithAuthScheme),
-                RANDOM_TEST_GUID
-            )
-        ).rejects.toThrow(
-            createClientAuthError(ClientAuthErrorCodes.bindingKeyNotRemoved)
-        );
     });
 
     it("getAccessToken matches multiple tokens, removes them and returns null", (done) => {
