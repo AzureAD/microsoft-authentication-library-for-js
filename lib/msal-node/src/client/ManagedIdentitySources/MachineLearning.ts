@@ -23,6 +23,8 @@ import { NodeStorage } from "../../cache/NodeStorage.js";
 
 const MACHINE_LEARNING_MSI_API_VERSION: string = "2017-09-01";
 
+export const MANAGED_IDENTITY_MACHINE_LEARNING_UNSUPPORTED_ID_TYPE_ERROR = `Only client id is supported for user-assigned managed identity in ${ManagedIdentitySourceNames.MACHINE_LEARNING}.`; // referenced in unit test
+
 export class MachineLearning extends BaseManagedIdentitySource {
     private msiEndpoint: string;
     private secret: string;
@@ -126,7 +128,10 @@ export class MachineLearning extends BaseManagedIdentitySource {
                 ManagedIdentityEnvironmentVariableNames
                     .DEFAULT_IDENTITY_CLIENT_ID
             ] as string; // this environment variable is always set in an Azure Machine Learning source
-        } else {
+        } else if (
+            managedIdentityId.idType ===
+            ManagedIdentityIdType.USER_ASSIGNED_CLIENT_ID
+        ) {
             request.queryParameters[
                 this.getManagedIdentityUserAssignedIdQueryParameterKey(
                     managedIdentityId.idType,
@@ -134,6 +139,10 @@ export class MachineLearning extends BaseManagedIdentitySource {
                     true // uses2017API
                 )
             ] = managedIdentityId.id;
+        } else {
+            throw new Error(
+                MANAGED_IDENTITY_MACHINE_LEARNING_UNSUPPORTED_ID_TYPE_ERROR
+            );
         }
 
         // bodyParameters calculated in BaseManagedIdentity.acquireTokenWithManagedIdentity
